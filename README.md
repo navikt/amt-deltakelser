@@ -18,13 +18,23 @@ dokumentasjon på hvilke ressurser som er opprettet.
 ### Manuelle steg
 
 Det er noen ressurser som må opprettes manuelt i hvert GCP-prosjekt for å få Terraform til å fungere: 
-1. ServiceAccount for Terraform med key (json) som har tilstrekkelige permissions for ressurser som skal opprettes
-2. Bucket for Terraform-tilstand (`amt-terraform-state-dev` for dev)
+- ServiceAccount for Terraform
+  - Gi tilstrekkelige permissions for ressurser som skal opprettes
+  - Opprett key i json-format, og ta vare på filen som lastes ned
+- Bucket for Terraform-tilstand (`amt-terraform-state-dev` for dev)
 
-Manuelt oppsett Github Actions: 
-1. Legg til en repository secret som heter `GCP_SECRET_DEV` for dev og som inneholder json-keyen for service accounten for Terraform.
+Manuelt oppsett GitHub Actions: 
+- Legg til en repository secret som heter `GCP_SECRET_DEV` for dev og som inneholder json-keyen for service accounten for Terraform. 
+
+Oppsett fra egen maskin: 
+- Kjør `export GOOGLE_CREDENTIALS=~/<key>.json` (`<key>.json` er filen som inneholder json-keyen for service accounten for Terraform).
 
 #### Manuelt oppsett database
 Det må opprettes databasebruker for datastreamen, databasebrukeren må gis tilgang, og det må settes opp replikering. 
 Dette er godt beskrevet her: https://github.com/navikt/nada-datastream?tab=readme-ov-file#forutsetninger-for-bruk. 
 OBS! Ikke sett opp replikeringen før man nærmer seg klar til å lese inn dataene fra datastreamen, hvis ikke fyller disken seg opp! 
+
+#### Private IP
+Når man har opprettet VPC med Terraform må man legge til Private IP på databasen og koble den til den opprettede VPC-en. Dette gjør du 
+fra GCP-konsollet (SQL -> databasen du vil koble opp -> Connections -> Networking). Merk at dette krever nedetid på databasen 
+fordi den restarter. 
