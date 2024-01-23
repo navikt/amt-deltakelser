@@ -27,7 +27,7 @@ locals {
 module "google_storage_bucket" {
   source = "../modules/google-cloud-storage"
 
-  name     = "amt-terraform-state-dev"
+  name     = "amt-testbucket"
   location = var.gcp_project["region"]
 }
 
