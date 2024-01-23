@@ -1,4 +1,4 @@
-# amt-biqquery-terraform
+# amt-bigquery-terraform
 
 Dette repoet er en tilpasset kopi av [Flex-bigquery-terraform](https://github.com/navikt/flex-bigquery-terraform). 
 
