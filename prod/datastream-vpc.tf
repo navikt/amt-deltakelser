@@ -37,7 +37,7 @@ resource "google_compute_firewall" "allow_datastream_to_cloud_sql" {
 
   allow {
     protocol = "tcp"
-    ports = []
+    ports    = []
   }
 
   source_ranges = [google_datastream_private_connection.amt_datastream_private_connection.vpc_peering_config.0.subnet]
