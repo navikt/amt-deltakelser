@@ -29,7 +29,7 @@ resource "google_datastream_connection_profile" "amttiltak_postgresql_connection
     port     = var.amttiltak_cloud_sql_port
     username = local.amttiltak_datastream_credentials["username"]
     password = local.amttiltak_datastream_credentials["password"]
-    database = "amt-tiltak-v1"
+    database = "amt-tiltak"
   }
 
   private_connectivity {
