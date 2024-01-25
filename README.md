@@ -17,6 +17,7 @@ dokumentasjon på hvilke ressurser som er opprettet.
 
 ### Manuelle steg
 
+#### Manuelt oppsett Terraform
 Det er noen ressurser som må opprettes manuelt i hvert GCP-prosjekt for å få Terraform til å fungere: 
 - ServiceAccount for Terraform
   - Gi tilstrekkelige permissions for ressurser som skal opprettes
@@ -38,3 +39,18 @@ OBS! Ikke sett opp replikeringen før man nærmer seg klar til å lese inn datae
 Når man har opprettet VPC med Terraform må man legge til Private IP på databasen og koble den til den opprettede VPC-en. Dette gjør du 
 fra GCP-konsollet (SQL -> databasen du vil koble opp -> Connections -> Networking). Merk at dette krever nedetid på databasen 
 fordi den restarter. 
+
+#### Opprette secret for datastream-bruker
+Det må opprettes en secret i Google Secret Manager som inneholder brukernavn og passord for databasebrukeren for datastreamen. 
+Dette gjør du manuelt i GCP-konsollet. Brukernavn og passord finner du i kubernetes-secreten som ble opprettet av nais da 
+databasebrukeren ble opprettet, og du kan hente ut verdiene slik: 
+`kubectl get secret <secret-navn> -o json | jq ".data | map_values(@base64d)"` (installer `jq` med brew hvis du ikke har det installert). 
+Secreten skal være på formatet 
+
+```
+{
+"username": "<brukernavn>",
+"password": "<passord>"
+}
+```
+og kan hete f.eks. `amttiltak-datastream-credentials`. 
