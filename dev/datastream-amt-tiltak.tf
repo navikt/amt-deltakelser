@@ -55,12 +55,6 @@ resource "google_datastream_stream" "amttiltak_datastream" {
       publication                   = "amttiltak_publication"
       replication_slot              = "amttiltak_replication"
 
-      exclude_objects {
-        postgresql_schemas {
-          schema = "public"
-        }
-      }
-
       include_objects {
         postgresql_schemas {
           schema = "public"
@@ -110,6 +104,19 @@ resource "google_datastream_stream" "amttiltak_datastream" {
             }
             postgresql_columns {
               column = "modified_at"
+            }
+          }
+        }
+      }
+
+      exclude_objects {
+        postgresql_schemas {
+          schema = "public"
+
+          postgresql_tables {
+            table = "bruker"
+            postgresql_columns {
+              column = "adressebeskyttelse"
             }
           }
         }
