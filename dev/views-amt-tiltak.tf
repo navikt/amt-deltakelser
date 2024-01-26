@@ -1,8 +1,8 @@
 module "amttiltak_deltaker_personident_view" {
-  source = "../modules/google-bigquery-view"
-
-  dataset_id = google_bigquery_dataset.amttiltak_dataset.dataset_id
-  view_id    = "amttiltak_deltaker_personident_view"
+  source              = "../modules/google-bigquery-view"
+  deletion_protection = false
+  dataset_id          = google_bigquery_dataset.amttiltak_dataset.dataset_id
+  view_id             = "amttiltak_deltaker_personident_view"
   view_schema = jsonencode(
     [
       {
