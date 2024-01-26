@@ -50,7 +50,7 @@ module "amttiltak_deltaker_personident_view" {
       {
         mode        = "NULLABLE"
         name        = "registrert_dato"
-        type        = "DATE"
+        type        = "TIMESTAMP"
         description = "Dato deltakeren ble påmeldt."
       },
       {
