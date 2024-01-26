@@ -74,9 +74,9 @@ SELECT
   deltaker.registrert_dato,
   bruker.person_ident
 FROM
-  `${var.gcp_project["project"]}.${google_bigquery_dataset.amttiltak_datastream.dataset_id}.public_deltaker` deltaker
+  `${var.gcp_project["project"]}.${google_bigquery_dataset.amttiltak_dataset.dataset_id}.public_deltaker` deltaker
 INNER JOIN
-  `${var.gcp_project["project"]}.${google_bigquery_dataset.amttiltak_datastream.dataset_id}.public_bruker` bruker
+  `${var.gcp_project["project"]}.${google_bigquery_dataset.amttiltak_dataset.dataset_id}.public_bruker` bruker
 ON
   deltaker.bruker_id = bruker.id
 EOF
