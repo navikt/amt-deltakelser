@@ -193,3 +193,56 @@ WHERE status.aktiv = true
 EOF
 
 }
+
+module "amttiltak_deltaker_status_view" {
+  source              = "../modules/google-bigquery-view"
+  deletion_protection = false
+  dataset_id          = google_bigquery_dataset.amttiltak_dataset.dataset_id
+  view_id             = "amttiltak_deltaker_status_view"
+  view_schema = jsonencode(
+    [
+      {
+        mode        = "NULLABLE"
+        name        = "deltaker_id"
+        type        = "STRING"
+        description = "Unik ID for deltaker."
+      },
+      {
+        mode        = "NULLABLE"
+        name        = "status"
+        type        = "STRING"
+        description = "Status for deltakeren."
+      },
+      {
+        mode        = "NULLABLE"
+        name        = "aarsak"
+        type        = "STRING"
+        description = "Statusårsak."
+      },
+      {
+        mode        = "NULLABLE"
+        name        = "gyldig_fra"
+        type        = "TIMESTAMP"
+        description = "Tidspunktet statusen er gyldig fra."
+      },
+      {
+        mode        = "NULLABLE"
+        name        = "aktiv"
+        type        = "BOOLEAN"
+        description = "Hvorvidt statusen er aktiv (nåværende status)."
+      },
+    ]
+  )
+
+  view_query = <<EOF
+SELECT
+  deltaker_id,
+  status,
+  aarsak,
+  gyldig_fra
+  aktiv
+FROM
+  `${var.gcp_project["project"]}.${google_bigquery_dataset.amttiltak_dataset.dataset_id}.public_deltaker_status`
+EOF
+
+}
