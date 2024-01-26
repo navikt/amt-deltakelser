@@ -186,7 +186,7 @@ INNER JOIN
 ON
   deltaker.bruker_id = bruker.id
 INNER JOIN
-  `${var.gcp_project["project"]}.${google_bigquery_dataset.amttiltak_dataset.dataset_id}.deltaker_status` status
+  `${var.gcp_project["project"]}.${google_bigquery_dataset.amttiltak_dataset.dataset_id}.public.deltaker_status` status
 ON
   deltaker.id = status.deltaker_id
 WHERE status.aktiv = true
