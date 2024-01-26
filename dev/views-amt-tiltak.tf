@@ -239,7 +239,7 @@ SELECT
   deltaker_id,
   status,
   aarsak,
-  gyldig_fra
+  gyldig_fra,
   aktiv
 FROM
   `${var.gcp_project["project"]}.${google_bigquery_dataset.amttiltak_dataset.dataset_id}.public_deltaker_status`
