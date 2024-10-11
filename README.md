@@ -15,6 +15,8 @@ Begrunnelsen for å bruke Terraform i stedet for å opprettet ressursene direkte
 gir det teamet en deterministisk måte å opprette og slette ressurser på. For det andre fungerer konfigurasjonen fungerer som 
 dokumentasjon på hvilke ressurser som er opprettet. 
 
+*OBS: Husk å se over resultatet av `terraform plan` før du merger noe til main!*
+
 ### Manuelle steg
 
 #### Manuelt oppsett Terraform
