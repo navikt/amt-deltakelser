@@ -33,12 +33,7 @@ Oppsett fra egen maskin:
 #### Manuelt oppsett database
 Det må opprettes databasebruker for datastreamen, databasebrukeren må gis tilgang, og det må settes opp replikering. 
 Dette er godt beskrevet her: https://github.com/navikt/nada-datastream?tab=readme-ov-file#forutsetninger-for-bruk. 
-OBS! Ikke sett opp replikeringen før man nærmer seg klar til å lese inn dataene fra datastreamen, hvis ikke fyller disken seg opp! 
-
-#### Private IP
-Når man har opprettet VPC med Terraform må man legge til Private IP på databasen og koble den til den opprettede VPC-en. Dette gjør du 
-fra GCP-konsollet (SQL -> databasen du vil koble opp -> Connections -> Networking). Merk at dette krever nedetid på databasen 
-fordi den restarter. 
+OBS! Ikke sett opp replikeringen før man nærmer seg klar til å lese inn dataene fra datastreamen, hvis ikke fyller disken seg opp!
 
 #### Opprette secret for datastream-bruker
 Det må opprettes en secret i Google Secret Manager som inneholder brukernavn og passord for databasebrukeren for datastreamen. 
