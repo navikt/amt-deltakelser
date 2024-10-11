@@ -29,12 +29,6 @@ variable "data_transfer_display_name" {
   type        = string
 }
 
-variable "data_transfer_data_source_id" {
-  description = "The documentation states that this value can be changed, but any other value than the default causes failure."
-  type        = string
-  default     = "scheduled_query"
-}
-
 variable "data_transfer_schedule" {
   description = "When the data transfer should run."
   type        = string
