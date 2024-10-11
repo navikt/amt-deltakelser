@@ -1,8 +1,9 @@
 resource "google_bigquery_dataset" "amttiltak_dataset" {
-  dataset_id = "amttiltak_dataset"
-  location   = var.gcp_project["region"]
-  project    = var.gcp_project["project"]
-  labels     = {}
+  dataset_id                 = "amttiltak_dataset"
+  location                   = var.gcp_project["region"]
+  project                    = var.gcp_project["project"]
+  labels                     = {}
+  delete_contents_on_destroy = true
 
   access {
     role          = "OWNER"
