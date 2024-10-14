@@ -1,7 +1,7 @@
 module "amttiltak_deltaker_personident_view" {
   source              = "../modules/google-bigquery-view"
   deletion_protection = false
-  dataset_id          = google_bigquery_dataset.amt_dataset.dataset_id
+  dataset_id          = module.amttiltak_datastream.dataset_id
   view_id             = "amttiltak_deltaker_personident_view"
   view_schema = jsonencode(
     [
@@ -86,7 +86,7 @@ EOF
 module "amttiltak_deltaker_siste_status_view" {
   source              = "../modules/google-bigquery-view"
   deletion_protection = false
-  dataset_id          = google_bigquery_dataset.amt_dataset.dataset_id
+  dataset_id          = module.amttiltak_datastream.dataset_id
   view_id             = "amttiltak_deltaker_siste_status_view"
   view_schema = jsonencode(
     [
@@ -197,7 +197,7 @@ EOF
 module "amttiltak_deltaker_status_view" {
   source              = "../modules/google-bigquery-view"
   deletion_protection = false
-  dataset_id          = google_bigquery_dataset.amt_dataset.dataset_id
+  dataset_id          = module.amttiltak_datastream.dataset_id
   view_id             = "amttiltak_deltaker_status_view"
   view_schema = jsonencode(
     [
