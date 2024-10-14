@@ -22,21 +22,21 @@ module "amttiltak_datastream" {
   authorized_views = [
     {
       view = {
-        dataset_id = "amttiltak_dataset"
+        dataset_id = "amt_dataset"
         project_id = var.gcp_project["project"]
         table_id   = "amttiltak_deltaker_personident_view"
       }
     },
     {
       view = {
-        dataset_id = "amttiltak_dataset"
+        dataset_id = "amt_dataset"
         project_id = var.gcp_project["project"]
         table_id   = "amttiltak_deltaker_siste_status_view"
       }
     },
     {
       view = {
-        dataset_id = "amttiltak_dataset"
+        dataset_id = "amt_dataset"
         project_id = var.gcp_project["project"]
         table_id   = "amttiltak_deltaker_status_view"
       }
