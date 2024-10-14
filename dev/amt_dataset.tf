@@ -1,7 +1,7 @@
-resource "google_bigquery_dataset" "amttiltak_dataset" {
-  dataset_id    = "amttiltak_dataset"
+resource "google_bigquery_dataset" "amt_dataset" {
+  dataset_id    = "amt_dataset"
   location      = var.gcp_project["region"]
-  friendly_name = "amttiltak_dataset"
+  friendly_name = "amt_dataset"
   labels        = {}
 
   access {
