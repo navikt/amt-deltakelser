@@ -38,7 +38,8 @@ resource "google_compute_firewall" "allow_datastream_to_cloud_sql" {
   allow {
     protocol = "tcp"
     ports = [
-      var.amttiltak_cloud_sql_port
+      var.amttiltak_cloud_sql_port,
+      var.amt_deltaker_cloud_sql_port
     ]
   }
 
