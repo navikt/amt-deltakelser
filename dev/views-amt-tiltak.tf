@@ -55,6 +55,12 @@ module "amttiltak_deltaker_personident_view" {
       },
       {
         mode        = "NULLABLE"
+        name        = "kilde"
+        type        = "STRING"
+        description = "Hvor deltakeren opprinnelig ble opprettet - ARENA eller KOMET."
+      },
+      {
+        mode        = "NULLABLE"
         name        = "person_ident"
         type        = "STRING"
         description = "Fødselsnummer til personen som deltar."
@@ -72,6 +78,7 @@ SELECT
   deltaker.dager_per_uke,
   deltaker.prosent_stilling,
   deltaker.registrert_dato,
+  deltaker.kilde,
   bruker.person_ident
 FROM
   `${var.gcp_project["project"]}.${module.amttiltak_datastream.dataset_id}.public_deltaker` deltaker
@@ -140,6 +147,12 @@ module "amttiltak_deltaker_siste_status_view" {
       },
       {
         mode        = "NULLABLE"
+        name        = "kilde"
+        type        = "STRING"
+        description = "Hvor deltakeren opprinnelig ble opprettet - ARENA eller KOMET."
+      },
+      {
+        mode        = "NULLABLE"
         name        = "person_ident"
         type        = "STRING"
         description = "Fødselsnummer til personen som deltar."
@@ -175,6 +188,7 @@ SELECT
   deltaker.dager_per_uke,
   deltaker.prosent_stilling,
   deltaker.registrert_dato,
+  deltaker.kilde,
   bruker.person_ident,
   status.status,
   status.aarsak,
