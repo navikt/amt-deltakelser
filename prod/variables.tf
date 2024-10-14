@@ -18,9 +18,3 @@ variable "amttiltak_cloud_sql_port" {
   type        = string
   default     = "5432"
 }
-
-variable "metabase_service_account" {
-  description = "The Metabase Service Account used when accessing data. Must have access to tables underlying views."
-  type        = string
-  default     = "nada-metabase@nada-prod-6977.iam.gserviceaccount.com"
-}

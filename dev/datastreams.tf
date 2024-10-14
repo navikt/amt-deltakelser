@@ -18,4 +18,28 @@ module "amttiltak_datastream" {
   datastream_vpc_resources            = local.datastream_vpc_resources
   postgresql_include_schemas          = [{ schema = "public", tables = [{ table = "deltaker_status" }, { table = "bruker", columns = ["id", "person_ident"] }, { table = "deltaker", columns = ["id", "bruker_id", "gjennomforing_id", "start_dato", "slutt_dato", "dager_per_uke", "prosent_stilling", "registrert_dato", "created_at", "modified_at"] }] }]
   postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "bruker", columns = ["adressebeskyttelse"] }] }]
+
+  authorized_views = [
+    {
+      view = {
+        dataset_id = "amttiltak_dataset"
+        project_id = var.gcp_project["project"]
+        table_id   = "amttiltak_deltaker_personident_view"
+      }
+    },
+    {
+      view = {
+        dataset_id = "amttiltak_dataset"
+        project_id = var.gcp_project["project"]
+        table_id   = "amttiltak_deltaker_siste_status_view"
+      }
+    },
+    {
+      view = {
+        dataset_id = "amttiltak_dataset"
+        project_id = var.gcp_project["project"]
+        table_id   = "amttiltak_deltaker_status_view"
+      }
+    }
+  ]
 }
