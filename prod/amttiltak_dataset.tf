@@ -20,10 +20,6 @@ resource "google_bigquery_dataset" "amttiltak_dataset" {
     role          = "WRITER"
     special_group = "projectWriters"
   }
-  access {
-    role          = "roles/bigquery.metadataViewer"
-    user_by_email = var.metabase_service_account
-  }
 
   timeouts {}
 }
