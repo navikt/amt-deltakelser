@@ -45,22 +45,8 @@ module "amttiltak_datastream" {
       view = {
         dataset_id = "markedsplassen_pseudo"
         project_id = var.gcp_project["project"]
-        table_id   = "amt_tiltak_datastream_amttiltak_deltaker_personident_view"
-      }
-    },
-    {
-      view = {
-        dataset_id = "markedsplassen_pseudo"
-        project_id = var.gcp_project["project"]
         table_id   = "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view"
       }
-    },
-    {
-      view = {
-        dataset_id = "markedsplassen_pseudo"
-        project_id = var.gcp_project["project"]
-        table_id   = "amt_tiltak_datastream_amttiltak_deltaker_status_view"
-      }
-    },
+    }
   ]
 }
