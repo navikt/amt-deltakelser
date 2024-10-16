@@ -5,27 +5,27 @@ resource "google_bigquery_dataset" "datastream_dataset" {
   labels                     = {}
   delete_contents_on_destroy = var.big_query_dataset_delete_contents_on_destroy
 
-  dynamic "access" {
-    for_each = concat(local.default_access_roles, var.access_roles)
-    content {
-      role           = access.value.role
-      special_group  = try(access.value.special_group, null)
-      group_by_email = try(access.value.group_by_email, null)
-      user_by_email  = try(access.value.user_by_email, null)
-    }
-  }
+  # dynamic "access" {
+  #   for_each = concat(local.default_access_roles, var.access_roles)
+  #   content {
+  #     role           = access.value.role
+  #     special_group  = try(access.value.special_group, null)
+  #     group_by_email = try(access.value.group_by_email, null)
+  #     user_by_email  = try(access.value.user_by_email, null)
+  #   }
+  # }
 
-  dynamic "access" {
-    for_each = var.authorized_views
+  # dynamic "access" {
+  #   for_each = var.authorized_views
 
-    content {
-      view {
-        dataset_id = access.value.view.dataset_id
-        project_id = access.value.view.project_id
-        table_id   = access.value.view.table_id
-      }
-    }
-  }
+  #   content {
+  #     view {
+  #       dataset_id = access.value.view.dataset_id
+  #       project_id = access.value.view.project_id
+  #       table_id   = access.value.view.table_id
+  #     }
+  #   }
+  # }
 
   timeouts {}
 }
