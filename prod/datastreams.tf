@@ -65,3 +65,18 @@ module "amt_deltaker_datastream" {
 
   authorized_views = []
 }
+
+module "amt_distribusjon_datastream" {
+  source                              = "../modules/google-bigquery-datastream"
+  gcp_project                         = var.gcp_project
+  application_name                    = "amt-distribusjon"
+  cloud_sql_instance_name             = "amt-distribusjon"
+  cloud_sql_instance_db_name          = "amt-distribusjon"
+  cloud_sql_instance_db_credentials   = local.amt_distribusjon_datastream_credentials
+  cloud_sql_instance_publication_name = "amt_distribusjon_publication"
+  cloud_sql_instance_replication_name = "amt_distribusjon_replication"
+  datastream_vpc_resources            = local.datastream_vpc_resources
+  postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }] }]
+
+  authorized_views = []
+}

@@ -25,7 +25,18 @@ variable "amt_deltaker_datastream_secret" {
 }
 
 variable "amt_deltaker_cloud_sql_port" {
-  description = "The port exposed by the amt-tiltak database Cloud SQL instance."
+  description = "The port exposed by the amt-deltaker database Cloud SQL instance."
+  type        = string
+  default     = "5432"
+}
+
+variable "amt_distribusjon_datastream_secret" {
+  description = "The key of the GCP secret that provides the amt-distribusjon datastream credentials."
+  type        = string
+}
+
+variable "amt_distribusjon_cloud_sql_port" {
+  description = "The port exposed by the amt-distribusjon database Cloud SQL instance."
   type        = string
   default     = "5432"
 }
