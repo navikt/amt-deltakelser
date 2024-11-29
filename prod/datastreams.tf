@@ -16,7 +16,7 @@ module "amttiltak_datastream" {
   cloud_sql_instance_publication_name = "amttiltak_publication"
   cloud_sql_instance_replication_name = "amttiltak_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
-  postgresql_include_schemas          = [{ schema = "public", tables = [{ table = "deltaker_status" }, { table = "gjennomforing" }, { table = "bruker", columns = ["id", "person_ident"] }, { table = "deltaker", columns = ["id", "bruker_id", "gjennomforing_id", "start_dato", "slutt_dato", "dager_per_uke", "prosent_stilling", "registrert_dato", "created_at", "modified_at", "kilde"] }] }]
+  postgresql_include_schemas          = [{ schema = "public", tables = [{ table = "deltaker_status" }, { table = "bruker", columns = ["id", "person_ident"] }, { table = "deltaker", columns = ["id", "bruker_id", "gjennomforing_id", "start_dato", "slutt_dato", "dager_per_uke", "prosent_stilling", "registrert_dato", "created_at", "modified_at", "kilde"] }, { table = "gjennomforing" }] }]
   postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "bruker", columns = ["adressebeskyttelse"] }] }]
 
   authorized_views = [
