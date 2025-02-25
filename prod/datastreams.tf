@@ -61,7 +61,7 @@ module "amt_deltaker_datastream" {
   cloud_sql_instance_publication_name = "amt_deltaker_publication"
   cloud_sql_instance_replication_name = "amt_deltaker_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
-  postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "adressebeskyttelse", "er_skjermet"] }, { table = "nav_ansatt" }] }]
+  postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] }, { table = "nav_ansatt" }] }]
 
   authorized_views = []
 }
