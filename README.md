@@ -51,3 +51,78 @@ Secreten skal være på formatet
 }
 ```
 og kan hete f.eks. `amttiltak-datastream-credentials`. 
+
+## Feilsituasjoner
+
+### Oppgradering av postgres versjon
+Når man migrerer databaser til ny versjon kommer datastreamen til å stoppe opp, og kan ende opp som `Permanently Failed` i gcp consolet.
+
+#### 1. Gjenopprett replication slot
+Oppgraderingen fjerner logiske replication slots. Gjenopprett den med:
+```sql
+PERFORM PG_CREATE_LOGICAL_REPLICATION_SLOT('<app>_replication', 'pgoutput');
+```
+
+Du kan verifisere om det gikk bra ved å kjøre:
+```sql
+SELECT * FROM pg_replication_slots;
+```
+
+Bruk samme navn som er konfigurert i [datastreams.tf](./prod/datastreams.tf)
+
+#### 2. Forsøk `Recover Stream`
+Fyll inn navnet på replication slottet som ble gjennopprettet, og start recovery.
+
+Hvis det gikk bra, gå til Backfill steget, hvis ikke så bør det være en beskrivelse av feilen i vinduet.
+
+For eksempel kan det hende at datastreamen ikke har tilgang til tabeller som er nylig opprettet, da må man
+grante privileges som vanlig med noe som:
+```sql
+DO
+$$
+    BEGIN
+        IF EXISTS
+            (SELECT 1 from pg_roles where rolname = 'datastream')
+        THEN
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO "datastream";
+            GRANT USAGE ON SCHEMA public TO "datastream";
+            GRANT SELECT ON ALL TABLES IN SCHEMA public TO "datastream";
+        END IF;
+    END
+$$;
+END;
+```
+
+#### 3. Backfill
+Siden datastreamen har vært nede en stund, kan det være at den har gått glipp av endringer i databasen.
+Man kan da initiere en backfill av dataene, hvor datastreamen da leser inn all data fra tabellen på nytt.
+
+1. Det kan gjøres ved å gå inn på streamen i consolet.
+2. Finn fanen som heter objects
+3. `Initiate Backfill` på en eller alle tabellene som skal etterfylles.
+
+#### 4. Avstem data
+Det kan være lurt å sjekke om vi har konsistente data i Big Query etter dette er gjort, gjør noen tellinger i BQ og postgres. 
+Men vær obs på at BQ kan gjøre noe smart caching som fører til at det kan ta litt tid før man får det riktige resultatet.
+
+Benytt f.eks. feltet modified_at for å sjekke om det er konsistente data.
+
+**Eksempel for amt-distribusjon**
+
+Spørring BigQuery:
+```sql
+SELECT MAX(modified_at) FROM amt_distribusjon_datastream.public_tiltakshendelse
+```
+
+Spørring PostgreSQL:
+```sql
+SELECT MAX(modified_at) FROM tiltakshendelse
+```
+Spørringene bør gi samme resultat.
+
+
+### Oppgradering av kubernetes clustre, eller rotering av passord
+Når nais oppgraderer kubernetes clustre kan det føre til at passord for databasebrukere blir rotert.
+I det tilfellet må man opprette en ny versjon av secreten som inneholder brukernavn og passord for datastreamen sin postgresbruker.
+
+Følg oppskriften som er gitt [her](#opprette-secret-for-datastream-bruker) for å hente ut oppdatert passord for brukeren.
