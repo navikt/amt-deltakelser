@@ -39,12 +39,12 @@ data "google_sql_database_instance" "database_instance" {
 module "cloud_sql_auth_proxy_container_datastream" {
   // https://registry.terraform.io/modules/terraform-google-modules/container-vm/google/latest
   source  = "terraform-google-modules/container-vm/google"
-  version = "3.1.1"
+  version = "~> 3.2"
   // https://cloud.google.com/container-optimized-os/docs/release-notes
   cos_image_name = "cos-113-18244-85-5"
   container = {
     // https://github.com/GoogleCloudPlatform/cloud-sql-proxy/releases
-    image   = "eu.gcr.io/cloudsql-docker/gce-proxy:1.35.1"
+    image   = "eu.gcr.io/cloudsql-docker/gce-proxy:2.18.2"
     command = ["/cloud_sql_proxy"]
     args = [
       "-instances=${data.google_sql_database_instance.database_instance.connection_name}=tcp:0.0.0.0:5432",
