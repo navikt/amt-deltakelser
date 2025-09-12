@@ -27,6 +27,9 @@ jobs:
       - name: Run 'terraform init'
         run: terraform init
 
+      - name: Run 'terraform providers'
+        run: terraform providers
+
       - name: Run 'terraform fmt'
         run: terraform fmt -check
 
