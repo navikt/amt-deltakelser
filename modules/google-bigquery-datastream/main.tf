@@ -5,6 +5,11 @@ resource "google_bigquery_dataset" "datastream_dataset" {
   labels                     = {}
   delete_contents_on_destroy = var.big_query_dataset_delete_contents_on_destroy
 
+  # Her kan man styre tilganger til datasettene manuellt. 
+  # Problemet er bare at det er datamarkedsplassen som egentlig skal styre tilganger til datasett.
+  # Hvis man legger til denne configen igjen vil det føre til at alle tilganger som ikke er definert her
+  # blir slettet når man applyer en ny, ellers urelatert, config.
+
   # dynamic "access" {
   #   for_each = concat(local.default_access_roles, var.access_roles)
   #   content {
