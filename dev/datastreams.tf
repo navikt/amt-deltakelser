@@ -7,6 +7,8 @@ locals {
 }
 
 module "amttiltak_datastream" {
+  count = var.enable_amt_tiltak_datastream ? 1 : 0
+
   source                              = "../modules/google-bigquery-datastream"
   gcp_project                         = var.gcp_project
   application_name                    = "amt-tiltak"
@@ -45,6 +47,8 @@ module "amttiltak_datastream" {
 }
 
 module "amt_deltaker_datastream" {
+  count = var.enable_amt_deltaker_datastream ? 1 : 0
+
   source                              = "../modules/google-bigquery-datastream"
   gcp_project                         = var.gcp_project
   application_name                    = "amt-deltaker"

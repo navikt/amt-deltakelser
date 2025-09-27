@@ -8,6 +8,18 @@ variable "gcp_project" {
   }
 }
 
+variable "enable_amt_tiltak_datastream" {
+  description = "Enable datastream for amt-tiltak"
+  type        = bool
+  default     = true
+}
+
+variable "enable_amt_deltaker_datastream" {
+  description = "Enable datastream for amt-deltaker"
+  type        = bool
+  default     = true
+}
+
 variable "amttiltak_datastream_secret" {
   description = "The key of the GCP secret that provides the amt-tiltak datastream credentials."
   type        = string
@@ -18,7 +30,6 @@ variable "amttiltak_cloud_sql_port" {
   type        = string
   default     = "5432"
 }
-
 
 variable "amt_deltaker_datastream_secret" {
   description = "The key of the GCP secret that provides the amt-deltaker datastream credentials."
