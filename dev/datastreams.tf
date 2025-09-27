@@ -6,7 +6,7 @@ locals {
   }
 }
 
-/*module "amttiltak_datastream" {
+module "amttiltak_datastream" {
   source                              = "../modules/google-bigquery-datastream"
   gcp_project                         = var.gcp_project
   application_name                    = "amt-tiltak"
@@ -43,7 +43,6 @@ locals {
     }
   ]
 }
-*/
 
 module "amt_deltaker_datastream" {
   source                              = "../modules/google-bigquery-datastream"
