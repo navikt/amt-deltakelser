@@ -8,4 +8,8 @@ resource "google_bigquery_table" "view" {
     use_legacy_sql = false
     query          = var.view_query
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
