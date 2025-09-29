@@ -11,19 +11,19 @@ variable "gcp_project" {
 variable "enable_amt_tiltak_datastream" {
   description = "Enable datastream for amt-tiltak"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_amt_deltaker_datastream" {
   description = "Enable datastream for amt-deltaker"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_amt_distribusjon_datastream" {
   description = "Enable datastream for amt-distribusjon"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "amttiltak_datastream_secret" {
