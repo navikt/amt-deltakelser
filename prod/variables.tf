@@ -29,6 +29,7 @@ variable "enable_amt_distribusjon_datastream" {
 variable "amttiltak_datastream_secret" {
   description = "The key of the GCP secret that provides the amt-tiltak datastream credentials."
   type        = string
+  default     = "amttiltak-datastream-credentials"
 }
 
 variable "amttiltak_cloud_sql_port" {
@@ -40,6 +41,7 @@ variable "amttiltak_cloud_sql_port" {
 variable "amt_deltaker_datastream_secret" {
   description = "The key of the GCP secret that provides the amt-deltaker datastream credentials."
   type        = string
+  default     = "amt-deltaker-datastream-credentials"
 }
 
 variable "amt_deltaker_cloud_sql_port" {
@@ -51,6 +53,7 @@ variable "amt_deltaker_cloud_sql_port" {
 variable "amt_distribusjon_datastream_secret" {
   description = "The key of the GCP secret that provides the amt-distribusjon datastream credentials."
   type        = string
+  default     = "amt-distribusjon-datastream-credentials"
 }
 
 variable "amt_distribusjon_cloud_sql_port" {

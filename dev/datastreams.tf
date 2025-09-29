@@ -6,6 +6,23 @@ locals {
   }
 }
 
+module "amt_deltaker_datastream" {
+  count = var.enable_amt_deltaker_datastream ? 1 : 0
+
+  source                              = "../modules/google-bigquery-datastream"
+  gcp_project                         = var.gcp_project
+  application_name                    = "amt-deltaker"
+  cloud_sql_instance_name             = "amt-deltaker"
+  cloud_sql_instance_db_name          = "amt-deltaker"
+  cloud_sql_instance_db_credentials   = local.amt_deltaker_datastream_credentials
+  cloud_sql_instance_publication_name = "amt_deltaker_publication"
+  cloud_sql_instance_replication_name = "amt_deltaker_replication"
+  datastream_vpc_resources            = local.datastream_vpc_resources
+  postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] }, { table = "nav_ansatt" }] }]
+
+  authorized_views = []
+}
+
 module "amttiltak_datastream" {
   count = var.enable_amt_tiltak_datastream ? 1 : 0
 
@@ -44,21 +61,4 @@ module "amttiltak_datastream" {
       }
     }
   ]
-}
-
-module "amt_deltaker_datastream" {
-  count = var.enable_amt_deltaker_datastream ? 1 : 0
-
-  source                              = "../modules/google-bigquery-datastream"
-  gcp_project                         = var.gcp_project
-  application_name                    = "amt-deltaker"
-  cloud_sql_instance_name             = "amt-deltaker"
-  cloud_sql_instance_db_name          = "amt-deltaker"
-  cloud_sql_instance_db_credentials   = local.amt_deltaker_datastream_credentials
-  cloud_sql_instance_publication_name = "amt_deltaker_publication"
-  cloud_sql_instance_replication_name = "amt_deltaker_replication"
-  datastream_vpc_resources            = local.datastream_vpc_resources
-  postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] }, { table = "nav_ansatt" }] }]
-
-  authorized_views = []
 }

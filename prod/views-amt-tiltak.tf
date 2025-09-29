@@ -1,5 +1,5 @@
 module "amttiltak_views" {
-  count = 0
+  count = var.enable_amt_tiltak_datastream ? 1 : 0
 
   source      = "../modules/amttiltak-views"
   gcp_project = var.gcp_project

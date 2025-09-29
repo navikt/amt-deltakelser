@@ -101,7 +101,7 @@ variable "postgres_connection_profile_id" {
 variable "cloud_sql_proxy_vm_machine_type" {
   description = "The Google Compute Engine machine type to use for the Cloud SQL Auth Proxy."
   type        = string
-  default     = "e2-small"
+  default     = "e2-micro"
 }
 
 variable "cloud_sql_proxy_logging_enabled" {
