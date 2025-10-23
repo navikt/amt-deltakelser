@@ -53,7 +53,7 @@ module "amttiltak_datastream" {
   application_name                    = "amt-tiltak"
   cloud_sql_instance_name             = "amt-tiltak"
   cloud_sql_instance_db_name          = "amt-tiltak"
-  cloud_sql_instance_db_credentials   = local.amttiltak_datastream_credentials
+  cloud_sql_instance_db_credentials   = local.amt_tiltak_datastream_credentials
   cloud_sql_instance_publication_name = "amttiltak_publication"
   cloud_sql_instance_replication_name = "amttiltak_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
