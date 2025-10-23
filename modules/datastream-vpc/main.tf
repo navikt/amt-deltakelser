@@ -23,7 +23,7 @@ resource "google_datastream_private_connection" "amt_datastream_private_connecti
 
   vpc_peering_config {
     vpc    = google_compute_network.amt_datastream_private_vpc.id
-    subnet = "10.1.0.0/29"
+    subnet = "10.0.0.0/29"
   }
 }
 
@@ -38,12 +38,18 @@ resource "google_compute_firewall" "allow_datastream_to_cloud_sql" {
   allow {
     protocol = "tcp"
     ports = [
-      var.amttiltak_cloud_sql_port,
-      var.amt_deltaker_cloud_sql_port
+      var.cloud_sql_port,
+      "22" # for debugging, må fjernes
     ]
   }
 
-  source_ranges = [google_datastream_private_connection.amt_datastream_private_connection.vpc_peering_config.0.subnet]
+  source_ranges = [
+    google_datastream_private_connection.amt_datastream_private_connection.vpc_peering_config.0.subnet,
+  ]
+
+  # log_config {
+  #   metadata = "INCLUDE_ALL_METADATA" # logger all metadata
+  # }
 }
 
 // Datastream connection profile for BigQuery target. Can be used by multiple streams.

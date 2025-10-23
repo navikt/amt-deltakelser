@@ -1,4 +1,4 @@
-module "amttiltak_deltaker_personident_view" {
+module "amt_tiltak_deltaker_personident_view" {
   source              = "../google-bigquery-view"
   deletion_protection = false
   dataset_id          = var.dataset_id
@@ -37,7 +37,7 @@ ON deltaker.bruker_id = bruker.id
 EOF
 }
 
-module "amttiltak_deltaker_siste_status_view" {
+module "amt_tiltak_deltaker_siste_status_view" {
   source              = "../google-bigquery-view"
   deletion_protection = false
   dataset_id          = var.dataset_id
@@ -86,7 +86,7 @@ WHERE status.aktiv = true
 EOF
 }
 
-module "amttiltak_deltaker_status_view" {
+module "amt_tiltak_deltaker_status_view" {
   source              = "../google-bigquery-view"
   deletion_protection = false
   dataset_id          = var.dataset_id
