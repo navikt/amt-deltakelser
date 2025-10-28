@@ -1,88 +1,192 @@
 locals {
   datastream_vpc_resources = {
-    vpc_name                       = google_compute_network.amt_datastream_private_vpc.name
-    private_connection_id          = google_datastream_private_connection.amt_datastream_private_connection.id
-    bigquery_connection_profile_id = google_datastream_connection_profile.datastream_bigquery_connection_profile.id
+    vpc_name                       = module.amt_datastream_vpc.vpc_name
+    private_connection_id          = module.amt_datastream_vpc.private_connection_id
+    bigquery_connection_profile_id = module.amt_datastream_vpc.bigquery_connection_profile_id
   }
+
+  access_roles = [
+    {
+      role          = "OWNER"
+      special_group = "projectOwners"
+    },
+    {
+      role          = "READER"
+      special_group = "projectReaders"
+    },
+    {
+      role          = "WRITER"
+      special_group = "projectWriters"
+    },
+    {
+      role           = "roles/bigquery.metadataViewer"
+      group_by_email = "all-users@nav.no"
+    },
+    {
+      role          = "roles/bigquery.metadataViewer"
+      user_by_email = "nada-metabase@nada-prod-6977.iam.gserviceaccount.com"
+    },
+  ]
+
+  deltaker_table_ids = [
+    "deltaker_endring_view",
+    "deltaker_status_view",
+    "deltaker_underoppfolging_view",
+    "deltaker_view",
+    "endring_fra_arrangor_view",
+    "endring_fra_tiltakskoordinator_view",
+    "forslag_view",
+    "forlengelse_forslag_behandlet_for_sluttdato_view",
+    "vedtak_view",
+  /*    "forlengelse_forslag_sendt_ift_sluttdato",
+    "public_arrangor",
+    "public_deltaker",
+    "public_deltaker_endring",
+    "public_deltaker_status",
+    "public_deltakerliste",
+    "public_endring_fra_arrangor",
+    "public_endring_fra_tiltakskoordinator",
+    "public_forslag",
+    "public_importert_fra_arena",
+    "public_innsok_paa_felles_oppstart",
+    "public_nav_bruker",
+    "public_nav_enhet",
+    "public_tiltakstype",
+    "public_vedtak",
+    "public_vurdering",
+*/]
+
+  distribusjon_tables_ids = [
+    "hendelse",
+    "journaforing",
+    /*    "public_hendelse",
+    "public_journalforingstatus",
+    "public_outbox_record",
+    "public_tiltakshendelse",
+    "public_varsel",*/
+  ]
+
+  tiltak_table_ids = [
+    "amttiltak_deltaker_personident_view",
+    "amttiltak_deltaker_siste_status_view",
+    "amttiltak_deltaker_status_view",
+  ]
 }
 
-module "amttiltak_datastream" {
-  count = var.enable_amt_tiltak_datastream ? 1 : 0
-
-  source                              = "../modules/google-bigquery-datastream"
-  gcp_project                         = var.gcp_project
-  application_name                    = "amt-tiltak"
-  cloud_sql_instance_name             = "amt-tiltak-v1"
-  cloud_sql_instance_db_name          = "amt-tiltak"
-  cloud_sql_instance_db_credentials   = local.amttiltak_datastream_credentials
-  cloud_sql_instance_publication_name = "amttiltak_publication"
-  cloud_sql_instance_replication_name = "amttiltak_replication"
-  datastream_vpc_resources            = local.datastream_vpc_resources
-  postgresql_include_schemas          = [{ schema = "public", tables = [{ table = "deltaker_status" }, { table = "bruker", columns = ["id", "person_ident"] }, { table = "deltaker", columns = ["id", "bruker_id", "gjennomforing_id", "start_dato", "slutt_dato", "dager_per_uke", "prosent_stilling", "registrert_dato", "created_at", "modified_at", "kilde"] }, { table = "gjennomforing" }] }]
-  postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "bruker", columns = ["adressebeskyttelse"] }] }]
-
-  authorized_views = [
-    {
-      view = {
-        dataset_id = "amt_tiltak_datastream"
-        project_id = var.gcp_project["project"]
-        table_id   = "amttiltak_deltaker_personident_view"
-      }
-    },
-    {
-      view = {
-        dataset_id = "amt_tiltak_datastream"
-        project_id = var.gcp_project["project"]
-        table_id   = "amttiltak_deltaker_siste_status_view"
-      }
-    },
-    {
-      view = {
-        dataset_id = "amt_tiltak_datastream"
-        project_id = var.gcp_project["project"]
-        table_id   = "amttiltak_deltaker_status_view"
-      }
-    },
-    {
-      view = {
-        dataset_id = "markedsplassen_pseudo"
-        project_id = var.gcp_project["project"]
-        table_id   = "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view"
-      }
-    }
-  ]
+module "amt_datastream_vpc" {
+  source      = "../modules/datastream-vpc"
+  gcp_project = var.gcp_project
 }
 
 module "amt_deltaker_datastream" {
   count = var.enable_amt_deltaker_datastream ? 1 : 0
 
-  source                              = "../modules/google-bigquery-datastream"
+  source                              = "git::https://github.com/navikt/terraform-google-bigquery-datastream.git?ref=v1.0.4"
   gcp_project                         = var.gcp_project
   application_name                    = "amt-deltaker"
-  cloud_sql_instance_name             = "amt-deltaker"
+  cloud_sql_instance_name             = "amt-deltaker-2"
   cloud_sql_instance_db_name          = "amt-deltaker"
   cloud_sql_instance_db_credentials   = local.amt_deltaker_datastream_credentials
-  cloud_sql_instance_publication_name = "amt_deltaker_publication"
-  cloud_sql_instance_replication_name = "amt_deltaker_replication"
+  cloud_sql_instance_publication_name = "ds_publication"
+  cloud_sql_instance_replication_name = "ds_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
-  postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] }, { table = "nav_ansatt" }] }]
-
-  authorized_views = []
+  postgresql_exclude_schemas = [
+    {
+      schema = "public"
+      tables = [
+        { table = "flyway_schema_history" },
+        { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] },
+        { table = "nav_ansatt" }
+      ]
+    }
+  ]
+  cloud_sql_proxy_vm_machine_type = "e2-micro"
+  access_roles                    = local.access_roles
+  authorized_views = [
+    for table_id in local.deltaker_table_ids : {
+      view = {
+        project_id = var.gcp_project["project"]
+        dataset_id = "amt_deltaker_datastream"
+        table_id   = table_id
+      }
+    }
+  ]
 }
 
 module "amt_distribusjon_datastream" {
   count = var.enable_amt_distribusjon_datastream ? 1 : 0
 
-  source                              = "../modules/google-bigquery-datastream"
+  source                              = "git::https://github.com/navikt/terraform-google-bigquery-datastream.git?ref=v1.0.4"
   gcp_project                         = var.gcp_project
   application_name                    = "amt-distribusjon"
   cloud_sql_instance_name             = "amt-distribusjon"
   cloud_sql_instance_db_name          = "amt-distribusjon"
   cloud_sql_instance_db_credentials   = local.amt_distribusjon_datastream_credentials
-  cloud_sql_instance_publication_name = "amt_distribusjon_publication"
-  cloud_sql_instance_replication_name = "amt_distribusjon_replication"
+  cloud_sql_instance_publication_name = "ds_publication"
+  cloud_sql_instance_replication_name = "ds_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
-  postgresql_exclude_schemas          = [{ schema = "public", tables = [{ table = "flyway_schema_history" }] }]
+  postgresql_exclude_schemas = [
+    { schema = "public", tables = [{ table = "flyway_schema_history" }] }
+  ]
+  cloud_sql_proxy_vm_machine_type = "e2-micro"
+  access_roles                    = local.access_roles
+  authorized_views = [
+    for table_id in local.distribusjon_tables_ids : {
+      view = {
+        project_id = var.gcp_project["project"]
+        dataset_id = "amt_distribusjon_datastream"
+        table_id   = table_id
+      }
+    }
+  ]
+}
 
-  authorized_views = []
+module "amt_tiltak_datastream" {
+  count = var.enable_amt_tiltak_datastream ? 1 : 0
+
+  source                              = "git::https://github.com/navikt/terraform-google-bigquery-datastream.git?ref=v1.0.4"
+  gcp_project                         = var.gcp_project
+  application_name                    = "amt-tiltak"
+  cloud_sql_instance_name             = "amt-tiltak"
+  cloud_sql_instance_db_name          = "amt-tiltak"
+  cloud_sql_instance_db_credentials   = local.amt_tiltak_datastream_credentials
+  cloud_sql_instance_publication_name = "ds_publication"
+  cloud_sql_instance_replication_name = "ds_replication"
+  datastream_vpc_resources            = local.datastream_vpc_resources
+  postgresql_include_schemas = [
+    {
+      schema = "public"
+      tables = [
+        { table = "deltaker_status" },
+        { table = "bruker", columns = ["id", "person_ident"] },
+        { table = "deltaker", columns = ["id", "bruker_id", "gjennomforing_id", "start_dato", "slutt_dato", "dager_per_uke", "prosent_stilling", "registrert_dato", "created_at", "modified_at", "kilde"] },
+        { table = "gjennomforing" }
+      ]
+    }
+  ]
+  postgresql_exclude_schemas = [
+    { schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "bruker", columns = ["adressebeskyttelse"] }] }
+  ]
+  cloud_sql_proxy_vm_machine_type = "e2-micro"
+  access_roles                    = local.access_roles
+  authorized_views = concat(
+    [
+      for table_id in local.tiltak_table_ids : {
+        view = {
+          project_id = var.gcp_project["project"]
+          dataset_id = "amt_tiltak_datastream"
+          table_id   = table_id
+        }
+      }
+    ],
+    [
+      {
+        view = {
+          dataset_id = "markedsplassen_pseudo"
+          project_id = var.gcp_project["project"]
+          table_id   = "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view"
+        }
+      }
+    ]
+  )
 }

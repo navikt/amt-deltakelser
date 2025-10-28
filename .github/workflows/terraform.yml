@@ -4,7 +4,6 @@ on: push
 env:
   DEV_DIR: './dev'
   PROD_DIR: './prod'
-  VAR_FILE:  '../terraform.tfvars'
 
 jobs:
   terraform-plan-dev:
@@ -37,7 +36,7 @@ jobs:
         run: terraform validate
 
       - name: Run 'terraform plan'
-        run: terraform plan -var-file=${{ env.VAR_FILE }}
+        run: terraform plan
 
   terraform-plan-prod:
     name: "terraform plan gcp-prod"
@@ -66,7 +65,7 @@ jobs:
         run: terraform validate
 
       - name: Run 'terraform plan'
-        run: terraform plan -var-file=${{ env.VAR_FILE }}
+        run: terraform plan
 
   terraform-apply-dev:
     needs: terraform-plan-dev
@@ -91,7 +90,7 @@ jobs:
         run: terraform init
 
       - name: Run 'terraform apply'
-        run: terraform apply -auto-approve -var-file=${{ env.VAR_FILE }}
+        run: terraform apply -auto-approve
 
   terraform-apply-prod:
     needs: terraform-plan-prod
@@ -116,4 +115,4 @@ jobs:
         run: terraform init
 
       - name: Run 'terraform apply'
-        run: terraform apply -auto-approve -var-file=${{ env.VAR_FILE }}
+        run: terraform apply -auto-approve
