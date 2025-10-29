@@ -38,10 +38,10 @@ locals {
     "forslag_view",
     "forlengelse_forslag_behandlet_for_sluttdato_view",
     "vedtak_view",
-  /*    "forlengelse_forslag_sendt_ift_sluttdato",
+    "public_deltaker_endring",
+    "forlengelse_forslag_sendt_ift_sluttdato",
     "public_arrangor",
     "public_deltaker",
-    "public_deltaker_endring",
     "public_deltaker_status",
     "public_deltakerliste",
     "public_endring_fra_arrangor",
@@ -53,8 +53,8 @@ locals {
     "public_nav_enhet",
     "public_tiltakstype",
     "public_vedtak",
-    "public_vurdering",
-*/]
+    "public_vurdering"
+  ]
 
   distribusjon_tables_ids = [
     "hendelse",
@@ -126,7 +126,7 @@ module "amt_distribusjon_datastream" {
   cloud_sql_instance_replication_name = "ds_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
   postgresql_exclude_schemas = [
-    { schema = "public", tables = [{ table = "flyway_schema_history" }] }
+    { schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "outbox_record" }] }
   ]
   cloud_sql_proxy_vm_machine_type = "e2-micro"
   access_roles                    = local.access_roles
