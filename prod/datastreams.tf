@@ -28,48 +28,36 @@ locals {
     },
   ]
 
-  deltaker_table_ids = [
-    "deltaker_endring_view",
-    "deltaker_status_view",
-    "deltaker_underoppfolging_view",
-    "deltaker_view",
-    "endring_fra_arrangor_view",
-    "endring_fra_tiltakskoordinator_view",
-    "forslag_view",
-    "forlengelse_forslag_behandlet_for_sluttdato_view",
-    "vedtak_view",
-    "public_deltaker_endring",
-    "forlengelse_forslag_sendt_ift_sluttdato",
-    "public_arrangor",
-    "public_deltaker",
-    "public_deltaker_status",
-    "public_deltakerliste",
-    "public_endring_fra_arrangor",
-    "public_endring_fra_tiltakskoordinator",
-    "public_forslag",
-    "public_importert_fra_arena",
-    "public_innsok_paa_felles_oppstart",
-    "public_nav_bruker",
-    "public_nav_enhet",
-    "public_tiltakstype",
-    "public_vedtak",
-    "public_vurdering"
+  deltaker_view_ids = [
+    "deltaker_endring_view",                            
+    "deltaker_status_view",                             
+    "deltaker_underoppfolging_view",                    
+    "deltaker_view",                                    
+    "endring_fra_arrangor_view",                        
+    "endring_fra_tiltakskoordinator_view",              
+    "forlengelse_forslag_behandlet_for_sluttdato_view", 
+    "forlengelse_forslag_sendt_ift_sluttdato",          
+    "forslag_view",                                     
+    "vedtak_view",                                      
   ]
 
-  distribusjon_tables_ids = [
-    "hendelse",
+  distribusjon_view_ids = [
+    "hendelse",               
     "journaforing",
-    /*    "public_hendelse",
-    "public_journalforingstatus",
-    "public_outbox_record",
     "public_tiltakshendelse",
-    "public_varsel",*/
+    "public_varsel",
   ]
 
-  tiltak_table_ids = [
+  tiltak_view_ids = [
     "amttiltak_deltaker_personident_view",
     "amttiltak_deltaker_siste_status_view",
     "amttiltak_deltaker_status_view",
+  ]
+
+  markedsplassen_pseudo_view_ids = [
+    "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view",
+    "amttiltak_dataset_amttiltak_deltaker_personident_view",
+    "amttiltak_dataset_amttiltak_deltaker_siste_status_view",
   ]
 }
 
@@ -90,20 +78,30 @@ module "amt_deltaker_datastream" {
   cloud_sql_instance_publication_name = "ds_publication"
   cloud_sql_instance_replication_name = "ds_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
-  postgresql_exclude_schemas = [
+  postgresql_include_schemas = [
     {
       schema = "public"
       tables = [
-        { table = "flyway_schema_history" },
-        { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] },
-        { table = "nav_ansatt" }
+        { table = "arrangor", columns = ["id", "navn", "organisasjonsnummer", "overordnet_arrangor_id"] },
+        { table = "deltaker", columns = ["id", "person_id", "startdato", "sluttdato", "dager_per_uke", "deltakelsesprosent", "bakgrunnsinformasjon", "innhold", "deltakerliste_id", "created_at", "modified_at", "kilde"] },
+        { table = "deltaker_endring", columns = ["id", "deltaker_id", "forslag_id", "endring", "created_at", "modified_at"] },
+        { table = "deltaker_status", columns = ["id", "deltaker_id", "type", "aarsak", "gyldig_fra", "gyldig_til", "created_at", "modified_at"] },
+        { table = "deltakerliste", columns = ["id", "navn", "status", "start_dato", "slutt_dato", "oppstart", "tiltakstype_id", "arrangor_id", "created_at", "modified_at"] },
+        { table = "endring_fra_arrangor", columns = ["id", "deltaker_id", "endring", "opprettet", "created_at", "modified_at"] },
+        { table = "endring_fra_tiltakskoordinator", columns = ["id", "deltaker_id", "endret", "endring", "created_at", "modified_at"] },
+        { table = "forslag", columns = ["id", "deltaker_id", "opprettet", "endring", "status", "created_at", "modified_at"] },
+        { table = "importert_fra_arena", columns = ["deltaker_id", "deltaker_ved_import", "importert_dato"] },
+        { table = "nav_bruker", columns = ["person_id", "innsatsgruppe", "oppfolgingsperioder", "adressebeskyttelse"] },
+        { table = "tiltakstype", columns = ["id", "tiltakskode"] },
+        { table = "vedtak", columns = ["id", "deltaker_id", "created_at"] },
       ]
     }
   ]
+
   cloud_sql_proxy_vm_machine_type = "e2-micro"
   access_roles                    = local.access_roles
   authorized_views = [
-    for table_id in local.deltaker_table_ids : {
+    for table_id in local.deltaker_view_ids : {
       view = {
         project_id = var.gcp_project["project"]
         dataset_id = "amt_deltaker_datastream"
@@ -131,7 +129,7 @@ module "amt_distribusjon_datastream" {
   cloud_sql_proxy_vm_machine_type = "e2-micro"
   access_roles                    = local.access_roles
   authorized_views = [
-    for table_id in local.distribusjon_tables_ids : {
+    for table_id in local.distribusjon_view_ids : {
       view = {
         project_id = var.gcp_project["project"]
         dataset_id = "amt_distribusjon_datastream"
@@ -164,14 +162,11 @@ module "amt_tiltak_datastream" {
       ]
     }
   ]
-  postgresql_exclude_schemas = [
-    { schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "bruker", columns = ["adressebeskyttelse"] }] }
-  ]
   cloud_sql_proxy_vm_machine_type = "e2-micro"
   access_roles                    = local.access_roles
   authorized_views = concat(
     [
-      for table_id in local.tiltak_table_ids : {
+      for table_id in local.tiltak_view_ids : {
         view = {
           project_id = var.gcp_project["project"]
           dataset_id = "amt_tiltak_datastream"
@@ -180,11 +175,11 @@ module "amt_tiltak_datastream" {
       }
     ],
     [
-      {
+      for table_id in local.markedsplassen_pseudo_view_ids : {
         view = {
-          dataset_id = "markedsplassen_pseudo"
           project_id = var.gcp_project["project"]
-          table_id   = "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view"
+          dataset_id = "markedsplassen_pseudo"
+          table_id   = table_id
         }
       }
     ]
