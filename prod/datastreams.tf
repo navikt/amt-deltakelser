@@ -29,20 +29,20 @@ locals {
   ]
 
   deltaker_view_ids = [
-    "deltaker_endring_view",                            
-    "deltaker_status_view",                             
-    "deltaker_underoppfolging_view",                    
-    "deltaker_view",                                    
-    "endring_fra_arrangor_view",                        
-    "endring_fra_tiltakskoordinator_view",              
-    "forlengelse_forslag_behandlet_for_sluttdato_view", 
-    "forlengelse_forslag_sendt_ift_sluttdato",          
-    "forslag_view",                                     
-    "vedtak_view",                                      
+    "deltaker_endring_view",
+    "deltaker_status_view",
+    "deltaker_underoppfolging_view",
+    "deltaker_view",
+    "endring_fra_arrangor_view",
+    "endring_fra_tiltakskoordinator_view",
+    "forlengelse_forslag_behandlet_for_sluttdato_view",
+    "forlengelse_forslag_sendt_ift_sluttdato",
+    "forslag_view",
+    "vedtak_view",
   ]
 
   distribusjon_view_ids = [
-    "hendelse",               
+    "hendelse",
     "journaforing",
     "public_tiltakshendelse",
     "public_varsel",
