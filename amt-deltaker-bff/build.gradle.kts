@@ -5,7 +5,7 @@ group = "no.nav.amt-deltaker-bff"
 version = "1.0-SNAPSHOT"
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    kotlin("jvm")
     alias(libs.plugins.ktor)
     alias(libs.plugins.ktlint)
     application
@@ -36,9 +36,11 @@ dependencies {
 
     // --- Logging ---
     implementation(libs.bundles.logging)
+    implementation(libs.nav.common.audit.log)
 
-    // --- NAV AMT ---
-    implementation(libs.bundles.amt)
+    // --- amt-lib, lib:ktor drar inn models og utils
+    implementation(project(":amt-lib:lib:ktor"))
+    implementation(project(":amt-lib:lib:outbox"))
 
     // --- POAO ---
     implementation(libs.poao.tilgang.client)
@@ -50,12 +52,9 @@ dependencies {
     implementation(libs.unleash)
 
     // --- Test ---
+    testImplementation(project(":amt-lib:lib:testing"))
     testImplementation(libs.bundles.ktor.test)
-    testImplementation(libs.bundles.kotest)
-    testImplementation(libs.kotlin.test.junit5)
-    testImplementation(libs.mockk)
     testImplementation(libs.nimbus.jose.jwt)
-    testImplementation(libs.amt.testing)
 }
 
 kotlin {
