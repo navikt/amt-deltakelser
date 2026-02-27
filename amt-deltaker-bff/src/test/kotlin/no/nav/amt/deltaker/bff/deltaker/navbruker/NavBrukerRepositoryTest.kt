@@ -34,13 +34,14 @@ class NavBrukerRepositoryTest {
         val navBrukerInTest = TestData.lagNavBruker()
         TestRepository.insert(navBrukerInTest)
 
-        val oppdatertBruker = navBrukerInTest.copy(
-            personident = TestData.randomIdent(),
-            fornavn = "Nytt Fornavn",
-            mellomnavn = null,
-            etternavn = "Nytt Etternavn",
-            adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
-        )
+        val oppdatertBruker =
+            navBrukerInTest.copy(
+                personident = TestData.randomIdent(),
+                fornavn = "Nytt Fornavn",
+                mellomnavn = null,
+                etternavn = "Nytt Etternavn",
+                adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
+            )
 
         navBrukerRepository.upsert(oppdatertBruker).getOrNull() shouldBe oppdatertBruker
         navBrukerRepository.get(navBrukerInTest.personId).getOrNull() shouldBe oppdatertBruker

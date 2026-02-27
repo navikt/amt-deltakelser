@@ -32,22 +32,24 @@ class ResponseBuilder(
         return DeltakerResponse(
             id = deltaker.id,
             navBruker = fromNavBruker(deltaker.navBruker, erDigital),
-            gjennomforing = GjennomforingResponse(
-                id = deltaker.deltakerliste.id,
-                tiltakstype = deltaker.deltakerliste.tiltakstype,
-                navn = deltaker.deltakerliste.navn,
-                status = deltaker.deltakerliste.status,
-                startDato = deltaker.deltakerliste.startDato,
-                sluttDato = deltaker.deltakerliste.sluttDato,
-                oppstart = deltaker.deltakerliste.oppstart,
-                apentForPamelding = deltaker.deltakerliste.apentForPamelding,
-                oppmoteSted = deltaker.deltakerliste.oppmoteSted,
-                arrangor = ArrangorResponse(
-                    navn = arrangorNavn,
-                    deltaker.deltakerliste.arrangor.organisasjonsnummer,
+            gjennomforing =
+                GjennomforingResponse(
+                    id = deltaker.deltakerliste.id,
+                    tiltakstype = deltaker.deltakerliste.tiltakstype,
+                    navn = deltaker.deltakerliste.navn,
+                    status = deltaker.deltakerliste.status,
+                    startDato = deltaker.deltakerliste.startDato,
+                    sluttDato = deltaker.deltakerliste.sluttDato,
+                    oppstart = deltaker.deltakerliste.oppstart,
+                    apentForPamelding = deltaker.deltakerliste.apentForPamelding,
+                    oppmoteSted = deltaker.deltakerliste.oppmoteSted,
+                    arrangor =
+                        ArrangorResponse(
+                            navn = arrangorNavn,
+                            deltaker.deltakerliste.arrangor.organisasjonsnummer,
+                        ),
+                    pameldingstype = deltaker.deltakerliste.pameldingstype,
                 ),
-                pameldingstype = deltaker.deltakerliste.pameldingstype,
-            ),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
             dagerPerUke = deltaker.dagerPerUke,
@@ -85,20 +87,24 @@ class ResponseBuilder(
         )
     }
 
-    private fun fromNavBruker(navBruker: NavBruker, erDigital: Boolean): NavBrukerResponse = NavBrukerResponse(
-        personident = navBruker.personident,
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        telefon = navBruker.telefon,
-        epost = navBruker.epost,
-        erSkjermet = navBruker.erSkjermet,
-        adresse = navBruker.adresse,
-        adressebeskyttelse = navBruker.adressebeskyttelse,
-        oppfolgingsperioder = navBruker.oppfolgingsperioder,
-        innsatsgruppe = navBruker.innsatsgruppe,
-        erDigital = erDigital,
-        navVeileder = "", // TODO(),
-        navEnhet = "", // TODO(),
-    )
+    private fun fromNavBruker(
+        navBruker: NavBruker,
+        erDigital: Boolean,
+    ): NavBrukerResponse =
+        NavBrukerResponse(
+            personident = navBruker.personident,
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            telefon = navBruker.telefon,
+            epost = navBruker.epost,
+            erSkjermet = navBruker.erSkjermet,
+            adresse = navBruker.adresse,
+            adressebeskyttelse = navBruker.adressebeskyttelse,
+            oppfolgingsperioder = navBruker.oppfolgingsperioder,
+            innsatsgruppe = navBruker.innsatsgruppe,
+            erDigital = erDigital,
+            navVeileder = "", // TODO(),
+            navEnhet = "", // TODO(),
+        )
 }

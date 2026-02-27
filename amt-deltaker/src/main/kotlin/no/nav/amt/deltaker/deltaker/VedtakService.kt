@@ -33,12 +33,14 @@ class VedtakService(
     }
 
     fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
-        val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
-            ?: throw IllegalStateException("Deltaker ${deltaker.id} har ikke vedtak som kan avbrytes")
+        val vedtak =
+            vedtakRepository.getForDeltaker(deltaker.id)
+                ?: throw IllegalStateException("Deltaker ${deltaker.id} har ikke vedtak som kan avbrytes")
 
-        val avbruttVedtak = vedtak.copy(
-            gyldigTil = LocalDateTime.now(),
-        )
+        val avbruttVedtak =
+            vedtak.copy(
+                gyldigTil = LocalDateTime.now(),
+            )
 
         return vedtakRepository.upsert(avbruttVedtak)
     }
@@ -48,8 +50,9 @@ class VedtakService(
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
     ): Vedtak {
-        val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
-            ?: throw IllegalStateException("Deltaker ${deltaker.id} mangler et vedtak som kan fattes")
+        val vedtak =
+            vedtakRepository.getForDeltaker(deltaker.id)
+                ?: throw IllegalStateException("Deltaker ${deltaker.id} mangler et vedtak som kan fattes")
 
         if (vedtak.fattet != null) {
             log.info("Vedtak allerede fattet for deltaker ${deltaker.id}, fatter ikke nytt vedtak")
@@ -98,20 +101,21 @@ class VedtakService(
     ): Vedtak {
         val eksisterendeVedtak = vedtakRepository.getForDeltaker(deltaker.id)
 
-        val oppdatertVedtak = Vedtak(
-            id = eksisterendeVedtak?.id ?: UUID.randomUUID(),
-            deltakerId = deltaker.id,
-            fattet = fattetDato,
-            gyldigTil = null,
-            deltakerVedVedtak = deltaker,
-            fattetAvNav = fattetAvNav,
-            opprettetAv = eksisterendeVedtak?.opprettetAv ?: endretAv.id,
-            opprettetAvEnhet = eksisterendeVedtak?.opprettetAvEnhet ?: endretAvEnhet.id,
-            opprettet = eksisterendeVedtak?.opprettet ?: LocalDateTime.now(),
-            sistEndretAv = endretAv.id,
-            sistEndretAvEnhet = endretAvEnhet.id,
-            sistEndret = LocalDateTime.now(),
-        )
+        val oppdatertVedtak =
+            Vedtak(
+                id = eksisterendeVedtak?.id ?: UUID.randomUUID(),
+                deltakerId = deltaker.id,
+                fattet = fattetDato,
+                gyldigTil = null,
+                deltakerVedVedtak = deltaker,
+                fattetAvNav = fattetAvNav,
+                opprettetAv = eksisterendeVedtak?.opprettetAv ?: endretAv.id,
+                opprettetAvEnhet = eksisterendeVedtak?.opprettetAvEnhet ?: endretAvEnhet.id,
+                opprettet = eksisterendeVedtak?.opprettet ?: LocalDateTime.now(),
+                sistEndretAv = endretAv.id,
+                sistEndretAvEnhet = endretAvEnhet.id,
+                sistEndret = LocalDateTime.now(),
+            )
 
         return vedtakRepository.upsert(oppdatertVedtak)
     }

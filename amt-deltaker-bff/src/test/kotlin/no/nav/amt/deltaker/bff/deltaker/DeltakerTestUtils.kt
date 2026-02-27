@@ -6,7 +6,10 @@ import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.testing.shouldBeCloseTo
 
 object DeltakerTestUtils {
-    fun sammenlignDeltakereVedVedtak(a: DeltakerVedVedtak, b: DeltakerVedVedtak) {
+    fun sammenlignDeltakereVedVedtak(
+        a: DeltakerVedVedtak,
+        b: DeltakerVedVedtak,
+    ) {
         a.id shouldBe b.id
         a.startdato shouldBe b.startdato
         a.sluttdato shouldBe b.sluttdato
@@ -22,7 +25,10 @@ object DeltakerTestUtils {
         a.status.opprettet shouldBeCloseTo b.status.opprettet
     }
 
-    fun sammenlignVedtak(a: Vedtak, b: Vedtak) {
+    fun sammenlignVedtak(
+        a: Vedtak,
+        b: Vedtak,
+    ) {
         a.id shouldBe b.id
         a.deltakerId shouldBe b.deltakerId
         a.fattet shouldBeCloseTo b.fattet

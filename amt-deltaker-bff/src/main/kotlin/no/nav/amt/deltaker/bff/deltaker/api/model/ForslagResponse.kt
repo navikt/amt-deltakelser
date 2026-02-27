@@ -46,19 +46,29 @@ fun Forslag.toResponse(
     arrangornavn: String,
     ansatte: Map<UUID, NavAnsatt>,
     enheter: Map<UUID, NavEnhet>,
-): ForslagResponse = ForslagResponse(
-    id = id,
-    opprettet = opprettet,
-    begrunnelse = begrunnelse,
-    arrangorNavn = arrangornavn,
-    endring = endring,
-    status = getForslagResponseStatus(ansatte, enheter),
-)
+): ForslagResponse =
+    ForslagResponse(
+        id = id,
+        opprettet = opprettet,
+        begrunnelse = begrunnelse,
+        arrangorNavn = arrangornavn,
+        endring = endring,
+        status = getForslagResponseStatus(ansatte, enheter),
+    )
 
-private fun Forslag.getForslagResponseStatus(ansatte: Map<UUID, NavAnsatt>, enheter: Map<UUID, NavEnhet>): ForslagResponseStatus =
+private fun Forslag.getForslagResponseStatus(
+    ansatte: Map<UUID, NavAnsatt>,
+    enheter: Map<UUID, NavEnhet>,
+): ForslagResponseStatus =
     when (val status = status) {
-        is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
-        is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
+        is Forslag.Status.VenterPaSvar -> {
+            ForslagResponseStatus.VenterPaSvar
+        }
+
+        is Forslag.Status.Godkjent -> {
+            ForslagResponseStatus.Godkjent(status.godkjent)
+        }
+
         is Forslag.Status.Avvist -> {
             val avvist = status
             ForslagResponseStatus.Avvist(
@@ -68,6 +78,12 @@ private fun Forslag.getForslagResponseStatus(ansatte: Map<UUID, NavAnsatt>, enhe
                 begrunnelseFraNav = avvist.begrunnelseFraNav,
             )
         }
-        is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
-        is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
+
+        is Forslag.Status.Tilbakekalt -> {
+            ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
+        }
+
+        is Forslag.Status.Erstattet -> {
+            ForslagResponseStatus.Erstattet(status.erstattet)
+        }
     }

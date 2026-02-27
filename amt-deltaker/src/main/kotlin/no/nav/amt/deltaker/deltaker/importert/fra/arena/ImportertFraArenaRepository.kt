@@ -42,39 +42,42 @@ class ImportertFraArenaRepository {
         }
     }
 
-    fun getForDeltaker(deltakerId: UUID): ImportertFraArena? = Database.query { session ->
-        val sql =
-            """
-            SELECT
-                deltaker_id,
-                importert_dato,
-                deltaker_ved_import
-            FROM importert_fra_arena
-            WHERE deltaker_id = :deltaker_id
-            """.trimIndent()
+    fun getForDeltaker(deltakerId: UUID): ImportertFraArena? =
+        Database.query { session ->
+            val sql =
+                """
+                SELECT
+                    deltaker_id,
+                    importert_dato,
+                    deltaker_ved_import
+                FROM importert_fra_arena
+                WHERE deltaker_id = :deltaker_id
+                """.trimIndent()
 
-        session.run(
-            queryOf(
-                sql,
-                mapOf("deltaker_id" to deltakerId),
-            ).map(::rowMapper).asSingle,
-        )
-    }
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("deltaker_id" to deltakerId),
+                ).map(::rowMapper).asSingle,
+            )
+        }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
-        session.update(
-            queryOf(
-                "DELETE FROM importert_fra_arena WHERE deltaker_id = :deltaker_id",
-                mapOf("deltaker_id" to deltakerId),
-            ),
-        )
-    }
+    fun deleteForDeltaker(deltakerId: UUID) =
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "DELETE FROM importert_fra_arena WHERE deltaker_id = :deltaker_id",
+                    mapOf("deltaker_id" to deltakerId),
+                ),
+            )
+        }
 
     companion object {
-        private fun rowMapper(row: Row) = ImportertFraArena(
-            deltakerId = row.uuid("deltaker_id"),
-            importertDato = row.localDateTime("importert_dato"),
-            deltakerVedImport = objectMapper.readValue(row.string("deltaker_ved_import")),
-        )
+        private fun rowMapper(row: Row) =
+            ImportertFraArena(
+                deltakerId = row.uuid("deltaker_id"),
+                importertDato = row.localDateTime("importert_dato"),
+                deltakerVedImport = objectMapper.readValue(row.string("deltaker_ved_import")),
+            )
     }
 }

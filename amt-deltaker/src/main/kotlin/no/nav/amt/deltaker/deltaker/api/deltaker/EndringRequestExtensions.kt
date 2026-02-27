@@ -4,8 +4,9 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringForsl
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import java.util.UUID
 
-fun EndringRequest.getForslagId(): UUID? = if (this is EndringForslagRequest) {
-    this.forslagId
-} else {
-    null
-}
+fun EndringRequest.getForslagId(): UUID? =
+    if (this is EndringForslagRequest) {
+        this.forslagId
+    } else {
+        null
+    }

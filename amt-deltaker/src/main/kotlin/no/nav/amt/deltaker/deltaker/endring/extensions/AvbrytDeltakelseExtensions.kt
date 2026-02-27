@@ -8,9 +8,10 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-fun DeltakerEndring.Endring.AvbrytDeltakelse.hasChanges(deltaker: Deltaker) = deltaker.status.type != DeltakerStatus.Type.AVBRUTT ||
-    this.sluttdato != deltaker.sluttdato ||
-    deltaker.status.aarsak != this.aarsak.toDeltakerStatusAarsak()
+fun DeltakerEndring.Endring.AvbrytDeltakelse.hasChanges(deltaker: Deltaker) =
+    deltaker.status.type != DeltakerStatus.Type.AVBRUTT ||
+        this.sluttdato != deltaker.sluttdato ||
+        deltaker.status.aarsak != this.aarsak.toDeltakerStatusAarsak()
 
 fun DeltakerEndring.Endring.AvbrytDeltakelse.avbrytDeltakelse(deltaker: Deltaker): VellykketEndring =
     if (deltaker.status.type == DeltakerStatus.Type.DELTAR || !this.skalFortsattDelta()) {
@@ -34,11 +35,12 @@ fun DeltakerEndring.Endring.AvbrytDeltakelse.avbrytDeltakelse(deltaker: Deltaker
 private fun DeltakerEndring.Endring.AvbrytDeltakelse.skalFortsattDelta(): Boolean = !sluttdato.isBefore(LocalDate.now())
 
 private fun DeltakerEndring.Endring.AvbrytDeltakelse.getAvbruttStatus(): DeltakerStatus {
-    val gyldigFra = if (skalFortsattDelta()) {
-        sluttdato.atStartOfDay().plusDays(1)
-    } else {
-        LocalDateTime.now()
-    }
+    val gyldigFra =
+        if (skalFortsattDelta()) {
+            sluttdato.atStartOfDay().plusDays(1)
+        } else {
+            LocalDateTime.now()
+        }
     return nyDeltakerStatus(
         type = DeltakerStatus.Type.AVBRUTT,
         aarsak = aarsak.toDeltakerStatusAarsak(),

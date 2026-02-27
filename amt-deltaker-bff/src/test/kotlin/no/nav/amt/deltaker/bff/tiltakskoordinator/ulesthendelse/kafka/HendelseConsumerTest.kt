@@ -28,76 +28,85 @@ class HendelseConsumerTest {
     }
 
     @Test
-    fun `consume - hendelse InnbyggerGodkjennUtkast - lagrer`(): Unit = runTest {
-        val consumer = HendelseConsumer(ulestHendelseService)
-        val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
-        )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
-        TestRepository.insert(deltaker)
+    fun `consume - hendelse InnbyggerGodkjennUtkast - lagrer`(): Unit =
+        runTest {
+            val consumer = HendelseConsumer(ulestHendelseService)
+            val deltakerliste =
+                lagDeltakerliste(
+                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+                )
+            val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+            TestRepository.insert(deltaker)
 
-        val hendelse = lagHendelse(
-            deltaker = deltaker,
-            payload = HendelseType.AvbrytDeltakelse(
-                aarsak = null,
-                sluttdato = LocalDate.now(),
-                begrunnelseFraNav = null,
-                begrunnelseFraArrangor = null,
-                endringFraForslag = null,
-            ),
-        )
+            val hendelse =
+                lagHendelse(
+                    deltaker = deltaker,
+                    payload =
+                        HendelseType.AvbrytDeltakelse(
+                            aarsak = null,
+                            sluttdato = LocalDate.now(),
+                            begrunnelseFraNav = null,
+                            begrunnelseFraArrangor = null,
+                            endringFraForslag = null,
+                        ),
+                )
 
-        consumer.consume(
-            hendelse.id,
-            objectMapper.writeValueAsString(hendelse),
-        )
+            consumer.consume(
+                hendelse.id,
+                objectMapper.writeValueAsString(hendelse),
+            )
 
-        val ulestHendelseFraDb = ulestHendelseRepository.getForDeltaker(deltaker.id)
+            val ulestHendelseFraDb = ulestHendelseRepository.getForDeltaker(deltaker.id)
 
-        ulestHendelseFraDb.size shouldBe 1
-        ulestHendelseFraDb.first().id shouldBe hendelse.id
-    }
-
-    @Test
-    fun `consume - hendelse vi ikke bryr oss om - lagrer ikke`(): Unit = runTest {
-        val consumer = HendelseConsumer(ulestHendelseService)
-        val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
-        )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
-        TestRepository.insert(deltaker)
-        val hendelse = lagHendelse(
-            deltaker = deltaker,
-            payload = HendelseType.TildelPlass,
-        )
-
-        consumer.consume(
-            hendelse.id,
-            objectMapper.writeValueAsString(hendelse),
-        )
-
-        val ulestHendelseFraDb = ulestHendelseRepository.get(hendelse.id).getOrNull()
-        ulestHendelseFraDb shouldBe null
-    }
+            ulestHendelseFraDb.size shouldBe 1
+            ulestHendelseFraDb.first().id shouldBe hendelse.id
+        }
 
     @Test
-    fun `consume - hendelse tombstone - sletter`(): Unit = runTest {
-        val consumer = HendelseConsumer(ulestHendelseService)
-        val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
-        )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
-        TestRepository.insert(deltaker)
-        val hendelse = lagHendelse(deltaker = deltaker)
+    fun `consume - hendelse vi ikke bryr oss om - lagrer ikke`(): Unit =
+        runTest {
+            val consumer = HendelseConsumer(ulestHendelseService)
+            val deltakerliste =
+                lagDeltakerliste(
+                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+                )
+            val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+            TestRepository.insert(deltaker)
+            val hendelse =
+                lagHendelse(
+                    deltaker = deltaker,
+                    payload = HendelseType.TildelPlass,
+                )
 
-        hendelse.toUlestHendelse()?.let { ulestHendelseRepository.upsert(it) }
+            consumer.consume(
+                hendelse.id,
+                objectMapper.writeValueAsString(hendelse),
+            )
 
-        consumer.consume(
-            hendelse.id,
-            null,
-        )
+            val ulestHendelseFraDb = ulestHendelseRepository.get(hendelse.id).getOrNull()
+            ulestHendelseFraDb shouldBe null
+        }
 
-        val ulestHendelseFraDb = ulestHendelseRepository.getForDeltaker(deltaker.id)
-        ulestHendelseFraDb.size shouldBe 0
-    }
+    @Test
+    fun `consume - hendelse tombstone - sletter`(): Unit =
+        runTest {
+            val consumer = HendelseConsumer(ulestHendelseService)
+            val deltakerliste =
+                lagDeltakerliste(
+                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+                )
+            val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+            TestRepository.insert(deltaker)
+            val hendelse = lagHendelse(deltaker = deltaker)
+
+            hendelse.toUlestHendelse()?.let { ulestHendelseRepository.upsert(it) }
+
+            consumer.consume(
+                hendelse.id,
+                null,
+            )
+
+            val ulestHendelseFraDb = ulestHendelseRepository.getForDeltaker(deltaker.id)
+            ulestHendelseFraDb.size shouldBe 0
+        }
 }

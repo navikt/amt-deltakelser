@@ -26,7 +26,8 @@ class AmtPersonServiceClientTest {
     @Nested
     inner class HentNavAnsattByNavIdent {
         val expectedUrl = "$PERSON_SVC_BASE_URL/api/nav-ansatt"
-        val expectedErrorMessage = "Kunne ikke hente nav-ansatt med ident ${ansattInTest.navIdent} fra amt-person-service."
+        val expectedErrorMessage =
+            "Kunne ikke hente nav-ansatt med ident ${ansattInTest.navIdent} fra amt-person-service."
         val hentNavAnsattLambda: suspend (AmtPersonServiceClient) -> NavAnsatt =
             { client -> client.hentNavAnsatt(ansattInTest.navIdent) }
 
@@ -82,7 +83,8 @@ class AmtPersonServiceClientTest {
     @Nested
     inner class HentNavEnhetByNavEnhetsnummer {
         val expectedUrl = "$PERSON_SVC_BASE_URL/api/nav-enhet"
-        val expectedErrorMessage = "Kunne ikke hente nav-enhet med nummer ${enhetInTest.enhetsnummer} fra amt-person-service."
+        val expectedErrorMessage =
+            "Kunne ikke hente nav-enhet med nummer ${enhetInTest.enhetsnummer} fra amt-person-service."
         val hentNavEnhetLambda: suspend (AmtPersonServiceClient) -> NavEnhet =
             { client -> client.hentNavEnhet(enhetInTest.enhetsnummer) }
 
@@ -214,11 +216,12 @@ class AmtPersonServiceClientTest {
             expectedError: String,
             block: suspend (AmtPersonServiceClient) -> Any,
         ) {
-            val thrown = assertThrows(exceptionType.java) {
-                runBlocking {
-                    block(createPersonServiceClient(expectedUrl, statusCode))
+            val thrown =
+                assertThrows(exceptionType.java) {
+                    runBlocking {
+                        block(createPersonServiceClient(expectedUrl, statusCode))
+                    }
                 }
-            }
             thrown.message shouldStartWith expectedError
         }
 

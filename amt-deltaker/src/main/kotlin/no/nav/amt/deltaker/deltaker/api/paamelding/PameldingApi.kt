@@ -16,16 +16,20 @@ import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtka
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 
-fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkService: DeltakerHistorikkService) {
+fun Routing.registerPameldingApi(
+    pameldingService: PameldingService,
+    historikkService: DeltakerHistorikkService,
+) {
     authenticate("SYSTEM") {
         // pamelding/kladd
         post("/pamelding") {
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
-            val deltaker = pameldingService.opprettDeltaker(
-                deltakerListeId = opprettKladdRequest.deltakerlisteId,
-                personIdent = opprettKladdRequest.personident,
-            )
+            val deltaker =
+                pameldingService.opprettDeltaker(
+                    deltakerListeId = opprettKladdRequest.deltakerlisteId,
+                    personIdent = opprettKladdRequest.personident,
+                )
 
             call.respond(opprettKladdResponseFromDeltaker(deltaker))
         }
@@ -36,10 +40,11 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
             /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true
          */
         post("/pamelding/{deltakerId}") {
-            val deltaker = pameldingService.upsertUtkast(
-                deltakerId = call.getDeltakerId(),
-                utkast = call.receive<UtkastRequest>(),
-            )
+            val deltaker =
+                pameldingService.upsertUtkast(
+                    deltakerId = call.getDeltakerId(),
+                    utkast = call.receive<UtkastRequest>(),
+                )
 
             call.respond(
                 utkastResponseFromDeltaker(

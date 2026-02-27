@@ -17,11 +17,12 @@ class NavAnsattRepositoryTest {
 
     @Test
     fun `getMany - flere navidenter - returnerer flere ansatte`() {
-        val ansatte = listOf(
-            TestData.lagNavAnsatt(),
-            TestData.lagNavAnsatt(),
-            TestData.lagNavAnsatt(),
-        )
+        val ansatte =
+            listOf(
+                TestData.lagNavAnsatt(),
+                TestData.lagNavAnsatt(),
+                TestData.lagNavAnsatt(),
+            )
         ansatte.forEach { navAnsattRepository.upsert(it) }
 
         val faktiskeAnsatte = navAnsattRepository.getMany(ansatte.map { it.id })

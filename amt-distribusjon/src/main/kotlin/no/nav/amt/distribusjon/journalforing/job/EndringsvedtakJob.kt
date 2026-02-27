@@ -17,17 +17,19 @@ class EndringsvedtakJob(
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun startJob() = jobManager.startJob(
-        name = this.javaClass.simpleName,
-        initialDelay = Duration.of(5, ChronoUnit.MINUTES),
-        period = Duration.of(10, ChronoUnit.MINUTES),
-    ) {
-        journalforEndringsvedtak()
-    }
+    fun startJob() =
+        jobManager.startJob(
+            name = this.javaClass.simpleName,
+            initialDelay = Duration.of(5, ChronoUnit.MINUTES),
+            period = Duration.of(10, ChronoUnit.MINUTES),
+        ) {
+            journalforEndringsvedtak()
+        }
 
     suspend fun journalforEndringsvedtak() {
-        val ikkeJournalforteEndringsvedtak = getIkkeJournalforteHendelser()
-            .filter { it.hendelse.erEndringsVedtakSomSkalJournalfores() }
+        val ikkeJournalforteEndringsvedtak =
+            getIkkeJournalforteHendelser()
+                .filter { it.hendelse.erEndringsVedtakSomSkalJournalfores() }
 
         val endringsvedtakPrDeltaker = ikkeJournalforteEndringsvedtak.groupBy { it.hendelse.deltaker.id }
         val graceperiode = Duration.ofMinutes(30)

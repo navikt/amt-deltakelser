@@ -27,14 +27,15 @@ class NavEnhetRepository {
             RETURNING *
             """.trimIndent()
 
-        val query = queryOf(
-            sql,
-            mapOf(
-                "id" to navEnhet.id,
-                "nav_enhet_nummer" to navEnhet.enhetsnummer,
-                "navn" to navEnhet.navn,
-            ),
-        ).map(::rowMapper).asSingle
+        val query =
+            queryOf(
+                sql,
+                mapOf(
+                    "id" to navEnhet.id,
+                    "nav_enhet_nummer" to navEnhet.enhetsnummer,
+                    "navn" to navEnhet.navn,
+                ),
+            ).map(::rowMapper).asSingle
 
         return Database.query { session ->
             session.run(query)
@@ -45,25 +46,27 @@ class NavEnhetRepository {
     fun getOrThrow(enhetsnummer: String): NavEnhet =
         get(enhetsnummer) ?: throw NoSuchElementException("Fant ikke Nav-enhet med enhetsnummer $enhetsnummer")
 
-    fun get(enhetsnummer: String): NavEnhet? = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
-                mapOf("nav_enhet_nummer" to enhetsnummer),
-            ).map(::rowMapper).asSingle,
-        )
-    }
+    fun get(enhetsnummer: String): NavEnhet? =
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
+                    mapOf("nav_enhet_nummer" to enhetsnummer),
+                ).map(::rowMapper).asSingle,
+            )
+        }
 
     fun getOrThrow(id: UUID): NavEnhet = get(id) ?: throw NoSuchElementException("Fant ikke Nav-enhet med id $id")
 
-    fun get(id: UUID): NavEnhet? = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM nav_enhet WHERE id = :id",
-                mapOf("id" to id),
-            ).map(::rowMapper).asSingle,
-        )
-    }
+    fun get(id: UUID): NavEnhet? =
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM nav_enhet WHERE id = :id",
+                    mapOf("id" to id),
+                ).map(::rowMapper).asSingle,
+            )
+        }
 
     fun getMany(ider: Set<UUID>): List<NavEnhet> {
         if (ider.isEmpty()) return emptyList()
@@ -79,10 +82,11 @@ class NavEnhetRepository {
     }
 
     companion object {
-        private fun rowMapper(row: Row) = NavEnhet(
-            id = row.uuid("id"),
-            enhetsnummer = row.string("nav_enhet_nummer"),
-            navn = row.string("navn"),
-        )
+        private fun rowMapper(row: Row) =
+            NavEnhet(
+                id = row.uuid("id"),
+                enhetsnummer = row.string("nav_enhet_nummer"),
+                navn = row.string("navn"),
+            )
     }
 }

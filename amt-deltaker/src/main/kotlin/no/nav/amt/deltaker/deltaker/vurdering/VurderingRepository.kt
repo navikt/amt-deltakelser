@@ -7,14 +7,15 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 open class VurderingRepository {
-    fun getForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM vurdering WHERE deltaker_id = :deltakerId",
-                mapOf("deltakerId" to deltakerId),
-            ).map(::rowMapper).asList,
-        )
-    }
+    fun getForDeltaker(deltakerId: UUID): List<Vurdering> =
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM vurdering WHERE deltaker_id = :deltakerId",
+                    mapOf("deltakerId" to deltakerId),
+                ).map(::rowMapper).asList,
+            )
+        }
 
     fun upsert(vurdering: Vurdering) {
         val sql =
@@ -42,35 +43,38 @@ open class VurderingRepository {
                 gyldig_fra = :gyldig_fra
             """.trimIndent()
 
-        val params = mapOf(
-            "id" to vurdering.id,
-            "deltaker_id" to vurdering.deltakerId,
-            "opprettet_av_arrangor_ansatt_id" to vurdering.opprettetAvArrangorAnsattId,
-            "vurderingstype" to vurdering.vurderingstype.name,
-            "begrunnelse" to vurdering.begrunnelse,
-            "gyldig_fra" to vurdering.gyldigFra,
-        )
+        val params =
+            mapOf(
+                "id" to vurdering.id,
+                "deltaker_id" to vurdering.deltakerId,
+                "opprettet_av_arrangor_ansatt_id" to vurdering.opprettetAvArrangorAnsattId,
+                "vurderingstype" to vurdering.vurderingstype.name,
+                "begrunnelse" to vurdering.begrunnelse,
+                "gyldig_fra" to vurdering.gyldigFra,
+            )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
-        session.update(
-            queryOf(
-                "DELETE FROM vurdering WHERE deltaker_id = :deltaker_id",
-                mapOf("deltaker_id" to deltakerId),
-            ),
-        )
-    }
+    fun deleteForDeltaker(deltakerId: UUID) =
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "DELETE FROM vurdering WHERE deltaker_id = :deltaker_id",
+                    mapOf("deltaker_id" to deltakerId),
+                ),
+            )
+        }
 
     companion object {
-        private fun rowMapper(row: Row): Vurdering = Vurdering(
-            id = row.uuid("id"),
-            deltakerId = row.uuid("deltaker_id"),
-            vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
-            begrunnelse = row.stringOrNull("begrunnelse"),
-            opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
-            gyldigFra = row.localDateTime("gyldig_fra"),
-        )
+        private fun rowMapper(row: Row): Vurdering =
+            Vurdering(
+                id = row.uuid("id"),
+                deltakerId = row.uuid("deltaker_id"),
+                vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
+                begrunnelse = row.stringOrNull("begrunnelse"),
+                opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
+                gyldigFra = row.localDateTime("gyldig_fra"),
+            )
     }
 }

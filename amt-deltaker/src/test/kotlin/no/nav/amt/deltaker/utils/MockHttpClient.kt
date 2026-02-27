@@ -74,20 +74,22 @@ fun <T> createMockHttpClient(
 }
 
 fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
-    val mockEngine = MockEngine {
-        val api = Pair(it.url.toString(), it.method)
-        if (defaultResponse != null) MockResponseHandler.addResponse(it.url.toString(), it.method, defaultResponse)
-        val response = MockResponseHandler.responses[api] ?: run {
-            log.error("Reponse for ${api.second} ${api.first} mangler")
-            throw NoSuchElementException("Response not mocked")
-        }
+    val mockEngine =
+        MockEngine {
+            val api = Pair(it.url.toString(), it.method)
+            if (defaultResponse != null) MockResponseHandler.addResponse(it.url.toString(), it.method, defaultResponse)
+            val response =
+                MockResponseHandler.responses[api] ?: run {
+                    log.error("Reponse for ${api.second} ${api.first} mangler")
+                    throw NoSuchElementException("Response not mocked")
+                }
 
-        respond(
-            content = ByteReadChannel(response.content),
-            status = response.status,
-            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-        )
-    }
+            respond(
+                content = ByteReadChannel(response.content),
+                status = response.status,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+            )
+        }
 
     return HttpClient(mockEngine) {
         install(ContentNegotiation) {
@@ -97,9 +99,10 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
 }
 
 fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArrangorClient {
-    val overordnetArrangor = arrangor.overordnetArrangorId?.let {
-        TestData.lagArrangor(id = it)
-    }
+    val overordnetArrangor =
+        arrangor.overordnetArrangorId?.let {
+            TestData.lagArrangor(id = it)
+        }
 
     val response = ArrangorResponse(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
     return AmtArrangorClient(
@@ -110,34 +113,38 @@ fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArran
     )
 }
 
-fun mockIsOppfolgingstilfelleClient() = IsOppfolgingstilfelleClient(
-    baseUrl = ISOPPFOLGINGSTILFELLE_URL,
-    scope = "isoppfolgingstilfelle.scope",
-    httpClient = mockHttpClient(),
-    azureAdTokenClient = mockAzureAdClient(),
-)
+fun mockIsOppfolgingstilfelleClient() =
+    IsOppfolgingstilfelleClient(
+        baseUrl = ISOPPFOLGINGSTILFELLE_URL,
+        scope = "isoppfolgingstilfelle.scope",
+        httpClient = mockHttpClient(),
+        azureAdTokenClient = mockAzureAdClient(),
+    )
 
-fun mockPersonServiceClient() = AmtPersonServiceClient(
-    baseUrl = AMT_PERSON_URL,
-    scope = "amt.person-service.scope",
-    httpClient = mockHttpClient(),
-    azureAdTokenClient = mockAzureAdClient(),
-)
+fun mockPersonServiceClient() =
+    AmtPersonServiceClient(
+        baseUrl = AMT_PERSON_URL,
+        scope = "amt.person-service.scope",
+        httpClient = mockHttpClient(),
+        azureAdTokenClient = mockAzureAdClient(),
+    )
 
-fun mockAzureAdClient() = AzureAdTokenClient(
-    azureAdTokenUrl = "http://azure",
-    clientId = "clientId",
-    clientSecret = "secret",
-    httpClient = mockHttpClient(
-        """
-        {
-            "token_type":"Bearer",
-            "access_token":"XYZ",
-            "expires_in": 3599
-        }
-        """.trimIndent(),
-    ),
-)
+fun mockAzureAdClient() =
+    AzureAdTokenClient(
+        azureAdTokenUrl = "http://azure",
+        clientId = "clientId",
+        clientSecret = "secret",
+        httpClient =
+            mockHttpClient(
+                """
+                {
+                    "token_type":"Bearer",
+                    "access_token":"XYZ",
+                    "expires_in": 3599
+                }
+                """.trimIndent(),
+            ),
+    )
 
 object MockResponseHandler {
     data class Response(
@@ -154,10 +161,11 @@ object MockResponseHandler {
         responseCode: HttpStatusCode = HttpStatusCode.OK,
     ) {
         val api = Pair(url, method)
-        responses[api] = Response(
-            responseBody as? String ?: objectMapper.writeValueAsString(responseBody),
-            responseCode,
-        )
+        responses[api] =
+            Response(
+                responseBody as? String ?: objectMapper.writeValueAsString(responseBody),
+                responseCode,
+            )
     }
 
     fun addNavAnsattResponse(navAnsatt: NavAnsatt) {

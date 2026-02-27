@@ -11,10 +11,11 @@ import java.util.UUID
 class GjennomforingResponseTest {
     @Test
     fun `fullt populert V1 skal matche skjema`() {
-        val json = objectMapper
-            .copy()
-            .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
-            .writeValueAsString(fullyPopulatedGjennomforingResponseInTest)
+        val json =
+            objectMapper
+                .copy()
+                .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+                .writeValueAsString(fullyPopulatedGjennomforingResponseInTest)
 
         json.shouldMatchSchema(gjennomforingResponseSchema)
     }
@@ -22,16 +23,18 @@ class GjennomforingResponseTest {
     companion object {
         private val idIdInTest = UUID.randomUUID()
 
-        private val fullyPopulatedGjennomforingResponseInTest = GjennomforingResponse(
-            id = idIdInTest,
-            navn = "~navn~",
-            type = "~type~",
-            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-            tiltakstypeNavn = "~tiltakstypeNavn~",
-            arrangor = ArrangorResponse(
-                virksomhetsnummer = "~virksomhetsnummer~",
-                navn = "~arrangorNavn~",
-            ),
-        )
+        private val fullyPopulatedGjennomforingResponseInTest =
+            GjennomforingResponse(
+                id = idIdInTest,
+                navn = "~navn~",
+                type = "~type~",
+                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                tiltakstypeNavn = "~tiltakstypeNavn~",
+                arrangor =
+                    ArrangorResponse(
+                        virksomhetsnummer = "~virksomhetsnummer~",
+                        navn = "~arrangorNavn~",
+                    ),
+            )
     }
 }

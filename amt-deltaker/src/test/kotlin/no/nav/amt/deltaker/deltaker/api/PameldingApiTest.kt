@@ -51,9 +51,10 @@ class PameldingApiTest : RouteTestBase() {
         } returns ValidationResult.Invalid(listOf("~some error~", "~some other error~"))
 
         withTestApplicationContext<Unit> { client ->
-            val response = client.post("/pamelding") {
-                postRequest(opprettKladdRequest)
-            }
+            val response =
+                client.post("/pamelding") {
+                    postRequest(opprettKladdRequest)
+                }
 
             response.status shouldBe HttpStatusCode.BadRequest
             response.bodyAsText() shouldContain ("~some error~, ~some other error~")
@@ -68,9 +69,10 @@ class PameldingApiTest : RouteTestBase() {
         coEvery { pameldingService.opprettDeltaker(any(), any()) } returns deltaker
 
         withTestApplicationContext { client ->
-            val response = client.post("/pamelding") {
-                postRequest(opprettKladdRequest)
-            }
+            val response =
+                client.post("/pamelding") {
+                    postRequest(opprettKladdRequest)
+                }
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe objectMapper.writeValueAsString(opprettKladdResponseFromDeltaker(deltaker))
@@ -83,9 +85,10 @@ class PameldingApiTest : RouteTestBase() {
         coEvery { pameldingService.opprettDeltaker(any(), any()) } throws NoSuchElementException("Fant ikke deltakerliste")
 
         withTestApplicationContext { client ->
-            val response = client.post("/pamelding") {
-                postRequest(opprettKladdRequest)
-            }
+            val response =
+                client.post("/pamelding") {
+                    postRequest(opprettKladdRequest)
+                }
 
             response.status shouldBe HttpStatusCode.NotFound
         }
@@ -156,14 +159,15 @@ class PameldingApiTest : RouteTestBase() {
         private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
         private val avbrytUtkastRequest = AvbrytUtkastRequest("Z123456", "0101")
 
-        private val utkastRequest = UtkastRequest(
-            Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
-            "bakgrunn og sånn",
-            50F,
-            3F,
-            "Z123456",
-            "0101",
-            false,
-        )
+        private val utkastRequest =
+            UtkastRequest(
+                Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
+                "bakgrunn og sånn",
+                50F,
+                3F,
+                "Z123456",
+                "0101",
+                false,
+            )
     }
 }

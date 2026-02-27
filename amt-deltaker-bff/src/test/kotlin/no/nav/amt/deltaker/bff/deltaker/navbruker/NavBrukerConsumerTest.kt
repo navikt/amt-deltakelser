@@ -31,22 +31,24 @@ class NavBrukerConsumerTest {
     private val navEnhetRepository = NavEnhetRepository()
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClient())
     private val deltakerRepository = DeltakerRepository()
-    private val deltakerService = DeltakerService(
-        deltakerRepository = deltakerRepository,
-        amtDeltakerClient = mockAmtDeltakerClient(),
-        navEnhetService = navEnhetService,
-        forslagRepository = mockk(relaxed = true),
-    )
+    private val deltakerService =
+        DeltakerService(
+            deltakerRepository = deltakerRepository,
+            amtDeltakerClient = mockAmtDeltakerClient(),
+            navEnhetService = navEnhetService,
+            forslagRepository = mockk(relaxed = true),
+        )
     private val navBrukerService: NavBrukerService =
         NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService)
 
-    private var pameldingService = PameldingService(
-        deltakerRepository = deltakerRepository,
-        deltakerService = deltakerService,
-        navBrukerService = navBrukerService,
-        navEnhetService = navEnhetService,
-        paameldingClient = mockPaameldingClient(),
-    )
+    private var pameldingService =
+        PameldingService(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            navBrukerService = navBrukerService,
+            navEnhetService = navEnhetService,
+            paameldingClient = mockPaameldingClient(),
+        )
 
     companion object {
         @RegisterExtension
@@ -54,79 +56,85 @@ class NavBrukerConsumerTest {
     }
 
     @Test
-    fun `consumeNavBruker - ny navBruker - upserter`() = runTest {
-        val navBruker = TestData.lagNavBruker()
-        val navVeileder = TestData.lagNavAnsatt(navBruker.navVeilederId!!)
-        val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
+    fun `consumeNavBruker - ny navBruker - upserter`() =
+        runTest {
+            val navBruker = TestData.lagNavBruker()
+            val navVeileder = TestData.lagNavAnsatt(navBruker.navVeilederId!!)
+            val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
+            val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
 
-        MockResponseHandler.addNavAnsattResponse(navVeileder)
-        MockResponseHandler.addNavEnhetGetResponse(navEnhet)
+            MockResponseHandler.addNavAnsattResponse(navVeileder)
+            MockResponseHandler.addNavEnhetGetResponse(navEnhet)
 
-        navBrukerConsumer.consume(navBruker.personId, navBruker.toDto(navEnhet).toJSON())
+            navBrukerConsumer.consume(navBruker.personId, navBruker.toDto(navEnhet).toJSON())
 
-        navBrukerService.get(navBruker.personId).getOrNull() shouldBe navBruker
-    }
-
-    @Test
-    fun `consumeNavBruker - oppdatert navBruker - upserter`() = runTest {
-        val navBruker = TestData.lagNavBruker()
-        val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
-        navEnhetRepository.upsert(navEnhet)
-        TestRepository.insert(navBruker)
-
-        val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
-
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
-
-        navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
-
-        navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
-    }
+            navBrukerService.get(navBruker.personId).getOrNull() shouldBe navBruker
+        }
 
     @Test
-    fun `consumeNavBruker - avsluttet oppfolging - sletter kladd`() = runTest {
-        val navBruker = TestData.lagNavBruker()
-        val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
-        val kladd = TestData.lagDeltakerKladd(navBruker = navBruker)
-        navEnhetRepository.upsert(navEnhet)
-        TestRepository.insert(kladd)
-        MockResponseHandler.addSlettKladdResponse(kladd.id)
+    fun `consumeNavBruker - oppdatert navBruker - upserter`() =
+        runTest {
+            val navBruker = TestData.lagNavBruker()
+            val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
+            navEnhetRepository.upsert(navEnhet)
+            TestRepository.insert(navBruker)
 
-        val oppdatertNavBruker = navBruker.copy(
-            innsatsgruppe = null,
-            oppfolgingsperioder = listOf(
-                TestData.lagOppfolgingsperiode(
-                    startdato = LocalDateTime.now().minusYears(1),
-                    sluttdato = LocalDateTime.now().minusDays(2),
-                ),
-            ),
-        )
+            val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
 
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
+            val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
 
-        navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
+            navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
 
-        navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
-        deltakerRepository.get(kladd.id).getOrNull() shouldBe null
-    }
+            navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+        }
+
+    @Test
+    fun `consumeNavBruker - avsluttet oppfolging - sletter kladd`() =
+        runTest {
+            val navBruker = TestData.lagNavBruker()
+            val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
+            val kladd = TestData.lagDeltakerKladd(navBruker = navBruker)
+            navEnhetRepository.upsert(navEnhet)
+            TestRepository.insert(kladd)
+            MockResponseHandler.addSlettKladdResponse(kladd.id)
+
+            val oppdatertNavBruker =
+                navBruker.copy(
+                    innsatsgruppe = null,
+                    oppfolgingsperioder =
+                        listOf(
+                            TestData.lagOppfolgingsperiode(
+                                startdato = LocalDateTime.now().minusYears(1),
+                                sluttdato = LocalDateTime.now().minusDays(2),
+                            ),
+                        ),
+                )
+
+            val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
+
+            navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
+
+            navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+            deltakerRepository.get(kladd.id).getOrNull() shouldBe null
+        }
 }
 
-fun NavBruker.toDto(navEnhet: NavEnhet) = NavBrukerDto(
-    personId = personId,
-    personident = personident,
-    fornavn = fornavn,
-    mellomnavn = mellomnavn,
-    etternavn = etternavn,
-    navVeilederId = navVeilederId,
-    navEnhet = navEnhet.toDto(),
-    erSkjermet = erSkjermet,
-    adresse = adresse,
-    adressebeskyttelse = adressebeskyttelse,
-    oppfolgingsperioder = oppfolgingsperioder,
-    innsatsgruppe = innsatsgruppe,
-    telefon = null,
-    epost = null,
-)
+fun NavBruker.toDto(navEnhet: NavEnhet) =
+    NavBrukerDto(
+        personId = personId,
+        personident = personident,
+        fornavn = fornavn,
+        mellomnavn = mellomnavn,
+        etternavn = etternavn,
+        navVeilederId = navVeilederId,
+        navEnhet = navEnhet.toDto(),
+        erSkjermet = erSkjermet,
+        adresse = adresse,
+        adressebeskyttelse = adressebeskyttelse,
+        oppfolgingsperioder = oppfolgingsperioder,
+        innsatsgruppe = innsatsgruppe,
+        telefon = null,
+        epost = null,
+    )
 
 fun NavBrukerDto.toJSON(): String = objectMapper.writeValueAsString(this)

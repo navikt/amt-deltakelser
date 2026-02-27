@@ -58,13 +58,14 @@ class PaameldingClientTest {
         val navBruker = TestData.lagNavBruker(deltakerInTest.id, navEnhetId = UUID.randomUUID())
         val deltakerListe = TestData.lagDeltakerliste()
 
-        val opprettTestDeltakelseRequest = OpprettTestDeltakelseRequest(
-            personident = navBruker.personident,
-            deltakerlisteId = deltakerListe.id,
-            startdato = LocalDate.now().minusDays(1),
-            deltakelsesprosent = 60,
-            dagerPerUke = 3,
-        )
+        val opprettTestDeltakelseRequest =
+            OpprettTestDeltakelseRequest(
+                personident = navBruker.personident,
+                deltakerlisteId = deltakerListe.id,
+                startdato = LocalDate.now().minusDays(1),
+                deltakelsesprosent = 60,
+                dagerPerUke = 3,
+            )
 
         val utkast = lagUtkast(deltakerInTest.id, deltakerListe, opprettTestDeltakelseRequest)
 
@@ -162,11 +163,12 @@ class PaameldingClientTest {
             expectedError: String,
             block: suspend (PaameldingClient) -> Any,
         ) {
-            val thrown = Assertions.assertThrows(exceptionType.java) {
-                runBlocking {
-                    block(createPaameldingClient(expectedUrl, statusCode))
+            val thrown =
+                Assertions.assertThrows(exceptionType.java) {
+                    runBlocking {
+                        block(createPaameldingClient(expectedUrl, statusCode))
+                    }
                 }
-            }
             thrown.message shouldStartWith expectedError
         }
 

@@ -11,11 +11,12 @@ import org.junit.jupiter.api.Test
 class NavBrukerResponseTest {
     @Test
     fun `skal mapppe response til model korrekt`() {
-        val response = lagNavBrukerResponse(
-            telefon = "~telefon~",
-            epost = "a@b.c",
-            adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
-        )
+        val response =
+            lagNavBrukerResponse(
+                telefon = "~telefon~",
+                epost = "a@b.c",
+                adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
+            )
 
         val model = ModelMapper.toNavBruker(response)
 

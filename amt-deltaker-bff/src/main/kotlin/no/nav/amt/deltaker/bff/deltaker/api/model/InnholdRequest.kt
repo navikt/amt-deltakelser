@@ -10,15 +10,17 @@ data class InnholdRequest(
     val beskrivelse: String?,
 )
 
-fun List<InnholdRequest>.toInnholdModel(deltaker: Deltaker) = this.mapNotNull { valgtInnholdElement ->
-    val tiltaksinnhold = getInnholdselementer(
-        deltaker.deltakerliste.tiltak.innhold
-            ?.innholdselementer,
-        deltaker.deltakerliste.tiltak.tiltakskode,
-    ).find { it.innholdskode == valgtInnholdElement.innholdskode }
-    if (valgtInnholdElement.innholdskode == annetInnholdselement.innholdskode) {
-        tiltaksinnhold?.toInnhold(true, valgtInnholdElement.beskrivelse)
-    } else {
-        tiltaksinnhold?.toInnhold(valgt = true)
+fun List<InnholdRequest>.toInnholdModel(deltaker: Deltaker) =
+    this.mapNotNull { valgtInnholdElement ->
+        val tiltaksinnhold =
+            getInnholdselementer(
+                deltaker.deltakerliste.tiltak.innhold
+                    ?.innholdselementer,
+                deltaker.deltakerliste.tiltak.tiltakskode,
+            ).find { it.innholdskode == valgtInnholdElement.innholdskode }
+        if (valgtInnholdElement.innholdskode == annetInnholdselement.innholdskode) {
+            tiltaksinnhold?.toInnhold(true, valgtInnholdElement.beskrivelse)
+        } else {
+            tiltaksinnhold?.toInnhold(valgt = true)
+        }
     }
-}

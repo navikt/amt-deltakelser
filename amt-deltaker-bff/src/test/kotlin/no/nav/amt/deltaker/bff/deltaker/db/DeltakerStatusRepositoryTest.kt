@@ -22,39 +22,44 @@ class DeltakerStatusRepositoryTest {
 
     @Test
     fun `insertIfNotExists - kaster feil hvis flere aktive statuser`() {
-        val gammelStatus = lagDeltakerStatus(
-            statusType = DeltakerStatus.Type.HAR_SLUTTET,
-            aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
-            gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
-        )
+        val gammelStatus =
+            lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
+                gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
+            )
 
         val deltaker = lagDeltaker(status = gammelStatus)
         TestRepository.insert(deltaker)
 
-        val nyStatus = lagDeltakerStatus(
-            statusType = DeltakerStatus.Type.HAR_SLUTTET,
-            gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
-        )
+        val nyStatus =
+            lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
+            )
 
-        val thrown = shouldThrow<PSQLException> {
-            DeltakerStatusRepository.insertIfNotExists(deltaker.id, nyStatus)
-        }
+        val thrown =
+            shouldThrow<PSQLException> {
+                DeltakerStatusRepository.insertIfNotExists(deltaker.id, nyStatus)
+            }
 
         thrown.message shouldStartWith "ERROR: duplicate key value violates unique constraint"
     }
 
     @Test
     fun `slettTidligereStatuser - skal slette alle andre statuser`() {
-        val gammelStatus = lagDeltakerStatus(
-            statusType = DeltakerStatus.Type.HAR_SLUTTET,
-            aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
-            gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
-        )
+        val gammelStatus =
+            lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
+                gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
+            )
 
-        val nyStatus = lagDeltakerStatus(
-            statusType = DeltakerStatus.Type.HAR_SLUTTET,
-            gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
-        )
+        val nyStatus =
+            lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
+            )
 
         val deltaker = lagDeltaker(status = gammelStatus)
         TestRepository.insert(deltaker)

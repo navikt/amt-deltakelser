@@ -19,21 +19,27 @@ abstract class ApiClientBase(
     protected val httpClient: HttpClient,
     protected val azureAdTokenClient: AzureAdTokenClient,
 ) {
-    protected suspend fun performGet(urlSubPath: String): HttpResponse = httpClient.get("$baseUrl/$urlSubPath") {
-        header(HttpHeaders.Authorization, azureAdTokenClient.getMachineToMachineToken(scope))
-        accept(ContentType.Application.Json)
-    }
-
-    protected suspend fun performPost(urlSubPath: String, requestBody: Any?): HttpResponse = httpClient.post("$baseUrl/$urlSubPath") {
-        header(HttpHeaders.Authorization, azureAdTokenClient.getMachineToMachineToken(scope))
-        accept(ContentType.Application.Json)
-        if (requestBody != null) {
-            contentType(ContentType.Application.Json)
-            setBody(requestBody)
+    protected suspend fun performGet(urlSubPath: String): HttpResponse =
+        httpClient.get("$baseUrl/$urlSubPath") {
+            header(HttpHeaders.Authorization, azureAdTokenClient.getMachineToMachineToken(scope))
+            accept(ContentType.Application.Json)
         }
-    }
 
-    protected suspend fun performDelete(urlSubPath: String): HttpResponse = httpClient.delete("$baseUrl/$urlSubPath") {
-        header(HttpHeaders.Authorization, azureAdTokenClient.getMachineToMachineToken(scope))
-    }
+    protected suspend fun performPost(
+        urlSubPath: String,
+        requestBody: Any?,
+    ): HttpResponse =
+        httpClient.post("$baseUrl/$urlSubPath") {
+            header(HttpHeaders.Authorization, azureAdTokenClient.getMachineToMachineToken(scope))
+            accept(ContentType.Application.Json)
+            if (requestBody != null) {
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }
+        }
+
+    protected suspend fun performDelete(urlSubPath: String): HttpResponse =
+        httpClient.delete("$baseUrl/$urlSubPath") {
+            header(HttpHeaders.Authorization, azureAdTokenClient.getMachineToMachineToken(scope))
+        }
 }

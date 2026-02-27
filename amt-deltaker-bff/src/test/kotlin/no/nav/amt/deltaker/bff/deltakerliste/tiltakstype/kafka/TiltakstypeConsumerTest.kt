@@ -22,13 +22,14 @@ class TiltakstypeConsumerTest {
     @Test
     fun `consumeTiltakstype - ny, aktiv tiltakstype - lagrer tiltakstype`() {
         val tiltakstype = TestData.lagTiltakstype()
-        val tiltakstypeDto = TiltakstypeDto(
-            id = tiltakstype.id,
-            navn = tiltakstype.navn,
-            tiltakskode = tiltakstype.tiltakskode,
-            innsatsgrupper = tiltakstype.innsatsgrupper.map { it.toV2() }.toSet(),
-            deltakerRegistreringInnhold = tiltakstype.innhold,
-        )
+        val tiltakstypeDto =
+            TiltakstypeDto(
+                id = tiltakstype.id,
+                navn = tiltakstype.navn,
+                tiltakskode = tiltakstype.tiltakskode,
+                innsatsgrupper = tiltakstype.innsatsgrupper.map { it.toV2() }.toSet(),
+                deltakerRegistreringInnhold = tiltakstype.innhold,
+            )
         val consumer = TiltakstypeConsumer(tiltakstypeRepository)
 
         runBlocking {

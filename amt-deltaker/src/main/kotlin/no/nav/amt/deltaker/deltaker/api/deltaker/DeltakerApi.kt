@@ -23,20 +23,22 @@ fun Routing.registerDeltakerApi(
 ) {
     authenticate("SYSTEM") {
         get("/deltaker/{deltakerId}") {
-            val deltakerResponse = deltakerRepository
-                .get(call.getDeltakerId())
-                .onFailure { call.respond(HttpStatusCode.NotFound) }
-                .getOrThrow()
-                .let { responseBuilder.buildDeltakerResponse(it) }
+            val deltakerResponse =
+                deltakerRepository
+                    .get(call.getDeltakerId())
+                    .onFailure { call.respond(HttpStatusCode.NotFound) }
+                    .getOrThrow()
+                    .let { responseBuilder.buildDeltakerResponse(it) }
 
             call.respond(deltakerResponse)
         }
 
         post("/deltaker/{deltakerId}/endre-deltaker") {
-            val deltaker = deltakerService.upsertEndretDeltaker(
-                deltakerId = call.getDeltakerId(),
-                endringRequest = call.receive<EndringRequest>(),
-            )
+            val deltaker =
+                deltakerService.upsertEndretDeltaker(
+                    deltakerId = call.getDeltakerId(),
+                    endringRequest = call.receive<EndringRequest>(),
+                )
             val historikk = historikkService.getForDeltaker(deltaker.id)
 
             call.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))

@@ -38,20 +38,22 @@ class DokarkivClient(
         journalforendeEnhet: String,
         journalpostNavn: String,
     ): String {
-        val request = lagJournalpostRequest(
-            hendelseId = hendelseId,
-            fnr = fnr,
-            sak = sak,
-            pdf = pdf,
-            journalforendeEnhet = journalforendeEnhet,
-            journalpostNavn = journalpostNavn,
-        )
+        val request =
+            lagJournalpostRequest(
+                hendelseId = hendelseId,
+                fnr = fnr,
+                sak = sak,
+                pdf = pdf,
+                journalforendeEnhet = journalforendeEnhet,
+                journalpostNavn = journalpostNavn,
+            )
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
-        val response = httpClient.post("$url/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
-            header(HttpHeaders.Authorization, token)
-            contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(request))
-        }
+        val response =
+            httpClient.post("$url/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
+                header(HttpHeaders.Authorization, token)
+                contentType(ContentType.Application.Json)
+                setBody(objectMapper.writeValueAsString(request))
+            }
         if (response.status.value == 409) {
             log.warn("Journalpost for hendelseId $hendelseId er allerede opprettet")
         }
@@ -71,33 +73,36 @@ class DokarkivClient(
         pdf: ByteArray,
         journalforendeEnhet: String,
         journalpostNavn: String,
-    ): OpprettJournalpostRequest = OpprettJournalpostRequest(
-        avsenderMottaker = AvsenderMottaker(
-            id = fnr,
-        ),
-        bruker = Bruker(
-            id = fnr,
-        ),
-        dokumenter = listOf(
-            Dokument(
-                brevkode = getBrevkode(), // Denne verdien har ikke noen betydning utrnom hvis man skal gjøre feilsøking i joark
-                dokumentvarianter = listOf(
-                    DokumentVariant(
-                        fysiskDokument = pdf,
+    ): OpprettJournalpostRequest =
+        OpprettJournalpostRequest(
+            avsenderMottaker =
+                AvsenderMottaker(
+                    id = fnr,
+                ),
+            bruker = Bruker(id = fnr),
+            dokumenter =
+                listOf(
+                    Dokument(
+                        brevkode = getBrevkode(), // Denne verdien har ikke noen betydning utrnom hvis man skal gjøre feilsøking i joark
+                        dokumentvarianter =
+                            listOf(
+                                DokumentVariant(
+                                    fysiskDokument = pdf,
+                                ),
+                            ),
+                        tittel = journalpostNavn,
                     ),
                 ),
-                tittel = journalpostNavn,
-            ),
-        ),
-        journalfoerendeEnhet = journalforendeEnhet,
-        sak = Sak(
-            fagsakId = sak.sakId.toString(),
-            fagsaksystem = sak.fagsaksystem,
-        ),
-        tema = Environment.SAF_TEMA,
-        tittel = journalpostNavn,
-        eksternReferanseId = hendelseId.toString(),
-    )
+            journalfoerendeEnhet = journalforendeEnhet,
+            sak =
+                Sak(
+                    fagsakId = sak.sakId.toString(),
+                    fagsaksystem = sak.fagsaksystem,
+                ),
+            tema = Environment.SAF_TEMA,
+            tittel = journalpostNavn,
+            eksternReferanseId = hendelseId.toString(),
+        )
 
     private fun getBrevkode(): String = "tiltak-vedtak"
 }

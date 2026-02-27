@@ -6,7 +6,10 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.lib.testing.shouldBeCloseTo
 
 object DeltakerTestUtils {
-    fun sammenlignDeltakere(actual: Deltaker, expected: Deltaker) {
+    fun sammenlignDeltakere(
+        actual: Deltaker,
+        expected: Deltaker,
+    ) {
         assertSoftly(actual) {
             id shouldBe expected.id
             navBruker shouldBe expected.navBruker

@@ -21,7 +21,10 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 object TestRepository {
-    fun insert(deltakerliste: Deltakerliste, overordnetArrangor: Arrangor? = null) {
+    fun insert(
+        deltakerliste: Deltakerliste,
+        overordnetArrangor: Arrangor? = null,
+    ) {
         TiltakstypeRepository().upsert(deltakerliste.tiltak)
         overordnetArrangor?.let { ArrangorRepository().upsert(it) }
         ArrangorRepository().upsert(deltakerliste.arrangor.arrangor)
@@ -35,7 +38,10 @@ object TestRepository {
         DeltakerStatusRepository.insertIfNotExists(deltaker.id, deltaker.status)
     }
 
-    fun insert(navEnhet: NavEnhet, sistEndret: LocalDateTime) {
+    fun insert(
+        navEnhet: NavEnhet,
+        sistEndret: LocalDateTime,
+    ) {
         NavEnhetRepository().upsert(navEnhet)
 
         Database.query { session ->
@@ -57,12 +63,13 @@ object TestRepository {
         NavBrukerRepository().upsert(bruker)
     }
 
-    fun getDeltakerSistBesokt(deltakerId: UUID): ZonedDateTime? = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT sist_besokt FROM deltaker WHERE id = ?",
-                deltakerId,
-            ).map { row -> row.zonedDateTime("sist_besokt") }.asSingle,
-        )
-    }
+    fun getDeltakerSistBesokt(deltakerId: UUID): ZonedDateTime? =
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT sist_besokt FROM deltaker WHERE id = ?",
+                    deltakerId,
+                ).map { row -> row.zonedDateTime("sist_besokt") }.asSingle,
+            )
+        }
 }

@@ -5,7 +5,10 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 
-fun GjennomforingV2KafkaPayload.Gruppe.toModel(arrangor: Arrangor, tiltakstype: Tiltakstype) = Deltakerliste(
+fun GjennomforingV2KafkaPayload.Gruppe.toModel(
+    arrangor: Arrangor,
+    tiltakstype: Tiltakstype,
+) = Deltakerliste(
     id = id,
     tiltakstype = tiltakstype,
     navn = navn,
@@ -20,7 +23,10 @@ fun GjennomforingV2KafkaPayload.Gruppe.toModel(arrangor: Arrangor, tiltakstype: 
     pameldingstype = pameldingType,
 )
 
-fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(arrangor: Arrangor, tiltakstype: Tiltakstype) = Deltakerliste(
+fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(
+    arrangor: Arrangor,
+    tiltakstype: Tiltakstype,
+) = Deltakerliste(
     id = id,
     tiltakstype = tiltakstype,
     navn = tiltakstype.navn,

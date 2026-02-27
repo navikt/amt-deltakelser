@@ -8,11 +8,12 @@ import java.nio.file.Paths
 import java.util.UUID
 
 fun configureEnvForAuthentication() {
-    val uri = Paths
-        .get("src/test/resources/jwkset.json")
-        .toUri()
-        .toURL()
-        .toString()
+    val uri =
+        Paths
+            .get("src/test/resources/jwkset.json")
+            .toUri()
+            .toURL()
+            .toString()
 
     val preAuthorizedApp = PreAuthorizedApp("dev:tpts:tiltakspenger-tiltak", "tiltakspenger-tiltak")
 

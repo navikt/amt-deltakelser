@@ -9,18 +9,20 @@ data class ImportertFraArenaDto(
     val innsoktDato: LocalDate,
 ) {
     companion object {
-        fun fromDeltaker(deltaker: Deltaker): ImportertFraArenaDto? = deltaker.historikk
-            .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-            .firstOrNull()
-            ?.let {
-                ImportertFraArenaDto(it.importertFraArena.deltakerVedImport.innsoktDato)
-            }
+        fun fromDeltaker(deltaker: Deltaker): ImportertFraArenaDto? =
+            deltaker.historikk
+                .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
+                .firstOrNull()
+                ?.let {
+                    ImportertFraArenaDto(it.importertFraArena.deltakerVedImport.innsoktDato)
+                }
 
-        fun fromDeltaker(deltaker: DeltakerModel): ImportertFraArenaDto? = deltaker.historikk
-            .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-            .firstOrNull()
-            ?.let {
-                ImportertFraArenaDto(it.importertFraArena.deltakerVedImport.innsoktDato)
-            }
+        fun fromDeltaker(deltaker: DeltakerModel): ImportertFraArenaDto? =
+            deltaker.historikk
+                .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
+                .firstOrNull()
+                ?.let {
+                    ImportertFraArenaDto(it.importertFraArena.deltakerVedImport.innsoktDato)
+                }
     }
 }

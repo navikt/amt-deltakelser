@@ -63,20 +63,21 @@ class DeltakerService(
         nesteStatus: DeltakerStatus? = null,
         beforeUpsert: (Deltaker) -> Deltaker = { it },
         afterUpsert: (Deltaker) -> Unit = { },
-    ): Deltaker = transactionalDeltakerUpsert(
-        deltaker = deltaker.copy(sistEndret = LocalDateTime.now()),
-        erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
-        nesteStatus = nesteStatus,
-        beforeDeltakerUpsert = beforeUpsert,
-        afterDeltakerUpsert = { deltaker ->
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forceProduce)
-            log.info("Oppdatert deltaker ${deltaker.id}")
+    ): Deltaker =
+        transactionalDeltakerUpsert(
+            deltaker = deltaker.copy(sistEndret = LocalDateTime.now()),
+            erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
+            nesteStatus = nesteStatus,
+            beforeDeltakerUpsert = beforeUpsert,
+            afterDeltakerUpsert = { deltaker ->
+                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+                deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forceProduce)
+                log.info("Oppdatert deltaker ${deltaker.id}")
 
-            afterUpsert(oppdatertDeltaker)
-            oppdatertDeltaker
-        },
-    ).getOrThrow()
+                afterUpsert(oppdatertDeltaker)
+                oppdatertDeltaker
+            },
+        ).getOrThrow()
 
     fun deleteDeltaker(deltakerId: UUID) {
         importertFraArenaRepository.deleteForDeltaker(deltakerId)
@@ -102,28 +103,32 @@ class DeltakerService(
         log.info("Feilregistrert deltaker med id $deltakerId")
     }
 
-    suspend fun upsertEndretDeltaker(deltakerId: UUID, endringRequest: EndringRequest): Deltaker {
+    suspend fun upsertEndretDeltaker(
+        deltakerId: UUID,
+        endringRequest: EndringRequest,
+    ): Deltaker {
         val eksisterendeDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
         val endring = endringRequest.toEndring()
 
-        val updateResult = endring
-            .oppdaterDeltaker(
-                deltaker = eksisterendeDeltaker,
-                getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
-            ).getOrElse {
-                log.warn(
-                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
-                )
+        val updateResult =
+            endring
+                .oppdaterDeltaker(
+                    deltaker = eksisterendeDeltaker,
+                    getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
+                ).getOrElse {
+                    log.warn(
+                        "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
+                    )
 
-                // hvis forslag er godkjent og deltaker er uendret
-                endringRequest.getForslagId()?.let {
-                    deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
+                    // hvis forslag er godkjent og deltaker er uendret
+                    endringRequest.getForslagId()?.let {
+                        deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
+                    }
+
+                    return eksisterendeDeltaker
                 }
-
-                return eksisterendeDeltaker
-            }
 
         log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
 
@@ -160,24 +165,25 @@ class DeltakerService(
         nesteStatus: DeltakerStatus? = null,
         beforeDeltakerUpsert: (Deltaker) -> Deltaker = { it },
         afterDeltakerUpsert: (Deltaker) -> Deltaker = { it },
-    ): Result<Deltaker> = runCatching {
-        Database.transaction {
-            val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
+    ): Result<Deltaker> =
+        runCatching {
+            Database.transaction {
+                val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
 
-            deltakerRepository.upsert(deltakerToUpsert)
-            internalLagreStatus(
-                deltakerId = deltakerToUpsert.id,
-                nyDeltakerStatus = deltakerToUpsert.status,
-                erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
-            )
+                deltakerRepository.upsert(deltakerToUpsert)
+                internalLagreStatus(
+                    deltakerId = deltakerToUpsert.id,
+                    nyDeltakerStatus = deltakerToUpsert.status,
+                    erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
+                )
 
-            nesteStatus?.let {
-                DeltakerStatusRepository.lagreStatus(deltakerToUpsert.id, it)
+                nesteStatus?.let {
+                    DeltakerStatusRepository.lagreStatus(deltakerToUpsert.id, it)
+                }
+
+                afterDeltakerUpsert(deltakerToUpsert)
             }
-
-            afterDeltakerUpsert(deltakerToUpsert)
         }
-    }
 
     private fun internalLagreStatus(
         deltakerId: UUID,
@@ -206,47 +212,50 @@ class DeltakerService(
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
     ): DeltakerOppdateringResult {
-        val endring = EndringFraTiltakskoordinator(
-            id = UUID.randomUUID(),
-            deltakerId = deltaker.id,
-            endring = endringsType,
-            endretAv = endretAv.id,
-            endretAvEnhet = endretAvEnhet.id,
-            endret = LocalDateTime.now(),
-        )
-
-        val deltakerToUpdate = sjekkEndringUtfall(deltaker, endring.endring).getOrElse { error ->
-            return DeltakerOppdateringResult(deltaker, false, error)
-        }
-
-        val oppdatertDeltaker = transactionalDeltakerUpsert(
-            deltaker = deltakerToUpdate,
-            erDeltakerSluttdatoEndret = (deltaker.sluttdato != deltakerToUpdate.sluttdato),
-            afterDeltakerUpsert = {
-                endringFraTiltakskoordinatorRepository.insert(listOf(endring))
-                if (endringsType is EndringFraTiltakskoordinator.TildelPlass && deltaker.kilde == Kilde.KOMET) {
-                    vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet)
-                }
-
-                val deltakerFromDb = deltakerRepository.get(deltakerToUpdate.id).getOrThrow()
-
-                deltakerProducerService.produce(deltakerFromDb)
-                hendelseService.produserHendelseFraTiltaksansvarlig(
-                    deltaker = deltakerFromDb,
-                    navAnsatt = endretAv,
-                    navEnhet = endretAvEnhet,
-                    endringsType = endringsType,
-                )
-
-                deltakerFromDb
-            },
-        ).getOrElse { throwable ->
-            return DeltakerOppdateringResult(
-                deltaker = deltaker,
-                isSuccess = false,
-                exception = throwable,
+        val endring =
+            EndringFraTiltakskoordinator(
+                id = UUID.randomUUID(),
+                deltakerId = deltaker.id,
+                endring = endringsType,
+                endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
+                endret = LocalDateTime.now(),
             )
-        }
+
+        val deltakerToUpdate =
+            sjekkEndringUtfall(deltaker, endring.endring).getOrElse { error ->
+                return DeltakerOppdateringResult(deltaker, false, error)
+            }
+
+        val oppdatertDeltaker =
+            transactionalDeltakerUpsert(
+                deltaker = deltakerToUpdate,
+                erDeltakerSluttdatoEndret = (deltaker.sluttdato != deltakerToUpdate.sluttdato),
+                afterDeltakerUpsert = {
+                    endringFraTiltakskoordinatorRepository.insert(listOf(endring))
+                    if (endringsType is EndringFraTiltakskoordinator.TildelPlass && deltaker.kilde == Kilde.KOMET) {
+                        vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet)
+                    }
+
+                    val deltakerFromDb = deltakerRepository.get(deltakerToUpdate.id).getOrThrow()
+
+                    deltakerProducerService.produce(deltakerFromDb)
+                    hendelseService.produserHendelseFraTiltaksansvarlig(
+                        deltaker = deltakerFromDb,
+                        navAnsatt = endretAv,
+                        navEnhet = endretAvEnhet,
+                        endringsType = endringsType,
+                    )
+
+                    deltakerFromDb
+                },
+            ).getOrElse { throwable ->
+                return DeltakerOppdateringResult(
+                    deltaker = deltaker,
+                    isSuccess = false,
+                    exception = throwable,
+                )
+            }
 
         return DeltakerOppdateringResult(
             deltaker = oppdatertDeltaker,
@@ -267,9 +276,10 @@ class DeltakerService(
 
         val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAvNavEnhetId)
         val deltakere = deltakerRepository.getMany(deltakerIder)
-        val tiltakskoder = deltakere
-            .map { it.deltakerliste.tiltakstype.tiltakskode }
-            .distinct()
+        val tiltakskoder =
+            deltakere
+                .map { it.deltakerliste.tiltakstype.tiltakskode }
+                .distinct()
 
         require(tiltakskoder.size == 1) { "kan ikke endre på deltakere på flere tiltakskoder samtidig" }
         require(tiltakskoder.first() in Tiltakstype.kursTiltak.plus(Tiltakstype.opplaeringsTiltak)) {
@@ -295,11 +305,12 @@ class DeltakerService(
         avslag: EndringFraTiltakskoordinator.Avslag,
         endretAv: String,
     ): Deltaker {
-        val firstDeltakerOppdateringResult = oppdaterDeltakere(
-            deltakerIder = setOf(deltakerId),
-            endringsType = avslag,
-            endretAvIdent = endretAv,
-        ).first()
+        val firstDeltakerOppdateringResult =
+            oppdaterDeltakere(
+                deltakerIder = setOf(deltakerId),
+                endringsType = avslag,
+                endretAvIdent = endretAv,
+            ).first()
 
         return if (firstDeltakerOppdateringResult.isSuccess) {
             firstDeltakerOppdateringResult.deltaker
@@ -312,15 +323,19 @@ class DeltakerService(
         personident: String,
         publiserTilDeltakerV1: Boolean = true,
         publiserTilDeltakerEksternV1: Boolean = true,
-    ): Unit = deltakerRepository.getFlereForPerson(personident).forEach { deltaker ->
-        deltakerProducerService.produce(
-            deltaker = deltaker,
-            publiserTilDeltakerV1 = publiserTilDeltakerV1,
-            publiserTilDeltakerEksternV1 = publiserTilDeltakerEksternV1,
-        )
-    }
+    ): Unit =
+        deltakerRepository.getFlereForPerson(personident).forEach { deltaker ->
+            deltakerProducerService.produce(
+                deltaker = deltaker,
+                publiserTilDeltakerV1 = publiserTilDeltakerV1,
+                publiserTilDeltakerEksternV1 = publiserTilDeltakerEksternV1,
+            )
+        }
 
-    fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
+    fun oppdaterSistBesokt(
+        deltakerId: UUID,
+        sistBesokt: ZonedDateTime,
+    ) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
@@ -336,9 +351,10 @@ class DeltakerService(
     }
 
     suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
-        val deltakerePaAvbruttDeltakerliste = deltakerRepository
-            .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
-            .map { it.copy(deltakerliste = deltakerliste) }
+        val deltakerePaAvbruttDeltakerliste =
+            deltakerRepository
+                .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
+                .map { it.copy(deltakerliste = deltakerliste) }
 
         avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
     }
@@ -362,29 +378,33 @@ class DeltakerService(
             deltaker
         }
 
-    private fun getDeltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
-        .getDeltakereHvorSluttdatoHarPassert()
-        .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
-        .distinct()
+    private fun getDeltakereSomSkalHaAvsluttendeStatus() =
+        deltakerRepository
+            .getDeltakereHvorSluttdatoHarPassert()
+            .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
+            .distinct()
 
-    private fun getDeltakereSomSkalHaStatusDeltar() = deltakerRepository
-        .skalHaStatusDeltar()
-        .distinct()
+    private fun getDeltakereSomSkalHaStatusDeltar() =
+        deltakerRepository
+            .skalHaStatusDeltar()
+            .distinct()
 
-    suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) = deltakerRepository
-        .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
-        .forEach { deltaker ->
-            upsertAndProduceDeltaker(
-                deltaker = deltaker.copy(sluttdato = deltakerliste.sluttDato),
-                erDeltakerSluttdatoEndret = true,
-                forceProduce = true, // For at oppdateringen skal propageres riktig til amt-deltaker-bff så må vi sette denne.
-            )
-            log.info("Deltaker ${deltaker.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
-        }
+    suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) =
+        deltakerRepository
+            .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
+            .forEach { deltaker ->
+                upsertAndProduceDeltaker(
+                    deltaker = deltaker.copy(sluttdato = deltakerliste.sluttDato),
+                    erDeltakerSluttdatoEndret = true,
+                    forceProduce = true, // For at oppdateringen skal propageres riktig til amt-deltaker-bff så må vi sette denne.
+                )
+                log.info("Deltaker ${deltaker.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
+            }
 
     companion object {
-        fun validerIkkeFeilregistrert(deltaker: Deltaker) = require(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
-            "Kan ikke oppdatere feilregistrert deltaker, id ${deltaker.id}"
-        }
+        fun validerIkkeFeilregistrert(deltaker: Deltaker) =
+            require(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
+                "Kan ikke oppdatere feilregistrert deltaker, id ${deltaker.id}"
+            }
     }
 }

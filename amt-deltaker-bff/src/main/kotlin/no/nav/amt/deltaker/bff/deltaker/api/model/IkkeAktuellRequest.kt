@@ -15,14 +15,15 @@ data class IkkeAktuellRequest(
     val begrunnelse: String?,
     override val forslagId: UUID?,
 ) : EndringsforslagRequest {
-    private val kanBliIkkeAktuell = listOf(
-        DeltakerStatus.Type.VENTER_PA_OPPSTART,
-        DeltakerStatus.Type.DELTAR,
-        DeltakerStatus.Type.IKKE_AKTUELL,
-        DeltakerStatus.Type.VENTELISTE,
-        DeltakerStatus.Type.VURDERES,
-        DeltakerStatus.Type.SOKT_INN,
-    )
+    private val kanBliIkkeAktuell =
+        listOf(
+            DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            DeltakerStatus.Type.DELTAR,
+            DeltakerStatus.Type.IKKE_AKTUELL,
+            DeltakerStatus.Type.VENTELISTE,
+            DeltakerStatus.Type.VURDERES,
+            DeltakerStatus.Type.SOKT_INN,
+        )
 
     override fun valider(deltaker: Deltaker) {
         validerAarsaksBeskrivelse(aarsak.beskrivelse)
@@ -44,6 +45,7 @@ data class IkkeAktuellRequest(
         }
     }
 
-    private fun deltakerErEndret(deltaker: Deltaker): Boolean = deltaker.status.type != DeltakerStatus.Type.IKKE_AKTUELL ||
-        harEndretSluttaarsak(deltaker.status.aarsak, aarsak)
+    private fun deltakerErEndret(deltaker: Deltaker): Boolean =
+        deltaker.status.type != DeltakerStatus.Type.IKKE_AKTUELL ||
+            harEndretSluttaarsak(deltaker.status.aarsak, aarsak)
 }

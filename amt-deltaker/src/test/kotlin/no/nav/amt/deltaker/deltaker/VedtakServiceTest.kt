@@ -71,9 +71,10 @@ class VedtakServiceTest {
             val vedtakInTest = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
             insertVedtak(vedtakInTest)
 
-            val thrown = shouldThrow<IllegalArgumentException> {
-                vedtakService.innbyggerFattVedtak(deltaker.id)
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    vedtakService.innbyggerFattVedtak(deltaker.id)
+                }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
         }
@@ -83,18 +84,20 @@ class VedtakServiceTest {
             val vedtakInTest = TestData.lagVedtak(gyldigTil = LocalDateTime.now(), deltakerVedVedtak = deltaker)
             insertVedtak(vedtakInTest)
 
-            val thrown = shouldThrow<IllegalStateException> {
-                vedtakService.innbyggerFattVedtak(deltaker.id)
-            }
+            val thrown =
+                shouldThrow<IllegalStateException> {
+                    vedtakService.innbyggerFattVedtak(deltaker.id)
+                }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har et vedtak som er avbrutt"
         }
 
         @Test
         fun `innbyggerFattVedtak - deltaker har ingen vedtak - kaster feil`() {
-            val thrown = shouldThrow<IllegalStateException> {
-                vedtakService.innbyggerFattVedtak(deltaker.id)
-            }
+            val thrown =
+                shouldThrow<IllegalStateException> {
+                    vedtakService.innbyggerFattVedtak(deltaker.id)
+                }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har ingen vedtak"
         }
@@ -114,13 +117,14 @@ class VedtakServiceTest {
             TestRepository.insert(deltaker)
 
             runTest {
-                val vedtak = vedtakService.opprettEllerOppdaterVedtak(
-                    deltaker = deltaker.toDeltakerVedVedtak(),
-                    endretAv = endretAvAnsatt,
-                    endretAvEnhet = endretAvEnhet,
-                    fattetAvNav = false,
-                    fattetDato = null,
-                )
+                val vedtak =
+                    vedtakService.opprettEllerOppdaterVedtak(
+                        deltaker = deltaker.toDeltakerVedVedtak(),
+                        endretAv = endretAvAnsatt,
+                        endretAvEnhet = endretAvEnhet,
+                        fattetAvNav = false,
+                        fattetDato = null,
+                    )
 
                 assertSoftly(vedtak.shouldNotBeNull()) {
                     deltakerVedVedtak shouldBe deltaker.toDeltakerVedVedtak()
@@ -138,17 +142,19 @@ class VedtakServiceTest {
             val vedtak = TestData.lagVedtak()
             insertVedtak(vedtak)
 
-            val oppdatertDeltaker = lagDeltakerKladd(id = vedtak.deltakerId)
-                .copy(bakgrunnsinformasjon = "Endret bakgrunn")
+            val oppdatertDeltaker =
+                lagDeltakerKladd(id = vedtak.deltakerId)
+                    .copy(bakgrunnsinformasjon = "Endret bakgrunn")
 
             runTest {
-                val oppdatertVedtak = vedtakService.opprettEllerOppdaterVedtak(
-                    deltaker = oppdatertDeltaker.toDeltakerVedVedtak(),
-                    endretAv = endretAvAnsatt,
-                    endretAvEnhet = endretAvEnhet,
-                    fattetAvNav = false,
-                    fattetDato = null,
-                )
+                val oppdatertVedtak =
+                    vedtakService.opprettEllerOppdaterVedtak(
+                        deltaker = oppdatertDeltaker.toDeltakerVedVedtak(),
+                        endretAv = endretAvAnsatt,
+                        endretAvEnhet = endretAvEnhet,
+                        fattetAvNav = false,
+                        fattetDato = null,
+                    )
 
                 assertSoftly(oppdatertVedtak) {
                     deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
@@ -175,11 +181,12 @@ class VedtakServiceTest {
             insertVedtak(vedtakInTest)
 
             runTest {
-                val avbruttVedtak = vedtakService.avbrytVedtak(
-                    deltakerId = deltaker.id,
-                    avbruttAv = avbruttAvAnsatt,
-                    avbruttAvNavEnhet = avbryttAvEnhet,
-                )
+                val avbruttVedtak =
+                    vedtakService.avbrytVedtak(
+                        deltakerId = deltaker.id,
+                        avbruttAv = avbruttAvAnsatt,
+                        avbruttAvNavEnhet = avbryttAvEnhet,
+                    )
 
                 assertSoftly(avbruttVedtak.shouldNotBeNull()) {
                     id shouldBe vedtakInTest.id
@@ -196,13 +203,14 @@ class VedtakServiceTest {
             val vedtakInTest = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
             insertVedtak(vedtakInTest)
 
-            val thrown = shouldThrow<IllegalArgumentException> {
-                vedtakService.avbrytVedtak(
-                    deltakerId = deltaker.id,
-                    avbruttAv = avbruttAvAnsatt,
-                    avbruttAvNavEnhet = avbryttAvEnhet,
-                )
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    vedtakService.avbrytVedtak(
+                        deltakerId = deltaker.id,
+                        avbruttAv = avbruttAvAnsatt,
+                        avbruttAvNavEnhet = avbryttAvEnhet,
+                    )
+                }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
         }
@@ -212,26 +220,28 @@ class VedtakServiceTest {
             val vedtakInTest = TestData.lagVedtak(gyldigTil = LocalDateTime.now(), deltakerVedVedtak = deltaker)
             insertVedtak(vedtakInTest)
 
-            val thrown = shouldThrow<IllegalStateException> {
-                vedtakService.avbrytVedtak(
-                    deltakerId = deltaker.id,
-                    avbruttAv = avbruttAvAnsatt,
-                    avbruttAvNavEnhet = avbryttAvEnhet,
-                )
-            }
+            val thrown =
+                shouldThrow<IllegalStateException> {
+                    vedtakService.avbrytVedtak(
+                        deltakerId = deltaker.id,
+                        avbruttAv = avbruttAvAnsatt,
+                        avbruttAvNavEnhet = avbryttAvEnhet,
+                    )
+                }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har et vedtak som er avbrutt"
         }
 
         @Test
         fun `avbrytVedtak - deltaker har ingen vedtak - feiler`() {
-            val thrown = shouldThrow<IllegalStateException> {
-                vedtakService.avbrytVedtak(
-                    deltakerId = deltaker.id,
-                    avbruttAv = avbruttAvAnsatt,
-                    avbruttAvNavEnhet = avbryttAvEnhet,
-                )
-            }
+            val thrown =
+                shouldThrow<IllegalStateException> {
+                    vedtakService.avbrytVedtak(
+                        deltakerId = deltaker.id,
+                        avbruttAv = avbruttAvAnsatt,
+                        avbruttAvNavEnhet = avbryttAvEnhet,
+                    )
+                }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har ingen vedtak"
         }
@@ -250,11 +260,12 @@ class VedtakServiceTest {
             TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
             runTest {
-                val oppdatertVedtak = vedtakService.navFattVedtak(
-                    deltaker = oppdatertDeltaker,
-                    endretAv = endretAvAnsatt,
-                    endretAvEnhet = endretAvEnhet,
-                )
+                val oppdatertVedtak =
+                    vedtakService.navFattVedtak(
+                        deltaker = oppdatertDeltaker,
+                        endretAv = endretAvAnsatt,
+                        endretAvEnhet = endretAvEnhet,
+                    )
 
                 assertSoftly(oppdatertVedtak.shouldNotBeNull()) {
                     deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
@@ -273,11 +284,12 @@ class VedtakServiceTest {
                 medVedtak(fattet = false)
                 withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
 
-                val fattetVedtak = vedtakService.navFattVedtak(
-                    deltaker = deltaker,
-                    endretAv = veileder,
-                    endretAvEnhet = navEnhet,
-                )
+                val fattetVedtak =
+                    vedtakService.navFattVedtak(
+                        deltaker = deltaker,
+                        endretAv = veileder,
+                        endretAvEnhet = navEnhet,
+                    )
 
                 fattetVedtak.shouldNotBeNull()
 
@@ -290,13 +302,14 @@ class VedtakServiceTest {
         fun `mangler vedtak - kaster feil`() {
             with(DeltakerContext()) {
                 withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-                val thrown = shouldThrow<IllegalStateException> {
-                    vedtakService.navFattVedtak(
-                        deltaker = deltaker,
-                        endretAv = veileder,
-                        endretAvEnhet = navEnhet,
-                    )
-                }
+                val thrown =
+                    shouldThrow<IllegalStateException> {
+                        vedtakService.navFattVedtak(
+                            deltaker = deltaker,
+                            endretAv = veileder,
+                            endretAvEnhet = navEnhet,
+                        )
+                    }
 
                 thrown.message shouldBe "Deltaker ${deltaker.id} mangler et vedtak som kan fattes"
             }

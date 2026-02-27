@@ -55,16 +55,17 @@ class DeltakerResponseMapperServiceTest {
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val endringFraArrangorRepository = EndringFraArrangorRepository()
 
-    private val deltakerHistorikkService = DeltakerHistorikkService(
-        deltakerEndringRepository,
-        vedtakRepository,
-        forslagRepository,
-        endringFraArrangorRepository,
-        importertFraArenaRepository,
-        InnsokPaaFellesOppstartRepository(),
-        EndringFraTiltakskoordinatorRepository(),
-        vurderingRepository,
-    )
+    private val deltakerHistorikkService =
+        DeltakerHistorikkService(
+            deltakerEndringRepository,
+            vedtakRepository,
+            forslagRepository,
+            endringFraArrangorRepository,
+            importertFraArenaRepository,
+            InnsokPaaFellesOppstartRepository(),
+            EndringFraTiltakskoordinatorRepository(),
+            vurderingRepository,
+        )
     private val deltakerKafkaPayloadBuilder =
         DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
 
@@ -78,261 +79,284 @@ class DeltakerResponseMapperServiceTest {
     }
 
     @Test
-    fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`() = runTest {
-        val navBruker = lagNavBruker()
-        TestRepository.insert(navBruker)
-        val deltaker = lagDeltaker(
-            navBruker = navBruker,
-            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-        )
-        TestRepository.insert(deltaker)
-        val vedtak = lagVedtak(
-            deltakerId = deltaker.id,
-            deltakerVedVedtak = deltaker,
-            opprettetAv = sistEndretAvNavAnsatt,
-            opprettetAvEnhet = sistEndretAvNavEnhet,
-            fattet = null,
-        )
-        TestRepository.insert(vedtak)
+    fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`() =
+        runTest {
+            val navBruker = lagNavBruker()
+            TestRepository.insert(navBruker)
+            val deltaker =
+                lagDeltaker(
+                    navBruker = navBruker,
+                    status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                )
+            TestRepository.insert(deltaker)
+            val vedtak =
+                lagVedtak(
+                    deltakerId = deltaker.id,
+                    deltakerVedVedtak = deltaker,
+                    opprettetAv = sistEndretAvNavAnsatt,
+                    opprettetAvEnhet = sistEndretAvNavEnhet,
+                    fattet = null,
+                )
+            TestRepository.insert(vedtak)
 
-        val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
+            val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
-        // Her kan vi legge inn flere assertions på deltakerliste
-        sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
-        sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        sammenlignHistorikk(deltakerV2Dto.historikk?.first()!!, DeltakerHistorikk.Vedtak(vedtak))
+            // Her kan vi legge inn flere assertions på deltakerliste
+            sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
+            sammenlignStatus(deltakerV2Dto.status, deltaker.status)
+            sammenlignHistorikk(deltakerV2Dto.historikk?.first()!!, DeltakerHistorikk.Vedtak(vedtak))
 
-        val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
-        val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
+            val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
+            val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
 
-        assertSoftly(deltakerV2Dto) {
-            id shouldBe deltaker.id
-            deltakerliste.id shouldBe deltaker.deltakerliste.id
-            deltakerliste.tiltak.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
-            dagerPerUke shouldBe deltaker.dagerPerUke
-            prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
-            oppstartsdato shouldBe deltaker.startdato
-            sluttdato shouldBe deltaker.sluttdato
-            innsoktDato shouldBe vedtak.opprettet.toLocalDate()
-            forsteVedtakFattet shouldBe null
-            bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-            navKontor shouldBe brukersNavEnhet.navn
-            navVeileder shouldBe brukersVeileder
-            deltarPaKurs shouldBe deltaker.deltarPaKurs()
-            kilde shouldBe Kilde.KOMET
-            innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
-            historikk?.size shouldBe 1
-            sistEndret shouldBeCloseTo deltaker.sistEndret
-            sistEndretAv shouldBe sistEndretAvNavAnsatt.id
-            sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
+            assertSoftly(deltakerV2Dto) {
+                id shouldBe deltaker.id
+                deltakerliste.id shouldBe deltaker.deltakerliste.id
+                deltakerliste.tiltak.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
+                dagerPerUke shouldBe deltaker.dagerPerUke
+                prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+                oppstartsdato shouldBe deltaker.startdato
+                sluttdato shouldBe deltaker.sluttdato
+                innsoktDato shouldBe vedtak.opprettet.toLocalDate()
+                forsteVedtakFattet shouldBe null
+                bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+                navKontor shouldBe brukersNavEnhet.navn
+                navVeileder shouldBe brukersVeileder
+                deltarPaKurs shouldBe deltaker.deltarPaKurs()
+                kilde shouldBe Kilde.KOMET
+                innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
+                historikk?.size shouldBe 1
+                sistEndret shouldBeCloseTo deltaker.sistEndret
+                sistEndretAv shouldBe sistEndretAvNavAnsatt.id
+                sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
+            }
         }
-    }
 
     @Test
-    fun `tilDeltakerV2Dto - har sluttet - returnerer riktig DeltakerV2Dto`() = runTest {
-        val navBruker = lagNavBruker()
-        TestRepository.insert(navBruker)
-        val deltaker = lagDeltaker(
-            navBruker = navBruker,
-            status = lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
-                beskrivelse = "Flyttet",
-            ),
-        )
-        TestRepository.insert(deltaker)
-        val vedtak = lagVedtak(
-            deltakerId = deltaker.id,
-            deltakerVedVedtak = deltaker,
-            opprettetAv = sistEndretAvNavAnsatt,
-            opprettetAvEnhet = sistEndretAvNavEnhet,
-            opprettet = LocalDateTime.now().minusWeeks(3),
-            fattet = LocalDateTime.now().minusWeeks(1),
-        )
-        TestRepository.insert(vedtak)
+    fun `tilDeltakerV2Dto - har sluttet - returnerer riktig DeltakerV2Dto`() =
+        runTest {
+            val navBruker = lagNavBruker()
+            TestRepository.insert(navBruker)
+            val deltaker =
+                lagDeltaker(
+                    navBruker = navBruker,
+                    status =
+                        lagDeltakerStatus(
+                            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                            aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
+                            beskrivelse = "Flyttet",
+                        ),
+                )
+            TestRepository.insert(deltaker)
+            val vedtak =
+                lagVedtak(
+                    deltakerId = deltaker.id,
+                    deltakerVedVedtak = deltaker,
+                    opprettetAv = sistEndretAvNavAnsatt,
+                    opprettetAvEnhet = sistEndretAvNavEnhet,
+                    opprettet = LocalDateTime.now().minusWeeks(3),
+                    fattet = LocalDateTime.now().minusWeeks(1),
+                )
+            TestRepository.insert(vedtak)
 
-        val endring = lagDeltakerEndring(
-            deltakerId = deltaker.id,
-            endretAv = navBruker.navVeilederId.shouldNotBeNull(),
-            endretAvEnhet = navBruker.navEnhetId.shouldNotBeNull(),
-            endret = LocalDateTime.now().minusDays(2),
-        )
-        deltakerEndringRepository.upsert(endring)
+            val endring =
+                lagDeltakerEndring(
+                    deltakerId = deltaker.id,
+                    endretAv = navBruker.navVeilederId.shouldNotBeNull(),
+                    endretAvEnhet = navBruker.navEnhetId.shouldNotBeNull(),
+                    endret = LocalDateTime.now().minusDays(2),
+                )
+            deltakerEndringRepository.upsert(endring)
 
-        val forslag = lagForslag(
-            deltakerId = deltaker.id,
-            status = Forslag.Status.Tilbakekalt(
-                tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
-                tilbakekalt = LocalDateTime.now().minusDays(1),
-            ),
-        )
-        forslagRepository.upsert(forslag)
+            val forslag =
+                lagForslag(
+                    deltakerId = deltaker.id,
+                    status =
+                        Forslag.Status.Tilbakekalt(
+                            tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
+                            tilbakekalt = LocalDateTime.now().minusDays(1),
+                        ),
+                )
+            forslagRepository.upsert(forslag)
 
-        val endringFraArrangor = lagEndringFraArrangor(
-            deltakerId = deltaker.id,
-            opprettet = LocalDateTime.now(),
-        )
-        endringFraArrangorRepository.insert(endringFraArrangor)
+            val endringFraArrangor =
+                lagEndringFraArrangor(
+                    deltakerId = deltaker.id,
+                    opprettet = LocalDateTime.now(),
+                )
+            endringFraArrangorRepository.insert(endringFraArrangor)
 
-        val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
+            val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
-        deltakerV2Dto.id shouldBe deltaker.id
+            deltakerV2Dto.id shouldBe deltaker.id
 
-        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
-        deltakerV2Dto.deltakerliste.gjennomforingstype shouldBe deltaker.deltakerliste.gjennomforingstype
+            deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
+            deltakerV2Dto.deltakerliste.gjennomforingstype shouldBe deltaker.deltakerliste.gjennomforingstype
 
-        sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
-        sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
-        sammenlignHistorikk(deltakerV2Dto.historikk!![1], DeltakerHistorikk.Forslag(forslag))
-        sammenlignHistorikk(deltakerV2Dto.historikk!![2], DeltakerHistorikk.Endring(endring))
-        sammenlignHistorikk(deltakerV2Dto.historikk!![3], DeltakerHistorikk.Vedtak(vedtak))
+            sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
+            sammenlignStatus(deltakerV2Dto.status, deltaker.status)
+            sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
+            sammenlignHistorikk(deltakerV2Dto.historikk!![1], DeltakerHistorikk.Forslag(forslag))
+            sammenlignHistorikk(deltakerV2Dto.historikk!![2], DeltakerHistorikk.Endring(endring))
+            sammenlignHistorikk(deltakerV2Dto.historikk!![3], DeltakerHistorikk.Vedtak(vedtak))
 
-        val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
-        val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
+            val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
+            val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
 
-        assertSoftly(deltakerV2Dto) {
-            dagerPerUke shouldBe deltaker.dagerPerUke
-            prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
-            oppstartsdato shouldBe deltaker.startdato
-            sluttdato shouldBe deltaker.sluttdato
-            innsoktDato shouldBe vedtak.opprettet.toLocalDate()
-            forsteVedtakFattet shouldBe LocalDateTime.now().minusWeeks(1).toLocalDate()
-            bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-            navKontor shouldBe brukersNavEnhet.navn
-            navVeileder shouldBe brukersVeileder
-            deltarPaKurs shouldBe deltaker.deltarPaKurs()
-            kilde shouldBe Kilde.KOMET
-            innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
-            historikk?.size shouldBe 4
-            sistEndret shouldBeCloseTo deltaker.sistEndret
-            sistEndretAv shouldBe brukersVeileder.id
-            sistEndretAvEnhet shouldBe brukersNavEnhet.id
+            assertSoftly(deltakerV2Dto) {
+                dagerPerUke shouldBe deltaker.dagerPerUke
+                prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+                oppstartsdato shouldBe deltaker.startdato
+                sluttdato shouldBe deltaker.sluttdato
+                innsoktDato shouldBe vedtak.opprettet.toLocalDate()
+                forsteVedtakFattet shouldBe LocalDateTime.now().minusWeeks(1).toLocalDate()
+                bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+                navKontor shouldBe brukersNavEnhet.navn
+                navVeileder shouldBe brukersVeileder
+                deltarPaKurs shouldBe deltaker.deltarPaKurs()
+                kilde shouldBe Kilde.KOMET
+                innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
+                historikk?.size shouldBe 4
+                sistEndret shouldBeCloseTo deltaker.sistEndret
+                sistEndretAv shouldBe brukersVeileder.id
+                sistEndretAvEnhet shouldBe brukersNavEnhet.id
+            }
         }
-    }
 
     @Test
-    fun `tilDeltakerV2Dto - importert fra arena - returnerer riktig DeltakerV2Dto`() = runTest {
-        val navBruker = lagNavBruker()
-        TestRepository.insert(navBruker)
-        val deltaker = lagDeltaker(
-            navBruker = navBruker,
-            bakgrunnsinformasjon = null,
-            innhold = null,
-            status = lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
-                beskrivelse = "Flyttet",
-            ),
-            kilde = Kilde.ARENA,
-        )
-        TestRepository.insert(deltaker)
-        val innsoktDato = LocalDate.now().minusMonths(5)
-        val importertFraArena = ImportertFraArena(
-            deltakerId = deltaker.id,
-            importertDato = LocalDateTime.now().minusWeeks(2),
-            deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
-        )
-        importertFraArenaRepository.upsert(importertFraArena)
+    fun `tilDeltakerV2Dto - importert fra arena - returnerer riktig DeltakerV2Dto`() =
+        runTest {
+            val navBruker = lagNavBruker()
+            TestRepository.insert(navBruker)
+            val deltaker =
+                lagDeltaker(
+                    navBruker = navBruker,
+                    bakgrunnsinformasjon = null,
+                    innhold = null,
+                    status =
+                        lagDeltakerStatus(
+                            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                            aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
+                            beskrivelse = "Flyttet",
+                        ),
+                    kilde = Kilde.ARENA,
+                )
+            TestRepository.insert(deltaker)
+            val innsoktDato = LocalDate.now().minusMonths(5)
+            val importertFraArena =
+                ImportertFraArena(
+                    deltakerId = deltaker.id,
+                    importertDato = LocalDateTime.now().minusWeeks(2),
+                    deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
+                )
+            importertFraArenaRepository.upsert(importertFraArena)
 
-        val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.ImportertFraArena(importertFraArena))
-        sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
-        sammenlignStatus(deltakerV2Dto.status, deltaker.status)
+            val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
+            sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.ImportertFraArena(importertFraArena))
+            sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
+            sammenlignStatus(deltakerV2Dto.status, deltaker.status)
 
-        val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
-        val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
+            val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
+            val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
 
-        assertSoftly(deltakerV2Dto) {
-            id shouldBe deltaker.id
-            deltakerliste.id shouldBe deltaker.deltakerliste.id
-            dagerPerUke shouldBe deltaker.dagerPerUke
-            prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
-            oppstartsdato shouldBe deltaker.startdato
-            sluttdato shouldBe deltaker.sluttdato
-            it.innsoktDato shouldBe innsoktDato
-            forsteVedtakFattet shouldBe innsoktDato
-            bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-            navKontor shouldBe brukersNavEnhet.navn
-            navVeileder shouldBe brukersVeileder
-            deltarPaKurs shouldBe deltaker.deltarPaKurs()
-            kilde shouldBe Kilde.ARENA
-            innhold shouldBe deltaker.deltakelsesinnhold
-            historikk?.size shouldBe 1
-            sistEndret shouldBeCloseTo deltaker.sistEndret
-            sistEndretAv shouldBe null
-            sistEndretAvEnhet shouldBe null
+            assertSoftly(deltakerV2Dto) {
+                id shouldBe deltaker.id
+                deltakerliste.id shouldBe deltaker.deltakerliste.id
+                dagerPerUke shouldBe deltaker.dagerPerUke
+                prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+                oppstartsdato shouldBe deltaker.startdato
+                sluttdato shouldBe deltaker.sluttdato
+                it.innsoktDato shouldBe innsoktDato
+                forsteVedtakFattet shouldBe innsoktDato
+                bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+                navKontor shouldBe brukersNavEnhet.navn
+                navVeileder shouldBe brukersVeileder
+                deltarPaKurs shouldBe deltaker.deltarPaKurs()
+                kilde shouldBe Kilde.ARENA
+                innhold shouldBe deltaker.deltakelsesinnhold
+                historikk?.size shouldBe 1
+                sistEndret shouldBeCloseTo deltaker.sistEndret
+                sistEndretAv shouldBe null
+                sistEndretAvEnhet shouldBe null
+            }
         }
-    }
 
     @Test
-    fun `tilDeltakerV2Dto - importert fra arena, endret - returnerer riktig DeltakerV2Dto`() = runTest {
-        val navBruker = lagNavBruker()
-        TestRepository.insert(navBruker)
-        val deltaker = lagDeltaker(
-            navBruker = navBruker,
-            bakgrunnsinformasjon = null,
-            innhold = null,
-            status = lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
-                beskrivelse = "Flyttet",
-            ),
-            kilde = Kilde.ARENA,
-        )
-        TestRepository.insert(deltaker)
-        val innsoktDato = LocalDate.now().minusMonths(5)
-        val importertFraArena = ImportertFraArena(
-            deltakerId = deltaker.id,
-            importertDato = LocalDateTime.now().minusWeeks(2),
-            deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
-        )
-        importertFraArenaRepository.upsert(importertFraArena)
+    fun `tilDeltakerV2Dto - importert fra arena, endret - returnerer riktig DeltakerV2Dto`() =
+        runTest {
+            val navBruker = lagNavBruker()
+            TestRepository.insert(navBruker)
+            val deltaker =
+                lagDeltaker(
+                    navBruker = navBruker,
+                    bakgrunnsinformasjon = null,
+                    innhold = null,
+                    status =
+                        lagDeltakerStatus(
+                            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                            aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
+                            beskrivelse = "Flyttet",
+                        ),
+                    kilde = Kilde.ARENA,
+                )
+            TestRepository.insert(deltaker)
+            val innsoktDato = LocalDate.now().minusMonths(5)
+            val importertFraArena =
+                ImportertFraArena(
+                    deltakerId = deltaker.id,
+                    importertDato = LocalDateTime.now().minusWeeks(2),
+                    deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
+                )
+            importertFraArenaRepository.upsert(importertFraArena)
 
-        val endring = lagDeltakerEndring(
-            deltakerId = deltaker.id,
-            endretAv = navBruker.navVeilederId.shouldNotBeNull(),
-            endretAvEnhet = navBruker.navEnhetId.shouldNotBeNull(),
-            endret = LocalDateTime.now().minusDays(2),
-        )
-        deltakerEndringRepository.upsert(endring)
+            val endring =
+                lagDeltakerEndring(
+                    deltakerId = deltaker.id,
+                    endretAv = navBruker.navVeilederId.shouldNotBeNull(),
+                    endretAvEnhet = navBruker.navEnhetId.shouldNotBeNull(),
+                    endret = LocalDateTime.now().minusDays(2),
+                )
+            deltakerEndringRepository.upsert(endring)
 
-        val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
+            val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
-        sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
-        sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.Endring(endring))
+            sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
+            sammenlignStatus(deltakerV2Dto.status, deltaker.status)
+            sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.Endring(endring))
 
-        val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
-        val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
+            val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
+            val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
 
-        assertSoftly(deltakerV2Dto) {
-            id shouldBe deltaker.id
-            deltakerliste.id shouldBe deltaker.deltakerliste.id
-            dagerPerUke shouldBe deltaker.dagerPerUke
-            prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
-            oppstartsdato shouldBe deltaker.startdato
-            sluttdato shouldBe deltaker.sluttdato
-            it.innsoktDato shouldBe innsoktDato
-            forsteVedtakFattet shouldBe innsoktDato
-            bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-            navKontor shouldBe brukersNavEnhet.navn
-            navVeileder shouldBe brukersVeileder
-            deltarPaKurs shouldBe deltaker.deltarPaKurs()
-            kilde shouldBe Kilde.ARENA
-            innhold shouldBe deltaker.deltakelsesinnhold
-            historikk?.size shouldBe 2
-            sistEndret shouldBeCloseTo deltaker.sistEndret
-            sistEndretAv shouldBe brukersVeileder.id
-            sistEndretAvEnhet shouldBe brukersNavEnhet.id
+            assertSoftly(deltakerV2Dto) {
+                id shouldBe deltaker.id
+                deltakerliste.id shouldBe deltaker.deltakerliste.id
+                dagerPerUke shouldBe deltaker.dagerPerUke
+                prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+                oppstartsdato shouldBe deltaker.startdato
+                sluttdato shouldBe deltaker.sluttdato
+                it.innsoktDato shouldBe innsoktDato
+                forsteVedtakFattet shouldBe innsoktDato
+                bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+                navKontor shouldBe brukersNavEnhet.navn
+                navVeileder shouldBe brukersVeileder
+                deltarPaKurs shouldBe deltaker.deltarPaKurs()
+                kilde shouldBe Kilde.ARENA
+                innhold shouldBe deltaker.deltakelsesinnhold
+                historikk?.size shouldBe 2
+                sistEndret shouldBeCloseTo deltaker.sistEndret
+                sistEndretAv shouldBe brukersVeileder.id
+                sistEndretAvEnhet shouldBe brukersNavEnhet.id
+            }
         }
-    }
 
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        private fun sammenlignPersonalia(personaliaDto: Personalia, navBruker: NavBruker) {
+        private fun sammenlignPersonalia(
+            personaliaDto: Personalia,
+            navBruker: NavBruker,
+        ) {
             personaliaDto.personId shouldBe navBruker.personId
             personaliaDto.personident shouldBe navBruker.personident
             personaliaDto.navn.fornavn shouldBe navBruker.fornavn
@@ -345,7 +369,10 @@ class DeltakerResponseMapperServiceTest {
             personaliaDto.adressebeskyttelse shouldBe navBruker.adressebeskyttelse
         }
 
-        private fun sammenlignStatus(deltakerStatusDto: DeltakerStatusDto, deltakerStatus: DeltakerStatus) {
+        private fun sammenlignStatus(
+            deltakerStatusDto: DeltakerStatusDto,
+            deltakerStatus: DeltakerStatus,
+        ) {
             deltakerStatusDto.id shouldBe deltakerStatus.id
             deltakerStatusDto.type shouldBe deltakerStatus.type
             deltakerStatusDto.aarsak shouldBe deltakerStatus.aarsak?.type

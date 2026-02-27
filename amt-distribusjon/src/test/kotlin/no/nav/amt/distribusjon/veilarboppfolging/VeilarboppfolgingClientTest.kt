@@ -21,31 +21,35 @@ class VeilarboppfolgingClientTest : ClientTestBase() {
         fun `skal returnere sak nar opprettEllerHentSak kalles med gyldig respons`() {
             val expectedSak = Sak(oppfolgingsperiodeId, sakId = 42, fagsaksystem = "~fagsaksystem~")
 
-            val sut = createVeilarboppfolgingClient(
-                expectedUrl = opprettEllerHentSakUrl,
-                responseBody = expectedSak,
-            )
+            val sut =
+                createVeilarboppfolgingClient(
+                    expectedUrl = opprettEllerHentSakUrl,
+                    responseBody = expectedSak,
+                )
 
-            val actualSak = runBlocking {
-                sut.opprettEllerHentSak(oppfolgingsperiodeId)
-            }
+            val actualSak =
+                runBlocking {
+                    sut.opprettEllerHentSak(oppfolgingsperiodeId)
+                }
 
             actualSak shouldBe expectedSak
         }
 
         @Test
         fun `skal kaste feil nar opprettEllerHentSak returnerer feilkode`() {
-            val sut = createVeilarboppfolgingClient(
-                expectedUrl = opprettEllerHentSakUrl,
-                statusCode = HttpStatusCode.BadRequest,
-                responseBody = null,
-            )
+            val sut =
+                createVeilarboppfolgingClient(
+                    expectedUrl = opprettEllerHentSakUrl,
+                    statusCode = HttpStatusCode.BadRequest,
+                    responseBody = null,
+                )
 
-            val thrown = runBlocking {
-                shouldThrow<IllegalStateException> {
-                    sut.opprettEllerHentSak(oppfolgingsperiodeId)
+            val thrown =
+                runBlocking {
+                    shouldThrow<IllegalStateException> {
+                        sut.opprettEllerHentSak(oppfolgingsperiodeId)
+                    }
                 }
-            }
 
             thrown.message shouldStartWith "Kunne ikke hente sak fra veilarboppfolging for oppfolgingsperiode $oppfolgingsperiodeId"
         }
@@ -55,28 +59,32 @@ class VeilarboppfolgingClientTest : ClientTestBase() {
     inner class ErUnderManuellOppfolgingTests {
         @Test
         fun `skal returnere true nar bruker er under manuell oppfolging`() {
-            val sut = createVeilarboppfolgingClient(
-                expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
-                responseBody = ManuellV2Response(true),
-            )
+            val sut =
+                createVeilarboppfolgingClient(
+                    expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
+                    responseBody = ManuellV2Response(true),
+                )
 
-            val result = runBlocking {
-                sut.erUnderManuellOppfolging("~personident~")
-            }
+            val result =
+                runBlocking {
+                    sut.erUnderManuellOppfolging("~personident~")
+                }
 
             result shouldBe true
         }
 
         @Test
         fun `skal returnere false nar bruker ikke er under manuell oppfolging`() {
-            val sut = createVeilarboppfolgingClient(
-                expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
-                responseBody = ManuellV2Response(false),
-            )
+            val sut =
+                createVeilarboppfolgingClient(
+                    expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
+                    responseBody = ManuellV2Response(false),
+                )
 
-            val result = runBlocking {
-                sut.erUnderManuellOppfolging("~personident~")
-            }
+            val result =
+                runBlocking {
+                    sut.erUnderManuellOppfolging("~personident~")
+                }
 
             result shouldBe false
         }
@@ -85,11 +93,12 @@ class VeilarboppfolgingClientTest : ClientTestBase() {
         fun `skal bruke cache ved andre kall til erUnderManuellOppfolging`() {
             val countingCache = CountingCache<String, Boolean>()
 
-            val sut = createVeilarboppfolgingClient(
-                expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
-                responseBody = ManuellV2Response(false),
-                cache = countingCache,
-            )
+            val sut =
+                createVeilarboppfolgingClient(
+                    expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
+                    responseBody = ManuellV2Response(false),
+                    cache = countingCache,
+                )
 
             runBlocking {
                 sut.erUnderManuellOppfolging("~personident~")
@@ -101,17 +110,19 @@ class VeilarboppfolgingClientTest : ClientTestBase() {
 
         @Test
         fun `skal kaste feil nar erUnderManuellOppfolging returnerer feilkode`() {
-            val sut = createVeilarboppfolgingClient(
-                expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
-                responseBody = null,
-                statusCode = HttpStatusCode.BadRequest,
-            )
+            val sut =
+                createVeilarboppfolgingClient(
+                    expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
+                    responseBody = null,
+                    statusCode = HttpStatusCode.BadRequest,
+                )
 
-            val thrown = runBlocking {
-                shouldThrow<IllegalStateException> {
-                    sut.erUnderManuellOppfolging("~personident~")
+            val thrown =
+                runBlocking {
+                    shouldThrow<IllegalStateException> {
+                        sut.erUnderManuellOppfolging("~personident~")
+                    }
                 }
-            }
 
             thrown.message shouldStartWith "Kunne ikke hente manuell oppfølging fra veilarboppfolging"
         }
@@ -122,20 +133,21 @@ class VeilarboppfolgingClientTest : ClientTestBase() {
         statusCode: HttpStatusCode = HttpStatusCode.OK,
         responseBody: T? = null,
         cache: Cache<String, Boolean>? = null,
-    ): VeilarboppfolgingClient = if (cache != null) {
-        VeilarboppfolgingClient(
-            httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
-            azureAdTokenClient = mockAzureAdTokenClient,
-            environment = testEnvironment,
-            manuellOppfolgingCache = cache,
-        )
-    } else {
-        VeilarboppfolgingClient(
-            httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
-            azureAdTokenClient = mockAzureAdTokenClient,
-            environment = testEnvironment,
-        )
-    }
+    ): VeilarboppfolgingClient =
+        if (cache != null) {
+            VeilarboppfolgingClient(
+                httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
+                azureAdTokenClient = mockAzureAdTokenClient,
+                environment = testEnvironment,
+                manuellOppfolgingCache = cache,
+            )
+        } else {
+            VeilarboppfolgingClient(
+                httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
+                azureAdTokenClient = mockAzureAdTokenClient,
+                environment = testEnvironment,
+            )
+        }
 
     companion object {
         val oppfolgingsperiodeId: UUID = UUID.randomUUID()
