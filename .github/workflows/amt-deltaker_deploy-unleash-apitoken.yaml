@@ -5,6 +5,9 @@ on:
       - "amt-deltaker/.nais/unleash-apitoken-dev.yaml"
       - "amt-deltaker/.nais/unleash-apitoken-prod.yaml"
 
+permissions:
+  id-token: write
+
 jobs:
   call-deploy:
     uses: ./.github/workflows/deploy-unleash-apitoken.yml
