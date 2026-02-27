@@ -43,9 +43,11 @@ jobs:
         id: docker-build-push
         with:
           team: amt
+          image_suffix: ${{ inputs.module-path }}
           tag: ${{ github.sha }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          docker_context: ${{ inputs.module-path }}
           dockerfile: ${{ inputs.module-path }}/Dockerfile
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
@@ -67,8 +69,8 @@ jobs:
           CLUSTER: dev-gcp
           RESOURCE: ${{ inputs.module-path }}/.nais/nais-dev.yaml
           VAR: image=${{ needs.test-build-and-push.outputs.image }}
-          VARS: ${{ inputs.module-path }}/.nais/vars-dev.yaml
           TELEMETRY: ${{ needs.test-build-and-push.outputs.telemetry }}
+          # VARS: ${{ inputs.module-path }}/.nais/vars-dev.yaml
 
   deploy-prod:
     name: Deploy application to prod
@@ -87,4 +89,4 @@ jobs:
           CLUSTER: prod-gcp
           RESOURCE: ${{ inputs.module-path }}/.nais/nais-prod.yaml
           VAR: image=${{ needs.test-build-and-push.outputs.image }}
-          VARS: ${{ inputs.module-path }}/.nais/vars-prod.yaml
+          # VARS: ${{ inputs.module-path }}/.nais/vars-prod.yaml
