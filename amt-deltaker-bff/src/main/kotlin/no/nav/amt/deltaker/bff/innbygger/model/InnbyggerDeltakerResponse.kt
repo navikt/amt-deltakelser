@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.innbygger.model
 
 import no.nav.amt.deltaker.bff.deltaker.api.model.ForslagResponse
 import no.nav.amt.deltaker.bff.deltaker.api.model.ImportertFraArenaDto
-import no.nav.amt.deltaker.bff.deltaker.api.model.getArrangorNavn
 import no.nav.amt.deltaker.bff.deltaker.api.model.toResponse
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.lib.models.arrangor.melding.Forslag

@@ -38,6 +38,7 @@ class ApplicationTest {
                 mockk(),
                 mockk(),
                 mockk(),
+                mockk(),
             )
         }
         client.get("/internal/health/liveness").apply {

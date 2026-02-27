@@ -11,6 +11,8 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import jakarta.ws.rs.ForbiddenException
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.deltaker.ModelMapper
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
@@ -34,7 +36,6 @@ import no.nav.amt.deltaker.bff.deltaker.api.model.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.ReaktiverDeltakelseRequest
-import no.nav.amt.deltaker.bff.deltaker.api.model.getArrangorNavn
 import no.nav.amt.deltaker.bff.deltaker.api.model.toInnholdModel
 import no.nav.amt.deltaker.bff.deltaker.api.model.toResponse
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
@@ -71,6 +72,7 @@ fun Routing.registerDeltakerApi(
     forslagRepository: ForslagRepository,
     forslagService: ForslagService,
     amtDistribusjonClient: AmtDistribusjonClient,
+    amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
     unleashToggle: CommonUnleashToggle,
 ) {
@@ -135,6 +137,63 @@ fun Routing.registerDeltakerApi(
     }
 
     authenticate(AuthLevel.VEILEDER.name) {
+        post("/deltaker/{deltakerId}") {
+            val request = call.receive<DeltakerRequest>()
+            val deltakerId = call.getDeltakerId()
+            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+
+            if (request.personident != deltaker.navBruker.personident) {
+                log.warn("${deltaker.id} ble forsøkt lest med annen Nav-bruker i kontekst.")
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
+            }
+
+            tilgangskontrollService.verifiserLesetilgang(
+                navAnsattAzureId = call.getNavAnsattAzureId(),
+                norskIdent = deltaker.navBruker.personident,
+            )
+
+            sporbarhetsloggService.sendAuditLog(
+                navIdent = call.getNavIdent(),
+                deltakerPersonIdent = deltaker.navBruker.personident,
+            )
+            val deltakerResponse =
+                if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                    amtDeltakerClient
+                        .getDeltaker(deltakerId)
+                        .let { ModelMapper.toDeltaker(it) }
+                } else {
+                    komplettDeltakerResponse(deltaker)
+                }
+
+            call.respond(deltakerResponse)
+        }
+
+        // kaller ikke amt-deltaker
+        get("/deltaker/{deltakerId}/historikk") {
+            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            tilgangskontrollService.verifiserLesetilgang(
+                navAnsattAzureId = call.getNavAnsattAzureId(),
+                norskIdent = deltaker.navBruker.personident,
+            )
+
+            log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id ${deltaker.id}")
+
+            val historikk = deltaker.getDeltakerHistorikkForVisning()
+
+            val historikkResponse = historikk.toResponse(
+                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                oppstartstype = deltaker.deltakerliste.oppstart,
+            )
+
+            call.respondText(
+                objectMapper.writePolymorphicListAsString(historikkResponse),
+                ContentType.Application.Json,
+            )
+        }
+
         post("/deltaker/{deltakerId}/bakgrunnsinformasjon") {
             val request = call.receive<EndreBakgrunnsinformasjonRequest>()
             call.handleEndring(request) { _, endretAv, endretAvEnhet ->
@@ -337,54 +396,6 @@ fun Routing.registerDeltakerApi(
                     begrunnelse = request.begrunnelse,
                 )
             }
-        }
-
-        // kaller ikke amt-deltaker
-        post("/deltaker/{deltakerId}") {
-            val request = call.receive<DeltakerRequest>()
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
-
-            if (request.personident != deltaker.navBruker.personident) {
-                log.warn("${deltaker.id} ble forsøkt lest med annen Nav-bruker i kontekst.")
-                call.respond(HttpStatusCode.BadRequest)
-                return@post
-            }
-
-            tilgangskontrollService.verifiserLesetilgang(
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
-            )
-            sporbarhetsloggService.sendAuditLog(
-                navIdent = call.getNavIdent(),
-                deltakerPersonIdent = deltaker.navBruker.personident,
-            )
-
-            call.respond(komplettDeltakerResponse(deltaker))
-        }
-
-        // kaller ikke amt-deltaker
-        get("/deltaker/{deltakerId}/historikk") {
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
-            tilgangskontrollService.verifiserLesetilgang(
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
-            )
-
-            log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id ${deltaker.id}")
-
-            val historikk = deltaker.getDeltakerHistorikkForVisning()
-
-            val historikkResponse = historikk.toResponse(
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-            )
-
-            call.respondText(
-                objectMapper.writePolymorphicListAsString(historikkResponse),
-                ContentType.Application.Json,
-            )
         }
 
         // kaller ikke amt-deltaker

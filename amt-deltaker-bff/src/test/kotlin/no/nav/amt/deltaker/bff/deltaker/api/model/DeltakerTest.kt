@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.bff.deltaker.api.model
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.deltaker.model.months
-import no.nav.amt.deltaker.bff.deltaker.model.weeks
-import no.nav.amt.deltaker.bff.deltaker.model.years
 import no.nav.amt.deltaker.bff.utils.data.TestData
+import no.nav.amt.deltaker.bff.utils.months
+import no.nav.amt.deltaker.bff.utils.weeks
+import no.nav.amt.deltaker.bff.utils.years
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test

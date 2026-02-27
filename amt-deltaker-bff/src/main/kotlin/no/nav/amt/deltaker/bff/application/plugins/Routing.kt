@@ -13,6 +13,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
@@ -56,6 +57,7 @@ fun Application.configureRouting(
     forslagRepository: ForslagRepository,
     forslagService: ForslagService,
     amtDistribusjonClient: AmtDistribusjonClient,
+    amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteService: DeltakerlisteService,
@@ -104,6 +106,7 @@ fun Application.configureRouting(
             forslagRepository,
             forslagService,
             amtDistribusjonClient,
+            amtDeltakerClient,
             sporbarhetsloggService,
             CommonUnleashToggle(unleash),
         )

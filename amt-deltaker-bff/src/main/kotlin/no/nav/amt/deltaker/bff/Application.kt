@@ -330,6 +330,7 @@ fun Application.module() {
         forslagRepository = forslagRepository,
         forslagService = forslagService,
         amtDistribusjonClient = amtDistribusjonClient,
+        amtDeltakerClient = amtDeltakerClient,
         sporbarhetsloggService = sporbarhetsloggService,
         deltakerRepository = deltakerRepository,
         deltakerlisteService = deltakerlisteService,

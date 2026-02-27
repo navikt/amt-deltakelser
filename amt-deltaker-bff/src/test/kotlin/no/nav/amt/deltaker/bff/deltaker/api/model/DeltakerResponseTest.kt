@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.deltaker.api.model
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.bff.deltaker.api.model.DeltakerResponse.DeltakelsesinnholdDto.Companion.fulltInnhold
 import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold

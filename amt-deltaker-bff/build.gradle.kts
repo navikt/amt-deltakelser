@@ -18,10 +18,8 @@ repositories {
 
 dependencies {
 
-    // --- Ktor BOM ---
-    implementation(platform(libs.ktor.bom))
-
     // --- Ktor ---
+    implementation(platform(libs.ktor.bom))
     implementation(libs.bundles.ktor.server)
     implementation(libs.bundles.ktor.client)
 

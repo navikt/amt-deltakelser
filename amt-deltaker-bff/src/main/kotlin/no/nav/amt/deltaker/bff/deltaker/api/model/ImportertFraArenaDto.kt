@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.deltaker.api.model
 
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
 
@@ -9,6 +10,13 @@ data class ImportertFraArenaDto(
 ) {
     companion object {
         fun fromDeltaker(deltaker: Deltaker): ImportertFraArenaDto? = deltaker.historikk
+            .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
+            .firstOrNull()
+            ?.let {
+                ImportertFraArenaDto(it.importertFraArena.deltakerVedImport.innsoktDato)
+            }
+
+        fun fromDeltaker(deltaker: DeltakerModel): ImportertFraArenaDto? = deltaker.historikk
             .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
             .firstOrNull()
             ?.let {
