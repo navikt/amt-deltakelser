@@ -1,6 +1,6 @@
 plugins {
     id("amt-lib.conventions")
-    alias(libs.plugins.ktlint)
+    // TODO alias(libs.plugins.ktlint)
 }
 
 dependencies {
@@ -21,6 +21,4 @@ dependencies {
     testImplementation(libs.ktor.serialization.jackson)
 }
 
-ktlint {
-    version = libs.versions.ktlint.cli.version
-}
+// TODO ktlint { version = libs.versions.ktlint.cli.version }

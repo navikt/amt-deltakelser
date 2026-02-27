@@ -1,0 +1,41 @@
+name: Deploy Unleash Apitoken
+
+on:
+  workflow_call:
+    inputs:
+      module-path:
+        required: true
+        type: string
+
+jobs:
+  deploy-dev:
+    name: Deploy to dev
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Deploy to dev
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: ${{ inputs.module-path }}/.nais/unleash-apitoken-dev.yaml
+          PRINT_PAYLOAD: true
+
+  deploy-prod:
+    name: Deploy to prod
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Deploy to prod
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: ${{ inputs.module-path }}/.nais/unleash-apitoken-prod.yaml

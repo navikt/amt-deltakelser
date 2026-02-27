@@ -7,7 +7,7 @@ version = "1.0-SNAPSHOT"
 plugins {
     kotlin("jvm")
     alias(libs.plugins.ktor)
-    alias(libs.plugins.ktlint)
+    // TODO alias(libs.plugins.ktlint)
     application
 }
 
@@ -71,9 +71,7 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
-ktlint {
-    version = libs.versions.ktlint.cli.version
-}
+// TODO ktlint { version = libs.versions.ktlint.cli.version }
 
 tasks.named<Test>("test") {
     useJUnitPlatform()

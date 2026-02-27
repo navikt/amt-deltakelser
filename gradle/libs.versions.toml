@@ -16,10 +16,33 @@ postgres-version = "42.7.10"
 caffeine-version = "3.2.3"
 mockk-version = "1.14.9"
 nimbus-version = "10.7"
-amt-lib-version = "1.2026.02.25_22.39-ccfac092a007"
+unleash-version = "12.1.1"
 tms-varsel-kotlin-builder-version = "2.1.1"
 
+# amt-lib spesifikt
+kafka-clients-version = "4.2.0"
+kotlinx-version = "1.10.2"
+prometheus-metrics-version = "1.5.0" # Testene feiler med "1.16.3"
+
+jupiter-version = "6.0.3"
+testcontainers-version = "2.0.3"
+
 [libraries]
+
+# amt-lib spesifikt
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson-version" }
+kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-clients-version" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-version" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-version" }
+prometheus-metrics-instrumentation = { module = "io.prometheus:prometheus-metrics-instrumentation-jvm", version.ref = "prometheus-metrics-version" }
+prometheus-metrics-exporter = { module = "io.prometheus:prometheus-metrics-exporter-httpserver", version.ref = "prometheus-metrics-version" }
+
+# ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
+ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter-version" }
+
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers-version" }
+testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers-version" }
 
 # --- BOM ---
 ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktor-version" }
@@ -51,13 +74,7 @@ micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
 logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logback-version" }
 nav-common-log = { module = "no.nav.common:log", version.ref = "common-version" }
-
-# --- NAV AMT ---
-amt-kafka = { module = "no.nav.amt.lib:kafka", version.ref = "amt-lib-version" }
-amt-utils = { module = "no.nav.amt.lib:utils", version.ref = "amt-lib-version" }
-amt-ktor = { module = "no.nav.amt.lib:ktor", version.ref = "amt-lib-version" }
-amt-outbox = { module = "no.nav.amt.lib:outbox", version.ref = "amt-lib-version" }
-amt-testing = { module = "no.nav.amt.lib:testing", version.ref = "amt-lib-version" }
+nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "common-version" }
 
 # --- POAO ---
 poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "poao-tilgang-version" }
@@ -75,6 +92,9 @@ kotliquery = { module = "com.github.seratch:kotliquery", version.ref = "kotlique
 # --- Cache ---
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine-version" }
 
+# --- Feature Toggle ---
+unleash = { module = "io.getunleash:unleash-client-java", version.ref = "unleash-version" }
+
 # --- Test ---
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
@@ -83,6 +103,9 @@ kotest-assertions-core = { module = "io.kotest:kotest-assertions-core-jvm", vers
 kotest-assertions-json = { module = "io.kotest:kotest-assertions-json-jvm", version.ref = "kotest-version" }
 mockk = { module = "io.mockk:mockk-jvm", version.ref = "mockk-version" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-version" }
+
+# plugins used in convention plugin
+kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
@@ -107,13 +130,6 @@ ktor-client = [
     "ktor-client-core",
     "ktor-client-cio",
     "ktor-client-content-negotiation"
-]
-
-amt = [
-    "amt-kafka",
-    "amt-utils",
-    "amt-ktor",
-    "amt-outbox"
 ]
 
 database = [

@@ -1,0 +1,12 @@
+name: amt-distribusjon - Deploy unleash-apitoken
+on:
+  push:
+    paths:
+      - "amt-distribusjon/.nais/unleash-apitoken-dev.yaml"
+      - "amt-distribusjon/.nais/unleash-apitoken-prod.yaml"
+
+jobs:
+  call-deploy:
+    uses: ./.github/workflows/deploy-unleash-apitoken.yml
+    with:
+      module-path: "amt-distribusjon"

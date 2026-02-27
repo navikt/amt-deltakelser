@@ -1,0 +1,98 @@
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  merge_group:
+  schedule:
+    - cron: "0 0 * * 3"  # weekly on Wednesday
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ "kotlin" ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Detect changed modules
+        id: changes
+        run: |
+          MODULES="amt-deltaker amt-deltaker-bff amt-distribusjon amt-lib"
+          
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "Scheduled run: analyzing all modules"
+            CHANGED_MODULES="$MODULES"
+          else
+            CHANGED_MODULES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+              | grep -E '^('$(echo $MODULES | tr ' ' '|')')(/|$)' \
+              | cut -d/ -f1 | sort -u | tr '\n' ' ')
+          fi
+
+          echo "Changed modules: $CHANGED_MODULES"
+          echo "CHANGED_MODULES=$CHANGED_MODULES" >> $GITHUB_ENV
+          echo "::set-output name=CHANGED_MODULES::$CHANGED_MODULES"
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 24
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build artifacts
+        if: steps.changes.outputs.CHANGED_MODULES != ''
+        run: |
+          for module in $CHANGED_MODULES; do
+            echo "Building $module..."
+            ./gradlew :$module:assemble -PskipShadow -PskipDist -x test --no-daemon --configuration-cache --parallel
+          done
+
+      - name: Perform CodeQL Analysis
+        if: steps.changes.outputs.CHANGED_MODULES != ''
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  check_codeql_status:
+    name: Check CodeQL Status
+    needs: analyze
+    if: github.event_name == 'pull_request'  # only run on PRs
+    permissions:
+      contents: read
+      checks: read
+      pull-requests: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if no modules changed
+        if: needs.analyze.outputs.CHANGED_MODULES == ''
+        run: echo "No modules changed, skipping CodeQL status check."
+
+      - name: Check CodeQL Status
+        if: needs.analyze.outputs.CHANGED_MODULES != ''
+        uses: eldrick19/code-scanning-status-checker@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pr_number: ${{ github.event.pull_request.number }}
+          repo: ${{ github.repository }}
