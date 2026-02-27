@@ -1,0 +1,1 @@
+ALTER TABLE deltakerliste ADD COLUMN pameldingstype VARCHAR;

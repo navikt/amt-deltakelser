@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS deltaker_status_deltaker_id_idx ON deltaker_status (deltaker_id);

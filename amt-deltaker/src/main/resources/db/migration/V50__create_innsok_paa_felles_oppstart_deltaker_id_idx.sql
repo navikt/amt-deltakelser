@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS innsok_paa_felles_oppstart_deltaker_id_idx ON innsok_paa_felles_oppstart (deltaker_id);
