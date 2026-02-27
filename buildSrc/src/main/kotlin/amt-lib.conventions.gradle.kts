@@ -1,6 +1,6 @@
 import java.net.URI
 
-group = "no.nav.amt.deltakelser"
+group = "no.nav.amt.deltakelser.lib"
 
 plugins {
     `java-library`
