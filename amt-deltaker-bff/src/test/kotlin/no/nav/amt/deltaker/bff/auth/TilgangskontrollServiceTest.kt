@@ -34,21 +34,23 @@ class TilgangskontrollServiceTest {
     private val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
 
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
-    private val tiltakskoordinatorsDeltakerlisteProducer = TiltakskoordinatorsDeltakerlisteProducer(
-        TestOutboxEnvironment.outboxService,
-        kafkaProducer,
-    )
+    private val tiltakskoordinatorsDeltakerlisteProducer =
+        TiltakskoordinatorsDeltakerlisteProducer(
+            TestOutboxEnvironment.outboxService,
+            kafkaProducer,
+        )
 
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockk())
     private val tiltakskoordinatorTilgangRepository = TiltakskoordinatorTilgangRepository()
-    private val tilgangskontrollService = TilgangskontrollService(
-        poaoTilgangCachedClient,
-        navAnsattService,
-        tiltakskoordinatorTilgangRepository,
-        tiltakskoordinatorsDeltakerlisteProducer,
-        mockk<TiltakskoordinatorService>(),
-        mockk<DeltakerlisteService>(),
-    )
+    private val tilgangskontrollService =
+        TilgangskontrollService(
+            poaoTilgangCachedClient,
+            navAnsattService,
+            tiltakskoordinatorTilgangRepository,
+            tiltakskoordinatorsDeltakerlisteProducer,
+            mockk<TiltakskoordinatorService>(),
+            mockk<DeltakerlisteService>(),
+        )
 
     companion object {
         @RegisterExtension
@@ -90,104 +92,115 @@ class TilgangskontrollServiceTest {
     @Nested
     inner class LeggTilTiltakskoordinatorTilgang {
         @Test
-        fun `har ikke tilgang fra for - returnerer success`(): Unit = runBlocking {
-            with(TiltakskoordinatorTilgangContext()) {
-                val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+        fun `har ikke tilgang fra for - returnerer success`(): Unit =
+            runBlocking {
+                with(TiltakskoordinatorTilgangContext()) {
+                    val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
 
-                actual.isSuccess shouldBe true
+                    actual.isSuccess shouldBe true
 
-                val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(actual.getOrThrow(), navAnsatt.navIdent)
-                assertProduced(expected)
+                    val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(actual.getOrThrow(), navAnsatt.navIdent)
+                    assertProduced(expected)
+                }
             }
-        }
 
         @Test
-        fun `med inaktiv tilgang fra for - returnerer success`(): Unit = runBlocking {
-            with(TiltakskoordinatorTilgangContext()) {
-                medInaktivTilgang()
+        fun `med inaktiv tilgang fra for - returnerer success`(): Unit =
+            runBlocking {
+                with(TiltakskoordinatorTilgangContext()) {
+                    medInaktivTilgang()
 
-                val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-                actual.isSuccess shouldBe true
+                    val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+                    actual.isSuccess shouldBe true
 
-                val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(actual.getOrThrow(), navAnsatt.navIdent)
-                assertProduced(expected)
+                    val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(actual.getOrThrow(), navAnsatt.navIdent)
+                    assertProduced(expected)
+                }
             }
-        }
 
         @Test
-        fun `har tilgang fra for - returnerer failure`(): Unit = runBlocking {
-            with(TiltakskoordinatorTilgangContext()) {
-                medAktivTilgang()
-                val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-                actual.isFailure shouldBe true
+        fun `har tilgang fra for - returnerer failure`(): Unit =
+            runBlocking {
+                with(TiltakskoordinatorTilgangContext()) {
+                    medAktivTilgang()
+                    val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+                    actual.isFailure shouldBe true
+                }
             }
-        }
     }
 
     @Nested
     inner class FjernTiltakskoordinatorTilgang {
         @Test
-        fun `har tilgang fra for - returnerer success`(): Unit = runBlocking {
+        fun `har tilgang fra for - returnerer success`(): Unit =
+            runBlocking {
+                with(TiltakskoordinatorTilgangContext()) {
+                    medAktivTilgang()
+                    val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+                    actual.isSuccess shouldBe true
+
+                    val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(model = actual.getOrThrow(), navIdent = navAnsatt.navIdent)
+                    assertProduced(tilgang = expected, tombstoneExpected = true)
+                }
+            }
+
+        @Test
+        fun `har ikke tilgang fra for - returnerer failure`(): Unit =
+            runBlocking {
+                with(TiltakskoordinatorTilgangContext()) {
+                    val actual =
+                        tilgangskontrollService.fjernTiltakskoordinatorTilgang(
+                            navIdent = navAnsatt.navIdent,
+                            deltakerlisteId = deltakerliste.id,
+                        )
+                    actual.isFailure shouldBe true
+                }
+            }
+
+        @Test
+        fun `med inaktiv tilgang fra for - returnerer failure`(): Unit =
+            runBlocking {
+                with(TiltakskoordinatorTilgangContext()) {
+                    medInaktivTilgang()
+                    val actual =
+                        tilgangskontrollService.fjernTiltakskoordinatorTilgang(
+                            navIdent = navAnsatt.navIdent,
+                            deltakerlisteId = deltakerliste.id,
+                        )
+                    actual.isFailure shouldBe true
+                }
+            }
+    }
+
+    @Test
+    fun `verifiserTiltakskoordinatorTilgang - har tilgang - kaster ikke exception`(): Unit =
+        runBlocking {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
-                val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-                actual.isSuccess shouldBe true
-
-                val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(model = actual.getOrThrow(), navIdent = navAnsatt.navIdent)
-                assertProduced(tilgang = expected, tombstoneExpected = true)
+                tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
             }
         }
 
-        @Test
-        fun `har ikke tilgang fra for - returnerer failure`(): Unit = runBlocking {
+    @Test
+    fun `verifiserTiltakskoordinatorTilgang - har ingen tilgang - kaster exception`(): Unit =
+        runBlocking {
             with(TiltakskoordinatorTilgangContext()) {
-                val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(
-                    navIdent = navAnsatt.navIdent,
-                    deltakerlisteId = deltakerliste.id,
-                )
-                actual.isFailure shouldBe true
+                assertThrows<AuthorizationException> {
+                    tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+                }
             }
         }
 
-        @Test
-        fun `med inaktiv tilgang fra for - returnerer failure`(): Unit = runBlocking {
+    @Test
+    fun `verifiserTiltakskoordinatorTilgang - har inaktiv tilgang - kaster exception`(): Unit =
+        runBlocking {
             with(TiltakskoordinatorTilgangContext()) {
                 medInaktivTilgang()
-                val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(
-                    navIdent = navAnsatt.navIdent,
-                    deltakerlisteId = deltakerliste.id,
-                )
-                actual.isFailure shouldBe true
+                assertThrows<AuthorizationException> {
+                    tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+                }
             }
         }
-    }
-
-    @Test
-    fun `verifiserTiltakskoordinatorTilgang - har tilgang - kaster ikke exception`(): Unit = runBlocking {
-        with(TiltakskoordinatorTilgangContext()) {
-            medAktivTilgang()
-            tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-        }
-    }
-
-    @Test
-    fun `verifiserTiltakskoordinatorTilgang - har ingen tilgang - kaster exception`(): Unit = runBlocking {
-        with(TiltakskoordinatorTilgangContext()) {
-            assertThrows<AuthorizationException> {
-                tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-            }
-        }
-    }
-
-    @Test
-    fun `verifiserTiltakskoordinatorTilgang - har inaktiv tilgang - kaster exception`(): Unit = runBlocking {
-        with(TiltakskoordinatorTilgangContext()) {
-            medInaktivTilgang()
-            assertThrows<AuthorizationException> {
-                tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-            }
-        }
-    }
 
     @Test
     fun `koordinatorTilgangTilDeltaker - mangler tilgang - deltaker er kode 7 - tilgang er false`() {

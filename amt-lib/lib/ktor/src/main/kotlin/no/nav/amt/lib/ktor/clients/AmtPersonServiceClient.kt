@@ -25,31 +25,37 @@ class AmtPersonServiceClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun hentNavAnsatt(navIdent: String): NavAnsatt = performPost("api/nav-ansatt", NavAnsattRequest(navIdent))
-        .failIfNotSuccess("Kunne ikke hente nav-ansatt med ident $navIdent fra amt-person-service.")
-        .body()
+    suspend fun hentNavAnsatt(navIdent: String): NavAnsatt =
+        performPost("api/nav-ansatt", NavAnsattRequest(navIdent))
+            .failIfNotSuccess("Kunne ikke hente nav-ansatt med ident $navIdent fra amt-person-service.")
+            .body()
 
-    suspend fun hentNavAnsatt(id: UUID): NavAnsatt = performGet("api/nav-ansatt/$id")
-        .failIfNotSuccess("Kunne ikke hente nav-ansatt med id $id fra amt-person-service.")
-        .body()
+    suspend fun hentNavAnsatt(id: UUID): NavAnsatt =
+        performGet("api/nav-ansatt/$id")
+            .failIfNotSuccess("Kunne ikke hente nav-ansatt med id $id fra amt-person-service.")
+            .body()
 
-    suspend fun hentNavEnhet(navEnhetsnummer: String): NavEnhet = performPost("api/nav-enhet", NavEnhetRequest(navEnhetsnummer))
-        .failIfNotSuccess("Kunne ikke hente nav-enhet med nummer $navEnhetsnummer fra amt-person-service.")
-        .body<NavEnhetDto>()
-        .toModel()
+    suspend fun hentNavEnhet(navEnhetsnummer: String): NavEnhet =
+        performPost("api/nav-enhet", NavEnhetRequest(navEnhetsnummer))
+            .failIfNotSuccess("Kunne ikke hente nav-enhet med nummer $navEnhetsnummer fra amt-person-service.")
+            .body<NavEnhetDto>()
+            .toModel()
 
-    suspend fun hentNavEnhet(id: UUID): NavEnhet = performGet("api/nav-enhet/$id")
-        .failIfNotSuccess("Kunne ikke hente nav-enhet med id $id fra amt-person-service.")
-        .body<NavEnhetDto>()
-        .toModel()
+    suspend fun hentNavEnhet(id: UUID): NavEnhet =
+        performGet("api/nav-enhet/$id")
+            .failIfNotSuccess("Kunne ikke hente nav-enhet med id $id fra amt-person-service.")
+            .body<NavEnhetDto>()
+            .toModel()
 
-    suspend fun hentNavBruker(personIdent: String): NavBruker = performPost("api/nav-bruker", NavBrukerRequest(personIdent))
-        .failIfNotSuccess("Kunne ikke hente nav-bruker fra amt-person-service")
-        .body<NavBrukerDto>()
-        .toModel()
+    suspend fun hentNavBruker(personIdent: String): NavBruker =
+        performPost("api/nav-bruker", NavBrukerRequest(personIdent))
+            .failIfNotSuccess("Kunne ikke hente nav-bruker fra amt-person-service")
+            .body<NavBrukerDto>()
+            .toModel()
 
-    suspend fun hentNavBrukerFodselsar(personIdent: String): Int = performPost("api/nav-bruker-fodselsar", NavBrukerRequest(personIdent))
-        .failIfNotSuccess("Kunne ikke hente fodselsar for nav-bruker fra amt-person-service")
-        .body<NavBrukerFodselsarDto>()
-        .fodselsar
+    suspend fun hentNavBrukerFodselsar(personIdent: String): Int =
+        performPost("api/nav-bruker-fodselsar", NavBrukerRequest(personIdent))
+            .failIfNotSuccess("Kunne ikke hente fodselsar for nav-bruker fra amt-person-service")
+            .body<NavBrukerFodselsarDto>()
+            .fodselsar
 }

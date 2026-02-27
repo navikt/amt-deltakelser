@@ -39,11 +39,12 @@ fun Routing.registerInnbyggerApi(
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
-    fun komplettInnbyggerDeltakerResponse(deltaker: Deltaker): InnbyggerDeltakerResponse = deltaker.toInnbyggerDeltakerResponse(
-        ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
-        forslag = forslageRepository.getForDeltaker(deltaker.id),
-    )
+    fun komplettInnbyggerDeltakerResponse(deltaker: Deltaker): InnbyggerDeltakerResponse =
+        deltaker.toInnbyggerDeltakerResponse(
+            ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
+            vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
+            forslag = forslageRepository.getForDeltaker(deltaker.id),
+        )
 
     authenticate(AuthLevel.INNBYGGER.name) {
         // kaller amtDeltakerClient.sistBesokt
@@ -92,12 +93,13 @@ fun Routing.registerInnbyggerApi(
 
             val historikk = deltaker.getDeltakerHistorikkForVisning()
 
-            val historikkResponse = historikk.toResponse(
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-            )
+            val historikkResponse =
+                historikk.toResponse(
+                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                )
 
             call.respondText(
                 objectMapper.writePolymorphicListAsString(historikkResponse),

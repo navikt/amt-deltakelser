@@ -54,7 +54,10 @@ class DeltakerProducerService(
         }
     }
 
-    private fun produceDeltakerV2Topic(deltaker: Deltaker, forcedUpdate: Boolean? = false) {
+    private fun produceDeltakerV2Topic(
+        deltaker: Deltaker,
+        forcedUpdate: Boolean? = false,
+    ) {
         val deltakerV2Record = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker, forcedUpdate)
         if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode) ||
             unleashToggle.skalLeseArenaDataForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)

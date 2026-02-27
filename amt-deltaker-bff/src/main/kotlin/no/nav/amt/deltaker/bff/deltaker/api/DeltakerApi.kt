@@ -79,15 +79,19 @@ fun Routing.registerDeltakerApi(
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
     // duplikat i PameldiongApi
-    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
-        deltaker = deltaker,
-        ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
-        digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslagRepository.getForDeltaker(deltaker.id),
-    )
+    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse =
+        DeltakerResponse.fromDeltaker(
+            deltaker = deltaker,
+            ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
+            vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
+            digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
+            forslag = forslagRepository.getForDeltaker(deltaker.id),
+        )
 
-    fun illegalUpdateGuard(deltaker: Deltaker, tillatEndringUtenOppfPeriode: Boolean) {
+    fun illegalUpdateGuard(
+        deltaker: Deltaker,
+        tillatEndringUtenOppfPeriode: Boolean,
+    ) {
         if (!deltaker.kanEndres) {
             log.error("Kan ikke endre deltaker med id ${deltaker.id} som er låst")
             throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")
@@ -124,14 +128,16 @@ fun Routing.registerDeltakerApi(
 
         request.valider(deltaker)
 
-        val oppdatertDeltaker = deltakerService.oppdaterDeltaker(
-            deltaker = deltaker,
-            endringRequest = produceEndringRequest(
-                deltaker,
-                this.getNavIdent(),
-                this.getEnhetsnummer(),
-            ),
-        )
+        val oppdatertDeltaker =
+            deltakerService.oppdaterDeltaker(
+                deltaker = deltaker,
+                endringRequest =
+                    produceEndringRequest(
+                        deltaker,
+                        this.getNavIdent(),
+                        this.getEnhetsnummer(),
+                    ),
+            )
 
         this.respond(komplettDeltakerResponse(oppdatertDeltaker))
     }
@@ -181,12 +187,13 @@ fun Routing.registerDeltakerApi(
 
             val historikk = deltaker.getDeltakerHistorikkForVisning()
 
-            val historikkResponse = historikk.toResponse(
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-            )
+            val historikkResponse =
+                historikk.toResponse(
+                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                )
 
             call.respondText(
                 objectMapper.writePolymorphicListAsString(historikkResponse),
@@ -211,11 +218,13 @@ fun Routing.registerDeltakerApi(
                 InnholdRequest(
                     endretAv = endretAv,
                     endretAvEnhet = endretAvEnhet,
-                    deltakelsesinnhold = Deltakelsesinnhold(
-                        innhold = request.innhold.toInnholdModel(deltaker),
-                        ledetekst = deltaker.deltakerliste.tiltak.innhold
-                            ?.ledetekst,
-                    ),
+                    deltakelsesinnhold =
+                        Deltakelsesinnhold(
+                            innhold = request.innhold.toInnholdModel(deltaker),
+                            ledetekst =
+                                deltaker.deltakerliste.tiltak.innhold
+                                    ?.ledetekst,
+                        ),
                 )
             }
         }

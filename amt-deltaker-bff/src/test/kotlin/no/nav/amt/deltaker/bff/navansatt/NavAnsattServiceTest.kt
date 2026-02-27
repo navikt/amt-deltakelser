@@ -52,31 +52,34 @@ class NavAnsattServiceTest {
     @Nested
     inner class HentEllerOpprettNavAnsatt {
         @Test
-        fun `Nav-ansatt finnes i db - henter fra db`() = runTest {
-            val navAnsatt = TestData.lagNavAnsatt()
-            navAnsattRepository.upsert(navAnsatt)
+        fun `Nav-ansatt finnes i db - henter fra db`() =
+            runTest {
+                val navAnsatt = TestData.lagNavAnsatt()
+                navAnsattRepository.upsert(navAnsatt)
 
-            val navAnsattFraDb = navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent)
-            navAnsattFraDb shouldBe navAnsatt
-        }
+                val navAnsattFraDb = navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent)
+                navAnsattFraDb shouldBe navAnsatt
+            }
 
         @Test
-        fun `Nav-ansatt finnes ikke i db - henter fra personservice og lagrer`() = runTest {
-            val navAnsattResponse = TestData.lagNavAnsatt()
-            val httpClient = mockHttpClient(objectMapper.writeValueAsString(navAnsattResponse))
-            val amtPersonServiceClient = AmtPersonServiceClient(
-                baseUrl = "http://amt-person-service",
-                scope = "scope",
-                httpClient = httpClient,
-                azureAdTokenClient = mockAzureAdClient(),
-            )
-            val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
+        fun `Nav-ansatt finnes ikke i db - henter fra personservice og lagrer`() =
+            runTest {
+                val navAnsattResponse = TestData.lagNavAnsatt()
+                val httpClient = mockHttpClient(objectMapper.writeValueAsString(navAnsattResponse))
+                val amtPersonServiceClient =
+                    AmtPersonServiceClient(
+                        baseUrl = "http://amt-person-service",
+                        scope = "scope",
+                        httpClient = httpClient,
+                        azureAdTokenClient = mockAzureAdClient(),
+                    )
+                val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
 
-            val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattResponse.navIdent)
+                val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattResponse.navIdent)
 
-            navAnsatt shouldBe navAnsattResponse
-            navAnsattRepository.get(navAnsattResponse.id) shouldBe navAnsattResponse
-        }
+                navAnsatt shouldBe navAnsattResponse
+                navAnsattRepository.get(navAnsattResponse.id) shouldBe navAnsattResponse
+            }
     }
 
     @Test
@@ -125,27 +128,31 @@ class NavAnsattServiceTest {
     fun `hentAnsatteForHistorikk - historikk endret av flere ansatte - returnerer alle ansatte`() {
         val deltaker = TestData.lagDeltaker()
 
-        val vedtak = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            fattet = LocalDateTime.now(),
-            fattetAvNav = true,
-        )
+        val vedtak =
+            TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = LocalDateTime.now(),
+                fattetAvNav = true,
+            )
 
         val deltakerEndring = TestData.lagDeltakerEndring(deltakerId = deltaker.id)
-        val forslag = TestData.lagForslag(
-            deltakerId = deltaker.id,
-            status = Forslag.Status.Avvist(
-                avvistAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-                avvist = LocalDateTime.now(),
-                begrunnelseFraNav = "Begrunnelse",
-            ),
-        )
+        val forslag =
+            TestData.lagForslag(
+                deltakerId = deltaker.id,
+                status =
+                    Forslag.Status.Avvist(
+                        avvistAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                        avvist = LocalDateTime.now(),
+                        begrunnelseFraNav = "Begrunnelse",
+                    ),
+            )
 
-        val historikk = listOf(
-            DeltakerHistorikk.Endring(deltakerEndring),
-            DeltakerHistorikk.Vedtak(vedtak),
-            DeltakerHistorikk.Forslag(forslag),
-        )
+        val historikk =
+            listOf(
+                DeltakerHistorikk.Endring(deltakerEndring),
+                DeltakerHistorikk.Vedtak(vedtak),
+                DeltakerHistorikk.Forslag(forslag),
+            )
 
         val ansatte = TestData.lagNavAnsatteForHistorikk(historikk)
 

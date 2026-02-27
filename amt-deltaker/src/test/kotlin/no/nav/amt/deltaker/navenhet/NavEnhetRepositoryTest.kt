@@ -31,10 +31,11 @@ class NavEnhetRepositoryTest {
         val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
-        val oppdatertNavEnhet = navEnhet.copy(
-            navn = "Oppdatert Nav-enhet",
-            enhetsnummer = "9999",
-        )
+        val oppdatertNavEnhet =
+            navEnhet.copy(
+                navn = "Oppdatert Nav-enhet",
+                enhetsnummer = "9999",
+            )
         val result = navEnhetRepository.upsert(oppdatertNavEnhet)
 
         result shouldBe oppdatertNavEnhet
@@ -79,11 +80,12 @@ class NavEnhetRepositoryTest {
     inner class GetManyTests {
         @Test
         fun `getMany - flere nav enheter - returnerer alle enheter`() {
-            val navEnheter = listOf(
-                lagNavEnhet(enhetsnummer = "1111", navn = "Nav En"),
-                lagNavEnhet(enhetsnummer = "2222", navn = "Nav To"),
-                lagNavEnhet(enhetsnummer = "3333", navn = "Nav Tre"),
-            )
+            val navEnheter =
+                listOf(
+                    lagNavEnhet(enhetsnummer = "1111", navn = "Nav En"),
+                    lagNavEnhet(enhetsnummer = "2222", navn = "Nav To"),
+                    lagNavEnhet(enhetsnummer = "3333", navn = "Nav Tre"),
+                )
             navEnheter.forEach { navEnhetRepository.upsert(it) }
 
             val result = navEnhetRepository.getMany(navEnheter.map { it.id }.toSet())

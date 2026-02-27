@@ -18,10 +18,11 @@ class AzureAdTokenClient(
     private val clientId: String,
     private val clientSecret: String,
     private val httpClient: HttpClient,
-    private val tokenCache: Cache<String, AzureAdToken> = Caffeine
-        .newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(55))
-        .build(),
+    private val tokenCache: Cache<String, AzureAdToken> =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(Duration.ofMinutes(55))
+            .build(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -38,18 +39,19 @@ class AzureAdTokenClient(
     }
 
     private suspend fun createMachineToMachineToken(scope: String): AzureAdToken {
-        val response = httpClient.post(azureAdTokenUrl) {
-            setBody(
-                FormDataContent(
-                    Parameters.build {
-                        append("grant_type", "client_credentials")
-                        append("client_id", clientId)
-                        append("client_secret", clientSecret)
-                        append("scope", scope)
-                    },
-                ),
-            )
-        }
+        val response =
+            httpClient.post(azureAdTokenUrl) {
+                setBody(
+                    FormDataContent(
+                        Parameters.build {
+                            append("grant_type", "client_credentials")
+                            append("client_id", clientId)
+                            append("client_secret", clientSecret)
+                            append("scope", scope)
+                        },
+                    ),
+                )
+            }
 
         if (!response.status.isSuccess()) {
             log.error("Kunne ikke hente AAD-token: ${response.status.value} ${response.bodyAsText()}")

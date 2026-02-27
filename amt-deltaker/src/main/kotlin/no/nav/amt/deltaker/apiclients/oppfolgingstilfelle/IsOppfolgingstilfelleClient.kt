@@ -37,11 +37,12 @@ class IsOppfolgingstilfelleClient(
 
     private suspend fun hentOppfolgingstilfeller(personident: String): OppfolgingstilfellePersonResponse {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
-        val response = httpClient.get("$baseUrl/api/system/v1/oppfolgingstilfelle/personident") {
-            header(HttpHeaders.Authorization, token)
-            header(personIdentHeader, personident)
-            contentType(ContentType.Application.Json)
-        }
+        val response =
+            httpClient.get("$baseUrl/api/system/v1/oppfolgingstilfelle/personident") {
+                header(HttpHeaders.Authorization, token)
+                header(personIdentHeader, personident)
+                contentType(ContentType.Application.Json)
+            }
         if (!response.status.isSuccess()) {
             log.error(
                 "Kunne ikke hente oppfølgingstilfelle fra isoppfolgingstilfelle. " +

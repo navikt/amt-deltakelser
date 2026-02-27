@@ -29,13 +29,14 @@ data class Deltakerliste(
         val arrangor: no.nav.amt.lib.models.deltaker.Arrangor,
         val overordnetArrangorNavn: String?,
     ) {
-        fun getArrangorNavn(): String = toTitleCase(
-            if (overordnetArrangorNavn.isNullOrEmpty() || overordnetArrangorNavn == UKJENT_VIRKSOMHET) {
-                arrangor.navn
-            } else {
-                overordnetArrangorNavn
-            },
-        )
+        fun getArrangorNavn(): String =
+            toTitleCase(
+                if (overordnetArrangorNavn.isNullOrEmpty() || overordnetArrangorNavn == UKJENT_VIRKSOMHET) {
+                    arrangor.navn
+                } else {
+                    overordnetArrangorNavn
+                },
+            )
 
         companion object {
             private const val UKJENT_VIRKSOMHET = "Ukjent Virksomhet"
@@ -47,9 +48,10 @@ data class Deltakerliste(
 }
 
 // Flyttet til lib
-private val tiltakUtenDeltakerAdresset = setOf(
-    Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
-    Tiltakskode.JOBBKLUBB,
-    Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-    Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-)
+private val tiltakUtenDeltakerAdresset =
+    setOf(
+        Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
+        Tiltakskode.JOBBKLUBB,
+        Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+        Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+    )

@@ -36,11 +36,12 @@ class VedtakRepositoryTest {
     @Test
     fun `upsert - nytt vedtak - inserter`() {
         val deltaker = TestData.lagDeltaker()
-        val vedtak: Vedtak = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-        )
+        val vedtak: Vedtak =
+            TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
         TestRepository.insert(deltaker)
 
         val upsertedVedtak = vedtakRepository.upsert(vedtak)
@@ -51,11 +52,12 @@ class VedtakRepositoryTest {
     @Test
     fun `upsert - oppdatert vedtak - oppdaterer`() {
         val deltaker = TestData.lagDeltaker()
-        val vedtak: Vedtak = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-        )
+        val vedtak: Vedtak =
+            TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
         TestRepository.insert(deltaker)
         vedtakRepository.upsert(vedtak)
 
@@ -69,13 +71,14 @@ class VedtakRepositoryTest {
     @Test
     fun `upsert - vedtak fattet av nav - inserter`() {
         val deltaker = TestData.lagDeltaker()
-        val vedtak: Vedtak = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-            fattet = LocalDateTime.now(),
-            fattetAvNav = true,
-        )
+        val vedtak: Vedtak =
+            TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                fattet = LocalDateTime.now(),
+                fattetAvNav = true,
+            )
         TestRepository.insert(deltaker)
 
         val upsertedVedtak = vedtakRepository.upsert(vedtak)

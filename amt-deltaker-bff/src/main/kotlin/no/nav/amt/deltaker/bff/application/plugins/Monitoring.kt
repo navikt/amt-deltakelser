@@ -29,11 +29,12 @@ fun Application.configureMonitoring() {
         }
     }
 
-    val appMicrometerRegistry = PrometheusMeterRegistry(
-        PrometheusConfig.DEFAULT,
-        PrometheusRegistry.defaultRegistry,
-        Clock.SYSTEM,
-    )
+    val appMicrometerRegistry =
+        PrometheusMeterRegistry(
+            PrometheusConfig.DEFAULT,
+            PrometheusRegistry.defaultRegistry,
+            Clock.SYSTEM,
+        )
 
     install(MicrometerMetrics) {
         registry = appMicrometerRegistry

@@ -36,12 +36,13 @@ class NavEnhetServiceTest {
     fun `hentEllerOpprettNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() {
         val navEnhetResponse = TestData.lagNavEnhet()
         val httpClient = mockHttpClient(objectMapper.writeValueAsString(TestData.lagNavEnhetDto(navEnhetResponse)))
-        val amtPersonServiceClient = AmtPersonServiceClient(
-            baseUrl = "http://amt-person-service",
-            scope = "scope",
-            httpClient = httpClient,
-            azureAdTokenClient = mockAzureAdClient(),
-        )
+        val amtPersonServiceClient =
+            AmtPersonServiceClient(
+                baseUrl = "http://amt-person-service",
+                scope = "scope",
+                httpClient = httpClient,
+                azureAdTokenClient = mockAzureAdClient(),
+            )
         val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
 
         runTest {

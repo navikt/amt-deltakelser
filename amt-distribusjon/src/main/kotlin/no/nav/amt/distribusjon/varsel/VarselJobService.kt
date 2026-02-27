@@ -12,19 +12,21 @@ class VarselJobService(
         revarslingJob()
     }
 
-    private fun sendVentendeVarslerJob() = jobManager.startJob(
-        name = "SendVentendeVarslerJob",
-        initialDelay = Duration.ofMinutes(2),
-        period = Duration.ofMinutes(5),
-    ) {
-        varselService.sendVentendeVarsler()
-    }
+    private fun sendVentendeVarslerJob() =
+        jobManager.startJob(
+            name = "SendVentendeVarslerJob",
+            initialDelay = Duration.ofMinutes(2),
+            period = Duration.ofMinutes(5),
+        ) {
+            varselService.sendVentendeVarsler()
+        }
 
-    private fun revarslingJob() = jobManager.startJob(
-        name = "RevarslingJob",
-        initialDelay = Duration.ofHours(1),
-        period = Duration.ofHours(1),
-    ) {
-        varselService.sendRevarsler()
-    }
+    private fun revarslingJob() =
+        jobManager.startJob(
+            name = "RevarslingJob",
+            initialDelay = Duration.ofHours(1),
+            period = Duration.ofHours(1),
+        ) {
+            varselService.sendRevarsler()
+        }
 }

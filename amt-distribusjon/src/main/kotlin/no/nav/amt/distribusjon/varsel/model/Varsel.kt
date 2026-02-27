@@ -35,35 +35,37 @@ data class Varsel(
 
         val beskjedAktivLengde: Duration = Duration.ofDays(21).plusMinutes(BESKJED_FORSINKELSE_MINUTTER)
 
-        fun nyOppgave(hendelse: Hendelse) = Varsel(
-            id = UUID.randomUUID(),
-            type = Type.OPPGAVE,
-            hendelser = listOf(hendelse.id),
-            status = Status.VENTER_PA_UTSENDELSE,
-            erEksterntVarsel = true,
-            aktivFra = nowUTC(),
-            aktivTil = null,
-            deltakerId = hendelse.deltaker.id,
-            personident = hendelse.deltaker.personident,
-            tekst = oppgaveTekst(hendelse),
-            revarselForVarsel = null,
-            revarsles = null,
-        )
+        fun nyOppgave(hendelse: Hendelse) =
+            Varsel(
+                id = UUID.randomUUID(),
+                type = Type.OPPGAVE,
+                hendelser = listOf(hendelse.id),
+                status = Status.VENTER_PA_UTSENDELSE,
+                erEksterntVarsel = true,
+                aktivFra = nowUTC(),
+                aktivTil = null,
+                deltakerId = hendelse.deltaker.id,
+                personident = hendelse.deltaker.personident,
+                tekst = oppgaveTekst(hendelse),
+                revarselForVarsel = null,
+                revarsles = null,
+            )
 
-        fun nyBeskjed(hendelse: Hendelse) = Varsel(
-            id = UUID.randomUUID(),
-            type = Type.BESKJED,
-            hendelser = listOf(hendelse.id),
-            status = Status.VENTER_PA_UTSENDELSE,
-            erEksterntVarsel = hendelse.skalVarslesEksternt(),
-            aktivFra = nesteUtsendingstidspunkt(),
-            aktivTil = nesteUtsendingstidspunkt().plus(beskjedAktivLengde),
-            deltakerId = hendelse.deltaker.id,
-            personident = hendelse.deltaker.personident,
-            tekst = beskjedTekst(hendelse),
-            revarselForVarsel = null,
-            revarsles = if (hendelse.skalVarslesEksternt()) revarslingstidspunkt() else null,
-        )
+        fun nyBeskjed(hendelse: Hendelse) =
+            Varsel(
+                id = UUID.randomUUID(),
+                type = Type.BESKJED,
+                hendelser = listOf(hendelse.id),
+                status = Status.VENTER_PA_UTSENDELSE,
+                erEksterntVarsel = hendelse.skalVarslesEksternt(),
+                aktivFra = nesteUtsendingstidspunkt(),
+                aktivTil = nesteUtsendingstidspunkt().plus(beskjedAktivLengde),
+                deltakerId = hendelse.deltaker.id,
+                personident = hendelse.deltaker.personident,
+                tekst = beskjedTekst(hendelse),
+                revarselForVarsel = null,
+                revarsles = if (hendelse.skalVarslesEksternt()) revarslingstidspunkt() else null,
+            )
 
         fun revarsel(varsel: Varsel): Varsel {
             require(varsel.kanRevarsles) {
@@ -122,35 +124,42 @@ data class Varsel(
         UTLOPT,
     }
 
-    fun toOppgaveDto(): JsonNode = objectMapper.readTree(
-        VarselActionBuilder.opprett {
-            varselConfig(Varseltype.Oppgave, visEndringsmodal = false)
-        },
-    )
+    fun toOppgaveDto(): JsonNode =
+        objectMapper.readTree(
+            VarselActionBuilder.opprett {
+                varselConfig(Varseltype.Oppgave, visEndringsmodal = false)
+            },
+        )
 
-    fun toBeskjedDto(visEndringsmodal: Boolean): JsonNode = objectMapper.readTree(
-        VarselActionBuilder.opprett {
-            varselConfig(Varseltype.Beskjed, visEndringsmodal)
-        },
-    )
+    fun toBeskjedDto(visEndringsmodal: Boolean): JsonNode =
+        objectMapper.readTree(
+            VarselActionBuilder.opprett {
+                varselConfig(Varseltype.Beskjed, visEndringsmodal)
+            },
+        )
 
-    fun toInaktiverDto(): JsonNode = objectMapper.readTree(
-        VarselActionBuilder.inaktiver {
-            varselId = this@Varsel.id.toString()
-            produsent = produsent()
-        },
-    )
+    fun toInaktiverDto(): JsonNode =
+        objectMapper.readTree(
+            VarselActionBuilder.inaktiver {
+                varselId = this@Varsel.id.toString()
+                produsent = produsent()
+            },
+        )
 
-    private fun VarselActionBuilder.OpprettVarselInstance.varselConfig(varseltype: Varseltype, visEndringsmodal: Boolean) {
+    private fun VarselActionBuilder.OpprettVarselInstance.varselConfig(
+        varseltype: Varseltype,
+        visEndringsmodal: Boolean,
+    ) {
         varselId = this@Varsel.id.toString()
         type = varseltype
         sensitivitet = Sensitivitet.High
         ident = personident
-        tekster += Tekst(
-            spraakkode = "nb",
-            tekst = this@Varsel.tekst,
-            default = true,
-        )
+        tekster +=
+            Tekst(
+                spraakkode = "nb",
+                tekst = this@Varsel.tekst,
+                default = true,
+            )
         aktivFremTil = aktivTil
         link = innbyggerDeltakerUrl(deltakerId, visEndringsmodal)
         produsent = produsent()
@@ -162,25 +171,31 @@ data class Varsel(
         }
     }
 
-    private fun getPreferertKanal(varseltype: Varseltype): EksternKanal = if (varseltype == Varseltype.Oppgave) {
-        EksternKanal.SMS
-    } else {
-        EksternKanal.EPOST
-    }
+    private fun getPreferertKanal(varseltype: Varseltype): EksternKanal =
+        if (varseltype == Varseltype.Oppgave) {
+            EksternKanal.SMS
+        } else {
+            EksternKanal.EPOST
+        }
 
-    private fun produsent() = Produsent(
-        cluster = Environment.cluster,
-        namespace = Environment.namespace,
-        appnavn = Environment.appName,
-    )
+    private fun produsent() =
+        Produsent(
+            cluster = Environment.cluster,
+            namespace = Environment.namespace,
+            appnavn = Environment.appName,
+        )
 }
 
-fun innbyggerDeltakerUrl(deltakerId: UUID, visEndringsmodal: Boolean): String {
-    val url = if (Environment.isProd()) {
-        "https://www.nav.no/arbeidsmarkedstiltak/$deltakerId"
-    } else {
-        "https://amt.intern.dev.nav.no/arbeidsmarkedstiltak/$deltakerId"
-    }
+fun innbyggerDeltakerUrl(
+    deltakerId: UUID,
+    visEndringsmodal: Boolean,
+): String {
+    val url =
+        if (Environment.isProd()) {
+            "https://www.nav.no/arbeidsmarkedstiltak/$deltakerId"
+        } else {
+            "https://amt.intern.dev.nav.no/arbeidsmarkedstiltak/$deltakerId"
+        }
 
     return if (visEndringsmodal) {
         "$url?vis_endringer"

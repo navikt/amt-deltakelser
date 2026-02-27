@@ -58,7 +58,10 @@ class EndringFraTiltakskoordinatorRepositoryTest {
     }
 }
 
-fun sammenlignEndringFraTiltakskoordinator(a: EndringFraTiltakskoordinator, b: EndringFraTiltakskoordinator) {
+fun sammenlignEndringFraTiltakskoordinator(
+    a: EndringFraTiltakskoordinator,
+    b: EndringFraTiltakskoordinator,
+) {
     a.id shouldBe b.id
     a.deltakerId shouldBe b.deltakerId
     a.endring shouldBe b.endring
@@ -71,21 +74,23 @@ data class EndringFraTiltakskoordinatorCtx(
     val navEnhet: NavEnhet = TestData.lagNavEnhet(navAnsatt.navEnhetId!!),
     val deltakerliste: Deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
     val navBruker: NavBruker = lagNavBruker(),
-    var deltaker: Deltaker = TestData.lagDeltaker(
-        navBruker = navBruker,
-        deltakerliste = deltakerliste,
-        startdato = null,
-        sluttdato = null,
-        status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-    ),
-    val endring: EndringFraTiltakskoordinator = EndringFraTiltakskoordinator(
-        id = UUID.randomUUID(),
-        deltakerId = deltaker.id,
-        endring = EndringFraTiltakskoordinator.DelMedArrangor,
-        endretAv = navAnsatt.id,
-        endretAvEnhet = navEnhet.id,
-        endret = LocalDateTime.now(),
-    ),
+    var deltaker: Deltaker =
+        TestData.lagDeltaker(
+            navBruker = navBruker,
+            deltakerliste = deltakerliste,
+            startdato = null,
+            sluttdato = null,
+            status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+        ),
+    val endring: EndringFraTiltakskoordinator =
+        EndringFraTiltakskoordinator(
+            id = UUID.randomUUID(),
+            deltakerId = deltaker.id,
+            endring = EndringFraTiltakskoordinator.DelMedArrangor,
+            endretAv = navAnsatt.id,
+            endretAvEnhet = navEnhet.id,
+            endret = LocalDateTime.now(),
+        ),
 ) {
     private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
 
@@ -94,19 +99,21 @@ data class EndringFraTiltakskoordinatorCtx(
     }
 
     fun medStatusDeltar() {
-        deltaker = deltaker.copy(
-            id = UUID.randomUUID(),
-            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-        )
+        deltaker =
+            deltaker.copy(
+                id = UUID.randomUUID(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
         TestRepository.insert(deltaker)
     }
 
     fun medInnsok() {
-        val innsok = TestData.lagInnsoktPaaKurs(
-            deltakerId = deltaker.id,
-            innsoktAv = navAnsatt.id,
-            innsoktAvEnhet = navEnhet.id,
-        )
+        val innsok =
+            TestData.lagInnsoktPaaKurs(
+                deltakerId = deltaker.id,
+                innsoktAv = navAnsatt.id,
+                innsoktAvEnhet = navEnhet.id,
+            )
 
         innsokPaaFellesOppstartRepository.insert(innsok)
     }

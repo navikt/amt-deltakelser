@@ -18,77 +18,87 @@ import org.junit.jupiter.api.Test
 
 class AzureAdTokenClientTest {
     @Test
-    fun `getMachineToMachineToken - skal parse Azure AD token response riktig og lage token`(): Unit = runBlocking {
-        val mockEngine = MockEngine {
-            respond(
-                content = ByteReadChannel(
-                    """
-                    {
-                        "token_type":"Bearer",
-                        "access_token":"XYZ",
-                        "expires_in": 3599
+    fun `getMachineToMachineToken - skal parse Azure AD token response riktig og lage token`(): Unit =
+        runBlocking {
+            val mockEngine =
+                MockEngine {
+                    respond(
+                        content =
+                            ByteReadChannel(
+                                """
+                                {
+                                    "token_type":"Bearer",
+                                    "access_token":"XYZ",
+                                    "expires_in": 3599
+                                }
+                                """.trimIndent(),
+                            ),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
+
+            val httpClient =
+                HttpClient(mockEngine) {
+                    install(ContentNegotiation) {
+                        jackson { applicationConfig() }
                     }
-                    """.trimIndent(),
-                ),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-            )
+                }
+
+            val azureAdTokenClient =
+                AzureAdTokenClient(
+                    httpClient = httpClient,
+                    environment = Environment(),
+                )
+
+            val token = azureAdTokenClient.getMachineToMachineToken("fake-scope")
+
+            token shouldBe "Bearer XYZ"
         }
-
-        val httpClient = HttpClient(mockEngine) {
-            install(ContentNegotiation) {
-                jackson { applicationConfig() }
-            }
-        }
-
-        val azureAdTokenClient = AzureAdTokenClient(
-            httpClient = httpClient,
-            environment = Environment(),
-        )
-
-        val token = azureAdTokenClient.getMachineToMachineToken("fake-scope")
-
-        token shouldBe "Bearer XYZ"
-    }
 
     @Test
-    fun `getMachineToMachineToken - skal skal bruke cachet token etter første kall`(): Unit = runBlocking {
-        var antallGangerKallt = 0
-        val mockEngine = MockEngine {
-            antallGangerKallt++
+    fun `getMachineToMachineToken - skal skal bruke cachet token etter første kall`(): Unit =
+        runBlocking {
+            var antallGangerKallt = 0
+            val mockEngine =
+                MockEngine {
+                    antallGangerKallt++
 
-            respond(
-                content = ByteReadChannel(
-                    """
-                    {
-                        "token_type":"Bearer",
-                        "access_token":"XYZ",
-                        "expires_in": 3599
+                    respond(
+                        content =
+                            ByteReadChannel(
+                                """
+                                {
+                                    "token_type":"Bearer",
+                                    "access_token":"XYZ",
+                                    "expires_in": 3599
+                                }
+                                """.trimIndent(),
+                            ),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
+
+            val httpClient =
+                HttpClient(mockEngine) {
+                    install(ContentNegotiation) {
+                        jackson { applicationConfig() }
                     }
-                    """.trimIndent(),
-                ),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-            )
+                }
+
+            val azureAdTokenClient =
+                AzureAdTokenClient(
+                    httpClient = httpClient,
+                    environment = Environment(),
+                )
+
+            val token1 = azureAdTokenClient.getMachineToMachineToken("fake-scope")
+            val token2 = azureAdTokenClient.getMachineToMachineToken("fake-scope")
+
+            token1 shouldBe "Bearer XYZ"
+            token2 shouldBe "Bearer XYZ"
+
+            antallGangerKallt shouldBe 1
         }
-
-        val httpClient = HttpClient(mockEngine) {
-            install(ContentNegotiation) {
-                jackson { applicationConfig() }
-            }
-        }
-
-        val azureAdTokenClient = AzureAdTokenClient(
-            httpClient = httpClient,
-            environment = Environment(),
-        )
-
-        val token1 = azureAdTokenClient.getMachineToMachineToken("fake-scope")
-        val token2 = azureAdTokenClient.getMachineToMachineToken("fake-scope")
-
-        token1 shouldBe "Bearer XYZ"
-        token2 shouldBe "Bearer XYZ"
-
-        antallGangerKallt shouldBe 1
-    }
 }

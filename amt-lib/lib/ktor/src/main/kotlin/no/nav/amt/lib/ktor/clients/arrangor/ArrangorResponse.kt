@@ -9,10 +9,11 @@ data class ArrangorResponse(
     val organisasjonsnummer: String,
     val overordnetArrangor: Arrangor?,
 ) {
-    fun toModel() = Arrangor(
-        id = id,
-        navn = navn,
-        organisasjonsnummer = organisasjonsnummer,
-        overordnetArrangorId = overordnetArrangor?.id,
-    )
+    fun toModel() =
+        Arrangor(
+            id = id,
+            navn = navn,
+            organisasjonsnummer = organisasjonsnummer,
+            overordnetArrangorId = overordnetArrangor?.id,
+        )
 }

@@ -27,11 +27,12 @@ fun buildManagedKafkaConsumer(
 
     return ManagedKafkaConsumer(
         topic = topic,
-        config = kafkaConfig.consumerConfig(
-            keyDeserializer = UUIDDeserializer(),
-            valueDeserializer = StringDeserializer(),
-            groupId = consumerGroupId,
-        ),
+        config =
+            kafkaConfig.consumerConfig(
+                keyDeserializer = UUIDDeserializer(),
+                valueDeserializer = StringDeserializer(),
+                groupId = consumerGroupId,
+            ),
         consume = consumeFunc,
     )
 }

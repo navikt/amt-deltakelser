@@ -22,11 +22,12 @@ class SporbarhetOgTilgangskontrollSvcTest {
     val mockDeltakerListeService = mockk<DeltakerlisteService>(relaxed = true)
     val mockTilgangskontrollService = mockk<TilgangskontrollService>()
 
-    val sut = SporbarhetOgTilgangskontrollSvc(
-        sporbarhetsloggService = mockSporbarhetsloggService,
-        tilgangskontrollService = mockTilgangskontrollService,
-        deltakerlisteService = mockDeltakerListeService,
-    )
+    val sut =
+        SporbarhetOgTilgangskontrollSvc(
+            sporbarhetsloggService = mockSporbarhetsloggService,
+            tilgangskontrollService = mockTilgangskontrollService,
+            deltakerlisteService = mockDeltakerListeService,
+        )
 
     @BeforeEach
     fun setup() {
@@ -38,14 +39,15 @@ class SporbarhetOgTilgangskontrollSvcTest {
 
     @Test
     fun `skal kalle riktige tjenester og returnere resultat`() {
-        val harTilgang = runBlocking {
-            sut.kontrollerTilgangTilBruker(
-                NAV_IDENT,
-                navAnsattAzureId,
-                navBruker,
-                deltakerlisteId,
-            )
-        }
+        val harTilgang =
+            runBlocking {
+                sut.kontrollerTilgangTilBruker(
+                    NAV_IDENT,
+                    navAnsattAzureId,
+                    navBruker,
+                    deltakerlisteId,
+                )
+            }
 
         harTilgang shouldBe true
 

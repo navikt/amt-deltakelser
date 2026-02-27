@@ -8,7 +8,10 @@ import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 fun DeltakerEndring.Endring.EndreStartdato.hasChanges(deltaker: Deltaker): Boolean =
     deltaker.startdato != this.startdato || deltaker.sluttdato != this.sluttdato
 
-fun DeltakerEndring.Endring.EndreStartdato.endreStartdato(deltaker: Deltaker, deltakelsesmengder: Deltakelsesmengder) = VellykketEndring(
+fun DeltakerEndring.Endring.EndreStartdato.endreStartdato(
+    deltaker: Deltaker,
+    deltakelsesmengder: Deltakelsesmengder,
+) = VellykketEndring(
     deltaker.endreDeltakersOppstart(
         startdato = this.startdato,
         sluttdato = this.sluttdato,

@@ -42,9 +42,10 @@ data class AvsluttDeltakelseRequest(
         }
     }
 
-    private fun deltakerErEndret(deltaker: Deltaker): Boolean = deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET ||
-        deltaker.sluttdato != sluttdato ||
-        harEndretSluttaarsak(deltaker.status.aarsak, aarsak)
+    private fun deltakerErEndret(deltaker: Deltaker): Boolean =
+        deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET ||
+            deltaker.sluttdato != sluttdato ||
+            harEndretSluttaarsak(deltaker.status.aarsak, aarsak)
 
     companion object {
         private val kanAvslutteDeltakelse =

@@ -16,10 +16,11 @@ class AmtDistribusjonClient(
     scope: String,
     httpClient: HttpClient,
     azureAdTokenClient: AzureAdTokenClient,
-    private val digitalBrukerCache: Cache<String, Boolean> = Caffeine
-        .newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(15))
-        .build(),
+    private val digitalBrukerCache: Cache<String, Boolean> =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(Duration.ofMinutes(15))
+            .build(),
 ) : ApiClientBase(
         baseUrl = baseUrl,
         scope = scope,
@@ -31,11 +32,12 @@ class AmtDistribusjonClient(
             return it
         }
 
-        val digitalBrukerResponse = performPost(
-            urlSubPath = "digital",
-            requestBody = DigitalBrukerRequest(personIdent),
-        ).failIfNotSuccess("Kunne ikke hente om bruker er digital fra amt-distribusjon.")
-            .body<DigitalBrukerResponse>()
+        val digitalBrukerResponse =
+            performPost(
+                urlSubPath = "digital",
+                requestBody = DigitalBrukerRequest(personIdent),
+            ).failIfNotSuccess("Kunne ikke hente om bruker er digital fra amt-distribusjon.")
+                .body<DigitalBrukerResponse>()
 
         val erDigitalBruker = digitalBrukerResponse.erDigital
         digitalBrukerCache.put(personIdent, erDigitalBruker)

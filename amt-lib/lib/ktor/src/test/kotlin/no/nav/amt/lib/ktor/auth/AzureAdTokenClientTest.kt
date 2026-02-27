@@ -31,19 +31,21 @@ class AzureAdTokenClientTest {
         }
 
         @Test
-        fun `getMachineToMachineToken skal token fra cache`(): Unit = runBlocking {
-            val countingCache = CountingCache<String, AzureAdToken>()
+        fun `getMachineToMachineToken skal token fra cache`(): Unit =
+            runBlocking {
+                val countingCache = CountingCache<String, AzureAdToken>()
 
-            val client = createAzureAdTokenClient(
-                statusCode = HttpStatusCode.OK,
-                cache = countingCache,
-            )
+                val client =
+                    createAzureAdTokenClient(
+                        statusCode = HttpStatusCode.OK,
+                        cache = countingCache,
+                    )
 
-            client.getMachineToMachineToken(FAKE_SCOPE)
-            client.getMachineToMachineToken(FAKE_SCOPE)
+                client.getMachineToMachineToken(FAKE_SCOPE)
+                client.getMachineToMachineToken(FAKE_SCOPE)
 
-            countingCache.putCount shouldBe 1
-        }
+                countingCache.putCount shouldBe 1
+            }
     }
 
     @Nested
@@ -65,19 +67,21 @@ class AzureAdTokenClientTest {
         }
 
         @Test
-        fun `getMachineToMachineTokenWithoutType skal token fra cache`(): Unit = runBlocking {
-            val countingCache = CountingCache<String, AzureAdToken>()
+        fun `getMachineToMachineTokenWithoutType skal token fra cache`(): Unit =
+            runBlocking {
+                val countingCache = CountingCache<String, AzureAdToken>()
 
-            val client = createAzureAdTokenClient(
-                statusCode = HttpStatusCode.OK,
-                cache = countingCache,
-            )
+                val client =
+                    createAzureAdTokenClient(
+                        statusCode = HttpStatusCode.OK,
+                        cache = countingCache,
+                    )
 
-            client.getMachineToMachineTokenWithoutType(FAKE_SCOPE)
-            client.getMachineToMachineTokenWithoutType(FAKE_SCOPE)
+                client.getMachineToMachineTokenWithoutType(FAKE_SCOPE)
+                client.getMachineToMachineTokenWithoutType(FAKE_SCOPE)
 
-            countingCache.putCount shouldBe 1
-        }
+                countingCache.putCount shouldBe 1
+            }
     }
 
     companion object {
@@ -95,35 +99,41 @@ class AzureAdTokenClientTest {
             """.trimIndent()
 
         private fun runFailureTest(block: suspend (AzureAdTokenClient) -> Unit) {
-            val thrown = runBlocking {
-                shouldThrow<RuntimeException> {
-                    block(createAzureAdTokenClient(HttpStatusCode.Unauthorized))
+            val thrown =
+                runBlocking {
+                    shouldThrow<RuntimeException> {
+                        block(createAzureAdTokenClient(HttpStatusCode.Unauthorized))
+                    }
                 }
-            }
             thrown.message shouldStartWith "Kunne ikke hente AAD-token"
         }
 
-        private fun runHappyPathTest(expectedResponse: String, block: suspend (AzureAdTokenClient) -> String) = runBlocking {
+        private fun runHappyPathTest(
+            expectedResponse: String,
+            block: suspend (AzureAdTokenClient) -> String,
+        ) = runBlocking {
             val azureAdTokenClient = createAzureAdTokenClient(HttpStatusCode.OK)
             block(azureAdTokenClient) shouldBe expectedResponse
         }
 
-        private fun createAzureAdTokenClient(statusCode: HttpStatusCode = HttpStatusCode.OK, cache: Cache<String, AzureAdToken>? = null) =
-            if (cache == null) {
-                AzureAdTokenClient(
-                    azureAdTokenUrl = AZURE_AD_TOKEN_URL,
-                    clientId = "fake-client-id",
-                    clientSecret = "fake-client-secret",
-                    httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
-                )
-            } else {
-                AzureAdTokenClient(
-                    azureAdTokenUrl = AZURE_AD_TOKEN_URL,
-                    clientId = "fake-client-id",
-                    clientSecret = "fake-client-secret",
-                    httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
-                    tokenCache = cache,
-                )
-            }
+        private fun createAzureAdTokenClient(
+            statusCode: HttpStatusCode = HttpStatusCode.OK,
+            cache: Cache<String, AzureAdToken>? = null,
+        ) = if (cache == null) {
+            AzureAdTokenClient(
+                azureAdTokenUrl = AZURE_AD_TOKEN_URL,
+                clientId = "fake-client-id",
+                clientSecret = "fake-client-secret",
+                httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
+            )
+        } else {
+            AzureAdTokenClient(
+                azureAdTokenUrl = AZURE_AD_TOKEN_URL,
+                clientId = "fake-client-id",
+                clientSecret = "fake-client-secret",
+                httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
+                tokenCache = cache,
+            )
+        }
     }
 }

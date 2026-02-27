@@ -22,26 +22,31 @@ class DokdistkanalClient(
     private val httpClient: HttpClient,
     private val azureAdTokenClient: AzureAdTokenClient,
     environment: Environment,
-    private val distribusjonskanalCache: Cache<String, Distribusjonskanal> = Caffeine
-        .newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(60))
-        .build(),
+    private val distribusjonskanalCache: Cache<String, Distribusjonskanal> =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(Duration.ofMinutes(60))
+            .build(),
 ) {
     private val scope = environment.dokdistkanalScope
     private val url = environment.dokdistkanalUrl
     private val navCallId = "amt-distribusjon"
 
-    suspend fun bestemDistribusjonskanal(personident: String, deltakerId: UUID? = null): Distribusjonskanal {
+    suspend fun bestemDistribusjonskanal(
+        personident: String,
+        deltakerId: UUID? = null,
+    ): Distribusjonskanal {
         distribusjonskanalCache.getIfPresent(personident)?.let {
             return it
         }
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
-        val response = httpClient.post("$url/rest/bestemDistribusjonskanal") {
-            header(HttpHeaders.Authorization, token)
-            header("Nav-Callid", navCallId)
-            contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(BestemDistribusjonskanalRequest(personident)))
-        }
+        val response =
+            httpClient.post("$url/rest/bestemDistribusjonskanal") {
+                header(HttpHeaders.Authorization, token)
+                header("Nav-Callid", navCallId)
+                contentType(ContentType.Application.Json)
+                setBody(objectMapper.writeValueAsString(BestemDistribusjonskanalRequest(personident)))
+            }
         if (!response.status.isSuccess()) {
             if (deltakerId == null) {
                 error("Kunne ikke hente distribusjonskanal, status: ${response.status} ${response.bodyAsText()}")

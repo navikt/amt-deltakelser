@@ -25,11 +25,12 @@ class UlestHendelseApiTest : RouteTestBase() {
     fun `skal returnere NoContent nar hendelse er slettet`() {
         every { ulestHendelseService.delete(any()) } just runs
 
-        val response = withTestApplicationContext { client ->
-            client.delete("/tiltakskoordinator/ulest-hendelse/${UUID.randomUUID()}") {
-                bearerAuth(bearerTokenInTest)
+        val response =
+            withTestApplicationContext { client ->
+                client.delete("/tiltakskoordinator/ulest-hendelse/${UUID.randomUUID()}") {
+                    bearerAuth(bearerTokenInTest)
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.NoContent
 
@@ -37,11 +38,12 @@ class UlestHendelseApiTest : RouteTestBase() {
     }
 
     companion object {
-        val bearerTokenInTest = generateJWT(
-            consumerClientId = "frontend-clientid",
-            navAnsattAzureId = UUID.randomUUID().toString(),
-            audience = "deltaker-bff",
-            groups = listOf(UUID(0L, 0L).toString()),
-        )
+        val bearerTokenInTest =
+            generateJWT(
+                consumerClientId = "frontend-clientid",
+                navAnsattAzureId = UUID.randomUUID().toString(),
+                audience = "deltaker-bff",
+                groups = listOf(UUID(0L, 0L).toString()),
+            )
     }
 }

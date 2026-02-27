@@ -81,11 +81,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
             deltakerlisteService.get(any())
         } returns Result.failure(NoSuchElementException())
 
-        val response = withTestApplicationContext { client ->
-            client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}") {
-                noBodyTiltakskoordinatorRequest()
+        val response =
+            withTestApplicationContext { client ->
+                client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}") {
+                    noBodyTiltakskoordinatorRequest()
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.NotFound
     }
@@ -103,9 +104,10 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
         } returns listOf(tiltakskoordinatorInTest)
 
         withTestApplicationContext { client ->
-            val response = client.get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}") {
-                noBodyTiltakskoordinatorRequest()
-            }
+            val response =
+                client.get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}") {
+                    noBodyTiltakskoordinatorRequest()
+                }
 
             response.status shouldBe HttpStatusCode.OK
 
@@ -119,11 +121,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         coEvery { tilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } throws AuthorizationException("")
 
-        val response = withTestApplicationContext { client ->
-            client.get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere") {
-                noBodyTiltakskoordinatorRequest()
+        val response =
+            withTestApplicationContext { client ->
+                client.get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere") {
+                    noBodyTiltakskoordinatorRequest()
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.Forbidden
     }
@@ -135,11 +138,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
         coEvery { tiltakskoordinatorService.hentDeltakereForDeltakerliste(any()) } returns emptyList()
 
-        val response = withTestApplicationContext { client ->
-            client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere") {
-                noBodyTiltakskoordinatorRequest()
+        val response =
+            withTestApplicationContext { client ->
+                client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere") {
+                    noBodyTiltakskoordinatorRequest()
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.NotFound
     }
@@ -150,11 +154,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
 
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws DeltakerlisteStengtException()
 
-        val response = withTestApplicationContext { client ->
-            client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere") {
-                noBodyTiltakskoordinatorRequest()
+        val response =
+            withTestApplicationContext { client ->
+                client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere") {
+                    noBodyTiltakskoordinatorRequest()
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.Gone
     }
@@ -164,15 +169,17 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
         mockTilgangTilDeltakerliste()
 
         val deltakere = (0..5).map { lagTiltakskoordinatorDeltaker(deltakerliste = deltakerlisteInTest) }
-        val navEnheter = deltakere
-            .mapNotNull { it.navBruker.navEnhetId }
-            .distinct()
-            .map { lagNavEnhet(it) }
-            .associateBy { it.id }
+        val navEnheter =
+            deltakere
+                .mapNotNull { it.navBruker.navEnhetId }
+                .distinct()
+                .map { lagNavEnhet(it) }
+                .associateBy { it.id }
 
-        val expectedResponse = deltakere.map { deltaker ->
-            deltaker.toDeltakerResponse(true)
-        }
+        val expectedResponse =
+            deltakere.map { deltaker ->
+                deltaker.toDeltakerResponse(true)
+            }
 
         every { navEnhetService.hentEnheter(any()) } returns navEnheter
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
@@ -183,9 +190,10 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
         }
 
         withTestApplicationContext { client ->
-            val response = client.get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere") {
-                noBodyTiltakskoordinatorRequest()
-            }
+            val response =
+                client.get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere") {
+                    noBodyTiltakskoordinatorRequest()
+                }
 
             response.status shouldBe HttpStatusCode.OK
 
@@ -203,11 +211,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
             )
         } returns Result.success(lagTiltakskoordinatorTilgang())
 
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/tilgang/legg-til") {
-                noBodyTiltakskoordinatorRequest()
+        val response =
+            withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/tilgang/legg-til") {
+                    noBodyTiltakskoordinatorRequest()
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.OK
     }
@@ -221,11 +230,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
             )
         } returns Result.failure(IllegalArgumentException())
 
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/tilgang/legg-til") {
-                noBodyTiltakskoordinatorRequest()
+        val response =
+            withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/tilgang/legg-til") {
+                    noBodyTiltakskoordinatorRequest()
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.BadRequest
     }
@@ -235,11 +245,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         coEvery { tilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws AuthorizationException("")
 
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/del-med-arrangor") {
-                createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
+        val response =
+            withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/del-med-arrangor") {
+                    createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.Forbidden
     }
@@ -251,11 +262,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
         coEvery { tiltakskoordinatorService.hentDeltakereForDeltakerliste(any()) } returns emptyList()
         coEvery { tilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws NoSuchElementException()
 
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
-                createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
+        val response =
+            withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
+                    createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.NotFound
     }
@@ -267,11 +279,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
         coEvery { tilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
 
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
-                createPostRequest(listOf(UUID.randomUUID()))
+        val response =
+            withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
+                    createPostRequest(listOf(UUID.randomUUID()))
+                }
             }
-        }
 
         response.status shouldBe HttpStatusCode.Unauthorized
     }
@@ -304,11 +317,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
     companion object {
         private val deltakerlisteInTest = lagDeltakerliste(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
 
-        private val tiltakskoordinatorInTest = Tiltakskoordinator(
-            id = UUID.randomUUID(),
-            navn = "~navn~",
-            erAktiv = true,
-            kanFjernes = true,
-        )
+        private val tiltakskoordinatorInTest =
+            Tiltakskoordinator(
+                id = UUID.randomUUID(),
+                navn = "~navn~",
+                erAktiv = true,
+                kanFjernes = true,
+            )
     }
 }

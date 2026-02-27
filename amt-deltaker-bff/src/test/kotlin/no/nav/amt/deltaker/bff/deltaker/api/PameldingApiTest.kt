@@ -66,258 +66,283 @@ class PameldingApiTest {
     private val amtDeltakerClient = mockk<AmtDeltakerClient>()
     private val tiltakskoordinatorTilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
     private val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
-    private val tilgangskontrollService = TilgangskontrollService(
-        poaoTilgangCachedClient,
-        navAnsattService,
-        tiltakskoordinatorTilgangRepository,
-        tiltakskoordinatorsDeltakerlisteProducer,
-        mockk<TiltakskoordinatorService>(),
-        mockk<DeltakerlisteService>(),
-    )
+    private val tilgangskontrollService =
+        TilgangskontrollService(
+            poaoTilgangCachedClient,
+            navAnsattService,
+            tiltakskoordinatorTilgangRepository,
+            tiltakskoordinatorsDeltakerlisteProducer,
+            mockk<TiltakskoordinatorService>(),
+            mockk<DeltakerlisteService>(),
+        )
     private val deltakerlisteService = mockk<DeltakerlisteService>()
 
     @BeforeEach
     fun setup() = configureEnvForAuthentication()
 
     @Test
-    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() = testApplication {
-        val deltaker = TestData.lagDeltaker()
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
-            null,
-            Decision.Deny("Ikke tilgang", ""),
-        )
-        every { deltakerRepository.get(any()) } returns Result.success(
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            ),
-        )
-        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-
-        setUpTestApplication()
-
-        client.post("/pamelding") { createPostRequest(pameldingRequest) }.status shouldBe HttpStatusCode.Forbidden
-        client
-            .post("/pamelding/${UUID.randomUUID()}") {
-                createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
-            }.status shouldBe HttpStatusCode.Forbidden
-        client.post("/pamelding/${UUID.randomUUID()}/kladd") { createPostRequest(kladdRequest) }.status shouldBe HttpStatusCode.Forbidden
-        client
-            .post("/pamelding/${UUID.randomUUID()}/utenGodkjenning") {
-                createPostRequest(
-                    pameldingUtenGodkjenningRequest(
-                        deltaker.deltakelsesinnhold!!.innhold.toInnholdDto(),
+    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() =
+        testApplication {
+            val deltaker = TestData.lagDeltaker()
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns
+                ApiResult(
+                    null,
+                    Decision.Deny("Ikke tilgang", ""),
+                )
+            every { deltakerRepository.get(any()) } returns
+                Result.success(
+                    TestData.lagDeltaker(
+                        status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
                     ),
                 )
-            }.status shouldBe HttpStatusCode.Forbidden
-        client.delete("/pamelding/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
-        client.post("/pamelding/${UUID.randomUUID()}/avbryt") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
-    }
+            coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
-    @Test
-    fun `skal teste autentisering - mangler token - returnerer 401`() = testApplication {
-        setUpTestApplication()
-        client.post("/pamelding") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post("/pamelding/${UUID.randomUUID()}/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post("/pamelding/${UUID.randomUUID()}/utenGodkjenning") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.delete("/pamelding/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
-        client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-    }
+            setUpTestApplication()
 
-    @Test
-    fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
-        val deltaker = TestData.lagDeltaker()
-        val ansatte = TestData.lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
-        val navEnhet = TestData.lagNavEnhet(id = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet)
-
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        coEvery { pameldingService.opprettDeltaker(any(), any()) } returns deltaker
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-
-        setUpTestApplication()
-
-        client.post("/pamelding") { createPostRequest(pameldingRequest) }.apply {
-            assertEquals(HttpStatusCode.OK, status)
-
-            val expected = DeltakerResponse.fromDeltaker(
-                deltaker = deltaker,
-                ansatte = ansatte,
-                vedtakSistEndretAvEnhet = navEnhet,
-                digitalBruker = true,
-                forslag = emptyList(),
-            )
-
-            bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+            client.post("/pamelding") { createPostRequest(pameldingRequest) }.status shouldBe HttpStatusCode.Forbidden
+            client
+                .post("/pamelding/${UUID.randomUUID()}") {
+                    createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
+                }.status shouldBe HttpStatusCode.Forbidden
+            client.post("/pamelding/${UUID.randomUUID()}/kladd") { createPostRequest(kladdRequest) }.status shouldBe
+                HttpStatusCode.Forbidden
+            client
+                .post("/pamelding/${UUID.randomUUID()}/utenGodkjenning") {
+                    createPostRequest(
+                        pameldingUtenGodkjenningRequest(
+                            deltaker.deltakelsesinnhold!!.innhold.toInnholdDto(),
+                        ),
+                    )
+                }.status shouldBe HttpStatusCode.Forbidden
+            client.delete("/pamelding/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
+            client.post("/pamelding/${UUID.randomUUID()}/avbryt") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
         }
-    }
 
     @Test
-    fun `post pamelding - deltakerliste finnes ikke - returnerer 404`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-
-        coEvery {
-            pameldingService.opprettDeltaker(any(), any())
-        } throws NoSuchElementException("Deltaker ikke funnet")
-
-        setUpTestApplication()
-
-        val response = client.post("/pamelding") { createPostRequest(pameldingRequest) }
-
-        response.status shouldBe HttpStatusCode.NotFound
-    }
-
-    @Test
-    fun `kladd deltakerId - har tilgang - returnerer 200`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-
-        coEvery { pameldingService.upsertKladd(any()) } returns deltaker
-
-        setUpTestApplication()
-        client.post("/pamelding/${deltaker.id}/kladd") { createPostRequest(kladdRequest) }.apply {
-            status shouldBe HttpStatusCode.OK
+    fun `skal teste autentisering - mangler token - returnerer 401`() =
+        testApplication {
+            setUpTestApplication()
+            client.post("/pamelding") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/pamelding/${UUID.randomUUID()}/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/pamelding/${UUID.randomUUID()}/utenGodkjenning") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.delete("/pamelding/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+            client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
-    }
 
     @Test
-    fun `kladd deltakerId - har tilgang, feil deltakerstatus - returnerer 400`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+    fun `post pamelding - har tilgang - returnerer deltaker`() =
+        testApplication {
+            val deltaker = TestData.lagDeltaker()
+            val ansatte = TestData.lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
+            val navEnhet = TestData.lagNavEnhet(id = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet)
 
-        coEvery { pameldingService.upsertKladd(any()) } throws IllegalArgumentException()
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            coEvery { pameldingService.opprettDeltaker(any(), any()) } returns deltaker
+            every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
+            every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
+            every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
+            coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
-        setUpTestApplication()
-        client.post("/pamelding/${deltaker.id}/kladd") { createPostRequest(kladdRequest) }.apply {
-            status shouldBe HttpStatusCode.BadRequest
-        }
-    }
+            setUpTestApplication()
 
-    @Test
-    fun `pamelding deltakerId - har tilgang - oppretter utkast og returnerer deltaker`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        coEvery { pameldingService.upsertUtkast(any()) } returns deltaker
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        val (ansatte, enhet) = mockAnsatteOgEnhetForDeltaker(deltaker)
+            client.post("/pamelding") { createPostRequest(pameldingRequest) }.apply {
+                assertEquals(HttpStatusCode.OK, status)
 
-        setUpTestApplication()
-        client
-            .post("/pamelding/${deltaker.id}") { createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto())) }
-            .apply {
-                status shouldBe HttpStatusCode.OK
-
-                val expected = DeltakerResponse.fromDeltaker(
-                    deltaker = deltaker,
-                    ansatte = ansatte,
-                    vedtakSistEndretAvEnhet = enhet,
-                    digitalBruker = true,
-                    forslag = emptyList(),
-                )
+                val expected =
+                    DeltakerResponse.fromDeltaker(
+                        deltaker = deltaker,
+                        ansatte = ansatte,
+                        vedtakSistEndretAvEnhet = navEnhet,
+                        digitalBruker = true,
+                        forslag = emptyList(),
+                    )
 
                 bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
             }
-    }
-
-    @Test
-    fun `pamelding deltakerId - deltaker finnes ikke - returnerer 404`() = testApplication {
-        every { deltakerRepository.get(any()) } throws NoSuchElementException()
-
-        setUpTestApplication()
-        client.post("/pamelding/${UUID.randomUUID()}") { createPostRequest(utkastRequest()) }.apply {
-            status shouldBe HttpStatusCode.NotFound
         }
-    }
 
     @Test
-    fun `pamelding deltakerId uten godkjenning - har tilgang - oppretter og returnerer ferdig godkjent deltaker`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+    fun `post pamelding - deltakerliste finnes ikke - returnerer 404`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
-        every { deltakerRepository.get(any()) } returns Result.success(deltaker)
-        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        coEvery { pameldingService.upsertUtkast(any()) } returns deltaker
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
+            coEvery {
+                pameldingService.opprettDeltaker(any(), any())
+            } throws NoSuchElementException("Deltaker ikke funnet")
 
-        val (ansatte, enhet) = mockAnsatteOgEnhetForDeltaker(deltaker)
+            setUpTestApplication()
 
-        setUpTestApplication()
-        client
-            .post("/pamelding/${deltaker.id}") { createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto())) }
-            .apply {
+            val response = client.post("/pamelding") { createPostRequest(pameldingRequest) }
+
+            response.status shouldBe HttpStatusCode.NotFound
+        }
+
+    @Test
+    fun `kladd deltakerId - har tilgang - returnerer 200`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+
+            coEvery { pameldingService.upsertKladd(any()) } returns deltaker
+
+            setUpTestApplication()
+            client.post("/pamelding/${deltaker.id}/kladd") { createPostRequest(kladdRequest) }.apply {
                 status shouldBe HttpStatusCode.OK
-
-                val expected = DeltakerResponse.fromDeltaker(
-                    deltaker = deltaker,
-                    ansatte = ansatte,
-                    vedtakSistEndretAvEnhet = enhet,
-                    digitalBruker = true,
-                    forslag = emptyList(),
-                )
-
-                bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
             }
-    }
+        }
 
     @Test
-    fun `pamelding deltakerId uten godkjenning - deltaker finnes ikke - returnerer 404`() = testApplication {
-        every { deltakerRepository.get(any()) } throws NoSuchElementException()
+    fun `kladd deltakerId - har tilgang, feil deltakerstatus - returnerer 400`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
-        setUpTestApplication()
-        client
-            .post("/pamelding/${UUID.randomUUID()}/utenGodkjenning") { createPostRequest(pameldingUtenGodkjenningRequest()) }
-            .apply {
+            coEvery { pameldingService.upsertKladd(any()) } throws IllegalArgumentException()
+
+            setUpTestApplication()
+            client.post("/pamelding/${deltaker.id}/kladd") { createPostRequest(kladdRequest) }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+            }
+        }
+
+    @Test
+    fun `pamelding deltakerId - har tilgang - oppretter utkast og returnerer deltaker`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
+            coEvery { pameldingService.upsertUtkast(any()) } returns deltaker
+            every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
+            val (ansatte, enhet) = mockAnsatteOgEnhetForDeltaker(deltaker)
+
+            setUpTestApplication()
+            client
+                .post(
+                    "/pamelding/${deltaker.id}",
+                ) { createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto())) }
+                .apply {
+                    status shouldBe HttpStatusCode.OK
+
+                    val expected =
+                        DeltakerResponse.fromDeltaker(
+                            deltaker = deltaker,
+                            ansatte = ansatte,
+                            vedtakSistEndretAvEnhet = enhet,
+                            digitalBruker = true,
+                            forslag = emptyList(),
+                        )
+
+                    bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+                }
+        }
+
+    @Test
+    fun `pamelding deltakerId - deltaker finnes ikke - returnerer 404`() =
+        testApplication {
+            every { deltakerRepository.get(any()) } throws NoSuchElementException()
+
+            setUpTestApplication()
+            client.post("/pamelding/${UUID.randomUUID()}") { createPostRequest(utkastRequest()) }.apply {
                 status shouldBe HttpStatusCode.NotFound
             }
-    }
+        }
 
     @Test
-    fun `slett kladd - har tilgang, deltaker er KLADD - sletter deltaker og returnerer 200`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        coEvery { pameldingService.slettKladd(deltaker) } returns true
+    fun `pamelding deltakerId uten godkjenning - har tilgang - oppretter og returnerer ferdig godkjent deltaker`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
 
-        setUpTestApplication()
-        client.delete("/pamelding/${deltaker.id}") { noBodyRequest() }.apply {
-            status shouldBe HttpStatusCode.OK
+            every { deltakerRepository.get(any()) } returns Result.success(deltaker)
+            coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
+            coEvery { pameldingService.upsertUtkast(any()) } returns deltaker
+            every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
+
+            val (ansatte, enhet) = mockAnsatteOgEnhetForDeltaker(deltaker)
+
+            setUpTestApplication()
+            client
+                .post(
+                    "/pamelding/${deltaker.id}",
+                ) { createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto())) }
+                .apply {
+                    status shouldBe HttpStatusCode.OK
+
+                    val expected =
+                        DeltakerResponse.fromDeltaker(
+                            deltaker = deltaker,
+                            ansatte = ansatte,
+                            vedtakSistEndretAvEnhet = enhet,
+                            digitalBruker = true,
+                            forslag = emptyList(),
+                        )
+
+                    bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+                }
         }
-    }
 
     @Test
-    fun `slett kladd - deltaker har ikke status KLADD - returnerer 400`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker =
-            TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        coEvery { pameldingService.slettKladd(deltaker) } returns false
+    fun `pamelding deltakerId uten godkjenning - deltaker finnes ikke - returnerer 404`() =
+        testApplication {
+            every { deltakerRepository.get(any()) } throws NoSuchElementException()
 
-        setUpTestApplication()
-        client.delete("/pamelding/${deltaker.id}") { noBodyRequest() }.apply {
-            status shouldBe HttpStatusCode.BadRequest
+            setUpTestApplication()
+            client
+                .post("/pamelding/${UUID.randomUUID()}/utenGodkjenning") { createPostRequest(pameldingUtenGodkjenningRequest()) }
+                .apply {
+                    status shouldBe HttpStatusCode.NotFound
+                }
         }
-    }
 
     @Test
-    fun `avbryt utkast - har tilgang  - avbryter utkast og returnerer 200`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-        )
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        coEvery { pameldingService.avbrytUtkast(deltaker, any(), any()) } returns Unit
+    fun `slett kladd - har tilgang, deltaker er KLADD - sletter deltaker og returnerer 200`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { pameldingService.slettKladd(deltaker) } returns true
 
-        setUpTestApplication()
-        client.post("/pamelding/${deltaker.id}/avbryt") { noBodyRequest() }.apply {
-            status shouldBe HttpStatusCode.OK
+            setUpTestApplication()
+            client.delete("/pamelding/${deltaker.id}") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.OK
+            }
         }
-    }
+
+    @Test
+    fun `slett kladd - deltaker har ikke status KLADD - returnerer 400`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            val deltaker =
+                TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { pameldingService.slettKladd(deltaker) } returns false
+
+            setUpTestApplication()
+            client.delete("/pamelding/${deltaker.id}") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+            }
+        }
+
+    @Test
+    fun `avbryt utkast - har tilgang  - avbryter utkast og returnerer 200`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            val deltaker =
+                TestData.lagDeltaker(
+                    status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                )
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { pameldingService.avbrytUtkast(deltaker, any(), any()) } returns Unit
+
+            setUpTestApplication()
+            client.post("/pamelding/${deltaker.id}/avbryt") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
 
     private fun ApplicationTestBuilder.setUpTestApplication() {
         application {
@@ -352,12 +377,13 @@ class PameldingApiTest {
     private val kladdRequest = KladdRequest(emptyList(), "Bakgrunnen for...", null, null)
     private val pameldingRequest = PameldingRequest(UUID.randomUUID(), "1234")
 
-    private fun pameldingUtenGodkjenningRequest(innhold: List<InnholdRequest> = emptyList()) = PameldingUtenGodkjenningRequest(
-        innhold,
-        "Bakgrunnen for...",
-        null,
-        null,
-    )
+    private fun pameldingUtenGodkjenningRequest(innhold: List<InnholdRequest> = emptyList()) =
+        PameldingUtenGodkjenningRequest(
+            innhold,
+            "Bakgrunnen for...",
+            null,
+            null,
+        )
 
     private fun mockAnsatteOgEnhetForDeltaker(deltaker: Deltaker): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
         val ansatte = TestData.lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
@@ -370,9 +396,10 @@ class PameldingApiTest {
     }
 }
 
-private fun List<Innhold>.toInnholdDto() = this.map {
-    InnholdRequest(
-        it.innholdskode,
-        it.beskrivelse,
-    )
-}
+private fun List<Innhold>.toInnholdDto() =
+    this.map {
+        InnholdRequest(
+            it.innholdskode,
+            it.beskrivelse,
+        )
+    }

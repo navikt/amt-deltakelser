@@ -24,37 +24,43 @@ class AuthenticationTest {
 
     @Test
     fun `skal returnere OK naar gyldig bearer token brukes ved POST til digital`() {
-        val response = performPost(
-            bearerToken = generateJWT(
-                consumerClientId = "amt-deltaker-bff",
-                audience = "amt-distribusjon",
-            ),
-        )
+        val response =
+            performPost(
+                bearerToken =
+                    generateJWT(
+                        consumerClientId = "amt-deltaker-bff",
+                        audience = "amt-distribusjon",
+                    ),
+            )
 
         response.status shouldBe HttpStatusCode.OK
     }
 
     @Test
     fun `skal returnere Unauthorized naar oid er forskjellig fra sub i token ved POST til digital`() {
-        val response = performPost(
-            bearerToken = generateJWT(
-                consumerClientId = "amt-deltaker-bff",
-                audience = "amt-distribusjon",
-                subject = "subject-different-from-oid",
-            ),
-        )
+        val response =
+            performPost(
+                bearerToken =
+                    generateJWT(
+                        consumerClientId = "amt-deltaker-bff",
+                        audience = "amt-distribusjon",
+                        subject = "subject-different-from-oid",
+                    ),
+            )
 
         response.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
     fun `skal returnere Unauthorized naar audience i token er ugyldig ved POST til digital`() {
-        val response = performPost(
-            bearerToken = generateJWT(
-                consumerClientId = "amt-deltaker-bff",
-                audience = "ugyldig-audience",
-            ),
-        )
+        val response =
+            performPost(
+                bearerToken =
+                    generateJWT(
+                        consumerClientId = "amt-deltaker-bff",
+                        audience = "ugyldig-audience",
+                    ),
+            )
 
         response.status shouldBe HttpStatusCode.Unauthorized
     }
@@ -62,12 +68,13 @@ class AuthenticationTest {
     fun performPost(bearerToken: String? = null): HttpResponse {
         lateinit var httpResponse: HttpResponse
         integrationTest { _, httpClient ->
-            httpResponse = httpClient.post("/digital") {
-                contentType(ContentType.Application.Json)
-                setBody(DigitalBrukerRequest(randomIdent()))
+            httpResponse =
+                httpClient.post("/digital") {
+                    contentType(ContentType.Application.Json)
+                    setBody(DigitalBrukerRequest(randomIdent()))
 
-                if (bearerToken != null) bearerAuth(bearerToken)
-            }
+                    if (bearerToken != null) bearerAuth(bearerToken)
+                }
         }
         return httpResponse
     }

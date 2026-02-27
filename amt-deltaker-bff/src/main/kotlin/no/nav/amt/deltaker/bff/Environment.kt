@@ -31,12 +31,13 @@ data class Environment(
     val unleashUrl: String = getEnvVar(UNLEASH_SERVER_API_URL),
     val unleashApiToken: String = getEnvVar(UNLEASH_SERVER_API_TOKEN),
     val appName: String = "amt-deltaker-bff",
-    val preAuthorizedApp: List<PreAuthorizedApp> = getEnvVar(
-        AZURE_APP_PRE_AUTHORIZED_APPS,
-        objectMapper.writeValueAsString(
-            emptyList<PreAuthorizedApp>(),
-        ),
-    ).let { objectMapper.readValue(it) },
+    val preAuthorizedApp: List<PreAuthorizedApp> =
+        getEnvVar(
+            AZURE_APP_PRE_AUTHORIZED_APPS,
+            objectMapper.writeValueAsString(
+                emptyList<PreAuthorizedApp>(),
+            ),
+        ).let { objectMapper.readValue(it) },
 ) {
     companion object {
         const val KAFKA_CONSUMER_GROUP_ID = "amt-deltaker-bff-consumer"

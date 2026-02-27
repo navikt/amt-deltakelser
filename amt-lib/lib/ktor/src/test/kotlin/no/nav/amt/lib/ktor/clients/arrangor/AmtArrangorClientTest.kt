@@ -83,11 +83,12 @@ class AmtArrangorClientTest {
             expectedError: String,
             block: suspend (AmtArrangorClient) -> Any,
         ) {
-            val thrown = Assertions.assertThrows(exceptionType.java) {
-                runBlocking {
-                    block(createArrangorClient(expectedUrl, statusCode))
+            val thrown =
+                Assertions.assertThrows(exceptionType.java) {
+                    runBlocking {
+                        block(createArrangorClient(expectedUrl, statusCode))
+                    }
                 }
-            }
             thrown.message shouldStartWith expectedError
         }
 

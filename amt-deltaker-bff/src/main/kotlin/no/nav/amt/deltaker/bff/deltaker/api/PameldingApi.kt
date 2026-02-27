@@ -47,13 +47,14 @@ fun Routing.registerPameldingApi(
     val log = LoggerFactory.getLogger(javaClass)
 
     // duplikat i DeltakerApi
-    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
-        deltaker = deltaker,
-        ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
-        digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslageRepository.getForDeltaker(deltaker.id),
-    )
+    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse =
+        DeltakerResponse.fromDeltaker(
+            deltaker = deltaker,
+            ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
+            vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
+            digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
+            forslag = forslageRepository.getForDeltaker(deltaker.id),
+        )
 
     authenticate("VEILEDER") {
         post("/pamelding") {
@@ -61,10 +62,11 @@ fun Routing.registerPameldingApi(
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
-            val deltaker = pameldingService.opprettDeltaker(
-                deltakerlisteId = request.deltakerlisteId,
-                personIdent = request.personident,
-            )
+            val deltaker =
+                pameldingService.opprettDeltaker(
+                    deltakerlisteId = request.deltakerlisteId,
+                    personIdent = request.personident,
+                )
 
             call.respond(komplettDeltakerResponse(deltaker))
         }
@@ -81,22 +83,26 @@ fun Routing.registerPameldingApi(
                 norskIdent = deltaker.navBruker.personident,
             )
 
-            val nyKladd = pameldingService.upsertKladd(
-                kladd = Kladd(
-                    opprinneligDeltaker = deltaker,
-                    pamelding = Pamelding(
-                        deltakelsesinnhold = Deltakelsesinnhold(
-                            deltaker.deltakelsesinnhold?.ledetekst,
-                            request.innhold.toInnholdModel(deltaker),
+            val nyKladd =
+                pameldingService.upsertKladd(
+                    kladd =
+                        Kladd(
+                            opprinneligDeltaker = deltaker,
+                            pamelding =
+                                Pamelding(
+                                    deltakelsesinnhold =
+                                        Deltakelsesinnhold(
+                                            deltaker.deltakelsesinnhold?.ledetekst,
+                                            request.innhold.toInnholdModel(deltaker),
+                                        ),
+                                    bakgrunnsinformasjon = request.bakgrunnsinformasjon,
+                                    deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
+                                    dagerPerUke = request.dagerPerUke?.toFloat(),
+                                    endretAv = call.getNavIdent(),
+                                    endretAvEnhet = call.getEnhetsnummer(),
+                                ),
                         ),
-                        bakgrunnsinformasjon = request.bakgrunnsinformasjon,
-                        deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
-                        dagerPerUke = request.dagerPerUke?.toFloat(),
-                        endretAv = call.getNavIdent(),
-                        endretAvEnhet = call.getEnhetsnummer(),
-                    ),
-                ),
-            )
+                )
 
             nyKladd
                 ?.let { call.respond(HttpStatusCode.OK) }
@@ -116,23 +122,26 @@ fun Routing.registerPameldingApi(
             )
 
             // kaller paameldingClient.utkast
-            val oppdatertDeltaker = pameldingService.upsertUtkast(
-                Utkast(
-                    deltakerId = deltaker.id,
-                    pamelding = Pamelding(
-                        deltakelsesinnhold = Deltakelsesinnhold(
-                            ledetekst = deltaker.deltakelsesinnhold?.ledetekst,
-                            innhold = request.innhold.toInnholdModel(deltaker),
-                        ),
-                        bakgrunnsinformasjon = request.bakgrunnsinformasjon,
-                        deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
-                        dagerPerUke = request.dagerPerUke?.toFloat(),
-                        endretAv = call.getNavIdent(),
-                        endretAvEnhet = call.getEnhetsnummer(),
+            val oppdatertDeltaker =
+                pameldingService.upsertUtkast(
+                    Utkast(
+                        deltakerId = deltaker.id,
+                        pamelding =
+                            Pamelding(
+                                deltakelsesinnhold =
+                                    Deltakelsesinnhold(
+                                        ledetekst = deltaker.deltakelsesinnhold?.ledetekst,
+                                        innhold = request.innhold.toInnholdModel(deltaker),
+                                    ),
+                                bakgrunnsinformasjon = request.bakgrunnsinformasjon,
+                                deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
+                                dagerPerUke = request.dagerPerUke?.toFloat(),
+                                endretAv = call.getNavIdent(),
+                                endretAvEnhet = call.getEnhetsnummer(),
+                            ),
+                        godkjentAvNav = false,
                     ),
-                    godkjentAvNav = false,
-                ),
-            )
+                )
 
             MetricRegister.DELT_UTKAST.inc()
 
@@ -172,18 +181,21 @@ fun Routing.registerPameldingApi(
             pameldingService.upsertUtkast(
                 Utkast(
                     deltakerId = deltaker.id,
-                    pamelding = Pamelding(
-                        deltakelsesinnhold = Deltakelsesinnhold(
-                            innhold = request.innhold.toInnholdModel(deltaker),
-                            ledetekst = deltaker.deltakerliste.tiltak.innhold
-                                ?.ledetekst,
+                    pamelding =
+                        Pamelding(
+                            deltakelsesinnhold =
+                                Deltakelsesinnhold(
+                                    innhold = request.innhold.toInnholdModel(deltaker),
+                                    ledetekst =
+                                        deltaker.deltakerliste.tiltak.innhold
+                                            ?.ledetekst,
+                                ),
+                            bakgrunnsinformasjon = request.bakgrunnsinformasjon,
+                            deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
+                            dagerPerUke = request.dagerPerUke?.toFloat(),
+                            endretAv = call.getNavIdent(),
+                            endretAvEnhet = call.getEnhetsnummer(),
                         ),
-                        bakgrunnsinformasjon = request.bakgrunnsinformasjon,
-                        deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
-                        dagerPerUke = request.dagerPerUke?.toFloat(),
-                        endretAv = call.getNavIdent(),
-                        endretAvEnhet = call.getEnhetsnummer(),
-                    ),
                     godkjentAvNav = true,
                 ),
             )

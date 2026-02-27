@@ -32,63 +32,71 @@ class TestdataApiTest {
     }
 
     @Test
-    fun `opprett testdata - mangler token - returnerer 401`() = testApplication {
-        setUpTestApplication()
-        client.post("/testdata/opprett") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-    }
+    fun `opprett testdata - mangler token - returnerer 401`() =
+        testApplication {
+            setUpTestApplication()
+            client.post("/testdata/opprett") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        }
 
     @Test
-    fun `opprett testdata - har tilgang, ugyldig request - returnerer BadRequest`() = testApplication {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
-        )
-        val startdato = LocalDate.now().minusDays(1)
-        val opprettTestDeltakelseRequest = OpprettTestDeltakelseRequest(
-            personident = TestData.randomIdent(),
-            deltakerlisteId = deltakerliste.id,
-            startdato = startdato,
-            deltakelsesprosent = 100,
-            dagerPerUke = 7,
-        )
+    fun `opprett testdata - har tilgang, ugyldig request - returnerer BadRequest`() =
+        testApplication {
+            val deltakerliste =
+                TestData.lagDeltakerliste(
+                    tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+                )
+            val startdato = LocalDate.now().minusDays(1)
+            val opprettTestDeltakelseRequest =
+                OpprettTestDeltakelseRequest(
+                    personident = TestData.randomIdent(),
+                    deltakerlisteId = deltakerliste.id,
+                    startdato = startdato,
+                    deltakelsesprosent = 100,
+                    dagerPerUke = 7,
+                )
 
-        setUpTestApplication()
+            setUpTestApplication()
 
-        client.post("/testdata/opprett") { systemPostRequest(opprettTestDeltakelseRequest) }.apply {
-            status shouldBe HttpStatusCode.BadRequest
+            client.post("/testdata/opprett") { systemPostRequest(opprettTestDeltakelseRequest) }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+            }
         }
-    }
 
     @Test
-    fun `opprett testdata - har tilgang, gyldig request - returnerer deltaker`() = testApplication {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
-        )
-        val startdato = LocalDate.now().minusDays(1)
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = deltakerliste,
-            startdato = startdato,
-            sluttdato = startdato.plusMonths(3),
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            deltakelsesprosent = 50F,
-            dagerPerUke = 3F,
-        )
-        val opprettTestDeltakelseRequest = OpprettTestDeltakelseRequest(
-            personident = deltaker.navBruker.personident,
-            deltakerlisteId = deltaker.deltakerliste.id,
-            startdato = startdato,
-            deltakelsesprosent = deltaker.deltakelsesprosent?.toInt()!!,
-            dagerPerUke = deltaker.dagerPerUke?.toInt(),
-        )
+    fun `opprett testdata - har tilgang, gyldig request - returnerer deltaker`() =
+        testApplication {
+            val deltakerliste =
+                TestData.lagDeltakerliste(
+                    tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+                )
+            val startdato = LocalDate.now().minusDays(1)
+            val deltaker =
+                TestData.lagDeltaker(
+                    deltakerliste = deltakerliste,
+                    startdato = startdato,
+                    sluttdato = startdato.plusMonths(3),
+                    status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                )
+            val opprettTestDeltakelseRequest =
+                OpprettTestDeltakelseRequest(
+                    personident = deltaker.navBruker.personident,
+                    deltakerlisteId = deltaker.deltakerliste.id,
+                    startdato = startdato,
+                    deltakelsesprosent = deltaker.deltakelsesprosent?.toInt()!!,
+                    dagerPerUke = deltaker.dagerPerUke?.toInt(),
+                )
 
-        coEvery { testdataService.opprettDeltakelse(any()) } returns deltaker
+            coEvery { testdataService.opprettDeltakelse(any()) } returns deltaker
 
-        setUpTestApplication()
+            setUpTestApplication()
 
-        client.post("/testdata/opprett") { systemPostRequest(opprettTestDeltakelseRequest) }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker)
+            client.post("/testdata/opprett") { systemPostRequest(opprettTestDeltakelseRequest) }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker)
+            }
         }
-    }
 
     private fun ApplicationTestBuilder.setUpTestApplication() {
         application {

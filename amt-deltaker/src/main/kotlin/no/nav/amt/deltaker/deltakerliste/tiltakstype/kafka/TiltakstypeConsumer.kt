@@ -12,16 +12,20 @@ import java.util.UUID
 class TiltakstypeConsumer(
     private val repository: TiltakstypeRepository,
 ) : Consumer<UUID, String?> {
-    private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.TILTAKSTYPE_TOPIC,
-        consumeFunc = ::consume,
-    )
+    private val consumer =
+        buildManagedKafkaConsumer(
+            topic = Environment.TILTAKSTYPE_TOPIC,
+            consumeFunc = ::consume,
+        )
 
     override fun start() = consumer.start()
 
     override suspend fun close() = consumer.close()
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         value?.let { handterTiltakstype(objectMapper.readValue(it)) }
     }
 
