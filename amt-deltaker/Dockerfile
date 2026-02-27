@@ -1,6 +1,6 @@
 FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-21
 WORKDIR /app
-COPY amt-deltaker/build/install/amt-deltaker /app
+COPY build/install/amt-deltaker /app
 
 ENV TZ="Europe/Oslo"
 
