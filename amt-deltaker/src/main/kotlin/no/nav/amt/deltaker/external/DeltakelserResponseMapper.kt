@@ -8,11 +8,9 @@ import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDato
 import no.nav.amt.deltaker.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.external.data.DeltakelserResponse
 import no.nav.amt.deltaker.external.data.DeltakerKort
 import no.nav.amt.deltaker.external.data.Periode
-import no.nav.amt.deltaker.utils.toTitleCase
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
@@ -92,7 +90,7 @@ class DeltakelserResponseMapper(
     }
 
     private fun lagTittel(deltaker: Deltaker): String {
-        val arrangorNavn = deltaker.deltakerliste.getArrangorNavn()
+        val arrangorNavn = arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor)
         return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
             Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"
 
@@ -102,11 +100,6 @@ class DeltakelserResponseMapper(
 
             else -> "${deltaker.deltakerliste.tiltakstype.navn} hos $arrangorNavn"
         }
-    }
-
-    private fun Deltakerliste.getArrangorNavn(): String {
-        val arrangor = arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) } ?: arrangor
-        return toTitleCase(arrangor.navn)
     }
 
     private fun Tiltakstype.toTiltakstypeRespons() = DeltakelserResponse.Tiltakstype(

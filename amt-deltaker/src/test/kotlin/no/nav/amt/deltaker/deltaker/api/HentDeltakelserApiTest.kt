@@ -81,6 +81,8 @@ class HentDeltakelserApiTest : RouteTestBase() {
             ),
         )
 
+        every { arrangorService.getArrangorNavn(any()) } returns deltaker.deltakerliste.arrangor.navn
+
         every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltaker)
         every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
@@ -89,7 +91,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
                 DeltakerKort(
                     deltakerId = deltaker.id,
                     deltakerlisteId = deltaker.deltakerliste.id,
-                    tittel = "Arbeidsforberedende trening hos Arrangør AS",
+                    tittel = "Arbeidsforberedende trening hos ${deltaker.deltakerliste.arrangor.navn}",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltaker.deltakerliste.tiltakstype.navn,
                         tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
@@ -121,7 +123,6 @@ class HentDeltakelserApiTest : RouteTestBase() {
     @Test
     fun `post deltakelser - har tilgang, kladd og avsluttet deltakelse - returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-
         val innsoktDato = LocalDate.now().minusDays(4)
         val deltakerKladd = lagDeltaker(
             deltakerliste = lagDeltakerliste(
@@ -133,6 +134,8 @@ class HentDeltakelserApiTest : RouteTestBase() {
             ),
             status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
         )
+        every { arrangorService.getArrangorNavn(any()) } returns deltakerKladd.deltakerliste.arrangor.navn
+
         val avsluttetDeltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
@@ -165,7 +168,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
                 DeltakerKort(
                     deltakerId = deltakerKladd.id,
                     deltakerlisteId = deltakerKladd.deltakerliste.id,
-                    tittel = "Arbeidsforberedende trening hos Arrangør AS",
+                    tittel = "Arbeidsforberedende trening hos ${deltakerKladd.deltakerliste.arrangor.navn}",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltakerKladd.deltakerliste.tiltakstype.navn,
                         tiltakskode = deltakerKladd.deltakerliste.tiltakstype.tiltakskode,
@@ -184,7 +187,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
                 DeltakerKort(
                     deltakerId = avsluttetDeltaker.id,
                     deltakerlisteId = avsluttetDeltaker.deltakerliste.id,
-                    tittel = "Arbeidsforberedende trening hos Arrangør og Sønn AS",
+                    tittel = "Arbeidsforberedende trening hos ${deltakerKladd.deltakerliste.arrangor.navn}",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
                         tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.tiltakskode,

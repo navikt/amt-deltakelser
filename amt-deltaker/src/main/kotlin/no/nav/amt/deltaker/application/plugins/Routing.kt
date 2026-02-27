@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
+import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.api.deltaker.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.paamelding.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -67,6 +68,7 @@ fun Application.configureRouting(
     navEnhetService: NavEnhetService,
     vedtakRepository: VedtakRepository,
     navAnsattService: NavAnsattService,
+    responseBuilder: ResponseBuilder,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -101,7 +103,7 @@ fun Application.configureRouting(
             pameldingService = pameldingService,
             historikkService = deltakerHistorikkService,
         )
-        registerDeltakerApi(deltakerRepository, deltakerService, deltakerHistorikkService)
+        registerDeltakerApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
         registerInternalApi(
             deltakerRepository,
             deltakerService,

@@ -24,6 +24,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
+import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
@@ -56,6 +57,7 @@ abstract class RouteTestBase {
     protected val navEnhetService = mockk<NavEnhetService>()
     protected val navAnsattService = mockk<NavAnsattService>()
     protected val vedtakRepository = mockk<VedtakRepository>()
+    protected val responseBuilder = mockk<ResponseBuilder>()
 
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
     protected val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
@@ -98,6 +100,7 @@ abstract class RouteTestBase {
                     navEnhetService,
                     vedtakRepository,
                     navAnsattService,
+                    responseBuilder,
                 )
                 setUpTestRoute()
             }

@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
+import no.nav.amt.deltaker.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
@@ -35,6 +36,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
+import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -163,6 +165,13 @@ fun Application.module() {
         httpClient = httpClient,
     )
 
+    val amtDistribusjonClient = AmtDistribusjonClient(
+        baseUrl = environment.amtDistribusjonServiceUrl,
+        scope = environment.amtDistribusjonServiceScope,
+        azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
+    )
+
     val kafkaProducer = Producer<String, String>(
         if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
     )
@@ -197,6 +206,7 @@ fun Application.module() {
             tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
         ),
     )
+
     val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
 
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
@@ -334,6 +344,15 @@ fun Application.module() {
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
 
+    val responseBuilder = ResponseBuilder(
+        arrangorService = arrangorService,
+        navAnsattRepository = navAnsattRepository,
+        navEnhetService = navEnhetService,
+        amtDistribusjonClient = amtDistribusjonClient,
+        deltakerHistorikkService = deltakerHistorikkService,
+        forslagRepository = forslagRepository,
+    )
+
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattRepository, navAnsattService),
@@ -394,6 +413,7 @@ fun Application.module() {
         navEnhetService = navEnhetService,
         navAnsattService = navAnsattService,
         vedtakRepository = vedtakRepository,
+        responseBuilder = responseBuilder,
     )
     configureMonitoring()
 
