@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - "amt-deltaker/**"
+    branches:
+      - main
 
 permissions:
   contents: write
