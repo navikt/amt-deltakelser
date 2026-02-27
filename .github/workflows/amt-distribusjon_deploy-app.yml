@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - "amt-distribusjon/**"
+    branches:
+      - main
 
 permissions:
   contents: write

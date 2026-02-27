@@ -27,27 +27,29 @@ jobs:
       - name: Find changed modules
         id: changes
         run: |
-          # Get list of top-level directories changed in this push/PR
+          # Get top-level directories that changed
           CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-            | grep '^[^/]\+' | awk '{print $1}' | sort -u)
+            | cut -d/ -f1 | sort -u)
           
-          if [ -z "$CHANGED" ]; then
-            echo "No modules changed"
-          else
-            echo "Changed modules: $CHANGED"
-          fi
+          echo "Changed modules: $CHANGED"
+          
+          COUNT=$(echo "$CHANGED" | wc -w)
           
           echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
 
-      - name: Run tests for changed modules
+      - name: Run tests
         run: |
-          if [ -z "${{ steps.changes.outputs.changed }}" ]; then
-            echo "No modules changed — skipping tests."
+          CHANGED="${{ steps.changes.outputs.changed }}"
+          COUNT=${{ steps.changes.outputs.count }}
+          
+          # Allowed single-module builds
+          TARGETS="amt-deltaker amt-deltaker-bff amt-distribusjon"
+          
+          if [ "$COUNT" -eq 1 ] && echo "$TARGETS" | grep -wq "$CHANGED"; then
+            echo "Only $CHANGED changed — building only that module"
+            ./gradlew ":$CHANGED:check" --no-daemon
           else
-            for module in ${{ steps.changes.outputs.changed }}; do
-              # Convert folder name to Gradle project path
-              gradle_path=$(echo "$module" | tr '/' ':')
-              echo "Running tests for $gradle_path"
-              ./gradlew "$gradle_path:check" --no-daemon || exit 1
-            done
+            echo "Multiple modules or shared code changed — building everything"
+            ./gradlew check --no-daemon
           fi
