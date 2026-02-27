@@ -27,9 +27,14 @@ jobs:
       - name: Find changed modules
         id: changes
         run: |
-          # Get top-level directories that changed
-          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-            | cut -d/ -f1 | sort -u)
+          # Fetch main so we can diff against it
+          git fetch origin main
+          
+          # Find common ancestor between current commit and main
+          BASE=$(git merge-base origin/main HEAD)
+          
+          # Get changed top-level directories
+          CHANGED=$(git diff --name-only $BASE HEAD | cut -d/ -f1 | sort -u)
           
           echo "Changed modules: $CHANGED"
           
