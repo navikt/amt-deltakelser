@@ -37,19 +37,21 @@ class DokdistfordelingClient(
         distribusjonstype: DistribuerJournalpostRequest.Distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
         tvingSentralPrint: Boolean = false,
     ): UUID? {
-        val request = DistribuerJournalpostRequest(journalpostId, tvingSentralPrint, distribusjonstype = distribusjonstype)
+        val request =
+            DistribuerJournalpostRequest(journalpostId, tvingSentralPrint, distribusjonstype = distribusjonstype)
         return distribuerJournalpost(request)
     }
 
     suspend fun distribuerJournalpost(request: DistribuerJournalpostRequest): UUID? {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
         val journalpostId = request.journalpostId
-        val response = httpClient.post("$url/rest/v1/distribuerjournalpost") {
-            header(HttpHeaders.Authorization, token)
-            header("Nav-Callid", navCallId)
-            contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(request))
-        }
+        val response =
+            httpClient.post("$url/rest/v1/distribuerjournalpost") {
+                header(HttpHeaders.Authorization, token)
+                header("Nav-Callid", navCallId)
+                contentType(ContentType.Application.Json)
+                setBody(objectMapper.writeValueAsString(request))
+            }
 
         if (!response.status.isSuccess()) {
             if (response.status == HttpStatusCode.Conflict) {

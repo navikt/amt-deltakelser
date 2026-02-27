@@ -33,12 +33,16 @@ class DeltakerV2Consumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.AMT_DELTAKERV2_TOPIC,
-        consumeFunc = ::consume,
-    )
+    private val consumer =
+        buildManagedKafkaConsumer(
+            topic = Environment.AMT_DELTAKERV2_TOPIC,
+            consumeFunc = ::consume,
+        )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         if (value == null) {
             log.info("Mottok tombstone for deltaker $key - sletter deltaker")
             Database.transaction {
@@ -51,7 +55,11 @@ class DeltakerV2Consumer(
         val deltakerliste = deltakerlisteRepository.get(deltakerPayload.deltakerliste.id).getOrThrow()
         val tiltakskode = deltakerliste.tiltak.tiltakskode
 
-        if (!unleashToggle.erKometMasterForTiltakstype(tiltakskode) && !unleashToggle.skalLeseArenaDataForTiltakstype(tiltakskode)) {
+        if (!unleashToggle.erKometMasterForTiltakstype(tiltakskode) &&
+            !unleashToggle.skalLeseArenaDataForTiltakstype(
+                tiltakskode,
+            )
+        ) {
             log.info("Ignorerer deltaker $key på tiltakstype $tiltakskode som ikke er støttet enda")
             return
         }
@@ -108,7 +116,10 @@ class DeltakerV2Consumer(
     override suspend fun close() = consumer.close()
 
     companion object {
-        private fun DeltakerKafkaPayload.toDeltaker(navBruker: NavBruker, deltakerliste: Deltakerliste) = Deltaker(
+        private fun DeltakerKafkaPayload.toDeltaker(
+            navBruker: NavBruker,
+            deltakerliste: Deltakerliste,
+        ) = Deltaker(
             id = id,
             navBruker = navBruker,
             deltakerliste = deltakerliste,
@@ -118,14 +129,15 @@ class DeltakerV2Consumer(
             deltakelsesprosent = prosentStilling?.toFloat(),
             bakgrunnsinformasjon = bestillingTekst,
             deltakelsesinnhold = innhold,
-            status = DeltakerStatus(
-                id = status.id ?: throw IllegalStateException("deltakerstatus mangler id $id"),
-                type = status.type,
-                aarsak = status.aarsak?.let { DeltakerStatus.Aarsak(it, status.aarsaksbeskrivelse) },
-                gyldigFra = status.gyldigFra,
-                gyldigTil = null,
-                opprettet = status.opprettetDato,
-            ),
+            status =
+                DeltakerStatus(
+                    id = status.id ?: throw IllegalStateException("deltakerstatus mangler id $id"),
+                    type = status.type,
+                    aarsak = status.aarsak?.let { DeltakerStatus.Aarsak(it, status.aarsaksbeskrivelse) },
+                    gyldigFra = status.gyldigFra,
+                    gyldigTil = null,
+                    opprettet = status.opprettetDato,
+                ),
             historikk = historikk.orEmpty(),
             kanEndres = true,
             sistEndret = sistEndret ?: LocalDateTime.now(),
@@ -144,14 +156,15 @@ class DeltakerV2Consumer(
                 deltakelsesprosent = prosentStilling?.toFloat(),
                 bakgrunnsinformasjon = bestillingTekst,
                 deltakelsesinnhold = innhold,
-                status = DeltakerStatus(
-                    id = status.id ?: throw IllegalStateException("deltakerstatus mangler id $id"),
-                    type = status.type,
-                    aarsak = status.aarsak?.let { DeltakerStatus.Aarsak(it, status.aarsaksbeskrivelse) },
-                    gyldigFra = status.gyldigFra,
-                    gyldigTil = null,
-                    opprettet = status.opprettetDato,
-                ),
+                status =
+                    DeltakerStatus(
+                        id = status.id ?: throw IllegalStateException("deltakerstatus mangler id $id"),
+                        type = status.type,
+                        aarsak = status.aarsak?.let { DeltakerStatus.Aarsak(it, status.aarsaksbeskrivelse) },
+                        gyldigFra = status.gyldigFra,
+                        gyldigTil = null,
+                        opprettet = status.opprettetDato,
+                    ),
                 historikk = historikk.orEmpty(),
                 sistEndret = sistEndret ?: LocalDateTime.now(),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,

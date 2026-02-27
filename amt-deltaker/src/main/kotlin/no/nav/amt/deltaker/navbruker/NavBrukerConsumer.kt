@@ -20,12 +20,16 @@ class NavBrukerConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.AMT_NAV_BRUKER_TOPIC,
-        consumeFunc = ::consume,
-    )
+    private val consumer =
+        buildManagedKafkaConsumer(
+            topic = Environment.AMT_NAV_BRUKER_TOPIC,
+            consumeFunc = ::consume,
+        )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         if (value == null) {
             log.warn("Mottok tombstone for nav-bruker: $key, skal ikke skje.")
             return
@@ -52,9 +56,13 @@ class NavBrukerConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private fun harEndredePersonopplysninger(navBruker: NavBruker?, navBrukerDto: NavBrukerDto): Boolean = if (navBruker == null) {
-        true
-    } else {
-        navBrukerDto.toModel() != navBruker
-    }
+    private fun harEndredePersonopplysninger(
+        navBruker: NavBruker?,
+        navBrukerDto: NavBrukerDto,
+    ): Boolean =
+        if (navBruker == null) {
+            true
+        } else {
+            navBrukerDto.toModel() != navBruker
+        }
 }

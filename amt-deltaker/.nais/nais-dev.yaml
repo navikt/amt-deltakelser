@@ -51,6 +51,7 @@ spec:
         - application: amt-person-service
         - application: amt-arrangor
         - application: amt-tiltak
+        - application: amt-distribusjon
         - application: poao-tilgang
           namespace: poao
         - application: isoppfolgingstilfelle
@@ -89,6 +90,10 @@ spec:
       value: api://dev-gcp.team-mulighetsrommet.mulighetsrommet-api/.default
     - name: MULIGHETSROMMET_API_URL
       value: http://mulighetsrommet-api.team-mulighetsrommet.svc.cluster.local
+    - name: AMT_DISTRIBUSJON_SCOPE
+      value: api://dev-gcp.amt.amt-distribusjon/.default
+    - name: AMT_DISTRIBUSJON_URL
+      value: http://amt-distribusjon
 
   gcp:
     sqlInstances:

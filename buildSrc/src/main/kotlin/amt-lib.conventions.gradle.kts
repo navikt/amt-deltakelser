@@ -1,6 +1,6 @@
 import java.net.URI
 
-group = "no.nav.amt.lib"
+group = "no.nav.amt.deltakelser.lib"
 
 plugins {
     `java-library`
@@ -30,7 +30,7 @@ publishing {
 
     repositories {
         maven {
-            url = URI("https://maven.pkg.github.com/navikt/amt-lib")
+            url = URI("https://maven.pkg.github.com/navikt/amt-deltakelser")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
@@ -39,13 +39,7 @@ publishing {
     }
 }
 
-sourceSets {
-    main {
-        resources.srcDir("src/main/resource")
-    }
-}
-
-tasks.withType<Test> {
+tasks.named<Test>("test") {
     useJUnitPlatform()
     jvmArgs(
         "-Xshare:off",

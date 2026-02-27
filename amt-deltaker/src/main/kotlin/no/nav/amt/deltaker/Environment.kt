@@ -16,12 +16,15 @@ data class Environment(
     val amtPersonServiceScope: String = getEnvVar(AMT_PERSONSERVICE_SCOPE_KEY),
     val amtArrangorUrl: String = getEnvVar(AMT_ARRANGOR_URL_KEY),
     val amtArrangorScope: String = getEnvVar(AMT_ARRANGOR_SCOPE_KEY),
-    val preAuthorizedApps: List<PreAuthorizedApp> = getEnvVar(
-        AZURE_APP_PRE_AUTHORIZED_APPS,
-        objectMapper.writeValueAsString(
-            emptyList<PreAuthorizedApp>(),
-        ),
-    ).let { objectMapper.readValue(it) },
+    val amtDistribusjonServiceUrl: String = getEnvVar(AMT_DISTRIBUSJON_URL_KEY),
+    val amtDistribusjonServiceScope: String = getEnvVar(AMT_DISTRIBUSJON_SCOPE_KEY),
+    val preAuthorizedApps: List<PreAuthorizedApp> =
+        getEnvVar(
+            AZURE_APP_PRE_AUTHORIZED_APPS,
+            objectMapper.writeValueAsString(
+                emptyList<PreAuthorizedApp>(),
+            ),
+        ).let { objectMapper.readValue(it) },
     val electorPath: String = getEnvVar(ELECTOR_PATH),
     val poaoTilgangUrl: String = getEnvVar(POAO_TILGANG_URL_KEY),
     val poaoTilgangScope: String = getEnvVar(POAO_TILGANG_SCOPE_KEY),
@@ -56,6 +59,8 @@ data class Environment(
         const val AMT_ARRANGOR_SCOPE_KEY = "AMT_ARRANGOR_SCOPE"
         const val AMT_TILTAK_URL_KEY = "AMT_TILTAK_URL"
         const val AMT_TILTAK_SCOPE_KEY = "AMT_TILTAK_SCOPE"
+        const val AMT_DISTRIBUSJON_URL_KEY = "AMT_DISTRIBUSJON_URL"
+        const val AMT_DISTRIBUSJON_SCOPE_KEY = "AMT_DISTRIBUSJON_SCOPE"
 
         const val AZURE_AD_TOKEN_URL_KEY = "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"
         const val AZURE_APP_CLIENT_SECRET_KEY = "AZURE_APP_CLIENT_SECRET"
@@ -93,7 +98,10 @@ data class Environment(
     }
 }
 
-fun getEnvVar(varName: String, defaultValue: String? = null) = System.getenv(varName)
+fun getEnvVar(
+    varName: String,
+    defaultValue: String? = null,
+) = System.getenv(varName)
     ?: System.getProperty(varName)
     ?: defaultValue
     ?: if (Environment.isLocal()) "" else error("Missing required variable $varName")

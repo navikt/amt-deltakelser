@@ -14,35 +14,37 @@ import org.junit.jupiter.api.Test
 
 class ApplicationTest {
     @Test
-    fun testRoot() = testApplication {
-        configureEnvForAuthentication()
-        application {
-            configureSerialization()
-            configureAuthentication(Environment())
-            configureRouting(
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-            )
+    fun testRoot() =
+        testApplication {
+            configureEnvForAuthentication()
+            application {
+                configureSerialization()
+                configureAuthentication(Environment())
+                configureRouting(
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                )
+            }
+            client.get("/internal/health/liveness").apply {
+                assertEquals(HttpStatusCode.OK, status)
+                assertEquals("I'm alive!", bodyAsText())
+            }
         }
-        client.get("/internal/health/liveness").apply {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals("I'm alive!", bodyAsText())
-        }
-    }
 }

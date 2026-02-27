@@ -9,45 +9,51 @@ import org.junit.jupiter.api.Test
 
 class DeltakerUtilsTest {
     @Test
-    fun `sjekkEndringUtfall - del med arrangør - oppdaterer attributt`() = runTest {
-        with(EndringFraTiltakskoordinatorCtx()) {
-            val endretDeltaker = DeltakerUtils
-                .sjekkEndringUtfall(
-                    deltaker,
-                    EndringFraTiltakskoordinator.DelMedArrangor,
-                ).getOrThrow()
+    fun `sjekkEndringUtfall - del med arrangør - oppdaterer attributt`() =
+        runTest {
+            with(EndringFraTiltakskoordinatorCtx()) {
+                val endretDeltaker =
+                    DeltakerUtils
+                        .sjekkEndringUtfall(
+                            deltaker,
+                            EndringFraTiltakskoordinator.DelMedArrangor,
+                        ).getOrThrow()
 
-            endretDeltaker.erManueltDeltMedArrangor shouldBe true
-            endretDeltaker.status.type shouldBe deltaker.status.type
+                endretDeltaker.erManueltDeltMedArrangor shouldBe true
+                endretDeltaker.status.type shouldBe deltaker.status.type
+            }
         }
-    }
 
     @Test
-    fun `sjekkEndringUtfall - del med arrangør - ugyldig endring - returnerer failure`() = runTest {
-        with(EndringFraTiltakskoordinatorCtx()) {
-            medStatusDeltar()
-            val resultat = DeltakerUtils.sjekkEndringUtfall(
-                deltaker,
-                EndringFraTiltakskoordinator.DelMedArrangor,
-            )
+    fun `sjekkEndringUtfall - del med arrangør - ugyldig endring - returnerer failure`() =
+        runTest {
+            with(EndringFraTiltakskoordinatorCtx()) {
+                medStatusDeltar()
+                val resultat =
+                    DeltakerUtils.sjekkEndringUtfall(
+                        deltaker,
+                        EndringFraTiltakskoordinator.DelMedArrangor,
+                    )
 
-            resultat.isFailure shouldBe true
+                resultat.isFailure shouldBe true
+            }
         }
-    }
 
     @Test
-    fun `sjekkEndringUtfall - mangler oppfolgingsperiode - returnerer failure`() = runTest {
-        with(
-            EndringFraTiltakskoordinatorCtx(
-                navBruker = TestData.lagNavBruker().copy(oppfolgingsperioder = emptyList()),
-            ),
-        ) {
-            val resultat = DeltakerUtils.sjekkEndringUtfall(
-                deltaker,
-                EndringFraTiltakskoordinator.DelMedArrangor,
-            )
+    fun `sjekkEndringUtfall - mangler oppfolgingsperiode - returnerer failure`() =
+        runTest {
+            with(
+                EndringFraTiltakskoordinatorCtx(
+                    navBruker = TestData.lagNavBruker().copy(oppfolgingsperioder = emptyList()),
+                ),
+            ) {
+                val resultat =
+                    DeltakerUtils.sjekkEndringUtfall(
+                        deltaker,
+                        EndringFraTiltakskoordinator.DelMedArrangor,
+                    )
 
-            resultat.isFailure shouldBe true
+                resultat.isFailure shouldBe true
+            }
         }
-    }
 }

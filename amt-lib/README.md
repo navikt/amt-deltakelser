@@ -1,6 +1,6 @@
 # amt-lib
 
-Dette er et repository hvor vi i Komet kan dele kode i mellom backend appene våre.
+Dette er en module hvor vi i Komet kan dele kode mellom backend appene våre.
 
 ## Installasjon
 Se [siste release](https://github.com/navikt/amt-lib/releases) eller [packages](https://github.com/orgs/navikt/packages?repo_name=amt-lib) for nyeste versjon.
@@ -36,7 +36,7 @@ dependencies {
     <version>1.2024.06.03_12.31-800644a77a1b</version>
 </dependency>
 ```
-For at Gradle eller Maven skal finne pakkene må man legge til følgende repository:
+For at Gradle eller Maven skal finne pakkene, må følgende repository legges til:
 
 **Gradle**
 ```kotlin
@@ -57,7 +57,7 @@ repositories {
 </repositories>
 ```
 
-Det er anbefalt å legge til GitHub Package Registry til slutt for å først søke igjennom andre repositories for avhengigheter.
+Det er anbefalt å legge til GitHub Package Registry til slutt for å først søke gjennom andre repositories for avhengigheter.
 
 ## Utvikling
 ### Testing
@@ -66,7 +66,8 @@ For å verifisere at biblioteket virker som forventet i andre apper lokalt kan m
 ./gradlew publishToMavenLocal
 ```
 
-I appen må man inkludere `mavenLocal()` i `repositories` samt endre versjonen av amt-lib. Hvis man ikke spesifiserer en versjon i `amt-lib.conventions.gradle.kts` blir default versjon `unspecified`:
+I appen må  `mavenLocal()` inkluderes i `repositories` samt endre versjonen av amt-lib. Hvis versjon ikke spesifiserer i 
+`amt-lib.conventions.gradle.kts`, blir default versjon `unspecified`:
 
 **Gradle**
 ```kotlin

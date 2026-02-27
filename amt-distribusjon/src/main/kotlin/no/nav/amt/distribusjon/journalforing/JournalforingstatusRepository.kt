@@ -32,33 +32,36 @@ class JournalforingstatusRepository {
                 modified_at = CURRENT_TIMESTAMP
             """.trimIndent()
 
-        val params = mapOf(
-            "hendelse_id" to journalforingstatus.hendelseId,
-            "journalpost_id" to journalforingstatus.journalpostId,
-            "bestillingsid" to journalforingstatus.bestillingsId,
-            "kan_ikke_distribueres" to journalforingstatus.kanIkkeDistribueres,
-            "kan_ikke_journalfores" to journalforingstatus.kanIkkeJournalfores,
-        )
+        val params =
+            mapOf(
+                "hendelse_id" to journalforingstatus.hendelseId,
+                "journalpost_id" to journalforingstatus.journalpostId,
+                "bestillingsid" to journalforingstatus.bestillingsId,
+                "kan_ikke_distribueres" to journalforingstatus.kanIkkeDistribueres,
+                "kan_ikke_journalfores" to journalforingstatus.kanIkkeJournalfores,
+            )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun get(hendelseId: UUID): Journalforingstatus? = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM journalforingstatus WHERE hendelse_id = :hendelse_id",
-                mapOf("hendelse_id" to hendelseId),
-            ).map(::rowMapper).asSingle,
-        )
-    }
+    fun get(hendelseId: UUID): Journalforingstatus? =
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM journalforingstatus WHERE hendelse_id = :hendelse_id",
+                    mapOf("hendelse_id" to hendelseId),
+                ).map(::rowMapper).asSingle,
+            )
+        }
 
     companion object {
-        private fun rowMapper(row: Row) = Journalforingstatus(
-            hendelseId = row.uuid("hendelse_id"),
-            journalpostId = row.stringOrNull("journalpost_id"),
-            bestillingsId = row.uuidOrNull("bestillingsid"),
-            kanIkkeDistribueres = row.boolean("kan_ikke_distribueres"),
-            kanIkkeJournalfores = row.boolean("kan_ikke_journalfores"),
-        )
+        private fun rowMapper(row: Row) =
+            Journalforingstatus(
+                hendelseId = row.uuid("hendelse_id"),
+                journalpostId = row.stringOrNull("journalpost_id"),
+                bestillingsId = row.uuidOrNull("bestillingsid"),
+                kanIkkeDistribueres = row.boolean("kan_ikke_distribueres"),
+                kanIkkeJournalfores = row.boolean("kan_ikke_journalfores"),
+            )
     }
 }

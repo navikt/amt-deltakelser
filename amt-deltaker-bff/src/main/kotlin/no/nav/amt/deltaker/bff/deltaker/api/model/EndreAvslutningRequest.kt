@@ -43,8 +43,9 @@ data class EndreAvslutningRequest(
 
     fun harFullfort(): Boolean = harFullfort == null || harFullfort
 
-    private fun deltakerErEndret(deltaker: Deltaker): Boolean = (deltaker.status.type === DeltakerStatus.Type.AVBRUTT && harFullfort()) ||
-        (deltaker.status.type === DeltakerStatus.Type.FULLFORT && !harFullfort()) ||
-        harEndretSluttaarsak(deltaker.status.aarsak, aarsak) ||
-        deltaker.sluttdato != sluttdato
+    private fun deltakerErEndret(deltaker: Deltaker): Boolean =
+        (deltaker.status.type === DeltakerStatus.Type.AVBRUTT && harFullfort()) ||
+            (deltaker.status.type === DeltakerStatus.Type.FULLFORT && !harFullfort()) ||
+            harEndretSluttaarsak(deltaker.status.aarsak, aarsak) ||
+            deltaker.sluttdato != sluttdato
 }

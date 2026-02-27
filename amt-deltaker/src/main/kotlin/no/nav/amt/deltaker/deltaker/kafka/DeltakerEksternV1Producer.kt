@@ -18,8 +18,9 @@ class DeltakerEksternV1Producer(
         )
     }
 
-    fun produceTombstone(deltakerId: UUID) = producer.tombstone(
-        topic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
-        key = deltakerId.toString(),
-    )
+    fun produceTombstone(deltakerId: UUID) =
+        producer.tombstone(
+            topic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
+            key = deltakerId.toString(),
+        )
 }

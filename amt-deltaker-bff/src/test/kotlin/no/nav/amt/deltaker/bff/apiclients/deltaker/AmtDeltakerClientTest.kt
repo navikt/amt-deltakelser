@@ -28,7 +28,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRe
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerMedStatusResponse
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -43,7 +43,7 @@ class AmtDeltakerClientTest {
     inner class GetDeltaker {
         val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}"
         val expectedErrorMessage = "Fant ikke deltaker ${deltakerInTest.id} i amt-deltaker."
-        val getDeltakerLambda: suspend (AmtDeltakerClient) -> DeltakerMedStatusResponse =
+        val getDeltakerLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client -> client.getDeltaker(deltakerInTest.id) }
 
         @ParameterizedTest
@@ -54,10 +54,10 @@ class AmtDeltakerClientTest {
         }
 
         @Test
-        fun `skal returnere DeltakerMedStatusResponse`() {
+        fun `skal returnere DeltakerResponse`() {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
-                expectedResponse = DeltakerMedStatusResponse(deltakerInTest.id, TestData.lagDeltakerStatus()),
+                expectedResponse = TestData.lagDeltakerResponse(deltakerInTest.id),
                 block = getDeltakerLambda,
             )
         }
@@ -69,11 +69,12 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = BakgrunnsinformasjonRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        bakgrunnsinformasjon = "~bakgrunnsinformasjon~",
-                    ),
+                    requestBody =
+                        BakgrunnsinformasjonRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            bakgrunnsinformasjon = "~bakgrunnsinformasjon~",
+                        ),
                 )
             }
 
@@ -107,11 +108,12 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = InnholdRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        deltakelsesinnhold = innhold,
-                    ),
+                    requestBody =
+                        InnholdRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            deltakelsesinnhold = innhold,
+                        ),
                 )
             }
 
@@ -144,15 +146,16 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = DeltakelsesmengdeRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        deltakelsesprosent = null,
-                        dagerPerUke = null,
-                        gyldigFra = null,
-                        begrunnelse = null,
-                        forslagId = null,
-                    ),
+                    requestBody =
+                        DeltakelsesmengdeRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            deltakelsesprosent = null,
+                            dagerPerUke = null,
+                            gyldigFra = null,
+                            begrunnelse = null,
+                            forslagId = null,
+                        ),
                 )
             }
 
@@ -185,14 +188,15 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = StartdatoRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        startdato = null,
-                        sluttdato = null,
-                        begrunnelse = null,
-                        forslagId = null,
-                    ),
+                    requestBody =
+                        StartdatoRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            startdato = null,
+                            sluttdato = null,
+                            begrunnelse = null,
+                            forslagId = null,
+                        ),
                 )
             }
 
@@ -225,13 +229,14 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = SluttdatoRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        sluttdato = LocalDate.now(),
-                        begrunnelse = null,
-                        forslagId = null,
-                    ),
+                    requestBody =
+                        SluttdatoRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            sluttdato = LocalDate.now(),
+                            begrunnelse = null,
+                            forslagId = null,
+                        ),
                 )
             }
 
@@ -264,16 +269,18 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = SluttarsakRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        aarsak = DeltakerEndring.Aarsak(
-                            DeltakerEndring.Aarsak.Type.ANNET,
-                            "~beskrivelse~",
+                    requestBody =
+                        SluttarsakRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            aarsak =
+                                DeltakerEndring.Aarsak(
+                                    DeltakerEndring.Aarsak.Type.ANNET,
+                                    "~beskrivelse~",
+                                ),
+                            begrunnelse = null,
+                            forslagId = null,
                         ),
-                        begrunnelse = null,
-                        forslagId = null,
-                    ),
                 )
             }
 
@@ -306,13 +313,14 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = ForlengDeltakelseRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        sluttdato = LocalDate.now(),
-                        begrunnelse = null,
-                        forslagId = null,
-                    ),
+                    requestBody =
+                        ForlengDeltakelseRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            sluttdato = LocalDate.now(),
+                            begrunnelse = null,
+                            forslagId = null,
+                        ),
                 )
             }
 
@@ -345,16 +353,18 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = IkkeAktuellRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        aarsak = DeltakerEndring.Aarsak(
-                            DeltakerEndring.Aarsak.Type.ANNET,
-                            "~beskrivelse~",
+                    requestBody =
+                        IkkeAktuellRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            aarsak =
+                                DeltakerEndring.Aarsak(
+                                    DeltakerEndring.Aarsak.Type.ANNET,
+                                    "~beskrivelse~",
+                                ),
+                            begrunnelse = null,
+                            forslagId = null,
                         ),
-                        begrunnelse = null,
-                        forslagId = null,
-                    ),
                 )
             }
 
@@ -387,11 +397,12 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = ReaktiverDeltakelseRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        begrunnelse = "~begrunnelse~",
-                    ),
+                    requestBody =
+                        ReaktiverDeltakelseRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            begrunnelse = "~begrunnelse~",
+                        ),
                 )
             }
 
@@ -424,18 +435,20 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = AvsluttDeltakelseRequest(
-                        endretAv = "~endretAv~",
-                        endretAvEnhet = "~endretAvEnhet~",
-                        sluttdato = LocalDate.now(),
-                        aarsak = DeltakerEndring.Aarsak(
-                            DeltakerEndring.Aarsak.Type.ANNET,
-                            "~beskrivelse~",
+                    requestBody =
+                        AvsluttDeltakelseRequest(
+                            endretAv = "~endretAv~",
+                            endretAvEnhet = "~endretAvEnhet~",
+                            sluttdato = LocalDate.now(),
+                            aarsak =
+                                DeltakerEndring.Aarsak(
+                                    DeltakerEndring.Aarsak.Type.ANNET,
+                                    "~beskrivelse~",
+                                ),
+                            begrunnelse = null,
+                            forslagId = null,
+                            harFullfort = null,
                         ),
-                        begrunnelse = null,
-                        forslagId = null,
-                        harFullfort = null,
-                    ),
                 )
             }
 
@@ -472,10 +485,11 @@ class AmtDeltakerClientTest {
                         endretAv = "~endretAv~",
                         endretAvEnhet = "~endretAvEnhet~",
                         sluttdato = LocalDate.now(),
-                        aarsak = DeltakerEndring.Aarsak(
-                            DeltakerEndring.Aarsak.Type.ANNET,
-                            "~beskrivelse~",
-                        ),
+                        aarsak =
+                            DeltakerEndring.Aarsak(
+                                DeltakerEndring.Aarsak.Type.ANNET,
+                                "~beskrivelse~",
+                            ),
                         begrunnelse = null,
                         forslagId = null,
                     ),
@@ -587,11 +601,12 @@ class AmtDeltakerClientTest {
             expectedErrorMessage: String,
             block: suspend (AmtDeltakerClient) -> Any,
         ) {
-            val thrown = Assertions.assertThrows(exceptionType.java) {
-                runBlocking {
-                    block(createDeltakerClient(expectedUrl, statusCode))
+            val thrown =
+                Assertions.assertThrows(exceptionType.java) {
+                    runBlocking {
+                        block(createDeltakerClient(expectedUrl, statusCode))
+                    }
                 }
-            }
             thrown.message shouldStartWith expectedErrorMessage
         }
 
@@ -600,11 +615,12 @@ class AmtDeltakerClientTest {
             expectedResponse: T,
             block: suspend (AmtDeltakerClient) -> T,
         ) = runBlocking {
-            val deltakerClient = createDeltakerClient(
-                expectedUrl = expectedUrl,
-                statusCode = HttpStatusCode.OK,
-                responseBody = expectedResponse,
-            )
+            val deltakerClient =
+                createDeltakerClient(
+                    expectedUrl = expectedUrl,
+                    statusCode = HttpStatusCode.OK,
+                    responseBody = expectedResponse,
+                )
 
             if (expectedResponse == null) {
                 shouldNotThrowAny { block(deltakerClient) }

@@ -37,7 +37,10 @@ class NavBrukerConsumerTest {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(
+        fun lagNavBrukerDto(
+            navBruker: NavBruker,
+            navEnhet: NavEnhet,
+        ) = NavBrukerDto(
             personId = navBruker.personId,
             personident = navBruker.personident,
             fornavn = navBruker.fornavn,
@@ -64,109 +67,119 @@ class NavBrukerConsumerTest {
     }
 
     @Test
-    fun `consumeNavBruker - ny navBruker - upserter`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
-        val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
-        )
+    fun `consumeNavBruker - ny navBruker - upserter`() =
+        runTest {
+            val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+            val navBrukerConsumer =
+                NavBrukerConsumer(
+                    navBrukerRepository,
+                    NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
+                    deltakerService,
+                )
 
-        navBrukerConsumer.consume(
-            navBruker.personId,
-            objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
-        )
-
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
-        coVerify { deltakerService.produserDeltakereForPerson(navBruker.personident) }
-    }
-
-    @Test
-    fun `consumeNavBruker - oppdatert navBruker - ulik personident - upserter - publiserer v1 og v2`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
-        navBrukerRepository.upsert(navBruker)
-
-        val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker", personident = TestData.randomIdent())
-
-        val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
-        )
-
-        navBrukerConsumer.consume(
-            navBruker.personId,
-            objectMapper.writeValueAsString(lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
-        )
-
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
-        coVerify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, true) }
-    }
-
-    @Test
-    fun `consumeNavBruker - oppdatert navBruker - lik personident - upserter - publiserer kun v2`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
-        navBrukerRepository.upsert(navBruker)
-
-        val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
-
-        val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
-        )
-
-        navBrukerConsumer.consume(
-            navBruker.personId,
-            objectMapper.writeValueAsString(lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
-        )
-
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
-
-        verify {
-            deltakerService.produserDeltakereForPerson(
-                personident = oppdatertNavBruker.personident,
-                publiserTilDeltakerV1 = false,
-                publiserTilDeltakerEksternV1 = false,
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
             )
+
+            navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
+            coVerify { deltakerService.produserDeltakereForPerson(navBruker.personident) }
         }
-    }
 
     @Test
-    fun `consumeNavBruker - ny navBruker, enhet mangler - henter enhet og lagrer`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
-        val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
-        )
+    fun `consumeNavBruker - oppdatert navBruker - ulik personident - upserter - publiserer v1 og v2`() =
+        runTest {
+            val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+            navBrukerRepository.upsert(navBruker)
 
-        navBrukerConsumer.consume(
-            navBruker.personId,
-            objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
-        )
+            val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker", personident = TestData.randomIdent())
 
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
-        coVerify { deltakerService.produserDeltakereForPerson(navBruker.personident) }
-    }
+            val navBrukerConsumer =
+                NavBrukerConsumer(
+                    navBrukerRepository,
+                    NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
+                    deltakerService,
+                )
+
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
+            )
+
+            navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+            coVerify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, true) }
+        }
 
     @Test
-    fun `consumeNavBruker - oppdatert navBruker, ingen endringer - republiserer ikke deltakere`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
-        navBrukerRepository.upsert(navBruker)
+    fun `consumeNavBruker - oppdatert navBruker - lik personident - upserter - publiserer kun v2`() =
+        runTest {
+            val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+            navBrukerRepository.upsert(navBruker)
 
-        val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
-        )
+            val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
 
-        navBrukerConsumer.consume(
-            navBruker.personId,
-            objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
-        )
+            val navBrukerConsumer =
+                NavBrukerConsumer(
+                    navBrukerRepository,
+                    NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
+                    deltakerService,
+                )
 
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
-        coVerify(exactly = 0) { deltakerService.produserDeltakereForPerson(navBruker.personident) }
-    }
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
+            )
+
+            navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+
+            verify {
+                deltakerService.produserDeltakereForPerson(
+                    personident = oppdatertNavBruker.personident,
+                    publiserTilDeltakerV1 = false,
+                    publiserTilDeltakerEksternV1 = false,
+                )
+            }
+        }
+
+    @Test
+    fun `consumeNavBruker - ny navBruker, enhet mangler - henter enhet og lagrer`() =
+        runTest {
+            val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+            val navBrukerConsumer =
+                NavBrukerConsumer(
+                    navBrukerRepository,
+                    NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
+                    deltakerService,
+                )
+
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
+            )
+
+            navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
+            coVerify { deltakerService.produserDeltakereForPerson(navBruker.personident) }
+        }
+
+    @Test
+    fun `consumeNavBruker - oppdatert navBruker, ingen endringer - republiserer ikke deltakere`() =
+        runTest {
+            val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+            navBrukerRepository.upsert(navBruker)
+
+            val navBrukerConsumer =
+                NavBrukerConsumer(
+                    navBrukerRepository,
+                    NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
+                    deltakerService,
+                )
+
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
+            )
+
+            navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
+            coVerify(exactly = 0) { deltakerService.produserDeltakereForPerson(navBruker.personident) }
+        }
 }

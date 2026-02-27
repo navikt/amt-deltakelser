@@ -18,7 +18,6 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.toByteArray
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerClient
-import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerResponse
 import no.nav.amt.distribusjon.application.plugins.applicationConfig
 import no.nav.amt.distribusjon.application.plugins.objectMapper
 import no.nav.amt.distribusjon.auth.AzureAdTokenClient
@@ -41,6 +40,7 @@ import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.veilarboppfolging.ManuellStatusRequest
 import no.nav.amt.distribusjon.veilarboppfolging.ManuellV2Response
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import java.util.UUID
 
 fun <T> createMockHttpClient(
@@ -86,36 +86,45 @@ fun <T> createMockHttpClient(
 }
 
 fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
-    val mockEngine = MockEngine {
-        val body = when (it.body) {
-            is TextContent -> {
-                (it.body as TextContent).text
-            }
+    val mockEngine =
+        MockEngine {
+            val body =
+                when (it.body) {
+                    is TextContent -> {
+                        (it.body as TextContent).text
+                    }
 
-            is ByteArrayContent -> {
-                (it.body as ByteArrayContent).toByteArray().decodeToString()
-            }
+                    is ByteArrayContent -> {
+                        (it.body as ByteArrayContent).toByteArray().decodeToString()
+                    }
 
-            else -> {
-                null
-            }
-        }
+                    else -> {
+                        null
+                    }
+                }
 
-        val request = MockResponseHandler.Request(it.url.toString(), it.method, body)
+            val request = MockResponseHandler.Request(it.url.toString(), it.method, body)
 
-        val response = MockResponseHandler.responses.getOrPut(request) {
-            MockResponseHandler.Response(
-                if (defaultResponse is String) defaultResponse else objectMapper.writeValueAsString(defaultResponse),
-                HttpStatusCode.OK,
+            val response =
+                MockResponseHandler.responses.getOrPut(request) {
+                    MockResponseHandler.Response(
+                        if (defaultResponse is String) {
+                            defaultResponse
+                        } else {
+                            objectMapper.writeValueAsString(
+                                defaultResponse,
+                            )
+                        },
+                        HttpStatusCode.OK,
+                    )
+                }
+
+            respond(
+                content = ByteReadChannel(response.content),
+                status = response.status,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
             )
         }
-
-        respond(
-            content = ByteReadChannel(response.content),
-            status = response.status,
-            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-        )
-    }
 
     return HttpClient(mockEngine) {
         install(ContentNegotiation) {
@@ -124,56 +133,77 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     }
 }
 
-fun mockAzureAdClient(environment: Environment) = AzureAdTokenClient(
-    httpClient = mockHttpClient(
-        """
-        {
-            "token_type":"Bearer",
-            "access_token":"XYZ",
-            "expires_in": 3599
-        }
-        """.trimIndent(),
-    ),
-    environment,
-)
+fun mockAzureAdClient(environment: Environment) =
+    AzureAdTokenClient(
+        httpClient =
+            mockHttpClient(
+                """
+                {
+                    "token_type":"Bearer",
+                    "access_token":"XYZ",
+                    "expires_in": 3599
+                }
+                """.trimIndent(),
+            ),
+        environment,
+    )
 
-fun mockPdfgenClient(environment: Environment) = PdfgenClient(
-    mockHttpClient("%PDF-".toByteArray()),
-    environment,
-)
+fun mockPdfgenClient(environment: Environment) =
+    PdfgenClient(
+        mockHttpClient("%PDF-".toByteArray()),
+        environment,
+    )
 
-fun mockAmtPersonClient(azureAdTokenClient: AzureAdTokenClient, environment: Environment) = AmtPersonClient(
+fun mockAmtPersonClient(
+    azureAdTokenClient: AzureAdTokenClient,
+    environment: Environment,
+) = AmtPersonClient(
     mockHttpClient(Persondata.lagNavBruker()),
     azureAdTokenClient,
     environment,
 )
 
-fun mockVeilarboppfolgingClient(azureAdTokenClient: AzureAdTokenClient, environment: Environment) = VeilarboppfolgingClient(
+fun mockVeilarboppfolgingClient(
+    azureAdTokenClient: AzureAdTokenClient,
+    environment: Environment,
+) = VeilarboppfolgingClient(
     mockHttpClient(Journalforingdata.lagSak()),
     azureAdTokenClient,
     environment,
 )
 
-fun mockDokarkivClient(azureAdTokenClient: AzureAdTokenClient, environment: Environment) = DokarkivClient(
+fun mockDokarkivClient(
+    azureAdTokenClient: AzureAdTokenClient,
+    environment: Environment,
+) = DokarkivClient(
     mockHttpClient(OpprettJournalpostResponse((100_000..999_999).random().toString())),
     azureAdTokenClient,
     environment,
 )
 
-fun mockDokdistkanalClient(azureAdTokenClient: AzureAdTokenClient, environment: Environment) = DokdistkanalClient(
+fun mockDokdistkanalClient(
+    azureAdTokenClient: AzureAdTokenClient,
+    environment: Environment,
+) = DokdistkanalClient(
     mockHttpClient(BestemDistribusjonskanalResponse(Distribusjonskanal.DITT_NAV)),
     azureAdTokenClient,
     environment,
 )
 
-fun mockDokdistfordelingClient(azureAdTokenClient: AzureAdTokenClient, environment: Environment) = DokdistfordelingClient(
+fun mockDokdistfordelingClient(
+    azureAdTokenClient: AzureAdTokenClient,
+    environment: Environment,
+) = DokdistfordelingClient(
     mockHttpClient(DistribuerJournalpostResponse(UUID.randomUUID())),
     azureAdTokenClient,
     environment,
 )
 
-fun mockAmtDeltakerClient(azureAdTokenClient: AzureAdTokenClient, environment: Environment) = AmtDeltakerClient(
-    mockHttpClient(DeltakerData.lagDeltaker()),
+fun mockAmtDeltakerClient(
+    azureAdTokenClient: AzureAdTokenClient,
+    environment: Environment,
+) = AmtDeltakerClient(
+    mockHttpClient(DeltakerData.lagDeltakerResponse()),
     azureAdTokenClient,
     environment,
 )
@@ -197,46 +227,63 @@ object MockResponseHandler {
         responseBody: Any = "",
         responseCode: HttpStatusCode = HttpStatusCode.OK,
     ) {
-        responses[request] = Response(
-            responseBody as? String ?: objectMapper.writeValueAsString(responseBody),
-            responseCode,
-        )
+        responses[request] =
+            Response(
+                responseBody as? String ?: objectMapper.writeValueAsString(responseBody),
+                responseCode,
+            )
     }
 
-    fun addDeltakerResponse(deltaker: AmtDeltakerResponse) = addResponse(
-        Request(
-            url = "${testEnvironment.amtDeltakerUrl}/deltaker/${deltaker.id}",
-            method = HttpMethod.Get,
-            body = null,
-        ),
-        deltaker,
-    )
+    fun addDeltakerResponse(deltaker: DeltakerResponse) =
+        addResponse(
+            Request(
+                url = "${testEnvironment.amtDeltakerUrl}/deltaker/${deltaker.id}",
+                method = HttpMethod.Get,
+                body = null,
+            ),
+            deltaker,
+        )
 
-    fun addDistribusjonskanalResponse(personident: String, distribusjonskanal: Distribusjonskanal) = post(
+    fun addDistribusjonskanalResponse(
+        personident: String,
+        distribusjonskanal: Distribusjonskanal,
+    ) = post(
         "${testEnvironment.dokdistkanalUrl}/rest/bestemDistribusjonskanal",
         BestemDistribusjonskanalRequest(personident),
         BestemDistribusjonskanalResponse(distribusjonskanal),
     )
 
-    fun addDistribusjonskanalErrorResponse(personident: String, status: HttpStatusCode) = post(
+    fun addDistribusjonskanalErrorResponse(
+        personident: String,
+        status: HttpStatusCode,
+    ) = post(
         url = "${testEnvironment.dokdistkanalUrl}/rest/bestemDistribusjonskanal",
         requestBody = BestemDistribusjonskanalRequest(personident),
         responseCode = status,
     )
 
-    fun addNavBrukerResponse(personident: String, navBruker: NavBruker) = post(
+    fun addNavBrukerResponse(
+        personident: String,
+        navBruker: NavBruker,
+    ) = post(
         "${testEnvironment.amtPersonUrl}/api/nav-bruker",
         NavBrukerRequest(personident),
         navBruker,
     )
 
-    fun addManuellOppfolgingResponse(personident: String, manuellOppfolging: Boolean) = post(
+    fun addManuellOppfolgingResponse(
+        personident: String,
+        manuellOppfolging: Boolean,
+    ) = post(
         "${testEnvironment.veilarboppfolgingUrl}/veilarboppfolging/api/v3/hent-manuell",
         ManuellStatusRequest(personident),
         ManuellV2Response(manuellOppfolging),
     )
 
-    fun addManuellOppfolgingErrorResponse(personident: String, status: HttpStatusCode) = post(
+    fun addManuellOppfolgingErrorResponse(
+        personident: String,
+        status: HttpStatusCode,
+    ) = post(
         url = "${testEnvironment.veilarboppfolgingUrl}/veilarboppfolging/api/v3/hent-manuell",
         requestBody = ManuellStatusRequest(personident),
         responseCode = status,

@@ -16,26 +16,31 @@ class DeltakerTest {
     @Test
     fun `getDeltakerHistorikkSortert - ett vedtak flere endringer - returner liste riktig sortert`() {
         val baseDeltaker = TestData.lagDeltaker(historikk = false)
-        val vedtak = TestData.lagVedtak(
-            deltakerId = baseDeltaker.id,
-            fattet = LocalDateTime.now().minusMonths(1),
-            sistEndret = LocalDateTime.now().minusMonths(1),
-        )
-        val gammelEndring = TestData.lagDeltakerEndring(
-            deltakerId = baseDeltaker.id,
-            endret = LocalDateTime.now().minusDays(20),
-        )
-        val forslag = TestData.lagForslag(
-            deltakerId = baseDeltaker.id,
-            status = Forslag.Status.Tilbakekalt(
-                tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
-                tilbakekalt = LocalDateTime.now().minusDays(18),
-            ),
-        )
-        val nyEndring = TestData.lagDeltakerEndring(
-            deltakerId = baseDeltaker.id,
-            endret = LocalDateTime.now().minusDays(1),
-        )
+        val vedtak =
+            TestData.lagVedtak(
+                deltakerId = baseDeltaker.id,
+                fattet = LocalDateTime.now().minusMonths(1),
+                sistEndret = LocalDateTime.now().minusMonths(1),
+            )
+        val gammelEndring =
+            TestData.lagDeltakerEndring(
+                deltakerId = baseDeltaker.id,
+                endret = LocalDateTime.now().minusDays(20),
+            )
+        val forslag =
+            TestData.lagForslag(
+                deltakerId = baseDeltaker.id,
+                status =
+                    Forslag.Status.Tilbakekalt(
+                        tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
+                        tilbakekalt = LocalDateTime.now().minusDays(18),
+                    ),
+            )
+        val nyEndring =
+            TestData.lagDeltakerEndring(
+                deltakerId = baseDeltaker.id,
+                endret = LocalDateTime.now().minusDays(1),
+            )
         val deltaker = TestData.leggTilHistorikk(baseDeltaker, listOf(vedtak), listOf(gammelEndring, nyEndring), listOf(forslag))
 
         val historikk = deltaker.getDeltakerHistorikkForVisning()
@@ -56,17 +61,19 @@ class DeltakerTest {
     @Test
     fun `fattetVedtak - flere vedtak - henter vedtaket som er gyldig og fattet`() {
         val deltaker = TestData.lagDeltaker(historikk = false)
-        val fattet = TestData.lagVedtak(
-            deltakerId = deltaker.id,
-            fattet = LocalDateTime.now().minusMonths(2),
-            deltakerVedVedtak = deltaker,
-            gyldigTil = LocalDateTime.now().minusMonths(1),
-        )
-        val fattet2 = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            fattet = LocalDateTime.now().minusMonths(1),
-            gyldigTil = null,
-        )
+        val fattet =
+            TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                fattet = LocalDateTime.now().minusMonths(2),
+                deltakerVedVedtak = deltaker,
+                gyldigTil = LocalDateTime.now().minusMonths(1),
+            )
+        val fattet2 =
+            TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = LocalDateTime.now().minusMonths(1),
+                gyldigTil = null,
+            )
 
         val deltakerMedVedtak = TestData.leggTilHistorikk(deltaker, listOf(fattet, fattet2))
 
@@ -83,10 +90,11 @@ class DeltakerTest {
     @Test
     fun `getIkkeFattetVedtak - deltaker har ikke fattet vedtak - returnerer vedtak`() {
         val deltaker = TestData.lagDeltaker(historikk = false)
-        val vedtak = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            fattet = null,
-        )
+        val vedtak =
+            TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = null,
+            )
         val deltakerMedVedtak = TestData.leggTilHistorikk(deltaker, listOf(vedtak))
         sammenlignVedtak(deltakerMedVedtak.ikkeFattetVedtak!!, vedtak)
     }
@@ -94,16 +102,20 @@ class DeltakerTest {
     @Test
     fun `getIkkeFattetVedtak - deltaker har kun fattet vedtak - returnerer null`() {
         val deltaker = TestData.lagDeltaker(historikk = false)
-        val fattet = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            fattet = LocalDateTime.now().minusMonths(2),
-        )
+        val fattet =
+            TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = LocalDateTime.now().minusMonths(2),
+            )
         val deltakerMedVedtak = TestData.leggTilHistorikk(deltaker, listOf(fattet))
         deltakerMedVedtak.ikkeFattetVedtak shouldBe null
     }
 }
 
-fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
+fun sammenlignHistorikk(
+    a: DeltakerHistorikk,
+    b: DeltakerHistorikk,
+) {
     when (a) {
         is DeltakerHistorikk.Endring -> {
             b as DeltakerHistorikk.Endring

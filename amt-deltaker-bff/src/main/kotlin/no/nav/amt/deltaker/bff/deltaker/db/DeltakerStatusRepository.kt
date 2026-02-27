@@ -11,7 +11,10 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 object DeltakerStatusRepository {
-    fun insertIfNotExists(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun insertIfNotExists(
+        deltakerId: UUID,
+        deltakerStatus: DeltakerStatus,
+    ) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -31,7 +34,10 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun slettTidligereStatuser(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun slettTidligereStatuser(
+        deltakerId: UUID,
+        deltakerStatus: DeltakerStatus,
+    ) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -43,22 +49,24 @@ object DeltakerStatusRepository {
     }
 
     fun batchSlettTidligereStatuser(deltakere: List<Deltakeroppdatering>) {
-        val slettTidligereStatuserParams = deltakere
-            .map { buildSlettTidligereStatuserParams(it.status, it.id) }
+        val slettTidligereStatuserParams =
+            deltakere
+                .map { buildSlettTidligereStatuserParams(it.status, it.id) }
 
         Database.query { session ->
             session.batchPreparedNamedStatement(slettTidligereStatuserSql, slettTidligereStatuserParams)
         }
     }
 
-    fun getAktivDeltakerStatus(deltakerId: UUID): DeltakerStatus? = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM deltaker_status WHERE deltaker_id = :deltaker_id",
-                mapOf("deltaker_id" to deltakerId),
-            ).map(::rowMapper).asSingle,
-        )
-    }
+    fun getAktivDeltakerStatus(deltakerId: UUID): DeltakerStatus? =
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM deltaker_status WHERE deltaker_id = :deltaker_id",
+                    mapOf("deltaker_id" to deltakerId),
+                ).map(::rowMapper).asSingle,
+            )
+        }
 
     fun slettStatus(deltakerId: UUID) {
         Database.query { session ->
@@ -71,14 +79,15 @@ object DeltakerStatusRepository {
         }
     }
 
-    private fun rowMapper(row: Row) = DeltakerStatus(
-        id = row.uuid("id"),
-        type = DeltakerStatus.Type.valueOf(row.string("type")),
-        aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
-        gyldigFra = row.localDateTime("gyldig_fra"),
-        gyldigTil = null,
-        opprettet = row.localDateTime("created_at"),
-    )
+    private fun rowMapper(row: Row) =
+        DeltakerStatus(
+            id = row.uuid("id"),
+            type = DeltakerStatus.Type.valueOf(row.string("type")),
+            aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+            gyldigFra = row.localDateTime("gyldig_fra"),
+            gyldigTil = null,
+            opprettet = row.localDateTime("created_at"),
+        )
 
     private val insertStatusSql =
         """
@@ -101,7 +110,10 @@ object DeltakerStatusRepository {
         ON CONFLICT (id) DO NOTHING
         """.trimIndent()
 
-    private fun buildInsertStatusParams(status: DeltakerStatus, deltakerId: UUID) = mapOf(
+    private fun buildInsertStatusParams(
+        status: DeltakerStatus,
+        deltakerId: UUID,
+    ) = mapOf(
         "id" to status.id,
         "deltaker_id" to deltakerId,
         "type" to status.type.name,
@@ -118,6 +130,8 @@ object DeltakerStatusRepository {
             AND id != :id 
         """.trimIndent()
 
-    private fun buildSlettTidligereStatuserParams(status: DeltakerStatus, deltakerId: UUID) =
-        mapOf("id" to status.id, "deltaker_id" to deltakerId)
+    private fun buildSlettTidligereStatuserParams(
+        status: DeltakerStatus,
+        deltakerId: UUID,
+    ) = mapOf("id" to status.id, "deltaker_id" to deltakerId)
 }

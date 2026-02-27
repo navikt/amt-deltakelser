@@ -8,12 +8,13 @@ import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
-fun produceStringString(record: ProducerRecord<String, String>): RecordMetadata = KafkaProducer<String, String>(
-    Properties().apply {
-        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, SingletonKafkaProvider.getHost())
-        put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
-        put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
-    },
-).use { producer ->
-    producer.send(record).get()
-}
+fun produceStringString(record: ProducerRecord<String, String>): RecordMetadata =
+    KafkaProducer<String, String>(
+        Properties().apply {
+            put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, SingletonKafkaProvider.getHost())
+            put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
+            put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
+        },
+    ).use { producer ->
+        producer.send(record).get()
+    }

@@ -65,50 +65,61 @@ class HentDeltakelserApiTest : RouteTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val innsoktDato = LocalDate.now().minusDays(4)
-        val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
-                arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
-                tiltakstype = lagTiltakstype(
-                    tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                    navn = "Arbeidsforberedende trening",
+        val deltaker =
+            lagDeltaker(
+                deltakerliste =
+                    lagDeltakerliste(
+                        arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
+                        tiltakstype =
+                            lagTiltakstype(
+                                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                                navn = "Arbeidsforberedende trening",
+                            ),
+                    ),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+        val historikk =
+            listOf(
+                DeltakerHistorikk.Vedtak(
+                    lagVedtak(opprettet = innsoktDato.atStartOfDay()),
                 ),
-            ),
-            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-        )
-        val historikk = listOf(
-            DeltakerHistorikk.Vedtak(
-                lagVedtak(opprettet = innsoktDato.atStartOfDay()),
-            ),
-        )
+            )
+
+        every { arrangorService.getArrangorNavn(any()) } returns deltaker.deltakerliste.arrangor.navn
 
         every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltaker)
         every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        val forventetRespons = DeltakelserResponse(
-            aktive = listOf(
-                DeltakerKort(
-                    deltakerId = deltaker.id,
-                    deltakerlisteId = deltaker.deltakerliste.id,
-                    tittel = "Arbeidsforberedende trening hos Arrangør AS",
-                    tiltakstype = DeltakelserResponse.Tiltakstype(
-                        navn = deltaker.deltakerliste.tiltakstype.navn,
-                        tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+        val forventetRespons =
+            DeltakelserResponse(
+                aktive =
+                    listOf(
+                        DeltakerKort(
+                            deltakerId = deltaker.id,
+                            deltakerlisteId = deltaker.deltakerliste.id,
+                            tittel = "Arbeidsforberedende trening hos ${deltaker.deltakerliste.arrangor.navn}",
+                            tiltakstype =
+                                DeltakelserResponse.Tiltakstype(
+                                    navn = deltaker.deltakerliste.tiltakstype.navn,
+                                    tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                                ),
+                            status =
+                                DeltakerKort.Status(
+                                    type = DeltakerStatus.Type.DELTAR,
+                                    visningstekst = "Deltar",
+                                    aarsak = null,
+                                ),
+                            innsoktDato = innsoktDato,
+                            sistEndretDato = null,
+                            periode =
+                                Periode(
+                                    startdato = deltaker.startdato,
+                                    sluttdato = deltaker.sluttdato,
+                                ),
+                        ),
                     ),
-                    status = DeltakerKort.Status(
-                        type = DeltakerStatus.Type.DELTAR,
-                        visningstekst = "Deltar",
-                        aarsak = null,
-                    ),
-                    innsoktDato = innsoktDato,
-                    sistEndretDato = null,
-                    periode = Periode(
-                        startdato = deltaker.startdato,
-                        sluttdato = deltaker.sluttdato,
-                    ),
-                ),
-            ),
-            historikk = emptyList(),
-        )
+                historikk = emptyList(),
+            )
 
         withTestApplicationContext { client ->
             client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {
@@ -121,88 +132,105 @@ class HentDeltakelserApiTest : RouteTestBase() {
     @Test
     fun `post deltakelser - har tilgang, kladd og avsluttet deltakelse - returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-
         val innsoktDato = LocalDate.now().minusDays(4)
-        val deltakerKladd = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
-                arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
-                tiltakstype = lagTiltakstype(
-                    tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                    navn = "Arbeidsforberedende trening",
+        val deltakerKladd =
+            lagDeltaker(
+                deltakerliste =
+                    lagDeltakerliste(
+                        arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
+                        tiltakstype =
+                            lagTiltakstype(
+                                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                                navn = "Arbeidsforberedende trening",
+                            ),
+                    ),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+        every { arrangorService.getArrangorNavn(any()) } returns deltakerKladd.deltakerliste.arrangor.navn
+
+        val avsluttetDeltaker =
+            lagDeltaker(
+                deltakerliste =
+                    lagDeltakerliste(
+                        arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
+                        tiltakstype =
+                            lagTiltakstype(
+                                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                                navn = "Arbeidsforberedende trening",
+                            ),
+                    ),
+                startdato = LocalDate.now().minusMonths(3),
+                sluttdato = LocalDate.now().minusDays(2),
+                status =
+                    lagDeltakerStatus(
+                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                        aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                    ),
+            )
+        val deltakerhistorikk =
+            listOf(
+                DeltakerHistorikk.Vedtak(
+                    lagVedtak(
+                        opprettet = innsoktDato.atStartOfDay(),
+                    ),
                 ),
-            ),
-            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-        )
-        val avsluttetDeltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
-                arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
-                tiltakstype = lagTiltakstype(
-                    tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                    navn = "Arbeidsforberedende trening",
-                ),
-            ),
-            startdato = LocalDate.now().minusMonths(3),
-            sluttdato = LocalDate.now().minusDays(2),
-            status = lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
-            ),
-        )
-        val deltakerhistorikk = listOf(
-            DeltakerHistorikk.Vedtak(
-                lagVedtak(
-                    opprettet = innsoktDato.atStartOfDay(),
-                ),
-            ),
-        )
+            )
 
         every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltakerKladd, avsluttetDeltaker)
         every { deltakerHistorikkService.getForDeltaker(deltakerKladd.id) } returns emptyList()
         every { deltakerHistorikkService.getForDeltaker(avsluttetDeltaker.id) } returns deltakerhistorikk
 
-        val forventetRespons = DeltakelserResponse(
-            aktive = listOf(
-                DeltakerKort(
-                    deltakerId = deltakerKladd.id,
-                    deltakerlisteId = deltakerKladd.deltakerliste.id,
-                    tittel = "Arbeidsforberedende trening hos Arrangør AS",
-                    tiltakstype = DeltakelserResponse.Tiltakstype(
-                        navn = deltakerKladd.deltakerliste.tiltakstype.navn,
-                        tiltakskode = deltakerKladd.deltakerliste.tiltakstype.tiltakskode,
+        val forventetRespons =
+            DeltakelserResponse(
+                aktive =
+                    listOf(
+                        DeltakerKort(
+                            deltakerId = deltakerKladd.id,
+                            deltakerlisteId = deltakerKladd.deltakerliste.id,
+                            tittel = "Arbeidsforberedende trening hos ${deltakerKladd.deltakerliste.arrangor.navn}",
+                            tiltakstype =
+                                DeltakelserResponse.Tiltakstype(
+                                    navn = deltakerKladd.deltakerliste.tiltakstype.navn,
+                                    tiltakskode = deltakerKladd.deltakerliste.tiltakstype.tiltakskode,
+                                ),
+                            status =
+                                DeltakerKort.Status(
+                                    type = DeltakerStatus.Type.KLADD,
+                                    visningstekst = "Kladden er ikke delt",
+                                    aarsak = null,
+                                ),
+                            innsoktDato = null,
+                            sistEndretDato = deltakerKladd.sistEndret.toLocalDate(),
+                            periode = null,
+                        ),
                     ),
-                    status = DeltakerKort.Status(
-                        type = DeltakerStatus.Type.KLADD,
-                        visningstekst = "Kladden er ikke delt",
-                        aarsak = null,
+                historikk =
+                    listOf(
+                        DeltakerKort(
+                            deltakerId = avsluttetDeltaker.id,
+                            deltakerlisteId = avsluttetDeltaker.deltakerliste.id,
+                            tittel = "Arbeidsforberedende trening hos ${deltakerKladd.deltakerliste.arrangor.navn}",
+                            tiltakstype =
+                                DeltakelserResponse.Tiltakstype(
+                                    navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
+                                    tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.tiltakskode,
+                                ),
+                            status =
+                                DeltakerKort.Status(
+                                    type = DeltakerStatus.Type.HAR_SLUTTET,
+                                    visningstekst = "Har sluttet",
+                                    aarsak = "Fått jobb",
+                                ),
+                            innsoktDato = innsoktDato,
+                            sistEndretDato = null,
+                            periode =
+                                Periode(
+                                    startdato = avsluttetDeltaker.startdato,
+                                    sluttdato = avsluttetDeltaker.sluttdato,
+                                ),
+                        ),
                     ),
-                    innsoktDato = null,
-                    sistEndretDato = deltakerKladd.sistEndret.toLocalDate(),
-                    periode = null,
-                ),
-            ),
-            historikk = listOf(
-                DeltakerKort(
-                    deltakerId = avsluttetDeltaker.id,
-                    deltakerlisteId = avsluttetDeltaker.deltakerliste.id,
-                    tittel = "Arbeidsforberedende trening hos Arrangør og Sønn AS",
-                    tiltakstype = DeltakelserResponse.Tiltakstype(
-                        navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
-                        tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.tiltakskode,
-                    ),
-                    status = DeltakerKort.Status(
-                        type = DeltakerStatus.Type.HAR_SLUTTET,
-                        visningstekst = "Har sluttet",
-                        aarsak = "Fått jobb",
-                    ),
-                    innsoktDato = innsoktDato,
-                    sistEndretDato = null,
-                    periode = Periode(
-                        startdato = avsluttetDeltaker.startdato,
-                        sluttdato = avsluttetDeltaker.sluttdato,
-                    ),
-                ),
-            ),
-        )
+            )
 
         withTestApplicationContext { client ->
             client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {
@@ -217,10 +245,11 @@ class HentDeltakelserApiTest : RouteTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         every { deltakerRepository.getFlereForPerson(any()) } returns emptyList()
 
-        val forventetRespons = DeltakelserResponse(
-            aktive = emptyList(),
-            historikk = emptyList(),
-        )
+        val forventetRespons =
+            DeltakelserResponse(
+                aktive = emptyList(),
+                historikk = emptyList(),
+            )
 
         withTestApplicationContext { client ->
             client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {

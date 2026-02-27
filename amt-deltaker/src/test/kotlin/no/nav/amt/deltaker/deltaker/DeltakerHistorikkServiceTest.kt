@@ -43,16 +43,17 @@ class DeltakerHistorikkServiceTest {
     private val endringFraArrangorRepository = EndringFraArrangorRepository()
     private val vurderingRepository = VurderingRepository()
 
-    private val deltakerHistorikkService = DeltakerHistorikkService(
-        deltakerEndringRepository,
-        VedtakRepository(),
-        forslagRepository,
-        endringFraArrangorRepository,
-        ImportertFraArenaRepository(),
-        InnsokPaaFellesOppstartRepository(),
-        EndringFraTiltakskoordinatorRepository(),
-        vurderingRepository,
-    )
+    private val deltakerHistorikkService =
+        DeltakerHistorikkService(
+            deltakerEndringRepository,
+            VedtakRepository(),
+            forslagRepository,
+            endringFraArrangorRepository,
+            ImportertFraArenaRepository(),
+            InnsokPaaFellesOppstartRepository(),
+            EndringFraTiltakskoordinatorRepository(),
+            vurderingRepository,
+        )
 
     companion object {
         @RegisterExtension
@@ -69,41 +70,48 @@ class DeltakerHistorikkServiceTest {
         navAnsattRepository.upsert(navAnsatt)
 
         val deltaker = lagDeltaker()
-        val vedtak = lagVedtak(
-            deltakerId = deltaker.id,
-            fattet = LocalDateTime.now().minusMonths(1),
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-            sistEndret = LocalDateTime.now().minusMonths(1),
-        )
-        val gammelEndring = lagDeltakerEndring(
-            deltakerId = deltaker.id,
-            endretAv = navAnsatt.id,
-            endretAvEnhet = navEnhet.id,
-            endret = LocalDateTime.now().minusDays(20),
-        )
-        val endringFraArrangor = lagEndringFraArrangor(
-            deltakerId = deltaker.id,
-            opprettet = LocalDateTime.now().minusDays(18),
-        )
-        val forslag = lagForslag(
-            deltakerId = deltaker.id,
-            status = Forslag.Status.Tilbakekalt(
-                tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
-                tilbakekalt = LocalDateTime.now().minusDays(15),
-            ),
-        )
+        val vedtak =
+            lagVedtak(
+                deltakerId = deltaker.id,
+                fattet = LocalDateTime.now().minusMonths(1),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndret = LocalDateTime.now().minusMonths(1),
+            )
+        val gammelEndring =
+            lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = navAnsatt.id,
+                endretAvEnhet = navEnhet.id,
+                endret = LocalDateTime.now().minusDays(20),
+            )
+        val endringFraArrangor =
+            lagEndringFraArrangor(
+                deltakerId = deltaker.id,
+                opprettet = LocalDateTime.now().minusDays(18),
+            )
+        val forslag =
+            lagForslag(
+                deltakerId = deltaker.id,
+                status =
+                    Forslag.Status.Tilbakekalt(
+                        tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
+                        tilbakekalt = LocalDateTime.now().minusDays(15),
+                    ),
+            )
         val forslagVenter = lagForslag(deltakerId = deltaker.id)
-        val nyEndring = lagDeltakerEndring(
-            deltakerId = deltaker.id,
-            endretAv = navAnsatt.id,
-            endretAvEnhet = navEnhet.id,
-            endret = LocalDateTime.now().minusDays(13),
-        )
-        val nyVurdering = lagVurdering(
-            deltakerId = deltaker.id,
-            gyldigFra = LocalDateTime.now().minusDays(10),
-        )
+        val nyEndring =
+            lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = navAnsatt.id,
+                endretAvEnhet = navEnhet.id,
+                endret = LocalDateTime.now().minusDays(13),
+            )
+        val nyVurdering =
+            lagVurdering(
+                deltakerId = deltaker.id,
+                gyldigFra = LocalDateTime.now().minusDays(10),
+            )
 
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
@@ -142,19 +150,20 @@ class DeltakerHistorikkServiceTest {
 
     @Test
     fun `getInnsoktDato - to vedtak - returnerer tidligste opprettetdato`() {
-        val deltakerhistorikk = listOf(
-            DeltakerHistorikk.Endring(lagDeltakerEndring()),
-            DeltakerHistorikk.Vedtak(
-                lagVedtak(
-                    opprettet = LocalDateTime.now().minusMonths(1),
+        val deltakerhistorikk =
+            listOf(
+                DeltakerHistorikk.Endring(lagDeltakerEndring()),
+                DeltakerHistorikk.Vedtak(
+                    lagVedtak(
+                        opprettet = LocalDateTime.now().minusMonths(1),
+                    ),
                 ),
-            ),
-            DeltakerHistorikk.Vedtak(
-                lagVedtak(
-                    opprettet = LocalDateTime.now().minusDays(4),
+                DeltakerHistorikk.Vedtak(
+                    lagVedtak(
+                        opprettet = LocalDateTime.now().minusDays(4),
+                    ),
                 ),
-            ),
-        )
+            )
 
         deltakerhistorikk.getInnsoktDato() shouldBeCloseTo LocalDateTime.now().minusMonths(1)
     }
@@ -162,16 +171,18 @@ class DeltakerHistorikkServiceTest {
     @Test
     fun `getInnsoktDato - importert arenadeltaker - returnerer riktig dato`() {
         val innsoktDato = LocalDate.now().minusMonths(1)
-        val deltakerhistorikk = listOf(
-            DeltakerHistorikk.Endring(lagDeltakerEndring()),
-            DeltakerHistorikk.ImportertFraArena(
-                importertFraArena = ImportertFraArena(
-                    deltakerId = UUID.randomUUID(),
-                    importertDato = LocalDateTime.now(),
-                    deltakerVedImport = lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato),
+        val deltakerhistorikk =
+            listOf(
+                DeltakerHistorikk.Endring(lagDeltakerEndring()),
+                DeltakerHistorikk.ImportertFraArena(
+                    importertFraArena =
+                        ImportertFraArena(
+                            deltakerId = UUID.randomUUID(),
+                            importertDato = LocalDateTime.now(),
+                            deltakerVedImport = lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato),
+                        ),
                 ),
-            ),
-        )
+            )
 
         deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
     }
@@ -179,21 +190,22 @@ class DeltakerHistorikkServiceTest {
     @Test
     fun `getInnsoktDato - har innsok - returnerer riktig dato`() {
         val innsoktDato = LocalDate.now().minusMonths(1)
-        val deltakerhistorikk = listOf(
-            DeltakerHistorikk.Endring(lagDeltakerEndring()),
-            DeltakerHistorikk.InnsokPaaFellesOppstart(
-                InnsokPaaFellesOppstart(
-                    id = UUID.randomUUID(),
-                    deltakerId = UUID.randomUUID(),
-                    innsokt = innsoktDato.atStartOfDay(),
-                    innsoktAv = UUID.randomUUID(),
-                    innsoktAvEnhet = UUID.randomUUID(),
-                    deltakelsesinnholdVedInnsok = null,
-                    utkastDelt = null,
-                    utkastGodkjentAvNav = true,
+        val deltakerhistorikk =
+            listOf(
+                DeltakerHistorikk.Endring(lagDeltakerEndring()),
+                DeltakerHistorikk.InnsokPaaFellesOppstart(
+                    InnsokPaaFellesOppstart(
+                        id = UUID.randomUUID(),
+                        deltakerId = UUID.randomUUID(),
+                        innsokt = innsoktDato.atStartOfDay(),
+                        innsoktAv = UUID.randomUUID(),
+                        innsoktAvEnhet = UUID.randomUUID(),
+                        deltakelsesinnholdVedInnsok = null,
+                        utkastDelt = null,
+                        utkastGodkjentAvNav = true,
+                    ),
                 ),
-            ),
-        )
+            )
 
         deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
     }

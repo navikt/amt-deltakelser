@@ -7,7 +7,10 @@ import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.OpprettKl
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.UtkastResponse
 
 object DtoMappers {
-    fun utkastResponseFromDeltaker(deltaker: Deltaker, historikk: List<DeltakerHistorikk>) = with(deltaker) {
+    fun utkastResponseFromDeltaker(
+        deltaker: Deltaker,
+        historikk: List<DeltakerHistorikk>,
+    ) = with(deltaker) {
         UtkastResponse(
             id = id,
             startdato = startdato,
@@ -21,22 +24,26 @@ object DtoMappers {
         )
     }
 
-    fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) = with(deltaker) {
-        OpprettKladdResponse(
-            id = id,
-            navBruker = navBruker,
-            deltakerlisteId = deltakerliste.id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = deltakelsesinnhold!!,
-            status = status,
-        )
-    }
+    fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) =
+        with(deltaker) {
+            OpprettKladdResponse(
+                id = id,
+                navBruker = navBruker,
+                deltakerlisteId = deltakerliste.id,
+                startdato = startdato,
+                sluttdato = sluttdato,
+                dagerPerUke = dagerPerUke,
+                deltakelsesprosent = deltakelsesprosent,
+                bakgrunnsinformasjon = bakgrunnsinformasjon,
+                deltakelsesinnhold = deltakelsesinnhold!!,
+                status = status,
+            )
+        }
 
-    fun deltakerEndringResponseFromDeltaker(deltaker: Deltaker, historikk: List<DeltakerHistorikk>) = with(deltaker) {
+    fun deltakerEndringResponseFromDeltaker(
+        deltaker: Deltaker,
+        historikk: List<DeltakerHistorikk>,
+    ) = with(deltaker) {
         DeltakerEndringResponse(
             id = id,
             startdato = startdato,

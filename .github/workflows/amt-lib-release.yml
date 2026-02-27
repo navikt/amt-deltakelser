@@ -1,8 +1,10 @@
 name: amt-lib - Create release
 on:
+  workflow_dispatch: # This workflow can be triggered manually
   push:
     paths:
       - "amt-lib/**"
+      - "buildSrc/src/main/kotlin/amt-lib.conventions.gradle.kts"
     branches:
       - main
 

@@ -20,10 +20,11 @@ class NavAnsattConsumerTest {
     private val navAnsattRepository = NavAnsattRepository()
     private val amtPersonServiceClient = mockk<AmtPersonServiceClient>()
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonServiceClient)
-    private val navAnsattConsumer = NavAnsattConsumer(
-        navAnsattRepository,
-        NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService),
-    )
+    private val navAnsattConsumer =
+        NavAnsattConsumer(
+            navAnsattRepository,
+            NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService),
+        )
 
     private val navEnhet = TestData.lagNavEnhet()
     private val navAnsatt = TestData.lagNavAnsatt(navEnhetId = navEnhet.id)
@@ -42,28 +43,31 @@ class NavAnsattConsumerTest {
     }
 
     @Test
-    fun `consumeNavAnsatt - ny navansatt - upserter`() = runTest {
-        val navAnsatt = TestData.lagNavAnsatt()
-        coEvery { amtPersonServiceClient.hentNavEnhet(navAnsatt.navEnhetId!!) } returns TestData.lagNavEnhet(navAnsatt.navEnhetId!!)
+    fun `consumeNavAnsatt - ny navansatt - upserter`() =
+        runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            coEvery { amtPersonServiceClient.hentNavEnhet(navAnsatt.navEnhetId!!) } returns TestData.lagNavEnhet(navAnsatt.navEnhetId!!)
 
-        navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(navAnsatt.toDto()))
+            navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(navAnsatt.toDto()))
 
-        navAnsattRepository.get(navAnsatt.id) shouldBe navAnsatt
-    }
-
-    @Test
-    fun `consumeNavAnsatt - oppdatert navansatt - upserter`() = runTest {
-        val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
-
-        navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(oppdatertNavAnsatt.toDto()))
-
-        navAnsattRepository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
-    }
+            navAnsattRepository.get(navAnsatt.id) shouldBe navAnsatt
+        }
 
     @Test
-    fun `consumeNavAnsatt - tombstonet navansatt - sletter`() = runTest {
-        navAnsattConsumer.consume(navAnsatt.id, null)
+    fun `consumeNavAnsatt - oppdatert navansatt - upserter`() =
+        runTest {
+            val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
 
-        navAnsattRepository.get(navAnsatt.id) shouldBe null
-    }
+            navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(oppdatertNavAnsatt.toDto()))
+
+            navAnsattRepository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
+        }
+
+    @Test
+    fun `consumeNavAnsatt - tombstonet navansatt - sletter`() =
+        runTest {
+            navAnsattConsumer.consume(navAnsatt.id, null)
+
+            navAnsattRepository.get(navAnsatt.id) shouldBe null
+        }
 }

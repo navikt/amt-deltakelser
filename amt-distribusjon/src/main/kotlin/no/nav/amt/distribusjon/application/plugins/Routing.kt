@@ -19,7 +19,10 @@ import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-fun Application.configureRouting(digitalBrukerService: DigitalBrukerService, tiltakshendelseService: TiltakshendelseService) {
+fun Application.configureRouting(
+    digitalBrukerService: DigitalBrukerService,
+    tiltakshendelseService: TiltakshendelseService,
+) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.BadRequest, call, cause)
@@ -70,9 +73,10 @@ object StatusPageLogger {
         call: ApplicationCall,
         cause: Throwable,
     ) {
-        val msg = "${statusCode.value} ${statusCode.description}: " +
-            "${call.request.httpMethod.value} ${call.request.path()}\n" +
-            "Error: ${cause.message}"
+        val msg =
+            "${statusCode.value} ${statusCode.description}: " +
+                "${call.request.httpMethod.value} ${call.request.path()}\n" +
+                "Error: ${cause.message}"
 
         when (statusCode.value) {
             in 100..399 -> log.info(msg)

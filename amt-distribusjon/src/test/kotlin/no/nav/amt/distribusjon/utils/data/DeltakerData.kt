@@ -1,9 +1,14 @@
 package no.nav.amt.distribusjon.utils.data
 
-import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerResponse
-import no.nav.amt.distribusjon.amtdeltaker.Deltakerliste
-import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
+import no.nav.amt.distribusjon.utils.data.Persondata.lagNavBrukerResponse
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.ArrangorResponse
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.GjennomforingResponse
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
@@ -11,54 +16,57 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 object DeltakerData {
-    fun lagDeltaker() = AmtDeltakerResponse(
-        id = UUID.randomUUID(),
-        navBruker = Persondata.lagNavBruker().toNavBruker(),
-        deltakerliste = lagDeltakerListe(),
-        startdato = null,
-        sluttdato = null,
-        dagerPerUke = null,
-        deltakelsesprosent = null,
-        bakgrunnsinformasjon = null,
-        deltakelsesinnhold = null,
-        status = "",
-        vedtaksinformasjon = null,
-        sistEndret = LocalDateTime.now(),
-    )
+    fun lagDeltakerResponse() =
+        DeltakerResponse(
+            id = UUID.randomUUID(),
+            navBruker = lagNavBrukerResponse(),
+            gjennomforing = lagGjennomforingResponse(),
+            status =
+                DeltakerStatus(
+                    id = UUID.randomUUID(),
+                    type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                    aarsak = null,
+                    gyldigFra = LocalDateTime.now(),
+                    gyldigTil = null,
+                    opprettet = LocalDateTime.now(),
+                ),
+            startdato = null,
+            sluttdato = null,
+            dagerPerUke = null,
+            deltakelsesprosent = null,
+            bakgrunnsinformasjon = null,
+            deltakelsesinnhold = null,
+            vedtaksinformasjon = null,
+            erManueltDeltMedArrangor = false,
+            kilde = Kilde.KOMET,
+            sistEndret = LocalDateTime.now(),
+            opprettet = LocalDateTime.now(),
+            historikk = emptyList(),
+            erLaastForEndringer = true,
+            endringsforslagFraArrangor = emptyList(),
+        )
 
-    fun lagDeltakerListe() = Deltakerliste(
-        id = UUID.randomUUID(),
-        tiltakstype = lagTiltakstype(),
-        navn = "deltakerliste navn",
-        status = Deltakerliste.Status.GJENNOMFORES,
-        startDato = LocalDate.now(),
-        sluttDato = null,
-        oppstart = null,
-        arrangor = "arrangor",
-    )
+    fun lagGjennomforingResponse() =
+        GjennomforingResponse(
+            id = UUID.randomUUID(),
+            tiltakstype = lagTiltakstype(),
+            navn = "deltakerliste navn",
+            status = GjennomforingStatusType.GJENNOMFORES,
+            startDato = LocalDate.now(),
+            sluttDato = null,
+            oppstart = null,
+            arrangor = ArrangorResponse(navn = "arrangor", organisasjonsnummer = "123456789"),
+            apentForPamelding = true,
+            oppmoteSted = "Vet olle",
+            pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
 
-    fun lagTiltakstype() = Tiltakstype(
-        id = UUID.randomUUID(),
-        navn = "Tiltaksnavn",
-        tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-        innsatsgrupper = setOf(Innsatsgruppe.SITUASJONSBESTEMT_INNSATS),
-        innhold = null,
-    )
+    fun lagTiltakstype() =
+        Tiltakstype(
+            id = UUID.randomUUID(),
+            navn = "Tiltaksnavn",
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            innsatsgrupper = setOf(Innsatsgruppe.SITUASJONSBESTEMT_INNSATS),
+            innhold = null,
+        )
 }
-
-fun NavBruker.toNavBruker() = no.nav.amt.distribusjon.amtdeltaker.NavBruker(
-    personId = UUID.randomUUID(),
-    personident = "1234567888",
-    fornavn = fornavn,
-    mellomnavn = mellomnavn,
-    etternavn = etternavn,
-    navVeilederId = UUID.randomUUID(),
-    navEnhetId = UUID.randomUUID(),
-    telefon = null,
-    epost = null,
-    erSkjermet = false,
-    adresse = null,
-    adressebeskyttelse = null,
-    oppfolgingsperioder = oppfolgingsperioder,
-    innsatsgruppe = null,
-)

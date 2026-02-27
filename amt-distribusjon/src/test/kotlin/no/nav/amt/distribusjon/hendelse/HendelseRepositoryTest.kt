@@ -25,9 +25,10 @@ class HendelseRepositoryTest {
 
     @Test
     fun `inseert - inserter hendelse i database`() {
-        val hendelse = Hendelsesdata.hendelse(
-            payload = HendelseTypeData.forlengDeltakelse(),
-        )
+        val hendelse =
+            Hendelsesdata.hendelse(
+                payload = HendelseTypeData.forlengDeltakelse(),
+            )
 
         hendelseRepository.insert(hendelse)
 
@@ -39,11 +40,12 @@ class HendelseRepositoryTest {
     @Nested
     inner class GetIkkeJournalforteHendelserTests {
         @Test
-        fun `getIkkeJournalforteHendelser - hendelse er ikke journalfort - returnerer hendelse`() {
-            val hendelse = Hendelsesdata.hendelse(
-                payload = HendelseTypeData.forlengDeltakelse(),
-                opprettet = LocalDateTime.now().minusHours(1),
-            )
+        fun `hentIkkeJournalforteHendelser - hendelse er ikke journalfort - returnerer hendelse`() {
+            val hendelse =
+                Hendelsesdata.hendelse(
+                    payload = HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                )
 
             TestRepository.insertHendelse(hendelse)
 
@@ -57,15 +59,46 @@ class HendelseRepositoryTest {
                 ),
             )
 
-            val ikkeJournalforteHendelser = hendelseRepository.getIkkeJournalforteHendelser(LocalDateTime.now())
+            val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             ikkeJournalforteHendelser.size shouldBe 1
             ikkeJournalforteHendelser.first().hendelse.id shouldBe hendelse.id
         }
 
         @Test
-        fun `getIkkeJournalforteHendelser - hendelse kan ikke journalfores - returnerer tom liste`() {
-            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now().minusHours(1))
+        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er ikke distribuert - returnerer hendelse`() {
+            val hendelse =
+                Hendelsesdata.hendelse(
+                    payload = HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                    distribusjonskanal = Distribusjonskanal.PRINT,
+                )
+
+            TestRepository.insertHendelse(hendelse)
+
+            journalforingstatusRepository.upsert(
+                Journalforingstatus(
+                    hendelseId = hendelse.id,
+                    journalpostId = "test",
+                    bestillingsId = null,
+                    kanIkkeDistribueres = null,
+                    kanIkkeJournalfores = null,
+                ),
+            )
+
+            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
+
+            ikkeDistribuerteHendelser.size shouldBe 1
+            ikkeDistribuerteHendelser.first().hendelse.id shouldBe hendelse.id
+        }
+
+        @Test
+        fun `hentIkkeJournalforteHendelser - hendelse kan ikke journalfores - returnerer tom liste`() {
+            val hendelse =
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                )
             TestRepository.insertHendelse(hendelse)
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -77,33 +110,18 @@ class HendelseRepositoryTest {
                 ),
             )
 
-            val ikkeJournalforteHendelser = hendelseRepository.getIkkeJournalforteHendelser(LocalDateTime.now())
+            val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             ikkeJournalforteHendelser.size shouldBe 0
         }
 
         @Test
-        fun `getIkkeJournalforteHendelser - hendelse er ikke journalfort, tidspunkt ikke passert - returnerer tom liste`() {
-            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now())
-            TestRepository.insertHendelse(hendelse)
-            journalforingstatusRepository.upsert(
-                Journalforingstatus(
-                    hendelseId = hendelse.id,
-                    journalpostId = null,
-                    bestillingsId = null,
-                    kanIkkeDistribueres = null,
-                    kanIkkeJournalfores = null,
-                ),
-            )
-
-            val ikkeJournalforteHendelser = hendelseRepository.getIkkeJournalforteHendelser(LocalDateTime.now().minusHours(1))
-
-            ikkeJournalforteHendelser.size shouldBe 0
-        }
-
-        @Test
-        fun `getIkkeJournalforteHendelser - hendelse er journalfort og skal ikke sendes brev - returnerer tom liste`() {
-            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now().minusHours(1))
+        fun `hentIkkeJournalforteHendelser - hendelse er journalfort og skal ikke sendes brev - returnerer tom liste`() {
+            val hendelse =
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                )
             TestRepository.insertHendelse(hendelse)
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -115,18 +133,19 @@ class HendelseRepositoryTest {
                 ),
             )
 
-            val ikkeJournalforteHendelser = hendelseRepository.getIkkeJournalforteHendelser(LocalDateTime.now())
+            val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             ikkeJournalforteHendelser.size shouldBe 0
         }
 
         @Test
-        fun `getIkkeJournalforteHendelser - hendelse er journalfort, kan ikke distribueres - returnerer tom liste`() {
-            val hendelse = Hendelsesdata.hendelse(
-                HendelseTypeData.forlengDeltakelse(),
-                opprettet = LocalDateTime.now().minusHours(1),
-                distribusjonskanal = Distribusjonskanal.PRINT,
-            )
+        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort, kan ikke distribueres - returnerer tom liste`() {
+            val hendelse =
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                    distribusjonskanal = Distribusjonskanal.PRINT,
+                )
             TestRepository.insertHendelse(hendelse)
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -138,18 +157,19 @@ class HendelseRepositoryTest {
                 ),
             )
 
-            val ikkeJournalforteHendelser = hendelseRepository.getIkkeJournalforteHendelser(LocalDateTime.now())
+            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 
-            ikkeJournalforteHendelser.size shouldBe 0
+            ikkeDistribuerteHendelser.size shouldBe 0
         }
 
         @Test
-        fun `getIkkeJournalforteHendelser - hendelse er journalfort, brev skal sendes, er ikke sendt - returnerer hendelse`() {
-            val hendelse = Hendelsesdata.hendelse(
-                HendelseTypeData.forlengDeltakelse(),
-                opprettet = LocalDateTime.now().minusHours(1),
-                distribusjonskanal = Distribusjonskanal.PRINT,
-            )
+        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort, brev skal sendes, er ikke sendt - returnerer hendelse`() {
+            val hendelse =
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                    distribusjonskanal = Distribusjonskanal.PRINT,
+                )
             TestRepository.insertHendelse(hendelse)
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -161,15 +181,19 @@ class HendelseRepositoryTest {
                 ),
             )
 
-            val ikkeJournalforteHendelser = hendelseRepository.getIkkeJournalforteHendelser(LocalDateTime.now())
+            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 
-            ikkeJournalforteHendelser.size shouldBe 1
-            ikkeJournalforteHendelser.first().hendelse.id shouldBe hendelse.id
+            ikkeDistribuerteHendelser.size shouldBe 1
+            ikkeDistribuerteHendelser.first().hendelse.id shouldBe hendelse.id
         }
 
         @Test
-        fun `getIkkeJournalforteHendelser - hendelse er journalfort og brev er sendt - returnerer tom liste`() {
-            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now().minusHours(1))
+        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort og brev er sendt - returnerer tom liste`() {
+            val hendelse =
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                )
             TestRepository.insertHendelse(hendelse)
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -181,17 +205,21 @@ class HendelseRepositoryTest {
                 ),
             )
 
-            val ikkeJournalforteHendelser = hendelseRepository.getIkkeJournalforteHendelser(LocalDateTime.now())
+            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 
-            ikkeJournalforteHendelser.size shouldBe 0
+            ikkeDistribuerteHendelser.size shouldBe 0
         }
 
         @Test
-        fun `getIkkeJournalforteHendelser - journalforingstatus finnes ikke - returnerer tom liste`() {
-            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now().minusHours(1))
+        fun `hentIkkeJournalforteHendelser - journalforingstatus finnes ikke - returnerer tom liste`() {
+            val hendelse =
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                )
             TestRepository.insertHendelse(hendelse)
 
-            val ikkeJournalforteHendelser = hendelseRepository.getIkkeJournalforteHendelser(LocalDateTime.now())
+            val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             ikkeJournalforteHendelser.size shouldBe 0
         }

@@ -37,11 +37,12 @@ private fun DeltakerEndring.Endring.EndreAvslutning.skalFortsattDelta(): Boolean
 private fun DeltakerEndring.Endring.EndreAvslutning.getEndreAvslutningStatus(deltaker: Deltaker): DeltakerStatus {
     val nyDeltakerStatusType = deltaker.getAvsluttendeStatus(harFullfort == true)
 
-    val gyldigFra = if (sluttdato != null && skalFortsattDelta() == true) {
-        sluttdato!!.atStartOfDay().plusDays(1)
-    } else {
-        LocalDateTime.now()
-    }
+    val gyldigFra =
+        if (sluttdato != null && skalFortsattDelta() == true) {
+            sluttdato!!.atStartOfDay().plusDays(1)
+        } else {
+            LocalDateTime.now()
+        }
 
     return nyDeltakerStatus(
         type = nyDeltakerStatusType,

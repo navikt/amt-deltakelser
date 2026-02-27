@@ -9,7 +9,7 @@ import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerMedStatusResponse
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import org.slf4j.LoggerFactory
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -27,11 +27,15 @@ class AmtDeltakerClient(
     ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun getDeltaker(deltakerId: UUID): DeltakerMedStatusResponse = performGet("deltaker/$deltakerId")
-        .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
-        .body()
+    suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse =
+        performGet("deltaker/$deltakerId")
+            .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
+            .body()
 
-    suspend fun sistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
+    suspend fun sistBesokt(
+        deltakerId: UUID,
+        sistBesokt: ZonedDateTime,
+    ) {
         val response = performPost("deltaker/$deltakerId/$SIST_BESOKT_URL_SEGMENT", sistBesokt)
 
         if (!response.status.isSuccess()) {
@@ -41,7 +45,10 @@ class AmtDeltakerClient(
         }
     }
 
-    suspend fun postEndreDeltaker(deltakerId: UUID, requestBody: EndringRequest): DeltakerEndringResponse =
+    suspend fun postEndreDeltaker(
+        deltakerId: UUID,
+        requestBody: EndringRequest,
+    ): DeltakerEndringResponse =
         performPost("deltaker/$deltakerId/$ENDRE_DELTAKER_URL_SEGMENT", requestBody)
             .failIfNotSuccess("Kunne ikke oppdatere deltaker $deltakerId med ${requestBody::class.java.simpleName} i amt-deltaker")
             .body()

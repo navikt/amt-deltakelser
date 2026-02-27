@@ -4,12 +4,14 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerStatusAar
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerStatusResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
-fun DeltakerStatus.toResponse() = DeltakerStatusResponse(
-    type = type,
-    aarsak = aarsak?.let {
-        DeltakerStatusAarsakResponse(
-            it.type,
-            it.beskrivelse,
-        )
-    },
-)
+fun DeltakerStatus.toResponse() =
+    DeltakerStatusResponse(
+        type = type,
+        aarsak =
+            aarsak?.let {
+                DeltakerStatusAarsakResponse(
+                    it.type,
+                    it.beskrivelse,
+                )
+            },
+    )

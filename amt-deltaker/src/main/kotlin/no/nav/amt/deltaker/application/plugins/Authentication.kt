@@ -19,9 +19,10 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 fun Application.configureAuthentication(environment: Environment) {
-    val jwkProvider = JwkProviderBuilder(URI(environment.jwkKeysUrl).toURL())
-        .cached(5, 12, TimeUnit.HOURS)
-        .build()
+    val jwkProvider =
+        JwkProviderBuilder(URI(environment.jwkKeysUrl).toURL())
+            .cached(5, 12, TimeUnit.HOURS)
+            .build()
 
     install(Authentication) {
         jwt("SYSTEM") {
@@ -71,8 +72,9 @@ private fun JWTAuthenticationProvider.Config.validerPreAuthorizedApps(
         }
 
         val azpClaim: String = credentials.payload.getClaim("azp").asString()
-        val preAuthorizedApp = environment.preAuthorizedApps
-            .firstOrNull { it.clientId == azpClaim }
+        val preAuthorizedApp =
+            environment.preAuthorizedApps
+                .firstOrNull { it.clientId == azpClaim }
 
         if (preAuthorizedApp == null) {
             return@validate reject("azp-claim $azpClaim matcher ingen applikasjoner i listen med preauthorized-apps")
@@ -92,8 +94,9 @@ fun erMaskinTilMaskin(credentials: JWTCredential): Boolean {
     return sub == oid
 }
 
-fun ApplicationCall.getNavAnsattAzureId(): UUID = this
-    .principal<JWTPrincipal>()
-    ?.get("oid")
-    ?.let { UUID.fromString(it) }
-    ?: throw AuthenticationException("NavAnsattAzureId mangler i JWTPrincipal")
+fun ApplicationCall.getNavAnsattAzureId(): UUID =
+    this
+        .principal<JWTPrincipal>()
+        ?.get("oid")
+        ?.let { UUID.fromString(it) }
+        ?: throw AuthenticationException("NavAnsattAzureId mangler i JWTPrincipal")

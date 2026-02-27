@@ -29,7 +29,10 @@ object DeltakerStatusRepository {
      * @param deltakerId ID-en til deltakeren statusen tilhører.
      * @return en ferdig parametrisert [Query] som kan kjøres mot databasen.
      */
-    fun lagreStatus(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun lagreStatus(
+        deltakerId: UUID,
+        deltakerStatus: DeltakerStatus,
+    ) {
         val sql =
             """
             INSERT INTO deltaker_status (
@@ -53,15 +56,16 @@ object DeltakerStatusRepository {
             ON CONFLICT (id) DO NOTHING
             """.trimIndent()
 
-        val params = mapOf(
-            "id" to deltakerStatus.id,
-            "deltaker_id" to deltakerId,
-            "type" to deltakerStatus.type.name,
-            "aarsak" to toPGObject(deltakerStatus.aarsak),
-            "gyldig_til" to deltakerStatus.gyldigTil,
-            "gyldig_fra" to nullWhenNearNow(deltakerStatus.gyldigFra),
-            "created_at" to nullWhenNearNow(deltakerStatus.opprettet),
-        )
+        val params =
+            mapOf(
+                "id" to deltakerStatus.id,
+                "deltaker_id" to deltakerId,
+                "type" to deltakerStatus.type.name,
+                "aarsak" to toPGObject(deltakerStatus.aarsak),
+                "gyldig_til" to deltakerStatus.gyldigTil,
+                "gyldig_fra" to nullWhenNearNow(deltakerStatus.gyldigFra),
+                "created_at" to nullWhenNearNow(deltakerStatus.opprettet),
+            )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
@@ -127,10 +131,14 @@ object DeltakerStatusRepository {
         }
     }
 
-    private val IKKE_AVSLUTTENDE_STATUSER_AS_DELIMITED_STRING = IKKE_AVSLUTTENDE_STATUSER
-        .joinToString { "'${it.name}'" }
+    private val IKKE_AVSLUTTENDE_STATUSER_AS_DELIMITED_STRING =
+        IKKE_AVSLUTTENDE_STATUSER
+            .joinToString { "'${it.name}'" }
 
-    fun slettTidligereFremtidigeStatuser(deltakerId: UUID, excludeStatusId: UUID) {
+    fun slettTidligereFremtidigeStatuser(
+        deltakerId: UUID,
+        excludeStatusId: UUID,
+    ) {
         val sql =
             """
             DELETE FROM deltaker_status
@@ -201,45 +209,49 @@ object DeltakerStatusRepository {
                 )
             """.trimIndent()
 
-        val query = queryOf(
-            sql,
-            *deltakerIder.toTypedArray(),
-        ).map {
-            DeltakerStatusMedDeltakerId(
-                deltakerId = it.uuid("deltaker_id"),
-                deltakerStatus = deltakerStatusRowMapper(it),
-            )
-        }.asList
+        val query =
+            queryOf(
+                sql,
+                *deltakerIder.toTypedArray(),
+            ).map {
+                DeltakerStatusMedDeltakerId(
+                    deltakerId = it.uuid("deltaker_id"),
+                    deltakerStatus = deltakerStatusRowMapper(it),
+                )
+            }.asList
 
         return Database.query { session -> session.run(query) }
     }
 
     // benyttes kun i tester
-    internal fun get(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM deltaker_status WHERE id = ?",
-                deltakerStatusId,
-            ).map(::deltakerStatusRowMapper).asSingle,
-        ) ?: throw NoSuchElementException("Fant ikke deltakerstatus med id $deltakerStatusId")
-    }
+    internal fun get(deltakerStatusId: UUID): DeltakerStatus =
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM deltaker_status WHERE id = ?",
+                    deltakerStatusId,
+                ).map(::deltakerStatusRowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Fant ikke deltakerstatus med id $deltakerStatusId")
+        }
 
     // benyttes kun i tester
-    internal fun getFremtidige(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM deltaker_status WHERE deltaker_id = ? AND gyldig_fra > CURRENT_TIMESTAMP",
-                deltakerId,
-            ).map(::deltakerStatusRowMapper).asList,
-        )
-    }
+    internal fun getFremtidige(deltakerId: UUID): List<DeltakerStatus> =
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM deltaker_status WHERE deltaker_id = ? AND gyldig_fra > CURRENT_TIMESTAMP",
+                    deltakerId,
+                ).map(::deltakerStatusRowMapper).asList,
+            )
+        }
 
-    private fun deltakerStatusRowMapper(row: Row) = DeltakerStatus(
-        id = row.uuid("id"),
-        type = row.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
-        aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
-        gyldigFra = row.localDateTime("gyldig_fra"),
-        gyldigTil = row.localDateTimeOrNull("gyldig_til"),
-        opprettet = row.localDateTime("created_at"),
-    )
+    private fun deltakerStatusRowMapper(row: Row) =
+        DeltakerStatus(
+            id = row.uuid("id"),
+            type = row.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
+            aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+            gyldigFra = row.localDateTime("gyldig_fra"),
+            gyldigTil = row.localDateTimeOrNull("gyldig_til"),
+            opprettet = row.localDateTime("created_at"),
+        )
 }

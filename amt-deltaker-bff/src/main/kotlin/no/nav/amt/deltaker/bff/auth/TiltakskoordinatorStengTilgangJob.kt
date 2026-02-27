@@ -21,24 +21,25 @@ class TiltakskoordinatorStengTilgangJob(
     private val log: Logger = LoggerFactory.getLogger(javaClass)
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    fun startJob(): Timer = fixedRateTimer(
-        name = this.javaClass.simpleName,
-        initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
-        period = Duration.of(1, ChronoUnit.DAYS).toMillis(),
-    ) {
-        scope.launch {
-            if (leaderElection.isLeader() && attributes.getOrNull(isReadyKey) == true) {
-                try {
-                    log.info("Kjører jobb for å stenge tilganger til avsluttede deltakerlister")
-                    val tilgangerSomskalStenges = tilgangskontrollService.getUtdaterteTiltakskoordinatorTilganger()
-                    tilgangerSomskalStenges.forEach {
-                        tilgangskontrollService.stengTiltakskoordinatorTilgang(it.id)
+    fun startJob(): Timer =
+        fixedRateTimer(
+            name = this.javaClass.simpleName,
+            initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
+            period = Duration.of(1, ChronoUnit.DAYS).toMillis(),
+        ) {
+            scope.launch {
+                if (leaderElection.isLeader() && attributes.getOrNull(isReadyKey) == true) {
+                    try {
+                        log.info("Kjører jobb for å stenge tilganger til avsluttede deltakerlister")
+                        val tilgangerSomskalStenges = tilgangskontrollService.getUtdaterteTiltakskoordinatorTilganger()
+                        tilgangerSomskalStenges.forEach {
+                            tilgangskontrollService.stengTiltakskoordinatorTilgang(it.id)
+                        }
+                        log.info("Ferdig med å stenge ${tilgangerSomskalStenges.size} tilganger")
+                    } catch (e: Exception) {
+                        log.error("Noe gikk galt ved stenging av utdaterte tilganger", e)
                     }
-                    log.info("Ferdig med å stenge ${tilgangerSomskalStenges.size} tilganger")
-                } catch (e: Exception) {
-                    log.error("Noe gikk galt ved stenging av utdaterte tilganger", e)
                 }
             }
         }
-    }
 }

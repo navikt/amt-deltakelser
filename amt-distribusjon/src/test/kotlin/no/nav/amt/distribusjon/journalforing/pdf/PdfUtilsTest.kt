@@ -27,14 +27,15 @@ class PdfUtilsTest {
     inner class ToInnholdPdfDtoTests {
         @Test
         fun `innhold med innholdskode == annet`() {
-            val innholdListeInTest = listOf(
-                Innhold(
-                    tekst = "tekst 1",
-                    innholdskode = "annet",
-                    valgt = true,
-                    beskrivelse = "~innholdsbeskrivelse~",
-                ),
-            )
+            val innholdListeInTest =
+                listOf(
+                    Innhold(
+                        tekst = "tekst 1",
+                        innholdskode = "annet",
+                        valgt = true,
+                        beskrivelse = "~innholdsbeskrivelse~",
+                    ),
+                )
 
             val innholdPdfDto = innholdListeInTest.toInnholdPdfDto("~ledetekst~")
 
@@ -47,14 +48,15 @@ class PdfUtilsTest {
 
         @Test
         fun `innhold med innholdskode != annet`() {
-            val innholdListeInTest = listOf(
-                Innhold(
-                    tekst = "tekst 1",
-                    innholdskode = "~innholdskode~",
-                    valgt = true,
-                    beskrivelse = "~innholdsbeskrivelse~",
-                ),
-            )
+            val innholdListeInTest =
+                listOf(
+                    Innhold(
+                        tekst = "tekst 1",
+                        innholdskode = "~innholdskode~",
+                        valgt = true,
+                        beskrivelse = "~innholdsbeskrivelse~",
+                    ),
+                )
 
             val innholdPdfDto = innholdListeInTest.toInnholdPdfDto("~ledetekst~")
 
@@ -95,28 +97,30 @@ class PdfUtilsTest {
             val deltaker = Hendelsesdata.lagDeltaker()
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
-            val hendelser: List<Hendelse> = listOf(
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.forlengDeltakelse(sluttdato = LocalDate.now().plusWeeks(3)),
-                    deltaker = deltaker,
-                    ansvarlig = ansvarligNavVeileder,
-                    opprettet = LocalDateTime.now().minusMinutes(20),
-                ),
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.forlengDeltakelse(sluttdato = LocalDate.now().plusWeeks(4)),
-                    deltaker = deltaker,
-                    ansvarlig = ansvarligNavVeileder,
-                    opprettet = LocalDateTime.now(),
-                ),
-            )
+            val hendelser: List<Hendelse> =
+                listOf(
+                    Hendelsesdata.hendelse(
+                        HendelseTypeData.forlengDeltakelse(sluttdato = LocalDate.now().plusWeeks(3)),
+                        deltaker = deltaker,
+                        ansvarlig = ansvarligNavVeileder,
+                        opprettet = LocalDateTime.now().minusMinutes(20),
+                    ),
+                    Hendelsesdata.hendelse(
+                        HendelseTypeData.forlengDeltakelse(sluttdato = LocalDate.now().plusWeeks(4)),
+                        deltaker = deltaker,
+                        ansvarlig = ansvarligNavVeileder,
+                        opprettet = LocalDateTime.now(),
+                    ),
+                )
 
-            val pdfDto = lagEndringsvedtakPdfDto(
-                deltaker = deltaker,
-                navBruker = navBruker,
-                ansvarlig = ansvarligNavVeileder,
-                hendelser = hendelser,
-                opprettetDato = LocalDate.now(),
-            )
+            val pdfDto =
+                lagEndringsvedtakPdfDto(
+                    deltaker = deltaker,
+                    navBruker = navBruker,
+                    ansvarlig = ansvarligNavVeileder,
+                    hendelser = hendelser,
+                    opprettetDato = LocalDate.now(),
+                )
 
             pdfDto.endringer.size shouldBe 1
             (pdfDto.endringer.first() as EndringDto.ForlengDeltakelse).tittel shouldBe "Deltakelsen er forlenget til ${
@@ -132,22 +136,24 @@ class PdfUtilsTest {
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
             val arsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT)
-            val hendelser: List<Hendelse> = listOf(
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.ikkeAktuell(arsak),
-                    deltaker = deltaker,
-                    ansvarlig = ansvarligNavVeileder,
-                    opprettet = LocalDateTime.now().minusMinutes(20),
-                ),
-            )
+            val hendelser: List<Hendelse> =
+                listOf(
+                    Hendelsesdata.hendelse(
+                        HendelseTypeData.ikkeAktuell(arsak),
+                        deltaker = deltaker,
+                        ansvarlig = ansvarligNavVeileder,
+                        opprettet = LocalDateTime.now().minusMinutes(20),
+                    ),
+                )
 
-            val pdfDto = lagEndringsvedtakPdfDto(
-                deltaker = deltaker,
-                navBruker = navBruker,
-                ansvarlig = ansvarligNavVeileder,
-                hendelser = hendelser,
-                opprettetDato = LocalDate.now(),
-            )
+            val pdfDto =
+                lagEndringsvedtakPdfDto(
+                    deltaker = deltaker,
+                    navBruker = navBruker,
+                    ansvarlig = ansvarligNavVeileder,
+                    hendelser = hendelser,
+                    opprettetDato = LocalDate.now(),
+                )
 
             pdfDto.endringer.size shouldBe 1
             (pdfDto.endringer.first() as EndringDto.IkkeAktuell).aarsak shouldBe arsak.visningsnavn()
@@ -158,30 +164,38 @@ class PdfUtilsTest {
             val deltaker = Hendelsesdata.lagDeltaker()
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
-            val innhold = listOf(
-                InnholdDto("tekst 1", "kode 1", null),
-                InnholdDto("tekst 2", "kode 2", null),
-                InnholdDto("annet tekst", "annet", "beskrivelse"),
-            )
-            val hendelser: List<Hendelse> = listOf(
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.endreInnhold(innhold),
-                    deltaker = deltaker,
-                    ansvarlig = ansvarligNavVeileder,
-                    opprettet = LocalDateTime.now().minusMinutes(20),
-                ),
-            )
+            val innhold =
+                listOf(
+                    InnholdDto("tekst 1", "kode 1", null),
+                    InnholdDto("tekst 2", "kode 2", null),
+                    InnholdDto("annet tekst", "annet", "beskrivelse"),
+                )
+            val hendelser: List<Hendelse> =
+                listOf(
+                    Hendelsesdata.hendelse(
+                        HendelseTypeData.endreInnhold(innhold),
+                        deltaker = deltaker,
+                        ansvarlig = ansvarligNavVeileder,
+                        opprettet = LocalDateTime.now().minusMinutes(20),
+                    ),
+                )
 
-            val pdfDto = lagEndringsvedtakPdfDto(
-                deltaker = deltaker,
-                navBruker = navBruker,
-                ansvarlig = ansvarligNavVeileder,
-                hendelser = hendelser,
-                opprettetDato = LocalDate.now(),
-            )
+            val pdfDto =
+                lagEndringsvedtakPdfDto(
+                    deltaker = deltaker,
+                    navBruker = navBruker,
+                    ansvarlig = ansvarligNavVeileder,
+                    hendelser = hendelser,
+                    opprettetDato = LocalDate.now(),
+                )
 
             pdfDto.endringer.size shouldBe 1
-            (pdfDto.endringer.first() as EndringDto.EndreInnhold).innhold shouldBe listOf("tekst 1", "tekst 2", "beskrivelse")
+            (pdfDto.endringer.first() as EndringDto.EndreInnhold).innhold shouldBe
+                listOf(
+                    "tekst 1",
+                    "tekst 2",
+                    "beskrivelse",
+                )
             (pdfDto.endringer.first() as EndringDto.EndreInnhold).innholdBeskrivelse shouldBe null
         }
 
@@ -189,31 +203,35 @@ class PdfUtilsTest {
         fun `lagEndringsvedtakPdfDto - EndreInnhold, VTA - inneholder innholdsbeskrivelse`() {
             val deltaker =
                 Hendelsesdata.lagDeltaker(
-                    deltakerliste = Hendelsesdata.lagDeltakerliste(
-                        tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET),
-                    ),
+                    deltakerliste =
+                        Hendelsesdata.lagDeltakerliste(
+                            tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET),
+                        ),
                 )
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
-            val innhold = listOf(
-                InnholdDto("annet tekst", "annet", "beskrivelse"),
-            )
-            val hendelser: List<Hendelse> = listOf(
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.endreInnhold(innhold),
-                    deltaker = deltaker,
-                    ansvarlig = ansvarligNavVeileder,
-                    opprettet = LocalDateTime.now().minusMinutes(20),
-                ),
-            )
+            val innhold =
+                listOf(
+                    InnholdDto("annet tekst", "annet", "beskrivelse"),
+                )
+            val hendelser: List<Hendelse> =
+                listOf(
+                    Hendelsesdata.hendelse(
+                        HendelseTypeData.endreInnhold(innhold),
+                        deltaker = deltaker,
+                        ansvarlig = ansvarligNavVeileder,
+                        opprettet = LocalDateTime.now().minusMinutes(20),
+                    ),
+                )
 
-            val pdfDto = lagEndringsvedtakPdfDto(
-                deltaker = deltaker,
-                navBruker = navBruker,
-                ansvarlig = ansvarligNavVeileder,
-                hendelser = hendelser,
-                opprettetDato = LocalDate.now(),
-            )
+            val pdfDto =
+                lagEndringsvedtakPdfDto(
+                    deltaker = deltaker,
+                    navBruker = navBruker,
+                    ansvarlig = ansvarligNavVeileder,
+                    hendelser = hendelser,
+                    opprettetDato = LocalDate.now(),
+                )
 
             pdfDto.endringer.size shouldBe 1
             (pdfDto.endringer.first() as EndringDto.EndreInnhold).innhold shouldBe listOf("beskrivelse")
@@ -222,31 +240,35 @@ class PdfUtilsTest {
 
         @Test
         fun `lagEndringsvedtakPdfDto - Avslutt deltakelse, opplæringstiltak, har fullført - tar med fullført og deltatt `() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
-                tiltak = Hendelsesdata.tiltak(
-                    tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                ),
-            )
+            val deltakerliste =
+                Hendelsesdata.lagDeltakerliste(
+                    oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                    tiltak =
+                        Hendelsesdata.tiltak(
+                            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                        ),
+                )
             val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
-            val hendelser: List<Hendelse> = listOf(
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.avsluttDeltakelse(harFullfort = true),
-                    deltaker = deltaker,
-                    ansvarlig = ansvarligNavVeileder,
-                    opprettet = LocalDateTime.now().minusMinutes(20),
-                ),
-            )
+            val hendelser: List<Hendelse> =
+                listOf(
+                    Hendelsesdata.hendelse(
+                        HendelseTypeData.avsluttDeltakelse(harFullfort = true),
+                        deltaker = deltaker,
+                        ansvarlig = ansvarligNavVeileder,
+                        opprettet = LocalDateTime.now().minusMinutes(20),
+                    ),
+                )
 
-            val pdfDto = lagEndringsvedtakPdfDto(
-                deltaker = deltaker,
-                navBruker = navBruker,
-                ansvarlig = ansvarligNavVeileder,
-                hendelser = hendelser,
-                opprettetDato = LocalDate.now(),
-            )
+            val pdfDto =
+                lagEndringsvedtakPdfDto(
+                    deltaker = deltaker,
+                    navBruker = navBruker,
+                    ansvarlig = ansvarligNavVeileder,
+                    hendelser = hendelser,
+                    opprettetDato = LocalDate.now(),
+                )
 
             pdfDto.endringer.size shouldBe 1
             val avsluttDeltakelseResult = (pdfDto.endringer.first() as EndringDto.AvsluttDeltakelse)
@@ -256,31 +278,35 @@ class PdfUtilsTest {
 
         @Test
         fun `lagEndringsvedtakPdfDto - Avslutt deltakelse, opplæringstiltak, har ikke fullført - tar med fullført og deltatt `() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
-                tiltak = Hendelsesdata.tiltak(
-                    tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                ),
-            )
+            val deltakerliste =
+                Hendelsesdata.lagDeltakerliste(
+                    oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                    tiltak =
+                        Hendelsesdata.tiltak(
+                            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                        ),
+                )
             val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
-            val hendelser: List<Hendelse> = listOf(
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.avsluttDeltakelse(harFullfort = false),
-                    deltaker = deltaker,
-                    ansvarlig = ansvarligNavVeileder,
-                    opprettet = LocalDateTime.now().minusMinutes(20),
-                ),
-            )
+            val hendelser: List<Hendelse> =
+                listOf(
+                    Hendelsesdata.hendelse(
+                        HendelseTypeData.avsluttDeltakelse(harFullfort = false),
+                        deltaker = deltaker,
+                        ansvarlig = ansvarligNavVeileder,
+                        opprettet = LocalDateTime.now().minusMinutes(20),
+                    ),
+                )
 
-            val pdfDto = lagEndringsvedtakPdfDto(
-                deltaker = deltaker,
-                navBruker = navBruker,
-                ansvarlig = ansvarligNavVeileder,
-                hendelser = hendelser,
-                opprettetDato = LocalDate.now(),
-            )
+            val pdfDto =
+                lagEndringsvedtakPdfDto(
+                    deltaker = deltaker,
+                    navBruker = navBruker,
+                    ansvarlig = ansvarligNavVeileder,
+                    hendelser = hendelser,
+                    opprettetDato = LocalDate.now(),
+                )
 
             pdfDto.endringer.size shouldBe 1
             val avsluttDeltakelseResult = (pdfDto.endringer.first() as EndringDto.AvsluttDeltakelse)
@@ -291,31 +317,35 @@ class PdfUtilsTest {
 
     @Test
     fun `lagEndringsvedtakPdfDto - Avslutt deltakelse, individuelle tiltak - tar ikke med om deltaker har fullført og deltatt `() {
-        val deltakerliste = Hendelsesdata.lagDeltakerliste(
-            oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
-            tiltak = Hendelsesdata.tiltak(
-                tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-            ),
-        )
+        val deltakerliste =
+            Hendelsesdata.lagDeltakerliste(
+                oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                tiltak =
+                    Hendelsesdata.tiltak(
+                        tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                    ),
+            )
         val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
         val navBruker = Persondata.lagNavBruker()
         val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
-        val hendelser: List<Hendelse> = listOf(
-            Hendelsesdata.hendelse(
-                HendelseTypeData.avsluttDeltakelse(harFullfort = true),
-                deltaker = deltaker,
-                ansvarlig = ansvarligNavVeileder,
-                opprettet = LocalDateTime.now().minusMinutes(20),
-            ),
-        )
+        val hendelser: List<Hendelse> =
+            listOf(
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.avsluttDeltakelse(harFullfort = true),
+                    deltaker = deltaker,
+                    ansvarlig = ansvarligNavVeileder,
+                    opprettet = LocalDateTime.now().minusMinutes(20),
+                ),
+            )
 
-        val pdfDto = lagEndringsvedtakPdfDto(
-            deltaker = deltaker,
-            navBruker = navBruker,
-            ansvarlig = ansvarligNavVeileder,
-            hendelser = hendelser,
-            opprettetDato = LocalDate.now(),
-        )
+        val pdfDto =
+            lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = hendelser,
+                opprettetDato = LocalDate.now(),
+            )
 
         pdfDto.endringer.size shouldBe 1
         val avsluttDeltakelseResult = (pdfDto.endringer.first() as EndringDto.AvsluttDeltakelse)
@@ -325,31 +355,35 @@ class PdfUtilsTest {
 
     @Test
     fun `lagEndringsvedtakPdfDto - Endre avslutning, harFullført - tar med om deltaker har fullført og deltatt `() {
-        val deltakerliste = Hendelsesdata.lagDeltakerliste(
-            oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
-            tiltak = Hendelsesdata.tiltak(
-                tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-            ),
-        )
+        val deltakerliste =
+            Hendelsesdata.lagDeltakerliste(
+                oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                tiltak =
+                    Hendelsesdata.tiltak(
+                        tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                    ),
+            )
         val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
         val navBruker = Persondata.lagNavBruker()
         val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
-        val hendelser: List<Hendelse> = listOf(
-            Hendelsesdata.hendelse(
-                HendelseTypeData.endreAvsluttDeltakelse(harFullfort = true),
-                deltaker = deltaker,
-                ansvarlig = ansvarligNavVeileder,
-                opprettet = LocalDateTime.now().minusMinutes(20),
-            ),
-        )
+        val hendelser: List<Hendelse> =
+            listOf(
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.endreAvsluttDeltakelse(harFullfort = true),
+                    deltaker = deltaker,
+                    ansvarlig = ansvarligNavVeileder,
+                    opprettet = LocalDateTime.now().minusMinutes(20),
+                ),
+            )
 
-        val pdfDto = lagEndringsvedtakPdfDto(
-            deltaker = deltaker,
-            navBruker = navBruker,
-            ansvarlig = ansvarligNavVeileder,
-            hendelser = hendelser,
-            opprettetDato = LocalDate.now(),
-        )
+        val pdfDto =
+            lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = hendelser,
+                opprettetDato = LocalDate.now(),
+            )
 
         pdfDto.endringer.size shouldBe 1
         val avsluttDeltakelseResult = (pdfDto.endringer.first() as EndringDto.EndreAvslutning)
@@ -358,31 +392,35 @@ class PdfUtilsTest {
 
     @Test
     fun `lagEndringsvedtakPdfDto - Endre avslutning, harFullført=false - tar med om deltaker har fullført og deltatt `() {
-        val deltakerliste = Hendelsesdata.lagDeltakerliste(
-            oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
-            tiltak = Hendelsesdata.tiltak(
-                tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-            ),
-        )
+        val deltakerliste =
+            Hendelsesdata.lagDeltakerliste(
+                oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                tiltak =
+                    Hendelsesdata.tiltak(
+                        tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                    ),
+            )
         val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
         val navBruker = Persondata.lagNavBruker()
         val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
-        val hendelser: List<Hendelse> = listOf(
-            Hendelsesdata.hendelse(
-                HendelseTypeData.endreAvsluttDeltakelse(harFullfort = false),
-                deltaker = deltaker,
-                ansvarlig = ansvarligNavVeileder,
-                opprettet = LocalDateTime.now().minusMinutes(20),
-            ),
-        )
+        val hendelser: List<Hendelse> =
+            listOf(
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.endreAvsluttDeltakelse(harFullfort = false),
+                    deltaker = deltaker,
+                    ansvarlig = ansvarligNavVeileder,
+                    opprettet = LocalDateTime.now().minusMinutes(20),
+                ),
+            )
 
-        val pdfDto = lagEndringsvedtakPdfDto(
-            deltaker = deltaker,
-            navBruker = navBruker,
-            ansvarlig = ansvarligNavVeileder,
-            hendelser = hendelser,
-            opprettetDato = LocalDate.now(),
-        )
+        val pdfDto =
+            lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = hendelser,
+                opprettetDato = LocalDate.now(),
+            )
 
         pdfDto.endringer.size shouldBe 1
         val avsluttDeltakelseResult = (pdfDto.endringer.first() as EndringDto.EndreAvslutning)

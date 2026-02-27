@@ -15,86 +15,97 @@ class InnholdDtoTest {
     @Test
     fun testFinnValgtInnhold() {
         val innholdselement = Innholdselement("Type", "type")
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                tiltakstype = TestData.lagTiltakstype(
-                    innhold = TestData.lagDeltakerRegistreringInnhold(
-                        innholdselementer = listOf(innholdselement, annetInnholdselement),
+        val deltaker =
+            TestData.lagDeltaker(
+                deltakerliste =
+                    TestData.lagDeltakerliste(
+                        tiltakstype =
+                            TestData.lagTiltakstype(
+                                innhold =
+                                    TestData.lagDeltakerRegistreringInnhold(
+                                        innholdselementer = listOf(innholdselement, annetInnholdselement),
+                                    ),
+                            ),
                     ),
-                ),
-            ),
-        )
+            )
 
         val annetBeskrivelse = "annet må ha en beskrivelse"
 
-        val valgtInnhold = listOf(
-            InnholdRequest(innholdselement.innholdskode, null),
-            InnholdRequest(annetInnholdselement.innholdskode, annetBeskrivelse),
-        ).toInnholdModel(deltaker = deltaker)
-        valgtInnhold shouldBe listOf(
-            innholdselement.toInnhold(true),
-            annetInnholdselement.toInnhold(true, annetBeskrivelse),
-        )
+        val valgtInnhold =
+            listOf(
+                InnholdRequest(innholdselement.innholdskode, null),
+                InnholdRequest(annetInnholdselement.innholdskode, annetBeskrivelse),
+            ).toInnholdModel(deltaker = deltaker)
+        valgtInnhold shouldBe
+            listOf(
+                innholdselement.toInnhold(true),
+                annetInnholdselement.toInnhold(true, annetBeskrivelse),
+            )
     }
 
     @Test
     fun `finnValgtInnhold - annet - annet skal bli valgt`() {
-        val innholdRequest = objectMapper.readValue<EndreInnholdRequest>(
-            """    	
-            {
-              "innhold": [
+        val innholdRequest =
+            objectMapper.readValue<EndreInnholdRequest>(
+                """    	
                 {
-                  "innholdskode": "arbeidspraksis",
-                  "beskrivelse": null
-                },
-                {
-                  "innholdskode": "annet",
-                  "beskrivelse": "blabla"
+                  "innhold": [
+                    {
+                      "innholdskode": "arbeidspraksis",
+                      "beskrivelse": null
+                    },
+                    {
+                      "innholdskode": "annet",
+                      "beskrivelse": "blabla"
+                    }
+                  ]
                 }
-              ]
-            }
-            """.trimIndent(),
-        )
+                """.trimIndent(),
+            )
 
-        val deltakerlisteInnhold = objectMapper.readValue<DeltakerRegistreringInnhold>(
-            """
-            {
-              "ledetekst": "Arbeidsforberedende trening er et tilbud for deg som først ønsker å jobbe i et tilrettelagt arbeidsmiljø.",
-              "innholdselementer": [
+        val deltakerlisteInnhold =
+            objectMapper.readValue<DeltakerRegistreringInnhold>(
+                """
                 {
-                  "tekst": "Arbeidspraksis",
-                  "innholdskode": "arbeidspraksis"
-                },
-                {
-                  "tekst": "Karriereveiledning",
-                  "innholdskode": "karriereveiledning"
+                  "ledetekst": "Arbeidsforberedende trening er et tilbud for deg som først ønsker å jobbe i et tilrettelagt arbeidsmiljø.",
+                  "innholdselementer": [
+                    {
+                      "tekst": "Arbeidspraksis",
+                      "innholdskode": "arbeidspraksis"
+                    },
+                    {
+                      "tekst": "Karriereveiledning",
+                      "innholdskode": "karriereveiledning"
+                    }
+                  ],
+                  "innholdselementerMedAnnet": [
+                    {
+                      "tekst": "Arbeidspraksis",
+                      "innholdskode": "arbeidspraksis"
+                    },
+                    {
+                      "tekst": "Karriereveiledning",
+                      "innholdskode": "karriereveiledning"
+                    },
+                    {
+                      "tekst": "Annet",
+                      "innholdskode": "annet"
+                    }
+                  ]
                 }
-              ],
-              "innholdselementerMedAnnet": [
-                {
-                  "tekst": "Arbeidspraksis",
-                  "innholdskode": "arbeidspraksis"
-                },
-                {
-                  "tekst": "Karriereveiledning",
-                  "innholdskode": "karriereveiledning"
-                },
-                {
-                  "tekst": "Annet",
-                  "innholdskode": "annet"
-                }
-              ]
-            }
-            """.trimIndent(),
-        )
+                """.trimIndent(),
+            )
 
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                tiltakstype = TestData.lagTiltakstype(
-                    innhold = deltakerlisteInnhold,
-                ),
-            ),
-        )
+        val deltaker =
+            TestData.lagDeltaker(
+                deltakerliste =
+                    TestData.lagDeltakerliste(
+                        tiltakstype =
+                            TestData.lagTiltakstype(
+                                innhold = deltakerlisteInnhold,
+                            ),
+                    ),
+            )
 
         val valgtInnhold = innholdRequest.innhold.toInnholdModel(deltaker = deltaker)
 

@@ -76,54 +76,91 @@ sealed class DeltakerEndringEndringDto {
     ) : DeltakerEndringEndringDto()
 
     companion object {
-        fun fromEndring(endring: DeltakerEndring.Endring, oppstartstype: Oppstartstype?): DeltakerEndringEndringDto = with(endring) {
-            when (this) {
-                is DeltakerEndring.Endring.AvsluttDeltakelse -> AvsluttDeltakelse(
-                    aarsak = aarsak,
-                    sluttdato = sluttdato,
-                    begrunnelse = begrunnelse,
-                    harFullfort = true,
-                    oppstartstype = oppstartstype,
-                )
+        fun fromEndring(
+            endring: DeltakerEndring.Endring,
+            oppstartstype: Oppstartstype?,
+        ): DeltakerEndringEndringDto =
+            with(endring) {
+                when (this) {
+                    is DeltakerEndring.Endring.AvsluttDeltakelse -> {
+                        AvsluttDeltakelse(
+                            aarsak = aarsak,
+                            sluttdato = sluttdato,
+                            begrunnelse = begrunnelse,
+                            harFullfort = true,
+                            oppstartstype = oppstartstype,
+                        )
+                    }
 
-                is DeltakerEndring.Endring.EndreAvslutning -> EndreAvslutning(
-                    aarsak = aarsak,
-                    begrunnelse = begrunnelse,
-                    harFullfort = harFullfort,
-                    sluttdato = sluttdato,
-                )
+                    is DeltakerEndring.Endring.EndreAvslutning -> {
+                        EndreAvslutning(
+                            aarsak = aarsak,
+                            begrunnelse = begrunnelse,
+                            harFullfort = harFullfort,
+                            sluttdato = sluttdato,
+                        )
+                    }
 
-                is DeltakerEndring.Endring.AvbrytDeltakelse -> AvsluttDeltakelse(
-                    aarsak = aarsak,
-                    sluttdato = sluttdato,
-                    begrunnelse = begrunnelse,
-                    harFullfort = false,
-                    oppstartstype = oppstartstype,
-                )
+                    is DeltakerEndring.Endring.AvbrytDeltakelse -> {
+                        AvsluttDeltakelse(
+                            aarsak = aarsak,
+                            sluttdato = sluttdato,
+                            begrunnelse = begrunnelse,
+                            harFullfort = false,
+                            oppstartstype = oppstartstype,
+                        )
+                    }
 
-                is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> EndreBakgrunnsinformasjon(
-                    bakgrunnsinformasjon,
-                )
+                    is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> {
+                        EndreBakgrunnsinformasjon(
+                            bakgrunnsinformasjon,
+                        )
+                    }
 
-                is DeltakerEndring.Endring.EndreDeltakelsesmengde -> EndreDeltakelsesmengde(
-                    deltakelsesprosent,
-                    dagerPerUke,
-                    gyldigFra,
-                    begrunnelse,
-                )
+                    is DeltakerEndring.Endring.EndreDeltakelsesmengde -> {
+                        EndreDeltakelsesmengde(
+                            deltakelsesprosent,
+                            dagerPerUke,
+                            gyldigFra,
+                            begrunnelse,
+                        )
+                    }
 
-                is DeltakerEndring.Endring.EndreInnhold -> EndreInnhold(ledetekst, innhold)
-                is DeltakerEndring.Endring.EndreSluttarsak -> EndreSluttarsak(aarsak, begrunnelse)
-                is DeltakerEndring.Endring.EndreSluttdato -> EndreSluttdato(sluttdato, begrunnelse)
-                is DeltakerEndring.Endring.EndreStartdato -> EndreStartdato(startdato, sluttdato, begrunnelse)
-                is DeltakerEndring.Endring.FjernOppstartsdato -> FjernOppstartsdato(begrunnelse)
-                is DeltakerEndring.Endring.ForlengDeltakelse -> ForlengDeltakelse(sluttdato, begrunnelse)
-                is DeltakerEndring.Endring.IkkeAktuell -> IkkeAktuell(aarsak, begrunnelse)
-                is DeltakerEndring.Endring.ReaktiverDeltakelse -> ReaktiverDeltakelse(
-                    reaktivertDato,
-                    begrunnelse,
-                )
+                    is DeltakerEndring.Endring.EndreInnhold -> {
+                        EndreInnhold(ledetekst, innhold)
+                    }
+
+                    is DeltakerEndring.Endring.EndreSluttarsak -> {
+                        EndreSluttarsak(aarsak, begrunnelse)
+                    }
+
+                    is DeltakerEndring.Endring.EndreSluttdato -> {
+                        EndreSluttdato(sluttdato, begrunnelse)
+                    }
+
+                    is DeltakerEndring.Endring.EndreStartdato -> {
+                        EndreStartdato(startdato, sluttdato, begrunnelse)
+                    }
+
+                    is DeltakerEndring.Endring.FjernOppstartsdato -> {
+                        FjernOppstartsdato(begrunnelse)
+                    }
+
+                    is DeltakerEndring.Endring.ForlengDeltakelse -> {
+                        ForlengDeltakelse(sluttdato, begrunnelse)
+                    }
+
+                    is DeltakerEndring.Endring.IkkeAktuell -> {
+                        IkkeAktuell(aarsak, begrunnelse)
+                    }
+
+                    is DeltakerEndring.Endring.ReaktiverDeltakelse -> {
+                        ReaktiverDeltakelse(
+                            reaktivertDato,
+                            begrunnelse,
+                        )
+                    }
+                }
             }
-        }
     }
 }

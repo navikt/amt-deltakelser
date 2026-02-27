@@ -20,18 +20,20 @@ class AvsluttDeltakelseRequestTest {
     inner class HarDeltatt {
         @Test
         fun `harDeltatt - deltaker har deltatt = null - returnerer true`() {
-            val avsluttDeltakelseRequest = avsluttDeltakelseRequestInTest.copy(
-                harDeltatt = null,
-            )
+            val avsluttDeltakelseRequest =
+                avsluttDeltakelseRequestInTest.copy(
+                    harDeltatt = null,
+                )
             avsluttDeltakelseRequest.harDeltatt() shouldBe true
         }
 
         @ParameterizedTest
         @ValueSource(booleans = [true, false])
         fun `harDeltatt - deltaker har deltatt`(harDeltatt: Boolean) {
-            val avsluttDeltakelseRequest = avsluttDeltakelseRequestInTest.copy(
-                harDeltatt = harDeltatt,
-            )
+            val avsluttDeltakelseRequest =
+                avsluttDeltakelseRequestInTest.copy(
+                    harDeltatt = harDeltatt,
+                )
             avsluttDeltakelseRequest.harDeltatt() shouldBe harDeltatt
         }
     }
@@ -40,18 +42,20 @@ class AvsluttDeltakelseRequestTest {
     inner class HarFullfort {
         @Test
         fun `harFullfort - deltaker har fullfort = null - returnerer true`() {
-            val avsluttDeltakelseRequest = avsluttDeltakelseRequestInTest.copy(
-                harFullfort = null,
-            )
+            val avsluttDeltakelseRequest =
+                avsluttDeltakelseRequestInTest.copy(
+                    harFullfort = null,
+                )
             avsluttDeltakelseRequest.harFullfort() shouldBe true
         }
 
         @ParameterizedTest
         @ValueSource(booleans = [true, false])
         fun `harFullfort - deltaker har fullfort`(harFullfort: Boolean) {
-            val avsluttDeltakelseRequest = avsluttDeltakelseRequestInTest.copy(
-                harFullfort = harFullfort,
-            )
+            val avsluttDeltakelseRequest =
+                avsluttDeltakelseRequestInTest.copy(
+                    harFullfort = harFullfort,
+                )
             avsluttDeltakelseRequest.harFullfort() shouldBe harFullfort
         }
     }
@@ -61,14 +65,16 @@ class AvsluttDeltakelseRequestTest {
         @ParameterizedTest
         @EnumSource(DeltakerStatus.Type::class, names = ["DELTAR", "HAR_SLUTTET", "AVBRUTT", "FULLFORT"], mode = EnumSource.Mode.EXCLUDE)
         fun `valider - ugyldig deltakerstatus - feiler`(status: DeltakerStatus.Type) {
-            val deltaker = deltakerInTest.copy(
-                status = lagDeltakerStatus(status),
-                sluttdato = yesterday.minusDays(1),
-            )
+            val deltaker =
+                deltakerInTest.copy(
+                    status = lagDeltakerStatus(status),
+                    sluttdato = yesterday.minusDays(1),
+                )
 
-            val thrown = shouldThrow<IllegalArgumentException> {
-                avsluttDeltakelseRequestInTest.valider(deltaker)
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    avsluttDeltakelseRequestInTest.valider(deltaker)
+                }
 
             if (status == DeltakerStatus.Type.FEILREGISTRERT) {
                 thrown.message shouldBe "Kan ikke endre feilregistrert deltaker"
@@ -81,10 +87,11 @@ class AvsluttDeltakelseRequestTest {
         @ParameterizedTest
         @EnumSource(DeltakerStatus.Type::class, names = ["DELTAR", "HAR_SLUTTET", "AVBRUTT", "FULLFORT"])
         fun `valider - skal ikke feile med gyldig deltakerstatus`(status: DeltakerStatus.Type) {
-            val deltaker = deltakerInTest.copy(
-                status = lagDeltakerStatus(status),
-                sluttdato = yesterday.minusDays(1),
-            )
+            val deltaker =
+                deltakerInTest.copy(
+                    status = lagDeltakerStatus(status),
+                    sluttdato = yesterday.minusDays(1),
+                )
 
             shouldNotThrowAny {
                 avsluttDeltakelseRequestInTest.valider(deltaker)
@@ -93,24 +100,27 @@ class AvsluttDeltakelseRequestTest {
 
         @Test
         fun `skal kaste feil dersom harDeltatt og sluttdato er null`() {
-            val request = avsluttDeltakelseRequestInTest.copy(
-                harDeltatt = true,
-                sluttdato = null,
-            )
+            val request =
+                avsluttDeltakelseRequestInTest.copy(
+                    harDeltatt = true,
+                    sluttdato = null,
+                )
 
-            val thrown = shouldThrow<IllegalArgumentException> {
-                request.valider(deltakerInTest)
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    request.valider(deltakerInTest)
+                }
 
             thrown.message shouldBe "Må angi sluttdato for deltaker som har deltatt"
         }
 
         @Test
         fun `skal ikke kaste feil dersom harDeltatt og sluttdato forskjellig fra null`() {
-            val request = avsluttDeltakelseRequestInTest.copy(
-                harDeltatt = true,
-                sluttdato = yesterday.minusDays(1),
-            )
+            val request =
+                avsluttDeltakelseRequestInTest.copy(
+                    harDeltatt = true,
+                    sluttdato = yesterday.minusDays(1),
+                )
 
             shouldNotThrowAny {
                 request.valider(deltakerInTest)
@@ -119,9 +129,10 @@ class AvsluttDeltakelseRequestTest {
 
         @Test
         fun `skal ikke kaste feil dersom harDeltatt = false og status er DELTAR`() {
-            val request = avsluttDeltakelseRequestInTest.copy(
-                harDeltatt = false,
-            )
+            val request =
+                avsluttDeltakelseRequestInTest.copy(
+                    harDeltatt = false,
+                )
 
             val deltaker = deltakerInTest.copy(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
 
@@ -132,9 +143,10 @@ class AvsluttDeltakelseRequestTest {
 
         @Test
         fun `valider - deltaker er uendret - feiler`() {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                avsluttDeltakelseRequestInTest.valider(deltakerInTest)
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    avsluttDeltakelseRequestInTest.valider(deltakerInTest)
+                }
 
             thrown.message shouldBe "Kan ikke avslutte deltakelse med uendret sluttdato og årsak"
         }
@@ -152,10 +164,11 @@ class AvsluttDeltakelseRequestTest {
         fun `valider - deltaker har annen sluttaarsak - ok`() {
             val deltaker = deltakerInTest.copy(sluttdato = yesterday.minusDays(1))
 
-            val request = avsluttDeltakelseRequestInTest.copy(
-                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT, null),
-                sluttdato = yesterday.minusDays(1),
-            )
+            val request =
+                avsluttDeltakelseRequestInTest.copy(
+                    aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT, null),
+                    sluttdato = yesterday.minusDays(1),
+                )
 
             shouldNotThrowAny {
                 request.valider(deltaker)
@@ -166,19 +179,22 @@ class AvsluttDeltakelseRequestTest {
     companion object {
         private val yesterday: LocalDate = LocalDate.now().minusDays(1)
 
-        private val deltakerInTest = lagDeltaker(
-            status = lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
-            ),
-            sluttdato = yesterday,
-        )
+        private val deltakerInTest =
+            lagDeltaker(
+                status =
+                    lagDeltakerStatus(
+                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                        aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                    ),
+                sluttdato = yesterday,
+            )
 
-        private val avsluttDeltakelseRequestInTest = AvsluttDeltakelseRequest(
-            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-            sluttdato = yesterday,
-            begrunnelse = "Begrunnelse",
-            forslagId = UUID.randomUUID(),
-        )
+        private val avsluttDeltakelseRequestInTest =
+            AvsluttDeltakelseRequest(
+                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+                sluttdato = yesterday,
+                begrunnelse = "Begrunnelse",
+                forslagId = UUID.randomUUID(),
+            )
     }
 }

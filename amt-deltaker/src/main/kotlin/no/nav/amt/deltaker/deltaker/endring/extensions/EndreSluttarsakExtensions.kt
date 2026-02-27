@@ -8,11 +8,13 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 fun DeltakerEndring.Endring.EndreSluttarsak.hasChanges(deltaker: Deltaker): Boolean =
     deltaker.status.aarsak != this.aarsak.toDeltakerStatusAarsak()
 
-fun DeltakerEndring.Endring.EndreSluttarsak.endreSluttarsak(deltaker: Deltaker) = VellykketEndring(
-    deltaker.copy(
-        status = nyDeltakerStatus(
-            type = deltaker.status.type,
-            aarsak = this.aarsak.toDeltakerStatusAarsak(),
+fun DeltakerEndring.Endring.EndreSluttarsak.endreSluttarsak(deltaker: Deltaker) =
+    VellykketEndring(
+        deltaker.copy(
+            status =
+                nyDeltakerStatus(
+                    type = deltaker.status.type,
+                    aarsak = this.aarsak.toDeltakerStatusAarsak(),
+                ),
         ),
-    ),
-)
+    )

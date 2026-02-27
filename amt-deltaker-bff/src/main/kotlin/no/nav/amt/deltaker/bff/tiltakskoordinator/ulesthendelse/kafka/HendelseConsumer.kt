@@ -18,13 +18,17 @@ class HendelseConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.DELTAKER_HENDELSE_TOPIC,
-        kafkaAutoOffsetReset = AUTO_OFFSET_RESET_LATEST,
-        consumeFunc = ::consume,
-    )
+    private val consumer =
+        buildManagedKafkaConsumer(
+            topic = Environment.DELTAKER_HENDELSE_TOPIC,
+            kafkaAutoOffsetReset = AUTO_OFFSET_RESET_LATEST,
+            consumeFunc = ::consume,
+        )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         if (value == null) {
             log.warn("Mottok tombstone for melding med id: $key")
             ulestHendelseService.delete(key)

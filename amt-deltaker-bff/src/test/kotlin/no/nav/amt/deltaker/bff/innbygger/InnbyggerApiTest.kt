@@ -13,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
@@ -23,7 +24,6 @@ import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorsDeltakerlisteProducer
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.api.model.getArrangorNavn
 import no.nav.amt.deltaker.bff.deltaker.api.model.toResponse
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
@@ -62,137 +62,151 @@ class InnbyggerApiTest {
     private val forslagService = mockk<ForslagService>()
     private val innbyggerService = mockk<InnbyggerService>()
     private val amtDistribusjonClient = mockk<AmtDistribusjonClient>()
+    private val amtDeltakerClient = mockk<AmtDeltakerClient>()
     private val tiltakskoordinatorTilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
     private val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
     private val tiltakskoordinatorService = mockk<TiltakskoordinatorService>()
     private val deltakerlisteService = mockk<DeltakerlisteService>()
-    private val tilgangskontrollService = TilgangskontrollService(
-        poaoTilgangCachedClient,
-        navAnsattService,
-        tiltakskoordinatorTilgangRepository,
-        tiltakskoordinatorsDeltakerlisteProducer,
-        tiltakskoordinatorService,
-        deltakerlisteService,
-    )
+    private val tilgangskontrollService =
+        TilgangskontrollService(
+            poaoTilgangCachedClient,
+            navAnsattService,
+            tiltakskoordinatorTilgangRepository,
+            tiltakskoordinatorsDeltakerlisteProducer,
+            tiltakskoordinatorService,
+            deltakerlisteService,
+        )
 
     @BeforeEach
     fun setup() = configureEnvForAuthentication()
 
     @Test
-    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() = testApplication {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
-            null,
-            Decision.Deny("Ikke tilgang", ""),
-        )
-        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
+    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() =
+        testApplication {
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns
+                ApiResult(
+                    null,
+                    Decision.Deny("Ikke tilgang", ""),
+                )
+            every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
 
-        setUpTestApplication()
-        client.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
-        client.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
-        client.get("/innbygger/${UUID.randomUUID()}/historikk") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
-    }
-
-    @Test
-    fun `skal teste tilgangskontroll - mangler token - returnerer 401`() = testApplication {
-        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
-
-        setUpTestApplication()
-        client.get("/innbygger/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
-        client.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast").status shouldBe HttpStatusCode.Unauthorized
-        client.get("/innbygger/${UUID.randomUUID()}/historikk").status shouldBe HttpStatusCode.Unauthorized
-    }
-
-    @Test
-    fun `get id - innbygger har tilgang - returnerer 200 og deltaker`() = testApplication {
-        setUpTestApplication()
-        val deltaker = TestData.lagDeltaker()
-        val forslag = TestData.lagForslag(deltakerId = deltaker.id)
-        val (ansatte, enhet) = setupMocks(deltaker, forslag = listOf(forslag))
-
-        val res = client.get("/innbygger/${deltaker.id}") { noBodyRequest() }
-        res.status shouldBe HttpStatusCode.OK
-        res.bodyAsText() shouldBe objectMapper.writeValueAsString(
-            deltaker.toInnbyggerDeltakerResponse(
-                ansatte,
-                enhet,
-                listOf(forslag),
-            ),
-        )
-    }
-
-    @Test
-    fun `get id - deltaker finnes ikke - returnerer 404`() = testApplication {
-        every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
-
-        setUpTestApplication()
-        val res = client.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }
-        res.status shouldBe HttpStatusCode.NotFound
-    }
-
-    @Test
-    fun `godkjenn-utkast - deltaker har feil status - feiler`() = testApplication {
-        setUpTestApplication()
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        setupMocks(deltaker)
-
-        val res = client.post("/innbygger/${deltaker.id}/godkjenn-utkast") { noBodyRequest() }
-        res.status shouldBe HttpStatusCode.BadRequest
-    }
-
-    @Test
-    fun `godkjenn-utkast - deltaker finnes ikke - returnerer 404`() = testApplication {
-        every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
-
-        setUpTestApplication()
-        val res = client.get("/innbygger/${UUID.randomUUID()}/godkjenn-utkast") { noBodyRequest() }
-        res.status shouldBe HttpStatusCode.NotFound
-    }
-
-    @Test
-    fun `godkjenn-utkast - deltaker har tilgang - fatter vedtak`() = testApplication {
-        setUpTestApplication()
-        val deltaker = deltakerMedIkkeFattetVedtak()
-        val deltakerMedFattetVedak = deltaker.fattVedtak()
-
-        coEvery { innbyggerService.godkjennUtkast(deltaker) } returns deltakerMedFattetVedak
-        val (ansatte, enhet) = setupMocks(deltaker, deltakerMedFattetVedak)
-
-        val res = client.post("/innbygger/${deltaker.id}/godkjenn-utkast") { noBodyRequest() }
-        res.status shouldBe HttpStatusCode.OK
-        res.bodyAsText() shouldBe objectMapper.writeValueAsString(
-            deltakerMedFattetVedak.toInnbyggerDeltakerResponse(
-                ansatte,
-                enhet,
-                emptyList(),
-            ),
-        )
-    }
-
-    @Test
-    fun `getHistorikk - deltaker finnes, har tilgang - returnerer historikk`() = testApplication {
-        setUpTestApplication()
-        val deltaker = TestData.lagDeltaker().let { TestData.leggTilHistorikk(it, 2, 2, 1) }
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-
-        val historikk = deltaker.getDeltakerHistorikkForVisning()
-        val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
-        val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
-
-        every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
-        coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
-        client.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
-                historikk.toResponse(
-                    ansatte,
-                    deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    enheter,
-                    deltaker.deltakerliste.oppstart,
-                ),
-            )
+            setUpTestApplication()
+            client.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
+            client.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
+            client.get("/innbygger/${UUID.randomUUID()}/historikk") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
         }
-    }
+
+    @Test
+    fun `skal teste tilgangskontroll - mangler token - returnerer 401`() =
+        testApplication {
+            every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
+
+            setUpTestApplication()
+            client.get("/innbygger/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+            client.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast").status shouldBe HttpStatusCode.Unauthorized
+            client.get("/innbygger/${UUID.randomUUID()}/historikk").status shouldBe HttpStatusCode.Unauthorized
+        }
+
+    @Test
+    fun `get id - innbygger har tilgang - returnerer 200 og deltaker`() =
+        testApplication {
+            setUpTestApplication()
+            val deltaker = TestData.lagDeltaker()
+            val forslag = TestData.lagForslag(deltakerId = deltaker.id)
+            val (ansatte, enhet) = setupMocks(deltaker, forslag = listOf(forslag))
+
+            val res = client.get("/innbygger/${deltaker.id}") { noBodyRequest() }
+            res.status shouldBe HttpStatusCode.OK
+            res.bodyAsText() shouldBe
+                objectMapper.writeValueAsString(
+                    deltaker.toInnbyggerDeltakerResponse(
+                        ansatte,
+                        enhet,
+                        listOf(forslag),
+                    ),
+                )
+        }
+
+    @Test
+    fun `get id - deltaker finnes ikke - returnerer 404`() =
+        testApplication {
+            every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
+
+            setUpTestApplication()
+            val res = client.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }
+            res.status shouldBe HttpStatusCode.NotFound
+        }
+
+    @Test
+    fun `godkjenn-utkast - deltaker har feil status - feiler`() =
+        testApplication {
+            setUpTestApplication()
+            val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            setupMocks(deltaker)
+
+            val res = client.post("/innbygger/${deltaker.id}/godkjenn-utkast") { noBodyRequest() }
+            res.status shouldBe HttpStatusCode.BadRequest
+        }
+
+    @Test
+    fun `godkjenn-utkast - deltaker finnes ikke - returnerer 404`() =
+        testApplication {
+            every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
+
+            setUpTestApplication()
+            val res = client.get("/innbygger/${UUID.randomUUID()}/godkjenn-utkast") { noBodyRequest() }
+            res.status shouldBe HttpStatusCode.NotFound
+        }
+
+    @Test
+    fun `godkjenn-utkast - deltaker har tilgang - fatter vedtak`() =
+        testApplication {
+            setUpTestApplication()
+            val deltaker = deltakerMedIkkeFattetVedtak()
+            val deltakerMedFattetVedak = deltaker.fattVedtak()
+
+            coEvery { innbyggerService.godkjennUtkast(deltaker) } returns deltakerMedFattetVedak
+            val (ansatte, enhet) = setupMocks(deltaker, deltakerMedFattetVedak)
+
+            val res = client.post("/innbygger/${deltaker.id}/godkjenn-utkast") { noBodyRequest() }
+            res.status shouldBe HttpStatusCode.OK
+            res.bodyAsText() shouldBe
+                objectMapper.writeValueAsString(
+                    deltakerMedFattetVedak.toInnbyggerDeltakerResponse(
+                        ansatte,
+                        enhet,
+                        emptyList(),
+                    ),
+                )
+        }
+
+    @Test
+    fun `getHistorikk - deltaker finnes, har tilgang - returnerer historikk`() =
+        testApplication {
+            setUpTestApplication()
+            val deltaker = TestData.lagDeltaker().let { TestData.leggTilHistorikk(it, 2, 2, 1) }
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+
+            val historikk = deltaker.getDeltakerHistorikkForVisning()
+            val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
+            val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
+
+            every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
+            coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
+            client.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe
+                    objectMapper.writePolymorphicListAsString(
+                        historikk.toResponse(
+                            ansatte,
+                            deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                            enheter,
+                            deltaker.deltakerliste.oppstart,
+                        ),
+                    )
+            }
+        }
 
     private fun HttpRequestBuilder.noBodyRequest() = bearerAuth("${tokenXToken("personident", Environment())}")
 
@@ -210,6 +224,7 @@ class InnbyggerApiTest {
                 forslagRepository = forslagRepository,
                 forslagService = forslagService,
                 amtDistribusjonClient = amtDistribusjonClient,
+                amtDeltakerClient = amtDeltakerClient,
                 sporbarhetsloggService = mockk(),
                 deltakerRepository = deltakerRepository,
                 deltakerlisteService = mockk(),
@@ -253,10 +268,11 @@ class InnbyggerApiTest {
 }
 
 fun deltakerMedIkkeFattetVedtak(): Deltaker {
-    val deltaker = TestData.lagDeltaker(
-        status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-        historikk = false,
-    )
+    val deltaker =
+        TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            historikk = false,
+        )
     val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker, fattet = null)
 
     return deltaker.copy(historikk = listOf(DeltakerHistorikk.Vedtak(vedtak)))
@@ -266,27 +282,29 @@ fun Deltaker.fattVedtak(): Deltaker {
     val vedtak = this.ikkeFattetVedtak!!
 
     return this.copy(
-        historikk = this.historikk
-            .filter { it.id != vedtak.id }
-            .plus(
-                DeltakerHistorikk.Vedtak(
-                    vedtak.copy(
-                        fattet = LocalDateTime.now(),
-                        sistEndret = LocalDateTime.now(),
+        historikk =
+            this.historikk
+                .filter { it.id != vedtak.id }
+                .plus(
+                    DeltakerHistorikk.Vedtak(
+                        vedtak.copy(
+                            fattet = LocalDateTime.now(),
+                            sistEndret = LocalDateTime.now(),
+                        ),
                     ),
                 ),
-            ),
     )
 }
 
 private val DeltakerHistorikk.id
-    get() = when (this) {
-        is DeltakerHistorikk.Endring -> endring.id
-        is DeltakerHistorikk.Vedtak -> vedtak.id
-        is DeltakerHistorikk.Forslag -> forslag.id
-        is DeltakerHistorikk.EndringFraArrangor -> endringFraArrangor.id
-        is DeltakerHistorikk.ImportertFraArena -> importertFraArena.deltakerId
-        is DeltakerHistorikk.VurderingFraArrangor -> data.id
-        is DeltakerHistorikk.EndringFraTiltakskoordinator -> endringFraTiltakskoordinator.id
-        is DeltakerHistorikk.InnsokPaaFellesOppstart -> data.id
-    }
+    get() =
+        when (this) {
+            is DeltakerHistorikk.Endring -> endring.id
+            is DeltakerHistorikk.Vedtak -> vedtak.id
+            is DeltakerHistorikk.Forslag -> forslag.id
+            is DeltakerHistorikk.EndringFraArrangor -> endringFraArrangor.id
+            is DeltakerHistorikk.ImportertFraArena -> importertFraArena.deltakerId
+            is DeltakerHistorikk.VurderingFraArrangor -> data.id
+            is DeltakerHistorikk.EndringFraTiltakskoordinator -> endringFraTiltakskoordinator.id
+            is DeltakerHistorikk.InnsokPaaFellesOppstart -> data.id
+        }

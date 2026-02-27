@@ -31,33 +31,37 @@ class AmtDistribusjonClientTest {
     }
 
     @Test
-    fun `digitalBruker skal returnere true`(): Unit = runBlocking {
-        val distribusjonClient = createAmtDistribusjonClient(responseBody = DigitalBrukerResponse(erDigital = true))
-        val erDigitalBruker = distribusjonClient.digitalBruker("~personident~")
-        erDigitalBruker shouldBe true
-    }
+    fun `digitalBruker skal returnere true`(): Unit =
+        runBlocking {
+            val distribusjonClient = createAmtDistribusjonClient(responseBody = DigitalBrukerResponse(erDigital = true))
+            val erDigitalBruker = distribusjonClient.digitalBruker("~personident~")
+            erDigitalBruker shouldBe true
+        }
 
     @Test
-    fun `digitalBruker skal returnere false`(): Unit = runBlocking {
-        val distribusjonClient = createAmtDistribusjonClient(responseBody = DigitalBrukerResponse(erDigital = false))
-        val erDigitalBruker = distribusjonClient.digitalBruker("~personident~")
-        erDigitalBruker shouldBe false
-    }
+    fun `digitalBruker skal returnere false`(): Unit =
+        runBlocking {
+            val distribusjonClient = createAmtDistribusjonClient(responseBody = DigitalBrukerResponse(erDigital = false))
+            val erDigitalBruker = distribusjonClient.digitalBruker("~personident~")
+            erDigitalBruker shouldBe false
+        }
 
     @Test
-    fun `skal bruke cache ved andre kall til digitalBruker`(): Unit = runBlocking {
-        val countingCache = CountingCache<String, Boolean>()
+    fun `skal bruke cache ved andre kall til digitalBruker`(): Unit =
+        runBlocking {
+            val countingCache = CountingCache<String, Boolean>()
 
-        val distribusjonClient = createAmtDistribusjonClient(
-            responseBody = DigitalBrukerResponse(erDigital = false),
-            cache = countingCache,
-        )
+            val distribusjonClient =
+                createAmtDistribusjonClient(
+                    responseBody = DigitalBrukerResponse(erDigital = false),
+                    cache = countingCache,
+                )
 
-        distribusjonClient.digitalBruker("~personident~")
-        distribusjonClient.digitalBruker("~personident~")
+            distribusjonClient.digitalBruker("~personident~")
+            distribusjonClient.digitalBruker("~personident~")
 
-        countingCache.putCount shouldBe 1
-    }
+            countingCache.putCount shouldBe 1
+        }
 
     companion object {
         private fun runFailureTest(
@@ -65,11 +69,12 @@ class AmtDistribusjonClientTest {
             statusCode: HttpStatusCode,
             block: suspend (AmtDistribusjonClient) -> Any,
         ) {
-            val thrown = Assertions.assertThrows(exceptionType.java) {
-                runBlocking {
-                    block(createAmtDistribusjonClient(statusCode))
+            val thrown =
+                Assertions.assertThrows(exceptionType.java) {
+                    runBlocking {
+                        block(createAmtDistribusjonClient(statusCode))
+                    }
                 }
-            }
             thrown.message shouldStartWith "Kunne ikke hente om bruker er digital fra amt-distribusjon."
         }
 
