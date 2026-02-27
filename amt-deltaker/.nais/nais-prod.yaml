@@ -1,0 +1,124 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-deltaker
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+  ingresses:
+    - https://amt-deltaker.intern.nav.no
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  readiness:
+    path: /internal/health/readiness
+    initialDelay: 30
+    periodSeconds: 5
+    failureThreshold: 1
+  liveness:
+    path: /internal/health/liveness
+    initialDelay: 30
+  replicas:
+    min: 2
+    max: 3
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 150
+  resources:
+    requests:
+      cpu: 30m
+      memory: 700Mi
+    limits:
+      memory: 1Gi
+  envFrom:
+    - secret: amt-deltaker-unleash-api-token
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-deltaker-bff
+        - application: amt-tiltaksarrangor-bff
+        - application: amt-distribusjon
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
+        - application: veilarboppfolging
+          namespace: poao
+          cluster: prod-gcp
+    outbound:
+      rules:
+        - application: amt-person-service
+        - application: amt-arrangor
+        - application: amt-tiltak
+        - application: poao-tilgang
+          namespace: poao
+        - application: isoppfolgingstilfelle
+          namespace: teamsykefravr
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
+      external:
+        - host: amt-unleash-api.nav.cloud.nais.io
+  leaderElection: true
+  kafka:
+    pool: nav-prod
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0"
+    - name: AMT_PERSONSERVICE_SCOPE
+      value: api://prod-gcp.amt.amt-person-service/.default
+    - name: AMT_PERSONSERVICE_URL
+      value: http://amt-person-service
+    - name: AMT_ARRANGOR_SCOPE
+      value: api://prod-gcp.amt.amt-arrangor/.default
+    - name: AMT_ARRANGOR_URL
+      value: http://amt-arrangor
+    - name: AMT_TILTAK_SCOPE
+      value: api://prod-gcp.amt.amt-tiltak/.default
+    - name: AMT_TILTAK_URL
+      value: http://amt-tiltak
+    - name: POAO_TILGANG_SCOPE
+      value: api://prod-gcp.poao.poao-tilgang/.default
+    - name: POAO_TILGANG_URL
+      value: http://poao-tilgang.poao
+    - name: ISOPPFOLGINGSTILFELLE_SCOPE
+      value: api://prod-gcp.teamsykefravr.isoppfolgingstilfelle/.default
+    - name: ISOPPFOLGINGSTILFELLE_URL
+      value: http://isoppfolgingstilfelle.teamsykefravr
+    - name: MULIGHETSROMMET_API_SCOPE
+      value: api://prod-gcp.team-mulighetsrommet.mulighetsrommet-api/.default
+    - name: MULIGHETSROMMET_API_URL
+      value: http://mulighetsrommet-api.team-mulighetsrommet.svc.cluster.local
+
+  gcp:
+    sqlInstances:
+      - name: amt-deltaker-2
+        collation: nb_NO.UTF8
+        tier: db-custom-1-3840
+        type: POSTGRES_17
+        databases:
+          - name: amt-deltaker
+            envVarPrefix: DB
+            users:
+              - name: datastream
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
+        diskAutoresize: true
+        highAvailability: true
+        pointInTimeRecovery: true
+        insights:
+          enabled: true
+
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki

@@ -1,0 +1,1 @@
+alter table nav_bruker add column er_skjermet boolean not null default false;

@@ -1,0 +1,1 @@
+CREATE INDEX outbox_status_created_idx ON outbox_record (status, created_at);

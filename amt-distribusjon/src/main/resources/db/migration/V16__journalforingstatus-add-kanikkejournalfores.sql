@@ -1,0 +1,1 @@
+alter table journalforingstatus add column kan_ikke_journalfores boolean;

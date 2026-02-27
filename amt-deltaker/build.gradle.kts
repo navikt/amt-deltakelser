@@ -1,0 +1,89 @@
+group = "no.nav.amt-deltaker"
+version = "1.0-SNAPSHOT"
+
+plugins {
+    kotlin("jvm")
+    alias(libs.plugins.ktor)
+    // TODO alias(libs.plugins.ktlint)
+    application
+}
+
+repositories {
+    mavenCentral()
+    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+}
+
+dependencies {
+
+    // --- Ktor BOM ---
+    implementation(platform(libs.ktor.bom))
+
+    // --- Ktor ---
+    implementation(libs.bundles.ktor.server)
+    implementation(libs.bundles.ktor.client)
+
+    // --- Serialization ---
+    implementation(libs.jackson.datatype.jsr310)
+
+    // --- Metrics ---
+    implementation(libs.micrometer.prometheus)
+
+    // --- Cache ---
+    implementation(libs.caffeine)
+
+    // --- Logging ---
+    implementation(libs.bundles.logging)
+
+    // --- amt-lib, lib:ktor drar inn models og utils
+    implementation(project(":amt-lib:lib:ktor"))
+    implementation(project(":amt-lib:lib:outbox"))
+
+    // --- POAO ---
+    implementation(libs.poao.tilgang.client)
+
+    // --- Database ---
+    implementation(libs.bundles.database)
+
+    // --- Feature Toggle ---
+    implementation(libs.unleash)
+
+    // --- Test ---
+    testImplementation(project(":amt-lib:lib:testing"))
+    testImplementation(libs.bundles.ktor.test)
+    testImplementation(libs.nimbus.jose.jwt)
+}
+
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xjsr305=strict",
+            "-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled",
+        )
+    }
+}
+
+application {
+    mainClass.set("no.nav.amt.deltaker.ApplicationKt")
+
+    val isDevelopment: Boolean = project.ext.has("development")
+    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+}
+
+// TODO ktlint { version = libs.versions.ktlint.cli.version }
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+    jvmArgs(
+        "-Xshare:off",
+        "-XX:+EnableDynamicAgentLoading",
+    )
+}
+
+tasks.named<Jar>("jar") {
+    manifest {
+        attributes(
+            "Main-Class" to "no.nav.amt.deltaker.ApplicationKt",
+        )
+    }
+}

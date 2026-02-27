@@ -1,0 +1,1 @@
+ALTER TABLE deltakerliste ALTER COLUMN status DROP NOT NULL;

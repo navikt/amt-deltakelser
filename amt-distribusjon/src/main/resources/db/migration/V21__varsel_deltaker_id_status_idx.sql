@@ -1,0 +1,1 @@
+CREATE INDEX varsel_deltaker_id_status_idx ON varsel (deltaker_id, status);

@@ -1,0 +1,1 @@
+create index deltaker_status_deltaker_id_idx on deltaker_status (deltaker_id);

@@ -1,0 +1,1 @@
+DROP INDEX journalforingstatus_hendelse_id_idx;

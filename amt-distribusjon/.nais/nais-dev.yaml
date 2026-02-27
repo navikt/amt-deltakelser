@@ -1,0 +1,104 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-distribusjon
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  readiness:
+    path: /internal/health/readiness
+    initialDelay: 30
+  liveness:
+    path: /internal/health/liveness
+    initialDelay: 30
+    timeout: 3
+  replicas:
+    disableAutoScaling: true
+    min: 1
+    max: 1
+  resources:
+    requests:
+      cpu: 20m
+      memory: 512Mi
+    limits:
+      memory: 1024Mi
+  azure:
+    application:
+      enabled: true
+  leaderElection: true
+  kafka:
+    pool: nav-dev
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-deltaker-bff
+        - application: amt-deltaker
+    outbound:
+      rules:
+        - application: amt-pdfgen
+        - application: amt-person-service
+        - application: amt-deltaker
+        - application: veilarboppfolging
+          namespace: poao
+          cluster: dev-gcp
+      external:
+        - host: dokarkiv-q2.dev-fss-pub.nais.io
+  gcp:
+    sqlInstances:
+      - name: amt-distribusjon-2
+        tier: db-f1-micro
+        collation: nb_NO.UTF8
+        type: POSTGRES_17
+        databases:
+          - name: amt-distribusjon
+            envVarPrefix: DB
+            users:
+              - name: datastream
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=60.0"
+    - name: AMT_PERSONSERVICE_SCOPE
+      value: api://dev-gcp.amt.amt-person-service/.default
+    - name: AMT_PERSONSERVICE_URL
+      value: http://amt-person-service
+    - name: AMT_DELTAKER_SCOPE
+      value: api://dev-gcp.amt.amt-deltaker/.default
+    - name: AMT_DELTAKER_URL
+      value: http://amt-deltaker
+    - name: AMT_PDFGEN_SCOPE
+      value: api://dev-gcp.amt.amt-pdfgen/.default
+    - name: AMT_PDFGEN
+      value: http://amt-pdfgen
+    - name: VEILARBOPPFOLGING_SCOPE
+      value: api://dev-gcp.poao.veilarboppfolging/.default
+    - name: VEILARBOPPFOLGING_URL
+      value: http://veilarboppfolging.poao
+    - name: DOKARKIV_URL
+      value: https://dokarkiv-q2.dev-fss-pub.nais.io
+    - name: DOKARKIV_SCOPE
+      value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: DOKDISTKANAL_URL
+      value: https://dokdistkanal-q2.dev-fss-pub.nais.io
+    - name: DOKDISTKANAL_SCOPE
+      value: api://dev-fss.teamdokumenthandtering.dokdistkanal/.default
+    - name: DOKDISTFORDELING_URL
+      value: https://dokdistfordeling.dev-fss-pub.nais.io
+    - name: DOKDISTFORDELING_SCOPE
+      value: api://dev-fss.teamdokumenthandtering.dokdistfordeling/.default

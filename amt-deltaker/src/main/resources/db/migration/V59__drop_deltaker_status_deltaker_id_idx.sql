@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS deltaker_status_deltaker_id_idx;

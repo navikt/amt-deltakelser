@@ -1,0 +1,1 @@
+alter table deltaker_status alter column aarsak type jsonb using aarsak::jsonb;

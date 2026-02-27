@@ -1,0 +1,1 @@
+alter table deltaker_historikk rename to deltaker_endring

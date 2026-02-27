@@ -1,0 +1,1 @@
+alter table journalforingstatus add column bestillingsid uuid;
