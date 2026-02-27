@@ -1,11 +1,11 @@
 name: amt-lib - Create release
 on:
   workflow_dispatch: # This workflow can be triggered manually
-#  push:
-#    paths:
-#      - "amt-lib/**"
-#    branches:
-#      - main
+  push:
+    paths:
+      - "amt-lib/**"
+    branches:
+      - main
 
 env:
   PRINT_PAYLOAD: true
