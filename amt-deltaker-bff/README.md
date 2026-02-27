@@ -18,7 +18,7 @@ Start kafka og database:
 docker-compose up -d
 ```
 
-Sett opp runtime configuration med disse miljøvariablene og kjør via intellij:
+Sett opp runtime configuration med følgende miljøvariabler og kjør med IntelliJ:
 ```shell
 DB_USERNAME=myuser
 DB_PASSWORD=mypassword
