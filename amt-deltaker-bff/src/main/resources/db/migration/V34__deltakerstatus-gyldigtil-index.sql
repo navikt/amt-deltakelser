@@ -1,0 +1,1 @@
+create index deltaker_status_gyldig_til_idx on deltaker_status (gyldig_til);

@@ -1,0 +1,1 @@
+alter table nav_bruker alter column er_skjermet drop default;

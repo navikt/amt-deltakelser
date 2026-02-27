@@ -1,0 +1,1 @@
+alter table deltaker add column sist_endret_av_enhet varchar;

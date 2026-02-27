@@ -1,0 +1,121 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-deltaker-bff
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+  ingresses:
+    - https://amt-deltaker-bff.intern.nav.no
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  readiness:
+    path: /internal/health/readiness
+    initialDelay: 30
+    periodSeconds: 5
+    failureThreshold: 1
+  liveness:
+    path: /internal/health/liveness
+    initialDelay: 30
+  replicas:
+    min: 2
+    max: 3
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 200
+  resources:
+    requests:
+      cpu: 30m
+      memory: 700Mi
+    limits:
+      memory: 1Gi
+  envFrom:
+    - secret: amt-deltaker-bff-unleash-api-token
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+      claims:
+        groups:
+          - id: {{ad_rolle_tiltak_koordinator}}
+    sidecar:
+      enabled: true
+  leaderElection: true
+  kafka:
+    pool: nav-prod
+  tokenx:
+    enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-deltaker-flate
+        - application: amt-deltaker-innbyggers-flate
+        - application: veilarbpersonflate
+          namespace: poao
+        - application: mr-admin-flate
+          namespace: team-mulighetsrommet
+    outbound:
+      rules:
+        - application: amt-arrangor
+        - application: amt-person-service
+        - application: amt-deltaker
+        - application: amt-distribusjon
+        - application: mr-admin-flate
+          namespace: team-mulighetsrommet
+        - application: poao-tilgang
+          namespace: poao
+      external:
+        - host: amt-unleash-api.nav.cloud.nais.io
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0"
+    - name: AMT_ARRANGOR_SCOPE
+      value: api://prod-gcp.amt.amt-arrangor/.default
+    - name: AMT_ARRANGOR_URL
+      value: http://amt-arrangor
+    - name: POAO_TILGANG_SCOPE
+      value: api://prod-gcp.poao.poao-tilgang/.default
+    - name: POAO_TILGANG_URL
+      value: http://poao-tilgang.poao
+    - name: AMT_PERSONSERVICE_SCOPE
+      value: api://prod-gcp.amt.amt-person-service/.default
+    - name: AMT_PERSONSERVICE_URL
+      value: http://amt-person-service
+    - name: AMT_DELTAKER_SCOPE
+      value: api://prod-gcp.amt.amt-deltaker/.default
+    - name: AMT_DELTAKER_URL
+      value: http://amt-deltaker
+    - name: AMT_DISTRIBUSJON_SCOPE
+      value: api://prod-gcp.amt.amt-distribusjon/.default
+    - name: AMT_DISTRIBUSJON_URL
+      value: http://amt-distribusjon
+    - name: AD_ROLLE_TILTAKSKOORDINATOR
+      value: {{ad_rolle_tiltak_koordinator}}
+
+  gcp:
+    sqlInstances:
+      - name: amt-deltaker-bff
+        tier: db-custom-1-3840
+        collation: nb_NO.UTF8
+        type: POSTGRES_17
+        databases:
+          - name: amt-deltaker-bff
+            envVarPrefix: DB
+        diskAutoresize: true
+        highAvailability: true
+        pointInTimeRecovery: true
+        insights:
+          enabled: true
+
+  observability:
+      autoInstrumentation:
+        enabled: true
+        runtime: java
+      logging:
+        destinations:
+          - id: elastic
+          - id: loki

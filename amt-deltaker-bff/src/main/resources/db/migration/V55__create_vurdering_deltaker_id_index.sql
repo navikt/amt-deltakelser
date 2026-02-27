@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS vurdering_deltaker_id_idx ON vurdering (deltaker_id);

@@ -1,0 +1,141 @@
+[versions]
+kotlin-version = "2.2.21"
+ktor-version = "3.4.0"
+logback-version = "1.5.32"
+prometheus-version = "1.16.3"
+ktlint-version = "14.0.1"
+ktlint-cli-version = "1.6.0"
+jackson-version = "2.21.0"
+common-version = "3.2025.10.10_08.21-bb7c7830d93c"
+poao-tilgang-version = "2025.11.03_14.33-9c5783f38a9a"
+kotest-version = "6.1.3"
+flyway-version = "12.0.1"
+hikari-version = "7.0.2"
+kotliquery-version = "1.9.1"
+postgres-version = "42.7.10"
+caffeine-version = "3.2.3"
+mockk-version = "1.14.9"
+nimbus-version = "10.7"
+unleash-version = "12.1.1"
+amt-lib-version = "1.2026.02.25_22.39-ccfac092a007"
+
+[libraries]
+
+# --- BOM ---
+ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktor-version" }
+
+# --- Ktor Server ---
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm" }
+ktor-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson-jvm" }
+ktor-server-call-id = { module = "io.ktor:ktor-server-call-id-jvm" }
+ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging-jvm" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth" }
+ktor-server-metrics = { module = "io.ktor:ktor-server-metrics-micrometer-jvm" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages-jvm" }
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm" }
+ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation" }
+
+# --- Ktor Client ---
+ktor-client-core = { module = "io.ktor:ktor-client-core" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation" }
+
+# --- Jackson ---
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson-version" }
+
+# --- Metrics ---
+micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "prometheus-version" }
+
+# --- Logging ---
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
+logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logback-version" }
+nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "common-version" }
+
+# --- NAV AMT ---
+amt-kafka = { module = "no.nav.amt.lib:kafka", version.ref = "amt-lib-version" }
+amt-utils = { module = "no.nav.amt.lib:utils", version.ref = "amt-lib-version" }
+amt-ktor = { module = "no.nav.amt.lib:ktor", version.ref = "amt-lib-version" }
+amt-outbox = { module = "no.nav.amt.lib:outbox", version.ref = "amt-lib-version" }
+amt-testing = { module = "no.nav.amt.lib:testing", version.ref = "amt-lib-version" }
+
+# --- POAO ---
+poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "poao-tilgang-version" }
+
+# --- Database ---
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari-version" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-version" }
+flyway-postgres = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway-version" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres-version" }
+kotliquery = { module = "com.github.seratch:kotliquery", version.ref = "kotliquery-version" }
+
+# --- Cache ---
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine-version" }
+
+# --- Feature Toggle ---
+unleash = { module = "io.getunleash:unleash-client-java", version.ref = "unleash-version" }
+
+# --- Test ---
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin-version" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest-version" }
+kotest-assertions-json = { module = "io.kotest:kotest-assertions-json-jvm", version.ref = "kotest-version" }
+mockk = { module = "io.mockk:mockk-jvm", version.ref = "mockk-version" }
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-version" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }
+
+[bundles]
+ktor-server = [
+    "ktor-server-content-negotiation",
+    "ktor-serialization-jackson",
+    "ktor-server-call-id",
+    "ktor-server-call-logging",
+    "ktor-server-auth",
+    "ktor-server-metrics",
+    "ktor-server-status-pages",
+    "ktor-server-auth-jwt",
+    "ktor-server-netty",
+    "ktor-server-request-validation"
+]
+
+ktor-client = [
+    "ktor-client-core",
+    "ktor-client-cio",
+    "ktor-client-content-negotiation"
+]
+
+amt = [
+    "amt-kafka",
+    "amt-utils",
+    "amt-ktor",
+    "amt-outbox"
+]
+
+database = [
+    "hikari",
+    "flyway-core",
+    "flyway-postgres",
+    "postgresql",
+    "kotliquery"
+]
+
+logging = [
+    "logback-classic",
+    "logstash-encoder",
+    "nav-common-audit-log"
+]
+
+ktor-test = [
+    "ktor-server-test-host",
+    "ktor-client-mock"
+]
+
+kotest = [
+    "kotest-assertions-core",
+    "kotest-assertions-json"
+]
