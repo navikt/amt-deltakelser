@@ -1,0 +1,17 @@
+name: amt-deltaker - Deploy app
+on:
+  workflow_dispatch: # This workflow can be triggered manually
+  push:
+    paths:
+      - "amt-deltaker/**"
+
+permissions:
+  contents: write
+  id-token: write
+  security-events: write
+
+jobs:
+  call-deploy:
+    uses: ./.github/workflows/deploy-app.yml
+    with:
+      module-path: "amt-deltaker"

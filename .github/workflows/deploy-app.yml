@@ -1,0 +1,90 @@
+name: Deploy application
+
+on:
+  workflow_call:
+    inputs:
+      module-path:
+        required: true
+        type: string
+
+env:
+  PRINT_PAYLOAD: true
+
+jobs:
+  test-build-and-push:
+    permissions:
+      contents: "write"
+      id-token: "write"
+      security-events: "write"
+
+    name: Test, build and push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: 'gradle'
+
+      - name: Setup Gradle to generate and submit dependency graphs
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          dependency-graph: generate-and-submit
+
+      - name: Build artifacts
+        run: ./gradlew build installDist --no-daemon -p ${{ inputs.module-path }}
+
+      - name: docker-build-push
+        uses: nais/docker-build-push@v0
+        id: docker-build-push
+        with:
+          team: amt
+          tag: ${{ github.sha }}
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          dockerfile: ${{ inputs.module-path }}/Dockerfile
+    outputs:
+      image: ${{ steps.docker-build-push.outputs.image }}
+      telemetry: ${{ steps.docker-build-push.outputs.telemetry }}
+
+  deploy-dev:
+    name: Deploy application to dev
+    needs: test-build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Deploy application
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: ${{ inputs.module-path }}/.nais/nais-dev.yaml
+          VAR: image=${{ needs.test-build-and-push.outputs.image }}
+          VARS: ${{ inputs.module-path }}/.nais/vars-dev.yaml
+          TELEMETRY: ${{ needs.test-build-and-push.outputs.telemetry }}
+
+  deploy-prod:
+    name: Deploy application to prod
+    needs: [ test-build-and-push, deploy-dev ]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Deploy application
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: ${{ inputs.module-path }}/.nais/nais-prod.yaml
+          VAR: image=${{ needs.test-build-and-push.outputs.image }}
+          VARS: ${{ inputs.module-path }}/.nais/vars-prod.yaml
