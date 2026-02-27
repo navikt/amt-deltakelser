@@ -1,15 +1,19 @@
-name: Run tests for changed modules
+name: Run tests
+
 on:
-  push:
-    branches-ignore:
-      - main
+  workflow_call:
+    inputs:
+      module-path:
+        required: true
+        type: string
+
+permissions:
+  contents: "write"
 
 jobs:
   test:
-    permissions:
-      contents: write
+    name: Run tests
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -18,38 +22,11 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '25'
+          java-version: '24'
           cache: 'gradle'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Find changed modules
-        id: changes
-        run: |
-          # Get top-level directories that changed
-          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-            | cut -d/ -f1 | sort -u)
-          
-          echo "Changed modules: $CHANGED"
-          
-          COUNT=$(echo "$CHANGED" | wc -w)
-          
-          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
-          echo "count=$COUNT" >> $GITHUB_OUTPUT
-
       - name: Run tests
-        run: |
-          CHANGED="${{ steps.changes.outputs.changed }}"
-          COUNT=${{ steps.changes.outputs.count }}
-          
-          # Allowed single-module builds
-          TARGETS="amt-deltaker amt-deltaker-bff amt-distribusjon"
-          
-          if [ "$COUNT" -eq 1 ] && echo "$TARGETS" | grep -wq "$CHANGED"; then
-            echo "Only $CHANGED changed — building only that module"
-            ./gradlew ":$CHANGED:check" --no-daemon
-          else
-            echo "Multiple modules or shared code changed — building everything"
-            ./gradlew check --no-daemon
-          fi
+        run: ./gradlew check --no-daemon -p ${{ inputs.module-path }}

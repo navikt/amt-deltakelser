@@ -1,0 +1,17 @@
+name: amt-deltaker - Run tests
+on:
+  push:
+    paths:
+      - "amt-deltaker/**"
+      - ".github/dependabot.yml"
+    branches:
+      - main
+
+permissions:
+  contents: "write"
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/test.yml
+    with:
+      module-path: "amt-deltaker"
