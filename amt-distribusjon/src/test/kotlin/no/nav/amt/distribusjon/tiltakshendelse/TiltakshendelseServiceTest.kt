@@ -105,7 +105,7 @@ class TiltakshendelseServiceTest {
 
         @Test
         fun `handleHendelse - ny ForlengDeltakelse godkjennes - oppretter ny tiltakshendelse'`() = integrationTest { app, _ ->
-            val deltaker = DeltakerData.lagDeltaker()
+            val deltaker = DeltakerData.lagDeltakerResponse()
             val forslag = Forslag(
                 id = UUID.randomUUID(),
                 deltakerId = deltaker.id,
@@ -133,7 +133,7 @@ class TiltakshendelseServiceTest {
 
         @Test
         fun `handleHendelse - Flere hendelser på samme bruker - oppretter nye tiltakshendelse`() = integrationTest { app, _ ->
-            val deltaker = DeltakerData.lagDeltaker()
+            val deltaker = DeltakerData.lagDeltakerResponse()
             val forslag1 = Forslag(
                 id = UUID.randomUUID(),
                 deltakerId = deltaker.id,

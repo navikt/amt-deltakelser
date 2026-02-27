@@ -8,14 +8,15 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.distribusjon.testEnvironment
 import no.nav.amt.distribusjon.utils.ClientTestBase
 import no.nav.amt.distribusjon.utils.createMockHttpClient
-import no.nav.amt.distribusjon.utils.data.DeltakerData.lagDeltaker
+import no.nav.amt.distribusjon.utils.data.DeltakerData.lagDeltakerResponse
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class AmtDeltakerClientTest : ClientTestBase() {
     @Test
     fun `skal returnere deltakerliste nar getDeltaker kalles med gyldig respons`() {
-        val expectedDeltaker = lagDeltaker()
+        val expectedDeltaker = lagDeltakerResponse()
 
         val sut = createAmtDeltakerClient(
             responseBody = expectedDeltaker,
@@ -25,7 +26,7 @@ class AmtDeltakerClientTest : ClientTestBase() {
             sut.getDeltaker(deltakerId)
         }
 
-        actualDeltaker.deltakerliste shouldBe expectedDeltaker.deltakerliste
+        actualDeltaker.gjennomforing shouldBe expectedDeltaker.gjennomforing
     }
 
     @Test
@@ -43,7 +44,7 @@ class AmtDeltakerClientTest : ClientTestBase() {
         thrown.message shouldStartWith "Kunne ikke hente deltaker fra amt-deltaker."
     }
 
-    private fun createAmtDeltakerClient(statusCode: HttpStatusCode = HttpStatusCode.OK, responseBody: AmtDeltakerResponse? = null) =
+    private fun createAmtDeltakerClient(statusCode: HttpStatusCode = HttpStatusCode.OK, responseBody: DeltakerResponse? = null) =
         AmtDeltakerClient(
             httpClient = createMockHttpClient(ENDRINGSVEDTAK_URL, responseBody, statusCode),
             azureAdTokenClient = mockAzureAdTokenClient,

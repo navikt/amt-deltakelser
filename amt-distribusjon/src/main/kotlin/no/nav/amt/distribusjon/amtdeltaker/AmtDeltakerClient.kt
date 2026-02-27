@@ -9,6 +9,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.auth.AzureAdTokenClient
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import java.util.UUID
 
 class AmtDeltakerClient(
@@ -19,7 +20,7 @@ class AmtDeltakerClient(
     private val url = environment.amtDeltakerUrl
     private val scope = environment.amtDeltakerScope
 
-    suspend fun getDeltaker(deltakerId: UUID): AmtDeltakerResponse {
+    suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
         val response = httpClient.get("$url/deltaker/$deltakerId") {
             header(HttpHeaders.Authorization, token)

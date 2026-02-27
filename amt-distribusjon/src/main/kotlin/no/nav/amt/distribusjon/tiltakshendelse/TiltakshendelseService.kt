@@ -84,7 +84,7 @@ class TiltakshendelseService(
             lagreOgDistribuer(
                 forslag.toHendelse(
                     personIdent = deltaker.navBruker.personident,
-                    tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                    tiltakskode = deltaker.gjennomforing.tiltakstype.tiltakskode,
                     aktiv = true,
                 ),
             )
