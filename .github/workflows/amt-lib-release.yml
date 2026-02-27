@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "amt-lib/**"
+      - "buildSrc/src/main/kotlin/amt-lib.conventions.gradle.kts"
     branches:
       - main
 

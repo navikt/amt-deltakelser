@@ -23,14 +23,14 @@ java {
 
 publishing {
     publications {
-        create<MavenPublication>("amt-deltakelser") {
+        create<MavenPublication>("amt-lib") {
             from(components["java"])
         }
     }
 
     repositories {
         maven {
-            url = URI("https://maven.pkg.github.com/navikt/amt-lib")
+            url = URI("https://maven.pkg.github.com/navikt/amt-deltakelser")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
