@@ -1,9 +1,9 @@
 name: amt-deltaker-bff - Deploy app
 on:
   workflow_dispatch: # This workflow can be triggered manually
-  push:
-    paths:
-      - "amt-deltaker-bff/**"
+#  push:
+#    paths:
+#      - "amt-deltaker-bff/**"
 
 permissions:
   contents: write

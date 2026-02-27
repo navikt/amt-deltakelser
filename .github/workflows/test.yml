@@ -1,18 +1,19 @@
-name: Run tests
+name: Run tests for changed modules
 on:
   push:
     branches-ignore:
       - main
+
 jobs:
   test:
     permissions:
-      contents: "write"
-
-    name: Run tests
+      contents: write
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -23,5 +24,30 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Run tests
-        run: ./gradlew check --no-daemon
+      - name: Find changed modules
+        id: changes
+        run: |
+          # Get list of top-level directories changed in this push/PR
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+            | grep '^[^/]\+' | awk '{print $1}' | sort -u)
+          
+          if [ -z "$CHANGED" ]; then
+            echo "No modules changed"
+          else
+            echo "Changed modules: $CHANGED"
+          fi
+          
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+
+      - name: Run tests for changed modules
+        run: |
+          if [ -z "${{ steps.changes.outputs.changed }}" ]; then
+            echo "No modules changed — skipping tests."
+          else
+            for module in ${{ steps.changes.outputs.changed }}; do
+              # Convert folder name to Gradle project path
+              gradle_path=$(echo "$module" | tr '/' ':')
+              echo "Running tests for $gradle_path"
+              ./gradlew "$gradle_path:check" --no-daemon || exit 1
+            done
+          fi

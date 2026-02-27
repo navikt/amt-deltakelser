@@ -23,7 +23,7 @@ java {
 
 publishing {
     publications {
-        create<MavenPublication>("amt-lib") {
+        create<MavenPublication>("amt-deltakelser") {
             from(components["java"])
         }
     }
@@ -39,13 +39,7 @@ publishing {
     }
 }
 
-sourceSets {
-    main {
-        resources.srcDir("src/main/resource")
-    }
-}
-
-tasks.withType<Test> {
+tasks.named<Test>("test") {
     useJUnitPlatform()
     jvmArgs(
         "-Xshare:off",
