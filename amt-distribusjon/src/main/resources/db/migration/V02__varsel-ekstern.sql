@@ -1,0 +1,1 @@
+alter table varsel add column skal_varsle_eksternt boolean default false;

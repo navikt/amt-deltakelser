@@ -1,0 +1,1 @@
+CREATE INDEX varsel_revarsles_idx ON varsel (revarsles);

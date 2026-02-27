@@ -1,0 +1,1 @@
+CREATE INDEX varsel_hendelser_gin_idx ON varsel USING gin (hendelser);
