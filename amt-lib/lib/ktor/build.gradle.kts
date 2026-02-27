@@ -4,19 +4,17 @@ plugins {
 }
 
 dependencies {
-    api(project(":lib:models"))
-    api(project(":lib:utils"))
-    api(libs.jackson.kotlin)
-    api(libs.caffeine)
-    api(libs.logback)
-    api(libs.ktor.client.core)
-    api(libs.ktor.server.core)
+    // --- Ktor ---
+    implementation(platform(libs.ktor.bom))
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.server.core)
 
-    testImplementation(project(":lib:testing"))
-    testImplementation(libs.kotlin.test.junit5)
-    testImplementation(libs.junit.jupiter.params)
-    testImplementation(libs.kotest.assertions.core)
-    testImplementation(libs.mockk)
+    api(project(":amt-lib:lib:models"))
+    api(project(":amt-lib:lib:utils"))
+
+    api(libs.caffeine)
+
+    testImplementation(project(":amt-lib:lib:testing"))
 
     testImplementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.ktor.client.mock)
@@ -24,5 +22,5 @@ dependencies {
 }
 
 ktlint {
-    version = "1.7.1"
+    version = libs.versions.ktlint.cli.version
 }

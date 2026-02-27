@@ -1,26 +1,20 @@
 plugins {
-    alias(libs.plugins.serialization)
     id("amt-lib.conventions")
 }
 
 dependencies {
-    implementation(libs.logback)
-    implementation(libs.hikari.cp)
-    implementation(libs.postgresql)
-    implementation(libs.flyway.core)
-    implementation(libs.flyway.postgres)
-    implementation(libs.kotliquery)
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.jackson.kotlin)
-    implementation(libs.jackson.jsr310)
-    implementation(libs.unleash.client)
-    implementation(project(":lib:models"))
+    implementation(project(":amt-lib:lib:models"))
 
-    testImplementation(project(":lib:testing"))
-    testImplementation(libs.kotlin.test.junit5)
-    testImplementation(libs.junit.jupiter.engine)
-    testImplementation(libs.kotest.assertions.core)
-    testImplementation(libs.kotest.assertions.json)
+    api(libs.logback.classic)
+
+    implementation(libs.bundles.database)
+
+    api(libs.jackson.module.kotlin)
+    api(libs.jackson.datatype.jsr310)
+
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.unleash)
+
+    testImplementation(project(":amt-lib:lib:testing"))
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockk)
 }
