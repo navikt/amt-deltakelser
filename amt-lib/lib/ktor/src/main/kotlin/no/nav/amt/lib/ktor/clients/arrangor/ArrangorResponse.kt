@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.arrangor
+package no.nav.amt.lib.ktor.clients.arrangor
 
 import no.nav.amt.lib.models.deltaker.Arrangor
 import java.util.UUID

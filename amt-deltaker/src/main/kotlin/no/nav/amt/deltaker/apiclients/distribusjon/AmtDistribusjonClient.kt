@@ -4,8 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.deltaker.bff.apiclients.distribusjon.DigitalBrukerRequest
-import no.nav.amt.deltaker.bff.apiclients.distribusjon.DigitalBrukerResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess

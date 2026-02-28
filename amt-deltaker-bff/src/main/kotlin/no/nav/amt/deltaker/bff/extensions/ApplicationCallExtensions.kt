@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.extensions
+package no.nav.amt.deltaker.bff.extensions
 
 import io.ktor.server.application.ApplicationCall
 import no.nav.amt.deltaker.bff.deltaker.api.headerNotNull

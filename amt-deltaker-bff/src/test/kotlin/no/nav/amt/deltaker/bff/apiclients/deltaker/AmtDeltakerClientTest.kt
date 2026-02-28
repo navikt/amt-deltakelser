@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
-import no.nav.amt.deltaker.bff.utils.withLogCapture
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest
@@ -29,6 +28,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoReq
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
+import no.nav.amt.lib.testing.utils.withLogCapture
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

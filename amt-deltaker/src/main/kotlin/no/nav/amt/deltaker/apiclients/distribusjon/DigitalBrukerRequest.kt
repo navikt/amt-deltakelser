@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.distribusjon
+package no.nav.amt.deltaker.apiclients.distribusjon
 
 data class DigitalBrukerRequest(
     val personident: String,

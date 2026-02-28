@@ -83,7 +83,7 @@ class DokarkivClient(
             dokumenter =
                 listOf(
                     Dokument(
-                        brevkode = getBrevkode(), // Denne verdien har ikke noen betydning utrnom hvis man skal gjøre feilsøking i joark
+                        brevkode = "tiltak-vedtak", // Denne verdien har ikke noen betydning utrnom hvis man skal gjøre feilsøking i joark
                         dokumentvarianter =
                             listOf(
                                 DokumentVariant(
@@ -103,6 +103,4 @@ class DokarkivClient(
             tittel = journalpostNavn,
             eksternReferanseId = hendelseId.toString(),
         )
-
-    private fun getBrevkode(): String = "tiltak-vedtak"
 }

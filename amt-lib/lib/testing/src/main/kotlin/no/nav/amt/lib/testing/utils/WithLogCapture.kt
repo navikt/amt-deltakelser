@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.utils
+package no.nav.amt.lib.testing.utils
 
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent

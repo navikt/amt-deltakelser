@@ -5,7 +5,6 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.bff.apiclients.arrangor.ArrangorResponse
 import no.nav.amt.lib.ktor.clients.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.TestData
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor

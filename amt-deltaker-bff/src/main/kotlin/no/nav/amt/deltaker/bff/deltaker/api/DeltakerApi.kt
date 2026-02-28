@@ -42,12 +42,12 @@ import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.extensions.getDeltakerId
+import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
+import no.nav.amt.deltaker.bff.extensions.getForslagId
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
-import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.deltaker.extensions.getEnhetsnummer
-import no.nav.amt.deltaker.extensions.getForslagId
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest

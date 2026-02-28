@@ -83,7 +83,7 @@ class ResponseBuilder(
                 enheter[vedtaksinformasjon.opprettetAvEnhet]?.navn ?: throw IllegalStateException("Fant ikke opprettet av enhet"),
             sistEndret = vedtaksinformasjon.sistEndret,
             sistEndretAv = vedtakSistEndretAv?.navn,
-            sistEndretAvEnhet = enheter.get(vedtaksinformasjon.sistEndretAvEnhet)?.navn,
+            sistEndretAvEnhet = enheter[vedtaksinformasjon.sistEndretAvEnhet]?.navn,
         )
     }
 
