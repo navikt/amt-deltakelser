@@ -9,7 +9,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.testApplication
 import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerClient
-import no.nav.amt.distribusjon.application.isReadyKey
 import no.nav.amt.distribusjon.application.plugins.applicationConfig
 import no.nav.amt.distribusjon.application.plugins.configureAuthentication
 import no.nav.amt.distribusjon.application.plugins.configureRouting
@@ -43,6 +42,7 @@ import no.nav.amt.distribusjon.varsel.VarselService
 import no.nav.amt.distribusjon.varsel.hendelse.VarselHendelseConsumer
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxRecord
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.SingletonKafkaProvider

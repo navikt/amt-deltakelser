@@ -23,7 +23,6 @@ import no.nav.amt.distribusjon.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.distribusjon.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.distribusjon.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
 import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerClient
-import no.nav.amt.distribusjon.application.isReadyKey
 import no.nav.amt.distribusjon.application.plugins.applicationConfig
 import no.nav.amt.distribusjon.application.plugins.configureAuthentication
 import no.nav.amt.distribusjon.application.plugins.configureMonitoring
@@ -54,6 +53,7 @@ import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.database.Database

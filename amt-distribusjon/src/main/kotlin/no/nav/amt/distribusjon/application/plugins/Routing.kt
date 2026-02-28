@@ -11,11 +11,11 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import no.nav.amt.distribusjon.application.registerHealthApi
 import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
 import no.nav.amt.distribusjon.digitalbruker.api.registerDigitalBrukerApi
 import no.nav.amt.distribusjon.internal.registerInternalApi
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
+import no.nav.amt.lib.ktor.routing.registerHealthApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
