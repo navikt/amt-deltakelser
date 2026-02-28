@@ -12,8 +12,8 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.application.plugins.objectMapper
-import no.nav.amt.distribusjon.auth.AzureAdTokenClient
 import no.nav.amt.distribusjon.veilarboppfolging.Sak
+import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

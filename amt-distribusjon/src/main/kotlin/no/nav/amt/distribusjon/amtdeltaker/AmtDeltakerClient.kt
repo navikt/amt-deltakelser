@@ -8,7 +8,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import no.nav.amt.distribusjon.Environment
-import no.nav.amt.distribusjon.auth.AzureAdTokenClient
+import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import java.util.UUID
 

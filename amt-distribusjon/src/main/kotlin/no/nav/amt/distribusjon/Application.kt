@@ -29,7 +29,6 @@ import no.nav.amt.distribusjon.application.plugins.configureMonitoring
 import no.nav.amt.distribusjon.application.plugins.configureRouting
 import no.nav.amt.distribusjon.application.plugins.configureSerialization
 import no.nav.amt.distribusjon.arrangormelding.ArrangorMeldingConsumer
-import no.nav.amt.distribusjon.auth.AzureAdTokenClient
 import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
 import no.nav.amt.distribusjon.distribusjonskanal.DokdistkanalClient
 import no.nav.amt.distribusjon.hendelse.HendelseConsumer
@@ -53,6 +52,7 @@ import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
@@ -133,7 +133,14 @@ fun Application.module() {
     val leaderElection = LeaderElectionClient(leaderProvider, environment.leaderElectorUrl)
     val jobManager = JobManager(leaderElection::isLeader, ::isReady)
 
-    val azureAdTokenClient = AzureAdTokenClient(httpClient, environment)
+    val azureAdTokenClient =
+        AzureAdTokenClient(
+            azureAdTokenUrl = environment.azureAdTokenUrl,
+            clientId = environment.azureClientId,
+            clientSecret = environment.azureClientSecret,
+            httpClient = httpClient,
+        )
+
     val pdfgenClient = PdfgenClient(httpClient, environment)
     val amtPersonClient = AmtPersonClient(httpClient, azureAdTokenClient, environment)
     val amtDeltakerClient = AmtDeltakerClient(httpClient, azureAdTokenClient, environment)

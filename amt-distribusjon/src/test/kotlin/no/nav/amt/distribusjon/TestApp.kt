@@ -14,7 +14,6 @@ import no.nav.amt.distribusjon.application.plugins.configureAuthentication
 import no.nav.amt.distribusjon.application.plugins.configureRouting
 import no.nav.amt.distribusjon.application.plugins.configureSerialization
 import no.nav.amt.distribusjon.arrangormelding.ArrangorMeldingConsumer
-import no.nav.amt.distribusjon.auth.AzureAdTokenClient
 import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
 import no.nav.amt.distribusjon.distribusjonskanal.DokdistkanalClient
 import no.nav.amt.distribusjon.hendelse.HendelseConsumer
@@ -42,6 +41,7 @@ import no.nav.amt.distribusjon.varsel.VarselService
 import no.nav.amt.distribusjon.varsel.hendelse.VarselHendelseConsumer
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxRecord
 import no.nav.amt.lib.outbox.OutboxService
@@ -82,7 +82,7 @@ class TestApp {
 
         outboxService = OutboxService()
 
-        azureAdTokenClient = mockAzureAdClient(environment)
+        azureAdTokenClient = mockAzureAdClient()
         pdfgenClient = mockPdfgenClient(environment)
         amtPersonClient = mockAmtPersonClient(azureAdTokenClient, environment)
         veilarboppfolgingClient =

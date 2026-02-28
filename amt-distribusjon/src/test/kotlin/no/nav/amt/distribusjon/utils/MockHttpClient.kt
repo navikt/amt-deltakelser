@@ -20,7 +20,6 @@ import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerClient
 import no.nav.amt.distribusjon.application.plugins.applicationConfig
 import no.nav.amt.distribusjon.application.plugins.objectMapper
-import no.nav.amt.distribusjon.auth.AzureAdTokenClient
 import no.nav.amt.distribusjon.distribusjonskanal.BestemDistribusjonskanalRequest
 import no.nav.amt.distribusjon.distribusjonskanal.BestemDistribusjonskanalResponse
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
@@ -40,6 +39,7 @@ import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.veilarboppfolging.ManuellStatusRequest
 import no.nav.amt.distribusjon.veilarboppfolging.ManuellV2Response
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
+import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import java.util.UUID
 
@@ -133,8 +133,11 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     }
 }
 
-fun mockAzureAdClient(environment: Environment) =
+fun mockAzureAdClient() =
     AzureAdTokenClient(
+        azureAdTokenUrl = "http://azure",
+        clientId = "clientId",
+        clientSecret = "secret",
         httpClient =
             mockHttpClient(
                 """
@@ -145,7 +148,6 @@ fun mockAzureAdClient(environment: Environment) =
                 }
                 """.trimIndent(),
             ),
-        environment,
     )
 
 fun mockPdfgenClient(environment: Environment) =
