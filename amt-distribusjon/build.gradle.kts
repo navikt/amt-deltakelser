@@ -8,4 +8,4 @@ dependencies {
     implementation(libs.tms.varsel.kotlin.builder)
 }
 
-application { mainClass.set("no.nav.amt.distribusjon.ApplicationKt") }
+application { mainClass = "no.nav.amt.distribusjon.ApplicationKt" }

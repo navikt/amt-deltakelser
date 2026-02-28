@@ -14,4 +14,4 @@ dependencies {
     implementation(libs.unleash)
 }
 
-application { mainClass.set("no.nav.amt.deltaker.bff.ApplicationKt") }
+application { mainClass = "no.nav.amt.deltaker.bff.ApplicationKt" }
