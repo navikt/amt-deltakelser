@@ -70,14 +70,14 @@ Felleskode for alle applikasjonene:
 ## Bygg
 For å bygge alle modulene i **amt-deltakelser**, gjør følgende:
 
-1. Klon repoet:
+Klon repoet:
 
 ```bash
 git clone git@github.com:navikt/amt-deltakelser.git
 cd amt-deltakelser
 ```
 
-Kjør build med Gradle Wrapper:
+Kjør deretter build med Gradle Wrapper:
 ```bash
 ./gradlew build
 ```
