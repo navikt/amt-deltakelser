@@ -10,13 +10,11 @@ on:
 env:
   PRINT_PAYLOAD: true
 
+permissions:
+  id-token: write
+
 jobs:
   test-build-and-push:
-    permissions:
-      contents: "write"
-      id-token: "write"
-      security-events: "write"
-
     name: Test, build and push
     runs-on: ubuntu-latest
     steps:
@@ -57,8 +55,6 @@ jobs:
     name: Deploy application to dev
     needs: test-build-and-push
     runs-on: ubuntu-latest
-    permissions:
-      id-token: "write"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -76,8 +72,6 @@ jobs:
     name: Deploy application to prod
     needs: [ test-build-and-push, deploy-dev ]
     runs-on: ubuntu-latest
-    permissions:
-      id-token: "write"
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout

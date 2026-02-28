@@ -7,9 +7,6 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: "write"
-
 jobs:
   test:
     name: Run tests

@@ -7,9 +7,6 @@ on:
     branches-ignore:
       - main
 
-permissions:
-  contents: "write"
-
 jobs:
   run-tests:
     uses: ./.github/workflows/test.yml

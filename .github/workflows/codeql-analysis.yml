@@ -16,8 +16,6 @@ jobs:
     name: Analyze
     runs-on: ubuntu-latest
     permissions:
-      actions: read
-      contents: read
       security-events: write
     strategy:
       fail-fast: false
@@ -80,7 +78,6 @@ jobs:
     needs: analyze
     if: github.event_name == 'pull_request'  # only run on PRs
     permissions:
-      contents: read
       checks: read
       pull-requests: read
     runs-on: ubuntu-latest
