@@ -11,15 +11,16 @@ import java.time.LocalDate
 class AvsluttDeltakelseRequestTest {
     @Test
     fun `AvsluttDeltakelseRequest skal serialisere og deserialisere korrekt`() {
-        val request = AvsluttDeltakelseRequest(
-            endretAv = "test",
-            endretAvEnhet = "test-enhet",
-            forslagId = null,
-            sluttdato = LocalDate.now(),
-            aarsak = null,
-            begrunnelse = null,
-            harFullfort = true
-        )
+        val request =
+            AvsluttDeltakelseRequest(
+                endretAv = "test",
+                endretAvEnhet = "test-enhet",
+                forslagId = null,
+                sluttdato = LocalDate.now(),
+                aarsak = null,
+                begrunnelse = null,
+                harFullfort = true,
+            )
 
         val json = objectMapper.writeValueAsString(request)
 

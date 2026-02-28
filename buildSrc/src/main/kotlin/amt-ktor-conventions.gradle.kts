@@ -47,7 +47,7 @@ kotlin {
 }
 
 ktlint {
-    version = libsWrapper.getVersion("ktlint-cli-version")
+    version = libsWrapper.getVersion("ktlint.cli.version")
 }
 
 application {

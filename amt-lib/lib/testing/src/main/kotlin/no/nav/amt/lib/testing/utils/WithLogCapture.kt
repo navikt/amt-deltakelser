@@ -13,12 +13,16 @@ import kotlin.apply
  * @param loggerName The fully qualified logger name
  * @param block The suspend function block to run while capturing logs.
  */
-fun withLogCapture(loggerName: String, block: suspend (List<ILoggingEvent>) -> Unit) {
+fun withLogCapture(
+    loggerName: String,
+    block: suspend (List<ILoggingEvent>) -> Unit,
+) {
     val logger = LoggerFactory.getLogger(loggerName) as Logger
-    val appender = ListAppender<ILoggingEvent>().apply {
-        start()
-        logger.addAppender(this)
-    }
+    val appender =
+        ListAppender<ILoggingEvent>().apply {
+            start()
+            logger.addAppender(this)
+        }
 
     try {
         runBlocking { block(appender.list) }

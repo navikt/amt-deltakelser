@@ -19,5 +19,3 @@ dependencies {
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.ktor.serialization.jackson)
 }
-
-// TODO ktlint { version = libs.versions.ktlint.cli.version }

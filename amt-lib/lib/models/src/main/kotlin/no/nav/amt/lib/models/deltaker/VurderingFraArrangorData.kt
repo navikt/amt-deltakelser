@@ -2,9 +2,9 @@ package no.nav.amt.lib.models.deltaker
 
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
-class VurderingFraArrangorData (
+class VurderingFraArrangorData(
     val id: UUID,
     val deltakerId: UUID,
     val vurderingstype: Vurderingstype,

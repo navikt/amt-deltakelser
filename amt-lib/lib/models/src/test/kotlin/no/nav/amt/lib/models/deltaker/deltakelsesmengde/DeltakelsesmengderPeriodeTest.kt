@@ -74,49 +74,52 @@ class DeltakelsesmengderPeriodeTest {
         val fraDato = "2024-01-15".toDate()
         val tilDato = "2024-01-31".toDate()
 
-        val ugyldigeDeltakelsesmengder = listOf(
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 90,
-                gyldigFra = "2024-01-10".toDate(),
-                opprettet = "2024-01-05".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 80,
-                gyldigFra = "2024-01-10".toDate(),
-                opprettet = "2024-01-06".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 70,
-                gyldigFra = "2024-01-05".toDate(),
-                opprettet = "2024-01-10".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 60,
-                gyldigFra = "2024-01-15".toDate(),
-                opprettet = "2024-01-11".toDateTime(),
-            ),
-        )
+        val ugyldigeDeltakelsesmengder =
+            listOf(
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 90,
+                    gyldigFra = "2024-01-10".toDate(),
+                    opprettet = "2024-01-05".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 80,
+                    gyldigFra = "2024-01-10".toDate(),
+                    opprettet = "2024-01-06".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 70,
+                    gyldigFra = "2024-01-05".toDate(),
+                    opprettet = "2024-01-10".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 60,
+                    gyldigFra = "2024-01-15".toDate(),
+                    opprettet = "2024-01-11".toDateTime(),
+                ),
+            )
 
-        val gyldigeDeltakelsesmengder = listOf(
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 69,
-                gyldigFra = "2024-01-01".toDate(),
-                opprettet = "2024-01-14".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 100,
-                gyldigFra = "2024-01-15".toDate(),
-                opprettet = "2024-01-15".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 90,
-                gyldigFra = "2024-01-30".toDate(),
-                opprettet = "2024-01-25".toDateTime(),
-            ),
-        )
-        val historikk = TestData.lagDeltakerHistorikk(
-            endringer = gyldigeDeltakelsesmengder + ugyldigeDeltakelsesmengder,
-        )
+        val gyldigeDeltakelsesmengder =
+            listOf(
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 69,
+                    gyldigFra = "2024-01-01".toDate(),
+                    opprettet = "2024-01-14".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 100,
+                    gyldigFra = "2024-01-15".toDate(),
+                    opprettet = "2024-01-15".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 90,
+                    gyldigFra = "2024-01-30".toDate(),
+                    opprettet = "2024-01-25".toDateTime(),
+                ),
+            )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                endringer = gyldigeDeltakelsesmengder + ugyldigeDeltakelsesmengder,
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(fraDato, tilDato)
 
@@ -129,49 +132,52 @@ class DeltakelsesmengderPeriodeTest {
         val fraDato = "2024-01-01".toDate()
         val tilDato = null
 
-        val ugyldigeDeltakelsesmengder = listOf(
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 90,
-                gyldigFra = "2024-01-10".toDate(),
-                opprettet = "2024-01-05".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 80,
-                gyldigFra = "2024-01-10".toDate(),
-                opprettet = "2024-01-06".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 70,
-                gyldigFra = "2024-01-05".toDate(),
-                opprettet = "2024-01-10".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 60,
-                gyldigFra = "2024-01-15".toDate(),
-                opprettet = "2024-01-11".toDateTime(),
-            ),
-        )
+        val ugyldigeDeltakelsesmengder =
+            listOf(
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 90,
+                    gyldigFra = "2024-01-10".toDate(),
+                    opprettet = "2024-01-05".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 80,
+                    gyldigFra = "2024-01-10".toDate(),
+                    opprettet = "2024-01-06".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 70,
+                    gyldigFra = "2024-01-05".toDate(),
+                    opprettet = "2024-01-10".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 60,
+                    gyldigFra = "2024-01-15".toDate(),
+                    opprettet = "2024-01-11".toDateTime(),
+                ),
+            )
 
-        val gyldigeDeltakelsesmengder = listOf(
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 69,
-                gyldigFra = "2024-01-01".toDate(),
-                opprettet = "2024-01-14".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 100,
-                gyldigFra = "2024-01-15".toDate(),
-                opprettet = "2024-01-15".toDateTime(),
-            ),
-            TestData.lagEndreDeltakelsesmengde(
-                deltakelsesprosent = 90,
-                gyldigFra = "2024-01-30".toDate(),
-                opprettet = "2024-01-25".toDateTime(),
-            ),
-        )
-        val historikk = TestData.lagDeltakerHistorikk(
-            endringer = gyldigeDeltakelsesmengder + ugyldigeDeltakelsesmengder,
-        )
+        val gyldigeDeltakelsesmengder =
+            listOf(
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 69,
+                    gyldigFra = "2024-01-01".toDate(),
+                    opprettet = "2024-01-14".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 100,
+                    gyldigFra = "2024-01-15".toDate(),
+                    opprettet = "2024-01-15".toDateTime(),
+                ),
+                TestData.lagEndreDeltakelsesmengde(
+                    deltakelsesprosent = 90,
+                    gyldigFra = "2024-01-30".toDate(),
+                    opprettet = "2024-01-25".toDateTime(),
+                ),
+            )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                endringer = gyldigeDeltakelsesmengder + ugyldigeDeltakelsesmengder,
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(fraDato, tilDato)
 
@@ -184,11 +190,12 @@ class DeltakelsesmengderPeriodeTest {
         val fraDato = "2024-01-01".toDate()
         val tilDato = "2024-01-31".toDate()
 
-        val ugyldigDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 90,
-            gyldigFra = "2024-01-01".toDate(),
-            opprettet = "2024-01-05".toDateTime(),
-        )
+        val ugyldigDeltakelsesmengde =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 90,
+                gyldigFra = "2024-01-01".toDate(),
+                opprettet = "2024-01-05".toDateTime(),
+            )
         val gyldigDeltakelsesmengde =
             TestData.lagEndreDeltakelsesmengde(
                 deltakelsesprosent = 69,
@@ -196,9 +203,10 @@ class DeltakelsesmengderPeriodeTest {
                 opprettet = "2024-01-14".toDateTime(),
             )
 
-        val historikk = TestData.lagDeltakerHistorikk(
-            endringer = listOf(gyldigDeltakelsesmengde, ugyldigDeltakelsesmengde),
-        )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                endringer = listOf(gyldigDeltakelsesmengde, ugyldigDeltakelsesmengde),
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(fraDato, tilDato)
 

@@ -31,18 +31,19 @@ class NavBrukerDtoTest {
 
     @Test
     fun `Skal mappe NavBrukerDto til NavBruker nar kun pakrevde felter er satt`() {
-        val navBruker = brukerDtoInTest
-            .copy(
-                mellomnavn = null,
-                navVeilederId = null,
-                navEnhet = null,
-                telefon = null,
-                epost = null,
-                adresse = null,
-                adressebeskyttelse = null,
-                oppfolgingsperioder = emptyList(),
-                innsatsgruppe = null,
-            ).toModel()
+        val navBruker =
+            brukerDtoInTest
+                .copy(
+                    mellomnavn = null,
+                    navVeilederId = null,
+                    navEnhet = null,
+                    telefon = null,
+                    epost = null,
+                    adresse = null,
+                    adressebeskyttelse = null,
+                    oppfolgingsperioder = emptyList(),
+                    innsatsgruppe = null,
+                ).toModel()
 
         assertSoftly(navBruker) {
             mellomnavn shouldBe null

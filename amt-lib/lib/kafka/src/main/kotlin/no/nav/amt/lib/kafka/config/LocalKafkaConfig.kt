@@ -10,9 +10,10 @@ class LocalKafkaConfig(
     private val kafkaBrokers: String = System.getenv("KAFKA_BROKERS") ?: "localhost:9092",
     private val kafkaAutoOffsetReset: String = "earliest",
 ) : KafkaConfig {
-    override fun commonConfig() = mapOf(
-        CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers,
-    )
+    override fun commonConfig() =
+        mapOf(
+            CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers,
+        )
 
     override fun <K, V> consumerConfig(
         keyDeserializer: Deserializer<K>,
@@ -27,12 +28,13 @@ class LocalKafkaConfig(
         ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG to MAX_POLL_INTERVAL_MS,
     ) + commonConfig()
 
-    override fun producerConfig() = mapOf(
-        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-        ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,
-        ProducerConfig.ACKS_CONFIG to "all",
-        ProducerConfig.RETRIES_CONFIG to Int.MAX_VALUE,
-        ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to 5,
-    ) + commonConfig()
+    override fun producerConfig() =
+        mapOf(
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,
+            ProducerConfig.ACKS_CONFIG to "all",
+            ProducerConfig.RETRIES_CONFIG to Int.MAX_VALUE,
+            ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to 5,
+        ) + commonConfig()
 }

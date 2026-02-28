@@ -31,11 +31,12 @@ class OutboxProcessorTest {
     private val kafkaConfig = LocalKafkaConfig(SingletonKafkaProvider.getHost())
     private val kafkaProducer = Producer<String, String>(kafkaConfig)
 
-    private val outboxProcessor = OutboxProcessor(
-        outboxService = outboxService,
-        jobManager = JobManager({ true }, { true }),
-        producer = kafkaProducer,
-    )
+    private val outboxProcessor =
+        OutboxProcessor(
+            outboxService = outboxService,
+            jobManager = JobManager({ true }, { true }),
+            producer = kafkaProducer,
+        )
 
     private val testTopic = "outbox-test-topic"
     private val failingTestTopic = "INVALID TOPIC NAME!"
@@ -157,7 +158,10 @@ class OutboxProcessorTest {
         )
     }
 
-    private fun verifyProducedRecord(record: OutboxRecord, topic: String = testTopic) = assertProduced(topic) {
+    private fun verifyProducedRecord(
+        record: OutboxRecord,
+        topic: String = testTopic,
+    ) = assertProduced(topic) {
         AsyncUtils.eventually {
             val value = objectMapper.readTree(it[record.key])
 

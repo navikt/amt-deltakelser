@@ -23,20 +23,21 @@ data class NavBrukerDto(
     val oppfolgingsperioder: List<Oppfolgingsperiode> = emptyList(),
     val innsatsgruppe: Innsatsgruppe? = null,
 ) {
-    fun toModel(): NavBruker = NavBruker(
-        personId = personId,
-        personident = personident,
-        fornavn = fornavn,
-        mellomnavn = mellomnavn,
-        etternavn = etternavn,
-        navVeilederId = navVeilederId,
-        navEnhetId = navEnhet?.id,
-        telefon = telefon,
-        epost = epost,
-        erSkjermet = erSkjermet,
-        adresse = adresse,
-        adressebeskyttelse = adressebeskyttelse,
-        oppfolgingsperioder = oppfolgingsperioder,
-        innsatsgruppe = innsatsgruppe,
-    )
+    fun toModel(): NavBruker =
+        NavBruker(
+            personId = personId,
+            personident = personident,
+            fornavn = fornavn,
+            mellomnavn = mellomnavn,
+            etternavn = etternavn,
+            navVeilederId = navVeilederId,
+            navEnhetId = navEnhet?.id,
+            telefon = telefon,
+            epost = epost,
+            erSkjermet = erSkjermet,
+            adresse = adresse,
+            adressebeskyttelse = adressebeskyttelse,
+            oppfolgingsperioder = oppfolgingsperioder,
+            innsatsgruppe = innsatsgruppe,
+        )
 }

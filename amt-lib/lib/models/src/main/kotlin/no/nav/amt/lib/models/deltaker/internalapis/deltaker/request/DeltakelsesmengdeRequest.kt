@@ -13,10 +13,11 @@ data class DeltakelsesmengdeRequest(
     val begrunnelse: String?,
     val gyldigFra: LocalDate?,
 ) : EndringForslagRequest {
-    override fun toEndring() = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-        deltakelsesprosent = this.deltakelsesprosent?.toFloat(),
-        dagerPerUke = this.dagerPerUke?.toFloat(),
-        begrunnelse = this.begrunnelse,
-        gyldigFra = this.gyldigFra,
-    )
+    override fun toEndring() =
+        DeltakerEndring.Endring.EndreDeltakelsesmengde(
+            deltakelsesprosent = this.deltakelsesprosent?.toFloat(),
+            dagerPerUke = this.dagerPerUke?.toFloat(),
+            begrunnelse = this.begrunnelse,
+            gyldigFra = this.gyldigFra,
+        )
 }

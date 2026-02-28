@@ -5,6 +5,7 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+
 /*
     Dette objektet representerer en endring på deltaker
     Det brukes til å populere deltakerhistorikk(sammen med EndringFraArrangor), og

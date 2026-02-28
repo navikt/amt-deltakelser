@@ -15,10 +15,11 @@ class Deltakelsesmengder(
     mengder: List<Deltakelsesmengde>,
     startdatoer: List<LocalDate> = emptyList(),
 ) : List<Deltakelsesmengde> {
-    private val deltakelsesmengder = mengder
-        .let(::sorterMengder)
-        .let(::finnGyldigeDeltakelsesmengder)
-        .let { avgrensPeriodeTilSisteStartdato(it, startdatoer) }
+    private val deltakelsesmengder =
+        mengder
+            .let(::sorterMengder)
+            .let(::finnGyldigeDeltakelsesmengder)
+            .let { avgrensPeriodeTilSisteStartdato(it, startdatoer) }
 
     val gjeldende = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() } ?: deltakelsesmengder.firstOrNull()
 
@@ -39,8 +40,10 @@ class Deltakelsesmengder(
     /**
      * Finner hvilke deltakelsesmengder som var gjeldende for perioden f.o.m. t.o.m.
      */
-    fun periode(fraOgMed: LocalDate, tilOgMed: LocalDate?): Deltakelsesmengder =
-        Deltakelsesmengder(periode(deltakelsesmengder, fraOgMed, tilOgMed))
+    fun periode(
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate?,
+    ): Deltakelsesmengder = Deltakelsesmengder(periode(deltakelsesmengder, fraOgMed, tilOgMed))
 
     /**
      * Validerer om ny deltakelsesmengde fører til en endring av gjeldende deltakelsesmengder for hele deltakelsen eller ikke.
@@ -105,7 +108,10 @@ class Deltakelsesmengder(
         return startdatoer.fold(deltakelsesmengder) { periode, startdato -> justerGyldigFra(periode, startdato) }
     }
 
-    private fun justerGyldigFra(deltakelsesmengder: List<Deltakelsesmengde>, startdato: LocalDate): List<Deltakelsesmengde> {
+    private fun justerGyldigFra(
+        deltakelsesmengder: List<Deltakelsesmengde>,
+        startdato: LocalDate,
+    ): List<Deltakelsesmengde> {
         val periode = periode(deltakelsesmengder = deltakelsesmengder, startdato, null).toMutableList()
 
         val justert = periode.firstOrNull()?.copy(gyldigFra = startdato) ?: return periode
@@ -120,20 +126,23 @@ class Deltakelsesmengder(
         fraOgMed: LocalDate,
         tilOgMed: LocalDate?,
     ): List<Deltakelsesmengde> {
-        val initialDeltakelsesmengde = deltakelsesmengder
-            .filter { it.gyldigFra <= fraOgMed }
-            .maxByOrNull { it.gyldigFra }
+        val initialDeltakelsesmengde =
+            deltakelsesmengder
+                .filter { it.gyldigFra <= fraOgMed }
+                .maxByOrNull { it.gyldigFra }
 
-        val endringerIPerioden = deltakelsesmengder
-            .filter {
-                val mengdeErIPerioden = if (tilOgMed == null) {
-                    it.gyldigFra > fraOgMed
-                } else {
-                    it.gyldigFra in fraOgMed..tilOgMed
+        val endringerIPerioden =
+            deltakelsesmengder
+                .filter {
+                    val mengdeErIPerioden =
+                        if (tilOgMed == null) {
+                            it.gyldigFra > fraOgMed
+                        } else {
+                            it.gyldigFra in fraOgMed..tilOgMed
+                        }
+
+                    it != initialDeltakelsesmengde && mengdeErIPerioden
                 }
-
-                it != initialDeltakelsesmengde && mengdeErIPerioden
-            }
 
         return listOfNotNull(initialDeltakelsesmengde) + endringerIPerioden
     }
@@ -141,16 +150,18 @@ class Deltakelsesmengder(
     /**
      * Man må sorterer på opprettet her for at `finnGyldigeDeltakelsesmengde` skal gi riktig svar.
      */
-    private fun sorterMengder(mengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> = mengder.sortedWith(
-        compareByDescending<Deltakelsesmengde> { it.opprettet }
-            .thenByDescending { it.gyldigFra },
-    )
+    private fun sorterMengder(mengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> =
+        mengder.sortedWith(
+            compareByDescending<Deltakelsesmengde> { it.opprettet }
+                .thenByDescending { it.gyldigFra },
+        )
 
-    override fun equals(other: Any?): Boolean = if (other != null && other is Deltakelsesmengder) {
-        this.deltakelsesmengder == other.deltakelsesmengder
-    } else {
-        false
-    }
+    override fun equals(other: Any?): Boolean =
+        if (other != null && other is Deltakelsesmengder) {
+            this.deltakelsesmengder == other.deltakelsesmengder
+        } else {
+            false
+        }
 
     override fun hashCode(): Int = this.deltakelsesmengder.hashCode()
 
@@ -172,7 +183,10 @@ class Deltakelsesmengder(
 
     override fun listIterator(index: Int): ListIterator<Deltakelsesmengde> = deltakelsesmengder.listIterator(index)
 
-    override fun subList(fromIndex: Int, toIndex: Int) = deltakelsesmengder.subList(fromIndex, toIndex)
+    override fun subList(
+        fromIndex: Int,
+        toIndex: Int,
+    ) = deltakelsesmengder.subList(fromIndex, toIndex)
 
     override fun lastIndexOf(element: Deltakelsesmengde) = deltakelsesmengder.lastIndexOf(element)
 }
@@ -192,34 +206,57 @@ fun List<DeltakerHistorikk>.toDeltakelsesmengder(): Deltakelsesmengder {
     }
 }
 
-private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
-    is DeltakerHistorikk.Endring -> this.endring.toDeltakelsesmengde()
-    is DeltakerHistorikk.EndringFraArrangor -> null
-    is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
-    is DeltakerHistorikk.Forslag -> null
-    is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()
-    is DeltakerHistorikk.Vedtak -> this.vedtak.toDeltakelsesmengde()
-    is DeltakerHistorikk.VurderingFraArrangor -> null
-    is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
-}
-
-private fun DeltakerHistorikk.toStartdato() = when (this) {
-    is DeltakerHistorikk.Endring -> if (this.endring.endring is DeltakerEndring.Endring.EndreStartdato) {
-        this.endring.endring.startdato
-    } else {
-        null
+private fun DeltakerHistorikk.toDeltakelsesmengde() =
+    when (this) {
+        is DeltakerHistorikk.Endring -> this.endring.toDeltakelsesmengde()
+        is DeltakerHistorikk.EndringFraArrangor -> null
+        is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
+        is DeltakerHistorikk.Forslag -> null
+        is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()
+        is DeltakerHistorikk.Vedtak -> this.vedtak.toDeltakelsesmengde()
+        is DeltakerHistorikk.VurderingFraArrangor -> null
+        is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
     }
 
-    is DeltakerHistorikk.EndringFraArrangor -> if (this.endringFraArrangor.endring is EndringFraArrangor.LeggTilOppstartsdato) {
-        this.endringFraArrangor.endring.startdato
-    } else {
-        null
-    }
+private fun DeltakerHistorikk.toStartdato() =
+    when (this) {
+        is DeltakerHistorikk.Endring -> {
+            if (this.endring.endring is DeltakerEndring.Endring.EndreStartdato) {
+                this.endring.endring.startdato
+            } else {
+                null
+            }
+        }
 
-    is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
-    is DeltakerHistorikk.Forslag -> null
-    is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.deltakerVedImport.startdato
-    is DeltakerHistorikk.Vedtak -> this.vedtak.deltakerVedVedtak.startdato
-    is DeltakerHistorikk.VurderingFraArrangor -> null
-    is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
-}
+        is DeltakerHistorikk.EndringFraArrangor -> {
+            if (this.endringFraArrangor.endring is EndringFraArrangor.LeggTilOppstartsdato) {
+                this.endringFraArrangor.endring.startdato
+            } else {
+                null
+            }
+        }
+
+        is DeltakerHistorikk.InnsokPaaFellesOppstart -> {
+            null
+        }
+
+        is DeltakerHistorikk.Forslag -> {
+            null
+        }
+
+        is DeltakerHistorikk.ImportertFraArena -> {
+            this.importertFraArena.deltakerVedImport.startdato
+        }
+
+        is DeltakerHistorikk.Vedtak -> {
+            this.vedtak.deltakerVedVedtak.startdato
+        }
+
+        is DeltakerHistorikk.VurderingFraArrangor -> {
+            null
+        }
+
+        is DeltakerHistorikk.EndringFraTiltakskoordinator -> {
+            null
+        }
+    }

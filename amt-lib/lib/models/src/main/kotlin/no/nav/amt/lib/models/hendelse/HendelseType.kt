@@ -96,14 +96,14 @@ sealed interface HendelseType {
     ) : HendelseMedForslag
 
     data class IkkeAktuell(
-        val aarsak: DeltakerEndring.Aarsak,
+        val aarsak: Aarsak,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
     data class AvsluttDeltakelse(
-        val aarsak: DeltakerEndring.Aarsak?,
+        val aarsak: Aarsak?,
         val sluttdato: LocalDate,
         val harFullfort: Boolean?,
         override val begrunnelseFraNav: String?,
@@ -121,7 +121,7 @@ sealed interface HendelseType {
     ) : HendelseMedForslag
 
     data class AvbrytDeltakelse(
-        val aarsak: DeltakerEndring.Aarsak?,
+        val aarsak: Aarsak?,
         val sluttdato: LocalDate,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
@@ -129,7 +129,7 @@ sealed interface HendelseType {
     ) : HendelseMedForslag
 
     data class EndreSluttarsak(
-        val aarsak: DeltakerEndring.Aarsak,
+        val aarsak: Aarsak,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
@@ -171,104 +171,133 @@ data class InnholdDto(
     val beskrivelse: String?,
 )
 
-fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val endring = this.endring) {
-    is Endring.AvsluttDeltakelse -> HendelseType.AvsluttDeltakelse(
-        aarsak = endring.aarsak,
-        sluttdato = endring.sluttdato,
-        harFullfort = endring.harFullfort,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) =
+    when (val endring = this.endring) {
+        is Endring.AvsluttDeltakelse -> {
+            HendelseType.AvsluttDeltakelse(
+                aarsak = endring.aarsak,
+                sluttdato = endring.sluttdato,
+                harFullfort = endring.harFullfort,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is Endring.EndreAvslutning -> HendelseType.EndreAvslutning(
-        aarsak = endring.aarsak,
-        harFullfort = endring.harFullfort,
-        sluttdato = endring.sluttdato,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.EndreAvslutning -> {
+            HendelseType.EndreAvslutning(
+                aarsak = endring.aarsak,
+                harFullfort = endring.harFullfort,
+                sluttdato = endring.sluttdato,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is Endring.AvbrytDeltakelse -> HendelseType.AvbrytDeltakelse(
-        aarsak = endring.aarsak,
-        sluttdato = endring.sluttdato,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.AvbrytDeltakelse -> {
+            HendelseType.AvbrytDeltakelse(
+                aarsak = endring.aarsak,
+                sluttdato = endring.sluttdato,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is Endring.EndreBakgrunnsinformasjon -> HendelseType.EndreBakgrunnsinformasjon(
-        endring.bakgrunnsinformasjon,
-    )
+        is Endring.EndreBakgrunnsinformasjon -> {
+            HendelseType.EndreBakgrunnsinformasjon(
+                endring.bakgrunnsinformasjon,
+            )
+        }
 
-    is DeltakerEndring.Endring.EndreDeltakelsesmengde -> HendelseType.EndreDeltakelsesmengde(
-        endring.deltakelsesprosent,
-        endring.dagerPerUke,
-        endring.gyldigFra,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.EndreDeltakelsesmengde -> {
+            HendelseType.EndreDeltakelsesmengde(
+                endring.deltakelsesprosent,
+                endring.dagerPerUke,
+                endring.gyldigFra,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is DeltakerEndring.Endring.EndreInnhold -> HendelseType.EndreInnhold(
-        endring.innhold.map { InnholdDto(it.tekst, it.innholdskode, it.beskrivelse) },
-    )
+        is Endring.EndreInnhold -> {
+            HendelseType.EndreInnhold(
+                endring.innhold.map { InnholdDto(it.tekst, it.innholdskode, it.beskrivelse) },
+            )
+        }
 
-    is DeltakerEndring.Endring.EndreSluttarsak -> HendelseType.EndreSluttarsak(
-        endring.aarsak,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.EndreSluttarsak -> {
+            HendelseType.EndreSluttarsak(
+                endring.aarsak,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is DeltakerEndring.Endring.EndreSluttdato -> HendelseType.EndreSluttdato(
-        endring.sluttdato,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.EndreSluttdato -> {
+            HendelseType.EndreSluttdato(
+                endring.sluttdato,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is DeltakerEndring.Endring.EndreStartdato -> HendelseType.EndreStartdato(
-        endring.startdato,
-        endring.sluttdato,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.EndreStartdato -> {
+            HendelseType.EndreStartdato(
+                endring.startdato,
+                endring.sluttdato,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is DeltakerEndring.Endring.ForlengDeltakelse -> HendelseType.ForlengDeltakelse(
-        sluttdato = endring.sluttdato,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.ForlengDeltakelse -> {
+            HendelseType.ForlengDeltakelse(
+                sluttdato = endring.sluttdato,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is DeltakerEndring.Endring.IkkeAktuell -> HendelseType.IkkeAktuell(
-        aarsak = endring.aarsak,
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.IkkeAktuell -> {
+            HendelseType.IkkeAktuell(
+                aarsak = endring.aarsak,
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is DeltakerEndring.Endring.FjernOppstartsdato -> HendelseType.FjernOppstartsdato(
-        begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = forslag?.begrunnelse,
-        endringFraForslag = forslag?.endring,
-    )
+        is Endring.FjernOppstartsdato -> {
+            HendelseType.FjernOppstartsdato(
+                begrunnelseFraNav = endring.begrunnelse,
+                begrunnelseFraArrangor = forslag?.begrunnelse,
+                endringFraForslag = forslag?.endring,
+            )
+        }
 
-    is DeltakerEndring.Endring.ReaktiverDeltakelse -> utkast?.let {
-        HendelseType.ReaktiverDeltakelse(
-            utkast,
-            endring.begrunnelse,
-        )
-    } ?: throw IllegalStateException("Mangler utkast for reaktivert deltakelse")
-}
+        is Endring.ReaktiverDeltakelse -> {
+            utkast?.let {
+                HendelseType.ReaktiverDeltakelse(
+                    utkast,
+                    endring.begrunnelse,
+                )
+            } ?: throw IllegalStateException("Mangler utkast for reaktivert deltakelse")
+        }
+    }
 
-fun EndringFraArrangor.toHendelseEndring() = when (val endring = this.endring) {
-    is EndringFraArrangor.LeggTilOppstartsdato ->
-        HendelseType.LeggTilOppstartsdato(
-            startdato = endring.startdato,
-            sluttdato = endring.sluttdato,
-        )
-}
+fun EndringFraArrangor.toHendelseEndring() =
+    when (val endring = this.endring) {
+        is EndringFraArrangor.LeggTilOppstartsdato -> {
+            HendelseType.LeggTilOppstartsdato(
+                startdato = endring.startdato,
+                sluttdato = endring.sluttdato,
+            )
+        }
+    }

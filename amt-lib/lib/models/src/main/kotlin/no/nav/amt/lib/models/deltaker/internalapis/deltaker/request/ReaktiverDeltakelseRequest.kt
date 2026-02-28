@@ -8,8 +8,9 @@ data class ReaktiverDeltakelseRequest(
     override val endretAvEnhet: String,
     val begrunnelse: String,
 ) : EndringRequest {
-    override fun toEndring() = DeltakerEndring.Endring.ReaktiverDeltakelse(
-        reaktivertDato = LocalDate.now(),
-        begrunnelse = begrunnelse,
-    )
+    override fun toEndring() =
+        DeltakerEndring.Endring.ReaktiverDeltakelse(
+            reaktivertDato = LocalDate.now(),
+            begrunnelse = begrunnelse,
+        )
 }

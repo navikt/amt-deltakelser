@@ -23,11 +23,12 @@ class NavAnsattDtoTest {
 
     @Test
     fun `Skal kunne mappe en NavAnsattDto til NavAnsatt nar epost og telefon er null`() {
-        val navAnsatt = ansattDtoInTest
-            .copy(
-                epost = null,
-                telefon = null,
-            ).toModel()
+        val navAnsatt =
+            ansattDtoInTest
+                .copy(
+                    epost = null,
+                    telefon = null,
+                ).toModel()
 
         assertSoftly(navAnsatt) {
             epost.shouldBeNull()

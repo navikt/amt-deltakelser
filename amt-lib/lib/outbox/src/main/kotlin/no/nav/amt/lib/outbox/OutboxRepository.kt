@@ -11,7 +11,10 @@ import org.slf4j.LoggerFactory
 internal class OutboxRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    internal fun insertNewRecord(record: NewOutboxRecord, suppressOutsideTxWarning: Boolean = true): OutboxRecord {
+    internal fun insertNewRecord(
+        record: NewOutboxRecord,
+        suppressOutsideTxWarning: Boolean = true,
+    ): OutboxRecord {
         val sql =
             """
             INSERT INTO outbox_record (
@@ -33,14 +36,15 @@ internal class OutboxRepository {
             RETURNING *
             """.trimIndent()
 
-        val params = mapOf(
-            "key" to record.key,
-            "value" to toPGObject(record.value),
-            "value_type" to record.valueType,
-            "topic" to record.topic,
-            "status" to OutboxRecordStatus.PENDING.name,
-            "retry_count" to 0,
-        )
+        val params =
+            mapOf(
+                "key" to record.key,
+                "value" to toPGObject(record.value),
+                "value_type" to record.valueType,
+                "topic" to record.topic,
+                "status" to OutboxRecordStatus.PENDING.name,
+                "retry_count" to 0,
+            )
 
         return Database.query { session ->
             if (!(suppressOutsideTxWarning || session is TransactionalSession)) {
@@ -86,7 +90,10 @@ internal class OutboxRepository {
         }
     }
 
-    fun markAsFailed(recordId: OutboxRecordId, errorMessage: String) {
+    fun markAsFailed(
+        recordId: OutboxRecordId,
+        errorMessage: String,
+    ) {
         val sql =
             """
             UPDATE outbox_record
@@ -99,27 +106,32 @@ internal class OutboxRepository {
             WHERE id = :id
             """.trimIndent()
 
-        val params = mapOf(
-            "id" to recordId.value,
-            "error_message" to errorMessage,
-        )
+        val params =
+            mapOf(
+                "id" to recordId.value,
+                "error_message" to errorMessage,
+            )
 
         Database.query { session ->
             session.update(queryOf(sql, params))
         }
     }
 
-    fun get(id: OutboxRecordId): OutboxRecord? = Database.query { session ->
-        session.single(
-            queryOf(
-                "SELECT * FROM outbox_record WHERE id = :id",
-                mapOf("id" to id.value),
-            ),
-            ::rowMapper,
-        )
-    }
+    fun get(id: OutboxRecordId): OutboxRecord? =
+        Database.query { session ->
+            session.single(
+                queryOf(
+                    "SELECT * FROM outbox_record WHERE id = :id",
+                    mapOf("id" to id.value),
+                ),
+                ::rowMapper,
+            )
+        }
 
-    fun getRecordsByTopicAndKey(topic: String, key: String) = Database.query { session ->
+    fun getRecordsByTopicAndKey(
+        topic: String,
+        key: String,
+    ) = Database.query { session ->
         session.list(
             queryOf(
                 "SELECT * FROM outbox_record WHERE key = :key AND topic = :topic",
@@ -130,23 +142,25 @@ internal class OutboxRepository {
     }
 
     companion object {
-        private fun toPGObject(value: Any?) = PGobject().also {
-            it.type = "json"
-            it.value = value?.let { v -> objectMapper.writeValueAsString(v) }
-        }
+        private fun toPGObject(value: Any?) =
+            PGobject().also {
+                it.type = "json"
+                it.value = value?.let { v -> objectMapper.writeValueAsString(v) }
+            }
 
-        private fun rowMapper(row: Row) = OutboxRecord(
-            id = OutboxRecordId(row.long("id")),
-            key = row.string("key"),
-            value = objectMapper.readTree(row.string("value")),
-            valueType = row.string("value_type"),
-            topic = row.string("topic"),
-            createdAt = row.localDateTime("created_at"),
-            processedAt = row.localDateTimeOrNull("processed_at"),
-            status = OutboxRecordStatus.valueOf(row.string("status")),
-            retryCount = row.int("retry_count"),
-            retriedAt = row.localDateTimeOrNull("retried_at"),
-            errorMessage = row.stringOrNull("error_message"),
-        )
+        private fun rowMapper(row: Row) =
+            OutboxRecord(
+                id = OutboxRecordId(row.long("id")),
+                key = row.string("key"),
+                value = objectMapper.readTree(row.string("value")),
+                valueType = row.string("value_type"),
+                topic = row.string("topic"),
+                createdAt = row.localDateTime("created_at"),
+                processedAt = row.localDateTimeOrNull("processed_at"),
+                status = OutboxRecordStatus.valueOf(row.string("status")),
+                retryCount = row.int("retry_count"),
+                retriedAt = row.localDateTimeOrNull("retried_at"),
+                errorMessage = row.stringOrNull("error_message"),
+            )
     }
 }

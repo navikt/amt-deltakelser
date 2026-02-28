@@ -28,9 +28,10 @@ class ManagedKafkaConsumerTest {
 
         produceStringString(ProducerRecord(TOPIC_IN_TEST, key, value))
 
-        val consumer = ManagedKafkaConsumer(TOPIC_IN_TEST, stringConsumerConfig) { k: String, v: String ->
-            cache[k] = v
-        }
+        val consumer =
+            ManagedKafkaConsumer(TOPIC_IN_TEST, stringConsumerConfig) { k: String, v: String ->
+                cache[k] = v
+            }
         consumer.start()
 
         eventually {
@@ -49,16 +50,18 @@ class ManagedKafkaConsumerTest {
 
         produceUUIDByteArray(ProducerRecord(uuidTopic, key, value))
 
-        val config = LocalKafkaConfig(SingletonKafkaProvider.getHost())
-            .consumerConfig(
-                keyDeserializer = UUIDDeserializer(),
-                valueDeserializer = ByteArrayDeserializer(),
-                groupId = "test-consumer-${UUID.randomUUID()}",
-            )
+        val config =
+            LocalKafkaConfig(SingletonKafkaProvider.getHost())
+                .consumerConfig(
+                    keyDeserializer = UUIDDeserializer(),
+                    valueDeserializer = ByteArrayDeserializer(),
+                    groupId = "test-consumer-${UUID.randomUUID()}",
+                )
 
-        val consumer = ManagedKafkaConsumer(uuidTopic, config) { k: UUID, v: ByteArray ->
-            cache[k] = v
-        }
+        val consumer =
+            ManagedKafkaConsumer(uuidTopic, config) { k: UUID, v: ByteArray ->
+                cache[k] = v
+            }
         consumer.start()
 
         eventually {
@@ -76,14 +79,15 @@ class ManagedKafkaConsumerTest {
         var numberOfInvocations = 0
         val failOnceKeys = mutableSetOf("~key2~")
 
-        val consumer = ManagedKafkaConsumer<String, String>(TOPIC_IN_TEST, stringConsumerConfig) { key, _ ->
-            numberOfInvocations++
+        val consumer =
+            ManagedKafkaConsumer<String, String>(TOPIC_IN_TEST, stringConsumerConfig) { key, _ ->
+                numberOfInvocations++
 
-            if (key in failOnceKeys) {
-                failOnceKeys.remove(key)
-                error("Should retry")
+                if (key in failOnceKeys) {
+                    failOnceKeys.remove(key)
+                    error("Should retry")
+                }
             }
-        }
 
         consumer.start()
 
@@ -106,13 +110,14 @@ class ManagedKafkaConsumerTest {
         val consumed = mutableListOf<Int>()
         val failures = mutableListOf(7, 42, 42, 333)
 
-        val consumer = ManagedKafkaConsumer<Int, Int>(intTopic.name(), intConsumerConfig) { k, _ ->
-            if (k in failures) {
-                failures.remove(k)
-                error("Skal feile på $k")
+        val consumer =
+            ManagedKafkaConsumer<Int, Int>(intTopic.name(), intConsumerConfig) { k, _ ->
+                if (k in failures) {
+                    failures.remove(k)
+                    error("Skal feile på $k")
+                }
+                consumed.add(k)
             }
-            consumed.add(k)
-        }
 
         consumer.start()
 
@@ -142,16 +147,17 @@ class ManagedKafkaConsumerTest {
 
         val consumed = mutableMapOf<Int, Int>()
         val failures = mutableListOf(7, 42, 42, 333)
-        val consumer = ManagedKafkaConsumer<Int, Int>(intTopic.name(), intConsumerConfig) { k, v ->
-            if (k in failures) {
-                failures.remove(k)
-                error("Skal feile på $k")
+        val consumer =
+            ManagedKafkaConsumer<Int, Int>(intTopic.name(), intConsumerConfig) { k, v ->
+                if (k in failures) {
+                    failures.remove(k)
+                    error("Skal feile på $k")
+                }
+                if (v == lastValue) {
+                    consumed[k] shouldBe firstValue
+                }
+                consumed[k] = v
             }
-            if (v == lastValue) {
-                consumed[k] shouldBe firstValue
-            }
-            consumed[k] = v
-        }
 
         consumer.start()
 

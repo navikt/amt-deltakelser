@@ -22,17 +22,19 @@ object KafkaTestUtils {
     val topicPartition1 = TopicPartition("topic", 1)
     val topicPartition2 = TopicPartition("topic", 2)
 
-    val stringConsumerConfig = LocalKafkaConfig(SingletonKafkaProvider.getHost()).consumerConfig(
-        keyDeserializer = StringDeserializer(),
-        valueDeserializer = StringDeserializer(),
-        groupId = "test-consumer-${UUID.randomUUID()}",
-    )
+    val stringConsumerConfig =
+        LocalKafkaConfig(SingletonKafkaProvider.getHost()).consumerConfig(
+            keyDeserializer = StringDeserializer(),
+            valueDeserializer = StringDeserializer(),
+            groupId = "test-consumer-${UUID.randomUUID()}",
+        )
 
-    val intConsumerConfig = LocalKafkaConfig(SingletonKafkaProvider.getHost()).consumerConfig(
-        keyDeserializer = IntegerDeserializer(),
-        valueDeserializer = IntegerDeserializer(),
-        groupId = "test-consumer-${UUID.randomUUID()}",
-    )
+    val intConsumerConfig =
+        LocalKafkaConfig(SingletonKafkaProvider.getHost()).consumerConfig(
+            keyDeserializer = IntegerDeserializer(),
+            valueDeserializer = IntegerDeserializer(),
+            groupId = "test-consumer-${UUID.randomUUID()}",
+        )
 
     fun produceIntInt(record: ProducerRecord<Int, Int>): RecordMetadata {
         KafkaProducer<Int, Int>(

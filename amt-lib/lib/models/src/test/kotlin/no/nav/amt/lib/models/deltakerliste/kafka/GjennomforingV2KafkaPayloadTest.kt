@@ -20,13 +20,14 @@ class GjennomforingV2KafkaPayloadTest {
     inner class AssertValidChangesTests {
         @Test
         fun `gruppe, skal kaste unntak nar oppstartstype endres for deltakerliste med deltakere`() {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                gruppeGjennomforing.assertValidChanges(
-                    antallDeltakere = 1,
-                    eksisterendeOppstartstype = Oppstartstype.FELLES,
-                    eksisterendePameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
-                )
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    gruppeGjennomforing.assertValidChanges(
+                        antallDeltakere = 1,
+                        eksisterendeOppstartstype = Oppstartstype.FELLES,
+                        eksisterendePameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
+                    )
+                }
             thrown.message shouldBe
                 "Oppstartstype kan ikke endres for deltakerliste ${gruppeGjennomforing.id} med deltakere"
         }
@@ -44,26 +45,28 @@ class GjennomforingV2KafkaPayloadTest {
 
         @Test
         fun `gruppe, skal kaste unntak nar pameldingstype endres for deltakerliste med deltakere`() {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                gruppeGjennomforing.assertValidChanges(
-                    antallDeltakere = 1,
-                    eksisterendeOppstartstype = gruppeGjennomforing.oppstart,
-                    eksisterendePameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
-                )
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    gruppeGjennomforing.assertValidChanges(
+                        antallDeltakere = 1,
+                        eksisterendeOppstartstype = gruppeGjennomforing.oppstart,
+                        eksisterendePameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                    )
+                }
             thrown.message shouldBe
                 "Påmeldingstype kan ikke endres for deltakerliste ${gruppeGjennomforing.id} med deltakere"
         }
 
         @Test
         fun `enkeltplass, skal kaste unntak nar pameldingstype endres for deltakerliste med deltakere`() {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                enkeltplassGjennoforing.assertValidChanges(
-                    antallDeltakere = 1,
-                    eksisterendePameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
-                    eksisterendeOppstartstype = null,
-                )
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    enkeltplassGjennoforing.assertValidChanges(
+                        antallDeltakere = 1,
+                        eksisterendePameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                        eksisterendeOppstartstype = null,
+                    )
+                }
             thrown.message shouldBe
                 "Påmeldingstype kan ikke endres for deltakerliste ${enkeltplassGjennoforing.id} med deltakere"
         }
@@ -111,13 +114,14 @@ class GjennomforingV2KafkaPayloadTest {
 
         @Test
         fun `direktetiltak skal ikke validere`() {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                gruppeGjennomforing
-                    .copy(
-                        tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                        pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-                    ).assertPameldingstypeIsValid()
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    gruppeGjennomforing
+                        .copy(
+                            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                        ).assertPameldingstypeIsValid()
+                }
 
             thrown.message shouldBe "ARBEIDSFORBEREDENDE_TRENING krever DIREKTE_VEDTAK"
         }
@@ -126,7 +130,7 @@ class GjennomforingV2KafkaPayloadTest {
         @EnumSource(
             Tiltakskode::class,
             names = [
-                "GRUPPE_ARBEIDSMARKEDSOPPLAERING", "GRUPPE_FAG_OG_YRKESOPPLAERING"
+                "GRUPPE_ARBEIDSMARKEDSOPPLAERING", "GRUPPE_FAG_OG_YRKESOPPLAERING",
             ],
         )
         fun `gruppetiltak, felles oppstart skal validere`(tiltakskode: Tiltakskode) {
@@ -142,14 +146,15 @@ class GjennomforingV2KafkaPayloadTest {
 
         @Test
         fun `gruppetiltak, felles oppstart skal ikke validere`() {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                gruppeGjennomforing
-                    .copy(
-                        tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                        oppstart = Oppstartstype.FELLES,
-                        pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-                    ).assertPameldingstypeIsValid()
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    gruppeGjennomforing
+                        .copy(
+                            tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+                            oppstart = Oppstartstype.FELLES,
+                            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+                        ).assertPameldingstypeIsValid()
+                }
 
             thrown.message shouldBe "FELLES oppstart for GRUPPE_ARBEIDSMARKEDSOPPLAERING krever TRENGER_GODKJENNING"
         }
@@ -158,7 +163,7 @@ class GjennomforingV2KafkaPayloadTest {
         @EnumSource(
             Tiltakskode::class,
             names = [
-                "GRUPPE_ARBEIDSMARKEDSOPPLAERING", "GRUPPE_FAG_OG_YRKESOPPLAERING"
+                "GRUPPE_ARBEIDSMARKEDSOPPLAERING", "GRUPPE_FAG_OG_YRKESOPPLAERING",
             ],
         )
         fun `gruppetiltak, lopende oppstart skal validere`(tiltakskode: Tiltakskode) {
@@ -174,14 +179,15 @@ class GjennomforingV2KafkaPayloadTest {
 
         @Test
         fun `gruppetiltak, lopende oppstart skal ikke validere`() {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                gruppeGjennomforing
-                    .copy(
-                        tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                        oppstart = Oppstartstype.LOPENDE,
-                        pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-                    ).assertPameldingstypeIsValid()
-            }
+            val thrown =
+                shouldThrow<IllegalArgumentException> {
+                    gruppeGjennomforing
+                        .copy(
+                            tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+                            oppstart = Oppstartstype.LOPENDE,
+                            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                        ).assertPameldingstypeIsValid()
+                }
 
             thrown.message shouldBe "LOPENDE oppstart for GRUPPE_ARBEIDSMARKEDSOPPLAERING krever DIREKTE_VEDTAK"
         }
@@ -190,7 +196,7 @@ class GjennomforingV2KafkaPayloadTest {
         @EnumSource(
             Tiltakskode::class,
             names = [
-                "JOBBKLUBB"
+                "JOBBKLUBB",
             ],
         )
         fun `jobbklubb, lopende oppstart skal validere`(tiltakskode: Tiltakskode) {
@@ -208,7 +214,7 @@ class GjennomforingV2KafkaPayloadTest {
         @EnumSource(
             Tiltakskode::class,
             names = [
-                "JOBBKLUBB"
+                "JOBBKLUBB",
             ],
         )
         fun `jobbklubb, felles oppstart skal validere`(tiltakskode: Tiltakskode) {
@@ -224,32 +230,34 @@ class GjennomforingV2KafkaPayloadTest {
     }
 
     companion object {
-        private val enkeltplassGjennoforing = GjennomforingV2KafkaPayload.Enkeltplass(
-            id = UUID.randomUUID(),
-            opprettetTidspunkt = OffsetDateTime.now(),
-            oppdatertTidspunkt = OffsetDateTime.now(),
-            tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-            arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = "123456789"),
-            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-        )
+        private val enkeltplassGjennoforing =
+            GjennomforingV2KafkaPayload.Enkeltplass(
+                id = UUID.randomUUID(),
+                opprettetTidspunkt = OffsetDateTime.now(),
+                oppdatertTidspunkt = OffsetDateTime.now(),
+                tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+                arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = "123456789"),
+                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            )
 
-        private val gruppeGjennomforing = GjennomforingV2KafkaPayload.Gruppe(
-            id = UUID.randomUUID(),
-            opprettetTidspunkt = OffsetDateTime.now(),
-            oppdatertTidspunkt = OffsetDateTime.now(),
-            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-            arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = "123456789"),
-            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            navn = "navn",
-            startDato = LocalDate.now(),
-            sluttDato = null,
-            status = GjennomforingStatusType.GJENNOMFORES,
-            oppstart = Oppstartstype.LOPENDE,
-            tilgjengeligForArrangorFraOgMedDato = null,
-            apentForPamelding = true,
-            antallPlasser = 25,
-            deltidsprosent = 50.0,
-            oppmoteSted = "Oslo",
-        )
+        private val gruppeGjennomforing =
+            GjennomforingV2KafkaPayload.Gruppe(
+                id = UUID.randomUUID(),
+                opprettetTidspunkt = OffsetDateTime.now(),
+                oppdatertTidspunkt = OffsetDateTime.now(),
+                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = "123456789"),
+                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+                navn = "navn",
+                startDato = LocalDate.now(),
+                sluttDato = null,
+                status = GjennomforingStatusType.GJENNOMFORES,
+                oppstart = Oppstartstype.LOPENDE,
+                tilgjengeligForArrangorFraOgMedDato = null,
+                apentForPamelding = true,
+                antallPlasser = 25,
+                deltidsprosent = 50.0,
+                oppmoteSted = "Oslo",
+            )
     }
 }

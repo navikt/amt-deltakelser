@@ -16,31 +16,33 @@ object Database {
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
     fun init(config: DatabaseConfig) {
-        dataSource = HikariDataSource().apply {
-            if (config.jdbcURL.isNotEmpty()) {
-                jdbcUrl = config.jdbcURL
-            } else {
-                dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
-                addDataSourceProperty("serverName", config.dbHost)
-                addDataSourceProperty("portNumber", config.dbPort)
-                addDataSourceProperty("databaseName", config.dbDatabase)
-                addDataSourceProperty("user", config.dbUsername)
-                addDataSourceProperty("password", config.dbPassword)
-            }
+        dataSource =
+            HikariDataSource().apply {
+                if (config.jdbcURL.isNotEmpty()) {
+                    jdbcUrl = config.jdbcURL
+                } else {
+                    dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
+                    addDataSourceProperty("serverName", config.dbHost)
+                    addDataSourceProperty("portNumber", config.dbPort)
+                    addDataSourceProperty("databaseName", config.dbDatabase)
+                    addDataSourceProperty("user", config.dbUsername)
+                    addDataSourceProperty("password", config.dbPassword)
+                }
 
-            maximumPoolSize = 20
-            minimumIdle = 1
-            leakDetectionThreshold = 10_000
-        }
+                maximumPoolSize = 20
+                minimumIdle = 1
+                leakDetectionThreshold = 10_000
+            }
 
         runMigration()
     }
 
-    fun <A> query(block: (Session) -> A): A = if (transactionalSession != null) {
-        block(transactionalSession!!)
-    } else {
-        queryWithNewSession(block)
-    }
+    fun <A> query(block: (Session) -> A): A =
+        if (transactionalSession != null) {
+            block(transactionalSession!!)
+        } else {
+            queryWithNewSession(block)
+        }
 
     /**
      * Kjør synkron kode innenfor en database-transaksjon.
@@ -70,22 +72,24 @@ object Database {
         }
     }
 
-    private fun <A> queryWithNewSession(block: (Session) -> A): A = using(sessionOf(dataSource)) { session ->
-        block(session)
-    }
+    private fun <A> queryWithNewSession(block: (Session) -> A): A =
+        using(sessionOf(dataSource)) { session ->
+            block(session)
+        }
 
     fun close() {
         (dataSource as HikariDataSource).close()
     }
 
-    private fun runMigration(initSql: String? = null): Int = Flyway
-        .configure()
-        .connectRetries(5)
-        .dataSource(dataSource)
-        .initSql(initSql)
-        .validateMigrationNaming(true)
-        .load()
-        .migrate()
-        .migrations
-        .size
+    private fun runMigration(initSql: String? = null): Int =
+        Flyway
+            .configure()
+            .connectRetries(5)
+            .dataSource(dataSource)
+            .initSql(initSql)
+            .validateMigrationNaming(true)
+            .load()
+            .migrate()
+            .migrations
+            .size
 }
