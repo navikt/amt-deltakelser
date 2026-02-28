@@ -20,7 +20,7 @@ Mono-repo for Team Komet sine Ktor-applikasjoner og fellesmodulen amt-lib.
 
 ## Oversikt
 
-Dette mono-repoet inneholder tre Ktor-applikasjoner som benytter en felles modul for modeller, 
+Dette monorepoet inneholder tre Ktor-applikasjoner som benytter en felles modul for modeller, 
 databasekode og Kafka-integrasjon.
 
 ---
@@ -138,7 +138,7 @@ Ktor og KtLint, slik at alle applikasjoner følger samme konvensjoner.
 - `ktor-test` → Ktor test-host og klient-mock
 - `kotest` → Kotest assertions
 
-Alle versjoner styres i **libs.versions.toml**, slik at alle moduler i mono-repoet har konsistente versjoner.
+Alle versjoner styres i **libs.versions.toml**, slik at alle moduler i monorepoet har konsistente versjoner.
 
 ---
 
