@@ -45,7 +45,7 @@ Backend-for-frontend for flere flate-applikasjoner.
 
 **amt-distribusjon** har ansvar for journalføring av vedtak og å varsle tiltaksdeltaker og veileder om viktige endringer.
 
-- NAV-veileder varsles gjennom OBO sitt filter i **Modia Arbeidsrettet oppfølging**.
+- Nav-veileder varsles gjennom OBO sitt filter i **Modia Arbeidsrettet oppfølging**.
 - Deltaker varsles gjennom minside-varsel på **nav.no**.
 - Ikke-digitale deltakere mottar varsler som brev.
 
@@ -123,7 +123,7 @@ Ktor og KtLint, slik at alle applikasjoner følger samme konvensjoner.
 - **Ktor** – HTTP-server og klient; alle Ktor-moduler håndteres via `ktor-server` og `ktor-client` bundles.
 - **Kafka** – Kafka-klienter og felles outbox-mønster via `amt-lib`.
 - **Database** – HikariCP, Flyway, PostgreSQL og Kotliquery samlet i `database` bundle.
-- **Logging** – Logback, Logstash-encoder og NAV-common logging, samlet i `logging` bundle.
+- **Logging** – Logback, Logstash-encoder og nav-common-log, samlet i `logging` bundle.
 - **Metrics** – Micrometer + Prometheus for overvåkning og eksponering av metrics.
 - **Testing** – Ktor-test, Kotest, Mockk og Nimbus JWT, samlet i `ktor-test` og `kotest` bundles.
 - **Fellesmoduler (amt-lib)** – inneholder modeller, utilities, outbox/Kafka-støtte og teststøtte.
@@ -134,7 +134,7 @@ Ktor og KtLint, slik at alle applikasjoner følger samme konvensjoner.
 - `ktor-server` → alle nødvendige Ktor-server-moduler
 - `ktor-client` → Ktor HTTP-klientmoduler
 - `database` → Hikari, Flyway, PostgreSQL og Kotliquery
-- `logging` → Logback, Logstash encoder og NAV-common logging
+- `logging` → Logback, Logstash encoder og nav-common-log
 - `ktor-test` → Ktor test-host og klient-mock
 - `kotest` → Kotest assertions
 
