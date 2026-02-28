@@ -6,6 +6,7 @@ plugins {
     `java-library`
     `maven-publish`
     kotlin
+    // TODO id("org.jlleitschuh.gradle.ktlint")
 }
 
 repositories {

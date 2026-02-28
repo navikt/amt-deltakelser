@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "amt-distribusjon/**"
-      - ".github/dependabot.yml"
+      - "gradle/libs.versions.toml"
     branches:
       - main
 
