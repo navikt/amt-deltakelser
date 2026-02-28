@@ -82,6 +82,11 @@ Kjør build med Gradle Wrapper:
 ./gradlew build
 ```
 
+For å fikse lint-feil og formatere koden i henhold til KtLint-reglene, kjør:
+```bash
+./gradlew ktlintFormat build
+```
+
 ---
 
 ## CI/CD
