@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - "amt-lib/**"
-      - ".github/dependabot.yml"
+      - "gradle/libs.versions.toml"
     branches-ignore:
       - main
 
