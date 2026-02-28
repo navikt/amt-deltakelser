@@ -1,6 +1,6 @@
 # amt-deltakelser
 
-Mono-repo for Team Komet sine Ktor-applikasjoner og fellesmodulen amt-lib.
+Monorepo for Team Komet sine Ktor-applikasjoner og fellesmodulen amt-lib.
 
 ## Innhold
 
