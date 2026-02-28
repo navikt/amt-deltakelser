@@ -1,19 +1,9 @@
 # amt-deltaker-bff
 BFF for tiltakssiden for deltaker og veileder. 
 
-## Utvikling
-**Lint fix:** 
-```
-./gradlew ktlintFormat build
-```
-**Build:**
-```
-./gradlew build
-```
-
 ### Kjør lokalt
 
-Start kafka og database:
+Start Kafka og database:
 ```shell
 docker-compose up -d
 ```
