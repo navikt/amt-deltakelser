@@ -1,13 +1,14 @@
 package no.nav.amt.lib.kafka
 
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.longs.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.kafka.KafkaTestUtils.topicPartition1
 import no.nav.amt.lib.kafka.KafkaTestUtils.topicPartition2
-import no.nav.amt.lib.testing.eventually
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -51,14 +52,15 @@ class PartitionBackoffManagerTest {
         }
 
         @Test
-        fun `skal returnere false etter at backoff er over`() {
-            sut.incrementRetryCount(topicPartition1)
-            sut.isInBackoff(topicPartition1) shouldBe true
+        fun `skal returnere false etter at backoff er over`() =
+            runTest {
+                sut.incrementRetryCount(topicPartition1)
+                sut.isInBackoff(topicPartition1) shouldBe true
 
-            eventually {
-                sut.isInBackoff(topicPartition1) shouldBe false
+                eventually {
+                    sut.isInBackoff(topicPartition1) shouldBe false
+                }
             }
-        }
 
         @Test
         fun `skal returnere false etter resetRetryCount`() {

@@ -1,5 +1,6 @@
 package no.nav.amt.lib.outbox
 
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -8,7 +9,6 @@ import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.outbox.metrics.PrometheusOutboxMeter
 import no.nav.amt.lib.outbox.utils.assertProduced
-import no.nav.amt.lib.testing.AsyncUtils
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.TestPostgresContainer
 import no.nav.amt.lib.utils.job.JobManager
@@ -162,7 +162,7 @@ class OutboxProcessorTest {
         record: OutboxRecord,
         topic: String = testTopic,
     ) = assertProduced(topic) {
-        AsyncUtils.eventually {
+        eventually {
             val value = objectMapper.readTree(it[record.key])
 
             value shouldBe record.value

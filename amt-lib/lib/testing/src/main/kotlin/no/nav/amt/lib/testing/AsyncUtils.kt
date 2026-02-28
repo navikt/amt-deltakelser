@@ -5,7 +5,9 @@ import kotlinx.coroutines.time.delay
 import java.time.Duration
 import java.time.LocalDateTime
 
+@Deprecated("io.kotest.assertions.nondeterministic.eventually instead")
 object AsyncUtils {
+    @Deprecated("io.kotest.assertions.nondeterministic.eventually instead")
     fun eventually(
         until: Duration = Duration.ofSeconds(3),
         interval: Duration = Duration.ofMillis(100),
@@ -14,6 +16,7 @@ object AsyncUtils {
         .eventually(until, interval, func)
 }
 
+@Deprecated("io.kotest.assertions.nondeterministic.eventually instead")
 fun eventually(
     until: Duration = Duration.ofSeconds(3),
     interval: Duration = Duration.ofMillis(100),

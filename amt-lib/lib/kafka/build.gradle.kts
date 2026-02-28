@@ -9,4 +9,5 @@ dependencies {
     implementation(project(":amt-lib:lib:utils"))
 
     testImplementation(project(":amt-lib:lib:testing"))
+    testImplementation(libs.kotlinx.coroutines.test)
 }
