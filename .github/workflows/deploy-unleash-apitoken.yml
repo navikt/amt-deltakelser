@@ -7,12 +7,13 @@ on:
         required: true
         type: string
 
+permissions:
+  id-token: write
+
 jobs:
   deploy-dev:
     name: Deploy to dev
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -28,8 +29,6 @@ jobs:
     name: Deploy to prod
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    permissions:
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
