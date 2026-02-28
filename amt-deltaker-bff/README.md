@@ -29,3 +29,4 @@ export AZURE_OPENID_CONFIG_JWKS_URI="http://foo.bar"
 ./gradlew run
 ```
 
+
