@@ -30,12 +30,13 @@ class OutboxService(
         topic: String,
         suppressOutsideTxWarning: Boolean = false,
     ): OutboxRecord {
-        val outboxRecord = NewOutboxRecord(
-            key = key.toString(),
-            valueType = value::class.java.simpleName,
-            topic = topic,
-            value = objectMapper.valueToTree(value),
-        )
+        val outboxRecord =
+            NewOutboxRecord(
+                key = key.toString(),
+                valueType = value::class.java.simpleName,
+                topic = topic,
+                value = objectMapper.valueToTree(value),
+            )
         return outboxRepository
             .insertNewRecord(outboxRecord, suppressOutsideTxWarning)
             .also { meter.incrementNewRecords(topic) }
@@ -65,10 +66,16 @@ class OutboxService(
      * @param record The failed record.
      * @param errorMessage A message describing the reason for the failure.
      */
-    fun markAsFailed(record: OutboxRecord, errorMessage: String) {
+    fun markAsFailed(
+        record: OutboxRecord,
+        errorMessage: String,
+    ) {
         outboxRepository.markAsFailed(record.id, errorMessage)
         meter.incrementProcessedRecords(record.topic, OutboxRecordStatus.FAILED)
     }
 
-    fun getRecordsByTopicAndKey(topic: String, key: String): List<OutboxRecord> = outboxRepository.getRecordsByTopicAndKey(topic, key)
+    fun getRecordsByTopicAndKey(
+        topic: String,
+        key: String,
+    ): List<OutboxRecord> = outboxRepository.getRecordsByTopicAndKey(topic, key)
 }

@@ -8,11 +8,12 @@ import java.util.UUID
 class NavEnhetDtoTest {
     @Test
     fun `Skal mappe NavEnhetDto til NavEnhet`() {
-        val dto = NavEnhetDto(
-            id = UUID.randomUUID(),
-            enhetId = "~enhetId~",
-            navn = "~navn~",
-        )
+        val dto =
+            NavEnhetDto(
+                id = UUID.randomUUID(),
+                enhetId = "~enhetId~",
+                navn = "~navn~",
+            )
 
         val enhet = dto.toModel()
 

@@ -10,8 +10,9 @@ data class Oppfolgingsperiode(
     val startdato: LocalDateTime,
     val sluttdato: LocalDateTime?,
 ) {
-    fun erAktiv(): Boolean = LocalDate.now().isBetweenEndExclusive(
-        startdato.toLocalDate(),
-        sluttdato?.toLocalDate(),
-    )
+    fun erAktiv(): Boolean =
+        LocalDate.now().isBetweenEndExclusive(
+            startdato.toLocalDate(),
+            sluttdato?.toLocalDate(),
+        )
 }

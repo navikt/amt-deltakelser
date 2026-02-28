@@ -42,10 +42,14 @@ internal class PartitionProcessor<K, V>(
      * @param records the list of records to process
      * @throws CancellationException if the coroutine is canceled during processing
      */
-    suspend fun process(topicPartition: TopicPartition, records: List<ConsumerRecord<K, V>>) {
+    suspend fun process(
+        topicPartition: TopicPartition,
+        records: List<ConsumerRecord<K, V>>,
+    ) {
         for (record in records) {
-            val recordInfo = "topic=${record.topic()} key=${record.key()} " +
-                "partition=${record.partition()} offset=${record.offset()}"
+            val recordInfo =
+                "topic=${record.topic()} key=${record.key()} " +
+                    "partition=${record.partition()} offset=${record.offset()}"
 
             try {
                 val start = System.currentTimeMillis()

@@ -8,8 +8,9 @@ data class InnholdRequest(
     override val endretAvEnhet: String,
     val deltakelsesinnhold: Deltakelsesinnhold,
 ) : EndringRequest {
-    override fun toEndring() = DeltakerEndring.Endring.EndreInnhold(
-        ledetekst = deltakelsesinnhold.ledetekst,
-        innhold = deltakelsesinnhold.innhold,
-    )
+    override fun toEndring() =
+        DeltakerEndring.Endring.EndreInnhold(
+            ledetekst = deltakelsesinnhold.ledetekst,
+            innhold = deltakelsesinnhold.innhold,
+        )
 }

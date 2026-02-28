@@ -8,9 +8,10 @@ data class NavEnhetDto(
     val enhetId: String,
     val navn: String,
 ) {
-    fun toModel() = NavEnhet(
-        id = id,
-        enhetsnummer = enhetId,
-        navn = navn,
-    )
+    fun toModel() =
+        NavEnhet(
+            id = id,
+            enhetsnummer = enhetId,
+            navn = navn,
+        )
 }

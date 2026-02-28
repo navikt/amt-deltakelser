@@ -3,6 +3,7 @@ package no.nav.amt.lib.models.arrangor.melding
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.time.LocalDateTime
 import java.util.UUID
+
 /*
     Datastruktur for arrangor-melding-v1 topic
  */

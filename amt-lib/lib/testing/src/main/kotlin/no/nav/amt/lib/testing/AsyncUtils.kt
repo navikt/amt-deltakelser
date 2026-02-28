@@ -10,7 +10,8 @@ object AsyncUtils {
         until: Duration = Duration.ofSeconds(3),
         interval: Duration = Duration.ofMillis(100),
         func: () -> Unit,
-    ) = no.nav.amt.lib.testing.eventually(until, interval, func)
+    ) = no.nav.amt.lib.testing
+        .eventually(until, interval, func)
 }
 
 fun eventually(

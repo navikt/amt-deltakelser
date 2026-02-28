@@ -38,9 +38,10 @@ internal class ManagedConsumerRebalanceListener<K, V>(
         log.info("Partitions revoked: $revokedPartitions")
 
         // collect offsets for revoked partitions that are pending commit
-        val offsetsToCommitDuringRebalance = offsetManager
-            .getOffsetsToCommit()
-            .filterKeys { it in revokedPartitions }
+        val offsetsToCommitDuringRebalance =
+            offsetManager
+                .getOffsetsToCommit()
+                .filterKeys { it in revokedPartitions }
 
         // try to commit offsets before losing ownership
         try {

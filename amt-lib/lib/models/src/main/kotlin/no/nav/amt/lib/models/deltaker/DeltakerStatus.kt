@@ -54,13 +54,14 @@ data class DeltakerStatus(
     }
 
     companion object {
-        val avsluttendeStatuser = setOf(
-            Type.AVBRUTT,
-            Type.AVBRUTT_UTKAST,
-            Type.FEILREGISTRERT,
-            Type.FULLFORT,
-            Type.HAR_SLUTTET,
-            Type.IKKE_AKTUELL,
-        )
+        val avsluttendeStatuser =
+            setOf(
+                Type.AVBRUTT,
+                Type.AVBRUTT_UTKAST,
+                Type.FEILREGISTRERT,
+                Type.FULLFORT,
+                Type.HAR_SLUTTET,
+                Type.IKKE_AKTUELL,
+            )
     }
 }

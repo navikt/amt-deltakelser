@@ -23,17 +23,19 @@ class DeltakelsesmengderStartdatoTest {
     fun `flere deltakelsesmengder før startdato - skal kun bruke deltakelsesmengde nærmest før eller lik startdato`() {
         val vedtak = TestData.lagVedtak(fattet = "2024-01-01".toDate().atStartOfDay())
         val startdato = "2024-01-05".toDate()
-        val endreDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 42,
-            gyldigFra = "2024-01-02".toDate(),
-            opprettet = "2024-01-02".toDateTime(),
-        )
+        val endreDeltakelsesmengde =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 42,
+                gyldigFra = "2024-01-02".toDate(),
+                opprettet = "2024-01-02".toDateTime(),
+            )
 
-        val historikk = TestData.lagDeltakerHistorikk(
-            listOf(vedtak),
-            endringer = listOf(endreDeltakelsesmengde),
-            endringerFraArrangor = listOf(TestData.lagLeggTilOppstartsdato(startdato)),
-        )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                listOf(vedtak),
+                endringer = listOf(endreDeltakelsesmengde),
+                endringerFraArrangor = listOf(TestData.lagLeggTilOppstartsdato(startdato)),
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder()
         deltakelsesmengder.size shouldBe 1
@@ -48,10 +50,11 @@ class DeltakelsesmengderStartdatoTest {
         val vedtak = TestData.lagVedtak(fattet = "2024-01-10".toDate().atStartOfDay())
         val startdato = "2024-01-05".toDate()
 
-        val historikk = TestData.lagDeltakerHistorikk(
-            listOf(vedtak),
-            endringerFraArrangor = listOf(TestData.lagLeggTilOppstartsdato(startdato)),
-        )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                listOf(vedtak),
+                endringerFraArrangor = listOf(TestData.lagLeggTilOppstartsdato(startdato)),
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder()
         deltakelsesmengder.size shouldBe 1
@@ -66,22 +69,26 @@ class DeltakelsesmengderStartdatoTest {
         val startdato1 = "2024-10-30".toDate()
         val startdato2 = "2024-10-23".toDate()
 
-        val endreDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 42,
-            gyldigFra = "2024-10-30".toDate(),
-            opprettet = "2024-11-01".toDateTime(),
-        )
+        val endreDeltakelsesmengde =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 42,
+                gyldigFra = "2024-10-30".toDate(),
+                opprettet = "2024-11-01".toDateTime(),
+            )
 
-        val historikk = TestData.lagDeltakerHistorikk(
-            listOf(vedtak),
-            endringerFraArrangor = listOf(
-                TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
-            ),
-            endringer = listOf(
-                TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
-                endreDeltakelsesmengde,
-            ),
-        )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                listOf(vedtak),
+                endringerFraArrangor =
+                    listOf(
+                        TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
+                    ),
+                endringer =
+                    listOf(
+                        TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
+                        endreDeltakelsesmengde,
+                    ),
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder()
         deltakelsesmengder.size shouldBe 1
@@ -98,23 +105,27 @@ class DeltakelsesmengderStartdatoTest {
         val startdato2 = "2024-10-23".toDate()
         val startdato3 = "2024-10-20".toDate()
 
-        val endreDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 42,
-            gyldigFra = "2024-10-29".toDate(),
-            opprettet = "2024-11-01".toDateTime(),
-        )
+        val endreDeltakelsesmengde =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 42,
+                gyldigFra = "2024-10-29".toDate(),
+                opprettet = "2024-11-01".toDateTime(),
+            )
 
-        val historikk = TestData.lagDeltakerHistorikk(
-            listOf(vedtak),
-            endringerFraArrangor = listOf(
-                TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
-            ),
-            endringer = listOf(
-                TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
-                TestData.lagEndreStartdato(startdato3, opprettet = "2024-11-08".toDateTime()),
-                endreDeltakelsesmengde,
-            ),
-        )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                listOf(vedtak),
+                endringerFraArrangor =
+                    listOf(
+                        TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
+                    ),
+                endringer =
+                    listOf(
+                        TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
+                        TestData.lagEndreStartdato(startdato3, opprettet = "2024-11-08".toDateTime()),
+                        endreDeltakelsesmengde,
+                    ),
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder()
         deltakelsesmengder.size shouldBe 1
@@ -130,22 +141,26 @@ class DeltakelsesmengderStartdatoTest {
         val startdato1 = "2024-10-30".toDate()
         val startdato2 = "2024-11-01".toDate()
 
-        val endreDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 42,
-            gyldigFra = "2024-10-29".toDate(),
-            opprettet = "2024-10-29".toDateTime(),
-        )
+        val endreDeltakelsesmengde =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 42,
+                gyldigFra = "2024-10-29".toDate(),
+                opprettet = "2024-10-29".toDateTime(),
+            )
 
-        val historikk = TestData.lagDeltakerHistorikk(
-            listOf(vedtak),
-            endringerFraArrangor = listOf(
-                TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
-            ),
-            endringer = listOf(
-                TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
-                endreDeltakelsesmengde,
-            ),
-        )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                listOf(vedtak),
+                endringerFraArrangor =
+                    listOf(
+                        TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
+                    ),
+                endringer =
+                    listOf(
+                        TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
+                        endreDeltakelsesmengde,
+                    ),
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder()
         deltakelsesmengder.size shouldBe 1
@@ -161,29 +176,34 @@ class DeltakelsesmengderStartdatoTest {
         val startdato1 = "2024-10-30".toDate()
         val startdato2 = "2024-11-10".toDate()
 
-        val endreDeltakelsesmengde1 = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 42,
-            gyldigFra = "2024-10-29".toDate(),
-            opprettet = "2024-10-29".toDateTime(),
-        )
+        val endreDeltakelsesmengde1 =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 42,
+                gyldigFra = "2024-10-29".toDate(),
+                opprettet = "2024-10-29".toDateTime(),
+            )
 
-        val endreDeltakelsesmengde2 = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 50,
-            gyldigFra = startdato2,
-            opprettet = "2024-10-30".toDateTime(),
-        )
+        val endreDeltakelsesmengde2 =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 50,
+                gyldigFra = startdato2,
+                opprettet = "2024-10-30".toDateTime(),
+            )
 
-        val historikk = TestData.lagDeltakerHistorikk(
-            listOf(vedtak),
-            endringerFraArrangor = listOf(
-                TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
-            ),
-            endringer = listOf(
-                TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
-                endreDeltakelsesmengde1,
-                endreDeltakelsesmengde2,
-            ),
-        )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                listOf(vedtak),
+                endringerFraArrangor =
+                    listOf(
+                        TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
+                    ),
+                endringer =
+                    listOf(
+                        TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
+                        endreDeltakelsesmengde1,
+                        endreDeltakelsesmengde2,
+                    ),
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder()
         deltakelsesmengder.size shouldBe 1
@@ -199,37 +219,43 @@ class DeltakelsesmengderStartdatoTest {
         val startdato1 = "2024-10-30".toDate()
         val startdato2 = "2024-11-10".toDate()
 
-        val ugyldigDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 42,
-            gyldigFra = "2024-10-29".toDate(),
-            opprettet = "2024-10-29".toDateTime(),
-        )
+        val ugyldigDeltakelsesmengde =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 42,
+                gyldigFra = "2024-10-29".toDate(),
+                opprettet = "2024-10-29".toDateTime(),
+            )
 
-        val forsteDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 50,
-            gyldigFra = startdato2,
-            opprettet = "2024-10-30".toDateTime(),
-        )
+        val forsteDeltakelsesmengde =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 50,
+                gyldigFra = startdato2,
+                opprettet = "2024-10-30".toDateTime(),
+            )
 
-        val andreDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
-            deltakelsesprosent = 51,
-            gyldigFra = "2024-11-01".toDate(),
-            opprettet = "2024-11-09".toDateTime(),
-        )
+        val andreDeltakelsesmengde =
+            TestData.lagEndreDeltakelsesmengde(
+                deltakelsesprosent = 51,
+                gyldigFra = "2024-11-01".toDate(),
+                opprettet = "2024-11-09".toDateTime(),
+            )
 
-        val historikk = TestData.lagDeltakerHistorikk(
-            listOf(vedtak),
-            endringerFraArrangor = listOf(
-                TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
-            ),
-            endringer = listOf(
-                TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
-                TestData.lagEndreStartdato(startdato1, opprettet = "2024-11-08".toDateTime()),
-                ugyldigDeltakelsesmengde,
-                forsteDeltakelsesmengde,
-                andreDeltakelsesmengde,
-            ),
-        )
+        val historikk =
+            TestData.lagDeltakerHistorikk(
+                listOf(vedtak),
+                endringerFraArrangor =
+                    listOf(
+                        TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
+                    ),
+                endringer =
+                    listOf(
+                        TestData.lagEndreStartdato(startdato2, opprettet = "2024-11-07".toDateTime()),
+                        TestData.lagEndreStartdato(startdato1, opprettet = "2024-11-08".toDateTime()),
+                        ugyldigDeltakelsesmengde,
+                        forsteDeltakelsesmengde,
+                        andreDeltakelsesmengde,
+                    ),
+            )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder()
         deltakelsesmengder.size shouldBe 2

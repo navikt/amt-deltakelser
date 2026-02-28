@@ -114,28 +114,34 @@ sealed interface GjennomforingV2KafkaPayload {
         override val gjennomforingType: GjennomforingType = GjennomforingType.Enkeltplass,
     ) : GjennomforingV2KafkaPayload
 
-    fun <T : Any> toModel(gruppeMapper: (Gruppe) -> T, enkeltplassMapper: (Enkeltplass) -> T): T = when (this) {
-        is Gruppe -> gruppeMapper(this)
-        is Enkeltplass -> enkeltplassMapper(this)
-    }
+    fun <T : Any> toModel(
+        gruppeMapper: (Gruppe) -> T,
+        enkeltplassMapper: (Enkeltplass) -> T,
+    ): T =
+        when (this) {
+            is Gruppe -> gruppeMapper(this)
+            is Enkeltplass -> enkeltplassMapper(this)
+        }
 
     companion object {
         const val GRUPPE_V2_TYPE = "TiltaksgjennomforingV2.Gruppe"
         const val ENKELTPLASS_V2_TYPE = "TiltaksgjennomforingV2.Enkeltplass"
 
-        val direktetiltak = setOf(
-            Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-            Tiltakskode.ARBEIDSRETTET_REHABILITERING,
-            Tiltakskode.AVKLARING,
-            Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
-            Tiltakskode.OPPFOLGING,
-            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-        )
+        val direktetiltak =
+            setOf(
+                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+                Tiltakskode.AVKLARING,
+                Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
+                Tiltakskode.OPPFOLGING,
+                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+            )
 
-        val gruppetiltak = setOf(
-            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-            Tiltakskode.JOBBKLUBB,
-        )
+        val gruppetiltak =
+            setOf(
+                Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+                Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+                Tiltakskode.JOBBKLUBB,
+            )
     }
 }

@@ -28,7 +28,6 @@ data class DeltakerKafkaPayload(
     val vurderingerFraArrangor: List<Vurdering>?,
     val erManueltDeltMedArrangor: Boolean = false,
     val sisteEndring: SisteEndring?,
-
     /*
         Felter som bør deprecates og flyttes inn i relevante strukturer:
      */
@@ -52,7 +51,7 @@ data class DeltakerKafkaPayload(
 )
 
 data class DeltakerStatusDto(
-    //Kan ikke bytte til DeltakerStatus siden denne har en annen struktur på aarsak
+    // Kan ikke bytte til DeltakerStatus siden denne har en annen struktur på aarsak
     val id: UUID?,
     val type: DeltakerStatus.Type,
     val aarsak: DeltakerStatus.Aarsak.Type?,

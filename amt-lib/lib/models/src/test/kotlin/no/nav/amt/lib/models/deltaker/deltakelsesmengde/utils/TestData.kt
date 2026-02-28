@@ -25,16 +25,17 @@ object TestData {
         deltakerId = deltakerId,
         fattet = fattet,
         gyldigTil = null,
-        deltakerVedVedtak = DeltakerVedVedtak(
-            id = deltakerId,
-            startdato = null,
-            sluttdato = null,
-            deltakelsesprosent = deltakelsesprosent,
-            dagerPerUke = dagerPerUke,
-            bakgrunnsinformasjon = null,
-            deltakelsesinnhold = null,
-            status = lagDeltakerStatus(),
-        ),
+        deltakerVedVedtak =
+            DeltakerVedVedtak(
+                id = deltakerId,
+                startdato = null,
+                sluttdato = null,
+                deltakelsesprosent = deltakelsesprosent,
+                dagerPerUke = dagerPerUke,
+                bakgrunnsinformasjon = null,
+                deltakelsesinnhold = null,
+                status = lagDeltakerStatus(),
+            ),
         fattetAvNav = true,
         opprettet = opprettet,
         opprettetAv = UUID.randomUUID(),
@@ -44,14 +45,15 @@ object TestData {
         sistEndretAvEnhet = UUID.randomUUID(),
     )
 
-    fun lagDeltakerStatus() = DeltakerStatus(
-        id = UUID.randomUUID(),
-        type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
-        aarsak = null,
-        gyldigFra = LocalDateTime.now(),
-        gyldigTil = null,
-        opprettet = LocalDateTime.now(),
-    )
+    fun lagDeltakerStatus() =
+        DeltakerStatus(
+            id = UUID.randomUUID(),
+            type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            aarsak = null,
+            gyldigFra = LocalDateTime.now(),
+            gyldigTil = null,
+            opprettet = LocalDateTime.now(),
+        )
 
     fun lagImportertFraArena(
         deltakelsesprosent: Float? = 100F,
@@ -62,15 +64,16 @@ object TestData {
     ) = ImportertFraArena(
         deltakerId = deltakerId,
         importertDato = opprettet,
-        deltakerVedImport = DeltakerVedImport(
-            deltakerId = deltakerId,
-            innsoktDato = innsoktDato,
-            startdato = null,
-            sluttdato = null,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            status = lagDeltakerStatus(),
-        ),
+        deltakerVedImport =
+            DeltakerVedImport(
+                deltakerId = deltakerId,
+                innsoktDato = innsoktDato,
+                startdato = null,
+                sluttdato = null,
+                dagerPerUke = dagerPerUke,
+                deltakelsesprosent = deltakelsesprosent,
+                status = lagDeltakerStatus(),
+            ),
     )
 
     fun lagDeltakerHistorikk(
@@ -96,12 +99,13 @@ object TestData {
         deltakerId: UUID = UUID.randomUUID(),
     ) = lagDeltakerEndring(
         deltakerId = deltakerId,
-        endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-            deltakelsesprosent = deltakelsesprosent?.toFloat(),
-            dagerPerUke = dagerPerUke?.toFloat(),
-            gyldigFra = gyldigFra,
-            begrunnelse = null,
-        ),
+        endring =
+            DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = deltakelsesprosent?.toFloat(),
+                dagerPerUke = dagerPerUke?.toFloat(),
+                gyldigFra = gyldigFra,
+                begrunnelse = null,
+            ),
         endret = opprettet,
     )
 
@@ -124,11 +128,12 @@ object TestData {
         deltakerId: UUID = UUID.randomUUID(),
     ) = lagDeltakerEndring(
         deltakerId = deltakerId,
-        endring = DeltakerEndring.Endring.EndreStartdato(
-            startdato = startdato,
-            sluttdato = startdato.plusMonths(3),
-            begrunnelse = null,
-        ),
+        endring =
+            DeltakerEndring.Endring.EndreStartdato(
+                startdato = startdato,
+                sluttdato = startdato.plusMonths(3),
+                begrunnelse = null,
+            ),
         endret = opprettet,
     )
 

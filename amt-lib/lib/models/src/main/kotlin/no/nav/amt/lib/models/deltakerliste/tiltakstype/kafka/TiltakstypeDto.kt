@@ -14,11 +14,12 @@ data class TiltakstypeDto(
     val innsatsgrupper: Set<InnsatsgruppeV2>,
     val deltakerRegistreringInnhold: DeltakerRegistreringInnhold?,
 ) {
-    fun toModel(): Tiltakstype = Tiltakstype(
-        id = id,
-        navn = navn,
-        tiltakskode = tiltakskode,
-        innsatsgrupper = innsatsgrupper.map { it.toV1() }.toSet(),
-        innhold = deltakerRegistreringInnhold,
-    )
+    fun toModel(): Tiltakstype =
+        Tiltakstype(
+            id = id,
+            navn = navn,
+            tiltakskode = tiltakskode,
+            innsatsgrupper = innsatsgrupper.map { it.toV1() }.toSet(),
+            innhold = deltakerRegistreringInnhold,
+        )
 }

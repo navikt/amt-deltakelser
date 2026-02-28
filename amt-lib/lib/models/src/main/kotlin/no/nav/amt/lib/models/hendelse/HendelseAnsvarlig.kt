@@ -5,7 +5,7 @@ import java.util.UUID
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface HendelseAnsvarlig {
-    data class NavTiltakskoordinator (
+    data class NavTiltakskoordinator(
         val id: UUID,
         val navn: String,
         val navIdent: String,

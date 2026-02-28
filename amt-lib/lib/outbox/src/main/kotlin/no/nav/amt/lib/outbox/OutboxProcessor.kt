@@ -32,7 +32,10 @@ class OutboxProcessor(
      * @param initialDelay The initial delay before the job starts.
      * @param period The period between each job execution.
      */
-    fun start(initialDelay: Duration = Duration.ofMillis(INITIAL_DELAY_MILLIS), period: Duration = Duration.ofMillis(PERIOD_MILLIS)) {
+    fun start(
+        initialDelay: Duration = Duration.ofMillis(INITIAL_DELAY_MILLIS),
+        period: Duration = Duration.ofMillis(PERIOD_MILLIS),
+    ) {
         jobManager.startJob(
             name = JOB_NAME,
             initialDelay = initialDelay,

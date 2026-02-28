@@ -24,42 +24,45 @@ class DatabaseTest {
     }
 
     @Test
-    fun `transaksjon rulles tilbake ved feil`() = runTest {
-        val n = 1
+    fun `transaksjon rulles tilbake ved feil`() =
+        runTest {
+            val n = 1
 
-        try {
+            try {
+                Database.transaction {
+                    testRepository.insert(n)
+                    throw IllegalStateException("Skal rulle tilbake insert")
+                }
+            } catch (_: IllegalStateException) {
+                println("Feil etter insert")
+            }
+
+            testRepository.get(n) shouldBe null
+        }
+
+    @Test
+    fun `transaksjon committes uten feil`() =
+        runTest {
+            val n = 999
+
             Database.transaction {
                 testRepository.insert(n)
-                throw IllegalStateException("Skal rulle tilbake insert")
             }
-        } catch (_: IllegalStateException) {
-            println("Feil etter insert")
+
+            testRepository.get(n) shouldBe n
         }
 
-        testRepository.get(n) shouldBe null
-    }
-
     @Test
-    fun `transaksjon committes uten feil`() = runTest {
-        val n = 999
-
-        Database.transaction {
-            testRepository.insert(n)
-        }
-
-        testRepository.get(n) shouldBe n
-    }
-
-    @Test
-    fun `det er ikke mulig å bruke transaksjoner i en transaksjon`() = runTest {
-        shouldThrow<PSQLException> {
-            Database.transaction {
-                Database.query { s ->
-                    s.transaction {
-                        testRepository.insert(43)
+    fun `det er ikke mulig å bruke transaksjoner i en transaksjon`() =
+        runTest {
+            shouldThrow<PSQLException> {
+                Database.transaction {
+                    Database.query { s ->
+                        s.transaction {
+                            testRepository.insert(43)
+                        }
                     }
                 }
             }
         }
-    }
 }

@@ -15,7 +15,7 @@ data class HovedvedtakVedTildeltPlassPdfDto(
         val mellomnavn: String?,
         val etternavn: String,
         val personident: String,
-        val innhold: InnholdPdfDto?
+        val innhold: InnholdPdfDto?,
     )
 
     data class DeltakerlisteDto(
@@ -30,7 +30,7 @@ data class HovedvedtakVedTildeltPlassPdfDto(
         val oppmoteSted: String?,
         val harKursetStartet: Boolean?,
         val harKlagerett: Boolean,
-        val oppstartstype: Oppstartstype
+        val oppstartstype: Oppstartstype,
     )
 
     data class AvsenderDto(

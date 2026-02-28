@@ -26,9 +26,10 @@ internal class PartitionPauseController(
      */
     fun update(consumer: KafkaConsumer<*, *>) {
         // split partitions into those that can be processed and those that are in backoff
-        val (backoffPartitions, processable) = consumer
-            .assignment()
-            .partition { tp -> backoffManager.isInBackoff(tp) }
+        val (backoffPartitions, processable) =
+            consumer
+                .assignment()
+                .partition { tp -> backoffManager.isInBackoff(tp) }
 
         // get current paused partitions
         val paused = consumer.paused()

@@ -30,7 +30,10 @@ internal class OffsetManager {
      * @param tp the topic partition of the record
      * @param offset the offset of the processed record (next offset to commit)
      */
-    fun markProcessed(tp: TopicPartition, offset: Long) {
+    fun markProcessed(
+        tp: TopicPartition,
+        offset: Long,
+    ) {
         uncommittedOffsets[tp] = OffsetAndMetadata(offset)
         retryOffsets.remove(tp)
     }
@@ -43,7 +46,10 @@ internal class OffsetManager {
      * @param tp the topic partition of the record
      * @param offset the offset to retry from
      */
-    fun markRetry(tp: TopicPartition, offset: Long) {
+    fun markRetry(
+        tp: TopicPartition,
+        offset: Long,
+    ) {
         retryOffsets[tp] = retryOffsets[tp]
             ?.coerceAtMost(offset)
             ?: offset
@@ -69,15 +75,16 @@ internal class OffsetManager {
      *
      * @param consumer the KafkaConsumer to seek
      */
-    fun retryFailedPartitions(consumer: KafkaConsumer<*, *>) = retryOffsets.forEach { (tp, offset) ->
-        try {
-            val current = consumer.position(tp)
-            if (current != offset) consumer.seek(tp, offset)
-            log.debug("Retrying {} from offset {} (was {})", tp, offset, current)
-        } catch (e: IllegalStateException) {
-            log.warn("Partition $tp not assigned during retry seek", e)
+    fun retryFailedPartitions(consumer: KafkaConsumer<*, *>) =
+        retryOffsets.forEach { (tp, offset) ->
+            try {
+                val current = consumer.position(tp)
+                if (current != offset) consumer.seek(tp, offset)
+                log.debug("Retrying {} from offset {} (was {})", tp, offset, current)
+            } catch (e: IllegalStateException) {
+                log.warn("Partition $tp not assigned during retry seek", e)
+            }
         }
-    }
 
     /**
      * Commits all uncommitted offsets to Kafka synchronously.

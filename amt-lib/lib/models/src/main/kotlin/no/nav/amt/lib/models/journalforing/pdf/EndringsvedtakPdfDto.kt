@@ -29,7 +29,7 @@ data class EndringsvedtakPdfDto(
         val arrangor: ArrangorDto,
         val forskriftskapittel: Int,
         val pameldingstype: GjennomforingPameldingType,
-        val harKlagerett: Boolean
+        val harKlagerett: Boolean,
     )
 
     data class ArrangorDto(

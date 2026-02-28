@@ -71,15 +71,17 @@ class NavBrukerTest {
 
         @Test
         fun `getBeskyttelsesmarkeringer skal returnere en liste med FORTROLIG og SKJERMET`() {
-            val bruker = brukerInTest.copy(
-                adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND,
-                erSkjermet = true,
-            )
+            val bruker =
+                brukerInTest.copy(
+                    adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND,
+                    erSkjermet = true,
+                )
 
-            bruker.beskyttelsesmarkeringer shouldBe listOf(
-                Beskyttelsesmarkering.STRENGT_FORTROLIG_UTLAND,
-                Beskyttelsesmarkering.SKJERMET,
-            )
+            bruker.beskyttelsesmarkeringer shouldBe
+                listOf(
+                    Beskyttelsesmarkering.STRENGT_FORTROLIG_UTLAND,
+                    Beskyttelsesmarkering.SKJERMET,
+                )
         }
     }
 
@@ -90,63 +92,72 @@ class NavBrukerTest {
         fun `getVisningsnavn skal returnere visningsnavn med mellomnavn`(tilgangTilBruker: Boolean) {
             val visningsnavn = brukerInTest.getVisningsnavn(tilgangTilBruker = tilgangTilBruker)
 
-            visningsnavn shouldBe Triple(
-                "~fornavn~",
-                "~mellomnavn~",
-                "~etternavn~",
-            )
+            visningsnavn shouldBe
+                Triple(
+                    "~fornavn~",
+                    "~mellomnavn~",
+                    "~etternavn~",
+                )
         }
 
         @Test
         fun `getVisningsnavn skal returnere visningsnavn nar erAdressebeskyttet og tilgangTilBruker`() {
-            val visningsnavn = brukerInTest
-                .copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG)
-                .getVisningsnavn(tilgangTilBruker = true)
+            val visningsnavn =
+                brukerInTest
+                    .copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG)
+                    .getVisningsnavn(tilgangTilBruker = true)
 
-            visningsnavn shouldBe Triple(
-                "~fornavn~",
-                "~mellomnavn~",
-                "~etternavn~",
-            )
+            visningsnavn shouldBe
+                Triple(
+                    "~fornavn~",
+                    "~mellomnavn~",
+                    "~etternavn~",
+                )
         }
 
         @Test
         fun `getVisningsnavn skal returnere Adressebeskyttet nar erAdressebeskyttet og ikke tilgangTilBruker`() {
-            val visningsnavn = brukerInTest
-                .copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG)
-                .getVisningsnavn(tilgangTilBruker = false)
+            val visningsnavn =
+                brukerInTest
+                    .copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG)
+                    .getVisningsnavn(tilgangTilBruker = false)
 
-            visningsnavn shouldBe Triple(
-                "Adressebeskyttet",
-                null,
-                "",
-            )
+            visningsnavn shouldBe
+                Triple(
+                    "Adressebeskyttet",
+                    null,
+                    "",
+                )
         }
 
         @Test
         fun `getVisningsnavn skal returnere visningsnavn nar erSkjermet og tilgangTilBruker`() {
-            val visningsnavn = brukerInTest
-                .copy(erSkjermet = true)
-                .getVisningsnavn(tilgangTilBruker = true)
+            val visningsnavn =
+                brukerInTest
+                    .copy(erSkjermet = true)
+                    .getVisningsnavn(tilgangTilBruker = true)
 
-            visningsnavn shouldBe Triple(
-                "~fornavn~",
-                "~mellomnavn~",
-                "~etternavn~",
-            )
+            visningsnavn shouldBe
+                Triple(
+                    "~fornavn~",
+                    "~mellomnavn~",
+                    "~etternavn~",
+                )
         }
 
         @Test
         fun `getVisningsnavn skal returnere Skjermet person nar erSkjermet og ikke tilgangTilBruker`() {
-            val visningsnavn = brukerInTest
-                .copy(erSkjermet = true)
-                .getVisningsnavn(tilgangTilBruker = false)
+            val visningsnavn =
+                brukerInTest
+                    .copy(erSkjermet = true)
+                    .getVisningsnavn(tilgangTilBruker = false)
 
-            visningsnavn shouldBe Triple(
-                "Skjermet person",
-                null,
-                "",
-            )
+            visningsnavn shouldBe
+                Triple(
+                    "Skjermet person",
+                    null,
+                    "",
+                )
         }
     }
 

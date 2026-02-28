@@ -22,9 +22,10 @@ object SingletonKafkaProvider {
 
         log.info("Starting new Kafka Instance...")
 
-        kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka"))
-            // workaround for https://github.com/testcontainers/testcontainers-java/issues/9506
-            .withEnv("KAFKA_LISTENERS", "PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094")
+        kafkaContainer =
+            KafkaContainer(DockerImageName.parse("apache/kafka"))
+                // workaround for https://github.com/testcontainers/testcontainers-java/issues/9506
+                .withEnv("KAFKA_LISTENERS", "PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094")
         kafkaContainer!!.withReuse(reuseConfig.reuse)
         kafkaContainer!!.withLabel("reuse.UUID", reuseConfig.reuseLabel)
         kafkaContainer!!.start()

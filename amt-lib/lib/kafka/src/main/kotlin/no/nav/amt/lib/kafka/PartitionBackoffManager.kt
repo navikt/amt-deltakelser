@@ -31,10 +31,7 @@ internal class PartitionBackoffManager {
     fun incrementRetryCount(tp: TopicPartition) {
         val newRetryCount = (state[tp]?.retryCount ?: 0) + 1
 
-        state[tp] = PartitionState(
-            retryCount = newRetryCount,
-            backoffUntil = calculateBackoffUntilMs(newRetryCount),
-        )
+        state[tp] = PartitionState(retryCount = newRetryCount, backoffUntil = calculateBackoffUntilMs(newRetryCount))
     }
 
     /**

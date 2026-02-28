@@ -2,15 +2,17 @@ import java.net.URI
 
 group = "no.nav.amt.deltakelser.lib"
 
+val libsWrapper = VersionCatalogWrapper.fromProject(project)
+
+repositories {
+    mavenCentral()
+}
+
 plugins {
     `java-library`
     `maven-publish`
     kotlin
-    // TODO id("org.jlleitschuh.gradle.ktlint")
-}
-
-repositories {
-    mavenCentral()
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 java {
@@ -20,6 +22,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+ktlint {
+    version = libsWrapper.getVersion("ktlint.cli.version")
 }
 
 publishing {
