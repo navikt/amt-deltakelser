@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           # Build Kotlin/Java artifacts for CodeQL
-          ./gradlew clean build -x test --no-daemon --no-configuration-cache --no-build-cache
+          ./gradlew assemble -x test --no-daemon --no-configuration-cache --no-build-cache
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
