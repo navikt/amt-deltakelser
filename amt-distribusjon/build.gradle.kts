@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-
     // --- Varsel ---
     implementation(libs.tms.varsel.kotlin.builder)
 }
