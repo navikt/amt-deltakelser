@@ -64,11 +64,7 @@ class JournalforingServiceTest {
     @Test
     fun `handleHendelse - NavGodkjennUtkast, er journalfort, ikke sendt brev - sender brev`() =
         integrationTest { app, _ ->
-            val hendelse =
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.navGodkjennUtkast(),
-                    distribusjonskanal = Distribusjonskanal.PRINT,
-                )
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.navGodkjennUtkast(), distribusjonskanal = Distribusjonskanal.PRINT)
 
             val journalpostId = "12345"
 
@@ -241,8 +237,7 @@ class JournalforingServiceTest {
                     ansvarlig = hendelseDeltakelsesmengde.ansvarlig,
                     opprettet = LocalDateTime.now(),
                 )
-            val journalforingstatusForleng =
-                Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
+            val journalforingstatusForleng = Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
             app.journalforingstatusRepository.upsert(journalforingstatusForleng)
 
             app.journalforingService.journalforOgDistribuerEndringsvedtak(
@@ -286,8 +281,7 @@ class JournalforingServiceTest {
                     opprettet = LocalDateTime.now(),
                     distribusjonskanal = Distribusjonskanal.PRINT,
                 )
-            val journalforingstatusForleng =
-                Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
+            val journalforingstatusForleng = Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
             app.journalforingstatusRepository.upsert(journalforingstatusForleng)
 
             app.journalforingService.journalforOgDistribuerEndringsvedtak(
@@ -297,8 +291,7 @@ class JournalforingServiceTest {
                 ),
             )
 
-            val journalpostDeltakelsesmengde =
-                app.journalforingstatusRepository.get(hendelseDeltakelsesmengde.id).shouldNotBeNull()
+            val journalpostDeltakelsesmengde = app.journalforingstatusRepository.get(hendelseDeltakelsesmengde.id).shouldNotBeNull()
 
             assertSoftly(journalpostDeltakelsesmengde) {
                 journalpostId shouldBe journalforingstatusDeltakelsesmengde.journalpostId
@@ -332,8 +325,7 @@ class JournalforingServiceTest {
             val avsluttDeltakelseHendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
             MockResponseHandler.addNavBrukerResponse(avsluttDeltakelseHendelse.deltaker.personident, navBruker)
 
-            val journalforingstatus =
-                Journalforingstatus(avsluttDeltakelseHendelse.id, null, null, null, kanIkkeJournalfores = null)
+            val journalforingstatus = Journalforingstatus(avsluttDeltakelseHendelse.id, null, null, null, kanIkkeJournalfores = null)
             app.journalforingstatusRepository.upsert(journalforingstatus)
 
             app.journalforingService.journalforOgDistribuerEndringsvedtak(
@@ -366,8 +358,7 @@ class JournalforingServiceTest {
             val hendelseForleng = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse())
             MockResponseHandler.addNavBrukerResponse(hendelseForleng.deltaker.personident, navBruker)
 
-            val journalforingstatusForleng =
-                Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
+            val journalforingstatusForleng = Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
             app.journalforingstatusRepository.upsert(journalforingstatusForleng)
 
             assertThrows(IllegalArgumentException::class.java) {
@@ -389,8 +380,7 @@ class JournalforingServiceTest {
                     HendelseTypeData.endreDeltakelsesmengde(),
                     opprettet = LocalDateTime.now().minusMinutes(20),
                 )
-            val hendelseForleng =
-                Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now())
+            val hendelseForleng = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now())
 
             assertThrows(IllegalArgumentException::class.java) {
                 runBlocking {
@@ -420,9 +410,5 @@ class JournalforingServiceTest {
 
 private fun produce(hendelse: HendelseDto) =
     produceStringString(
-        ProducerRecord(
-            Environment.DELTAKER_HENDELSE_TOPIC,
-            hendelse.deltaker.id.toString(),
-            objectMapper.writeValueAsString(hendelse),
-        ),
+        ProducerRecord(Environment.DELTAKER_HENDELSE_TOPIC, hendelse.deltaker.id.toString(), objectMapper.writeValueAsString(hendelse)),
     )

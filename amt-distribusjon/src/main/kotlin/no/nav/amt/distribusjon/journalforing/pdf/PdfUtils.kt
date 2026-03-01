@@ -41,44 +41,39 @@ fun lagHovedvedtakPdfDto(
     vedtaksdato: LocalDate,
     begrunnelseFraNav: String?,
 ) = HovedvedtakPdfDto(
-    deltaker =
-        HovedvedtakPdfDto.DeltakerDto(
-            fornavn = navBruker.fornavn,
-            mellomnavn = navBruker.mellomnavn,
-            etternavn = navBruker.etternavn,
-            personident = deltaker.personident,
-            innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
-            bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
-            deltakelsesmengdeTekst =
-                if (skalViseDeltakelsesmengde(deltaker.deltakerliste.tiltak)) {
-                    utkast.deltakelsesprosent?.let {
-                        deltakelsesmengdeTekst(
-                            deltakelsesprosent = it.toInt(),
-                            dagerPerUke = utkast.dagerPerUke?.toInt(),
-                        )
-                    }
-                } else {
-                    null
-                },
-            adresseDelesMedArrangor = adresseDelesMedArrangor(deltaker, navBruker),
+    deltaker = HovedvedtakPdfDto.DeltakerDto(
+        fornavn = navBruker.fornavn,
+        mellomnavn = navBruker.mellomnavn,
+        etternavn = navBruker.etternavn,
+        personident = deltaker.personident,
+        innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
+        bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
+        deltakelsesmengdeTekst = if (skalViseDeltakelsesmengde(deltaker.deltakerliste.tiltak)) {
+            utkast.deltakelsesprosent?.let {
+                deltakelsesmengdeTekst(
+                    deltakelsesprosent = it.toInt(),
+                    dagerPerUke = utkast.dagerPerUke?.toInt(),
+                )
+            }
+        } else {
+            null
+        },
+        adresseDelesMedArrangor = adresseDelesMedArrangor(deltaker, navBruker),
+    ),
+    deltakerliste = HovedvedtakPdfDto.DeltakerlisteDto(
+        navn = deltaker.deltakerliste.tittelVisningsnavn(),
+        tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+        ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fases ut for innholdV2
+        arrangor = HovedvedtakPdfDto.ArrangorDto(
+            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
         ),
-    deltakerliste =
-        HovedvedtakPdfDto.DeltakerlisteDto(
-            navn = deltaker.deltakerliste.tittelVisningsnavn(),
-            tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-            ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fases ut for innholdV2
-            arrangor =
-                HovedvedtakPdfDto.ArrangorDto(
-                    navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-                ),
-            forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
-            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-        ),
-    avsender =
-        HovedvedtakPdfDto.AvsenderDto(
-            navn = veileder.navn,
-            enhet = navBruker.navEnhet?.navn ?: "NAV",
-        ),
+        forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
+        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+    ),
+    avsender = HovedvedtakPdfDto.AvsenderDto(
+        navn = veileder.navn,
+        enhet = navBruker.navEnhet?.navn ?: "NAV",
+    ),
     vedtaksdato = vedtaksdato,
     begrunnelseFraNav = begrunnelseFraNav,
     sidetittel = deltaker.deltakerliste.tittelVisningsnavn(),
@@ -93,37 +88,33 @@ fun lagHovedopptakForTildeltPlass(
     opprettetDato: LocalDate,
     deltakelseInnhold: Deltakelsesinnhold?,
 ) = HovedvedtakVedTildeltPlassPdfDto(
-    deltaker =
-        HovedvedtakVedTildeltPlassPdfDto.DeltakerDto(
-            fornavn = navBruker.fornavn,
-            mellomnavn = navBruker.mellomnavn,
-            etternavn = navBruker.etternavn,
-            personident = deltaker.personident,
-            innhold = deltakelseInnhold?.innhold?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
+    deltaker = HovedvedtakVedTildeltPlassPdfDto.DeltakerDto(
+        fornavn = navBruker.fornavn,
+        mellomnavn = navBruker.mellomnavn,
+        etternavn = navBruker.etternavn,
+        personident = deltaker.personident,
+        innhold = deltakelseInnhold?.innhold?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
+    ),
+    deltakerliste = HovedvedtakVedTildeltPlassPdfDto.DeltakerlisteDto(
+        tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+        ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fjernes
+        tittelNavn = deltaker.deltakerliste.tittelVisningsnavn(),
+        ingressNavn = deltaker.deltakerliste.ingressVisningsnavn(),
+        startdato = deltaker.deltakerliste.startdato,
+        sluttdato = deltaker.deltakerliste.sluttdato,
+        forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
+        harKursetStartet = deltaker.deltakerliste.startdato?.isBefore(LocalDate.now()) == true,
+        arrangor = ArrangorDto(
+            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
         ),
-    deltakerliste =
-        HovedvedtakVedTildeltPlassPdfDto.DeltakerlisteDto(
-            tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-            ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fjernes
-            tittelNavn = deltaker.deltakerliste.tittelVisningsnavn(),
-            ingressNavn = deltaker.deltakerliste.ingressVisningsnavn(),
-            startdato = deltaker.deltakerliste.startdato,
-            sluttdato = deltaker.deltakerliste.sluttdato,
-            forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
-            harKursetStartet = deltaker.deltakerliste.startdato?.isBefore(LocalDate.now()) == true,
-            arrangor =
-                ArrangorDto(
-                    navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-                ),
-            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-            harKlagerett = deltaker.deltakerliste.harKlagerett(),
-            oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
-        ),
-    avsender =
-        HovedvedtakVedTildeltPlassPdfDto.AvsenderDto(
-            navn = ansvarlig.navn,
-            enhet = ansvarlig.enhet.navn,
-        ),
+        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+        harKlagerett = deltaker.deltakerliste.harKlagerett(),
+        oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
+    ),
+    avsender = HovedvedtakVedTildeltPlassPdfDto.AvsenderDto(
+        navn = ansvarlig.navn,
+        enhet = ansvarlig.enhet.navn,
+    ),
     opprettetDato = opprettetDato,
 )
 
@@ -134,33 +125,29 @@ fun lagInnsokingsbrevPdfDto(
     opprettetDato: LocalDate,
     utkast: UtkastDto,
 ) = InnsokingsbrevPdfDto(
-    deltaker =
-        InnsokingsbrevPdfDto.DeltakerDto(
-            fornavn = navBruker.fornavn,
-            mellomnavn = navBruker.mellomnavn,
-            etternavn = navBruker.etternavn,
-            personident = deltaker.personident,
-            innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
+    deltaker = InnsokingsbrevPdfDto.DeltakerDto(
+        fornavn = navBruker.fornavn,
+        mellomnavn = navBruker.mellomnavn,
+        etternavn = navBruker.etternavn,
+        personident = deltaker.personident,
+        innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
+    ),
+    deltakerliste = InnsokingsbrevPdfDto.DeltakerlisteDto(
+        navn = deltaker.deltakerliste.tittelVisningsnavn(),
+        tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+        ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
+        arrangor = ArrangorDto(
+            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
         ),
-    deltakerliste =
-        InnsokingsbrevPdfDto.DeltakerlisteDto(
-            navn = deltaker.deltakerliste.tittelVisningsnavn(),
-            tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-            ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
-            arrangor =
-                ArrangorDto(
-                    navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-                ),
-            startdato = deltaker.deltakerliste.startdato,
-            sluttdato = deltaker.deltakerliste.sluttdato,
-            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-            oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
-        ),
-    avsender =
-        AvsenderDto(
-            navn = veileder.navn,
-            enhet = navBruker.navEnhet?.navn ?: "NAV",
-        ),
+        startdato = deltaker.deltakerliste.startdato,
+        sluttdato = deltaker.deltakerliste.sluttdato,
+        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+        oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
+    ),
+    avsender = AvsenderDto(
+        navn = veileder.navn,
+        enhet = navBruker.navEnhet?.navn ?: "NAV",
+    ),
     sidetittel = deltaker.deltakerliste.tittelVisningsnavn(),
     ingressnavn = deltaker.deltakerliste.ingressVisningsnavn(),
     opprettetDato = opprettetDato,
@@ -172,32 +159,28 @@ fun lagVentelistebrevPdfDto(
     endretAv: HendelseAnsvarlig.NavTiltakskoordinator,
     hendelseOpprettetDato: LocalDate,
 ) = VentelistebrevPdfDto(
-    deltaker =
-        VentelistebrevPdfDto.DeltakerDto(
-            fornavn = navBruker.fornavn,
-            mellomnavn = navBruker.mellomnavn,
-            etternavn = navBruker.etternavn,
-            personident = deltaker.personident,
-            opprettetDato = deltaker.opprettetDato!!,
+    deltaker = VentelistebrevPdfDto.DeltakerDto(
+        fornavn = navBruker.fornavn,
+        mellomnavn = navBruker.mellomnavn,
+        etternavn = navBruker.etternavn,
+        personident = deltaker.personident,
+        opprettetDato = deltaker.opprettetDato!!,
+    ),
+    deltakerliste = VentelistebrevPdfDto.DeltakerlisteDto(
+        tittelNavn = deltaker.deltakerliste.tittelVisningsnavn(),
+        ingressNavn = deltaker.deltakerliste.ingressVisningsnavn(),
+        arrangor = ArrangorDto(
+            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
         ),
-    deltakerliste =
-        VentelistebrevPdfDto.DeltakerlisteDto(
-            tittelNavn = deltaker.deltakerliste.tittelVisningsnavn(),
-            ingressNavn = deltaker.deltakerliste.ingressVisningsnavn(),
-            arrangor =
-                ArrangorDto(
-                    navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-                ),
-            startdato = deltaker.deltakerliste.startdato,
-            sluttdato = deltaker.deltakerliste.sluttdato,
-            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-            oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
-        ),
-    avsender =
-        AvsenderDto(
-            navn = endretAv.navn,
-            enhet = endretAv.enhet.navn,
-        ),
+        startdato = deltaker.deltakerliste.startdato,
+        sluttdato = deltaker.deltakerliste.sluttdato,
+        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+        oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
+    ),
+    avsender = AvsenderDto(
+        navn = endretAv.navn,
+        enhet = endretAv.enhet.navn,
+    ),
     opprettetDato = hendelseOpprettetDato,
 )
 
@@ -211,45 +194,37 @@ fun lagEndringsvedtakPdfDto(
     val endringer = fjernEldreHendelserAvSammeType(hendelser).map { it.payload }
 
     return EndringsvedtakPdfDto(
-        deltaker =
-            EndringsvedtakPdfDto.DeltakerDto(
-                fornavn = navBruker.fornavn,
-                mellomnavn = navBruker.mellomnavn,
-                etternavn = navBruker.etternavn,
-                personident = deltaker.personident,
-                opprettetDato = deltaker.opprettetDato,
+        deltaker = EndringsvedtakPdfDto.DeltakerDto(
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            personident = deltaker.personident,
+            opprettetDato = deltaker.opprettetDato,
+        ),
+        deltakerliste = EndringsvedtakPdfDto.DeltakerlisteDto(
+            navn = deltaker.deltakerliste.tittelVisningsnavn(),
+            ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
+            arrangor = EndringsvedtakPdfDto.ArrangorDto(
+                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
             ),
-        deltakerliste =
-            EndringsvedtakPdfDto.DeltakerlisteDto(
-                navn = deltaker.deltakerliste.tittelVisningsnavn(),
-                ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
-                arrangor =
-                    EndringsvedtakPdfDto.ArrangorDto(
-                        navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-                    ),
-                forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
-                pameldingstype =
-                    deltaker.deltakerliste.pameldingstype
-                        ?: throw IllegalStateException(
-                            "deltakerliste ${deltaker.deltakerliste.id} må ha påmeldingstype for å lage endringsvedtak",
-                        ),
-                harKlagerett = deltaker.deltakerliste.harKlagerett(),
-            ),
-        endringer =
-            endringer.map {
-                tilEndringDto(
-                    it,
-                    deltaker.deltakerliste.tiltak.tiltakskode,
-                    deltaker.deltakerliste.oppstartstype == HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES ||
-                        deltaker.deltakerliste.tiltak.tiltakskode
-                            .erOpplaeringstiltak(),
-                )
-            },
-        avsender =
-            EndringsvedtakPdfDto.AvsenderDto(
-                navn = ansvarlig.getAvsendernavn(),
-                enhet = navBruker.navEnhet?.navn ?: "NAV",
-            ),
+            forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
+            pameldingstype = deltaker.deltakerliste.pameldingstype
+                ?: throw IllegalStateException("deltakerliste ${deltaker.deltakerliste.id} må ha påmeldingstype for å lage endringsvedtak"),
+            harKlagerett = deltaker.deltakerliste.harKlagerett(),
+        ),
+        endringer = endringer.map {
+            tilEndringDto(
+                it,
+                deltaker.deltakerliste.tiltak.tiltakskode,
+                deltaker.deltakerliste.oppstartstype == HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES ||
+                    deltaker.deltakerliste.tiltak.tiltakskode
+                        .erOpplaeringstiltak(),
+            )
+        },
+        avsender = EndringsvedtakPdfDto.AvsenderDto(
+            navn = ansvarlig.getAvsendernavn(),
+            enhet = navBruker.navEnhet?.navn ?: "NAV",
+        ),
         vedtaksdato = opprettetDato,
         forsteVedtakFattet = deltaker.forsteVedtakFattet,
         sidetittel = deltaker.deltakerliste.tittelVisningsnavn(),
@@ -322,23 +297,18 @@ fun HendelseDeltaker.Deltakerliste.ingressVisningsnavn(): String =
 
 fun HendelseDeltaker.Deltakerliste.Arrangor.visningsnavn(): String =
     with(overordnetArrangor) {
-        val visningsnavn =
-            if (this == null || this.navn == "Ukjent Virksomhet") {
-                navn
-            } else {
-                this.navn
-            }
+        val visningsnavn = if (this == null || this.navn == "Ukjent Virksomhet") {
+            navn
+        } else {
+            this.navn
+        }
 
         return toTitleCase(visningsnavn)
     }
 
 private fun HendelseDeltaker.Deltakerliste.harKlagerett() =
     !(
-        this.tiltak.tiltakskode in
-            setOf(
-                Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-            ) &&
+        this.tiltak.tiltakskode in setOf(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING, Tiltakskode.ARBEIDSMARKEDSOPPLAERING) &&
             this.oppstartstype == HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES
     )
 
@@ -407,13 +377,12 @@ private fun tilEndringDto(
             EndringDto.AvsluttDeltakelse(
                 aarsak = hendelseType.aarsak?.visningsnavn(),
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                forslagFraArrangor =
-                    hendelseType.endringFraForslag?.let {
-                        endringFraForslagToForslagDto(
-                            it,
-                            hendelseType.begrunnelseFraArrangor,
-                        )
-                    },
+                forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                    endringFraForslagToForslagDto(
+                        it,
+                        hendelseType.begrunnelseFraArrangor,
+                    )
+                },
                 tittel = "Ny sluttdato er ${formatDateWithMonthName(hendelseType.sluttdato)}",
                 harDeltatt = true.tilVisningstekst(harFellesAvslutning),
                 // Har fullført er alltid true fordi ellers hadde det vært avbrytDeltakelse hendelse
@@ -425,13 +394,12 @@ private fun tilEndringDto(
             EndringDto.EndreAvslutning(
                 aarsak = hendelseType.aarsak?.visningsnavn(),
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                forslagFraArrangor =
-                    hendelseType.endringFraForslag?.let {
-                        endringFraForslagToForslagDto(
-                            it,
-                            hendelseType.begrunnelseFraArrangor,
-                        )
-                    },
+                forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                    endringFraForslagToForslagDto(
+                        it,
+                        hendelseType.begrunnelseFraArrangor,
+                    )
+                },
                 tittel = "Avslutning endret",
                 harFullfort = hendelseType.harFullfort.tilVisningstekst(true),
                 sluttdato = if (hendelseType.sluttdato != null) "Sluttdato: ${formatDate(hendelseType.sluttdato!!)}" else null,
@@ -442,13 +410,12 @@ private fun tilEndringDto(
             EndringDto.AvbrytDeltakelse(
                 aarsak = hendelseType.aarsak?.visningsnavn(),
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                forslagFraArrangor =
-                    hendelseType.endringFraForslag?.let {
-                        endringFraForslagToForslagDto(
-                            it,
-                            hendelseType.begrunnelseFraArrangor,
-                        )
-                    },
+                forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                    endringFraForslagToForslagDto(
+                        it,
+                        hendelseType.begrunnelseFraArrangor,
+                    )
+                },
                 tittel = "Ny sluttdato er ${formatDateWithMonthName(hendelseType.sluttdato)}",
                 harDeltatt = true.tilVisningstekst(harFellesAvslutning),
                 // Har fullført er alltid false fordi ellers hadde det vært avsluttdeltakelse hendelse
@@ -459,13 +426,12 @@ private fun tilEndringDto(
         is HendelseType.EndreDeltakelsesmengde -> {
             EndringDto.EndreDeltakelsesmengde(
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                forslagFraArrangor =
-                    hendelseType.endringFraForslag?.let {
-                        endringFraForslagToForslagDto(
-                            it,
-                            hendelseType.begrunnelseFraArrangor,
-                        )
-                    },
+                forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                    endringFraForslagToForslagDto(
+                        it,
+                        hendelseType.begrunnelseFraArrangor,
+                    )
+                },
                 tittel = "Deltakelsen er endret til ${
                     deltakelsesmengdeTekst(
                         deltakelsesprosent = hendelseType.deltakelsesprosent?.toInt(),
@@ -479,21 +445,19 @@ private fun tilEndringDto(
         is HendelseType.EndreSluttdato -> {
             EndringDto.EndreSluttdato(
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                forslagFraArrangor =
-                    hendelseType.endringFraForslag?.let {
-                        endringFraForslagToForslagDto(
-                            it,
-                            hendelseType.begrunnelseFraArrangor,
-                        )
-                    },
+                forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                    endringFraForslagToForslagDto(
+                        it,
+                        hendelseType.begrunnelseFraArrangor,
+                    )
+                },
                 tittel = "Ny sluttdato er ${formatDateWithMonthName(hendelseType.sluttdato)}",
             )
         }
 
         is HendelseType.EndreStartdato -> {
             val tittel =
-                hendelseType.startdato?.let { "Oppstartsdato er endret til ${formatDateWithMonthName(it)}" }
-                    ?: "Oppstartsdato er fjernet"
+                hendelseType.startdato?.let { "Oppstartsdato er endret til ${formatDateWithMonthName(it)}" } ?: "Oppstartsdato er fjernet"
 
             val sluttdato = hendelseType.sluttdato
 
@@ -501,25 +465,23 @@ private fun tilEndringDto(
                 EndringDto.EndreStartdatoOgVarighet(
                     sluttdato = "Forventet sluttdato: ${formatDate(sluttdato)}",
                     begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                    forslagFraArrangor =
-                        hendelseType.endringFraForslag?.let {
-                            endringFraForslagToForslagDto(
-                                it,
-                                hendelseType.begrunnelseFraArrangor,
-                            )
-                        },
+                    forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                        endringFraForslagToForslagDto(
+                            it,
+                            hendelseType.begrunnelseFraArrangor,
+                        )
+                    },
                     tittel = tittel,
                 )
             } else {
                 EndringDto.EndreStartdato(
                     begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                    forslagFraArrangor =
-                        hendelseType.endringFraForslag?.let {
-                            endringFraForslagToForslagDto(
-                                it,
-                                hendelseType.begrunnelseFraArrangor,
-                            )
-                        },
+                    forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                        endringFraForslagToForslagDto(
+                            it,
+                            hendelseType.begrunnelseFraArrangor,
+                        )
+                    },
                     tittel = tittel,
                 )
             }
@@ -528,13 +490,12 @@ private fun tilEndringDto(
         is HendelseType.ForlengDeltakelse -> {
             EndringDto.ForlengDeltakelse(
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                forslagFraArrangor =
-                    hendelseType.endringFraForslag?.let {
-                        endringFraForslagToForslagDto(
-                            it,
-                            hendelseType.begrunnelseFraArrangor,
-                        )
-                    },
+                forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                    endringFraForslagToForslagDto(
+                        it,
+                        hendelseType.begrunnelseFraArrangor,
+                    )
+                },
                 tittel = "Deltakelsen er forlenget til ${formatDateWithMonthName(hendelseType.sluttdato)}",
             )
         }
@@ -543,36 +504,35 @@ private fun tilEndringDto(
             EndringDto.IkkeAktuell(
                 aarsak = hendelseType.aarsak.visningsnavn(),
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                forslagFraArrangor =
-                    hendelseType.endringFraForslag?.let {
-                        endringFraForslagToForslagDto(
-                            it,
-                            hendelseType.begrunnelseFraArrangor,
-                        )
-                    },
+                forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                    endringFraForslagToForslagDto(
+                        it,
+                        hendelseType.begrunnelseFraArrangor,
+                    )
+                },
             )
         }
 
         is HendelseType.EndreInnhold -> {
             EndringDto.EndreInnhold(
                 innhold = hendelseType.innhold.map { it.visningsnavn() },
-                innholdBeskrivelse =
-                    if (tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET || tiltakskode.erOpplaeringstiltak()) {
-                        hendelseType.innhold.firstOrNull { it.innholdskode == "annet" }?.beskrivelse
-                    } else {
-                        null
-                    },
+                innholdBeskrivelse = if (tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET ||
+                    tiltakskode.erOpplaeringstiltak()
+                ) {
+                    hendelseType.innhold.firstOrNull { it.innholdskode == "annet" }?.beskrivelse
+                } else {
+                    null
+                },
             )
         }
 
         is HendelseType.EndreBakgrunnsinformasjon -> {
             EndringDto.EndreBakgrunnsinformasjon(
-                bakgrunnsinformasjon =
-                    if (hendelseType.bakgrunnsinformasjon.isNullOrEmpty()) {
-                        "—"
-                    } else {
-                        hendelseType.bakgrunnsinformasjon
-                    },
+                bakgrunnsinformasjon = if (hendelseType.bakgrunnsinformasjon.isNullOrEmpty()) {
+                    "—"
+                } else {
+                    hendelseType.bakgrunnsinformasjon
+                },
             )
         }
 
@@ -586,13 +546,12 @@ private fun tilEndringDto(
         is HendelseType.FjernOppstartsdato -> {
             EndringDto.FjernOppstartsdato(
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
-                forslagFraArrangor =
-                    hendelseType.endringFraForslag?.let {
-                        endringFraForslagToForslagDto(
-                            it,
-                            hendelseType.begrunnelseFraArrangor,
-                        )
-                    },
+                forslagFraArrangor = hendelseType.endringFraForslag?.let {
+                    endringFraForslagToForslagDto(
+                        it,
+                        hendelseType.begrunnelseFraArrangor,
+                    )
+                },
             )
         }
 
@@ -653,11 +612,10 @@ private fun endringFraForslagToForslagDto(
 
         is Forslag.Deltakelsesmengde -> {
             ForslagDto.EndreDeltakelsesmengde(
-                deltakelsesmengdeTekst =
-                    deltakelsesmengdeTekst(
-                        deltakelsesprosent = endring.deltakelsesprosent,
-                        dagerPerUke = endring.dagerPerUke,
-                    ),
+                deltakelsesmengdeTekst = deltakelsesmengdeTekst(
+                    deltakelsesprosent = endring.deltakelsesprosent,
+                    dagerPerUke = endring.dagerPerUke,
+                ),
                 begrunnelseFraArrangor = begrunnelseFraArrangor,
             )
         }
@@ -701,12 +659,11 @@ private fun endringFraForslagToForslagDto(
             ForslagDto.EndreAvslutning(
                 aarsak = endring.aarsak?.visningsnavn(),
                 harDeltatt = endring.harDeltatt?.let { if (it) "Ja" else "Nei" },
-                harFullfort =
-                    when (endring.harFullfort) {
-                        true -> endring.harDeltatt?.let { if (it) "Ja" else null }
-                        false -> endring.harDeltatt?.let { if (it) "Nei" else null }
-                        null -> null
-                    },
+                harFullfort = when (endring.harFullfort) {
+                    true -> endring.harDeltatt?.let { if (it) "Ja" else null }
+                    false -> endring.harDeltatt?.let { if (it) "Nei" else null }
+                    null -> null
+                },
                 begrunnelseFraArrangor = begrunnelseFraArrangor,
             )
         }
@@ -717,15 +674,14 @@ private fun endringFraForslagToForslagDto(
     }
 
 private fun EndringAarsak.visningsnavn(): String {
-    val deltakerEndringAarsak =
-        when (this) {
-            is EndringAarsak.FattJobb -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB)
-            is EndringAarsak.Annet -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, beskrivelse)
-            is EndringAarsak.IkkeMott -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT)
-            is EndringAarsak.Syk -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.SYK)
-            is EndringAarsak.TrengerAnnenStotte -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.TRENGER_ANNEN_STOTTE)
-            is EndringAarsak.Utdanning -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.UTDANNING)
-        }
+    val deltakerEndringAarsak = when (this) {
+        is EndringAarsak.FattJobb -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB)
+        is EndringAarsak.Annet -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, beskrivelse)
+        is EndringAarsak.IkkeMott -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT)
+        is EndringAarsak.Syk -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.SYK)
+        is EndringAarsak.TrengerAnnenStotte -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.TRENGER_ANNEN_STOTTE)
+        is EndringAarsak.Utdanning -> DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.UTDANNING)
+    }
 
     return deltakerEndringAarsak.visningsnavn()
 }

@@ -41,18 +41,17 @@ class TiltakshendelseRepository {
                 modified_at = CURRENT_TIMESTAMP                
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to tiltakshendelse.id,
-                "type" to tiltakshendelse.type.name,
-                "deltaker_id" to tiltakshendelse.deltakerId,
-                "forslag_id" to tiltakshendelse.forslagId,
-                "hendelser" to tiltakshendelse.hendelser.toTypedArray(),
-                "personident" to tiltakshendelse.personident,
-                "aktiv" to tiltakshendelse.aktiv,
-                "tekst" to tiltakshendelse.tekst,
-                "tiltakskode" to tiltakshendelse.tiltakskode.name,
-            )
+        val params = mapOf(
+            "id" to tiltakshendelse.id,
+            "type" to tiltakshendelse.type.name,
+            "deltaker_id" to tiltakshendelse.deltakerId,
+            "forslag_id" to tiltakshendelse.forslagId,
+            "hendelser" to tiltakshendelse.hendelser.toTypedArray(),
+            "personident" to tiltakshendelse.personident,
+            "aktiv" to tiltakshendelse.aktiv,
+            "tekst" to tiltakshendelse.tekst,
+            "tiltakskode" to tiltakshendelse.tiltakskode.name,
+        )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
@@ -83,8 +82,7 @@ class TiltakshendelseRepository {
                             "type" to hendelseType.name,
                         ),
                     ).map(::rowMapper).asSingle,
-                )
-                    ?: throw NoSuchElementException("Fant ikke tiltakshendelse for deltaker $deltakerId og type $hendelseType")
+                ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse for deltaker $deltakerId og type $hendelseType")
             }
         }
 

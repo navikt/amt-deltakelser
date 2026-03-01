@@ -69,10 +69,7 @@ class EndringFraArrangorService(
                     deltaker.endreDeltakersOppstart(
                         startdato = endring.startdato,
                         sluttdato = endring.sluttdato,
-                        deltakelsesmengder =
-                            deltakerHistorikkService
-                                .getForDeltaker(deltaker.id)
-                                .toDeltakelsesmengder(),
+                        deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
                     )
                 }
             }

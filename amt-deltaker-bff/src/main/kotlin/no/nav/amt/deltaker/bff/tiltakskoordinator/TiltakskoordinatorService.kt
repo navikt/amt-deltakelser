@@ -53,15 +53,7 @@ class TiltakskoordinatorService(
             )
         }
 
-        return deltaker.toTiltakskoordinatorsDeltaker(
-            sisteVurdering,
-            navEnhet,
-            navVeileder,
-            null,
-            false,
-            forslag,
-            ulesteHendelser,
-        )
+        return deltaker.toTiltakskoordinatorsDeltaker(sisteVurdering, navEnhet, navVeileder, null, false, forslag, ulesteHendelser)
     }
 
     suspend fun endreDeltakere(
@@ -71,27 +63,10 @@ class TiltakskoordinatorService(
     ): List<TiltakskoordinatorsDeltaker> {
         val oppdaterteDeltakereResponses =
             when (endring) {
-                EndringFraTiltakskoordinator.SettPaaVenteliste -> {
-                    tiltaksKoordinatorClient.settPaaVenteliste(
-                        deltakerIder,
-                        endretAv,
-                    )
-                }
-
-                EndringFraTiltakskoordinator.DelMedArrangor -> {
-                    tiltaksKoordinatorClient.delMedArrangor(
-                        deltakerIder,
-                        endretAv,
-                    )
-                }
-
-                EndringFraTiltakskoordinator.TildelPlass -> {
-                    tiltaksKoordinatorClient.tildelPlass(deltakerIder, endretAv)
-                }
-
-                is EndringFraTiltakskoordinator.Avslag -> {
-                    throw NotImplementedError("Batch håndtering for avslag er ikke støttet")
-                }
+                EndringFraTiltakskoordinator.SettPaaVenteliste -> tiltaksKoordinatorClient.settPaaVenteliste(deltakerIder, endretAv)
+                EndringFraTiltakskoordinator.DelMedArrangor -> tiltaksKoordinatorClient.delMedArrangor(deltakerIder, endretAv)
+                EndringFraTiltakskoordinator.TildelPlass -> tiltaksKoordinatorClient.tildelPlass(deltakerIder, endretAv)
+                is EndringFraTiltakskoordinator.Avslag -> throw NotImplementedError("Batch håndtering for avslag er ikke støttet")
             }
         val deltakerOppdateringer = oppdaterteDeltakereResponses.map { it.toDeltakerOppdatering() }
         deltakerService.oppdaterDeltakere(deltakerOppdateringer)

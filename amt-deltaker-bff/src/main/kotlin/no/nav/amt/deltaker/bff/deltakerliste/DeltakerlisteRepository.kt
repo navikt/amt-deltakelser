@@ -162,10 +162,7 @@ class DeltakerlisteRepository {
                 antallPlasser = row.intOrNull(col("antall_plasser")),
                 apentForPamelding = row.boolean(col("apent_for_pamelding")),
                 oppmoteSted = row.stringOrNull(col("oppmote_sted")),
-                pameldingstype =
-                    row
-                        .stringOrNull(col("pameldingstype"))
-                        ?.let { GjennomforingPameldingType.valueOf(it) },
+                pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
             )
     }
 }

@@ -855,7 +855,9 @@ fun Deltaker.endre(deltakerEndring: DeltakerEndring): Deltaker {
             }
 
             is DeltakerEndring.Endring.EndreInnhold -> {
-                this.copy(deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold))
+                this.copy(
+                    deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold),
+                )
             }
 
             is DeltakerEndring.Endring.EndreSluttarsak -> {

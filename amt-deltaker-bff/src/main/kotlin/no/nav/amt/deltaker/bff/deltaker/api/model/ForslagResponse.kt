@@ -61,14 +61,8 @@ private fun Forslag.getForslagResponseStatus(
     enheter: Map<UUID, NavEnhet>,
 ): ForslagResponseStatus =
     when (val status = status) {
-        is Forslag.Status.VenterPaSvar -> {
-            ForslagResponseStatus.VenterPaSvar
-        }
-
-        is Forslag.Status.Godkjent -> {
-            ForslagResponseStatus.Godkjent(status.godkjent)
-        }
-
+        is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
+        is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
         is Forslag.Status.Avvist -> {
             val avvist = status
             ForslagResponseStatus.Avvist(
@@ -78,12 +72,6 @@ private fun Forslag.getForslagResponseStatus(
                 begrunnelseFraNav = avvist.begrunnelseFraNav,
             )
         }
-
-        is Forslag.Status.Tilbakekalt -> {
-            ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
-        }
-
-        is Forslag.Status.Erstattet -> {
-            ForslagResponseStatus.Erstattet(status.erstattet)
-        }
+        is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
+        is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
     }

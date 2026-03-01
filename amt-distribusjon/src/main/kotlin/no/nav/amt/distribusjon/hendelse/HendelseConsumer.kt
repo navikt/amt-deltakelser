@@ -52,10 +52,8 @@ class HendelseConsumer(
         val hendelseDto: HendelseDto = objectMapper.readValue(value)
         log.info("Mottatt hendelse ${hendelseDto.id} for deltaker ${hendelseDto.deltaker.id}")
 
-        val distribusjonskanal =
-            dokdistkanalClient.bestemDistribusjonskanal(hendelseDto.deltaker.personident, hendelseDto.deltaker.id)
-        val erUnderManuellOppfolging =
-            veilarboppfolgingClient.erUnderManuellOppfolging(hendelseDto.deltaker.personident)
+        val distribusjonskanal = dokdistkanalClient.bestemDistribusjonskanal(hendelseDto.deltaker.personident, hendelseDto.deltaker.id)
+        val erUnderManuellOppfolging = veilarboppfolgingClient.erUnderManuellOppfolging(hendelseDto.deltaker.personident)
         val hendelse = hendelseDto.toModel(distribusjonskanal, erUnderManuellOppfolging)
 
         transaction {

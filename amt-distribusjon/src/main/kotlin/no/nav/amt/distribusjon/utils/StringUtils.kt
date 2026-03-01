@@ -4,17 +4,15 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-val FORKORTELSER_MED_STORE_BOKSTAVER =
-    listOf(
-        "as",
-        "a/s",
-    )
+val FORKORTELSER_MED_STORE_BOKSTAVER = listOf(
+    "as",
+    "a/s",
+)
 
-val ORD_MED_SMA_BOKSTAVER =
-    listOf(
-        "i",
-        "og",
-    )
+val ORD_MED_SMA_BOKSTAVER = listOf(
+    "i",
+    "og",
+)
 
 fun toTitleCase(tekst: String): String =
     tekst.lowercase().split(Regex("(?<=\\s|-|')")).joinToString("") {
@@ -39,13 +37,12 @@ fun formatDate(date: LocalDate): String {
 }
 
 fun formatDateWithMonthName(date: LocalDate): String {
-    val locale =
-        Locale
-            .Builder()
-            .setLanguageTag("no")
-            .setLanguageTag("no")
-            .setRegion("NO")
-            .build()
+    val locale = Locale
+        .Builder()
+        .setLanguageTag("no")
+        .setLanguageTag("no")
+        .setRegion("NO")
+        .build()
     val formatter = DateTimeFormatter.ofPattern("d. MMMM yyyy", locale)
     return date.format(formatter)
 }

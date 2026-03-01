@@ -47,18 +47,13 @@ class DeltakerResponseTest {
         innhold.size shouldBe innholdselementer.size
         innhold.forEach {
             when (it.innholdskode) {
-                valgtInnhold[0].innholdskode -> {
-                    it.valgt shouldBe true
-                }
-
+                valgtInnhold[0].innholdskode -> it.valgt shouldBe true
                 valgtInnhold[1].innholdskode -> {
                     it.valgt shouldBe true
                     it.beskrivelse shouldBe valgtInnhold[1].beskrivelse
                 }
 
-                else -> {
-                    it.valgt shouldBe false
-                }
+                else -> it.valgt shouldBe false
             }
         }
     }

@@ -149,17 +149,13 @@ class TilgangskontrollService(
         navAnsattAzureId: UUID,
     ): Decision =
         when (adressebeskyttelse) {
-            Adressebeskyttelse.FORTROLIG -> {
+            Adressebeskyttelse.FORTROLIG ->
                 poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
-            }
 
-            Adressebeskyttelse.STRENGT_FORTROLIG, Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND -> {
+            Adressebeskyttelse.STRENGT_FORTROLIG, Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND ->
                 poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
-            }
 
-            else -> {
-                Decision.Permit
-            }
+            else -> Decision.Permit
         }
 
     suspend fun leggTilTiltakskoordinatorTilgang(

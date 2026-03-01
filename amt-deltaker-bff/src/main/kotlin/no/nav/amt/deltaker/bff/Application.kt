@@ -129,13 +129,12 @@ fun Application.module() {
             httpClient = httpClient,
         )
 
-    val amtArrangorClient =
-        AmtArrangorClient(
-            baseUrl = environment.amtArrangorUrl,
-            scope = environment.amtArrangorScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val amtArrangorClient = AmtArrangorClient(
+        baseUrl = environment.amtArrangorUrl,
+        scope = environment.amtArrangorScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
     val amtPersonServiceClient =
         AmtPersonServiceClient(

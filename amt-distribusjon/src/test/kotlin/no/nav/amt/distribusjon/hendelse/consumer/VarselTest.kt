@@ -247,11 +247,7 @@ class VarselTest {
     fun `avsluttDeltakelse - nytt varsel med ekstern varsling, tidligere varsel skal revarsles - stopper revarsling av tidligere varsel`() =
         integrationTest { app, _ ->
             val deltakerId = UUID.randomUUID()
-            val hendelse =
-                Hendelsesdata.hendelse(
-                    HendelseTypeData.avsluttDeltakelse(),
-                    deltaker = Hendelsesdata.lagDeltaker(deltakerId),
-                )
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse(), deltaker = Hendelsesdata.lagDeltaker(deltakerId))
 
             val forrigeVarsel =
                 Varselsdata.beskjed(
@@ -396,12 +392,7 @@ class VarselTest {
         @Test
         fun `deltakerSistBesokt - siste besøk er før beskjed var sendt - inaktiverer ikke`() =
             integrationTest { app, _ ->
-                val hendelse =
-                    Hendelsesdata.hendelse(
-                        HendelseTypeData.sistBesokt(
-                            sistBesokt = ZonedDateTime.now().minusMinutes(10),
-                        ),
-                    )
+                val hendelse = Hendelsesdata.hendelse(HendelseTypeData.sistBesokt(sistBesokt = ZonedDateTime.now().minusMinutes(10)))
                 val varsel =
                     Varselsdata.varsel(
                         type = Varsel.Type.BESKJED,
@@ -426,8 +417,7 @@ class VarselTest {
         @Test
         fun `deltakerSistBesokt - siste besøk er før beskjed - inaktiverer ikke`() =
             integrationTest { app, _ ->
-                val hendelse =
-                    Hendelsesdata.hendelse(HendelseTypeData.sistBesokt(sistBesokt = ZonedDateTime.now().minusMinutes(10)))
+                val hendelse = Hendelsesdata.hendelse(HendelseTypeData.sistBesokt(sistBesokt = ZonedDateTime.now().minusMinutes(10)))
 
                 val varsel =
                     Varselsdata.varsel(
@@ -476,8 +466,7 @@ class VarselTest {
                 erEksterntVarsel shouldBe hendelse.skalVarslesEksternt()
 
                 if (erAktiv) {
-                    val forventetUrl =
-                        innbyggerDeltakerUrl(varsel.deltakerId, hendelse.payload !is HendelseType.NavGodkjennUtkast)
+                    val forventetUrl = innbyggerDeltakerUrl(varsel.deltakerId, hendelse.payload !is HendelseType.NavGodkjennUtkast)
                     app.assertProducedBeskjed(varsel.id, forventetUrl)
                 }
             }
@@ -486,10 +475,6 @@ class VarselTest {
 
     private fun produce(hendelse: HendelseDto) =
         produceStringString(
-            ProducerRecord(
-                Environment.DELTAKER_HENDELSE_TOPIC,
-                hendelse.deltaker.id.toString(),
-                objectMapper.writeValueAsString(hendelse),
-            ),
+            ProducerRecord(Environment.DELTAKER_HENDELSE_TOPIC, hendelse.deltaker.id.toString(), objectMapper.writeValueAsString(hendelse)),
         )
 }

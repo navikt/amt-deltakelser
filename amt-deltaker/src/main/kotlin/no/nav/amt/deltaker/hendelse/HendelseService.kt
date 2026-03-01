@@ -55,15 +55,11 @@ class HendelseService(
     ) {
         val hendelseType =
             when (endringsType) {
-                EndringFraTiltakskoordinator.SettPaaVenteliste -> {
-                    HendelseType.SettPaaVenteliste
-                }
+                EndringFraTiltakskoordinator.SettPaaVenteliste -> HendelseType.SettPaaVenteliste
 
-                EndringFraTiltakskoordinator.TildelPlass -> {
-                    HendelseType.TildelPlass
-                }
+                EndringFraTiltakskoordinator.TildelPlass -> HendelseType.TildelPlass
 
-                is EndringFraTiltakskoordinator.Avslag -> {
+                is EndringFraTiltakskoordinator.Avslag ->
                     HendelseType.Avslag(
                         aarsak = endringsType.aarsak,
                         begrunnelseFraNav = endringsType.begrunnelse,
@@ -72,11 +68,8 @@ class HendelseService(
                                 HendelseType.Avslag.Vurdering(it.vurderingstype, it.begrunnelse)
                             },
                     )
-                }
 
-                EndringFraTiltakskoordinator.DelMedArrangor -> {
-                    return
-                }
+                EndringFraTiltakskoordinator.DelMedArrangor -> return
             }
 
         hendelseProducer.produce(nyHendelseFraKoordinator(deltaker, navAnsatt, navEnhet, hendelseType))

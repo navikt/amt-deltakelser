@@ -55,11 +55,7 @@ class DeltakerV2Consumer(
         val deltakerliste = deltakerlisteRepository.get(deltakerPayload.deltakerliste.id).getOrThrow()
         val tiltakskode = deltakerliste.tiltak.tiltakskode
 
-        if (!unleashToggle.erKometMasterForTiltakstype(tiltakskode) &&
-            !unleashToggle.skalLeseArenaDataForTiltakstype(
-                tiltakskode,
-            )
-        ) {
+        if (!unleashToggle.erKometMasterForTiltakstype(tiltakskode) && !unleashToggle.skalLeseArenaDataForTiltakstype(tiltakskode)) {
             log.info("Ignorerer deltaker $key på tiltakstype $tiltakskode som ikke er støttet enda")
             return
         }

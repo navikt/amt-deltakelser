@@ -49,11 +49,7 @@ object ClientTestUtils {
                         respond(
                             content = responseBody,
                             status = statusCode,
-                            headers =
-                                headersOf(
-                                    HttpHeaders.ContentType,
-                                    ContentType.Application.OctetStream.toString(),
-                                ),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
                         )
                     }
 

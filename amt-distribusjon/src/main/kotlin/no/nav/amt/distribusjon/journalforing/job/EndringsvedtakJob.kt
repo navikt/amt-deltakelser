@@ -27,9 +27,8 @@ class EndringsvedtakJob(
         }
 
     suspend fun journalforEndringsvedtak() {
-        val ikkeJournalforteEndringsvedtak =
-            getIkkeJournalforteHendelser()
-                .filter { it.hendelse.erEndringsVedtakSomSkalJournalfores() }
+        val ikkeJournalforteEndringsvedtak = getIkkeJournalforteHendelser()
+            .filter { it.hendelse.erEndringsVedtakSomSkalJournalfores() }
 
         val endringsvedtakPrDeltaker = ikkeJournalforteEndringsvedtak.groupBy { it.hendelse.deltaker.id }
         val graceperiode = Duration.ofMinutes(30)

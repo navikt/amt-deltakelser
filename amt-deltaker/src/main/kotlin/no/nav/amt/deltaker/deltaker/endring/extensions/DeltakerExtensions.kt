@@ -18,12 +18,7 @@ fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type =
     }
 
 fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus =
-    if (status.type in
-        listOf(
-            DeltakerStatus.Type.HAR_SLUTTET,
-            DeltakerStatus.Type.AVBRUTT,
-            DeltakerStatus.Type.FULLFORT,
-        ) &&
+    if (status.type in listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT) &&
         !sluttdato.isBefore(LocalDate.now())
     ) {
         nyDeltakerStatus(DeltakerStatus.Type.DELTAR)

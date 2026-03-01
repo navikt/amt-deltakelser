@@ -88,11 +88,10 @@ class VarselService(
         }
 
     private fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel {
-        val varsel =
-            varselRepository.getVentendeVarsel(nyttVarsel.deltakerId).fold(
-                onSuccess = { it.merge(nyttVarsel) },
-                onFailure = { nyttVarsel },
-            )
+        val varsel = varselRepository.getVentendeVarsel(nyttVarsel.deltakerId).fold(
+            onSuccess = { it.merge(nyttVarsel) },
+            onFailure = { nyttVarsel },
+        )
 
         return varsel
     }
@@ -120,16 +119,12 @@ class VarselService(
         varselRepository.upsert(oppdatertVarsel)
 
         when (varsel.type) {
-            Varsel.Type.BESKJED -> {
-                outboxHandler.opprettBeskjed(
-                    varsel = oppdatertVarsel,
-                    visEndringsmodal = skalViseHistorikkModal(oppdatertVarsel.hendelser),
-                )
-            }
+            Varsel.Type.BESKJED -> outboxHandler.opprettBeskjed(
+                varsel = oppdatertVarsel,
+                visEndringsmodal = skalViseHistorikkModal(oppdatertVarsel.hendelser),
+            )
 
-            Varsel.Type.OPPGAVE -> {
-                outboxHandler.opprettOppgave(oppdatertVarsel)
-            }
+            Varsel.Type.OPPGAVE -> outboxHandler.opprettOppgave(oppdatertVarsel)
         }
 
         log.info("Sendte varsel ${varsel.id} for deltaker ${varsel.deltakerId}")
@@ -226,13 +221,11 @@ class VarselService(
         sistBesokt: ZonedDateTime,
         sisteBeskjed: Varsel,
     ): Boolean {
-        val besokForSendt =
-            sistBesokt.withZoneSameInstant(ZoneOffset.UTC) < sisteBeskjed.aktivFra && sisteBeskjed.erAktiv
-        val besokForIkkeSendt =
-            sistBesokt.withZoneSameInstant(
-                ZoneId.of("Z"),
-            ) < sisteBeskjed.aktivFra.minusMinutes(Varsel.BESKJED_FORSINKELSE_MINUTTER) &&
-                sisteBeskjed.venterPaUsendelse
+        val besokForSendt = sistBesokt.withZoneSameInstant(ZoneOffset.UTC) < sisteBeskjed.aktivFra && sisteBeskjed.erAktiv
+        val besokForIkkeSendt = sistBesokt.withZoneSameInstant(
+            ZoneId.of("Z"),
+        ) < sisteBeskjed.aktivFra.minusMinutes(Varsel.BESKJED_FORSINKELSE_MINUTTER) &&
+            sisteBeskjed.venterPaUsendelse
 
         return besokForSendt || besokForIkkeSendt
     }

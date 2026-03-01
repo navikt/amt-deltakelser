@@ -52,21 +52,20 @@ class VarselRepository {
                 modified_at = CURRENT_TIMESTAMP
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to varsel.id,
-                "type" to varsel.type.name,
-                "status" to varsel.status.name,
-                "hendelser" to varsel.hendelser.toTypedArray(),
-                "tekst" to varsel.tekst,
-                "aktiv_fra" to varsel.aktivFra,
-                "aktiv_til" to varsel.aktivTil,
-                "deltaker_id" to varsel.deltakerId,
-                "personident" to varsel.personident,
-                "er_eksternt_varsel" to varsel.erEksterntVarsel,
-                "revarsles" to varsel.revarsles,
-                "revarsel_for_varsel" to varsel.revarselForVarsel,
-            )
+        val params = mapOf(
+            "id" to varsel.id,
+            "type" to varsel.type.name,
+            "status" to varsel.status.name,
+            "hendelser" to varsel.hendelser.toTypedArray(),
+            "tekst" to varsel.tekst,
+            "aktiv_fra" to varsel.aktivFra,
+            "aktiv_til" to varsel.aktivTil,
+            "deltaker_id" to varsel.deltakerId,
+            "personident" to varsel.personident,
+            "er_eksternt_varsel" to varsel.erEksterntVarsel,
+            "revarsles" to varsel.revarsles,
+            "revarsel_for_varsel" to varsel.revarselForVarsel,
+        )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }

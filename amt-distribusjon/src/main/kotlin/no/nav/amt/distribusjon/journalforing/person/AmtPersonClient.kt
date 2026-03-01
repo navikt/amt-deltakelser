@@ -24,12 +24,11 @@ class AmtPersonClient(
 
     suspend fun hentNavBruker(personident: String): NavBruker {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
-        val response =
-            httpClient.post("$url/api/nav-bruker") {
-                header(HttpHeaders.Authorization, token)
-                contentType(ContentType.Application.Json)
-                setBody(objectMapper.writeValueAsString(NavBrukerRequest(personident)))
-            }
+        val response = httpClient.post("$url/api/nav-bruker") {
+            header(HttpHeaders.Authorization, token)
+            contentType(ContentType.Application.Json)
+            setBody(objectMapper.writeValueAsString(NavBrukerRequest(personident)))
+        }
         if (!response.status.isSuccess()) {
             error("Kunne ikke hente nav-bruker fra amt-person-service")
         }

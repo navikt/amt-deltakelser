@@ -129,9 +129,7 @@ class NavBrukerRepository {
                 erSkjermet = row.boolean("er_skjermet"),
                 adresse = row.stringOrNull("adresse")?.let { objectMapper.readValue(it) },
                 adressebeskyttelse = row.stringOrNull("adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
-                oppfolgingsperioder =
-                    row.stringOrNull("oppfolgingsperioder")?.let { objectMapper.readValue(it) }
-                        ?: emptyList(),
+                oppfolgingsperioder = row.stringOrNull("oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
                 innsatsgruppe = row.stringOrNull("innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
             )
     }

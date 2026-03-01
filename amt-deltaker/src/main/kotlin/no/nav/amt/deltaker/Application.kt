@@ -116,73 +116,65 @@ fun Application.module() {
 
     Database.init(environment.databaseConfig)
 
-    val httpClient =
-        HttpClient(CIO.create()) {
-            install(ContentNegotiation) {
-                jackson { applicationConfig() }
-            }
-
-            install(HttpTimeout) {
-                requestTimeoutMillis = HTTP_REQUEST_TIMEOUT_MILLIS
-                connectTimeoutMillis = HTTP_CONNECT_TIMEOUT_MILLIS
-                socketTimeoutMillis = HTTP_SOCKET_TIMEOUT_MILLIS
-            }
+    val httpClient = HttpClient(CIO.create()) {
+        install(ContentNegotiation) {
+            jackson { applicationConfig() }
         }
+
+        install(HttpTimeout) {
+            requestTimeoutMillis = HTTP_REQUEST_TIMEOUT_MILLIS
+            connectTimeoutMillis = HTTP_CONNECT_TIMEOUT_MILLIS
+            socketTimeoutMillis = HTTP_SOCKET_TIMEOUT_MILLIS
+        }
+    }
 
     val leaderElection = LeaderElection(httpClient, environment.electorPath)
 
-    val azureAdTokenClient =
-        AzureAdTokenClient(
-            azureAdTokenUrl = environment.azureAdTokenUrl,
-            clientId = environment.azureClientId,
-            clientSecret = environment.azureClientSecret,
-            httpClient = httpClient,
-        )
+    val azureAdTokenClient = AzureAdTokenClient(
+        azureAdTokenUrl = environment.azureAdTokenUrl,
+        clientId = environment.azureClientId,
+        clientSecret = environment.azureClientSecret,
+        httpClient = httpClient,
+    )
 
-    val amtPersonServiceClient =
-        AmtPersonServiceClient(
-            baseUrl = environment.amtPersonServiceUrl,
-            scope = environment.amtPersonServiceScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val amtPersonServiceClient = AmtPersonServiceClient(
+        baseUrl = environment.amtPersonServiceUrl,
+        scope = environment.amtPersonServiceScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
-    val amtArrangorClient =
-        AmtArrangorClient(
-            baseUrl = environment.amtArrangorUrl,
-            scope = environment.amtArrangorScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val amtArrangorClient = AmtArrangorClient(
+        baseUrl = environment.amtArrangorUrl,
+        scope = environment.amtArrangorScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
-    val isOppfolgingsTilfelleClient =
-        IsOppfolgingstilfelleClient(
-            baseUrl = environment.isOppfolgingstilfelleUrl,
-            scope = environment.isOppfolgingstilfelleScope,
-            azureAdTokenClient = azureAdTokenClient,
-            httpClient = httpClient,
-        )
+    val isOppfolgingsTilfelleClient = IsOppfolgingstilfelleClient(
+        baseUrl = environment.isOppfolgingstilfelleUrl,
+        scope = environment.isOppfolgingstilfelleScope,
+        azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
+    )
 
-    val mulighetsrommetApiClient =
-        MulighetsrommetApiClient(
-            baseUrl = environment.mulighetsrommetApiUrl,
-            scope = environment.mulighetsrommetApiScope,
-            azureAdTokenClient = azureAdTokenClient,
-            httpClient = httpClient,
-        )
+    val mulighetsrommetApiClient = MulighetsrommetApiClient(
+        baseUrl = environment.mulighetsrommetApiUrl,
+        scope = environment.mulighetsrommetApiScope,
+        azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
+    )
 
-    val amtDistribusjonClient =
-        AmtDistribusjonClient(
-            baseUrl = environment.amtDistribusjonServiceUrl,
-            scope = environment.amtDistribusjonServiceScope,
-            azureAdTokenClient = azureAdTokenClient,
-            httpClient = httpClient,
-        )
+    val amtDistribusjonClient = AmtDistribusjonClient(
+        baseUrl = environment.amtDistribusjonServiceUrl,
+        scope = environment.amtDistribusjonServiceScope,
+        azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
+    )
 
-    val kafkaProducer =
-        Producer<String, String>(
-            if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
-        )
+    val kafkaProducer = Producer<String, String>(
+        if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
+    )
 
     // START outbox config
     val outboxService = OutboxService()
@@ -209,13 +201,12 @@ fun Application.module() {
     val importertFraArenaRepository = ImportertFraArenaRepository()
     val vurderingRepository = VurderingRepository()
 
-    val poaoTilgangCachedClient =
-        PoaoTilgangCachedClient.createDefaultCacheClient(
-            PoaoTilgangHttpClient(
-                baseUrl = environment.poaoTilgangUrl,
-                tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
-            ),
-        )
+    val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
+        PoaoTilgangHttpClient(
+            baseUrl = environment.poaoTilgangUrl,
+            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
+        ),
+    )
 
     val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
 
@@ -234,43 +225,40 @@ fun Application.module() {
     val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
     val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
-    val deltakerHistorikkService =
-        DeltakerHistorikkService(
-            deltakerEndringRepository,
-            vedtakRepository,
-            forslagRepository,
-            endringFraArrangorRepository,
-            importertFraArenaRepository,
-            innsokPaaFellesOppstartRepository,
-            endringFraTiltakskoordinatorRepository,
-            vurderingRepository,
-        )
+    val deltakerHistorikkService = DeltakerHistorikkService(
+        deltakerEndringRepository,
+        vedtakRepository,
+        forslagRepository,
+        endringFraArrangorRepository,
+        importertFraArenaRepository,
+        innsokPaaFellesOppstartRepository,
+        endringFraTiltakskoordinatorRepository,
+        vurderingRepository,
+    )
 
-    val unleash =
-        DefaultUnleash(
-            UnleashConfig
-                .builder()
-                .appName(environment.appName)
-                .instanceId(environment.appName)
-                .unleashAPI("${environment.unleashUrl}/api")
-                .apiKey(environment.unleashApiToken)
-                .build(),
-        )
+    val unleash = DefaultUnleash(
+        UnleashConfig
+            .builder()
+            .appName(environment.appName)
+            .instanceId(environment.appName)
+            .unleashAPI("${environment.unleashUrl}/api")
+            .apiKey(environment.unleashApiToken)
+            .build(),
+    )
     val unleashToggle = CommonUnleashToggle(unleash)
 
     val hendelseProducer = HendelseProducer(outboxService)
-    val hendelseService =
-        HendelseService(
-            hendelseProducer = hendelseProducer,
-            navAnsattRepository = navAnsattRepository,
-            navAnsattService = navAnsattService,
-            navEnhetRepository = navEnhetRepository,
-            navEnhetService = navEnhetService,
-            arrangorService = arrangorService,
-            deltakerHistorikkService = deltakerHistorikkService,
-            vurderingService = vurderingService,
-            unleashToggle = unleashToggle,
-        )
+    val hendelseService = HendelseService(
+        hendelseProducer = hendelseProducer,
+        navAnsattRepository = navAnsattRepository,
+        navAnsattService = navAnsattService,
+        navEnhetRepository = navEnhetRepository,
+        navEnhetService = navEnhetService,
+        arrangorService = arrangorService,
+        deltakerHistorikkService = deltakerHistorikkService,
+        vurderingService = vurderingService,
+        unleashToggle = unleashToggle,
+    )
 
     val deltakerKafkaPayloadBuilder =
         DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)

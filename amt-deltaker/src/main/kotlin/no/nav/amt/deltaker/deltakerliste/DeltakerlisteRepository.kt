@@ -149,10 +149,7 @@ class DeltakerlisteRepository {
                 oppstart = row.stringOrNull(col("oppstart"))?.let { Oppstartstype.valueOf(it) },
                 apentForPamelding = row.boolean(col("apent_for_pamelding")),
                 oppmoteSted = row.stringOrNull(col("oppmote_sted")),
-                pameldingstype =
-                    row
-                        .stringOrNull(col("pameldingstype"))
-                        ?.let { GjennomforingPameldingType.valueOf(it) },
+                pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
                 arrangor =
                     Arrangor(
                         id = row.uuid("a.id"),

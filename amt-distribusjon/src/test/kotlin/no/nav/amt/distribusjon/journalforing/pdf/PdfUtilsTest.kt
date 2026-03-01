@@ -190,12 +190,7 @@ class PdfUtilsTest {
                 )
 
             pdfDto.endringer.size shouldBe 1
-            (pdfDto.endringer.first() as EndringDto.EndreInnhold).innhold shouldBe
-                listOf(
-                    "tekst 1",
-                    "tekst 2",
-                    "beskrivelse",
-                )
+            (pdfDto.endringer.first() as EndringDto.EndreInnhold).innhold shouldBe listOf("tekst 1", "tekst 2", "beskrivelse")
             (pdfDto.endringer.first() as EndringDto.EndreInnhold).innholdBeskrivelse shouldBe null
         }
 

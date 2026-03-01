@@ -5,24 +5,17 @@ import no.nav.amt.lib.models.hendelse.HendelseType
 
 fun HendelseType.toUlestHendelseType() =
     when (val hendelseType = this) {
-        is HendelseType.InnbyggerGodkjennUtkast -> {
-            UlestHendelseType.InnbyggerGodkjennUtkast
-        }
+        is HendelseType.InnbyggerGodkjennUtkast -> UlestHendelseType.InnbyggerGodkjennUtkast
+        is HendelseType.NavGodkjennUtkast -> UlestHendelseType.NavGodkjennUtkast
 
-        is HendelseType.NavGodkjennUtkast -> {
-            UlestHendelseType.NavGodkjennUtkast
-        }
-
-        is HendelseType.IkkeAktuell -> {
+        is HendelseType.IkkeAktuell ->
             UlestHendelseType.IkkeAktuell(
                 hendelseType.aarsak,
                 hendelseType.begrunnelseFraNav,
                 hendelseType.begrunnelseFraArrangor,
                 hendelseType.endringFraForslag,
             )
-        }
-
-        is HendelseType.AvsluttDeltakelse -> {
+        is HendelseType.AvsluttDeltakelse ->
             UlestHendelseType.AvsluttDeltakelse(
                 hendelseType.aarsak,
                 hendelseType.sluttdato,
@@ -30,9 +23,7 @@ fun HendelseType.toUlestHendelseType() =
                 hendelseType.begrunnelseFraArrangor,
                 hendelseType.endringFraForslag,
             )
-        }
-
-        is HendelseType.AvbrytDeltakelse -> {
+        is HendelseType.AvbrytDeltakelse ->
             UlestHendelseType.AvbrytDeltakelse(
                 hendelseType.aarsak,
                 hendelseType.sluttdato,
@@ -40,15 +31,9 @@ fun HendelseType.toUlestHendelseType() =
                 hendelseType.begrunnelseFraArrangor,
                 hendelseType.endringFraForslag,
             )
-        }
-
-        is HendelseType.ReaktiverDeltakelse -> {
+        is HendelseType.ReaktiverDeltakelse ->
             UlestHendelseType.ReaktiverDeltakelse(
                 hendelseType.begrunnelseFraNav,
             )
-        }
-
-        else -> {
-            null
-        }
+        else -> null
     }

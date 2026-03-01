@@ -154,12 +154,11 @@ data class Varsel(
         type = varseltype
         sensitivitet = Sensitivitet.High
         ident = personident
-        tekster +=
-            Tekst(
-                spraakkode = "nb",
-                tekst = this@Varsel.tekst,
-                default = true,
-            )
+        tekster += Tekst(
+            spraakkode = "nb",
+            tekst = this@Varsel.tekst,
+            default = true,
+        )
         aktivFremTil = aktivTil
         link = innbyggerDeltakerUrl(deltakerId, visEndringsmodal)
         produsent = produsent()
@@ -190,12 +189,11 @@ fun innbyggerDeltakerUrl(
     deltakerId: UUID,
     visEndringsmodal: Boolean,
 ): String {
-    val url =
-        if (Environment.isProd()) {
-            "https://www.nav.no/arbeidsmarkedstiltak/$deltakerId"
-        } else {
-            "https://amt.intern.dev.nav.no/arbeidsmarkedstiltak/$deltakerId"
-        }
+    val url = if (Environment.isProd()) {
+        "https://www.nav.no/arbeidsmarkedstiltak/$deltakerId"
+    } else {
+        "https://amt.intern.dev.nav.no/arbeidsmarkedstiltak/$deltakerId"
+    }
 
     return if (visEndringsmodal) {
         "$url?vis_endringer"

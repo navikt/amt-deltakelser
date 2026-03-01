@@ -71,7 +71,6 @@ data class Hendelse(
             is HendelseType.Avslag,
             is HendelseType.EndreAvslutning,
             -> null
-
             is HendelseType.ReaktiverDeltakelse,
             -> payload.begrunnelseFraNav
         }

@@ -331,11 +331,7 @@ fun Routing.registerInternalApi(
                         return@forEach
                     }
                     log.info("ProduserUtkast: Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
-                    hendelseService.produceHendelseForUtkast(
-                        deltaker,
-                        navAnsatt,
-                        navEnhet,
-                    ) { HendelseType.NavGodkjennUtkast(it) }
+                    hendelseService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { HendelseType.NavGodkjennUtkast(it) }
                     log.info("ProduserUtkast: Done: Produserte hendelse NavGodkjennUtkast for $deltakerId")
                 } else {
                     if (request.dryRun) {

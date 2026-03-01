@@ -76,8 +76,7 @@ class TiltakshendelseServiceTest {
 
                 app.tiltakshendelseService.handleHendelse(opprettHendelse)
 
-                val tiltakshendelse =
-                    app.tiltakshendelseRepository.getByHendelseId(opprettHendelse.id).shouldBeSuccess()
+                val tiltakshendelse = app.tiltakshendelseRepository.getByHendelseId(opprettHendelse.id).shouldBeSuccess()
 
                 tiltakshendelse.aktiv shouldBe false
                 app shouldNot haveOutboxRecord(tiltakshendelse.id, Environment.TILTAKSHENDELSE_TOPIC)
@@ -129,17 +128,12 @@ class TiltakshendelseServiceTest {
 
                 val godkjentForslag =
                     forslag.copy(
-                        status =
-                            Forslag.Status.Godkjent(
-                                Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-                                LocalDateTime.now(),
-                            ),
+                        status = Forslag.Status.Godkjent(Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()), LocalDateTime.now()),
                     )
 
                 app.tiltakshendelseService.handleForslag(godkjentForslag)
 
-                val tiltakhendelseFerdig =
-                    app.tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
+                val tiltakhendelseFerdig = app.tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
 
                 tiltakhendelseFerdig.aktiv shouldBe false
             }
@@ -183,21 +177,15 @@ class TiltakshendelseServiceTest {
 
                 val forslag1Godkjent =
                     forslag1.copy(
-                        status =
-                            Forslag.Status.Godkjent(
-                                Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-                                LocalDateTime.now(),
-                            ),
+                        status = Forslag.Status.Godkjent(Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()), LocalDateTime.now()),
                     )
 
                 app.tiltakshendelseService.handleForslag(forslag1Godkjent)
 
-                val tiltakshendelse1Godkjent =
-                    app.tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldBeSuccess()
+                val tiltakshendelse1Godkjent = app.tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldBeSuccess()
                 tiltakshendelse1Godkjent.aktiv shouldBe false
 
-                val tiltakshendelse2IkkeGodkjent =
-                    app.tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldBeSuccess()
+                val tiltakshendelse2IkkeGodkjent = app.tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldBeSuccess()
                 tiltakshendelse2IkkeGodkjent.aktiv shouldBe true
             }
     }
@@ -214,8 +202,7 @@ class TiltakshendelseServiceTest {
                     app.tiltakshendelseService.handleHendelse(godkjennHendelse)
                 }
 
-                val tiltakshendelse =
-                    app.tiltakshendelseRepository.getByHendelseId(godkjennHendelse.id).shouldBeSuccess()
+                val tiltakshendelse = app.tiltakshendelseRepository.getByHendelseId(godkjennHendelse.id).shouldBeSuccess()
 
                 tiltakshendelse.aktiv shouldBe false
                 app should haveOutboxRecord(tiltakshendelse.id, Environment.TILTAKSHENDELSE_TOPIC)

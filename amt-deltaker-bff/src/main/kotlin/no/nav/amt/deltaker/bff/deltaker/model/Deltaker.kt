@@ -49,9 +49,7 @@ data class Deltaker(
     val opprettet: LocalDateTime,
 ) {
     val deltakelsesmengder: Deltakelsesmengder
-        get() =
-            startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) }
-                ?: historikk.toDeltakelsesmengder()
+        get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()
 
     val fattetVedtak
         get() =
@@ -131,11 +129,9 @@ data class Deltaker(
     val softMaxVarighet: Duration?
         get() =
             when (deltakerliste.tiltak.tiltakskode) {
-                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> {
-                    years(2)
-                }
+                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> years(2)
 
-                Tiltakskode.OPPFOLGING -> {
+                Tiltakskode.OPPFOLGING ->
                     when (navBruker.innsatsgruppe) {
                         Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
                         Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS,
@@ -147,17 +143,12 @@ data class Deltaker(
                         null,
                         -> null
                     }
-                }
 
                 Tiltakskode.ARBEIDSRETTET_REHABILITERING,
                 Tiltakskode.AVKLARING,
-                -> {
-                    weeks(12)
-                }
+                -> weeks(12)
 
-                Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> {
-                    weeks(8)
-                }
+                Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> weeks(8)
 
                 Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
@@ -172,9 +163,7 @@ data class Deltaker(
                 Tiltakskode.STUDIESPESIALISERING,
                 Tiltakskode.FAG_OG_YRKESOPPLAERING,
                 Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-                -> {
-                    null
-                }
+                -> null
             }
 
     /**
@@ -191,35 +180,25 @@ data class Deltaker(
                 Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                 Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                -> {
-                    years(3)
-                }
+                -> years(3)
 
                 Tiltakskode.ARBEIDSRETTET_REHABILITERING,
                 Tiltakskode.AVKLARING,
-                -> {
-                    weeks(12 + FERIETILLEGG)
-                }
+                -> weeks(12 + FERIETILLEGG)
 
-                Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> {
-                    weeks(8 + FERIETILLEGG)
-                }
+                Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> weeks(8 + FERIETILLEGG)
 
                 Tiltakskode.HOYERE_UTDANNING,
                 Tiltakskode.STUDIESPESIALISERING,
                 Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
                 Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
                 Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-                -> {
-                    years(4)
-                }
+                -> years(4)
 
                 Tiltakskode.FAG_OG_YRKESOPPLAERING,
-                -> {
-                    years(5)
-                }
+                -> years(5)
 
-                Tiltakskode.OPPFOLGING -> {
+                Tiltakskode.OPPFOLGING ->
                     when (navBruker.innsatsgruppe) {
                         Innsatsgruppe.SITUASJONSBESTEMT_INNSATS -> years(1)
 
@@ -230,15 +209,12 @@ data class Deltaker(
 
                         else -> null
                     }
-                }
 
                 Tiltakskode.JOBBKLUBB,
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
                 Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
-                -> {
-                    null
-                }
+                -> null
             }
 
     fun oppdater(oppdatering: Deltakeroppdatering) =

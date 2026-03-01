@@ -124,15 +124,11 @@ class PameldingService(
                                 fattetDato = if (skalNavFatteVedtak) LocalDateTime.now() else null,
                             )
 
-                    val deltakerMedNyttVedtak =
-                        oppdatertDeltaker.copy(vedtaksinformasjon = oppdatertVedtak.tilVedtaksInformasjon())
+                    val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = oppdatertVedtak.tilVedtaksInformasjon())
                     if (utkast.godkjentAvNav &&
                         oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
                     ) {
-                        innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(
-                            deltakerMedNyttVedtak,
-                            opprinneligDeltaker.status,
-                        )
+                        innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
                     }
                     deltakerMedNyttVedtak
                 },
@@ -140,19 +136,9 @@ class PameldingService(
 
                     hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) { utkastDto ->
                         when {
-                            utkast.godkjentAvNav -> {
-                                HendelseType.NavGodkjennUtkast(utkastDto)
-                            }
-
-                            opprinneligDeltaker.status.type == DeltakerStatus.Type.KLADD -> {
-                                HendelseType.OpprettUtkast(
-                                    utkastDto,
-                                )
-                            }
-
-                            else -> {
-                                HendelseType.EndreUtkast(utkastDto)
-                            }
+                            utkast.godkjentAvNav -> HendelseType.NavGodkjennUtkast(utkastDto)
+                            opprinneligDeltaker.status.type == DeltakerStatus.Type.KLADD -> HendelseType.OpprettUtkast(utkastDto)
+                            else -> HendelseType.EndreUtkast(utkastDto)
                         }
                     }
                 },

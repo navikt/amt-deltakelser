@@ -82,6 +82,7 @@ class DeltakerEndringService(
             navAnsatt = ansatt,
             navEnhet = enhet,
         )
+
         return deltakerEndring
     }
 

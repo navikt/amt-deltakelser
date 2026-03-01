@@ -89,10 +89,7 @@ class TiltakstypeRepository {
                 navn = row.string(col("navn")),
                 tiltakskode = Tiltakskode.valueOf(row.string(col("tiltakskode"))),
                 innsatsgrupper = row.string(col("innsatsgrupper")).let { objectMapper.readValue(it) },
-                innhold =
-                    row
-                        .stringOrNull(col("innhold"))
-                        ?.let { objectMapper.readValue<DeltakerRegistreringInnhold?>(it) },
+                innhold = row.stringOrNull(col("innhold"))?.let { objectMapper.readValue<DeltakerRegistreringInnhold?>(it) },
             )
         }
     }

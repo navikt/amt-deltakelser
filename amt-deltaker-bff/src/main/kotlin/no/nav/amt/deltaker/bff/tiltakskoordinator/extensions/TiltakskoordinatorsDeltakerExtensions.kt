@@ -48,12 +48,7 @@ fun TiltakskoordinatorsDeltaker.toResponse(
         tilgangTilBruker = harTilgangTilBruker,
         aktiveForslag = aktiveForslag,
         ulesteHendelser = ulesteHendelser,
-        deltakelsesinnhold =
-            getDeltakelsesinnholdAnnet(
-                harTilgangTilBruker,
-                deltakerliste.pameldingstype,
-                deltakelsesinnhold,
-            ),
+        deltakelsesinnhold = getDeltakelsesinnholdAnnet(harTilgangTilBruker, deltakerliste.pameldingstype, deltakelsesinnhold),
     )
 }
 

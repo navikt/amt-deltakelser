@@ -2,3 +2,6 @@ root = true
 
 [*.{kt,kts}]
 max_line_length = 140
+
+ktlint_standard_final-newline = disabled
+ktlint_standard_multiline-expression-wrapping = disabled
