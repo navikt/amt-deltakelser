@@ -1,5 +1,5 @@
 [versions]
-kotlin-version = "2.2.21"
+kotlin-version = "2.3.10"
 ktor-version = "3.4.0"
 logback-version = "1.5.32"
 prometheus-version = "1.16.3"
@@ -23,6 +23,7 @@ tms-varsel-kotlin-builder-version = "2.1.1"
 kafka-clients-version = "4.2.0"
 kotlinx-version = "1.10.2"
 prometheus-metrics-version = "1.5.0" # Testene feiler med "1.16.3"
+okhttp-version = "5.3.2"
 
 jupiter-version = "6.0.3"
 testcontainers-version = "2.0.3"
@@ -37,9 +38,14 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 prometheus-metrics-instrumentation = { module = "io.prometheus:prometheus-metrics-instrumentation-jvm", version.ref = "prometheus-metrics-version" }
 prometheus-metrics-exporter = { module = "io.prometheus:prometheus-metrics-exporter-httpserver", version.ref = "prometheus-metrics-version" }
 
+# fikser CVE-2023-3635 ved å gjøre en oppgradering av okhttp som er en transitive dependency av unleash
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp-version" }
+
+
 # ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter-version" }
+
 
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers-version" }
 testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers-version" }
