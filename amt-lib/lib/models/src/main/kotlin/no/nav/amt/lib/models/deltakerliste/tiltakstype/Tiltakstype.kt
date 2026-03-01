@@ -22,47 +22,44 @@ data class Tiltakstype(
     val innsatsgrupper: Set<Innsatsgruppe>,
     val innhold: DeltakerRegistreringInnhold?,
 ) {
-    val visningsnavn get() =
-        if (navn == "Jobbklubb") {
-            "Jobbsøkerkurs"
-        } else {
-            navn
-        }
+    val visningsnavn
+        get() =
+            if (navn == "Jobbklubb") {
+                "Jobbsøkerkurs"
+            } else {
+                navn
+            }
 
     companion object {
-        val kursTiltak =
-            setOf(
-                GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                GRUPPE_FAG_OG_YRKESOPPLAERING,
-                JOBBKLUBB,
-            )
-        val enkeltplassTiltak =
-            setOf(
-                HOYERE_UTDANNING,
-                ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-                ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
-            )
-        val opplaeringsTiltak =
-            setOf(
-                ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-                ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
-                HOYERE_UTDANNING,
-                GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                GRUPPE_FAG_OG_YRKESOPPLAERING,
-                ARBEIDSMARKEDSOPPLAERING,
-                NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                STUDIESPESIALISERING,
-                FAG_OG_YRKESOPPLAERING,
-                HOYERE_YRKESFAGLIG_UTDANNING,
-            )
+        val kursTiltak = setOf(
+            GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+            GRUPPE_FAG_OG_YRKESOPPLAERING,
+            JOBBKLUBB,
+        )
+        val enkeltplassTiltak = setOf(
+            HOYERE_UTDANNING,
+            ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+        )
+        val opplaeringsTiltak = setOf(
+            ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            HOYERE_UTDANNING,
+            GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+            GRUPPE_FAG_OG_YRKESOPPLAERING,
+            ARBEIDSMARKEDSOPPLAERING,
+            NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            STUDIESPESIALISERING,
+            FAG_OG_YRKESOPPLAERING,
+            HOYERE_YRKESFAGLIG_UTDANNING,
+        )
 
-        val tiltakUtenDeltakerAdresseDeling =
-            setOf(
-                DIGITALT_OPPFOLGINGSTILTAK,
-                JOBBKLUBB,
-                GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                GRUPPE_FAG_OG_YRKESOPPLAERING,
-            )
+        val tiltakUtenDeltakerAdresseDeling = setOf(
+            DIGITALT_OPPFOLGINGSTILTAK,
+            JOBBKLUBB,
+            GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+            GRUPPE_FAG_OG_YRKESOPPLAERING,
+        )
     }
 
     @Deprecated("Utrygg sjekk av kurstiltak. Må erstattes med å sjekke oppstartstype på tiltak")

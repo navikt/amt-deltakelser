@@ -15,11 +15,10 @@ object TestOutboxEnvironment {
     val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
 
     val outboxService: OutboxService by lazy {
-        val jobManager =
-            JobManager(
-                isLeader = { true },
-                applicationIsReady = { TestPostgresContainer.isInitialized },
-            )
+        val jobManager = JobManager(
+            isLeader = { true },
+            applicationIsReady = { TestPostgresContainer.isInitialized },
+        )
 
         OutboxService().also { innerOutboxService ->
             OutboxProcessor(

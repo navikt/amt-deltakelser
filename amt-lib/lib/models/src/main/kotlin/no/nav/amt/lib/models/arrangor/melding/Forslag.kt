@@ -44,14 +44,12 @@ data class Forslag(
     }
 
     val sistEndret
-        get(): LocalDateTime {
-            return when (status) {
-                is Status.VenterPaSvar -> opprettet
-                is Status.Avvist -> status.avvist
-                is Status.Godkjent -> status.godkjent
-                is Status.Tilbakekalt -> status.tilbakekalt
-                is Status.Erstattet -> status.erstattet
-            }
+        get(): LocalDateTime = when (status) {
+            is Status.VenterPaSvar -> opprettet
+            is Status.Avvist -> status.avvist
+            is Status.Godkjent -> status.godkjent
+            is Status.Tilbakekalt -> status.tilbakekalt
+            is Status.Erstattet -> status.erstattet
         }
 
     fun getNavAnsatt() = when (val status = this.status) {

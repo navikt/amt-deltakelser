@@ -18,12 +18,11 @@ class Producer<K, V>(
         key: K,
         value: V,
     ) {
-        val record =
-            ProducerRecord(
-                topic,
-                key,
-                value,
-            )
+        val record = ProducerRecord(
+            topic,
+            key,
+            value,
+        )
 
         val metadata = producer.send(record).get()
 
@@ -40,12 +39,11 @@ class Producer<K, V>(
         key: K,
     ) {
         val value: V? = null
-        val record =
-            ProducerRecord(
-                topic,
-                key,
-                value,
-            )
+        val record = ProducerRecord(
+            topic,
+            key,
+            value,
+        )
 
         val metadata = producer.send(record).get()
 

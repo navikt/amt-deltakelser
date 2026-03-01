@@ -27,11 +27,10 @@ data class NavBruker(
     val erAdressebeskyttet get() = adressebeskyttelse != null
 
     val beskyttelsesmarkeringer: List<Beskyttelsesmarkering>
-        get(): List<Beskyttelsesmarkering> =
-            listOfNotNull(
-                adressebeskyttelse?.toBeskyttelsesmarkering(),
-                if (erSkjermet) Beskyttelsesmarkering.SKJERMET else null,
-            )
+        get(): List<Beskyttelsesmarkering> = listOfNotNull(
+            adressebeskyttelse?.toBeskyttelsesmarkering(),
+            if (erSkjermet) Beskyttelsesmarkering.SKJERMET else null,
+        )
 
     val harAktivOppfolgingsperiode: Boolean
         get() = oppfolgingsperioder.any { it.erAktiv() }

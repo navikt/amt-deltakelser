@@ -47,7 +47,7 @@ class IsOppfolgingstilfelleClientTest {
         MockResponseHandler.addOppfolgingstilfelleRespons(
             OppfolgingstilfellePersonResponse(
                 listOf(
-                    OppfolgingstilfelleDTO(
+                    OppfolgingstilfelleDto(
                         arbeidstakerAtTilfelleEnd = false,
                         start = LocalDate.now().minusMonths(3),
                         end = LocalDate.now().plusDays(1),
@@ -64,7 +64,7 @@ class IsOppfolgingstilfelleClientTest {
         MockResponseHandler.addOppfolgingstilfelleRespons(
             OppfolgingstilfellePersonResponse(
                 listOf(
-                    OppfolgingstilfelleDTO(
+                    OppfolgingstilfelleDto(
                         arbeidstakerAtTilfelleEnd = true,
                         start = LocalDate.now().minusMonths(3),
                         end = LocalDate.now().minusDays(1),
@@ -81,7 +81,7 @@ class IsOppfolgingstilfelleClientTest {
         MockResponseHandler.addOppfolgingstilfelleRespons(
             OppfolgingstilfellePersonResponse(
                 listOf(
-                    OppfolgingstilfelleDTO(
+                    OppfolgingstilfelleDto(
                         arbeidstakerAtTilfelleEnd = true,
                         start = LocalDate.now().minusMonths(3),
                         end = LocalDate.now().plusWeeks(1),

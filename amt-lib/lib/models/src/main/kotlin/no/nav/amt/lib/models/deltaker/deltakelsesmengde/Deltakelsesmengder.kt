@@ -15,11 +15,10 @@ class Deltakelsesmengder(
     mengder: List<Deltakelsesmengde>,
     startdatoer: List<LocalDate> = emptyList(),
 ) : List<Deltakelsesmengde> {
-    private val deltakelsesmengder =
-        mengder
-            .let(::sorterMengder)
-            .let(::finnGyldigeDeltakelsesmengder)
-            .let { avgrensPeriodeTilSisteStartdato(it, startdatoer) }
+    private val deltakelsesmengder = mengder
+        .let(::sorterMengder)
+        .let(::finnGyldigeDeltakelsesmengder)
+        .let { avgrensPeriodeTilSisteStartdato(it, startdatoer) }
 
     val gjeldende = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() } ?: deltakelsesmengder.firstOrNull()
 

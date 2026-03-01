@@ -10,7 +10,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDTO
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDto
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -167,7 +167,7 @@ class PameldingServiceTest {
             MockResponseHandler.addOppfolgingstilfelleRespons(
                 OppfolgingstilfellePersonResponse(
                     listOf(
-                        OppfolgingstilfelleDTO(
+                        OppfolgingstilfelleDto(
                             arbeidstakerAtTilfelleEnd = true,
                             start = LocalDate.now().minusMonths(3),
                             end = LocalDate.now().plusDays(1),

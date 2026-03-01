@@ -22,7 +22,7 @@ tms-varsel-kotlin-builder-version = "2.1.1"
 # amt-lib spesifikt
 kafka-clients-version = "4.2.0"
 kotlinx-version = "1.10.2"
-prometheus-metrics-version = "1.5.0" # Testene feiler med "1.16.3"
+prometheus-metrics-version = "1.5.0"
 okhttp-version = "5.3.2"
 
 jupiter-version = "6.0.3"

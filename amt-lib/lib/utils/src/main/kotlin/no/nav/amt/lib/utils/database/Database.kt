@@ -16,23 +16,22 @@ object Database {
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
     fun init(config: DatabaseConfig) {
-        dataSource =
-            HikariDataSource().apply {
-                if (config.jdbcURL.isNotEmpty()) {
-                    jdbcUrl = config.jdbcURL
-                } else {
-                    dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
-                    addDataSourceProperty("serverName", config.dbHost)
-                    addDataSourceProperty("portNumber", config.dbPort)
-                    addDataSourceProperty("databaseName", config.dbDatabase)
-                    addDataSourceProperty("user", config.dbUsername)
-                    addDataSourceProperty("password", config.dbPassword)
-                }
-
-                maximumPoolSize = 20
-                minimumIdle = 1
-                leakDetectionThreshold = 10_000
+        dataSource = HikariDataSource().apply {
+            if (config.jdbcURL.isNotEmpty()) {
+                jdbcUrl = config.jdbcURL
+            } else {
+                dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
+                addDataSourceProperty("serverName", config.dbHost)
+                addDataSourceProperty("portNumber", config.dbPort)
+                addDataSourceProperty("databaseName", config.dbDatabase)
+                addDataSourceProperty("user", config.dbUsername)
+                addDataSourceProperty("password", config.dbPassword)
             }
+
+            maximumPoolSize = 20
+            minimumIdle = 1
+            leakDetectionThreshold = 10_000
+        }
 
         runMigration()
     }
