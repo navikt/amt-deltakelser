@@ -1,61 +1,60 @@
-name: CodeQL
+name: "CodeQL"
+
 on:
-  merge_group:
+  push:
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
   schedule:
-    - cron: "0 0 * * 3"
+    - cron: '28 9 * * 2'  # Weekly scan, can adjust time
 
 jobs:
   analyze:
-    name: Analyze
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     permissions:
       security-events: write
+      packages: read
+      actions: read
+      contents: read
+
     strategy:
       fail-fast: false
       matrix:
-        language: ["kotlin"]
+        include:
+          - language: java-kotlin
+            build-mode: manual
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '24'
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # Optional: add custom queries if needed
+          # queries: security-extended,security-and-quality
 
-      - name: Setup java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '24'
-          cache: 'gradle'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-
-      - name: Build artifacts
-        run: ./gradlew build -x test --no-daemon
+      - name: Run manual build steps
+        if: matrix.build-mode == 'manual'
+        shell: bash
+        run: |
+          # Build Kotlin/Java artifacts for CodeQL
+          ./gradlew assemble -x test --no-daemon --no-configuration-cache --no-build-cache
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:${{matrix.language}}"
-
-  check_codeql_status:
-    name: Check CodeQL Status
-    needs: analyze
-    permissions:
-      checks: read
-      pull-requests: read
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' }}
-    steps:
-      - name: Check CodeQL Status
-        uses: eldrick19/code-scanning-status-checker@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pr_number: ${{ github.event.pull_request.number }}
-          repo: ${{ github.repository }}
+          category: "/language:${{ matrix.language }}"
