@@ -36,15 +36,14 @@ internal class OutboxRepository {
             RETURNING *
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "key" to record.key,
-                "value" to toPGObject(record.value),
-                "value_type" to record.valueType,
-                "topic" to record.topic,
-                "status" to OutboxRecordStatus.PENDING.name,
-                "retry_count" to 0,
-            )
+        val params = mapOf(
+            "key" to record.key,
+            "value" to toPGObject(record.value),
+            "value_type" to record.valueType,
+            "topic" to record.topic,
+            "status" to OutboxRecordStatus.PENDING.name,
+            "retry_count" to 0,
+        )
 
         return Database.query { session ->
             if (!(suppressOutsideTxWarning || session is TransactionalSession)) {
@@ -79,7 +78,7 @@ internal class OutboxRepository {
         }
     }
 
-    fun deletedOutboxRecord(recordId: OutboxRecordId) {
+    fun deleteOutboxRecord(recordId: OutboxRecordId) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -106,11 +105,10 @@ internal class OutboxRepository {
             WHERE id = :id
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to recordId.value,
-                "error_message" to errorMessage,
-            )
+        val params = mapOf(
+            "id" to recordId.value,
+            "error_message" to errorMessage,
+        )
 
         Database.query { session ->
             session.update(queryOf(sql, params))

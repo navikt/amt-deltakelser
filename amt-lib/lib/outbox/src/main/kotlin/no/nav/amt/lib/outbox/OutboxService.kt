@@ -30,13 +30,12 @@ class OutboxService(
         topic: String,
         suppressOutsideTxWarning: Boolean = false,
     ): OutboxRecord {
-        val outboxRecord =
-            NewOutboxRecord(
-                key = key.toString(),
-                valueType = value::class.java.simpleName,
-                topic = topic,
-                value = objectMapper.valueToTree(value),
-            )
+        val outboxRecord = NewOutboxRecord(
+            key = key.toString(),
+            valueType = value::class.java.simpleName,
+            topic = topic,
+            value = objectMapper.valueToTree(value),
+        )
         return outboxRepository
             .insertNewRecord(outboxRecord, suppressOutsideTxWarning)
             .also { meter.incrementNewRecords(topic) }
@@ -56,7 +55,7 @@ class OutboxService(
      * @param record The record to mark as processed.
      */
     fun markAsProcessed(record: OutboxRecord) {
-        outboxRepository.deletedOutboxRecord(record.id)
+        outboxRepository.deleteOutboxRecord(record.id)
         meter.incrementProcessedRecords(record.topic, OutboxRecordStatus.PROCESSED)
     }
 
