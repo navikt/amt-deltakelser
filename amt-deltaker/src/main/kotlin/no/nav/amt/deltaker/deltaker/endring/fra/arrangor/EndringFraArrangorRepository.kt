@@ -73,7 +73,7 @@ class EndringFraArrangorRepository {
     }
 
     companion object {
-        private fun rowMapper(row: Row): EndringFraArrangor = EndringFraArrangor(
+        private fun rowMapper(row: Row) = EndringFraArrangor(
             id = row.uuid("id"),
             deltakerId = row.uuid("deltaker_id"),
             opprettetAvArrangorAnsattId = row.uuid("arrangor_ansatt_id"),

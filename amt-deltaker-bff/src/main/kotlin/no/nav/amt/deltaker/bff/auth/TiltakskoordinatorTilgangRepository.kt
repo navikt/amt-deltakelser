@@ -180,7 +180,7 @@ class TiltakskoordinatorTilgangRepository {
     }
 
     companion object {
-        private fun rowMapper(row: Row): TiltakskoordinatorDeltakerlisteTilgang = TiltakskoordinatorDeltakerlisteTilgang(
+        private fun rowMapper(row: Row) = TiltakskoordinatorDeltakerlisteTilgang(
             id = row.uuid("id"),
             navAnsattId = row.uuid("nav_ansatt_id"),
             deltakerlisteId = row.uuid("deltakerliste_id"),

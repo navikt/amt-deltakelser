@@ -158,7 +158,7 @@ class ForslagRepository {
     } != null
 
     companion object {
-        private fun rowMapper(row: Row): Forslag = Forslag(
+        private fun rowMapper(row: Row) = Forslag(
             id = row.uuid("id"),
             deltakerId = row.uuid("deltaker_id"),
             opprettetAvArrangorAnsattId = row.uuid("arrangoransatt_id"),

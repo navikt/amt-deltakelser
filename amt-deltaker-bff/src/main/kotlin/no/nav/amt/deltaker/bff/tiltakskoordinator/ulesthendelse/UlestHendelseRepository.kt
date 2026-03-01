@@ -95,7 +95,7 @@ class UlestHendelseRepository {
     }
 
     companion object {
-        private fun rowMapper(row: Row): UlestHendelse = UlestHendelse(
+        private fun rowMapper(row: Row) = UlestHendelse(
             id = row.uuid("id"),
             opprettet = row.localDateTime("opprettet"),
             deltakerId = row.uuid("deltaker_id"),

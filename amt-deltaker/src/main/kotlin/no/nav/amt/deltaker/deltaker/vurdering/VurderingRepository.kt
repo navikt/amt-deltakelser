@@ -64,7 +64,7 @@ open class VurderingRepository {
     }
 
     companion object {
-        private fun rowMapper(row: Row): Vurdering = Vurdering(
+        private fun rowMapper(row: Row) = Vurdering(
             id = row.uuid("id"),
             deltakerId = row.uuid("deltaker_id"),
             vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
