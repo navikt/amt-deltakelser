@@ -53,31 +53,21 @@ class HendelseService(
         navEnhet: NavEnhet,
         endringsType: EndringFraTiltakskoordinator.Endring,
     ) {
-        val hendelseType =
-            when (endringsType) {
-                EndringFraTiltakskoordinator.SettPaaVenteliste -> {
-                    HendelseType.SettPaaVenteliste
-                }
+        val hendelseType = when (endringsType) {
+            EndringFraTiltakskoordinator.SettPaaVenteliste -> HendelseType.SettPaaVenteliste
 
-                EndringFraTiltakskoordinator.TildelPlass -> {
-                    HendelseType.TildelPlass
-                }
+            EndringFraTiltakskoordinator.TildelPlass -> HendelseType.TildelPlass
 
-                is EndringFraTiltakskoordinator.Avslag -> {
-                    HendelseType.Avslag(
-                        aarsak = endringsType.aarsak,
-                        begrunnelseFraNav = endringsType.begrunnelse,
-                        vurderingFraArrangor =
-                            vurderingService.getSisteForDeltaker(deltaker.id)?.let {
-                                HendelseType.Avslag.Vurdering(it.vurderingstype, it.begrunnelse)
-                            },
-                    )
-                }
+            is EndringFraTiltakskoordinator.Avslag -> HendelseType.Avslag(
+                aarsak = endringsType.aarsak,
+                begrunnelseFraNav = endringsType.begrunnelse,
+                vurderingFraArrangor = vurderingService.getSisteForDeltaker(deltaker.id)?.let {
+                    HendelseType.Avslag.Vurdering(it.vurderingstype, it.begrunnelse)
+                },
+            )
 
-                EndringFraTiltakskoordinator.DelMedArrangor -> {
-                    return
-                }
-            }
+            EndringFraTiltakskoordinator.DelMedArrangor -> return
+        }
 
         hendelseProducer.produce(nyHendelseFraKoordinator(deltaker, navAnsatt, navEnhet, hendelseType))
     }
@@ -88,12 +78,11 @@ class HendelseService(
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
     ) {
-        val endring: HendelseType =
-            if (deltakerEndring.endring is DeltakerEndring.Endring.ReaktiverDeltakelse) {
-                deltakerEndring.toHendelseEndring(deltaker.toUtkastDto())
-            } else {
-                deltakerEndring.toHendelseEndring()
-            }
+        val endring: HendelseType = if (deltakerEndring.endring is DeltakerEndring.Endring.ReaktiverDeltakelse) {
+            deltakerEndring.toHendelseEndring(deltaker.toUtkastDto())
+        } else {
+            deltakerEndring.toHendelseEndring()
+        }
 
         hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
     }
@@ -130,10 +119,9 @@ class HendelseService(
     }
 
     fun hendelseForUtkastGodkjentAvInnbygger(deltaker: Deltaker) {
-        val vedtak =
-            deltaker.vedtaksinformasjon ?: throw IllegalStateException(
-                "Kan ikke produsere hendelse for utkast godkjent av innbygger for deltaker ${deltaker.id} uten vedtak",
-            )
+        val vedtak = deltaker.vedtaksinformasjon ?: throw IllegalStateException(
+            "Kan ikke produsere hendelse for utkast godkjent av innbygger for deltaker ${deltaker.id} uten vedtak",
+        )
 
         val navAnsatt = navAnsattRepository.getOrThrow(vedtak.sistEndretAv)
         val navEnhet = navEnhetRepository.getOrThrow(vedtak.sistEndretAvEnhet)
@@ -167,13 +155,12 @@ class HendelseService(
         navEnhet: NavEnhet,
         endring: HendelseType,
     ): Hendelse {
-        val ansvarlig =
-            HendelseAnsvarlig.NavVeileder(
-                id = navAnsatt.id,
-                navIdent = navAnsatt.navIdent,
-                navn = navAnsatt.navn,
-                enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
-            )
+        val ansvarlig = HendelseAnsvarlig.NavVeileder(
+            id = navAnsatt.id,
+            navIdent = navAnsatt.navIdent,
+            navn = navAnsatt.navn,
+            enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
+        )
 
         return nyHendelse(deltaker, ansvarlig, endring)
     }
@@ -184,18 +171,16 @@ class HendelseService(
         navEnhet: NavEnhet,
         endring: HendelseType,
     ): Hendelse {
-        val ansvarlig =
-            HendelseAnsvarlig.NavTiltakskoordinator(
-                id = navAnsatt.id,
-                navIdent = navAnsatt.navIdent,
-                navn = navAnsatt.navn,
-                enhet =
-                    HendelseAnsvarlig.NavTiltakskoordinator.Enhet(
-                        navn = navEnhet.navn,
-                        id = navEnhet.id,
-                        enhetsnummer = navEnhet.enhetsnummer,
-                    ),
-            )
+        val ansvarlig = HendelseAnsvarlig.NavTiltakskoordinator(
+            id = navAnsatt.id,
+            navIdent = navAnsatt.navIdent,
+            navn = navAnsatt.navn,
+            enhet = HendelseAnsvarlig.NavTiltakskoordinator.Enhet(
+                navn = navEnhet.navn,
+                id = navEnhet.id,
+                enhetsnummer = navEnhet.enhetsnummer,
+            ),
+        )
 
         return nyHendelse(deltaker, ansvarlig, endring)
     }
@@ -228,11 +213,10 @@ class HendelseService(
         // hvis ikke Komet er master for tiltakskode
         if (!unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) return
 
-        val ansvarlig =
-            HendelseAnsvarlig.Deltaker(
-                id = deltaker.id,
-                navn = deltaker.navBruker.fulltNavn,
-            )
+        val ansvarlig = HendelseAnsvarlig.Deltaker(
+            id = deltaker.id,
+            navn = deltaker.navBruker.fulltNavn,
+        )
 
         val hendelse = nyHendelse(deltaker, ansvarlig, HendelseType.DeltakerSistBesokt(sistBesokt))
         hendelseProducer.produce(
@@ -246,9 +230,8 @@ class HendelseService(
         ansvarlig: HendelseAnsvarlig,
         endring: HendelseType,
     ): Hendelse {
-        val overordnetArrangor =
-            deltaker.deltakerliste.arrangor.overordnetArrangorId
-                ?.let { arrangorService.hentArrangor(it) }
+        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
+            ?.let { arrangorService.hentArrangor(it) }
 
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 

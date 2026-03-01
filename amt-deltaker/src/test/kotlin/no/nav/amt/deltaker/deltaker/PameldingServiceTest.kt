@@ -103,204 +103,185 @@ class PameldingServiceTest {
     @Nested
     inner class OpprettDeltakerTests {
         @Test
-        fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`() =
-            runTest {
-                val expectedDeltaker =
-                    lagDeltaker(
-                        sluttdato = null,
-                        status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                    )
-                TestRepository.insert(expectedDeltaker)
+        fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`() = runTest {
+            val expectedDeltaker = lagDeltaker(
+                sluttdato = null,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(expectedDeltaker)
 
-                val actualDeltaker =
-                    pameldingService.opprettDeltaker(
-                        expectedDeltaker.deltakerliste.id,
-                        expectedDeltaker.navBruker.personident,
-                    )
+            val actualDeltaker = pameldingService.opprettDeltaker(
+                expectedDeltaker.deltakerliste.id,
+                expectedDeltaker.navBruker.personident,
+            )
 
-                actualDeltaker.id shouldBe expectedDeltaker.id
-            }
+            actualDeltaker.id shouldBe expectedDeltaker.id
+        }
 
         @Test
-        fun `opprettKladd - deltaker finnes ikke - oppretter ny deltaker`() =
-            runTest {
-                val arrangor = lagArrangor()
-                val deltakerListe = lagDeltakerliste(arrangor = arrangor)
-                val navBruker =
-                    lagNavBruker(
-                        navVeilederId = sistEndretAvNavAnsatt.id,
-                        navEnhetId = sistEndretAvNavEnhet.id,
-                    )
+        fun `opprettKladd - deltaker finnes ikke - oppretter ny deltaker`() = runTest {
+            val arrangor = lagArrangor()
+            val deltakerListe = lagDeltakerliste(arrangor = arrangor)
+            val navBruker = lagNavBruker(
+                navVeilederId = sistEndretAvNavAnsatt.id,
+                navEnhetId = sistEndretAvNavEnhet.id,
+            )
 
-                mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-                TestRepository.insert(deltakerListe)
+            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
+            TestRepository.insert(deltakerListe)
 
-                val deltaker =
-                    pameldingService.opprettDeltaker(
-                        deltakerListeId = deltakerListe.id,
-                        personIdent = navBruker.personident,
-                    )
+            val deltaker = pameldingService.opprettDeltaker(
+                deltakerListeId = deltakerListe.id,
+                personIdent = navBruker.personident,
+            )
 
-                assertSoftly(deltaker) {
-                    id shouldBe deltakerRepository.getFlereForPerson(navBruker.personident, deltakerListe.id).first().id
-                    it.deltakerliste.id shouldBe deltakerListe.id
-                    status.type shouldBe DeltakerStatus.Type.KLADD
-                    startdato shouldBe null
-                    sluttdato shouldBe null
-                    dagerPerUke shouldBe null
-                    deltakelsesprosent shouldBe null
-                    bakgrunnsinformasjon shouldBe null
-                    deltakelsesinnhold?.ledetekst shouldBe deltakerListe.tiltakstype.innhold!!.ledetekst
-                    deltakelsesinnhold?.innhold shouldBe emptyList()
-                }
+            assertSoftly(deltaker) {
+                id shouldBe deltakerRepository.getFlereForPerson(navBruker.personident, deltakerListe.id).first().id
+                it.deltakerliste.id shouldBe deltakerListe.id
+                status.type shouldBe DeltakerStatus.Type.KLADD
+                startdato shouldBe null
+                sluttdato shouldBe null
+                dagerPerUke shouldBe null
+                deltakelsesprosent shouldBe null
+                bakgrunnsinformasjon shouldBe null
+                deltakelsesinnhold?.ledetekst shouldBe deltakerListe.tiltakstype.innhold!!.ledetekst
+                deltakelsesinnhold?.innhold shouldBe emptyList()
             }
+        }
 
         @Test
-        fun `opprettKladd - ARR, deltaker har situasjonsbetinget inns og sykmeldt - oppretter ny deltaker`() =
-            runTest {
-                val tiltakstype =
-                    TestData.lagTiltakstype(
-                        tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING,
-                        innsatsgrupper = setOf(Innsatsgruppe.VARIG_TILPASSET_INNSATS, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS),
-                    )
-                val arrangor = lagArrangor()
-                val deltakerListe = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
-                val navBruker =
-                    lagNavBruker(
-                        navVeilederId = sistEndretAvNavAnsatt.id,
-                        navEnhetId = sistEndretAvNavEnhet.id,
-                        innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
-                    )
+        fun `opprettKladd - ARR, deltaker har situasjonsbetinget inns og sykmeldt - oppretter ny deltaker`() = runTest {
+            val tiltakstype = TestData.lagTiltakstype(
+                tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+                innsatsgrupper = setOf(Innsatsgruppe.VARIG_TILPASSET_INNSATS, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS),
+            )
+            val arrangor = lagArrangor()
+            val deltakerListe = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+            val navBruker = lagNavBruker(
+                navVeilederId = sistEndretAvNavAnsatt.id,
+                navEnhetId = sistEndretAvNavEnhet.id,
+                innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+            )
 
-                mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-                MockResponseHandler.addOppfolgingstilfelleRespons(
-                    OppfolgingstilfellePersonResponse(
-                        listOf(
-                            OppfolgingstilfelleDTO(
-                                arbeidstakerAtTilfelleEnd = true,
-                                start = LocalDate.now().minusMonths(3),
-                                end = LocalDate.now().plusDays(1),
-                            ),
+            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
+            MockResponseHandler.addOppfolgingstilfelleRespons(
+                OppfolgingstilfellePersonResponse(
+                    listOf(
+                        OppfolgingstilfelleDTO(
+                            arbeidstakerAtTilfelleEnd = true,
+                            start = LocalDate.now().minusMonths(3),
+                            end = LocalDate.now().plusDays(1),
                         ),
                     ),
+                ),
+            )
+            TestRepository.insert(deltakerListe)
+
+            val deltaker = pameldingService.opprettDeltaker(
+                deltakerListeId = deltakerListe.id,
+                personIdent = navBruker.personident,
+            )
+
+            assertSoftly(deltaker) {
+                id shouldBe deltakerRepository.getFlereForPerson(navBruker.personident, deltakerListe.id).first().id
+                it.deltakerliste.id shouldBe deltakerListe.id
+                status.type shouldBe DeltakerStatus.Type.KLADD
+                startdato shouldBe null
+                sluttdato shouldBe null
+                dagerPerUke shouldBe null
+                deltakelsesprosent shouldBe null
+                bakgrunnsinformasjon shouldBe null
+                deltakelsesinnhold?.ledetekst shouldBe deltakerListe.tiltakstype.innhold!!.ledetekst
+                deltakelsesinnhold?.innhold shouldBe emptyList()
+            }
+        }
+
+        @Test
+        fun `opprettKladd - deltakerliste finnes ikke - kaster NoSuchElementException`() = runTest {
+            val personIdent = TestData.randomIdent()
+
+            assertFailsWith<NoSuchElementException> {
+                pameldingService.opprettDeltaker(UUID.randomUUID(), personIdent)
+            }
+        }
+
+        @Test
+        fun `opprettKladd - deltaker finnes men har sluttet - oppretter ny deltaker`() = runTest {
+            val deltaker = lagDeltaker(
+                sluttdato = LocalDate.now().minusMonths(3),
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            )
+            TestRepository.insert(deltaker)
+
+            val nyDeltaker =
+                pameldingService.opprettDeltaker(
+                    deltaker.deltakerliste.id,
+                    deltaker.navBruker.personident,
                 )
-                TestRepository.insert(deltakerListe)
 
-                val deltaker =
-                    pameldingService.opprettDeltaker(
-                        deltakerListeId = deltakerListe.id,
-                        personIdent = navBruker.personident,
-                    )
-
-                assertSoftly(deltaker) {
-                    id shouldBe deltakerRepository.getFlereForPerson(navBruker.personident, deltakerListe.id).first().id
-                    it.deltakerliste.id shouldBe deltakerListe.id
-                    status.type shouldBe DeltakerStatus.Type.KLADD
-                    startdato shouldBe null
-                    sluttdato shouldBe null
-                    dagerPerUke shouldBe null
-                    deltakelsesprosent shouldBe null
-                    bakgrunnsinformasjon shouldBe null
-                    deltakelsesinnhold?.ledetekst shouldBe deltakerListe.tiltakstype.innhold!!.ledetekst
-                    deltakelsesinnhold?.innhold shouldBe emptyList()
-                }
-            }
-
-        @Test
-        fun `opprettKladd - deltakerliste finnes ikke - kaster NoSuchElementException`() =
-            runTest {
-                val personIdent = TestData.randomIdent()
-
-                assertFailsWith<NoSuchElementException> {
-                    pameldingService.opprettDeltaker(UUID.randomUUID(), personIdent)
-                }
-            }
-
-        @Test
-        fun `opprettKladd - deltaker finnes men har sluttet - oppretter ny deltaker`() =
-            runTest {
-                val deltaker =
-                    lagDeltaker(
-                        sluttdato = LocalDate.now().minusMonths(3),
-                        status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                    )
-                TestRepository.insert(deltaker)
-
-                val nyDeltaker =
-                    pameldingService.opprettDeltaker(
-                        deltaker.deltakerliste.id,
-                        deltaker.navBruker.personident,
-                    )
-
-                nyDeltaker.id shouldNotBe deltaker.id
-                nyDeltaker.status.type shouldBe DeltakerStatus.Type.KLADD
-            }
+            nyDeltaker.id shouldNotBe deltaker.id
+            nyDeltaker.status.type shouldBe DeltakerStatus.Type.KLADD
+        }
     }
 
     @Nested
     inner class UpsertUtkastTests {
         @Test
-        fun `upsertUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() =
-            runTest {
-                val deltaker =
-                    lagDeltaker(
-                        status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                        vedtaksinformasjon = null,
-                    )
-                TestRepository.insert(deltaker)
+        fun `upsertUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() = runTest {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                vedtaksinformasjon = null,
+            )
+            TestRepository.insert(deltaker)
 
-                val utkastRequest =
-                    UtkastRequest(
-                        deltakelsesinnhold = Deltakelsesinnhold("utkastledetekst", listOf(Innhold("Tekst", "kode", true, null))),
-                        bakgrunnsinformasjon = "Bakgrunn",
-                        deltakelsesprosent = 100F,
-                        dagerPerUke = null,
-                        endretAv = sistEndretAvNavAnsatt.navIdent,
-                        endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
-                        godkjentAvNav = false,
-                    )
+            val utkastRequest = UtkastRequest(
+                deltakelsesinnhold = Deltakelsesinnhold("utkastledetekst", listOf(Innhold("Tekst", "kode", true, null))),
+                bakgrunnsinformasjon = "Bakgrunn",
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                endretAv = sistEndretAvNavAnsatt.navIdent,
+                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+                godkjentAvNav = false,
+            )
 
-                pameldingService.upsertUtkast(deltaker.id, utkastRequest)
+            pameldingService.upsertUtkast(deltaker.id, utkastRequest)
 
-                val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
-                deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
-                deltakerFraDb.vedtaksinformasjon shouldNotBe null
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
-                assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()) {
-                    fattet shouldBe null
-                    fattetAvNav shouldBe false
-                    it.sistEndretAv shouldBe sistEndretAvNavAnsatt.id
-                    it.sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
-                }
-
-                assertProducedHendelse(deltaker.id, HendelseType.OpprettUtkast::class)
+            assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()) {
+                fattet shouldBe null
+                fattetAvNav shouldBe false
+                it.sistEndretAv shouldBe sistEndretAvNavAnsatt.id
+                it.sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
             }
+
+            assertProducedHendelse(deltaker.id, HendelseType.OpprettUtkast::class)
+        }
 
         @Test
         fun `upsertUtkast - deltaker med direkte vedtak, godkjent av Nav - oppdaterer deltaker og oppretter fattet vedtak`() {
-            val deltaker =
-                lagDeltaker(
-                    deltakerliste =
-                        lagDeltakerliste(
-                            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-                        ),
-                    status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                    vedtaksinformasjon = null,
-                    startdato = null,
-                    sluttdato = null,
-                )
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerliste(
+                    pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+                ),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                vedtaksinformasjon = null,
+                startdato = null,
+                sluttdato = null,
+            )
             TestRepository.insert(deltaker)
 
-            val utkastRequest =
-                UtkastRequest(
-                    deltakelsesinnhold = Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
-                    bakgrunnsinformasjon = "Bakgrunn",
-                    deltakelsesprosent = 100F,
-                    dagerPerUke = null,
-                    endretAv = sistEndretAvNavAnsatt.navIdent,
-                    endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
-                    godkjentAvNav = true,
-                )
+            val utkastRequest = UtkastRequest(
+                deltakelsesinnhold = Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
+                bakgrunnsinformasjon = "Bakgrunn",
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                endretAv = sistEndretAvNavAnsatt.navIdent,
+                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+                godkjentAvNav = true,
+            )
 
             runTest {
                 pameldingService.upsertUtkast(deltaker.id, utkastRequest)
@@ -324,26 +305,24 @@ class PameldingServiceTest {
 
         @Test
         fun `upsertUtkast - deltaker med trenger godkjenning, godkjent av Nav - oppdaterer deltaker`() {
-            val deltaker =
-                lagDeltaker(
-                    deltakerliste = lagDeltakerliste(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING),
-                    status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                    vedtaksinformasjon = null,
-                    startdato = null,
-                    sluttdato = null,
-                )
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerliste(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                vedtaksinformasjon = null,
+                startdato = null,
+                sluttdato = null,
+            )
             TestRepository.insert(deltaker)
 
-            val utkastRequest =
-                UtkastRequest(
-                    deltakelsesinnhold = Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
-                    bakgrunnsinformasjon = "Bakgrunn",
-                    deltakelsesprosent = 100F,
-                    dagerPerUke = null,
-                    endretAv = sistEndretAvNavAnsatt.navIdent,
-                    endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
-                    godkjentAvNav = true,
-                )
+            val utkastRequest = UtkastRequest(
+                deltakelsesinnhold = Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
+                bakgrunnsinformasjon = "Bakgrunn",
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                endretAv = sistEndretAvNavAnsatt.navIdent,
+                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+                godkjentAvNav = true,
+            )
 
             runTest {
                 pameldingService.upsertUtkast(deltaker.id, utkastRequest)
@@ -374,30 +353,27 @@ class PameldingServiceTest {
         val sistEndretAvNavEnhet = lagNavEnhet()
         TestRepository.insertAll(sistEndretAvNavAnsatt, sistEndretAvNavEnhet)
 
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                startdato = null,
-                sluttdato = null,
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = null,
-                gyldigTil = null,
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            startdato = null,
+            sluttdato = null,
+        )
+        val vedtak = lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = null,
+            gyldigTil = null,
+        )
         TestRepository.insert(
             deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()),
             vedtak = vedtak,
         )
 
-        val avbrytUtkastRequest =
-            AvbrytUtkastRequest(
-                avbruttAv = sistEndretAvNavAnsatt.navIdent,
-                avbruttAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
-            )
+        val avbrytUtkastRequest = AvbrytUtkastRequest(
+            avbruttAv = sistEndretAvNavAnsatt.navIdent,
+            avbruttAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+        )
 
         runTest {
             pameldingService.avbrytUtkast(deltaker.id, avbrytUtkastRequest)
@@ -422,87 +398,81 @@ class PameldingServiceTest {
     @Nested
     inner class InnbyggerGodkjennUtkastTests {
         @Test
-        fun `innbyggerGodkjennUtkast - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() =
-            runTest {
-                val deltaker =
-                    lagDeltaker(
-                        deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
-                        status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                    )
-                val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-                val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-                val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-                TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+        fun `innbyggerGodkjennUtkast - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-                pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
-                assertProduced(deltaker.id)
-                assertProducedDeltakerV1(deltaker.id)
-                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+            assertProduced(deltaker.id)
+            assertProducedDeltakerV1(deltaker.id)
+            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
-                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
-                oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
 
-                oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
-                oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
+            oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+            oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
 
-                innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
-            }
+            innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
+        }
 
         @Test
-        fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() =
-            runTest {
-                val deltaker =
-                    lagDeltaker(
-                        deltakerliste = lagDeltakerlisteMedTrengerGodkjenning(),
-                        status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                    )
-                val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-                val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-                val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-                TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+        fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() = runTest {
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerlisteMedTrengerGodkjenning(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-                pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
-                assertProduced(deltaker.id)
-                assertProducedDeltakerV1(deltaker.id)
-                assertProducedDeltakerEksternV1(deltaker.id)
-                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+            assertProduced(deltaker.id)
+            assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
+            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
-                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
-                oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
 
-                oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
-                oppdatertDeltaker.vedtaksinformasjon.fattet shouldBe null
+            oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+            oppdatertDeltaker.vedtaksinformasjon.fattet shouldBe null
 
-                val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
-                assertSoftly(innsok) {
-                    utkastGodkjentAvNav shouldBe false
-                    utkastDelt shouldNotBe null
-                    innsokt shouldBeCloseTo LocalDateTime.now()
-                }
+            val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
+            assertSoftly(innsok) {
+                utkastGodkjentAvNav shouldBe false
+                utkastDelt shouldNotBe null
+                innsokt shouldBeCloseTo LocalDateTime.now()
             }
+        }
 
         @Test
         fun `innbyggerGodkjennUtkast - vedtak kunne ikke fattes - upserter ikke`() {
-            val deltaker =
-                lagDeltaker(
-                    deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
-                    status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                )
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = LocalDateTime.now())
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
             val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
             TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-            val thrown =
-                shouldThrow<IllegalArgumentException> {
-                    runTest {
-                        pameldingService.innbyggerGodkjennUtkast(deltaker.id)
-                    }
+            val thrown = shouldThrow<IllegalArgumentException> {
+                runTest {
+                    pameldingService.innbyggerGodkjennUtkast(deltaker.id)
                 }
+            }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
 
@@ -515,16 +485,14 @@ class PameldingServiceTest {
     inner class GetOppdatertStatusTests {
         @Test
         fun `getOppdatertStatus() - pameldingstype TRENGER_GODKJENNING - status SOKT_INN`() {
-            val deltakerliste =
-                lagDeltakerliste(
-                    pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-                )
+            val deltakerliste = lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+            )
             val deltakerStatusKladd = lagDeltakerStatus(DeltakerStatus.Type.KLADD)
-            val deltaker =
-                lagDeltaker(
-                    deltakerliste = deltakerliste,
-                    status = deltakerStatusKladd,
-                )
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = deltakerStatusKladd,
+            )
 
             val deltakerStatus = getOppdatertStatus(deltaker, true)
 
@@ -533,16 +501,14 @@ class PameldingServiceTest {
 
         @Test
         fun `getOppdatertStatus() - pameldingstype DIREKTE_VEDTAK - status VENTER_PA_OPPSTART`() {
-            val deltakerliste =
-                lagDeltakerliste(
-                    pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-                )
+            val deltakerliste = lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            )
             val deltakerStatusKladd = lagDeltakerStatus(DeltakerStatus.Type.KLADD)
-            val deltaker =
-                lagDeltaker(
-                    deltakerliste = deltakerliste,
-                    status = deltakerStatusKladd,
-                )
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = deltakerStatusKladd,
+            )
 
             val deltakerStatus = getOppdatertStatus(deltaker, true)
 
@@ -582,18 +548,17 @@ class PameldingServiceTest {
 
     private val unleashToggle = mockk<CommonUnleashToggle>(relaxed = true)
 
-    private val hendelseService =
-        HendelseService(
-            HendelseProducer(TestOutboxEnvironment.outboxService),
-            navAnsattRepository,
-            navAnsattService,
-            navEnhetRepository,
-            navEnhetService,
-            arrangorService,
-            deltakerHistorikkService,
-            VurderingService(VurderingRepository()),
-            unleashToggle,
-        )
+    private val hendelseService = HendelseService(
+        HendelseProducer(TestOutboxEnvironment.outboxService),
+        navAnsattRepository,
+        navAnsattService,
+        navEnhetRepository,
+        navEnhetService,
+        arrangorService,
+        deltakerHistorikkService,
+        VurderingService(VurderingRepository()),
+        unleashToggle,
+    )
 
     private val vedtakService = VedtakService(vedtakRepository)
     private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, mockk())
@@ -608,50 +573,46 @@ class PameldingServiceTest {
     private val deltakerProducerService =
         DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, deltakerEksternV1Producer, unleashToggle)
 
-    private val deltakerService =
-        DeltakerService(
-            deltakerRepository = deltakerRepository,
-            deltakerProducerService = deltakerProducerService,
-            deltakerEndringRepository = deltakerEndringRepository,
-            deltakerEndringService =
-                DeltakerEndringService(
-                    deltakerEndringRepository,
-                    navAnsattRepository,
-                    navEnhetRepository,
-                    hendelseService,
-                    forslagService,
-                    deltakerHistorikkService,
-                ),
-            vedtakRepository = vedtakRepository,
-            vedtakService = vedtakService,
-            hendelseService = hendelseService,
-            endringFraArrangorRepository = endringFraArrangorRepository,
-            importertFraArenaRepository = importertFraArenaRepository,
-            deltakerHistorikkService = deltakerHistorikkService,
-            navAnsattService = navAnsattService,
-            endringFraTiltakskoordinatorRepository = endringFraTiltaksKoordinatorRepository,
-            navEnhetService = navEnhetService,
-            forslagRepository = forslagRepository,
-        )
+    private val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        deltakerProducerService = deltakerProducerService,
+        deltakerEndringRepository = deltakerEndringRepository,
+        deltakerEndringService = DeltakerEndringService(
+            deltakerEndringRepository,
+            navAnsattRepository,
+            navEnhetRepository,
+            hendelseService,
+            forslagService,
+            deltakerHistorikkService,
+        ),
+        vedtakRepository = vedtakRepository,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
+        navAnsattService = navAnsattService,
+        endringFraTiltakskoordinatorRepository = endringFraTiltaksKoordinatorRepository,
+        navEnhetService = navEnhetService,
+        forslagRepository = forslagRepository,
+    )
 
-    private val pameldingService =
-        PameldingService(
-            deltakerRepository = deltakerRepository,
-            deltakerService = deltakerService,
-            deltakerListeRepository = DeltakerlisteRepository(),
-            navBrukerService =
-                NavBrukerService(
-                    NavBrukerRepository(),
-                    mockPersonServiceClient(),
-                    navEnhetService,
-                    navAnsattService,
-                ),
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            vedtakService = vedtakService,
-            hendelseService = hendelseService,
-            innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
-        )
+    private val pameldingService = PameldingService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        deltakerListeRepository = DeltakerlisteRepository(),
+        navBrukerService = NavBrukerService(
+            NavBrukerRepository(),
+            mockPersonServiceClient(),
+            navEnhetService,
+            navAnsattService,
+        ),
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+    )
 
     companion object {
         @RegisterExtension

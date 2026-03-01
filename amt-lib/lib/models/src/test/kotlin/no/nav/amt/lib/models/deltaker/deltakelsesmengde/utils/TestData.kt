@@ -45,15 +45,14 @@ object TestData {
         sistEndretAvEnhet = UUID.randomUUID(),
     )
 
-    fun lagDeltakerStatus() =
-        DeltakerStatus(
-            id = UUID.randomUUID(),
-            type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
-            aarsak = null,
-            gyldigFra = LocalDateTime.now(),
-            gyldigTil = null,
-            opprettet = LocalDateTime.now(),
-        )
+    fun lagDeltakerStatus() = DeltakerStatus(
+        id = UUID.randomUUID(),
+        type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+        aarsak = null,
+        gyldigFra = LocalDateTime.now(),
+        gyldigTil = null,
+        opprettet = LocalDateTime.now(),
+    )
 
     fun lagImportertFraArena(
         deltakelsesprosent: Float? = 100F,

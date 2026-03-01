@@ -24,12 +24,11 @@ class EndringFraArrangorService(
         val eksisterendeDeltaker = deltakerRepository.get(endringFraArrangor.deltakerId).getOrThrow()
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
-        val endretDeltaker =
-            when (endringFraArrangor.endring) {
-                is EndringFraArrangor.LeggTilOppstartsdato -> {
-                    endretDeltaker(eksisterendeDeltaker, endringFraArrangor.endring)
-                }
+        val endretDeltaker = when (endringFraArrangor.endring) {
+            is EndringFraArrangor.LeggTilOppstartsdato -> {
+                endretDeltaker(eksisterendeDeltaker, endringFraArrangor.endring)
             }
+        }
 
         endretDeltaker.onSuccess { innerDeltaker ->
             return deltakerService.upsertAndProduceDeltaker(
@@ -69,10 +68,7 @@ class EndringFraArrangorService(
                     deltaker.endreDeltakersOppstart(
                         startdato = endring.startdato,
                         sluttdato = endring.sluttdato,
-                        deltakelsesmengder =
-                            deltakerHistorikkService
-                                .getForDeltaker(deltaker.id)
-                                .toDeltakelsesmengder(),
+                        deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
                     )
                 }
             }

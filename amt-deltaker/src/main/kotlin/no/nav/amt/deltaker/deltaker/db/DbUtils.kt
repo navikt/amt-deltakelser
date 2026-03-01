@@ -23,15 +23,14 @@ object DbUtils {
     fun nullWhenNearNow(
         dateTime: LocalDateTime,
         graceInSeconds: Long = 5,
-    ): LocalDateTime? =
-        if (Duration
-                .between(dateTime, LocalDateTime.now())
-                .abs() <= Duration.ofSeconds(graceInSeconds)
-        ) {
-            null
-        } else {
-            dateTime
-        }
+    ): LocalDateTime? = if (Duration
+            .between(dateTime, LocalDateTime.now())
+            .abs() <= Duration.ofSeconds(graceInSeconds)
+    ) {
+        null
+    } else {
+        dateTime
+    }
 
     /**
      * Lager en kommaseparert liste med SQL-parameter-`?` placeholders.

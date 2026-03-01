@@ -12,12 +12,11 @@ import java.util.UUID
 class TiltakstypeConsumer(
     private val repository: TiltakstypeRepository,
 ) : Consumer<UUID, String?> {
-    private val consumer =
-        buildManagedKafkaConsumer(
-            topic = Environment.TILTAKSTYPE_TOPIC,
-            consumerGroupId = Environment.KAFKA_CONSUMER_GROUP_ID + "tiltakstyper",
-            consumeFunc = ::consume,
-        )
+    private val consumer = buildManagedKafkaConsumer(
+        topic = Environment.TILTAKSTYPE_TOPIC,
+        consumerGroupId = Environment.KAFKA_CONSUMER_GROUP_ID + "tiltakstyper",
+        consumeFunc = ::consume,
+    )
 
     suspend fun consume(
         key: UUID,

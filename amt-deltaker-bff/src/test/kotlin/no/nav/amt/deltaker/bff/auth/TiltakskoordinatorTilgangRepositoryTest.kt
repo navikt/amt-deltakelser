@@ -203,16 +203,14 @@ data class TiltakskoordinatorTilgangContext(
     val navAnsatt: NavAnsatt = lagNavAnsatt(),
     val secondNavAnsatt: NavAnsatt = lagNavAnsatt(navn = "Nav Navesen"),
     var deltakerliste: Deltakerliste = lagDeltakerliste(),
-    var tilgang: TiltakskoordinatorDeltakerlisteTilgang =
-        lagTiltakskoordinatorTilgang(
-            deltakerliste = deltakerliste,
-            navAnsatt = navAnsatt,
-        ),
-    var secondTilgang: TiltakskoordinatorDeltakerlisteTilgang =
-        lagTiltakskoordinatorTilgang(
-            deltakerliste = deltakerliste,
-            navAnsatt = secondNavAnsatt,
-        ),
+    var tilgang: TiltakskoordinatorDeltakerlisteTilgang = lagTiltakskoordinatorTilgang(
+        deltakerliste = deltakerliste,
+        navAnsatt = navAnsatt,
+    ),
+    var secondTilgang: TiltakskoordinatorDeltakerlisteTilgang = lagTiltakskoordinatorTilgang(
+        deltakerliste = deltakerliste,
+        navAnsatt = secondNavAnsatt,
+    ),
     var deltaker: Deltaker = lagDeltaker(deltakerliste = deltakerliste),
 ) {
     val navAnsattRepository = NavAnsattRepository()
@@ -251,20 +249,18 @@ data class TiltakskoordinatorTilgangContext(
     fun medStrengtFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.STRENGT_FORTROLIG)
 
     fun medStengtDeltakerliste() {
-        deltakerliste =
-            deltakerliste.copy(
-                status = GjennomforingStatusType.AVSLUTTET,
-                sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
-            )
+        deltakerliste = deltakerliste.copy(
+            status = GjennomforingStatusType.AVSLUTTET,
+            sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
+        )
         deltakerlisteRepository.upsert(deltakerliste)
     }
 
     fun medAvsluttetDeltakerliste() {
-        deltakerliste =
-            deltakerliste.copy(
-                status = GjennomforingStatusType.AVSLUTTET,
-                sluttDato = LocalDate.now(),
-            )
+        deltakerliste = deltakerliste.copy(
+            status = GjennomforingStatusType.AVSLUTTET,
+            sluttDato = LocalDate.now(),
+        )
         deltakerlisteRepository.upsert(deltakerliste)
     }
 

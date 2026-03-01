@@ -44,21 +44,20 @@ class InnbyggerServiceTest {
     }
 
     @Test
-    fun `godkjennUtkast - har riktig status - kaller amtDeltaker og oppdaterer deltaker`() =
-        runTest {
-            val deltaker = deltakerMedIkkeFattetVedtak()
-            TestRepository.insert(deltaker)
+    fun `godkjennUtkast - har riktig status - kaller amtDeltaker og oppdaterer deltaker`() = runTest {
+        val deltaker = deltakerMedIkkeFattetVedtak()
+        TestRepository.insert(deltaker)
 
-            val deltakerMedFattetVedtak = deltaker.fattVedtak()
+        val deltakerMedFattetVedtak = deltaker.fattVedtak()
 
-            MockResponseHandler.addInnbyggerGodkjennUtkastResponse(deltakerMedFattetVedtak)
+        MockResponseHandler.addInnbyggerGodkjennUtkastResponse(deltakerMedFattetVedtak)
 
-            val oppdatertDeltaker = innbyggerService.godkjennUtkast(deltaker)
+        val oppdatertDeltaker = innbyggerService.godkjennUtkast(deltaker)
 
-            oppdatertDeltaker.ikkeFattetVedtak shouldBe null
-            deltaker.ikkeFattetVedtak!!.id shouldBe oppdatertDeltaker.fattetVedtak!!.id
+        oppdatertDeltaker.ikkeFattetVedtak shouldBe null
+        deltaker.ikkeFattetVedtak!!.id shouldBe oppdatertDeltaker.fattetVedtak!!.id
 
-            sammenlignDeltakere(oppdatertDeltaker, deltakerMedFattetVedtak)
-            sammenlignVedtak(oppdatertDeltaker.vedtaksinformasjon!!, deltakerMedFattetVedtak.vedtaksinformasjon!!)
-        }
+        sammenlignDeltakere(oppdatertDeltaker, deltakerMedFattetVedtak)
+        sammenlignVedtak(oppdatertDeltaker.vedtaksinformasjon!!, deltakerMedFattetVedtak.vedtaksinformasjon!!)
+    }
 }

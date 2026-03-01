@@ -23,12 +23,11 @@ class NavBrukerService(
                 return brukerResult
             }
         }
-        val bruker =
-            try {
-                personServiceClient.hentNavBruker(personIdent)
-            } catch (e: Exception) {
-                return Result.failure(e)
-            }
+        val bruker = try {
+            personServiceClient.hentNavBruker(personIdent)
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
 
         bruker.navEnhetId?.let { enhetService.hentEllerOpprettNavEnhet(it) }
         bruker.navVeilederId?.let { ansattService.hentEllerOpprettNavAnsatt(it) }

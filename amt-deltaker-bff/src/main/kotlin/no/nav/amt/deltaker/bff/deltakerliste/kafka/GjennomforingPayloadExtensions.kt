@@ -20,11 +20,10 @@ fun GjennomforingV2KafkaPayload.Gruppe.toModel(
     oppmoteSted = oppmoteSted,
     antallPlasser = antallPlasser,
     pameldingstype = pameldingType,
-    arrangor =
-        Deltakerliste.Arrangor(
-            arrangor = arrangor,
-            overordnetArrangorNavn = null,
-        ),
+    arrangor = Deltakerliste.Arrangor(
+        arrangor = arrangor,
+        overordnetArrangorNavn = null,
+    ),
 )
 
 fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(
@@ -42,9 +41,8 @@ fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(
     oppmoteSted = null,
     antallPlasser = null,
     pameldingstype = pameldingType,
-    arrangor =
-        Deltakerliste.Arrangor(
-            arrangor = arrangor,
-            overordnetArrangorNavn = null,
-        ),
+    arrangor = Deltakerliste.Arrangor(
+        arrangor = arrangor,
+        overordnetArrangorNavn = null,
+    ),
 )

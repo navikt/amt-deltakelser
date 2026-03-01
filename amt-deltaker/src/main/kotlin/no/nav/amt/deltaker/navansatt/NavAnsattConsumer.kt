@@ -15,11 +15,10 @@ class NavAnsattConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer =
-        buildManagedKafkaConsumer(
-            topic = Environment.AMT_NAV_ANSATT_TOPIC,
-            consumeFunc = ::consume,
-        )
+    private val consumer = buildManagedKafkaConsumer(
+        topic = Environment.AMT_NAV_ANSATT_TOPIC,
+        consumeFunc = ::consume,
+    )
 
     suspend fun consume(
         key: UUID,
@@ -48,13 +47,12 @@ data class NavAnsattDto(
     val telefon: String?,
     val navEnhetId: UUID?,
 ) {
-    fun toModel() =
-        NavAnsatt(
-            id = id,
-            navIdent = navident,
-            navn = navn,
-            epost = epost,
-            telefon = telefon,
-            navEnhetId = navEnhetId,
-        )
+    fun toModel() = NavAnsatt(
+        id = id,
+        navIdent = navident,
+        navn = navn,
+        epost = epost,
+        telefon = telefon,
+        navEnhetId = navEnhetId,
+    )
 }

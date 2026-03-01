@@ -25,11 +25,10 @@ fun Routing.registerPameldingApi(
         post("/pamelding") {
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
-            val deltaker =
-                pameldingService.opprettDeltaker(
-                    deltakerListeId = opprettKladdRequest.deltakerlisteId,
-                    personIdent = opprettKladdRequest.personident,
-                )
+            val deltaker = pameldingService.opprettDeltaker(
+                deltakerListeId = opprettKladdRequest.deltakerlisteId,
+                personIdent = opprettKladdRequest.personident,
+            )
 
             call.respond(opprettKladdResponseFromDeltaker(deltaker))
         }
@@ -40,11 +39,10 @@ fun Routing.registerPameldingApi(
             /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true
          */
         post("/pamelding/{deltakerId}") {
-            val deltaker =
-                pameldingService.upsertUtkast(
-                    deltakerId = call.getDeltakerId(),
-                    utkast = call.receive<UtkastRequest>(),
-                )
+            val deltaker = pameldingService.upsertUtkast(
+                deltakerId = call.getDeltakerId(),
+                utkast = call.receive<UtkastRequest>(),
+            )
 
             call.respond(
                 utkastResponseFromDeltaker(

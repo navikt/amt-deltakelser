@@ -10,11 +10,10 @@ enum class Distribusjonskanal {
     DPVT,
 }
 
-fun Distribusjonskanal.skalDistribueresDigitalt() =
-    when (this) {
-        Distribusjonskanal.DITT_NAV,
-        Distribusjonskanal.SDP,
-        -> true
+fun Distribusjonskanal.skalDistribueresDigitalt() = when (this) {
+    Distribusjonskanal.DITT_NAV,
+    Distribusjonskanal.SDP,
+    -> true
 
-        else -> false
-    }
+    else -> false
+}

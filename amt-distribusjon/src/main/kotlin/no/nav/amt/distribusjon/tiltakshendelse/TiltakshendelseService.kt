@@ -58,10 +58,9 @@ class TiltakshendelseService(
 
     suspend fun stoppForslagHendelse(forslagId: UUID) {
         tiltakshendelseRepository.getForslagHendelse(forslagId).onSuccess {
-            val inaktivertHendelse =
-                it.copy(
-                    aktiv = false,
-                )
+            val inaktivertHendelse = it.copy(
+                aktiv = false,
+            )
             Database.transaction {
                 lagreOgDistribuer(inaktivertHendelse)
             }
@@ -94,11 +93,10 @@ class TiltakshendelseService(
 
     private fun stoppUtkastHendelse(hendelse: Hendelse) {
         tiltakshendelseRepository.getHendelse(hendelse.deltaker.id, Tiltakshendelse.Type.UTKAST).onSuccess {
-            val inaktivertHendelse =
-                it.copy(
-                    aktiv = false,
-                    hendelser = it.hendelser.plus(hendelse.id),
-                )
+            val inaktivertHendelse = it.copy(
+                aktiv = false,
+                hendelser = it.hendelser.plus(hendelse.id),
+            )
             lagreOgDistribuer(inaktivertHendelse)
         }
     }
@@ -127,29 +125,24 @@ fun Forslag.toHendelse(
     opprettet = opprettet,
 )
 
-fun Hendelse.toTiltakshendelse() =
-    when (this.payload) {
-        is HendelseType.OpprettUtkast -> {
-            Tiltakshendelse(
-                id = UUID.randomUUID(),
-                type = Tiltakshendelse.Type.UTKAST,
-                deltakerId = this.deltaker.id,
-                forslagId = null,
-                hendelser = listOf(this.id),
-                personident = this.deltaker.personident,
-                aktiv = true,
-                tekst = UTKAST_TIL_PAMELDING_TEKST,
-                tiltakskode = this.deltaker.deltakerliste.tiltak.tiltakskode,
-                opprettet = this.opprettet,
-            )
-        }
+fun Hendelse.toTiltakshendelse() = when (this.payload) {
+    is HendelseType.OpprettUtkast -> Tiltakshendelse(
+        id = UUID.randomUUID(),
+        type = Tiltakshendelse.Type.UTKAST,
+        deltakerId = this.deltaker.id,
+        forslagId = null,
+        hendelser = listOf(this.id),
+        personident = this.deltaker.personident,
+        aktiv = true,
+        tekst = UTKAST_TIL_PAMELDING_TEKST,
+        tiltakskode = this.deltaker.deltakerliste.tiltak.tiltakskode,
+        opprettet = this.opprettet,
+    )
 
-        else -> {
-            throw IllegalArgumentException(
-                "Kan ikke lage tiltakshendelse for hendelse ${this.id} av type ${this.payload.javaClass.simpleName}",
-            )
-        }
-    }
+    else -> throw IllegalArgumentException(
+        "Kan ikke lage tiltakshendelse for hendelse ${this.id} av type ${this.payload.javaClass.simpleName}",
+    )
+}
 
 fun getForslagHendelseTekst(forslag: Forslag): String {
     val forslagtekst = "Forslag:"

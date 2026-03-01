@@ -6,10 +6,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 
 fun DeltakerEndring.Endring.ForlengDeltakelse.hasChanges(deltaker: Deltaker) = deltaker.sluttdato != this.sluttdato
 
-fun DeltakerEndring.Endring.ForlengDeltakelse.forlengDeltakelse(deltaker: Deltaker) =
-    VellykketEndring(
-        deltaker.copy(
-            sluttdato = this.sluttdato,
-            status = deltaker.getStatusEndretSluttdato(this.sluttdato),
-        ),
-    )
+fun DeltakerEndring.Endring.ForlengDeltakelse.forlengDeltakelse(deltaker: Deltaker) = VellykketEndring(
+    deltaker.copy(
+        sluttdato = this.sluttdato,
+        status = deltaker.getStatusEndretSluttdato(this.sluttdato),
+    ),
+)

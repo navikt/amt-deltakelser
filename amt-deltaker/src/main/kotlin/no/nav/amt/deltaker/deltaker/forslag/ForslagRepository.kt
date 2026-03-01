@@ -36,31 +36,30 @@ class ForslagRepository {
         }
     }
 
-    fun get(id: UUID): Result<Forslag> =
-        runCatching {
-            val sql =
-                """
-                SELECT 
-                    f.id AS "f.id",
-                    f.deltaker_id AS "f.deltaker_id",
-                    f.arrangoransatt_id AS "f.arrangoransatt_id",
-                    f.opprettet AS "f.opprettet",
-                    f.begrunnelse AS "f.begrunnelse",
-                    f.endring AS "f.endring",
-                    f.status AS "f.status"
-                FROM forslag f 
-                WHERE f.id = :id
-                """.trimIndent()
+    fun get(id: UUID): Result<Forslag> = runCatching {
+        val sql =
+            """
+            SELECT 
+                f.id AS "f.id",
+                f.deltaker_id AS "f.deltaker_id",
+                f.arrangoransatt_id AS "f.arrangoransatt_id",
+                f.opprettet AS "f.opprettet",
+                f.begrunnelse AS "f.begrunnelse",
+                f.endring AS "f.endring",
+                f.status AS "f.status"
+            FROM forslag f 
+            WHERE f.id = :id
+            """.trimIndent()
 
-            Database.query { session ->
-                session.run(
-                    queryOf(
-                        sql,
-                        mapOf("id" to id),
-                    ).map(::rowMapper).asSingle,
-                ) ?: throw NoSuchElementException("Ingen forslag med id $id")
-            }
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("id" to id),
+                ).map(::rowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Ingen forslag med id $id")
         }
+    }
 
     fun upsert(forslag: Forslag) {
         val sql =
@@ -92,62 +91,57 @@ class ForslagRepository {
                 modified_at         = CURRENT_TIMESTAMP
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to forslag.id,
-                "deltaker_id" to forslag.deltakerId,
-                "arrangoransatt_id" to forslag.opprettetAvArrangorAnsattId,
-                "opprettet" to forslag.opprettet,
-                "begrunnelse" to forslag.begrunnelse,
-                "endring" to toPGObject(forslag.endring),
-                "status" to toPGObject(forslag.status),
-            )
+        val params = mapOf(
+            "id" to forslag.id,
+            "deltaker_id" to forslag.deltakerId,
+            "arrangoransatt_id" to forslag.opprettetAvArrangorAnsattId,
+            "opprettet" to forslag.opprettet,
+            "begrunnelse" to forslag.begrunnelse,
+            "endring" to toPGObject(forslag.endring),
+            "status" to toPGObject(forslag.status),
+        )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun delete(id: UUID) =
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    "DELETE FROM forslag WHERE id = :id",
-                    mapOf("id" to id),
-                ),
-            )
-        }
+    fun delete(id: UUID) = Database.query { session ->
+        session.update(
+            queryOf(
+                "DELETE FROM forslag WHERE id = :id",
+                mapOf("id" to id),
+            ),
+        )
+    }
 
-    fun deleteForDeltaker(deltakerId: UUID) =
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    "DELETE FROM forslag WHERE deltaker_id = :deltaker_id",
-                    mapOf("deltaker_id" to deltakerId),
-                ),
-            )
-        }
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
+        session.update(
+            queryOf(
+                "DELETE FROM forslag WHERE deltaker_id = :deltaker_id",
+                mapOf("deltaker_id" to deltakerId),
+            ),
+        )
+    }
 
-    fun kanLagres(deltakerId: UUID): Boolean =
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT id FROM deltaker WHERE id = :id",
-                    mapOf("id" to deltakerId),
-                ).map { row -> row.uuid("id") }.asSingle,
-            ) != null
-        }
+    fun kanLagres(deltakerId: UUID): Boolean = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT id FROM deltaker WHERE id = :id",
+                mapOf("id" to deltakerId),
+            ).map { row -> row.uuid("id") }.asSingle,
+        ) != null
+    }
 
     companion object {
         private val col = prefixColumn("f")
 
-        fun rowMapper(row: Row): Forslag =
-            Forslag(
-                id = row.uuid(col("id")),
-                deltakerId = row.uuid(col("deltaker_id")),
-                opprettetAvArrangorAnsattId = row.uuid(col("arrangoransatt_id")),
-                opprettet = row.localDateTime(col("opprettet")),
-                begrunnelse = row.stringOrNull(col("begrunnelse")),
-                endring = objectMapper.readValue(row.string(col("endring"))),
-                status = objectMapper.readValue(row.string(col("status"))),
-            )
+        fun rowMapper(row: Row): Forslag = Forslag(
+            id = row.uuid(col("id")),
+            deltakerId = row.uuid(col("deltaker_id")),
+            opprettetAvArrangorAnsattId = row.uuid(col("arrangoransatt_id")),
+            opprettet = row.localDateTime(col("opprettet")),
+            begrunnelse = row.stringOrNull(col("begrunnelse")),
+            endring = objectMapper.readValue(row.string(col("endring"))),
+            status = objectMapper.readValue(row.string(col("status"))),
+        )
     }
 }

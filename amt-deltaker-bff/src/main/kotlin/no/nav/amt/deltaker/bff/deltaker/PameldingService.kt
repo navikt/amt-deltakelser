@@ -28,21 +28,19 @@ class PameldingService(
         deltakerlisteId: UUID,
         personIdent: String,
     ): Deltaker {
-        val eksisterendeDeltaker =
-            deltakerRepository
-                .getMany(personIdent, deltakerlisteId)
-                .firstOrNull { !it.harSluttet() }
+        val eksisterendeDeltaker = deltakerRepository
+            .getMany(personIdent, deltakerlisteId)
+            .firstOrNull { !it.harSluttet() }
 
         if (eksisterendeDeltaker != null) {
             log.warn("Deltakeren ${eksisterendeDeltaker.id} er allerede opprettet og deltar fortsatt")
             return eksisterendeDeltaker
         }
 
-        val kladdResponse =
-            paameldingClient.opprettKladd(
-                personIdent = personIdent,
-                deltakerlisteId = deltakerlisteId,
-            )
+        val kladdResponse = paameldingClient.opprettKladd(
+            personIdent = personIdent,
+            deltakerlisteId = deltakerlisteId,
+        )
 
         navBrukerService.upsert(kladdResponse.navBruker)
 
@@ -71,15 +69,14 @@ class PameldingService(
             return null
         }
 
-        val deltaker =
-            kladd.opprinneligDeltaker.copy(
-                deltakelsesinnhold = kladd.pamelding.deltakelsesinnhold,
-                bakgrunnsinformasjon = kladd.pamelding.bakgrunnsinformasjon,
-                deltakelsesprosent = kladd.pamelding.deltakelsesprosent,
-                dagerPerUke = kladd.pamelding.dagerPerUke,
-                status = kladd.opprinneligDeltaker.status,
-                sistEndret = LocalDateTime.now(),
-            )
+        val deltaker = kladd.opprinneligDeltaker.copy(
+            deltakelsesinnhold = kladd.pamelding.deltakelsesinnhold,
+            bakgrunnsinformasjon = kladd.pamelding.bakgrunnsinformasjon,
+            deltakelsesprosent = kladd.pamelding.deltakelsesprosent,
+            dagerPerUke = kladd.pamelding.dagerPerUke,
+            status = kladd.opprinneligDeltaker.status,
+            sistEndret = LocalDateTime.now(),
+        )
 
         Database.transaction {
             deltakerRepository.upsert(deltaker)
@@ -119,12 +116,11 @@ class PameldingService(
         navEnhetService.hentOpprettEllerOppdaterNavEnhet(avbruttAvEnhet)
         paameldingClient.avbrytUtkast(deltaker.id, avbruttAv, avbruttAvEnhet)
 
-        val forrigeDeltaker =
-            deltakerRepository
-                .getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id)
-                .filter { it.id !== deltaker.id && it.paameldtDato != null }
-                .sortedByDescending { it.paameldtDato }
-                .firstOrNull() ?: return
+        val forrigeDeltaker = deltakerRepository
+            .getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id)
+            .filter { it.id !== deltaker.id && it.paameldtDato != null }
+            .sortedByDescending { it.paameldtDato }
+            .firstOrNull() ?: return
 
         if (forrigeDeltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT &&
             forrigeDeltaker.status.type != DeltakerStatus.Type.AVBRUTT_UTKAST &&
@@ -141,8 +137,7 @@ class PameldingService(
         )
     }
 
-    fun getKladder(personident: String): List<Deltaker> =
-        deltakerRepository.getMany(personident).filter {
-            it.status.type == DeltakerStatus.Type.KLADD
-        }
+    fun getKladder(personident: String): List<Deltaker> = deltakerRepository.getMany(personident).filter {
+        it.status.type == DeltakerStatus.Type.KLADD
+    }
 }

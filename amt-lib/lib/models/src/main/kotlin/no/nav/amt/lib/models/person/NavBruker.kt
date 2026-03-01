@@ -36,12 +36,11 @@ data class NavBruker(
     val harAktivOppfolgingsperiode: Boolean
         get() = oppfolgingsperioder.any { it.erAktiv() }
 
-    fun getVisningsnavn(tilgangTilBruker: Boolean): Triple<String, String?, String> =
-        when {
-            erAdressebeskyttet && !tilgangTilBruker -> Triple(ADRESSEBESKYTTET_PLACEHOLDER_NAVN, null, "")
-            erSkjermet && !tilgangTilBruker -> Triple(SKJERMET_PERSON_PLACEHOLDER_NAVN, null, "")
-            else -> Triple(fornavn, mellomnavn, etternavn)
-        }
+    fun getVisningsnavn(tilgangTilBruker: Boolean): Triple<String, String?, String> = when {
+        erAdressebeskyttet && !tilgangTilBruker -> Triple(ADRESSEBESKYTTET_PLACEHOLDER_NAVN, null, "")
+        erSkjermet && !tilgangTilBruker -> Triple(SKJERMET_PERSON_PLACEHOLDER_NAVN, null, "")
+        else -> Triple(fornavn, mellomnavn, etternavn)
+    }
 
     companion object {
         internal const val ADRESSEBESKYTTET_PLACEHOLDER_NAVN = "Adressebeskyttet"

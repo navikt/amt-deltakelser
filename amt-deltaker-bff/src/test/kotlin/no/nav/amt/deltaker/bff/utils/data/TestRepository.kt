@@ -63,13 +63,12 @@ object TestRepository {
         NavBrukerRepository().upsert(bruker)
     }
 
-    fun getDeltakerSistBesokt(deltakerId: UUID): ZonedDateTime? =
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT sist_besokt FROM deltaker WHERE id = ?",
-                    deltakerId,
-                ).map { row -> row.zonedDateTime("sist_besokt") }.asSingle,
-            )
-        }
+    fun getDeltakerSistBesokt(deltakerId: UUID): ZonedDateTime? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT sist_besokt FROM deltaker WHERE id = ?",
+                deltakerId,
+            ).map { row -> row.zonedDateTime("sist_besokt") }.asSingle,
+        )
+    }
 }

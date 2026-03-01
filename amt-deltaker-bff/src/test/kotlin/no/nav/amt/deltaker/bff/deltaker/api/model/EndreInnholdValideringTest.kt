@@ -12,29 +12,23 @@ class EndreInnholdValideringTest {
     @Test
     fun `valider - innhold er uendret - feiler`() {
         shouldThrow<IllegalArgumentException> {
-            val tiltaksinnhold =
-                TestData.lagDeltakerRegistreringInnhold(
-                    innholdselementer =
-                        listOf(
-                            Innholdselement("Type", "type"),
-                            annetInnholdselement,
-                        ),
-                )
-            val deltaker =
-                TestData.lagDeltaker(
-                    deltakerliste =
-                        TestData.lagDeltakerliste(
-                            tiltakstype =
-                                TestData.lagTiltakstype(
-                                    innhold = tiltaksinnhold,
-                                ),
-                        ),
-                    innhold = listOf(Innhold("Type", "type", true, null)),
-                )
-            val request =
-                EndreInnholdRequest(
-                    innhold = listOf(InnholdRequest("type", null)),
-                )
+            val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+                innholdselementer = listOf(
+                    Innholdselement("Type", "type"),
+                    annetInnholdselement,
+                ),
+            )
+            val deltaker = TestData.lagDeltaker(
+                deltakerliste = TestData.lagDeltakerliste(
+                    tiltakstype = TestData.lagTiltakstype(
+                        innhold = tiltaksinnhold,
+                    ),
+                ),
+                innhold = listOf(Innhold("Type", "type", true, null)),
+            )
+            val request = EndreInnholdRequest(
+                innhold = listOf(InnholdRequest("type", null)),
+            )
 
             request.valider(deltaker)
         }
@@ -43,34 +37,27 @@ class EndreInnholdValideringTest {
     @Test
     fun `valider - lagt til innholdselement - ok`() {
         shouldNotThrow<IllegalArgumentException> {
-            val tiltaksinnhold =
-                TestData.lagDeltakerRegistreringInnhold(
-                    innholdselementer =
-                        listOf(
-                            Innholdselement("Type", "type"),
-                            Innholdselement("Type2", "type2"),
-                            annetInnholdselement,
-                        ),
-                )
-            val deltaker =
-                TestData.lagDeltaker(
-                    deltakerliste =
-                        TestData.lagDeltakerliste(
-                            tiltakstype =
-                                TestData.lagTiltakstype(
-                                    innhold = tiltaksinnhold,
-                                ),
-                        ),
-                    innhold = listOf(Innhold("Type", "type", true, null)),
-                )
-            val request =
-                EndreInnholdRequest(
-                    innhold =
-                        listOf(
-                            InnholdRequest("type", null),
-                            InnholdRequest("type2", null),
-                        ),
-                )
+            val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+                innholdselementer = listOf(
+                    Innholdselement("Type", "type"),
+                    Innholdselement("Type2", "type2"),
+                    annetInnholdselement,
+                ),
+            )
+            val deltaker = TestData.lagDeltaker(
+                deltakerliste = TestData.lagDeltakerliste(
+                    tiltakstype = TestData.lagTiltakstype(
+                        innhold = tiltaksinnhold,
+                    ),
+                ),
+                innhold = listOf(Innhold("Type", "type", true, null)),
+            )
+            val request = EndreInnholdRequest(
+                innhold = listOf(
+                    InnholdRequest("type", null),
+                    InnholdRequest("type2", null),
+                ),
+            )
 
             request.valider(deltaker)
         }
@@ -79,32 +66,25 @@ class EndreInnholdValideringTest {
     @Test
     fun `valider - endret tekst for annet-element - ok`() {
         shouldNotThrow<IllegalArgumentException> {
-            val tiltaksinnhold =
-                TestData.lagDeltakerRegistreringInnhold(
-                    innholdselementer =
-                        listOf(
-                            Innholdselement("Type", "type"),
-                            annetInnholdselement,
-                        ),
-                )
-            val deltaker =
-                TestData.lagDeltaker(
-                    deltakerliste =
-                        TestData.lagDeltakerliste(
-                            tiltakstype =
-                                TestData.lagTiltakstype(
-                                    innhold = tiltaksinnhold,
-                                ),
-                        ),
-                    innhold = listOf(Innhold(annetInnholdselement.tekst, annetInnholdselement.innholdskode, true, "Gammel tekst")),
-                )
-            val request =
-                EndreInnholdRequest(
-                    innhold =
-                        listOf(
-                            InnholdRequest(annetInnholdselement.innholdskode, "Ny tekst"),
-                        ),
-                )
+            val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+                innholdselementer = listOf(
+                    Innholdselement("Type", "type"),
+                    annetInnholdselement,
+                ),
+            )
+            val deltaker = TestData.lagDeltaker(
+                deltakerliste = TestData.lagDeltakerliste(
+                    tiltakstype = TestData.lagTiltakstype(
+                        innhold = tiltaksinnhold,
+                    ),
+                ),
+                innhold = listOf(Innhold(annetInnholdselement.tekst, annetInnholdselement.innholdskode, true, "Gammel tekst")),
+            )
+            val request = EndreInnholdRequest(
+                innhold = listOf(
+                    InnholdRequest(annetInnholdselement.innholdskode, "Ny tekst"),
+                ),
+            )
 
             request.valider(deltaker)
         }

@@ -7,12 +7,11 @@ import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 @Suppress("unused")
 object ApiClientTestUtils {
     @JvmStatic
-    fun failureCases() =
-        listOf(
-            Pair(HttpStatusCode.Unauthorized, AuthenticationException::class),
-            Pair(HttpStatusCode.Forbidden, AuthorizationException::class),
-            Pair(HttpStatusCode.BadRequest, IllegalArgumentException::class),
-            Pair(HttpStatusCode.NotFound, NoSuchElementException::class),
-            Pair(HttpStatusCode.InternalServerError, IllegalStateException::class),
-        )
+    fun failureCases() = listOf(
+        Pair(HttpStatusCode.Unauthorized, AuthenticationException::class),
+        Pair(HttpStatusCode.Forbidden, AuthorizationException::class),
+        Pair(HttpStatusCode.BadRequest, IllegalArgumentException::class),
+        Pair(HttpStatusCode.NotFound, NoSuchElementException::class),
+        Pair(HttpStatusCode.InternalServerError, IllegalStateException::class),
+    )
 }

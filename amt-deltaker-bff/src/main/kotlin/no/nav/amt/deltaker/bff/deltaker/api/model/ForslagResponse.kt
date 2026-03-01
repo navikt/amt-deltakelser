@@ -46,44 +46,31 @@ fun Forslag.toResponse(
     arrangornavn: String,
     ansatte: Map<UUID, NavAnsatt>,
     enheter: Map<UUID, NavEnhet>,
-): ForslagResponse =
-    ForslagResponse(
-        id = id,
-        opprettet = opprettet,
-        begrunnelse = begrunnelse,
-        arrangorNavn = arrangornavn,
-        endring = endring,
-        status = getForslagResponseStatus(ansatte, enheter),
-    )
+): ForslagResponse = ForslagResponse(
+    id = id,
+    opprettet = opprettet,
+    begrunnelse = begrunnelse,
+    arrangorNavn = arrangornavn,
+    endring = endring,
+    status = getForslagResponseStatus(ansatte, enheter),
+)
 
 private fun Forslag.getForslagResponseStatus(
     ansatte: Map<UUID, NavAnsatt>,
     enheter: Map<UUID, NavEnhet>,
-): ForslagResponseStatus =
-    when (val status = status) {
-        is Forslag.Status.VenterPaSvar -> {
-            ForslagResponseStatus.VenterPaSvar
-        }
-
-        is Forslag.Status.Godkjent -> {
-            ForslagResponseStatus.Godkjent(status.godkjent)
-        }
-
-        is Forslag.Status.Avvist -> {
-            val avvist = status
-            ForslagResponseStatus.Avvist(
-                avvistAv = ansatte[avvist.avvistAv.id]!!.navn,
-                avvistAvEnhet = enheter[avvist.avvistAv.enhetId]!!.navn,
-                avvist = avvist.avvist,
-                begrunnelseFraNav = avvist.begrunnelseFraNav,
-            )
-        }
-
-        is Forslag.Status.Tilbakekalt -> {
-            ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
-        }
-
-        is Forslag.Status.Erstattet -> {
-            ForslagResponseStatus.Erstattet(status.erstattet)
-        }
+): ForslagResponseStatus = when (val status = status) {
+    is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
+    is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
+    is Forslag.Status.Avvist -> {
+        val avvist = status
+        ForslagResponseStatus.Avvist(
+            avvistAv = ansatte[avvist.avvistAv.id]!!.navn,
+            avvistAvEnhet = enheter[avvist.avvistAv.enhetId]!!.navn,
+            avvist = avvist.avvist,
+            begrunnelseFraNav = avvist.begrunnelseFraNav,
+        )
     }
+
+    is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
+    is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
+}

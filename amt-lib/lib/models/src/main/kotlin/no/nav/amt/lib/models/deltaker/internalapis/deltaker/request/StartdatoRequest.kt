@@ -12,10 +12,9 @@ data class StartdatoRequest(
     val sluttdato: LocalDate? = null,
     val begrunnelse: String?,
 ) : EndringForslagRequest {
-    override fun toEndring() =
-        DeltakerEndring.Endring.EndreStartdato(
-            startdato = startdato,
-            sluttdato = sluttdato,
-            begrunnelse = begrunnelse,
-        )
+    override fun toEndring() = DeltakerEndring.Endring.EndreStartdato(
+        startdato = startdato,
+        sluttdato = sluttdato,
+        begrunnelse = begrunnelse,
+    )
 }

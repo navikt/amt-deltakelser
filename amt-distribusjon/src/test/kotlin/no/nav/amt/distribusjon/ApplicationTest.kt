@@ -8,11 +8,10 @@ import org.junit.jupiter.api.Test
 
 class ApplicationTest {
     @Test
-    fun testRoot() =
-        integrationTest { _, client ->
-            client.get("/internal/health/liveness").apply {
-                assertEquals(HttpStatusCode.OK, status)
-                assertEquals("I'm alive!", bodyAsText())
-            }
+    fun testRoot() = integrationTest { _, client ->
+        client.get("/internal/health/liveness").apply {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("I'm alive!", bodyAsText())
         }
+    }
 }

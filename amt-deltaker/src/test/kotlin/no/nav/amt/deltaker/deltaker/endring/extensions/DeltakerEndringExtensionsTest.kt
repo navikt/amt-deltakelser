@@ -15,19 +15,17 @@ import org.junit.jupiter.api.Test
 class DeltakerEndringExtensionsTest {
     @Test
     fun `oppdaterDeltaker - reaktiver deltakelse lopende oppstart`() {
-        val deltaker =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
-                deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
-            )
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
+            deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
+        )
 
-        val resultat =
-            reaktiverDeltakelseRequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltaker,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = reaktiverDeltakelseRequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
@@ -38,19 +36,17 @@ class DeltakerEndringExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - reaktiver deltakelse felles oppstart`() {
-        val deltaker =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
-                deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
-            )
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
+            deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
+        )
 
-        val resultat =
-            reaktiverDeltakelseRequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltaker,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = reaktiverDeltakelseRequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.SOKT_INN
@@ -60,11 +56,10 @@ class DeltakerEndringExtensionsTest {
     }
 
     companion object {
-        private val reaktiverDeltakelseRequest =
-            ReaktiverDeltakelseRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                begrunnelse = "begrunnelse",
-            )
+        private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            begrunnelse = "begrunnelse",
+        )
     }
 }

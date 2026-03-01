@@ -85,11 +85,10 @@ class TestApp {
         azureAdTokenClient = mockAzureAdClient()
         pdfgenClient = mockPdfgenClient(environment)
         amtPersonClient = mockAmtPersonClient(azureAdTokenClient, environment)
-        veilarboppfolgingClient =
-            mockVeilarboppfolgingClient(
-                azureAdTokenClient,
-                environment,
-            )
+        veilarboppfolgingClient = mockVeilarboppfolgingClient(
+            azureAdTokenClient,
+            environment,
+        )
         dokarkivClient = mockDokarkivClient(azureAdTokenClient, environment)
         dokdistkanalClient = mockDokdistkanalClient(azureAdTokenClient, environment)
         dokdistfordelingClient = mockDokdistfordelingClient(azureAdTokenClient, environment)
@@ -98,92 +97,85 @@ class TestApp {
         hendelseRepository = HendelseRepository()
         varselRepository = VarselRepository()
 
-        varselService =
-            VarselService(
-                varselRepository = varselRepository,
-                hendelseRepository = hendelseRepository,
-                outboxHandler = VarselOutboxHandler(outboxService),
-            )
+        varselService = VarselService(
+            varselRepository = varselRepository,
+            hendelseRepository = hendelseRepository,
+            outboxHandler = VarselOutboxHandler(outboxService),
+        )
 
-        journalforingService =
-            JournalforingService(
-                journalforingstatusRepository,
-                amtPersonClient,
-                pdfgenClient,
-                veilarboppfolgingClient,
-                dokarkivClient,
-                dokdistfordelingClient,
-                amtDeltakerClient,
-            )
+        journalforingService = JournalforingService(
+            journalforingstatusRepository,
+            amtPersonClient,
+            pdfgenClient,
+            veilarboppfolgingClient,
+            dokarkivClient,
+            dokdistfordelingClient,
+            amtDeltakerClient,
+        )
 
         digitalBrukerService = DigitalBrukerService(dokdistkanalClient, veilarboppfolgingClient)
         tiltakshendelseProducer = TiltakshendelseProducer(outboxService)
         tiltakshendelseRepository = TiltakshendelseRepository()
-        tiltakshendelseService =
-            TiltakshendelseService(
-                tiltakshendelseRepository = tiltakshendelseRepository,
-                amtDeltakerClient = amtDeltakerClient,
-                tiltakshendelseProducer = tiltakshendelseProducer,
-            )
+        tiltakshendelseService = TiltakshendelseService(
+            tiltakshendelseRepository = tiltakshendelseRepository,
+            amtDeltakerClient = amtDeltakerClient,
+            tiltakshendelseProducer = tiltakshendelseProducer,
+        )
 
         val consumerId = UUID.randomUUID().toString()
         val kafkaConfig = LocalKafkaConfig(SingletonKafkaProvider.getHost())
-        val consumers =
-            listOf(
-                HendelseConsumer(
-                    varselService,
-                    journalforingService,
-                    tiltakshendelseService,
-                    hendelseRepository,
-                    dokdistkanalClient,
-                    veilarboppfolgingClient,
-                    consumerId,
-                    kafkaConfig,
-                ),
-                VarselHendelseConsumer(
-                    varselRepository = varselRepository,
-                    varselService = varselService,
-                    groupId = consumerId,
-                    kafkaConfig = kafkaConfig,
-                ),
-                ArrangorMeldingConsumer(tiltakshendelseService),
-            )
+        val consumers = listOf(
+            HendelseConsumer(
+                varselService,
+                journalforingService,
+                tiltakshendelseService,
+                hendelseRepository,
+                dokdistkanalClient,
+                veilarboppfolgingClient,
+                consumerId,
+                kafkaConfig,
+            ),
+            VarselHendelseConsumer(
+                varselRepository = varselRepository,
+                varselService = varselService,
+                groupId = consumerId,
+                kafkaConfig = kafkaConfig,
+            ),
+            ArrangorMeldingConsumer(tiltakshendelseService),
+        )
 
         consumers.forEach { it.start() }
     }
 
     fun assertProducedInaktiver(id: UUID) {
-        this should
-            haveOutboxRecord(id, Environment.MINSIDE_VARSEL_TOPIC) {
-                val json = it.value
-                json["varselId"].asText() == id.toString() &&
-                    json["@event_name"].asText() == "inaktiver"
-            }
+        this should haveOutboxRecord(id, Environment.MINSIDE_VARSEL_TOPIC) {
+            val json = it.value
+            json["varselId"].asText() == id.toString() &&
+                json["@event_name"].asText() == "inaktiver"
+        }
     }
 
     fun assertProducedOppgave(id: UUID) {
-        this should
-            haveOutboxRecord(id, Environment.MINSIDE_VARSEL_TOPIC) { record ->
-                val json = record.value
+        this should haveOutboxRecord(id, Environment.MINSIDE_VARSEL_TOPIC) { record ->
+            val json = record.value
 
-                json["varselId"].asText() == id.toString() &&
-                    json["@event_name"].asText() == "opprett" &&
-                    json["type"].asText() == "oppgave"
-            }
+            json["varselId"].asText() == id.toString() &&
+                json["@event_name"].asText() == "opprett" &&
+                json["type"].asText() == "oppgave"
+        }
     }
 
     fun assertProducedBeskjed(
         id: UUID,
         forventetUrl: String,
     ) {
-        this should
-            haveOutboxRecord(id, Environment.MINSIDE_VARSEL_TOPIC) { record ->
-                val json = record.value
-                json["varselId"].asText() == id.toString() &&
-                    json["@event_name"].asText() == "opprett" &&
-                    json["type"].asText() == "beskjed" &&
-                    json["link"].asText() == forventetUrl
-            }
+        this should haveOutboxRecord(id, Environment.MINSIDE_VARSEL_TOPIC) { record ->
+            val json = record.value
+            json["varselId"].asText() == id.toString() &&
+                json["@event_name"].asText() == "opprett" &&
+                json["type"].asText() == "beskjed" &&
+                json["link"].asText() == forventetUrl
+        }
     }
 
     fun assertNotProducedHendelse(id: UUID) {

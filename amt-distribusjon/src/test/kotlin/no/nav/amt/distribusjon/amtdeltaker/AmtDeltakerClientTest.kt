@@ -18,32 +18,28 @@ class AmtDeltakerClientTest : ClientTestBase() {
     fun `skal returnere deltakerliste nar getDeltaker kalles med gyldig respons`() {
         val expectedDeltaker = lagDeltakerResponse()
 
-        val sut =
-            createAmtDeltakerClient(
-                responseBody = expectedDeltaker,
-            )
+        val sut = createAmtDeltakerClient(
+            responseBody = expectedDeltaker,
+        )
 
-        val actualDeltaker =
-            runBlocking {
-                sut.getDeltaker(deltakerId)
-            }
+        val actualDeltaker = runBlocking {
+            sut.getDeltaker(deltakerId)
+        }
 
         actualDeltaker.gjennomforing shouldBe expectedDeltaker.gjennomforing
     }
 
     @Test
     fun `skal kaste feil nar getDeltaker returnerer feilkode`() {
-        val sut =
-            createAmtDeltakerClient(
-                HttpStatusCode.BadRequest,
-            )
+        val sut = createAmtDeltakerClient(
+            HttpStatusCode.BadRequest,
+        )
 
-        val thrown =
-            runBlocking {
-                shouldThrow<IllegalStateException> {
-                    sut.getDeltaker(deltakerId)
-                }
+        val thrown = runBlocking {
+            shouldThrow<IllegalStateException> {
+                sut.getDeltaker(deltakerId)
             }
+        }
 
         thrown.message shouldStartWith "Kunne ikke hente deltaker fra amt-deltaker."
     }

@@ -25,17 +25,15 @@ class VarselHendelseConsumer(
 ) : Consumer<String, String> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer =
-        ManagedKafkaConsumer(
-            topic = Environment.MINSIDE_VARSEL_HENDELSE_TOPIC,
-            config =
-                kafkaConfig.consumerConfig(
-                    keyDeserializer = StringDeserializer(),
-                    valueDeserializer = StringDeserializer(),
-                    groupId = groupId,
-                ),
-            consume = ::consume,
-        )
+    private val consumer = ManagedKafkaConsumer(
+        topic = Environment.MINSIDE_VARSEL_HENDELSE_TOPIC,
+        config = kafkaConfig.consumerConfig(
+            keyDeserializer = StringDeserializer(),
+            valueDeserializer = StringDeserializer(),
+            groupId = groupId,
+        ),
+        consume = ::consume,
+    )
 
     suspend fun consume(
         key: String,

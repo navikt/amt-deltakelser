@@ -16,11 +16,10 @@ fun TiltakskoordinatorsDeltaker.toResponse(
 ): DeltakerDetaljerResponse {
     val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(harTilgangTilBruker)
     val personIdent = if (harTilgangTilBruker) navBruker.personident else null
-    val aktiveForslag =
-        forslag
-            .filter { forslag ->
-                forslag.status == Forslag.Status.VenterPaSvar
-            }.map { forslag -> forslag.toResponse(arrangornavn = deltakerliste.arrangor.getArrangorNavn()) }
+    val aktiveForslag = forslag
+        .filter { forslag ->
+            forslag.status == Forslag.Status.VenterPaSvar
+        }.map { forslag -> forslag.toResponse(arrangornavn = deltakerliste.arrangor.getArrangorNavn()) }
 
     return DeltakerDetaljerResponse(
         id = id,
@@ -34,13 +33,12 @@ fun TiltakskoordinatorsDeltaker.toResponse(
         navEnhet = navEnhet,
         navVeileder = navVeileder,
         beskyttelsesmarkering = beskyttelsesmarkering,
-        vurdering =
-            vurdering?.let {
-                VurderingResponse(
-                    type = vurdering.vurderingstype,
-                    begrunnelse = vurdering.begrunnelse,
-                )
-            },
+        vurdering = vurdering?.let {
+            VurderingResponse(
+                type = vurdering.vurderingstype,
+                begrunnelse = vurdering.begrunnelse,
+            )
+        },
         innsatsgruppe = innsatsgruppe,
         tiltakskode = deltakerliste.tiltak.tiltakskode,
         oppstartstype = deltakerliste.oppstart,
@@ -48,12 +46,7 @@ fun TiltakskoordinatorsDeltaker.toResponse(
         tilgangTilBruker = harTilgangTilBruker,
         aktiveForslag = aktiveForslag,
         ulesteHendelser = ulesteHendelser,
-        deltakelsesinnhold =
-            getDeltakelsesinnholdAnnet(
-                harTilgangTilBruker,
-                deltakerliste.pameldingstype,
-                deltakelsesinnhold,
-            ),
+        deltakelsesinnhold = getDeltakelsesinnholdAnnet(harTilgangTilBruker, deltakerliste.pameldingstype, deltakelsesinnhold),
     )
 }
 
@@ -66,11 +59,10 @@ fun getDeltakelsesinnholdAnnet(
         return null
     }
 
-    val beskrivelseAnnet =
-        deltakelsesinnhold
-            ?.innhold
-            ?.find { it.innholdskode == annetInnholdselement.innholdskode && it.valgt }
-            ?.beskrivelse
+    val beskrivelseAnnet = deltakelsesinnhold
+        ?.innhold
+        ?.find { it.innholdskode == annetInnholdselement.innholdskode && it.valgt }
+        ?.beskrivelse
 
     if (beskrivelseAnnet.isNullOrBlank()) {
         return null

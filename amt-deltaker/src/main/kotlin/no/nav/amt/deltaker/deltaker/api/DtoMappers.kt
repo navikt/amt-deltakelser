@@ -24,21 +24,20 @@ object DtoMappers {
         )
     }
 
-    fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) =
-        with(deltaker) {
-            OpprettKladdResponse(
-                id = id,
-                navBruker = navBruker,
-                deltakerlisteId = deltakerliste.id,
-                startdato = startdato,
-                sluttdato = sluttdato,
-                dagerPerUke = dagerPerUke,
-                deltakelsesprosent = deltakelsesprosent,
-                bakgrunnsinformasjon = bakgrunnsinformasjon,
-                deltakelsesinnhold = deltakelsesinnhold!!,
-                status = status,
-            )
-        }
+    fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) = with(deltaker) {
+        OpprettKladdResponse(
+            id = id,
+            navBruker = navBruker,
+            deltakerlisteId = deltakerliste.id,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            dagerPerUke = dagerPerUke,
+            deltakelsesprosent = deltakelsesprosent,
+            bakgrunnsinformasjon = bakgrunnsinformasjon,
+            deltakelsesinnhold = deltakelsesinnhold!!,
+            status = status,
+        )
+    }
 
     fun deltakerEndringResponseFromDeltaker(
         deltaker: Deltaker,

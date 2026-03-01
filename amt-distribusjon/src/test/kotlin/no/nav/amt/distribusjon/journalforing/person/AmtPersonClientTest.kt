@@ -16,33 +16,29 @@ class AmtPersonClientTest : ClientTestBase() {
     fun `skal returnere NavBruker nar hentNavBruker kalles med gyldig respons`() {
         val expectedResponse = lagNavBruker()
 
-        val sut: AmtPersonClient =
-            createAmtPersonClient(
-                responseBody = expectedResponse,
-            )
+        val sut: AmtPersonClient = createAmtPersonClient(
+            responseBody = expectedResponse,
+        )
 
-        val actualResponse =
-            runBlocking {
-                sut.hentNavBruker("~personident~")
-            }
+        val actualResponse = runBlocking {
+            sut.hentNavBruker("~personident~")
+        }
 
         actualResponse shouldBe expectedResponse
     }
 
     @Test
     fun `skal kaste feil nar hentNavBruker returnerer feilkode`() {
-        val sut =
-            createAmtPersonClient(
-                responseBody = null,
-                statusCode = HttpStatusCode.BadRequest,
-            )
+        val sut = createAmtPersonClient(
+            responseBody = null,
+            statusCode = HttpStatusCode.BadRequest,
+        )
 
-        val thrown =
-            runBlocking {
-                shouldThrow<IllegalStateException> {
-                    sut.hentNavBruker("~personident~")
-                }
+        val thrown = runBlocking {
+            shouldThrow<IllegalStateException> {
+                sut.hentNavBruker("~personident~")
             }
+        }
 
         thrown.message shouldBe "Kunne ikke hente nav-bruker fra amt-person-service"
     }
@@ -51,12 +47,11 @@ class AmtPersonClientTest : ClientTestBase() {
         responseBody: NavBruker?,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
     ) = AmtPersonClient(
-        httpClient =
-            createMockHttpClient(
-                expectedUrl = "http://amt-person/api/nav-bruker",
-                responseBody = responseBody,
-                statusCode = statusCode,
-            ),
+        httpClient = createMockHttpClient(
+            expectedUrl = "http://amt-person/api/nav-bruker",
+            responseBody = responseBody,
+            statusCode = statusCode,
+        ),
         azureAdTokenClient = mockAzureAdTokenClient,
         environment = testEnvironment,
     )

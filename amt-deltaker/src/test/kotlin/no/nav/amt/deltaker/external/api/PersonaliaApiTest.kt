@@ -67,17 +67,16 @@ class PersonaliaApiTest : RouteTestBase() {
 
     @Test
     fun `post deltaker personalia - deltaker med adressebeskyttelse - returnerer korrekt adressebeskyttelse`() {
-        val (deltaker, navEnhet) =
-            createDeltakerWithNavEnhet(
-                personident = "98765432109",
-                fornavn = "Fortrolig",
-                etternavn = "Person",
-                mellomnavn = null,
-                enhetsnummer = "5678",
-                enhetsnavn = "Nav Fortrolig",
-                erSkjermet = true,
-                adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
-            )
+        val (deltaker, navEnhet) = createDeltakerWithNavEnhet(
+            personident = "98765432109",
+            fornavn = "Fortrolig",
+            etternavn = "Person",
+            mellomnavn = null,
+            enhetsnummer = "5678",
+            enhetsnavn = "Nav Fortrolig",
+            erSkjermet = true,
+            adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
+        )
 
         mockServices(listOf(deltaker), navEnhet?.let { mapOf(it.id to it) } ?: emptyMap())
 
@@ -93,13 +92,12 @@ class PersonaliaApiTest : RouteTestBase() {
 
     @Test
     fun `post deltaker personalia - deltaker uten navEnhet - returnerer null for navEnhetsnummer`() {
-        val (deltaker, _) =
-            createDeltakerWithNavEnhet(
-                personident = "11223344556",
-                fornavn = "Uten",
-                etternavn = "NavEnhet",
-                navEnhetId = null,
-            )
+        val (deltaker, _) = createDeltakerWithNavEnhet(
+            personident = "11223344556",
+            fornavn = "Uten",
+            etternavn = "NavEnhet",
+            navEnhetId = null,
+        )
 
         mockServices(listOf(deltaker), emptyMap())
 
@@ -118,26 +116,22 @@ class PersonaliaApiTest : RouteTestBase() {
         val navEnhet1 = TestData.lagNavEnhet(enhetsnummer = "1111", navn = "Nav En")
         val navEnhet2 = TestData.lagNavEnhet(enhetsnummer = "2222", navn = "Nav To")
 
-        val deltaker1 =
-            TestData.lagDeltaker(
-                navBruker =
-                    TestData.lagNavBruker(
-                        personident = "11111111111",
-                        fornavn = "Person",
-                        etternavn = "En",
-                        navEnhetId = navEnhet1.id,
-                    ),
-            )
-        val deltaker2 =
-            TestData.lagDeltaker(
-                navBruker =
-                    TestData.lagNavBruker(
-                        personident = "22222222222",
-                        fornavn = "Person",
-                        etternavn = "To",
-                        navEnhetId = navEnhet2.id,
-                    ),
-            )
+        val deltaker1 = TestData.lagDeltaker(
+            navBruker = TestData.lagNavBruker(
+                personident = "11111111111",
+                fornavn = "Person",
+                etternavn = "En",
+                navEnhetId = navEnhet1.id,
+            ),
+        )
+        val deltaker2 = TestData.lagDeltaker(
+            navBruker = TestData.lagNavBruker(
+                personident = "22222222222",
+                fornavn = "Person",
+                etternavn = "To",
+                navEnhetId = navEnhet2.id,
+            ),
+        )
 
         mockServices(
             listOf(deltaker1, deltaker2),
@@ -178,24 +172,22 @@ class PersonaliaApiTest : RouteTestBase() {
     }
 
     companion object {
-        private val mulighetsrommetSystemToken =
-            generateJWT(
-                consumerClientId = "mulighetsrommet-api",
-                audience = "amt-deltaker",
-            )
+        private val mulighetsrommetSystemToken = generateJWT(
+            consumerClientId = "mulighetsrommet-api",
+            audience = "amt-deltaker",
+        )
 
         private fun forventetResponse(
             deltaker: Deltaker,
             navEnhet: NavEnhet?,
         ): List<DeltakerPersonaliaResponse> {
-            val forventetRespons =
-                listOf(
-                    DeltakerPersonaliaResponse.from(
-                        deltaker,
-                        navEnhet?.let { mapOf(navEnhet.id to navEnhet) }
-                            ?: emptyMap(),
-                    ),
-                )
+            val forventetRespons = listOf(
+                DeltakerPersonaliaResponse.from(
+                    deltaker,
+                    navEnhet?.let { mapOf(navEnhet.id to navEnhet) }
+                        ?: emptyMap(),
+                ),
+            )
             return forventetRespons
         }
 
@@ -204,12 +196,11 @@ class PersonaliaApiTest : RouteTestBase() {
         private suspend fun HttpClient.postPersonalia(
             deltakerIds: List<UUID>,
             token: String? = mulighetsrommetSystemToken,
-        ): HttpResponse =
-            post("/external/deltakere/personalia") {
-                setBody(createStandardRequest(deltakerIds))
-                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                token?.let { bearerAuth(it) }
-            }
+        ): HttpResponse = post("/external/deltakere/personalia") {
+            setBody(createStandardRequest(deltakerIds))
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            token?.let { bearerAuth(it) }
+        }
 
         private fun createDeltakerWithNavEnhet(
             personident: String,
@@ -223,19 +214,17 @@ class PersonaliaApiTest : RouteTestBase() {
             navEnhetId: UUID? = null,
         ): Pair<Deltaker, NavEnhet?> {
             val navEnhet = if (navEnhetId != null) null else TestData.lagNavEnhet(enhetsnummer = enhetsnummer, navn = enhetsnavn)
-            val deltaker =
-                TestData.lagDeltaker(
-                    navBruker =
-                        TestData.lagNavBruker(
-                            personident = personident,
-                            fornavn = fornavn,
-                            mellomnavn = mellomnavn,
-                            etternavn = etternavn,
-                            navEnhetId = navEnhetId ?: navEnhet?.id,
-                            erSkjermet = erSkjermet,
-                            adressebeskyttelse = adressebeskyttelse,
-                        ),
-                )
+            val deltaker = TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(
+                    personident = personident,
+                    fornavn = fornavn,
+                    mellomnavn = mellomnavn,
+                    etternavn = etternavn,
+                    navEnhetId = navEnhetId ?: navEnhet?.id,
+                    erSkjermet = erSkjermet,
+                    adressebeskyttelse = adressebeskyttelse,
+                ),
+            )
             return deltaker to navEnhet
         }
     }

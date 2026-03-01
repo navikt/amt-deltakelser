@@ -39,11 +39,10 @@ class TestdataService(
             sluttdato = forventetSluttdato,
             deltakerliste = deltakerliste,
         )
-        val deltaker =
-            pameldingService.opprettDeltaker(
-                deltakerlisteId = opprettTestDeltakelseRequest.deltakerlisteId,
-                personIdent = opprettTestDeltakelseRequest.personident,
-            )
+        val deltaker = pameldingService.opprettDeltaker(
+            deltakerlisteId = opprettTestDeltakelseRequest.deltakerlisteId,
+            personIdent = opprettTestDeltakelseRequest.personident,
+        )
         val deltakerId = deltaker.id
 
         delay(10)
@@ -53,12 +52,11 @@ class TestdataService(
 
         delay(100)
 
-        val endringFraArrangor =
-            lagEndringFraArrangor(
-                deltakerId = deltakerId,
-                startdato = opprettTestDeltakelseRequest.startdato,
-                sluttdato = forventetSluttdato,
-            )
+        val endringFraArrangor = lagEndringFraArrangor(
+            deltakerId = deltakerId,
+            startdato = opprettTestDeltakelseRequest.startdato,
+            sluttdato = forventetSluttdato,
+        )
 
         Database.transaction {
             arrangorMeldingProducer.produce(endringFraArrangor)
@@ -70,10 +68,9 @@ class TestdataService(
     }
 
     private fun deltakerFinnesAllerede(opprettTestDeltakelseRequest: OpprettTestDeltakelseRequest) {
-        val eksisterendeDeltaker =
-            deltakerRepository
-                .getMany(opprettTestDeltakelseRequest.personident, opprettTestDeltakelseRequest.deltakerlisteId)
-                .firstOrNull { !it.harSluttet() }
+        val eksisterendeDeltaker = deltakerRepository
+            .getMany(opprettTestDeltakelseRequest.personident, opprettTestDeltakelseRequest.deltakerlisteId)
+            .firstOrNull { !it.harSluttet() }
 
         if (eksisterendeDeltaker != null) {
             throw IllegalArgumentException("Deltakeren ${eksisterendeDeltaker.id} er allerede opprettet og deltar fortsatt")
@@ -87,15 +84,14 @@ class TestdataService(
             opprettTestDeltakelseRequest: OpprettTestDeltakelseRequest,
         ) = Utkast(
             deltakerId = deltakerId,
-            pamelding =
-                Pamelding(
-                    deltakelsesinnhold = lagInnhold(deltakerliste),
-                    bakgrunnsinformasjon = null,
-                    deltakelsesprosent = opprettTestDeltakelseRequest.deltakelsesprosent.toFloat(),
-                    dagerPerUke = opprettTestDeltakelseRequest.dagerPerUke?.toFloat(),
-                    endretAv = TESTVEILEDER,
-                    endretAvEnhet = TESTENHET,
-                ),
+            pamelding = Pamelding(
+                deltakelsesinnhold = lagInnhold(deltakerliste),
+                bakgrunnsinformasjon = null,
+                deltakelsesprosent = opprettTestDeltakelseRequest.deltakelsesprosent.toFloat(),
+                dagerPerUke = opprettTestDeltakelseRequest.dagerPerUke?.toFloat(),
+                endretAv = TESTVEILEDER,
+                endretAvEnhet = TESTENHET,
+            ),
             godkjentAvNav = true,
         )
 
@@ -124,11 +120,10 @@ class TestdataService(
             deltakerId = deltakerId,
             opprettetAvArrangorAnsattId = UUID.fromString(TESTARRANGORANSATT),
             opprettet = LocalDateTime.now(),
-            endring =
-                EndringFraArrangor.LeggTilOppstartsdato(
-                    startdato = startdato,
-                    sluttdato = sluttdato,
-                ),
+            endring = EndringFraArrangor.LeggTilOppstartsdato(
+                startdato = startdato,
+                sluttdato = sluttdato,
+            ),
         )
 
         private fun lagInnhold(deltakerliste: Deltakerliste): Deltakelsesinnhold {

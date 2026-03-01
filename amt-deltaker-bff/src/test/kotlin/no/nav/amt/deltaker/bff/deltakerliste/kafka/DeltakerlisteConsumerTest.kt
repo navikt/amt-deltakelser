@@ -60,22 +60,20 @@ class DeltakerlisteConsumerTest {
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClient())
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClient())
     private val deltakerRepository = DeltakerRepository()
-    private val deltakerService =
-        DeltakerService(
-            deltakerRepository = deltakerRepository,
-            amtDeltakerClient = mockAmtDeltakerClient(),
-            navEnhetService = navEnhetService,
-            forslagRepository = mockk(relaxed = true),
-        )
+    private val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        amtDeltakerClient = mockAmtDeltakerClient(),
+        navEnhetService = navEnhetService,
+        forslagRepository = mockk(relaxed = true),
+    )
 
-    private val pameldingService =
-        PameldingService(
-            deltakerRepository = deltakerRepository,
-            deltakerService = deltakerService,
-            navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
-            navEnhetService = navEnhetService,
-            paameldingClient = mockPaameldingClient(),
-        )
+    private val pameldingService = PameldingService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
+        navEnhetService = navEnhetService,
+        paameldingClient = mockPaameldingClient(),
+    )
 
     private val consumer =
         DeltakerlisteConsumer(
@@ -105,20 +103,18 @@ class DeltakerlisteConsumerTest {
         val deltaker = lagDeltaker(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
-        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe =
-            lagGruppeDeltakerlistePayload(arrangorInTest, deltakerliste)
-                .copy(
-                    arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-                ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
+        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = lagGruppeDeltakerlistePayload(arrangorInTest, deltakerliste)
+            .copy(
+                arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
+            ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
 
         runTest {
-            val thrown =
-                shouldThrow<IllegalArgumentException> {
-                    consumer.consume(
-                        deltakerlistePayload.id,
-                        objectMapper.writeValueAsString(deltakerlistePayload),
-                    )
-                }
+            val thrown = shouldThrow<IllegalArgumentException> {
+                consumer.consume(
+                    deltakerlistePayload.id,
+                    objectMapper.writeValueAsString(deltakerlistePayload),
+                )
+            }
 
             thrown.message shouldBe
                 "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
@@ -126,165 +122,151 @@ class DeltakerlisteConsumerTest {
     }
 
     @Test
-    fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() =
-        runTest {
-            every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns false
+    fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() = runTest {
+        every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns false
 
-            val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
-            tiltakstypeRepository.upsert(tiltakstype)
+        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
+        tiltakstypeRepository.upsert(tiltakstype)
 
-            val expectedDeltakerliste = lagDeltakerliste(arrangor = arrangorInTest, tiltakstype = tiltakstype)
-            val deltakerlistePayload =
-                lagGruppeDeltakerlistePayload(arrangorInTest, expectedDeltakerliste).copy(
-                    arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-                )
+        val expectedDeltakerliste = lagDeltakerliste(arrangor = arrangorInTest, tiltakstype = tiltakstype)
+        val deltakerlistePayload = lagGruppeDeltakerlistePayload(arrangorInTest, expectedDeltakerliste).copy(
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
+        )
 
-            consumer.consume(
-                deltakerlistePayload.id,
-                objectMapper.writeValueAsString(deltakerlistePayload),
-            )
+        consumer.consume(
+            deltakerlistePayload.id,
+            objectMapper.writeValueAsString(deltakerlistePayload),
+        )
 
-            val thrown =
-                shouldThrow<NoSuchElementException> {
-                    deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
-                }
-
-            thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
+        val thrown = shouldThrow<NoSuchElementException> {
+            deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
         }
+
+        thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
+    }
 
     @Test
-    fun `ny liste gruppe - lagrer deltakerliste`() =
-        runTest {
-            val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
-            tiltakstypeRepository.upsert(tiltakstype)
+    fun `ny liste gruppe - lagrer deltakerliste`() = runTest {
+        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
+        tiltakstypeRepository.upsert(tiltakstype)
 
-            val expectedDeltakerliste =
-                lagDeltakerliste(
-                    arrangor = arrangorInTest,
-                    tiltakstype = tiltakstype,
-                    oppstart = Oppstartstype.LOPENDE,
-                    pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-                )
+        val expectedDeltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            tiltakstype = tiltakstype,
+            oppstart = Oppstartstype.LOPENDE,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
 
-            val deltakerlistePayload =
-                lagGruppeDeltakerlistePayload(arrangorInTest, expectedDeltakerliste).copy(
-                    arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-                )
+        val deltakerlistePayload = lagGruppeDeltakerlistePayload(arrangorInTest, expectedDeltakerliste).copy(
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
+        )
 
-            consumer.consume(
-                deltakerlistePayload.id,
-                objectMapper.writeValueAsString(deltakerlistePayload),
-            )
+        consumer.consume(
+            deltakerlistePayload.id,
+            objectMapper.writeValueAsString(deltakerlistePayload),
+        )
 
-            deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow() shouldBe expectedDeltakerliste
+        deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow() shouldBe expectedDeltakerliste
 
-            verify(exactly = 0) { tilgangskontrollService.stengTilgangerTilDeltakerliste(any()) }
-        }
+        verify(exactly = 0) { tilgangskontrollService.stengTilgangerTilDeltakerliste(any()) }
+    }
 
     @Test
-    fun `ny liste v2 enkeltplass - lagrer deltakerliste`() =
-        runTest {
-            val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
-            tiltakstypeRepository.upsert(tiltakstype)
+    fun `ny liste v2 enkeltplass - lagrer deltakerliste`() = runTest {
+        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
+        tiltakstypeRepository.upsert(tiltakstype)
 
-            val deltakerliste =
-                lagDeltakerliste(
-                    arrangor = arrangorInTest,
-                    tiltakstype = tiltakstype,
-                    pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-                )
+        val deltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            tiltakstype = tiltakstype,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
 
-            val deltakerlistePayload = lagEnkeltplassDeltakerlistePayload(arrangorInTest, deltakerliste)
+        val deltakerlistePayload = lagEnkeltplassDeltakerlistePayload(arrangorInTest, deltakerliste)
 
-            consumer.consume(
-                deltakerlistePayload.id,
-                objectMapper.writeValueAsString(deltakerlistePayload),
-            )
+        consumer.consume(
+            deltakerlistePayload.id,
+            objectMapper.writeValueAsString(deltakerlistePayload),
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe
-                deltakerliste.copy(
-                    navn = tiltakstype.navn,
-                    status = null,
-                    startDato = null,
-                    sluttDato = null,
-                    oppstart = null,
-                    antallPlasser = null,
-                    apentForPamelding = true,
-                    oppmoteSted = null,
-                )
+        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
+            navn = tiltakstype.navn,
+            status = null,
+            startDato = null,
+            sluttDato = null,
+            oppstart = null,
+            antallPlasser = null,
+            apentForPamelding = true,
+            oppmoteSted = null,
+        )
 
-            verify(exactly = 0) { tilgangskontrollService.stengTilgangerTilDeltakerliste(any()) }
-        }
+        verify(exactly = 0) { tilgangskontrollService.stengTilgangerTilDeltakerliste(any()) }
+    }
 
     @Test
-    fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() =
-        runTest {
-            val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
-            tiltakstypeRepository.upsert(deltakerliste.tiltak)
+    fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() = runTest {
+        val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
+        tiltakstypeRepository.upsert(deltakerliste.tiltak)
 
-            consumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, deltakerliste)),
-            )
+        consumer.consume(
+            deltakerliste.id,
+            objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, deltakerliste)),
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
-        }
-
-    @Test
-    fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() =
-        runTest {
-            val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
-            TestRepository.insert(deltakerliste)
-
-            val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
-
-            consumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
-            )
-
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
-        }
+        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
+    }
 
     @Test
-    fun `consumeDeltakerliste - tombstone - sletter deltakerliste`() =
-        runTest {
-            val deltakerliste = lagDeltakerliste()
+    fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() = runTest {
+        val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
+        TestRepository.insert(deltakerliste)
 
-            TestRepository.insert(deltakerliste)
+        val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
-            consumer.consume(deltakerliste.id, null)
+        consumer.consume(
+            deltakerliste.id,
+            objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
-        }
+        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
+    }
 
     @Test
-    fun `consumeDeltakerliste - avbrutt, finnes deltakere - oppdaterer deltakerliste, sletter kladd`() =
-        runTest {
-            val deltakerlisteInTest = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
+    fun `consumeDeltakerliste - tombstone - sletter deltakerliste`() = runTest {
+        val deltakerliste = lagDeltakerliste()
 
-            TestRepository.insert(deltakerlisteInTest)
+        TestRepository.insert(deltakerliste)
 
-            val kladd = TestData.lagDeltakerKladd(deltakerliste = deltakerlisteInTest)
-            TestRepository.insert(kladd)
+        consumer.consume(deltakerliste.id, null)
 
-            val deltaker =
-                lagDeltaker(
-                    status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                )
-            TestRepository.insert(deltaker)
+        deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
+    }
 
-            MockResponseHandler.addSlettKladdResponse(kladd.id)
+    @Test
+    fun `consumeDeltakerliste - avbrutt, finnes deltakere - oppdaterer deltakerliste, sletter kladd`() = runTest {
+        val deltakerlisteInTest = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
 
-            val mutatedDeltakerliste = deltakerlisteInTest.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
+        TestRepository.insert(deltakerlisteInTest)
 
-            consumer.consume(
-                deltakerlisteInTest.id,
-                objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, mutatedDeltakerliste)),
-            )
+        val kladd = TestData.lagDeltakerKladd(deltakerliste = deltakerlisteInTest)
+        TestRepository.insert(kladd)
 
-            deltakerlisteRepository.get(deltakerlisteInTest.id).getOrThrow() shouldBe mutatedDeltakerliste
-            deltakerRepository.get(kladd.id).getOrNull() shouldBe null
-            deltakerRepository.get(deltaker.id).getOrNull() shouldNotBe null
-        }
+        val deltaker = lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
+        TestRepository.insert(deltaker)
+
+        MockResponseHandler.addSlettKladdResponse(kladd.id)
+
+        val mutatedDeltakerliste = deltakerlisteInTest.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
+
+        consumer.consume(
+            deltakerlisteInTest.id,
+            objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, mutatedDeltakerliste)),
+        )
+
+        deltakerlisteRepository.get(deltakerlisteInTest.id).getOrThrow() shouldBe mutatedDeltakerliste
+        deltakerRepository.get(kladd.id).getOrNull() shouldBe null
+        deltakerRepository.get(deltaker.id).getOrNull() shouldNotBe null
+    }
 }

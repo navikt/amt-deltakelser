@@ -22,10 +22,9 @@ import kotlin.reflect.KClass
 suspend fun assertProduced(deltakerId: UUID) {
     val cache = mutableMapOf<UUID, DeltakerV2Dto>()
 
-    val consumer =
-        stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
-            cache[UUID.fromString(k)] = objectMapper.readValue(v)
-        }
+    val consumer = stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
     consumer.start()
 
@@ -40,10 +39,9 @@ suspend fun assertProduced(deltakerId: UUID) {
 suspend fun assertProducedDeltakerV1(deltakerId: UUID) {
     val cache = mutableMapOf<UUID, DeltakerV1Dto>()
 
-    val consumer =
-        stringStringConsumer(Environment.DELTAKER_V1_TOPIC) { k, v ->
-            cache[UUID.fromString(k)] = objectMapper.readValue(v)
-        }
+    val consumer = stringStringConsumer(Environment.DELTAKER_V1_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
     consumer.start()
 
@@ -58,10 +56,9 @@ suspend fun assertProducedDeltakerV1(deltakerId: UUID) {
 suspend fun assertProducedDeltakerEksternV1(deltakerId: UUID) {
     val cache = mutableMapOf<UUID, DeltakerEksternV1Dto>()
 
-    val consumer =
-        stringStringConsumer(Environment.DELTAKER_EKSTERN_V1_TOPIC) { k, v ->
-            cache[UUID.fromString(k)] = objectMapper.readValue(v)
-        }
+    val consumer = stringStringConsumer(Environment.DELTAKER_EKSTERN_V1_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
     consumer.start()
 
@@ -76,10 +73,9 @@ suspend fun assertProducedDeltakerEksternV1(deltakerId: UUID) {
 suspend fun assertProducedFeilregistrert(deltakerId: UUID) {
     val cache = mutableMapOf<UUID, DeltakerV2Dto>()
 
-    val consumer =
-        stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
-            cache[UUID.fromString(k)] = objectMapper.readValue(v)
-        }
+    val consumer = stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
     consumer.start()
 
@@ -106,10 +102,9 @@ suspend fun <T : HendelseType> assertProducedHendelse(
 ) {
     val cache = mutableMapOf<UUID, Hendelse>()
 
-    val consumer =
-        stringStringConsumer(Environment.DELTAKER_HENDELSE_TOPIC) { k, v ->
-            cache[UUID.fromString(k)] = objectMapper.readValue(v)
-        }
+    val consumer = stringStringConsumer(Environment.DELTAKER_HENDELSE_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
     consumer.start()
 
@@ -126,10 +121,9 @@ suspend fun <T : HendelseType> assertProducedHendelse(
 suspend fun assertProducedForslag(forslag: Forslag) {
     val cache = mutableMapOf<UUID, Forslag>()
 
-    val consumer =
-        stringStringConsumer(Environment.ARRANGOR_MELDING_TOPIC) { k, v ->
-            cache[UUID.fromString(k)] = objectMapper.readValue(v)
-        }
+    val consumer = stringStringConsumer(Environment.ARRANGOR_MELDING_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
     consumer.start()
 

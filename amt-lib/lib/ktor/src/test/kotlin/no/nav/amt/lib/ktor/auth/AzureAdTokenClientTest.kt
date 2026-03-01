@@ -31,21 +31,19 @@ class AzureAdTokenClientTest {
         }
 
         @Test
-        fun `getMachineToMachineToken skal token fra cache`(): Unit =
-            runBlocking {
-                val countingCache = CountingCache<String, AzureAdToken>()
+        fun `getMachineToMachineToken skal token fra cache`(): Unit = runBlocking {
+            val countingCache = CountingCache<String, AzureAdToken>()
 
-                val client =
-                    createAzureAdTokenClient(
-                        statusCode = HttpStatusCode.OK,
-                        cache = countingCache,
-                    )
+            val client = createAzureAdTokenClient(
+                statusCode = HttpStatusCode.OK,
+                cache = countingCache,
+            )
 
-                client.getMachineToMachineToken(FAKE_SCOPE)
-                client.getMachineToMachineToken(FAKE_SCOPE)
+            client.getMachineToMachineToken(FAKE_SCOPE)
+            client.getMachineToMachineToken(FAKE_SCOPE)
 
-                countingCache.putCount shouldBe 1
-            }
+            countingCache.putCount shouldBe 1
+        }
     }
 
     @Nested
@@ -67,21 +65,19 @@ class AzureAdTokenClientTest {
         }
 
         @Test
-        fun `getMachineToMachineTokenWithoutType skal token fra cache`(): Unit =
-            runBlocking {
-                val countingCache = CountingCache<String, AzureAdToken>()
+        fun `getMachineToMachineTokenWithoutType skal token fra cache`(): Unit = runBlocking {
+            val countingCache = CountingCache<String, AzureAdToken>()
 
-                val client =
-                    createAzureAdTokenClient(
-                        statusCode = HttpStatusCode.OK,
-                        cache = countingCache,
-                    )
+            val client = createAzureAdTokenClient(
+                statusCode = HttpStatusCode.OK,
+                cache = countingCache,
+            )
 
-                client.getMachineToMachineTokenWithoutType(FAKE_SCOPE)
-                client.getMachineToMachineTokenWithoutType(FAKE_SCOPE)
+            client.getMachineToMachineTokenWithoutType(FAKE_SCOPE)
+            client.getMachineToMachineTokenWithoutType(FAKE_SCOPE)
 
-                countingCache.putCount shouldBe 1
-            }
+            countingCache.putCount shouldBe 1
+        }
     }
 
     companion object {
@@ -99,12 +95,11 @@ class AzureAdTokenClientTest {
             """.trimIndent()
 
         private fun runFailureTest(block: suspend (AzureAdTokenClient) -> Unit) {
-            val thrown =
-                runBlocking {
-                    shouldThrow<RuntimeException> {
-                        block(createAzureAdTokenClient(HttpStatusCode.Unauthorized))
-                    }
+            val thrown = runBlocking {
+                shouldThrow<RuntimeException> {
+                    block(createAzureAdTokenClient(HttpStatusCode.Unauthorized))
                 }
+            }
             thrown.message shouldStartWith "Kunne ikke hente AAD-token"
         }
 

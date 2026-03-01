@@ -97,19 +97,18 @@ fun List<DeltakerHistorikk>.toResponse(
     arrangornavn: String,
     enheter: Map<UUID, NavEnhet>,
     oppstartstype: Oppstartstype?,
-): List<DeltakerHistorikkResponse> =
-    this.map {
-        when (it) {
-            is DeltakerHistorikk.Endring -> it.endring.toResponse(ansatte, enheter, arrangornavn, oppstartstype)
-            is DeltakerHistorikk.Vedtak -> it.vedtak.toResponse(ansatte, enheter)
-            is DeltakerHistorikk.Forslag -> it.forslag.toResponse(arrangornavn, ansatte, enheter)
-            is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.toResponse(arrangornavn)
-            is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.toResponse()
-            is DeltakerHistorikk.VurderingFraArrangor -> it.data.toResponse(arrangornavn)
-            is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.toResponse(ansatte, enheter)
-            is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.toResponse(ansatte, enheter)
-        }
+): List<DeltakerHistorikkResponse> = this.map {
+    when (it) {
+        is DeltakerHistorikk.Endring -> it.endring.toResponse(ansatte, enheter, arrangornavn, oppstartstype)
+        is DeltakerHistorikk.Vedtak -> it.vedtak.toResponse(ansatte, enheter)
+        is DeltakerHistorikk.Forslag -> it.forslag.toResponse(arrangornavn, ansatte, enheter)
+        is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.toResponse(arrangornavn)
+        is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.toResponse()
+        is DeltakerHistorikk.VurderingFraArrangor -> it.data.toResponse(arrangornavn)
+        is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.toResponse(ansatte, enheter)
+        is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.toResponse(ansatte, enheter)
     }
+}
 
 fun DeltakerEndring.toResponse(
     ansatte: Map<UUID, NavAnsatt>,
@@ -139,31 +138,28 @@ fun Vedtak.toResponse(
     opprettet = opprettet,
 )
 
-fun EndringFraArrangor.toResponse(arrangornavn: String) =
-    EndringFraArrangorResponse(
-        id = id,
-        opprettet = opprettet,
-        arrangorNavn = arrangornavn,
-        endring = endring,
-    )
+fun EndringFraArrangor.toResponse(arrangornavn: String) = EndringFraArrangorResponse(
+    id = id,
+    opprettet = opprettet,
+    arrangorNavn = arrangornavn,
+    endring = endring,
+)
 
-fun ImportertFraArena.toResponse() =
-    ImportertFraArenaResponse(
-        importertDato = importertDato,
-        startdato = deltakerVedImport.startdato,
-        sluttdato = deltakerVedImport.sluttdato,
-        dagerPerUke = deltakerVedImport.dagerPerUke,
-        deltakelsesprosent = deltakerVedImport.deltakelsesprosent,
-        status = deltakerVedImport.status,
-    )
+fun ImportertFraArena.toResponse() = ImportertFraArenaResponse(
+    importertDato = importertDato,
+    startdato = deltakerVedImport.startdato,
+    sluttdato = deltakerVedImport.sluttdato,
+    dagerPerUke = deltakerVedImport.dagerPerUke,
+    deltakelsesprosent = deltakerVedImport.deltakelsesprosent,
+    status = deltakerVedImport.status,
+)
 
-fun VurderingFraArrangorData.toResponse(arrangornavn: String) =
-    VurderingFraArrangorResponse(
-        vurderingstype = vurderingstype,
-        begrunnelse = begrunnelse,
-        opprettetDato = opprettet,
-        endretAv = arrangornavn,
-    )
+fun VurderingFraArrangorData.toResponse(arrangornavn: String) = VurderingFraArrangorResponse(
+    vurderingstype = vurderingstype,
+    begrunnelse = begrunnelse,
+    opprettetDato = opprettet,
+    endretAv = arrangornavn,
+)
 
 fun EndringFraTiltakskoordinator.toResponse(
     ansatte: Map<UUID, NavAnsatt>,

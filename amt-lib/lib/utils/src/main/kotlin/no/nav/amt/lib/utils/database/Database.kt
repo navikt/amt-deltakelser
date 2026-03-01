@@ -37,12 +37,11 @@ object Database {
         runMigration()
     }
 
-    fun <A> query(block: (Session) -> A): A =
-        if (transactionalSession != null) {
-            block(transactionalSession!!)
-        } else {
-            queryWithNewSession(block)
-        }
+    fun <A> query(block: (Session) -> A): A = if (transactionalSession != null) {
+        block(transactionalSession!!)
+    } else {
+        queryWithNewSession(block)
+    }
 
     /**
      * Kjør synkron kode innenfor en database-transaksjon.
@@ -72,24 +71,22 @@ object Database {
         }
     }
 
-    private fun <A> queryWithNewSession(block: (Session) -> A): A =
-        using(sessionOf(dataSource)) { session ->
-            block(session)
-        }
+    private fun <A> queryWithNewSession(block: (Session) -> A): A = using(sessionOf(dataSource)) { session ->
+        block(session)
+    }
 
     fun close() {
         (dataSource as HikariDataSource).close()
     }
 
-    private fun runMigration(initSql: String? = null): Int =
-        Flyway
-            .configure()
-            .connectRetries(5)
-            .dataSource(dataSource)
-            .initSql(initSql)
-            .validateMigrationNaming(true)
-            .load()
-            .migrate()
-            .migrations
-            .size
+    private fun runMigration(initSql: String? = null): Int = Flyway
+        .configure()
+        .connectRetries(5)
+        .dataSource(dataSource)
+        .initSql(initSql)
+        .validateMigrationNaming(true)
+        .load()
+        .migrate()
+        .migrations
+        .size
 }

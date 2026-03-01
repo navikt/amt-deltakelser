@@ -68,9 +68,8 @@ class OpprettKladdRequestValidator(
         deltakerListe: Deltakerliste,
     ): Boolean {
         fun alderVedKursStart(foedselAar: Int): Int {
-            val startDato =
-                deltakerListe.startDato
-                    ?: throw IllegalStateException("Startdato kan ikke være null for ${Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING}")
+            val startDato = deltakerListe.startDato
+                ?: throw IllegalStateException("Startdato kan ikke være null for ${Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING}")
             return Year.now().value.coerceAtLeast(startDato.year) - foedselAar
         }
 

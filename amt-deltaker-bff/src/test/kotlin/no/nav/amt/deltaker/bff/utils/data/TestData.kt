@@ -69,27 +69,24 @@ object TestData {
 
     fun input(n: Int) = (1..n).map { ('a'..'z').random() }.joinToString("")
 
-    fun Deltaker.toDeltakerVedVedtak() =
-        DeltakerVedVedtak(
-            id,
-            startdato,
-            sluttdato,
-            dagerPerUke,
-            deltakelsesprosent,
-            bakgrunnsinformasjon,
-            deltakelsesinnhold =
-                deltakelsesinnhold?.let {
-                    Deltakelsesinnhold(
-                        ledetekst = it.ledetekst,
-                        innhold =
-                            fulltInnhold(
-                                it.innhold,
-                                getInnholdselementer(deltakerliste.tiltak.innhold?.innholdselementer, deltakerliste.tiltak.tiltakskode),
-                            ),
-                    )
-                },
-            status,
-        )
+    fun Deltaker.toDeltakerVedVedtak() = DeltakerVedVedtak(
+        id,
+        startdato,
+        sluttdato,
+        dagerPerUke,
+        deltakelsesprosent,
+        bakgrunnsinformasjon,
+        deltakelsesinnhold = deltakelsesinnhold?.let {
+            Deltakelsesinnhold(
+                ledetekst = it.ledetekst,
+                innhold = fulltInnhold(
+                    it.innhold,
+                    getInnholdselementer(deltakerliste.tiltak.innhold?.innholdselementer, deltakerliste.tiltak.tiltakskode),
+                ),
+            )
+        },
+        status,
+    )
 
     fun lagDeltakerliste(
         id: UUID = UUID.randomUUID(),
@@ -147,25 +144,22 @@ object TestData {
 
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()
 
-    fun lagDeltakelsesinnhold(): Deltakelsesinnhold =
-        Deltakelsesinnhold(
-            ledetekst = "Beskrivelse av tilaket",
-            innhold =
-                listOf(
-                    Innhold(
-                        tekst = "~tekst~",
-                        innholdskode = "~kode~",
-                        valgt = true,
-                        beskrivelse = "~beskrivelse~",
-                    ),
-                ),
-        )
+    fun lagDeltakelsesinnhold(): Deltakelsesinnhold = Deltakelsesinnhold(
+        ledetekst = "Beskrivelse av tilaket",
+        innhold = listOf(
+            Innhold(
+                tekst = "~tekst~",
+                innholdskode = "~kode~",
+                valgt = true,
+                beskrivelse = "~beskrivelse~",
+            ),
+        ),
+    )
 
     fun lagArrangorResponse(
         navn: String = "Arrangor 1",
-        organisasjonsnummer: String =
-            no.nav.amt.lib.testing.utils.TestData
-                .randomOrgnr(),
+        organisasjonsnummer: String = no.nav.amt.lib.testing.utils.TestData
+            .randomOrgnr(),
     ) = ArrangorResponse(
         navn = navn,
         organisasjonsnummer = organisasjonsnummer,
@@ -178,14 +172,13 @@ object TestData {
         innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
         innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
     ): Tiltakstype {
-        val tiltak =
-            tiltakstypeCache[tiltakskode] ?: Tiltakstype(
-                id = id,
-                navn = navn,
-                tiltakskode = tiltakskode,
-                innsatsgrupper = innsatsgrupper,
-                innhold = innhold,
-            )
+        val tiltak = tiltakstypeCache[tiltakskode] ?: Tiltakstype(
+            id = id,
+            navn = navn,
+            tiltakskode = tiltakskode,
+            innsatsgrupper = innsatsgrupper,
+            innhold = innhold,
+        )
         val nyttTiltak = tiltak.copy(navn = navn, innhold = innhold)
         tiltakstypeCache[tiltak.tiltakskode] = nyttTiltak
 
@@ -262,10 +255,9 @@ object TestData {
         dagerPerUke: Float? = 5F,
         deltakelsesprosent: Float? = 100F,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
-        innhold: List<Innhold> =
-            deltakerliste.tiltak.innhold
-                ?.innholdselementer
-                ?.map { it.toInnhold() } ?: emptyList(),
+        innhold: List<Innhold> = deltakerliste.tiltak.innhold
+            ?.innholdselementer
+            ?.map { it.toInnhold() } ?: emptyList(),
         status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         historikk: Boolean = true,
         kanEndres: Boolean = true,
@@ -274,50 +266,47 @@ object TestData {
         createdAt: LocalDateTime = LocalDateTime.now(),
         sistEndret: LocalDateTime = LocalDateTime.now(),
     ): Deltaker {
-        val deltaker =
-            Deltaker(
-                id = id,
-                navBruker = navBruker,
-                deltakerliste = deltakerliste,
-                startdato = startdato,
-                sluttdato = sluttdato,
-                dagerPerUke = dagerPerUke,
-                deltakelsesprosent = deltakelsesprosent,
-                bakgrunnsinformasjon = bakgrunnsinformasjon,
-                deltakelsesinnhold = Deltakelsesinnhold("ledetekst", innhold),
-                status = status,
-                erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-                historikk = emptyList(),
-                kanEndres = kanEndres,
-                opprettet = createdAt,
-                sistEndret = sistEndret,
-            )
+        val deltaker = Deltaker(
+            id = id,
+            navBruker = navBruker,
+            deltakerliste = deltakerliste,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            dagerPerUke = dagerPerUke,
+            deltakelsesprosent = deltakelsesprosent,
+            bakgrunnsinformasjon = bakgrunnsinformasjon,
+            deltakelsesinnhold = Deltakelsesinnhold("ledetekst", innhold),
+            status = status,
+            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+            historikk = emptyList(),
+            kanEndres = kanEndres,
+            opprettet = createdAt,
+            sistEndret = sistEndret,
+        )
 
         return if (innsoktDatoFraArena != null) {
             deltaker.copy(historikk = lagArenaDeltakerHistorikk(deltaker, innsoktDatoFraArena))
         } else if (historikk) {
             deltaker.copy(
-                historikk =
-                    lagDeltakerHistorikk(
-                        deltaker = deltaker,
-                    ),
+                historikk = lagDeltakerHistorikk(
+                    deltaker = deltaker,
+                ),
             )
         } else {
             deltaker
         }
     }
 
-    fun lagVedtaksinformasjonResponse() =
-        VedtaksinformasjonResponse(
-            fattet = LocalDateTime.now(),
-            fattetAvNav = true,
-            opprettet = LocalDateTime.now(),
-            opprettetAv = "~veileder~",
-            opprettetAvEnhet = "~enhet~",
-            sistEndret = LocalDateTime.now(),
-            sistEndretAv = "~veileder2~",
-            sistEndretAvEnhet = "~enhet2~",
-        )
+    fun lagVedtaksinformasjonResponse() = VedtaksinformasjonResponse(
+        fattet = LocalDateTime.now(),
+        fattetAvNav = true,
+        opprettet = LocalDateTime.now(),
+        opprettetAv = "~veileder~",
+        opprettetAvEnhet = "~enhet~",
+        sistEndret = LocalDateTime.now(),
+        sistEndretAv = "~veileder2~",
+        sistEndretAvEnhet = "~enhet2~",
+    )
 
     fun lagDeltakerResponse(
         id: UUID = UUID.randomUUID(),
@@ -361,18 +350,17 @@ object TestData {
         navEnhet: NavEnhet = lagNavEnhet(),
         navVeileder: NavAnsatt = lagNavAnsatt(),
         deltakerliste: Deltakerliste = lagDeltakerliste(),
-    ): TiltakskoordinatorsDeltaker =
-        lagDeltaker(
-            deltakerliste = deltakerliste,
-        ).toTiltakskoordinatorsDeltaker(
-            sisteVurdering = sisteVurdering,
-            navEnhet = navEnhet,
-            navVeileder = navVeileder,
-            null,
-            false,
-            emptyList(),
-            emptyList(),
-        )
+    ): TiltakskoordinatorsDeltaker = lagDeltaker(
+        deltakerliste = deltakerliste,
+    ).toTiltakskoordinatorsDeltaker(
+        sisteVurdering = sisteVurdering,
+        navEnhet = navEnhet,
+        navVeileder = navVeileder,
+        null,
+        false,
+        emptyList(),
+        emptyList(),
+    )
 
     fun lagVurdering(
         id: UUID = UUID.randomUUID(),
@@ -404,26 +392,24 @@ object TestData {
     ) = ImportertFraArena(
         deltakerId = deltaker.id,
         importertDato = LocalDateTime.now(),
-        deltakerVedImport =
-            DeltakerVedImport(
-                deltakerId = deltaker.id,
-                innsoktDato = innsoktDato,
-                startdato = deltaker.startdato,
-                sluttdato = deltaker.sluttdato,
-                dagerPerUke = deltaker.dagerPerUke,
-                deltakelsesprosent = deltaker.deltakelsesprosent,
-                status = deltaker.status,
-            ),
+        deltakerVedImport = DeltakerVedImport(
+            deltakerId = deltaker.id,
+            innsoktDato = innsoktDato,
+            startdato = deltaker.startdato,
+            sluttdato = deltaker.sluttdato,
+            dagerPerUke = deltaker.dagerPerUke,
+            deltakelsesprosent = deltaker.deltakelsesprosent,
+            status = deltaker.status,
+        ),
     )
 
     private fun lagDeltakerHistorikk(deltaker: Deltaker = lagDeltaker()): List<DeltakerHistorikk> {
-        val vedtak =
-            lagVedtak(
-                deltakerVedVedtak = deltaker,
-                fattet = LocalDateTime.now(),
-                opprettetAv = deltaker.navBruker.navVeilederId!!,
-                opprettetAvEnhet = deltaker.navBruker.navEnhetId!!,
-            )
+        val vedtak = lagVedtak(
+            deltakerVedVedtak = deltaker,
+            fattet = LocalDateTime.now(),
+            opprettetAv = deltaker.navBruker.navVeilederId!!,
+            opprettetAvEnhet = deltaker.navBruker.navEnhetId!!,
+        )
         return listOf(DeltakerHistorikk.Vedtak(vedtak))
     }
 
@@ -460,10 +446,9 @@ object TestData {
 
     fun lagVedtak(
         id: UUID = UUID.randomUUID(),
-        deltakerVedVedtak: Deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            ),
+        deltakerVedVedtak: Deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        ),
         deltakerId: UUID = deltakerVedVedtak.id,
         fattet: LocalDateTime? = null,
         gyldigTil: LocalDateTime? = null,
@@ -514,11 +499,10 @@ object TestData {
         deltakerId: UUID = UUID.randomUUID(),
         opprettetAvArrangorAnsattId: UUID = UUID.randomUUID(),
         opprettet: LocalDateTime = LocalDateTime.now(),
-        endring: EndringFraArrangor.Endring =
-            EndringFraArrangor.LeggTilOppstartsdato(
-                LocalDate.now().plusDays(2),
-                LocalDate.now().plusMonths(3),
-            ),
+        endring: EndringFraArrangor.Endring = EndringFraArrangor.LeggTilOppstartsdato(
+            LocalDate.now().plusDays(2),
+            LocalDate.now().plusMonths(3),
+        ),
     ) = EndringFraArrangor(id, deltakerId, opprettetAvArrangorAnsattId, opprettet, endring)
 
     fun lagNavAnsatt(
@@ -608,35 +592,30 @@ object TestData {
         navEnhet = "Nav Grunerløkka",
     )
 
-    fun lagAdresse(): Adresse =
-        Adresse(
-            bostedsadresse =
-                Bostedsadresse(
-                    coAdressenavn = "C/O Gutterommet",
-                    vegadresse = null,
-                    matrikkeladresse =
-                        Matrikkeladresse(
-                            tilleggsnavn = "Gården",
-                            postnummer = "0484",
-                            poststed = "OSLO",
-                        ),
-                ),
-            oppholdsadresse = null,
-            kontaktadresse =
-                Kontaktadresse(
-                    coAdressenavn = null,
-                    vegadresse =
-                        Vegadresse(
-                            husnummer = "1",
-                            husbokstav = null,
-                            adressenavn = "Gate",
-                            tilleggsnavn = null,
-                            postnummer = "1234",
-                            poststed = "MOSS",
-                        ),
-                    postboksadresse = null,
-                ),
-        )
+    fun lagAdresse(): Adresse = Adresse(
+        bostedsadresse = Bostedsadresse(
+            coAdressenavn = "C/O Gutterommet",
+            vegadresse = null,
+            matrikkeladresse = Matrikkeladresse(
+                tilleggsnavn = "Gården",
+                postnummer = "0484",
+                poststed = "OSLO",
+            ),
+        ),
+        oppholdsadresse = null,
+        kontaktadresse = Kontaktadresse(
+            coAdressenavn = null,
+            vegadresse = Vegadresse(
+                husnummer = "1",
+                husbokstav = null,
+                adressenavn = "Gate",
+                tilleggsnavn = null,
+                postnummer = "1234",
+                poststed = "MOSS",
+            ),
+            postboksadresse = null,
+        ),
+    )
 
     fun lagOppfolgingsperiode(
         id: UUID = UUID.randomUUID(),
@@ -648,33 +627,29 @@ object TestData {
         sluttdato,
     )
 
-    private fun finnOppstartstype(type: Tiltakskode) =
-        when (type) {
-            Tiltakskode.JOBBKLUBB,
-            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-            -> Oppstartstype.FELLES
+    private fun finnOppstartstype(type: Tiltakskode) = when (type) {
+        Tiltakskode.JOBBKLUBB,
+        Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+        Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+        -> Oppstartstype.FELLES
 
-            else -> Oppstartstype.LOPENDE
-        }
+        else -> Oppstartstype.LOPENDE
+    }
 
-    fun lagNavAnsatteForDeltaker(deltaker: Deltaker) =
-        listOfNotNull(
-            deltaker.vedtaksinformasjon?.sistEndretAv,
-            deltaker.vedtaksinformasjon?.opprettetAv,
-        ).distinct().map { lagNavAnsatt(id = it) }
+    fun lagNavAnsatteForDeltaker(deltaker: Deltaker) = listOfNotNull(
+        deltaker.vedtaksinformasjon?.sistEndretAv,
+        deltaker.vedtaksinformasjon?.opprettetAv,
+    ).distinct().map { lagNavAnsatt(id = it) }
 
-    fun lagNavAnsatteForHistorikk(historikk: List<DeltakerHistorikk>) =
-        historikk
-            .flatMap { it.navAnsatte() }
-            .distinct()
-            .map { lagNavAnsatt(id = it) }
+    fun lagNavAnsatteForHistorikk(historikk: List<DeltakerHistorikk>) = historikk
+        .flatMap { it.navAnsatte() }
+        .distinct()
+        .map { lagNavAnsatt(id = it) }
 
-    fun lagNavEnheterForHistorikk(historikk: List<DeltakerHistorikk>) =
-        historikk
-            .flatMap { it.navEnheter() }
-            .distinct()
-            .map { lagNavEnhet(id = it) }
+    fun lagNavEnheterForHistorikk(historikk: List<DeltakerHistorikk>) = historikk
+        .flatMap { it.navEnheter() }
+        .distinct()
+        .map { lagNavEnhet(id = it) }
 
     fun leggTilHistorikk(
         deltaker: Deltaker,
@@ -682,25 +657,23 @@ object TestData {
         antallEndringer: Int = 1,
         antallEndringerFraArrangor: Int = 1,
     ): Deltaker {
-        val vedtak =
-            (1..antallVedtak).map {
-                val fattet = it == antallVedtak
-                lagVedtak(
-                    deltakerVedVedtak = deltaker,
-                    fattet = if (fattet) LocalDateTime.now() else null,
-                    gyldigTil = if (fattet) null else LocalDateTime.now(),
-                    fattetAvNav = fattet,
-                )
-            }
+        val vedtak = (1..antallVedtak).map {
+            val fattet = it == antallVedtak
+            lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = if (fattet) LocalDateTime.now() else null,
+                gyldigTil = if (fattet) null else LocalDateTime.now(),
+                fattetAvNav = fattet,
+            )
+        }
 
         val endringer = (1..antallEndringer).map { lagDeltakerEndring(deltakerId = deltaker.id) }
 
         val endringerFraArrangor = (1..antallEndringerFraArrangor).map { lagEndringFraArrangor(deltakerId = deltaker.id) }
 
         return deltaker.copy(
-            historikk =
-                vedtak.map { DeltakerHistorikk.Vedtak(it) } + endringer.map { DeltakerHistorikk.Endring(it) } +
-                    endringerFraArrangor.map { DeltakerHistorikk.EndringFraArrangor(it) },
+            historikk = vedtak.map { DeltakerHistorikk.Vedtak(it) } + endringer.map { DeltakerHistorikk.Endring(it) } +
+                endringerFraArrangor.map { DeltakerHistorikk.EndringFraArrangor(it) },
         )
     }
 
@@ -710,11 +683,10 @@ object TestData {
         endringer: List<DeltakerEndring> = emptyList(),
         forslag: List<Forslag> = emptyList(),
     ) = deltaker.copy(
-        historikk =
-            deltaker.historikk
-                .plus(vedtak.map { DeltakerHistorikk.Vedtak(it) })
-                .plus(endringer.map { DeltakerHistorikk.Endring(it) })
-                .plus(forslag.map { DeltakerHistorikk.Forslag(it) }),
+        historikk = deltaker.historikk
+            .plus(vedtak.map { DeltakerHistorikk.Vedtak(it) })
+            .plus(endringer.map { DeltakerHistorikk.Endring(it) })
+            .plus(forslag.map { DeltakerHistorikk.Forslag(it) }),
     )
 
     fun lagTiltakskoordinatorTilgang(
@@ -751,157 +723,116 @@ object TestData {
         id: UUID = UUID.randomUUID(),
         deltaker: Deltaker,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        ansvarlig: HendelseAnsvarlig =
-            HendelseAnsvarlig.NavVeileder(
-                id = UUID.randomUUID(),
-                navn = UUID.randomUUID().toString(),
-                navIdent = UUID.randomUUID().toString(),
-                enhet = HendelseAnsvarlig.NavVeileder.Enhet(id = UUID.randomUUID(), enhetsnummer = randomEnhetsnummer()),
-            ),
-        payload: HendelseType =
-            HendelseType.EndreBakgrunnsinformasjon(
-                bakgrunnsinformasjon = "Ny bakgrunnsinformasjon",
-            ),
+        ansvarlig: HendelseAnsvarlig = HendelseAnsvarlig.NavVeileder(
+            id = UUID.randomUUID(),
+            navn = UUID.randomUUID().toString(),
+            navIdent = UUID.randomUUID().toString(),
+            enhet = HendelseAnsvarlig.NavVeileder.Enhet(id = UUID.randomUUID(), enhetsnummer = randomEnhetsnummer()),
+        ),
+        payload: HendelseType = HendelseType.EndreBakgrunnsinformasjon(
+            bakgrunnsinformasjon = "Ny bakgrunnsinformasjon",
+        ),
     ) = Hendelse(
         id = id,
         opprettet = opprettet,
-        deltaker =
-            HendelseDeltaker(
-                id = deltaker.id,
-                personident = randomIdent(),
-                deltakerliste =
-                    HendelseDeltaker.Deltakerliste(
-                        id = deltaker.deltakerliste.id,
-                        navn = deltaker.deltakerliste.navn,
-                        arrangor =
-                            HendelseDeltaker.Deltakerliste.Arrangor(
-                                id = deltaker.deltakerliste.arrangor.arrangor.id,
-                                organisasjonsnummer = deltaker.deltakerliste.arrangor.arrangor.organisasjonsnummer,
-                                navn = deltaker.deltakerliste.arrangor.arrangor.navn,
-                                overordnetArrangor = null,
-                            ),
-                        tiltak =
-                            HendelseDeltaker.Deltakerliste.Tiltak(
-                                navn = deltaker.deltakerliste.navn,
-                                tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-                                ledetekst = "ledetekst",
-                            ),
-                        startdato = deltaker.deltakerliste.startDato,
-                        sluttdato = deltaker.deltakerliste.sluttDato,
-                        oppstartstype =
-                            if (deltaker.deltakerliste.oppstart ==
-                                Oppstartstype.FELLES
-                            ) {
-                                HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES
-                            } else {
-                                HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE
-                            },
-                    ),
-                forsteVedtakFattet = LocalDate.now(),
-                opprettetDato = LocalDate.now(),
+        deltaker = HendelseDeltaker(
+            id = deltaker.id,
+            personident = randomIdent(),
+            deltakerliste = HendelseDeltaker.Deltakerliste(
+                id = deltaker.deltakerliste.id,
+                navn = deltaker.deltakerliste.navn,
+                arrangor = HendelseDeltaker.Deltakerliste.Arrangor(
+                    id = deltaker.deltakerliste.arrangor.arrangor.id,
+                    organisasjonsnummer = deltaker.deltakerliste.arrangor.arrangor.organisasjonsnummer,
+                    navn = deltaker.deltakerliste.arrangor.arrangor.navn,
+                    overordnetArrangor = null,
+                ),
+                tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
+                    navn = deltaker.deltakerliste.navn,
+                    tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+                    ledetekst = "ledetekst",
+                ),
+                startdato = deltaker.deltakerliste.startDato,
+                sluttdato = deltaker.deltakerliste.sluttDato,
+                oppstartstype = if (deltaker.deltakerliste.oppstart ==
+                    Oppstartstype.FELLES
+                ) {
+                    HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES
+                } else {
+                    HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE
+                },
             ),
+            forsteVedtakFattet = LocalDate.now(),
+            opprettetDato = LocalDate.now(),
+        ),
         ansvarlig = ansvarlig,
         payload = payload,
     )
 }
 
 fun Deltaker.endre(deltakerEndring: DeltakerEndring): Deltaker {
-    val deltaker =
-        when (val endring = deltakerEndring.endring) {
-            is DeltakerEndring.Endring.AvsluttDeltakelse -> {
-                this.copy(
-                    sluttdato = endring.sluttdato,
-                    status =
-                        TestData.lagDeltakerStatus(
-                            statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                            aarsakType = endring.aarsak?.toStatusAarsak()?.type,
-                            aarsakBeskrivelse = endring.aarsak?.beskrivelse,
-                        ),
-                )
-            }
+    val deltaker = when (val endring = deltakerEndring.endring) {
+        is DeltakerEndring.Endring.AvsluttDeltakelse -> this.copy(
+            sluttdato = endring.sluttdato,
+            status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = endring.aarsak?.toStatusAarsak()?.type,
+                aarsakBeskrivelse = endring.aarsak?.beskrivelse,
+            ),
+        )
 
-            is DeltakerEndring.Endring.EndreAvslutning -> {
-                this.copy(
-                    status =
-                        TestData.lagDeltakerStatus(
-                            statusType = if (endring.harFullfort == true) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT,
-                            aarsakType = endring.aarsak?.toStatusAarsak()?.type,
-                            aarsakBeskrivelse = endring.aarsak?.beskrivelse,
-                        ),
-                )
-            }
+        is DeltakerEndring.Endring.EndreAvslutning -> this.copy(
+            status = TestData.lagDeltakerStatus(
+                statusType = if (endring.harFullfort == true) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT,
+                aarsakType = endring.aarsak?.toStatusAarsak()?.type,
+                aarsakBeskrivelse = endring.aarsak?.beskrivelse,
+            ),
+        )
 
-            is DeltakerEndring.Endring.AvbrytDeltakelse -> {
-                this.copy(
-                    sluttdato = endring.sluttdato,
-                    status =
-                        TestData.lagDeltakerStatus(
-                            statusType = DeltakerStatus.Type.AVBRUTT,
-                            aarsakType = endring.aarsak.toStatusAarsak().type,
-                            aarsakBeskrivelse = endring.aarsak.beskrivelse,
-                        ),
-                )
-            }
+        is DeltakerEndring.Endring.AvbrytDeltakelse -> this.copy(
+            sluttdato = endring.sluttdato,
+            status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.AVBRUTT,
+                aarsakType = endring.aarsak.toStatusAarsak().type,
+                aarsakBeskrivelse = endring.aarsak.beskrivelse,
+            ),
+        )
 
-            is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> {
-                this.copy(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
-            }
+        is DeltakerEndring.Endring.EndreBakgrunnsinformasjon ->
+            this.copy(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
 
-            is DeltakerEndring.Endring.EndreDeltakelsesmengde -> {
-                this.copy(
-                    dagerPerUke = endring.dagerPerUke,
-                    deltakelsesprosent = endring.deltakelsesprosent,
-                )
-            }
+        is DeltakerEndring.Endring.EndreDeltakelsesmengde -> this.copy(
+            dagerPerUke = endring.dagerPerUke,
+            deltakelsesprosent = endring.deltakelsesprosent,
+        )
 
-            is DeltakerEndring.Endring.EndreInnhold -> {
-                this.copy(deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold))
-            }
+        is DeltakerEndring.Endring.EndreInnhold -> this.copy(deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold))
+        is DeltakerEndring.Endring.EndreSluttarsak ->
+            this.copy(status = this.status.copy(aarsak = endring.aarsak.toStatusAarsak()))
 
-            is DeltakerEndring.Endring.EndreSluttarsak -> {
-                this.copy(status = this.status.copy(aarsak = endring.aarsak.toStatusAarsak()))
-            }
+        is DeltakerEndring.Endring.EndreSluttdato -> this.copy(sluttdato = endring.sluttdato)
+        is DeltakerEndring.Endring.EndreStartdato -> this.copy(startdato = endring.startdato, sluttdato = endring.sluttdato)
+        is DeltakerEndring.Endring.ForlengDeltakelse -> this.copy(sluttdato = endring.sluttdato)
+        is DeltakerEndring.Endring.IkkeAktuell -> this.copy(
+            status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsakType = endring.aarsak.toStatusAarsak().type,
+                aarsakBeskrivelse = endring.aarsak.beskrivelse,
+            ),
+        )
 
-            is DeltakerEndring.Endring.EndreSluttdato -> {
-                this.copy(sluttdato = endring.sluttdato)
-            }
+        is DeltakerEndring.Endring.ReaktiverDeltakelse -> this.copy(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = null,
+            sluttdato = null,
+        )
 
-            is DeltakerEndring.Endring.EndreStartdato -> {
-                this.copy(startdato = endring.startdato, sluttdato = endring.sluttdato)
-            }
-
-            is DeltakerEndring.Endring.ForlengDeltakelse -> {
-                this.copy(sluttdato = endring.sluttdato)
-            }
-
-            is DeltakerEndring.Endring.IkkeAktuell -> {
-                this.copy(
-                    status =
-                        TestData.lagDeltakerStatus(
-                            statusType = DeltakerStatus.Type.IKKE_AKTUELL,
-                            aarsakType = endring.aarsak.toStatusAarsak().type,
-                            aarsakBeskrivelse = endring.aarsak.beskrivelse,
-                        ),
-                )
-            }
-
-            is DeltakerEndring.Endring.ReaktiverDeltakelse -> {
-                this.copy(
-                    status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                    startdato = null,
-                    sluttdato = null,
-                )
-            }
-
-            is DeltakerEndring.Endring.FjernOppstartsdato -> {
-                this.copy(startdato = null, sluttdato = null)
-            }
-        }
+        is DeltakerEndring.Endring.FjernOppstartsdato -> this.copy(startdato = null, sluttdato = null)
+    }
     return deltaker.copy(historikk = this.historikk.plus(DeltakerHistorikk.Endring(deltakerEndring)))
 }
 
-fun DeltakerEndring.Aarsak.toStatusAarsak() =
-    DeltakerStatus.Aarsak(
-        type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),
-        beskrivelse = this.beskrivelse,
-    )
+fun DeltakerEndring.Aarsak.toStatusAarsak() = DeltakerStatus.Aarsak(
+    type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),
+    beskrivelse = this.beskrivelse,
+)

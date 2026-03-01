@@ -133,28 +133,26 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     }
 }
 
-fun mockAzureAdClient() =
-    AzureAdTokenClient(
-        azureAdTokenUrl = "http://azure",
-        clientId = "clientId",
-        clientSecret = "secret",
-        httpClient =
-            mockHttpClient(
-                """
-                {
-                    "token_type":"Bearer",
-                    "access_token":"XYZ",
-                    "expires_in": 3599
-                }
-                """.trimIndent(),
-            ),
-    )
+fun mockAzureAdClient() = AzureAdTokenClient(
+    azureAdTokenUrl = "http://azure",
+    clientId = "clientId",
+    clientSecret = "secret",
+    httpClient =
+        mockHttpClient(
+            """
+            {
+                "token_type":"Bearer",
+                "access_token":"XYZ",
+                "expires_in": 3599
+            }
+            """.trimIndent(),
+        ),
+)
 
-fun mockPdfgenClient(environment: Environment) =
-    PdfgenClient(
-        mockHttpClient("%PDF-".toByteArray()),
-        environment,
-    )
+fun mockPdfgenClient(environment: Environment) = PdfgenClient(
+    mockHttpClient("%PDF-".toByteArray()),
+    environment,
+)
 
 fun mockAmtPersonClient(
     azureAdTokenClient: AzureAdTokenClient,
@@ -236,15 +234,14 @@ object MockResponseHandler {
             )
     }
 
-    fun addDeltakerResponse(deltaker: DeltakerResponse) =
-        addResponse(
-            Request(
-                url = "${testEnvironment.amtDeltakerUrl}/deltaker/${deltaker.id}",
-                method = HttpMethod.Get,
-                body = null,
-            ),
-            deltaker,
-        )
+    fun addDeltakerResponse(deltaker: DeltakerResponse) = addResponse(
+        Request(
+            url = "${testEnvironment.amtDeltakerUrl}/deltaker/${deltaker.id}",
+            method = HttpMethod.Get,
+            body = null,
+        ),
+        deltaker,
+    )
 
     fun addDistribusjonskanalResponse(
         personident: String,

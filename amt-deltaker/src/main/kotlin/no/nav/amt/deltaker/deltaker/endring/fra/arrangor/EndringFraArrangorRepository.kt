@@ -52,36 +52,33 @@ class EndringFraArrangorRepository {
             ON CONFLICT (id) DO NOTHING
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to endring.id,
-                "deltaker_id" to endring.deltakerId,
-                "arrangor_ansatt_id" to endring.opprettetAvArrangorAnsattId,
-                "opprettet" to endring.opprettet,
-                "endring" to toPGObject(endring.endring),
-            )
+        val params = mapOf(
+            "id" to endring.id,
+            "deltaker_id" to endring.deltakerId,
+            "arrangor_ansatt_id" to endring.opprettetAvArrangorAnsattId,
+            "opprettet" to endring.opprettet,
+            "endring" to toPGObject(endring.endring),
+        )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) =
-        Database.query {
-            it.update(
-                queryOf(
-                    "DELETE FROM endring_fra_arrangor WHERE deltaker_id = :deltaker_id",
-                    mapOf("deltaker_id" to deltakerId),
-                ),
-            )
-        }
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+        it.update(
+            queryOf(
+                "DELETE FROM endring_fra_arrangor WHERE deltaker_id = :deltaker_id",
+                mapOf("deltaker_id" to deltakerId),
+            ),
+        )
+    }
 
     companion object {
-        private fun rowMapper(row: Row): EndringFraArrangor =
-            EndringFraArrangor(
-                id = row.uuid("id"),
-                deltakerId = row.uuid("deltaker_id"),
-                opprettetAvArrangorAnsattId = row.uuid("arrangor_ansatt_id"),
-                opprettet = row.localDateTime("opprettet"),
-                endring = objectMapper.readValue(row.string("endring")),
-            )
+        private fun rowMapper(row: Row) = EndringFraArrangor(
+            id = row.uuid("id"),
+            deltakerId = row.uuid("deltaker_id"),
+            opprettetAvArrangorAnsattId = row.uuid("arrangor_ansatt_id"),
+            opprettet = row.localDateTime("opprettet"),
+            endring = objectMapper.readValue(row.string("endring")),
+        )
     }
 }

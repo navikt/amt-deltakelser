@@ -38,7 +38,6 @@ data class EndreStartdatoRequest(
         }
     }
 
-    private fun deltakerErEndret(deltaker: Deltaker): Boolean =
-        deltaker.startdato != startdato ||
-            deltaker.sluttdato != sluttdato
+    private fun deltakerErEndret(deltaker: Deltaker): Boolean = deltaker.startdato != startdato ||
+        deltaker.sluttdato != sluttdato
 }

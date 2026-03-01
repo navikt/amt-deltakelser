@@ -42,18 +42,15 @@ class ForslagService(
         godkjentAvEnhetId: UUID,
     ): Forslag {
         val opprinneligForslag = forslagRepository.get(forslagId).getOrThrow()
-        val godkjentForslag =
-            opprinneligForslag.copy(
-                status =
-                    Forslag.Status.Godkjent(
-                        godkjentAv =
-                            Forslag.NavAnsatt(
-                                id = godkjentAvAnsattId,
-                                enhetId = godkjentAvEnhetId,
-                            ),
-                        godkjent = LocalDateTime.now(),
-                    ),
-            )
+        val godkjentForslag = opprinneligForslag.copy(
+            status = Forslag.Status.Godkjent(
+                godkjentAv = Forslag.NavAnsatt(
+                    id = godkjentAvAnsattId,
+                    enhetId = godkjentAvEnhetId,
+                ),
+                godkjent = LocalDateTime.now(),
+            ),
+        )
         upsertAndProduce(godkjentForslag)
         arrangorMeldingProducer.produce(godkjentForslag)
 

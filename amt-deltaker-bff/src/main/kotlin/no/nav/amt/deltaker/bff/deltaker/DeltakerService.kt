@@ -32,12 +32,11 @@ class DeltakerService(
     ): Deltaker {
         navEnhetService.hentOpprettEllerOppdaterNavEnhet(endringRequest.endretAvEnhet)
 
-        val deltakeroppdatering =
-            amtDeltakerClient
-                .postEndreDeltaker(
-                    deltakerId = deltaker.id,
-                    requestBody = endringRequest,
-                ).toDeltakeroppdatering()
+        val deltakeroppdatering = amtDeltakerClient
+            .postEndreDeltaker(
+                deltakerId = deltaker.id,
+                requestBody = endringRequest,
+            ).toDeltakeroppdatering()
 
         oppdaterDeltaker(
             deltakeroppdatering = deltakeroppdatering,
@@ -86,13 +85,12 @@ class DeltakerService(
             Scenario 2: Import av data fra arena
             Scenario 3: Avbryt utkast som i praksis vil ha en deltakelse uten påmeldtdato
          */
-        val deltakelserPaaPerson =
-            deltakerRepository
-                .getMany(personident, deltakerlisteId)
-                .sortedWith(
-                    compareByDescending<Deltaker> { it.paameldtDato }
-                        .thenByDescending { it.status.gyldigFra },
-                )
+        val deltakelserPaaPerson = deltakerRepository
+            .getMany(personident, deltakerlisteId)
+            .sortedWith(
+                compareByDescending<Deltaker> { it.paameldtDato }
+                    .thenByDescending { it.status.gyldigFra },
+            )
 
         if (deltakelserPaaPerson.none { it.id == deltakerId }) {
             throw IllegalStateException("Den nye deltakelsen $deltakerId må være upsertet for å bruke denne funksjonen")
@@ -104,17 +102,15 @@ class DeltakerService(
             log.info("Fikk oppdatering på $deltakerId som skal låses fordi det er nyere deltakelse ${nyesteDeltakelse.id} på personen")
         }
 
-        val deltakelserSomSkalLaases =
-            deltakelserPaaPerson
-                .filter {
-                    it.id != nyesteDeltakelse.id ||
-                        nyesteDeltakelse.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
-                        nyesteDeltakelse.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-                }.filter { it.kanEndres }
+        val deltakelserSomSkalLaases = deltakelserPaaPerson
+            .filter {
+                it.id != nyesteDeltakelse.id ||
+                    nyesteDeltakelse.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
+                    nyesteDeltakelse.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+            }.filter { it.kanEndres }
 
-        val laasesMedAktivStatus =
-            deltakelserSomSkalLaases
-                .filter { it.status.type in AKTIVE_STATUSER }
+        val laasesMedAktivStatus = deltakelserSomSkalLaases
+            .filter { it.status.type in AKTIVE_STATUSER }
 
         if (laasesMedAktivStatus.isNotEmpty()) {
             throw IllegalStateException(
@@ -186,9 +182,8 @@ class DeltakerService(
         beforeUpsert: () -> Unit = {},
         afterUpsert: () -> Unit = {},
     ) {
-        val disableKanEndres =
-            deltakeroppdatering.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
-                deltakeroppdatering.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+        val disableKanEndres = deltakeroppdatering.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
+            deltakeroppdatering.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
 
         Database.transaction {
             beforeUpsert()

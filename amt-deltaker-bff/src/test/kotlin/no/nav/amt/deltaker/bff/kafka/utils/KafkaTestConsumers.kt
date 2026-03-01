@@ -10,12 +10,11 @@ fun stringStringConsumer(
     topic: String,
     block: suspend (k: String, v: String?) -> Unit,
 ): ManagedKafkaConsumer<String, String> {
-    val config =
-        LocalKafkaConfig(SingletonKafkaProvider.getHost()).consumerConfig(
-            keyDeserializer = StringDeserializer(),
-            valueDeserializer = StringDeserializer(),
-            groupId = "test-consumer-${UUID.randomUUID()}",
-        )
+    val config = LocalKafkaConfig(SingletonKafkaProvider.getHost()).consumerConfig(
+        keyDeserializer = StringDeserializer(),
+        valueDeserializer = StringDeserializer(),
+        groupId = "test-consumer-${UUID.randomUUID()}",
+    )
 
     return ManagedKafkaConsumer(
         topic = topic,

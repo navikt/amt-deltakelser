@@ -26,87 +26,79 @@ class DeltakerStatusRepositoryTest {
 
     @Nested
     inner class DeaktiverTidligereStatuserTests {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
 
         @BeforeEach
         fun setup() = TestRepository.insert(deltaker)
 
         @Test
-        fun `har fremtidig avsluttende status, deaktiverer ikke fremtidig status`() =
-            runTest {
-                val avsluttendeFremtidigStatus =
-                    lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        gyldigFra = LocalDateTime.now().plusDays(3),
-                    )
-                DeltakerStatusRepository.lagreStatus(deltaker.id, avsluttendeFremtidigStatus)
+        fun `har fremtidig avsluttende status, deaktiverer ikke fremtidig status`() = runTest {
+            val avsluttendeFremtidigStatus = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                gyldigFra = LocalDateTime.now().plusDays(3),
+            )
+            DeltakerStatusRepository.lagreStatus(deltaker.id, avsluttendeFremtidigStatus)
 
-                // act
-                DeltakerStatusRepository.deaktiverTidligereStatuser(
-                    deltakerId = deltaker.id,
-                    excludeStatusId = UUID.randomUUID(),
-                    erDeltakerSluttdatoEndret = false,
-                )
+            // act
+            DeltakerStatusRepository.deaktiverTidligereStatuser(
+                deltakerId = deltaker.id,
+                excludeStatusId = UUID.randomUUID(),
+                erDeltakerSluttdatoEndret = false,
+            )
 
-                // assert
-                DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
-                DeltakerStatusRepository.get(avsluttendeFremtidigStatus.id).gyldigTil.shouldBeNull()
-            }
+            // assert
+            DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
+            DeltakerStatusRepository.get(avsluttendeFremtidigStatus.id).gyldigTil.shouldBeNull()
+        }
 
         @Test
-        fun `har fremtidig avsluttende status, deaktiverer fremtidig status`() =
-            runTest {
-                val avsluttendeFremtidigStatus =
-                    lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        gyldigFra = LocalDateTime.now().plusDays(3),
-                    )
-                DeltakerStatusRepository.lagreStatus(deltaker.id, avsluttendeFremtidigStatus)
+        fun `har fremtidig avsluttende status, deaktiverer fremtidig status`() = runTest {
+            val avsluttendeFremtidigStatus = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                gyldigFra = LocalDateTime.now().plusDays(3),
+            )
+            DeltakerStatusRepository.lagreStatus(deltaker.id, avsluttendeFremtidigStatus)
 
-                // act
-                DeltakerStatusRepository.deaktiverTidligereStatuser(
-                    deltakerId = deltaker.id,
-                    excludeStatusId = UUID.randomUUID(),
-                    erDeltakerSluttdatoEndret = true,
-                )
+            // act
+            DeltakerStatusRepository.deaktiverTidligereStatuser(
+                deltakerId = deltaker.id,
+                excludeStatusId = UUID.randomUUID(),
+                erDeltakerSluttdatoEndret = true,
+            )
 
-                // assert
-                DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
-                DeltakerStatusRepository.get(avsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
-            }
+            // assert
+            DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
+            DeltakerStatusRepository.get(avsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
+        }
 
         @Test
-        fun `har fremtidig ikke-avsluttende status, deaktiverer fremtidig status`() =
-            runTest {
-                val ikkeAvsluttendeFremtidigStatus =
-                    lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-                        gyldigFra = LocalDateTime.now().plusDays(3),
-                    )
-                DeltakerStatusRepository.lagreStatus(deltaker.id, ikkeAvsluttendeFremtidigStatus)
+        fun `har fremtidig ikke-avsluttende status, deaktiverer fremtidig status`() = runTest {
+            val ikkeAvsluttendeFremtidigStatus = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+                gyldigFra = LocalDateTime.now().plusDays(3),
+            )
+            DeltakerStatusRepository.lagreStatus(deltaker.id, ikkeAvsluttendeFremtidigStatus)
 
-                // act
-                DeltakerStatusRepository.deaktiverTidligereStatuser(
-                    deltakerId = deltaker.id,
-                    excludeStatusId = UUID.randomUUID(),
-                    erDeltakerSluttdatoEndret = false,
-                )
+            // act
+            DeltakerStatusRepository.deaktiverTidligereStatuser(
+                deltakerId = deltaker.id,
+                excludeStatusId = UUID.randomUUID(),
+                erDeltakerSluttdatoEndret = false,
+            )
 
-                // assert
-                DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
-                DeltakerStatusRepository.get(ikkeAvsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
-            }
+            // assert
+            DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
+            DeltakerStatusRepository.get(ikkeAvsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
+        }
     }
 
     @Test
     fun `slettTidligereFremtidigeStatuser - skal slette fremtidige statuser`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+        )
         TestRepository.insert(deltaker)
 
         DeltakerStatusRepository.lagreStatus(

@@ -36,11 +36,10 @@ class EnkeltplassDeltakerConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer =
-        buildManagedKafkaConsumer(
-            topic = Environment.ENKELTPLASS_DELTAKER_TOPIC,
-            consumeFunc = ::consume,
-        )
+    private val consumer = buildManagedKafkaConsumer(
+        topic = Environment.ENKELTPLASS_DELTAKER_TOPIC,
+        consumeFunc = ::consume,
+    )
 
     suspend fun consume(
         key: UUID,
@@ -92,16 +91,14 @@ class EnkeltplassDeltakerConsumer(
             return
         }
 
-        val deltaker =
-            deltakerPayload.toDeltaker(
-                deltakerliste = deltakerliste,
-                navBruker = navBruker.getOrThrow(),
-                forrigeDeltakerStatus = eksisterendeDeltaker?.status,
-            )
+        val deltaker = deltakerPayload.toDeltaker(
+            deltakerliste = deltakerliste,
+            navBruker = navBruker.getOrThrow(),
+            forrigeDeltakerStatus = eksisterendeDeltaker?.status,
+        )
 
-        val erDeltakerSluttdatoEndret =
-            eksisterendeDeltaker != null &&
-                eksisterendeDeltaker.sluttdato != deltaker.sluttdato
+        val erDeltakerSluttdatoEndret = eksisterendeDeltaker != null &&
+            eksisterendeDeltaker.sluttdato != deltaker.sluttdato
 
         deltakerService
             .transactionalDeltakerUpsert(
@@ -121,10 +118,9 @@ class EnkeltplassDeltakerConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private fun Deltaker.toImportertData() =
-        ImportertFraArena(
-            deltakerId = id,
-            importertDato = LocalDateTime.now(), // Bruker current_timestamp i db
-            deltakerVedImport = this.toDeltakerVedImport(opprettet.toLocalDate()),
-        )
+    private fun Deltaker.toImportertData() = ImportertFraArena(
+        deltakerId = id,
+        importertDato = LocalDateTime.now(), // Bruker current_timestamp i db
+        deltakerVedImport = this.toDeltakerVedImport(opprettet.toLocalDate()),
+    )
 }

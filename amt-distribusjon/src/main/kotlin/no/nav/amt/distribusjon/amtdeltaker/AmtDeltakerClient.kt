@@ -22,10 +22,9 @@ class AmtDeltakerClient(
 
     suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
-        val response =
-            httpClient.get("$url/deltaker/$deltakerId") {
-                header(HttpHeaders.Authorization, token)
-            }
+        val response = httpClient.get("$url/deltaker/$deltakerId") {
+            header(HttpHeaders.Authorization, token)
+        }
 
         if (!response.status.isSuccess()) {
             error(

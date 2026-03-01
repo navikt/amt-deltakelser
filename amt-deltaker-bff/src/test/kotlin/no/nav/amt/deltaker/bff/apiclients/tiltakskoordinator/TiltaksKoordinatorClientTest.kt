@@ -55,12 +55,11 @@ class TiltaksKoordinatorClientTest {
     inner class GiAvslag {
         val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/gi-avslag"
         val expectedErrorMessage = "Kunne ikke gi avslag i amt-deltaker."
-        val avslagRequest =
-            AvslagRequest(
-                deltakerId = deltakerInTest.id,
-                EndringFraTiltakskoordinator.Avslag.Aarsak(EndringFraTiltakskoordinator.Avslag.Aarsak.Type.ANNET, null),
-                null,
-            )
+        val avslagRequest = AvslagRequest(
+            deltakerId = deltakerInTest.id,
+            EndringFraTiltakskoordinator.Avslag.Aarsak(EndringFraTiltakskoordinator.Avslag.Aarsak.Type.ANNET, null),
+            null,
+        )
         val giAvslagLambda: suspend (TiltaksKoordinatorClient) -> Deltakeroppdatering =
             { client ->
                 client.giAvslag(
@@ -94,12 +93,11 @@ class TiltaksKoordinatorClientTest {
             expectedError: String,
             block: suspend (TiltaksKoordinatorClient) -> Any,
         ) {
-            val thrown =
-                Assertions.assertThrows(exceptionType.java) {
-                    runBlocking {
-                        block(createTiltaksKoordinatorClient(expectedUrl, statusCode))
-                    }
+            val thrown = Assertions.assertThrows(exceptionType.java) {
+                runBlocking {
+                    block(createTiltaksKoordinatorClient(expectedUrl, statusCode))
                 }
+            }
             thrown.message shouldStartWith expectedError
         }
 

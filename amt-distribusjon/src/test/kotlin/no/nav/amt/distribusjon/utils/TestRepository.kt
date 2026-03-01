@@ -32,17 +32,16 @@ object TestRepository {
             ON CONFLICT (id) DO NOTHING
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to hendelse.id,
-                "deltaker_id" to hendelse.deltaker.id,
-                "deltaker" to toPGObject(hendelse.deltaker),
-                "ansvarlig" to toPGObject(hendelse.ansvarlig),
-                "payload" to toPGObject(hendelse.payload),
-                "distribusjonskanal" to hendelse.distribusjonskanal.name,
-                "manuelloppfolging" to hendelse.manuellOppfolging,
-                "created_at" to hendelse.opprettet,
-            )
+        val params = mapOf(
+            "id" to hendelse.id,
+            "deltaker_id" to hendelse.deltaker.id,
+            "deltaker" to toPGObject(hendelse.deltaker),
+            "ansvarlig" to toPGObject(hendelse.ansvarlig),
+            "payload" to toPGObject(hendelse.payload),
+            "distribusjonskanal" to hendelse.distribusjonskanal.name,
+            "manuelloppfolging" to hendelse.manuellOppfolging,
+            "created_at" to hendelse.opprettet,
+        )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }

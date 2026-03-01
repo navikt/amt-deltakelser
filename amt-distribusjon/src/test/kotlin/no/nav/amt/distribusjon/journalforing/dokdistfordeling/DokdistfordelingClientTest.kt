@@ -16,10 +16,9 @@ import java.util.UUID
 class DokdistfordelingClientTest : ClientTestBase() {
     @Test
     fun `skal returnere bestillingsId nar distribuerJournalpost kalles med gyldig respons`() {
-        val sut =
-            createDokdistfordelingClient(
-                responseBody = expectedResponse,
-            )
+        val sut = createDokdistfordelingClient(
+            responseBody = expectedResponse,
+        )
 
         val actualResponse = sut.runDistribuerJournalpostWithTestParams()
 
@@ -28,11 +27,10 @@ class DokdistfordelingClientTest : ClientTestBase() {
 
     @Test
     fun `skal returnere bestillingsId og logge warning nar distribuerJournalpost kalles med respons som returnerer 409 Conflict`() {
-        val sut =
-            createDokdistfordelingClient(
-                HttpStatusCode.Conflict,
-                responseBody = expectedResponse,
-            )
+        val sut = createDokdistfordelingClient(
+            HttpStatusCode.Conflict,
+            responseBody = expectedResponse,
+        )
 
         withLogCapture("no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient") { logEvents ->
             val actualResponse = sut.runDistribuerJournalpostWithTestParams()
@@ -45,11 +43,10 @@ class DokdistfordelingClientTest : ClientTestBase() {
 
     @Test
     fun `skal returnere null og logge warning nar distribuerJournalpost kalles med respons som returnerer 410 Gone`() {
-        val sut =
-            createDokdistfordelingClient(
-                HttpStatusCode.Gone,
-                responseBody = expectedResponse,
-            )
+        val sut = createDokdistfordelingClient(
+            HttpStatusCode.Gone,
+            responseBody = expectedResponse,
+        )
 
         withLogCapture("no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient") { logEvents ->
             val actualResponse = sut.runDistribuerJournalpostWithTestParams()
@@ -64,15 +61,13 @@ class DokdistfordelingClientTest : ClientTestBase() {
 
     @Test
     fun `skal kaste feil nar distribuerJournalpost kalles med response som returnerer feilkode forskjellig fra 409 og 410`() {
-        val sut =
-            createDokdistfordelingClient(
-                HttpStatusCode.BadGateway,
-            )
+        val sut = createDokdistfordelingClient(
+            HttpStatusCode.BadGateway,
+        )
 
-        val thrown =
-            shouldThrow<IllegalStateException> {
-                sut.runDistribuerJournalpostWithTestParams()
-            }
+        val thrown = shouldThrow<IllegalStateException> {
+            sut.runDistribuerJournalpostWithTestParams()
+        }
 
         thrown.message shouldStartWith "Distribuering av journalpost $JOURNAL_POST_ID feilet"
     }
@@ -81,12 +76,11 @@ class DokdistfordelingClientTest : ClientTestBase() {
         statusCode: HttpStatusCode = HttpStatusCode.OK,
         responseBody: DistribuerJournalpostResponse? = null,
     ) = DokdistfordelingClient(
-        httpClient =
-            createMockHttpClient(
-                expectedUrl = "http://localhost/rest/v1/distribuerjournalpost",
-                responseBody = responseBody,
-                statusCode = statusCode,
-            ),
+        httpClient = createMockHttpClient(
+            expectedUrl = "http://localhost/rest/v1/distribuerjournalpost",
+            responseBody = responseBody,
+            statusCode = statusCode,
+        ),
         azureAdTokenClient = mockAzureAdTokenClient,
         environment = testEnvironment,
     )
@@ -96,13 +90,12 @@ class DokdistfordelingClientTest : ClientTestBase() {
         private val bestillingsId: UUID = UUID.randomUUID()
         private val expectedResponse = DistribuerJournalpostResponse(bestillingsId)
 
-        private fun DokdistfordelingClient.runDistribuerJournalpostWithTestParams(): UUID? =
-            runBlocking {
-                distribuerJournalpost(
-                    journalpostId = JOURNAL_POST_ID,
-                    distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
-                    tvingSentralPrint = true,
-                )
-            }
+        private fun DokdistfordelingClient.runDistribuerJournalpostWithTestParams(): UUID? = runBlocking {
+            distribuerJournalpost(
+                journalpostId = JOURNAL_POST_ID,
+                distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
+                tvingSentralPrint = true,
+            )
+        }
     }
 }

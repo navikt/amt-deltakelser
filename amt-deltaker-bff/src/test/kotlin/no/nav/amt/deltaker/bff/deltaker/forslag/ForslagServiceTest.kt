@@ -23,13 +23,12 @@ class ForslagServiceTest {
     private val arrangorMeldingProducer = ArrangorMeldingProducer(TestOutboxEnvironment.outboxService)
 
     private val forslagRepository = ForslagRepository()
-    private val forslagService =
-        ForslagService(
-            forslagRepository = forslagRepository,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            arrangorMeldingProducer = arrangorMeldingProducer,
-        )
+    private val forslagService = ForslagService(
+        forslagRepository = forslagRepository,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        arrangorMeldingProducer = arrangorMeldingProducer,
+    )
 
     companion object {
         @RegisterExtension
@@ -37,26 +36,25 @@ class ForslagServiceTest {
     }
 
     @Test
-    fun `avvisForslag - produserer avvist forslag og sletter i db`(): Unit =
-        runBlocking {
-            val deltaker = TestData.lagDeltaker()
-            TestRepository.insert(deltaker)
-            val navAnsatt = TestData.lagNavAnsatt()
-            val navEnhet = TestData.lagNavEnhet()
-            coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent) } returns navAnsatt
-            coEvery { navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhet.enhetsnummer) } returns navEnhet
-            val opprinneligForslag = TestData.lagForslag(deltakerId = deltaker.id)
-            forslagRepository.upsert(opprinneligForslag)
-            val begrunnelseAvslag = "Avslått fordi.."
+    fun `avvisForslag - produserer avvist forslag og sletter i db`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker()
+        TestRepository.insert(deltaker)
+        val navAnsatt = TestData.lagNavAnsatt()
+        val navEnhet = TestData.lagNavEnhet()
+        coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent) } returns navAnsatt
+        coEvery { navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhet.enhetsnummer) } returns navEnhet
+        val opprinneligForslag = TestData.lagForslag(deltakerId = deltaker.id)
+        forslagRepository.upsert(opprinneligForslag)
+        val begrunnelseAvslag = "Avslått fordi.."
 
-            forslagService.avvisForslag(opprinneligForslag, begrunnelseAvslag, navAnsatt.navIdent, navEnhet.enhetsnummer)
+        forslagService.avvisForslag(opprinneligForslag, begrunnelseAvslag, navAnsatt.navIdent, navEnhet.enhetsnummer)
 
-            forslagRepository.get(opprinneligForslag.id).getOrNull() shouldBe null
+        forslagRepository.get(opprinneligForslag.id).getOrNull() shouldBe null
 
-            assertProduced(
-                opprinneligForslag.copy(
-                    status = Forslag.Status.Avvist(Forslag.NavAnsatt(navAnsatt.id, navEnhet.id), LocalDateTime.now(), begrunnelseAvslag),
-                ),
-            )
-        }
+        assertProduced(
+            opprinneligForslag.copy(
+                status = Forslag.Status.Avvist(Forslag.NavAnsatt(navAnsatt.id, navEnhet.id), LocalDateTime.now(), begrunnelseAvslag),
+            ),
+        )
+    }
 }

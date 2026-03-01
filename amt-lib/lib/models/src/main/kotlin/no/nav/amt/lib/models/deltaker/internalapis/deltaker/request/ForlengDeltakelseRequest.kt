@@ -11,9 +11,8 @@ data class ForlengDeltakelseRequest(
     val sluttdato: LocalDate,
     val begrunnelse: String?,
 ) : EndringForslagRequest {
-    override fun toEndring() =
-        DeltakerEndring.Endring.ForlengDeltakelse(
-            sluttdato = sluttdato,
-            begrunnelse = begrunnelse,
-        )
+    override fun toEndring() = DeltakerEndring.Endring.ForlengDeltakelse(
+        sluttdato = sluttdato,
+        begrunnelse = begrunnelse,
+    )
 }

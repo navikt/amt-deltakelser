@@ -62,33 +62,28 @@ object Persondata {
         navn: String = "NAV Fyrstikkaleen",
     ) = NavEnhet(id, enhetId, navn)
 
-    fun lagAdresse(): Adresse =
-        Adresse(
-            bostedsadresse =
-                Bostedsadresse(
-                    coAdressenavn = "C/O Gutterommet",
-                    vegadresse = null,
-                    matrikkeladresse =
-                        Matrikkeladresse(
-                            tilleggsnavn = "Gården",
-                            postnummer = "0484",
-                            poststed = "OSLO",
-                        ),
-                ),
-            oppholdsadresse = null,
-            kontaktadresse =
-                Kontaktadresse(
-                    coAdressenavn = null,
-                    vegadresse =
-                        Vegadresse(
-                            husnummer = "1",
-                            husbokstav = null,
-                            adressenavn = "Gate",
-                            tilleggsnavn = null,
-                            postnummer = "1234",
-                            poststed = "MOSS",
-                        ),
-                    postboksadresse = null,
-                ),
-        )
+    fun lagAdresse(): Adresse = Adresse(
+        bostedsadresse = Bostedsadresse(
+            coAdressenavn = "C/O Gutterommet",
+            vegadresse = null,
+            matrikkeladresse = Matrikkeladresse(
+                tilleggsnavn = "Gården",
+                postnummer = "0484",
+                poststed = "OSLO",
+            ),
+        ),
+        oppholdsadresse = null,
+        kontaktadresse = Kontaktadresse(
+            coAdressenavn = null,
+            vegadresse = Vegadresse(
+                husnummer = "1",
+                husbokstav = null,
+                adressenavn = "Gate",
+                tilleggsnavn = null,
+                postnummer = "1234",
+                poststed = "MOSS",
+            ),
+            postboksadresse = null,
+        ),
+    )
 }

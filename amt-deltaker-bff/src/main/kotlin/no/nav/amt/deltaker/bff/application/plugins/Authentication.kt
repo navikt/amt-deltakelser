@@ -27,15 +27,13 @@ enum class AuthLevel {
 }
 
 fun Application.configureAuthentication(environment: Environment) {
-    val azureJwkProvider =
-        JwkProviderBuilder(URI(environment.azureJwkKeysUrl).toURL())
-            .cached(5, 12, TimeUnit.HOURS)
-            .build()
+    val azureJwkProvider = JwkProviderBuilder(URI(environment.azureJwkKeysUrl).toURL())
+        .cached(5, 12, TimeUnit.HOURS)
+        .build()
 
-    val tokenXJwkProvider =
-        JwkProviderBuilder(URI(environment.tokenXJwksUrl).toURL())
-            .cached(5, 12, TimeUnit.HOURS)
-            .build()
+    val tokenXJwkProvider = JwkProviderBuilder(URI(environment.tokenXJwksUrl).toURL())
+        .cached(5, 12, TimeUnit.HOURS)
+        .build()
 
     fun JWTCredential.harRolle(rolle: UUID): Boolean {
         val navAnsattGroups = getListClaim("groups", UUID::class)
@@ -118,24 +116,21 @@ fun Application.configureAuthentication(environment: Environment) {
     }
 }
 
-fun ApplicationCall.getNavAnsattAzureId(): UUID =
-    this
-        .principal<JWTPrincipal>()
-        ?.get("oid")
-        ?.let { UUID.fromString(it) }
-        ?: throw AuthenticationException("NavAnsattAzureId mangler i JWTPrincipal")
+fun ApplicationCall.getNavAnsattAzureId(): UUID = this
+    .principal<JWTPrincipal>()
+    ?.get("oid")
+    ?.let { UUID.fromString(it) }
+    ?: throw AuthenticationException("NavAnsattAzureId mangler i JWTPrincipal")
 
-fun ApplicationCall.getNavIdent(): String =
-    this
-        .principal<JWTPrincipal>()
-        ?.get("NAVident")
-        ?: throw AuthenticationException("NAVident mangler i JWTPrincipal")
+fun ApplicationCall.getNavIdent(): String = this
+    .principal<JWTPrincipal>()
+    ?.get("NAVident")
+    ?: throw AuthenticationException("NAVident mangler i JWTPrincipal")
 
-fun ApplicationCall.getPersonIdent(): String =
-    this
-        .principal<JWTPrincipal>()
-        ?.get("pid")
-        ?: throw AuthenticationException("Pid mangler i JWTPrincipal")
+fun ApplicationCall.getPersonIdent(): String = this
+    .principal<JWTPrincipal>()
+    ?.get("pid")
+    ?: throw AuthenticationException("Pid mangler i JWTPrincipal")
 
 fun erMaskinTilMaskin(credentials: JWTCredential): Boolean {
     val sub: String = credentials.payload.getClaim("sub").asString()

@@ -22,39 +22,34 @@ import java.time.LocalDate
 class EndreAvslutningExtensionsTest {
     @Test
     fun `oppdaterDeltaker - endre avslutning til fullfort`() {
-        val deltaker =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
-                sluttdato = LocalDate.now().minusDays(3),
-                deltakerliste =
-                    TestData.lagDeltakerliste(
-                        pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-                        oppstart = Oppstartstype.FELLES,
-                    ),
-            )
-        val forslag =
-            TestData.lagForslag(
-                deltakerId = deltaker.id,
-                endring = Forslag.EndreAvslutning(aarsak = EndringAarsak.FattJobb, harDeltatt = true, harFullfort = true),
-            )
-        val endringsrequest =
-            EndreAvslutningRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-                begrunnelse = "begrunnelse",
-                harFullfort = true,
-                sluttdato = LocalDate.now().minusDays(1),
-                forslagId = forslag.id,
-            )
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
+            sluttdato = LocalDate.now().minusDays(3),
+            deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                oppstart = Oppstartstype.FELLES,
+            ),
+        )
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(aarsak = EndringAarsak.FattJobb, harDeltatt = true, harFullfort = true),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            harFullfort = true,
+            sluttdato = LocalDate.now().minusDays(1),
+            forslagId = forslag.id,
+        )
 
-        val resultat =
-            endringsrequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltaker,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.FULLFORT
@@ -64,39 +59,34 @@ class EndreAvslutningExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - endre avslutning til avbrutt`() {
-        val deltaker =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
-                sluttdato = LocalDate.now().minusDays(3),
-                deltakerliste =
-                    TestData.lagDeltakerliste(
-                        pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-                        oppstart = Oppstartstype.FELLES,
-                    ),
-            )
-        val forslag =
-            TestData.lagForslag(
-                deltakerId = deltaker.id,
-                endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, false),
-            )
-        val endringsrequest =
-            EndreAvslutningRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-                begrunnelse = "begrunnelse",
-                harFullfort = false,
-                sluttdato = LocalDate.now().minusDays(1),
-                forslagId = forslag.id,
-            )
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
+            sluttdato = LocalDate.now().minusDays(3),
+            deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                oppstart = Oppstartstype.FELLES,
+            ),
+        )
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, false),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            harFullfort = false,
+            sluttdato = LocalDate.now().minusDays(1),
+            forslagId = forslag.id,
+        )
 
-        val resultat =
-            endringsrequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltaker,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.AVBRUTT
@@ -108,34 +98,30 @@ class EndreAvslutningExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - endre avslutning ingen endring - gir erVellykket false`() {
-        val deltaker =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
-                sluttdato = LocalDate.now().minusDays(3),
-            )
-        val forslag =
-            TestData.lagForslag(
-                deltakerId = deltaker.id,
-                endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, true),
-            )
-        val endringsrequest =
-            EndreAvslutningRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                aarsak = null,
-                begrunnelse = "begrunnelse",
-                harFullfort = true,
-                sluttdato = deltaker.sluttdato,
-                forslagId = forslag.id,
-            )
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
+            sluttdato = LocalDate.now().minusDays(3),
+        )
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, true),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            aarsak = null,
+            begrunnelse = "begrunnelse",
+            harFullfort = true,
+            sluttdato = deltaker.sluttdato,
+            forslagId = forslag.id,
+        )
 
-        val resultat =
-            endringsrequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltaker,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                )
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            )
 
         resultat.shouldBeFailure()
     }

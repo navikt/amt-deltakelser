@@ -28,21 +28,19 @@ object KafkaConsumerFactory {
         kafkaAutoOffsetReset: String = AUTO_OFFSET_RESET_EARLIEST, // alt: AUTO_OFFSET_RESET_LATEST
         consumeFunc: suspend (key: UUID, value: String?) -> Unit,
     ): ManagedKafkaConsumer<UUID, String?> {
-        val kafkaConfig =
-            if (Environment.isLocal()) {
-                LocalKafkaConfig(kafkaAutoOffsetReset = kafkaAutoOffsetReset)
-            } else {
-                KafkaConfigImpl(autoOffsetReset = kafkaAutoOffsetReset)
-            }
+        val kafkaConfig = if (Environment.isLocal()) {
+            LocalKafkaConfig(kafkaAutoOffsetReset = kafkaAutoOffsetReset)
+        } else {
+            KafkaConfigImpl(autoOffsetReset = kafkaAutoOffsetReset)
+        }
 
         return ManagedKafkaConsumer(
             topic = topic,
-            config =
-                kafkaConfig.consumerConfig(
-                    keyDeserializer = UUIDDeserializer(),
-                    valueDeserializer = StringDeserializer(),
-                    groupId = consumerGroupId,
-                ),
+            config = kafkaConfig.consumerConfig(
+                keyDeserializer = UUIDDeserializer(),
+                valueDeserializer = StringDeserializer(),
+                groupId = consumerGroupId,
+            ),
             consume = consumeFunc,
         )
     }

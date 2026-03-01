@@ -35,29 +35,26 @@ class DeltakerRepositoryTest {
         fun `skal returnere failure hvis ingen deltakere`() {
             TestRepository.insert(deltakerliste)
 
-            val kladdResult =
-                deltakerRepository.getKladdForDeltakerliste(
-                    deltakerlisteId = deltakerliste.id,
-                    personident = "~personident~",
-                )
+            val kladdResult = deltakerRepository.getKladdForDeltakerliste(
+                deltakerlisteId = deltakerliste.id,
+                personident = "~personident~",
+            )
 
             kladdResult.shouldBeFailure()
         }
 
         @Test
         fun `skal returnere success hvis kladd finnes`() {
-            val deltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                    deltakerliste = deltakerliste,
-                )
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                deltakerliste = deltakerliste,
+            )
             TestRepository.insert(deltaker)
 
-            val kladdResult =
-                deltakerRepository.getKladdForDeltakerliste(
-                    deltakerlisteId = deltakerliste.id,
-                    personident = deltaker.navBruker.personident,
-                )
+            val kladdResult = deltakerRepository.getKladdForDeltakerliste(
+                deltakerlisteId = deltakerliste.id,
+                personident = deltaker.navBruker.personident,
+            )
 
             kladdResult.shouldBeSuccess()
         }
@@ -203,13 +200,12 @@ class DeltakerRepositoryTest {
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
-            val oppdatertDeltaker =
-                deltaker.copy(
-                    startdato = LocalDate.now().plusWeeks(1),
-                    sluttdato = LocalDate.now().plusWeeks(5),
-                    dagerPerUke = 1F,
-                    deltakelsesprosent = 20F,
-                )
+            val oppdatertDeltaker = deltaker.copy(
+                startdato = LocalDate.now().plusWeeks(1),
+                sluttdato = LocalDate.now().plusWeeks(5),
+                dagerPerUke = 1F,
+                deltakelsesprosent = 20F,
+            )
 
             deltakerRepository.upsert(oppdatertDeltaker)
 
@@ -224,20 +220,18 @@ class DeltakerRepositoryTest {
     inner class SkalHaAvsluttendeStatusTests {
         @Test
         fun `deltar, sluttdato passert - returnerer deltaker`() {
-            val deltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                    startdato = LocalDate.now().minusDays(10),
-                    sluttdato = LocalDate.now().plusWeeks(2),
-                )
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                startdato = LocalDate.now().minusDays(10),
+                sluttdato = LocalDate.now().plusWeeks(2),
+            )
             TestRepository.insert(deltaker)
 
-            val oppdatertDeltaker =
-                deltaker.copy(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                    startdato = LocalDate.now().minusDays(10),
-                    sluttdato = LocalDate.now().minusDays(1),
-                )
+            val oppdatertDeltaker = deltaker.copy(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                startdato = LocalDate.now().minusDays(10),
+                sluttdato = LocalDate.now().minusDays(1),
+            )
             deltakerRepository.upsert(oppdatertDeltaker)
 
             val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.getDeltakereHvorSluttdatoHarPassert()
@@ -248,12 +242,11 @@ class DeltakerRepositoryTest {
 
         @Test
         fun `venter pa oppstart, sluttdato mangler - returnerer ikke deltaker`() {
-            val deltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                    startdato = LocalDate.now().minusDays(10),
-                    sluttdato = null,
-                )
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                startdato = LocalDate.now().minusDays(10),
+                sluttdato = null,
+            )
             TestRepository.insert(deltaker)
 
             val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.getDeltakereHvorSluttdatoHarPassert()
@@ -266,13 +259,12 @@ class DeltakerRepositoryTest {
     inner class DeltarPaAvsluttetDeltakerlisteTests {
         @Test
         fun `deltar, dl-sluttdato passert - returnerer deltaker`() {
-            val deltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                    startdato = LocalDate.now().minusDays(10),
-                    sluttdato = LocalDate.now().plusDays(2),
-                    deltakerliste = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
-                )
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                startdato = LocalDate.now().minusDays(10),
+                sluttdato = LocalDate.now().plusDays(2),
+                deltakerliste = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
+            )
             TestRepository.insert(deltaker)
 
             val deltakerePaAvsluttetDeltakerliste = deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste()
@@ -283,13 +275,12 @@ class DeltakerRepositoryTest {
 
         @Test
         fun `har sluttet, dl-sluttdato passert - returnerer ikke deltaker`() {
-            val deltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                    startdato = LocalDate.now().minusDays(10),
-                    sluttdato = LocalDate.now(),
-                    deltakerliste = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
-                )
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+                startdato = LocalDate.now().minusDays(10),
+                sluttdato = LocalDate.now(),
+                deltakerliste = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
+            )
             TestRepository.insert(deltaker)
 
             val deltakerePaAvsluttetDeltakerliste = deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste()

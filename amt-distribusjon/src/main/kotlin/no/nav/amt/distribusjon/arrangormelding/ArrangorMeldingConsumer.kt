@@ -23,17 +23,15 @@ class ArrangorMeldingConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer =
-        ManagedKafkaConsumer(
-            topic = Environment.ARRANGOR_MELDING_TOPIC,
-            config =
-                kafkaConfig.consumerConfig(
-                    keyDeserializer = UUIDDeserializer(),
-                    valueDeserializer = StringDeserializer(),
-                    groupId = groupId,
-                ),
-            consume = ::consume,
-        )
+    private val consumer = ManagedKafkaConsumer(
+        topic = Environment.ARRANGOR_MELDING_TOPIC,
+        config = kafkaConfig.consumerConfig(
+            keyDeserializer = UUIDDeserializer(),
+            valueDeserializer = StringDeserializer(),
+            groupId = groupId,
+        ),
+        consume = ::consume,
+    )
 
     suspend fun consume(
         key: UUID,

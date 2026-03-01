@@ -9,8 +9,7 @@ data class FjernOppstartsdatoRequest(
     override val forslagId: UUID?,
     val begrunnelse: String?,
 ) : EndringForslagRequest {
-    override fun toEndring() =
-        DeltakerEndring.Endring.FjernOppstartsdato(
-            begrunnelse = this.begrunnelse,
-        )
+    override fun toEndring() = DeltakerEndring.Endring.FjernOppstartsdato(
+        begrunnelse = this.begrunnelse,
+    )
 }

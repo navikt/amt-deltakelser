@@ -27,72 +27,65 @@ class NavEnhetServiceTest {
     }
 
     @Test
-    fun `hentOpprettEllerOppdaterNavEnhet - navenhet finnes i db - henter fra db`() =
-        runTest {
-            val navEnhet = TestData.lagNavEnhet()
-            navEnhetRepository.upsert(navEnhet)
+    fun `hentOpprettEllerOppdaterNavEnhet - navenhet finnes i db - henter fra db`() = runTest {
+        val navEnhet = TestData.lagNavEnhet()
+        navEnhetRepository.upsert(navEnhet)
 
-            val navEnhetFraDb = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhet.enhetsnummer)
-            navEnhetFraDb shouldBe navEnhet
-        }
-
-    @Test
-    fun `hentOpprettEllerOppdaterNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() =
-        runTest {
-            val navEnhetResponse = TestData.lagNavEnhet()
-            MockResponseHandler.addNavEnhetPostResponse(navEnhetResponse)
-
-            val navEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhetResponse.enhetsnummer)
-
-            navEnhet shouldBe navEnhetResponse
-            navEnhetRepository.get(navEnhetResponse.enhetsnummer)?.toNavEnhet() shouldBe navEnhetResponse
-        }
+        val navEnhetFraDb = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhet.enhetsnummer)
+        navEnhetFraDb shouldBe navEnhet
+    }
 
     @Test
-    fun `hentOpprettEllerOppdaterNavEnhet - utdatert navenhet finnes i db - henter fra personservice og oppdaterer`() =
-        runTest {
-            val opprinneligNavEnhet = TestData.lagNavEnhet()
-            TestRepository.insert(
-                navEnhet = opprinneligNavEnhet,
-                sistEndret = LocalDateTime.now().minusMonths(2),
-            )
+    fun `hentOpprettEllerOppdaterNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() = runTest {
+        val navEnhetResponse = TestData.lagNavEnhet()
+        MockResponseHandler.addNavEnhetPostResponse(navEnhetResponse)
 
-            val navEnhetResponse = opprinneligNavEnhet.copy(navn = "Oppdater navn")
-            MockResponseHandler.addNavEnhetPostResponse(navEnhetResponse)
+        val navEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhetResponse.enhetsnummer)
 
-            val navEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhetResponse.enhetsnummer)
+        navEnhet shouldBe navEnhetResponse
+        navEnhetRepository.get(navEnhetResponse.enhetsnummer)?.toNavEnhet() shouldBe navEnhetResponse
+    }
 
-            navEnhet shouldBe navEnhetResponse
-            navEnhetRepository.get(navEnhetResponse.enhetsnummer)?.toNavEnhet() shouldBe navEnhetResponse
-        }
+    @Test
+    fun `hentOpprettEllerOppdaterNavEnhet - utdatert navenhet finnes i db - henter fra personservice og oppdaterer`() = runTest {
+        val opprinneligNavEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(
+            navEnhet = opprinneligNavEnhet,
+            sistEndret = LocalDateTime.now().minusMonths(2),
+        )
+
+        val navEnhetResponse = opprinneligNavEnhet.copy(navn = "Oppdater navn")
+        MockResponseHandler.addNavEnhetPostResponse(navEnhetResponse)
+
+        val navEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhetResponse.enhetsnummer)
+
+        navEnhet shouldBe navEnhetResponse
+        navEnhetRepository.get(navEnhetResponse.enhetsnummer)?.toNavEnhet() shouldBe navEnhetResponse
+    }
 
     @Test
     fun `hentEnheterForHistorikk - historikk endret av flere ansatte - returnerer alle enheter`() {
         val deltaker = TestData.lagDeltaker()
-        val vedtak =
-            TestData.lagVedtak(
-                deltakerVedVedtak = deltaker,
-                fattet = LocalDateTime.now(),
-                fattetAvNav = true,
-            )
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            fattet = LocalDateTime.now(),
+            fattetAvNav = true,
+        )
         val deltakerEndring = TestData.lagDeltakerEndring(deltakerId = deltaker.id)
-        val forslag =
-            TestData.lagForslag(
-                deltakerId = deltaker.id,
-                status =
-                    Forslag.Status.Avvist(
-                        avvistAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-                        avvist = LocalDateTime.now(),
-                        begrunnelseFraNav = "Begrunnelse",
-                    ),
-            )
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            status = Forslag.Status.Avvist(
+                avvistAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                avvist = LocalDateTime.now(),
+                begrunnelseFraNav = "Begrunnelse",
+            ),
+        )
 
-        val historikk =
-            listOf(
-                DeltakerHistorikk.Endring(deltakerEndring),
-                DeltakerHistorikk.Vedtak(vedtak),
-                DeltakerHistorikk.Forslag(forslag),
-            )
+        val historikk = listOf(
+            DeltakerHistorikk.Endring(deltakerEndring),
+            DeltakerHistorikk.Vedtak(vedtak),
+            DeltakerHistorikk.Forslag(forslag),
+        )
 
         val enheter = TestData.lagNavEnheterForHistorikk(historikk)
 
@@ -110,10 +103,9 @@ class NavEnhetServiceTest {
         val deltaker = TestData.lagDeltaker()
         val endring = TestData.lagEndringFraTiltakskoordinator()
 
-        val historikk =
-            listOf(
-                DeltakerHistorikk.EndringFraTiltakskoordinator(endring),
-            )
+        val historikk = listOf(
+            DeltakerHistorikk.EndringFraTiltakskoordinator(endring),
+        )
 
         TestRepository.insert(deltaker)
         MockResponseHandler.addNavEnhetGetResponse(TestData.lagNavEnhet(id = endring.endretAvEnhet))

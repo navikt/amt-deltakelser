@@ -27,10 +27,9 @@ class AmtDeltakerClient(
     ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse =
-        performGet("deltaker/$deltakerId")
-            .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
-            .body()
+    suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse = performGet("deltaker/$deltakerId")
+        .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
+        .body()
 
     suspend fun sistBesokt(
         deltakerId: UUID,
@@ -48,10 +47,9 @@ class AmtDeltakerClient(
     suspend fun postEndreDeltaker(
         deltakerId: UUID,
         requestBody: EndringRequest,
-    ): DeltakerEndringResponse =
-        performPost("deltaker/$deltakerId/$ENDRE_DELTAKER_URL_SEGMENT", requestBody)
-            .failIfNotSuccess("Kunne ikke oppdatere deltaker $deltakerId med ${requestBody::class.java.simpleName} i amt-deltaker")
-            .body()
+    ): DeltakerEndringResponse = performPost("deltaker/$deltakerId/$ENDRE_DELTAKER_URL_SEGMENT", requestBody)
+        .failIfNotSuccess("Kunne ikke oppdatere deltaker $deltakerId med ${requestBody::class.java.simpleName} i amt-deltaker")
+        .body()
 
     companion object Endepunkt {
         const val ENDRE_DELTAKER_URL_SEGMENT = "endre-deltaker"

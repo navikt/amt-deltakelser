@@ -21,11 +21,10 @@ object DeltakerUtils {
         opprettet = LocalDateTime.now(),
     )
 
-    private fun EndringFraTiltakskoordinator.Avslag.Aarsak.toDeltakerStatusAarsak() =
-        DeltakerStatus.Aarsak(
-            type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),
-            beskrivelse = beskrivelse,
-        )
+    private fun EndringFraTiltakskoordinator.Avslag.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(
+        type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),
+        beskrivelse = beskrivelse,
+    )
 
     fun sjekkEndringUtfall(
         deltaker: Deltaker,
@@ -81,13 +80,12 @@ object DeltakerUtils {
 
             is EndringFraTiltakskoordinator.Avslag -> {
                 createResult(
-                    deltaker.status.type in
-                        listOf(
-                            DeltakerStatus.Type.SOKT_INN,
-                            DeltakerStatus.Type.VURDERES,
-                            DeltakerStatus.Type.VENTELISTE,
-                            DeltakerStatus.Type.VENTER_PA_OPPSTART,
-                        ),
+                    deltaker.status.type in listOf(
+                        DeltakerStatus.Type.SOKT_INN,
+                        DeltakerStatus.Type.VURDERES,
+                        DeltakerStatus.Type.VENTELISTE,
+                        DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                    ),
                 ) {
                     deltaker.copy(
                         status = nyDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),

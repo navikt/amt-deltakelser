@@ -27,26 +27,25 @@ class SlettUtdatertKladdJob(
     private val job = Job()
     private val scope = CoroutineScope(Dispatchers.IO + job)
 
-    fun startJob(): Timer =
-        fixedRateTimer(
-            name = this.javaClass.simpleName,
-            initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
-            period = Duration.of(1, ChronoUnit.DAYS).toMillis(),
-        ) {
-            scope.launch {
-                if (leaderElection.isLeader() && attributes.getOrNull(isReadyKey) == true) {
-                    val sistEndretGrense = LocalDateTime.now().minusWeeks(2)
-                    try {
-                        log.info("Kjører jobb for å slette utdaterte kladder")
-                        val kladderSomSkalSlettes = deltakerRepository.getUtdaterteKladder(sistEndretGrense)
-                        kladderSomSkalSlettes.forEach {
-                            pameldingService.slettKladd(it)
-                        }
-                        log.info("Ferdig med å slette ${kladderSomSkalSlettes.size} kladder")
-                    } catch (e: Exception) {
-                        log.error("Noe gikk galt ved sletting av utdaterte kladder", e)
+    fun startJob(): Timer = fixedRateTimer(
+        name = this.javaClass.simpleName,
+        initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
+        period = Duration.of(1, ChronoUnit.DAYS).toMillis(),
+    ) {
+        scope.launch {
+            if (leaderElection.isLeader() && attributes.getOrNull(isReadyKey) == true) {
+                val sistEndretGrense = LocalDateTime.now().minusWeeks(2)
+                try {
+                    log.info("Kjører jobb for å slette utdaterte kladder")
+                    val kladderSomSkalSlettes = deltakerRepository.getUtdaterteKladder(sistEndretGrense)
+                    kladderSomSkalSlettes.forEach {
+                        pameldingService.slettKladd(it)
                     }
+                    log.info("Ferdig med å slette ${kladderSomSkalSlettes.size} kladder")
+                } catch (e: Exception) {
+                    log.error("Noe gikk galt ved sletting av utdaterte kladder", e)
                 }
             }
         }
+    }
 }

@@ -34,15 +34,14 @@ class TilgangskontrollService(
         navAnsattAzureId: UUID,
         norskIdent: String,
     ) {
-        val tilgang =
-            poaoTilgangCachedClient
-                .evaluatePolicy(
-                    NavAnsattTilgangTilEksternBrukerPolicyInput(
-                        navAnsattAzureId,
-                        TilgangType.SKRIVE,
-                        norskIdent,
-                    ),
-                ).getOrDefault(Decision.Deny("Ansatt har ikke skrivetilgang til bruker", ""))
+        val tilgang = poaoTilgangCachedClient
+            .evaluatePolicy(
+                NavAnsattTilgangTilEksternBrukerPolicyInput(
+                    navAnsattAzureId,
+                    TilgangType.SKRIVE,
+                    norskIdent,
+                ),
+            ).getOrDefault(Decision.Deny("Ansatt har ikke skrivetilgang til bruker", ""))
 
         if (tilgang.isDeny) {
             throw AuthorizationException("Ansatt har ikke skrivetilgang til bruker")
@@ -54,10 +53,9 @@ class TilgangskontrollService(
         deltakerlisteId: UUID,
         navIdent: String,
     ) {
-        val deltakere =
-            tiltakskoordinatorService
-                .getMany(deltakerIder)
-                .filter { it.deltakerliste.id == deltakerlisteId }
+        val deltakere = tiltakskoordinatorService
+            .getMany(deltakerIder)
+            .filter { it.deltakerliste.id == deltakerlisteId }
         val noenKanIkkeEndres = deltakere.any { !it.kanEndres }
 
         verifiserTiltakskoordinatorTilgang(navIdent, deltakerlisteId)
@@ -84,15 +82,14 @@ class TilgangskontrollService(
         navAnsattAzureId: UUID,
         norskIdent: String,
     ) {
-        val tilgang =
-            poaoTilgangCachedClient
-                .evaluatePolicy(
-                    NavAnsattTilgangTilEksternBrukerPolicyInput(
-                        navAnsattAzureId,
-                        TilgangType.LESE,
-                        norskIdent,
-                    ),
-                ).getOrDefault(Decision.Deny("Ansatt har ikke lesetilgang til bruker", ""))
+        val tilgang = poaoTilgangCachedClient
+            .evaluatePolicy(
+                NavAnsattTilgangTilEksternBrukerPolicyInput(
+                    navAnsattAzureId,
+                    TilgangType.LESE,
+                    norskIdent,
+                ),
+            ).getOrDefault(Decision.Deny("Ansatt har ikke lesetilgang til bruker", ""))
 
         if (tilgang.isDeny) {
             throw AuthorizationException("Ansatt har ikke lesetilgang til bruker")
@@ -103,11 +100,10 @@ class TilgangskontrollService(
         rekvirentPersonident: String,
         ressursPersonident: String,
     ) {
-        val tilgang =
-            poaoTilgangCachedClient
-                .evaluatePolicy(
-                    EksternBrukerTilgangTilEksternBrukerPolicyInput(rekvirentPersonident, ressursPersonident),
-                ).getOrDefault(Decision.Deny("Innbygger har ikke tilgang til deltaker", ""))
+        val tilgang = poaoTilgangCachedClient
+            .evaluatePolicy(
+                EksternBrukerTilgangTilEksternBrukerPolicyInput(rekvirentPersonident, ressursPersonident),
+            ).getOrDefault(Decision.Deny("Innbygger har ikke tilgang til deltaker", ""))
 
         if (tilgang.isDeny) {
             throw AuthorizationException("Innbygger har ikke tilgang til deltaker")
@@ -137,30 +133,24 @@ class TilgangskontrollService(
     private fun vurderSkjermingTilgang(
         navBruker: NavBruker,
         navAnsattAzureId: UUID,
-    ): Decision =
-        if (navBruker.erSkjermet) {
-            poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId)).getOrThrow()
-        } else {
-            Decision.Permit
-        }
+    ): Decision = if (navBruker.erSkjermet) {
+        poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId)).getOrThrow()
+    } else {
+        Decision.Permit
+    }
 
     private fun vurderAdressebeskyttelseTilgang(
         adressebeskyttelse: Adressebeskyttelse?,
         navAnsattAzureId: UUID,
-    ): Decision =
-        when (adressebeskyttelse) {
-            Adressebeskyttelse.FORTROLIG -> {
-                poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
-            }
+    ): Decision = when (adressebeskyttelse) {
+        Adressebeskyttelse.FORTROLIG ->
+            poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
 
-            Adressebeskyttelse.STRENGT_FORTROLIG, Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND -> {
-                poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
-            }
+        Adressebeskyttelse.STRENGT_FORTROLIG, Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND ->
+            poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
 
-            else -> {
-                Decision.Permit
-            }
-        }
+        else -> Decision.Permit
+    }
 
     suspend fun leggTilTiltakskoordinatorTilgang(
         navIdent: String,
@@ -197,15 +187,14 @@ class TilgangskontrollService(
     ): Result<TiltakskoordinatorDeltakerlisteTilgang> {
         val koordinatorAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navIdent)
 
-        val tilgang =
-            tiltakskoordinatorTilgangRepository
-                .hentAktivTilgang(koordinatorAnsatt.id, deltakerlisteId)
-                .getOrElse {
-                    log.error("Ingen aktiv tilgang funnet for ${koordinatorAnsatt.id} / $deltakerlisteId", it)
-                    return Result.failure(
-                        IllegalArgumentException("Nav-ansatt ${koordinatorAnsatt.id} har ikke tilgang til $deltakerlisteId"),
-                    )
-                }
+        val tilgang = tiltakskoordinatorTilgangRepository
+            .hentAktivTilgang(koordinatorAnsatt.id, deltakerlisteId)
+            .getOrElse {
+                log.error("Ingen aktiv tilgang funnet for ${koordinatorAnsatt.id} / $deltakerlisteId", it)
+                return Result.failure(
+                    IllegalArgumentException("Nav-ansatt ${koordinatorAnsatt.id} har ikke tilgang til $deltakerlisteId"),
+                )
+            }
 
         return stengTiltakskoordinatorTilgang(tilgang)
     }
@@ -213,17 +202,16 @@ class TilgangskontrollService(
     private fun upsertTilgang(
         navIdent: String,
         tilgang: TiltakskoordinatorDeltakerlisteTilgang,
-    ): Result<TiltakskoordinatorDeltakerlisteTilgang> =
-        tiltakskoordinatorTilgangRepository
-            .upsert(tilgang)
-            .onSuccess { tilgang ->
-                tiltakskoordinatorsDeltakerlisteProducer.produce(
-                    TiltakskoordinatorsDeltakerlisteDto.fromModel(
-                        model = tilgang,
-                        navIdent = navIdent,
-                    ),
-                )
-            }
+    ): Result<TiltakskoordinatorDeltakerlisteTilgang> = tiltakskoordinatorTilgangRepository
+        .upsert(tilgang)
+        .onSuccess { tilgang ->
+            tiltakskoordinatorsDeltakerlisteProducer.produce(
+                TiltakskoordinatorsDeltakerlisteDto.fromModel(
+                    model = tilgang,
+                    navIdent = navIdent,
+                ),
+            )
+        }
 
     fun stengTiltakskoordinatorTilgang(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> {
         val tilgang = tiltakskoordinatorTilgangRepository.get(id).getOrThrow()
@@ -233,20 +221,19 @@ class TilgangskontrollService(
 
     private fun stengTiltakskoordinatorTilgang(
         tilgang: TiltakskoordinatorDeltakerlisteTilgang,
-    ): Result<TiltakskoordinatorDeltakerlisteTilgang> =
-        if (tilgang.gyldigTil == null) {
-            tiltakskoordinatorTilgangRepository
-                .upsert(tilgang.copy(gyldigTil = LocalDateTime.now()))
-                .onSuccess { tilgang ->
-                    log.info("Stengte tiltakskoordinators tilgang ${tilgang.id}")
-                    tiltakskoordinatorsDeltakerlisteProducer.produceTombstone(tilgang.id)
-                }
-        } else {
-            log.warn("Kan ikke stenge tiltakskoordinatortilgang som allerede er stengt ${tilgang.id}")
-            Result.failure(
-                IllegalArgumentException("Kan ikke stenge tiltakskoordinatortilgang som allerede er stengt ${tilgang.id}"),
-            )
-        }
+    ): Result<TiltakskoordinatorDeltakerlisteTilgang> = if (tilgang.gyldigTil == null) {
+        tiltakskoordinatorTilgangRepository
+            .upsert(tilgang.copy(gyldigTil = LocalDateTime.now()))
+            .onSuccess { tilgang ->
+                log.info("Stengte tiltakskoordinators tilgang ${tilgang.id}")
+                tiltakskoordinatorsDeltakerlisteProducer.produceTombstone(tilgang.id)
+            }
+    } else {
+        log.warn("Kan ikke stenge tiltakskoordinatortilgang som allerede er stengt ${tilgang.id}")
+        Result.failure(
+            IllegalArgumentException("Kan ikke stenge tiltakskoordinatortilgang som allerede er stengt ${tilgang.id}"),
+        )
+    }
 
     suspend fun verifiserTiltakskoordinatorTilgang(
         navIdent: String,

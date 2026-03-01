@@ -12,10 +12,9 @@ data class AvbrytDeltakelseRequest(
     val aarsak: DeltakerEndring.Aarsak,
     val begrunnelse: String?,
 ) : EndringForslagRequest {
-    override fun toEndring() =
-        DeltakerEndring.Endring.AvbrytDeltakelse(
-            aarsak = aarsak,
-            sluttdato = sluttdato,
-            begrunnelse = begrunnelse,
-        )
+    override fun toEndring() = DeltakerEndring.Endring.AvbrytDeltakelse(
+        aarsak = aarsak,
+        sluttdato = sluttdato,
+        begrunnelse = begrunnelse,
+    )
 }

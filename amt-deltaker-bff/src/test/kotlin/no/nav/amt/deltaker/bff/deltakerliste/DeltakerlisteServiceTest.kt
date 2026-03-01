@@ -70,22 +70,19 @@ class DeltakerlisteServiceTest {
 
 data class DeltakerlisteContext(
     val tiltak: Tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-    var deltakerliste: Deltakerliste =
-        TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltak),
-            oppstart =
-                if (tiltak in
-                    setOf(
-                        Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                        Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-                        Tiltakskode.JOBBKLUBB,
-                    )
-                ) {
-                    Oppstartstype.FELLES
-                } else {
-                    Oppstartstype.LOPENDE
-                },
-        ),
+    var deltakerliste: Deltakerliste = TestData.lagDeltakerliste(
+        tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltak),
+        oppstart = if (tiltak in setOf(
+                Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+                Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+                Tiltakskode.JOBBKLUBB,
+            )
+        ) {
+            Oppstartstype.FELLES
+        } else {
+            Oppstartstype.LOPENDE
+        },
+    ),
 ) {
     val repository = DeltakerlisteRepository()
 
@@ -94,12 +91,11 @@ data class DeltakerlisteContext(
     }
 
     fun medAvsluttetDeltakerliste() {
-        deltakerliste =
-            deltakerliste.copy(
-                status = GjennomforingStatusType.AVSLUTTET,
-                startDato = LocalDate.now().minusMonths(3),
-                sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
-            )
+        deltakerliste = deltakerliste.copy(
+            status = GjennomforingStatusType.AVSLUTTET,
+            startDato = LocalDate.now().minusMonths(3),
+            sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
+        )
 
         repository.upsert(deltakerliste)
     }

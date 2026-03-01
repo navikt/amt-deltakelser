@@ -105,49 +105,46 @@ class DeltakerStatusOppdateringTest {
         )
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val vurderingService = VurderingService(vurderingRepository)
-    private val hendelseService =
-        HendelseService(
-            HendelseProducer(TestOutboxEnvironment.outboxService),
-            navAnsattRepository,
-            navAnsattService,
-            navEnhetRepository,
-            navEnhetService,
-            arrangorService,
-            deltakerHistorikkService,
-            vurderingService,
-            unleashToggle,
-        )
+    private val hendelseService = HendelseService(
+        HendelseProducer(TestOutboxEnvironment.outboxService),
+        navAnsattRepository,
+        navAnsattService,
+        navEnhetRepository,
+        navEnhetService,
+        arrangorService,
+        deltakerHistorikkService,
+        vurderingService,
+        unleashToggle,
+    )
     private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducerService)
 
-    private val deltakerEndringService =
-        DeltakerEndringService(
-            deltakerEndringRepository = deltakerEndringRepository,
-            navAnsattRepository = navAnsattRepository,
-            navEnhetRepository = navEnhetRepository,
-            hendelseService = hendelseService,
-            forslagService = forslagService,
-            deltakerHistorikkService = deltakerHistorikkService,
-        )
+    private val deltakerEndringService = DeltakerEndringService(
+        deltakerEndringRepository = deltakerEndringRepository,
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        hendelseService = hendelseService,
+        forslagService = forslagService,
+        deltakerHistorikkService = deltakerHistorikkService,
+    )
     private val vedtakService = VedtakService(vedtakRepository)
     private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
-    private val deltakerService =
-        DeltakerService(
-            deltakerRepository = deltakerRepository,
-            deltakerEndringRepository = deltakerEndringRepository,
-            deltakerEndringService = deltakerEndringService,
-            deltakerProducerService = deltakerProducerService,
-            vedtakRepository = vedtakRepository,
-            vedtakService = vedtakService,
-            hendelseService = hendelseService,
-            endringFraArrangorRepository = endringFraArrangorRepository,
-            forslagRepository = forslagRepository,
-            importertFraArenaRepository = importertFraArenaRepository,
-            deltakerHistorikkService = deltakerHistorikkService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
-        )
+    private val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        deltakerEndringRepository = deltakerEndringRepository,
+        deltakerEndringService = deltakerEndringService,
+        deltakerProducerService = deltakerProducerService,
+        vedtakRepository = vedtakRepository,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        forslagRepository = forslagRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+    )
 
     private val sistEndretAvNavEnhet = lagNavEnhet()
     private val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
@@ -168,20 +165,18 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - startdato er passert - setter status DELTAR`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                startdato = LocalDate.now().minusDays(1),
-                sluttdato = LocalDate.now().plusWeeks(2),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().minusDays(1),
+            sluttdato = LocalDate.now().plusWeeks(2),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -195,21 +190,19 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - startdato er passert men komet er ikke master - setter status til DELTAR`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                startdato = LocalDate.now().minusDays(1),
-                sluttdato = LocalDate.now().plusWeeks(2),
-                kilde = Kilde.ARENA,
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().minusDays(1),
+            sluttdato = LocalDate.now().plusWeeks(2),
+            kilde = Kilde.ARENA,
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false
@@ -225,25 +218,22 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - sluttdato er passert, ikke kurs - setter status HAR_SLUTTET`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                startdato = LocalDate.now().minusWeeks(1),
-                sluttdato = LocalDate.now().minusDays(2),
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.LOPENDE,
-                        sluttDato = LocalDate.now().plusMonths(3),
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusWeeks(1),
+            sluttdato = LocalDate.now().minusDays(2),
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().plusMonths(3),
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -257,33 +247,29 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - sluttdato er passert, ikke kurs, har fremtidig status - bruker fremtidig status HAR_SLUTTET`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                startdato = LocalDate.now().minusWeeks(1),
-                sluttdato = LocalDate.now().minusDays(2),
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.LOPENDE,
-                        sluttDato = LocalDate.now().plusMonths(3),
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusWeeks(1),
+            sluttdato = LocalDate.now().minusDays(2),
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().plusMonths(3),
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
-        val fremtidigStatus =
-            lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
-                gyldigFra = LocalDateTime.now().minusMinutes(1),
-                gyldigTil = null,
-            )
+        val fremtidigStatus = lagDeltakerStatus(
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+            gyldigFra = LocalDateTime.now().minusMinutes(1),
+            gyldigTil = null,
+        )
         DeltakerStatusRepository.lagreStatus(deltaker.id, fremtidigStatus)
 
         runTest {
@@ -300,25 +286,22 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - sluttdato er passert, kurs - setter status FULLFORT`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                startdato = LocalDate.now().minusWeeks(1),
-                sluttdato = LocalDate.now().minusDays(2),
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.FELLES,
-                        sluttDato = LocalDate.now().minusDays(2),
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusWeeks(1),
+            sluttdato = LocalDate.now().minusDays(2),
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.FELLES,
+                sluttDato = LocalDate.now().minusDays(2),
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -332,25 +315,22 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - sluttdato er passert og tidligere enn kursets sluttdato - setter status FULLFORT`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                startdato = LocalDate.now().minusWeeks(1),
-                sluttdato = LocalDate.now().minusDays(2),
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.FELLES,
-                        sluttDato = LocalDate.now().plusDays(2),
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusWeeks(1),
+            sluttdato = LocalDate.now().minusDays(2),
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.FELLES,
+                sluttDato = LocalDate.now().plusDays(2),
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -364,26 +344,23 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - deltakerliste avsluttet, status DELTAR - setter status HAR_SLUTTET, oppdatert sluttdato`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                startdato = LocalDate.now().minusMonths(1),
-                sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.LOPENDE,
-                        sluttDato = LocalDate.now().minusDays(2),
-                        status = GjennomforingStatusType.AVSLUTTET,
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusDays(2),
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = GjennomforingStatusType.AVSLUTTET,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -399,26 +376,23 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - deltakerliste avsluttet, status VENTER_PA_OPPSTART - setter status IKKE_AKTUELL`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                startdato = null,
-                sluttdato = null,
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.LOPENDE,
-                        sluttDato = LocalDate.now().minusDays(2),
-                        status = GjennomforingStatusType.AVSLUTTET,
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = null,
+            sluttdato = null,
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = GjennomforingStatusType.AVSLUTTET,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -434,26 +408,23 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - deltakerliste avlyst, status DELTAR - setter status HAR_SLUTTET med sluttarsak`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                startdato = LocalDate.now().minusMonths(1),
-                sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.LOPENDE,
-                        sluttDato = LocalDate.now().minusDays(2),
-                        status = GjennomforingStatusType.AVLYST,
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusDays(2),
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = GjennomforingStatusType.AVLYST,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -468,26 +439,23 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - deltakerliste avbrutt, status VENTER_PA_OPPSTART - setter status IKKE_AKTUELL med sluttarsak`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                startdato = null,
-                sluttdato = null,
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.LOPENDE,
-                        sluttDato = LocalDate.now().minusDays(2),
-                        status = GjennomforingStatusType.AVBRUTT,
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = null,
+            sluttdato = null,
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = GjennomforingStatusType.AVBRUTT,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -502,25 +470,22 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `oppdaterDeltakerStatuser - deltakerliste avbrutt, status UTKAST_TIL_PAMELDING - setter status AVBRUTT_UTKAST`() {
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                startdato = null,
-                sluttdato = null,
-                deltakerliste =
-                    lagDeltakerliste(
-                        oppstart = Oppstartstype.LOPENDE,
-                        sluttDato = LocalDate.now().minusDays(2),
-                        status = GjennomforingStatusType.AVBRUTT,
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            startdato = null,
+            sluttdato = null,
+            deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = GjennomforingStatusType.AVBRUTT,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+        )
         TestRepository.insert(deltaker, vedtak)
 
         runTest {
@@ -536,44 +501,39 @@ class DeltakerStatusOppdateringTest {
 
     @Test
     fun `avsluttDeltakelserPaaDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() {
-        val deltakerliste =
-            lagDeltakerliste(
-                oppstart = Oppstartstype.LOPENDE,
-                sluttDato = LocalDate.now().minusDays(2),
-                status = GjennomforingStatusType.AVLYST,
-            )
+        val deltakerliste = lagDeltakerliste(
+            oppstart = Oppstartstype.LOPENDE,
+            sluttDato = LocalDate.now().minusDays(2),
+            status = GjennomforingStatusType.AVLYST,
+        )
         TestRepository.insert(deltakerliste)
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                startdato = LocalDate.now().minusMonths(1),
-                sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste = deltakerliste,
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusDays(2),
+            deltakerliste = deltakerliste,
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker, vedtak)
-        val deltaker2 =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                startdato = LocalDate.now().minusMonths(1),
-                sluttdato = LocalDate.now().minusDays(2),
-                deltakerliste = deltakerliste,
-            )
-        val vedtak2 =
-            lagVedtak(
-                deltakerId = deltaker2.id,
-                deltakerVedVedtak = deltaker2,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
-                fattet = LocalDateTime.now(),
-            )
+        val deltaker2 = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().minusDays(2),
+            deltakerliste = deltakerliste,
+        )
+        val vedtak2 = lagVedtak(
+            deltakerId = deltaker2.id,
+            deltakerVedVedtak = deltaker2,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
         TestRepository.insert(deltaker2, vedtak2)
 
         runTest {

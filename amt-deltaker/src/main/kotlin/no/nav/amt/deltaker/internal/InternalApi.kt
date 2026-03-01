@@ -57,12 +57,11 @@ fun Routing.registerInternalApi(
         if (!isInternal(remoteAddress)) throw AuthorizationException("Ikke tilgang til api")
     }
 
-    suspend fun slettDeltaker(deltakerId: UUID) =
-        Database.transaction {
-            innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
-            vurderingRepository.deleteForDeltaker(deltakerId)
-            deltakerService.deleteDeltaker(deltakerId)
-        }
+    suspend fun slettDeltaker(deltakerId: UUID) = Database.transaction {
+        innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
+        vurderingRepository.deleteForDeltaker(deltakerId)
+        deltakerService.deleteDeltaker(deltakerId)
+    }
 
     suspend fun republiserDeltakere(
         deltakerIder: List<UUID>,
@@ -96,15 +95,14 @@ fun Routing.registerInternalApi(
                 val deltaker = deltakerRepository.get(it).getOrThrow()
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker.copy(
-                        status =
-                            DeltakerStatus(
-                                id = UUID.randomUUID(),
-                                type = DeltakerStatus.Type.IKKE_AKTUELL,
-                                aarsak = null,
-                                gyldigFra = LocalDateTime.now(),
-                                gyldigTil = null,
-                                opprettet = LocalDateTime.now(),
-                            ),
+                        status = DeltakerStatus(
+                            id = UUID.randomUUID(),
+                            type = DeltakerStatus.Type.IKKE_AKTUELL,
+                            aarsak = null,
+                            gyldigFra = LocalDateTime.now(),
+                            gyldigTil = null,
+                            opprettet = LocalDateTime.now(),
+                        ),
                     ),
                     erDeltakerSluttdatoEndret = false,
                     forceProduce = true,
@@ -165,10 +163,9 @@ fun Routing.registerInternalApi(
 
     post("/internal/relast/tiltakstype/{tiltakskode}") {
         requireInternal(call.request.local.remoteAddress)
-        val tiltakskode =
-            Tiltakskode.valueOf(
-                call.parameters["tiltakskode"] ?: throw IllegalArgumentException("Tiltakskode ikke satt"),
-            )
+        val tiltakskode = Tiltakskode.valueOf(
+            call.parameters["tiltakskode"] ?: throw IllegalArgumentException("Tiltakskode ikke satt"),
+        )
         val request = call.receive<RepubliserRequest>()
         scope.launch {
             val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
@@ -250,14 +247,13 @@ fun Routing.registerInternalApi(
     get("internal/avbryt-utkast/{deltakerId}") {
         requireInternal(call.request.local.remoteAddress)
         val deltakerId = call.parameters.getOrFail("deltakerId").let { UUID.fromString(it) }
-        val status =
-            nyDeltakerStatus(
-                DeltakerStatus.Type.AVBRUTT_UTKAST,
-                DeltakerStatus.Aarsak(
-                    type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
-                    beskrivelse = null,
-                ),
-            )
+        val status = nyDeltakerStatus(
+            DeltakerStatus.Type.AVBRUTT_UTKAST,
+            DeltakerStatus.Aarsak(
+                type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
+                beskrivelse = null,
+            ),
+        )
         deltakerService.upsertAndProduceDeltaker(
             deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
             erDeltakerSluttdatoEndret = false,
@@ -273,11 +269,10 @@ fun Routing.registerInternalApi(
         val request = call.receive<RelastHendelseRequest>()
         scope.launch {
             log.info("Relaster hendelse med endringid: ${request.endringId}")
-            val endring =
-                endringFraTiltakskoordinatorRepository.get(request.endringId)
-                    ?: throw IllegalArgumentException(
-                        "Kunne ikke relaste hendelse med endring med id: ${request.endringId}, kunne ikke finne endring.",
-                    )
+            val endring = endringFraTiltakskoordinatorRepository.get(request.endringId)
+                ?: throw IllegalArgumentException(
+                    "Kunne ikke relaste hendelse med endring med id: ${request.endringId}, kunne ikke finne endring.",
+                )
             val deltaker = deltakerRepository.get(endring.deltakerId).getOrThrow()
             if (request.relastDeltaker) {
                 Database.transaction {
@@ -331,11 +326,7 @@ fun Routing.registerInternalApi(
                         return@forEach
                     }
                     log.info("ProduserUtkast: Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
-                    hendelseService.produceHendelseForUtkast(
-                        deltaker,
-                        navAnsatt,
-                        navEnhet,
-                    ) { HendelseType.NavGodkjennUtkast(it) }
+                    hendelseService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { HendelseType.NavGodkjennUtkast(it) }
                     log.info("ProduserUtkast: Done: Produserte hendelse NavGodkjennUtkast for $deltakerId")
                 } else {
                     if (request.dryRun) {

@@ -17,11 +17,10 @@ class ArrangorMeldingConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer =
-        buildManagedKafkaConsumer(
-            topic = Environment.ARRANGOR_MELDING_TOPIC,
-            consumeFunc = ::consume,
-        )
+    private val consumer = buildManagedKafkaConsumer(
+        topic = Environment.ARRANGOR_MELDING_TOPIC,
+        consumeFunc = ::consume,
+    )
 
     suspend fun consume(
         key: UUID,

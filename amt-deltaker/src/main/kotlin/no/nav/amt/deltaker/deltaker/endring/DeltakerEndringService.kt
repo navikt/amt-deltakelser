@@ -49,25 +49,23 @@ class DeltakerEndringService(
         val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
         val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
 
-        val godkjentForslag =
-            endringRequest.getForslagId()?.let { forslagId ->
-                forslagService.godkjennForslag(
-                    forslagId = forslagId,
-                    godkjentAvAnsattId = ansatt.id,
-                    godkjentAvEnhetId = enhet.id,
-                )
-            }
-
-        val deltakerEndring =
-            DeltakerEndring(
-                id = UUID.randomUUID(),
-                deltakerId = endringResultat.deltaker.id,
-                endring = endringRequest.toEndring(),
-                endretAv = ansatt.id,
-                endretAvEnhet = enhet.id,
-                endret = LocalDateTime.now(),
-                forslag = godkjentForslag,
+        val godkjentForslag = endringRequest.getForslagId()?.let { forslagId ->
+            forslagService.godkjennForslag(
+                forslagId = forslagId,
+                godkjentAvAnsattId = ansatt.id,
+                godkjentAvEnhetId = enhet.id,
             )
+        }
+
+        val deltakerEndring = DeltakerEndring(
+            id = UUID.randomUUID(),
+            deltakerId = endringResultat.deltaker.id,
+            endring = endringRequest.toEndring(),
+            endretAv = ansatt.id,
+            endretAvEnhet = enhet.id,
+            endret = LocalDateTime.now(),
+            forslag = godkjentForslag,
+        )
 
         val behandletTidspunkt = if (endringResultat.erFremtidigEndring) null else LocalDateTime.now()
 
@@ -82,6 +80,7 @@ class DeltakerEndringService(
             navAnsatt = ansatt,
             navEnhet = enhet,
         )
+
         return deltakerEndring
     }
 
@@ -89,15 +88,13 @@ class DeltakerEndringService(
         deltakerEndring: DeltakerEndring,
         deltaker: Deltaker,
     ): Result<VellykketEndring> {
-        val deltakelsesmengde =
-            deltakerEndring.toDeltakelsesmengde()
-                ?: throw IllegalStateException("Endring ${deltakerEndring.id} er ikke en EndreDeltakelsesmengde")
+        val deltakelsesmengde = deltakerEndring.toDeltakelsesmengde()
+            ?: throw IllegalStateException("Endring ${deltakerEndring.id} er ikke en EndreDeltakelsesmengde")
 
         val gyldigeDeltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
 
-        val endringenErIkkeUtfort =
-            deltaker.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
-                deltaker.dagerPerUke != deltakelsesmengde.dagerPerUke
+        val endringenErIkkeUtfort = deltaker.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
+            deltaker.dagerPerUke != deltakelsesmengde.dagerPerUke
 
         val logMessage = "Behandler endring: ${deltakerEndring.id}, deltaker: ${deltaker.id}"
 

@@ -6,24 +6,18 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import java.time.LocalDate
 
-fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type =
-    when {
-        deltakerliste.erFellesOppstart || deltarPaOpplaeringstiltak -> {
-            if (harFullfort) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
-        }
-
-        else -> {
-            DeltakerStatus.Type.HAR_SLUTTET
-        }
+fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type = when {
+    deltakerliste.erFellesOppstart || deltarPaOpplaeringstiltak -> {
+        if (harFullfort) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
     }
 
+    else -> {
+        DeltakerStatus.Type.HAR_SLUTTET
+    }
+}
+
 fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus =
-    if (status.type in
-        listOf(
-            DeltakerStatus.Type.HAR_SLUTTET,
-            DeltakerStatus.Type.AVBRUTT,
-            DeltakerStatus.Type.FULLFORT,
-        ) &&
+    if (status.type in listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT) &&
         !sluttdato.isBefore(LocalDate.now())
     ) {
         nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
@@ -45,10 +39,9 @@ fun Deltaker.endreDeltakersOppstart(
             startdato: LocalDate?,
             sluttdato: LocalDate?,
             now: LocalDate,
-        ): Boolean =
-            status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART &&
-                startdato == null &&
-                sluttdato.erPassert(now)
+        ): Boolean = status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART &&
+            startdato == null &&
+            sluttdato.erPassert(now)
 
         val now = LocalDate.now()
 
@@ -62,11 +55,10 @@ fun Deltaker.endreDeltakersOppstart(
     }
 
     val faktiskSluttdato = sluttdato ?: this.sluttdato
-    val oppdatertStatus =
-        this.oppdaterDeltakerStatusEndreOppstart(
-            nyStartdato = startdato,
-            nySluttdato = faktiskSluttdato,
-        )
+    val oppdatertStatus = this.oppdaterDeltakerStatusEndreOppstart(
+        nyStartdato = startdato,
+        nySluttdato = faktiskSluttdato,
+    )
     val oppdatertDeltakelsmengde = deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
 
     return this.copy(

@@ -44,17 +44,16 @@ class DeltakelserResponseMapperTest {
     private val navEnhetRepository = NavEnhetRepository()
     private val navAnsattRepository = NavAnsattRepository()
 
-    private val deltakerHistorikkService =
-        DeltakerHistorikkService(
-            DeltakerEndringRepository(),
-            VedtakRepository(),
-            ForslagRepository(),
-            EndringFraArrangorRepository(),
-            ImportertFraArenaRepository(),
-            InnsokPaaFellesOppstartRepository(),
-            EndringFraTiltakskoordinatorRepository(),
-            VurderingRepository(),
-        )
+    private val deltakerHistorikkService = DeltakerHistorikkService(
+        DeltakerEndringRepository(),
+        VedtakRepository(),
+        ForslagRepository(),
+        EndringFraArrangorRepository(),
+        ImportertFraArenaRepository(),
+        InnsokPaaFellesOppstartRepository(),
+        EndringFraTiltakskoordinatorRepository(),
+        VurderingRepository(),
+    )
 
     private val arrangorRepository = ArrangorRepository()
     private val arrangorService = ArrangorService(arrangorRepository, mockk())
@@ -73,15 +72,13 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - kladd - returnerer riktig aktiv deltakelse`() {
-        val deltaker =
-            lagDeltaker(
-                deltakerliste =
-                    lagDeltakerliste(
-                        arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                        tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-                    ),
-                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            ),
+            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+        )
         TestRepository.insert(deltaker)
 
         val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
@@ -93,11 +90,10 @@ class DeltakelserResponseMapperTest {
             deltakerId shouldBe deltaker.id
             deltakerlisteId shouldBe deltaker.deltakerliste.id
             tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-            tiltakstype shouldBe
-                DeltakelserResponse.Tiltakstype(
-                    deltaker.deltakerliste.tiltakstype.navn,
-                    deltaker.deltakerliste.tiltakstype.tiltakskode,
-                )
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
             status.type shouldBe DeltakerStatus.Type.KLADD
             status.visningstekst shouldBe "Kladden er ikke delt"
             status.aarsak shouldBe null
@@ -112,23 +108,20 @@ class DeltakelserResponseMapperTest {
         val overordnetArrangor = lagArrangor(navn = "OVERORDNET ARRANGØR")
         arrangorRepository.upsert(overordnetArrangor)
 
-        val deltaker =
-            lagDeltaker(
-                deltakerliste =
-                    lagDeltakerliste(
-                        arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = overordnetArrangor.id),
-                        tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-                    ),
-                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                fattet = null,
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                opprettet = LocalDateTime.now().minusDays(4),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = overordnetArrangor.id),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            ),
+            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = null,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
 
@@ -141,11 +134,10 @@ class DeltakelserResponseMapperTest {
             deltakerId shouldBe deltaker.id
             deltakerlisteId shouldBe deltaker.deltakerliste.id
             tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Overordnet Arrangør"
-            tiltakstype shouldBe
-                DeltakelserResponse.Tiltakstype(
-                    deltaker.deltakerliste.tiltakstype.navn,
-                    deltaker.deltakerliste.tiltakstype.tiltakskode,
-                )
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
             status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
             status.visningstekst shouldBe "Utkastet er delt og venter på godkjenning"
             status.aarsak shouldBe null
@@ -157,25 +149,22 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - venter pa oppstart - returnerer riktig aktiv deltakelse`() {
-        val deltaker =
-            lagDeltaker(
-                deltakerliste =
-                    lagDeltakerliste(
-                        arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                        tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-                    ),
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                startdato = LocalDate.now().plusWeeks(1),
-                sluttdato = null,
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                fattet = LocalDateTime.now(),
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                opprettet = LocalDateTime.now().minusDays(4),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            ),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().plusWeeks(1),
+            sluttdato = null,
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
 
@@ -188,11 +177,10 @@ class DeltakelserResponseMapperTest {
             deltakerId shouldBe deltaker.id
             deltakerlisteId shouldBe deltaker.deltakerliste.id
             tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-            tiltakstype shouldBe
-                DeltakelserResponse.Tiltakstype(
-                    deltaker.deltakerliste.tiltakstype.navn,
-                    deltaker.deltakerliste.tiltakstype.tiltakskode,
-                )
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
             status.visningstekst shouldBe "Venter på oppstart"
             status.aarsak shouldBe null
@@ -204,23 +192,20 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - deltar - returnerer riktig aktiv deltakelse`() {
-        val deltaker =
-            lagDeltaker(
-                deltakerliste =
-                    lagDeltakerliste(
-                        arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                        tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-                    ),
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                fattet = LocalDateTime.now(),
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                opprettet = LocalDateTime.now().minusDays(4),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            ),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
 
@@ -233,11 +218,10 @@ class DeltakelserResponseMapperTest {
             deltakerId shouldBe deltaker.id
             deltakerlisteId shouldBe deltaker.deltakerliste.id
             tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-            tiltakstype shouldBe
-                DeltakelserResponse.Tiltakstype(
-                    deltaker.deltakerliste.tiltakstype.navn,
-                    deltaker.deltakerliste.tiltakstype.tiltakskode,
-                )
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
             status.type shouldBe DeltakerStatus.Type.DELTAR
             status.visningstekst shouldBe "Deltar"
             status.aarsak shouldBe null
@@ -249,28 +233,24 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - ikke aktuell - returnerer riktig historisk deltakelse`() {
-        val deltaker =
-            lagDeltaker(
-                deltakerliste =
-                    lagDeltakerliste(
-                        arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                        tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-                    ),
-                status =
-                    lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.IKKE_AKTUELL,
-                        aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
-                        beskrivelse = "flyttet til Spania",
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                fattet = LocalDateTime.now(),
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                opprettet = LocalDateTime.now().minusDays(4),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            ),
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
+                beskrivelse = "flyttet til Spania",
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
 
@@ -283,11 +263,10 @@ class DeltakelserResponseMapperTest {
             deltakerId shouldBe deltaker.id
             deltakerlisteId shouldBe deltaker.deltakerliste.id
             tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-            tiltakstype shouldBe
-                DeltakelserResponse.Tiltakstype(
-                    deltaker.deltakerliste.tiltakstype.navn,
-                    deltaker.deltakerliste.tiltakstype.tiltakskode,
-                )
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
             status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
             status.visningstekst shouldBe "Ikke aktuell"
             status.aarsak shouldBe "flyttet til Spania"
@@ -299,28 +278,24 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - har sluttet - returnerer riktig historisk deltakelse`() {
-        val deltaker =
-            lagDeltaker(
-                deltakerliste =
-                    lagDeltakerliste(
-                        arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                        tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-                    ),
-                status =
-                    lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        aarsakType = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
-                        beskrivelse = null,
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                fattet = LocalDateTime.now(),
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                opprettet = LocalDateTime.now().minusDays(4),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            ),
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
+                beskrivelse = null,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
 
@@ -333,11 +308,10 @@ class DeltakelserResponseMapperTest {
             deltakerId shouldBe deltaker.id
             deltakerlisteId shouldBe deltaker.deltakerliste.id
             tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-            tiltakstype shouldBe
-                DeltakelserResponse.Tiltakstype(
-                    deltaker.deltakerliste.tiltakstype.navn,
-                    deltaker.deltakerliste.tiltakstype.tiltakskode,
-                )
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.visningstekst shouldBe "Har sluttet"
             status.aarsak shouldBe "Trenger annen støtte"
@@ -349,28 +323,24 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - avbrutt utkast - returnerer riktig historisk deltakelse`() {
-        val deltaker =
-            lagDeltaker(
-                deltakerliste =
-                    lagDeltakerliste(
-                        arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                        tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-                    ),
-                status =
-                    lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.AVBRUTT_UTKAST,
-                        aarsakType = null,
-                        beskrivelse = null,
-                    ),
-            )
-        val vedtak =
-            lagVedtak(
-                deltakerId = deltaker.id,
-                fattet = LocalDateTime.now(),
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                opprettet = LocalDateTime.now().minusDays(4),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            ),
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.AVBRUTT_UTKAST,
+                aarsakType = null,
+                beskrivelse = null,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
 
@@ -383,11 +353,10 @@ class DeltakelserResponseMapperTest {
             deltakerId shouldBe deltaker.id
             deltakerlisteId shouldBe deltaker.deltakerliste.id
             tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-            tiltakstype shouldBe
-                DeltakelserResponse.Tiltakstype(
-                    deltaker.deltakerliste.tiltakstype.navn,
-                    deltaker.deltakerliste.tiltakstype.tiltakskode,
-                )
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
             status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
             status.visningstekst shouldBe "Avbrutt utkast"
             status.aarsak shouldBe null
@@ -399,55 +368,48 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - har sluttet og ikke aktuell - returnerer nyeste historiske deltakelse forst`() {
-        val deltakerliste =
-            lagDeltakerliste(
-                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-            )
+        val deltakerliste = lagDeltakerliste(
+            arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        )
 
         TestRepository.insert(deltakerliste)
 
-        val deltakerHarSluttet =
-            lagDeltaker(
-                deltakerliste = deltakerliste,
-                status =
-                    lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        aarsakType = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
-                        beskrivelse = null,
-                    ),
-                sistEndret = LocalDateTime.now().minusWeeks(2),
-            )
-        val vedtakHarSluttet =
-            lagVedtak(
-                deltakerId = deltakerHarSluttet.id,
-                fattet = LocalDateTime.now(),
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                opprettet = LocalDateTime.now().minusDays(4),
-            )
+        val deltakerHarSluttet = lagDeltaker(
+            deltakerliste = deltakerliste,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
+                beskrivelse = null,
+            ),
+            sistEndret = LocalDateTime.now().minusWeeks(2),
+        )
+        val vedtakHarSluttet = lagVedtak(
+            deltakerId = deltakerHarSluttet.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
         TestRepository.insert(deltakerHarSluttet)
         TestRepository.insert(vedtakHarSluttet)
 
-        val deltakerIkkeAktuell =
-            lagDeltaker(
-                deltakerliste = deltakerliste,
-                status =
-                    lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.IKKE_AKTUELL,
-                        aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
-                        beskrivelse = "flyttet til Spania",
-                    ),
-                sistEndret = LocalDateTime.now().minusDays(1),
-            )
-        val vedtakIkkeAktuell =
-            lagVedtak(
-                deltakerId = deltakerIkkeAktuell.id,
-                fattet = LocalDateTime.now(),
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                opprettet = LocalDateTime.now().minusDays(4),
-            )
+        val deltakerIkkeAktuell = lagDeltaker(
+            deltakerliste = deltakerliste,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
+                beskrivelse = "flyttet til Spania",
+            ),
+            sistEndret = LocalDateTime.now().minusDays(1),
+        )
+        val vedtakIkkeAktuell = lagVedtak(
+            deltakerId = deltakerIkkeAktuell.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
         TestRepository.insert(deltakerIkkeAktuell)
         TestRepository.insert(vedtakIkkeAktuell)
 
@@ -463,15 +425,13 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - pabegynt registrering - returnerer tomme lister`() {
-        val deltaker =
-            lagDeltaker(
-                deltakerliste =
-                    lagDeltakerliste(
-                        arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                        tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-                    ),
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.PABEGYNT_REGISTRERING),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            ),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.PABEGYNT_REGISTRERING),
+        )
         TestRepository.insert(deltaker)
 
         val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))

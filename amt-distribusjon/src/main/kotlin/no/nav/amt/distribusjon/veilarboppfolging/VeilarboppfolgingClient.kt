@@ -21,11 +21,10 @@ class VeilarboppfolgingClient(
     private val httpClient: HttpClient,
     private val azureAdTokenClient: AzureAdTokenClient,
     environment: Environment,
-    private val manuellOppfolgingCache: Cache<String, Boolean> =
-        Caffeine
-            .newBuilder()
-            .expireAfterWrite(Duration.ofMinutes(60))
-            .build(),
+    private val manuellOppfolgingCache: Cache<String, Boolean> = Caffeine
+        .newBuilder()
+        .expireAfterWrite(Duration.ofMinutes(60))
+        .build(),
 ) {
     private val scope = environment.veilarboppfolgingScope
     private val url = environment.veilarboppfolgingUrl
@@ -33,12 +32,11 @@ class VeilarboppfolgingClient(
 
     suspend fun opprettEllerHentSak(oppfolgingsperiodeId: UUID): Sak {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
-        val response =
-            httpClient.post("$url/veilarboppfolging/api/v3/sak/$oppfolgingsperiodeId") {
-                header(HttpHeaders.Authorization, token)
-                header("Nav-Consumer-Id", consumerId)
-                contentType(ContentType.Application.Json)
-            }
+        val response = httpClient.post("$url/veilarboppfolging/api/v3/sak/$oppfolgingsperiodeId") {
+            header(HttpHeaders.Authorization, token)
+            header("Nav-Consumer-Id", consumerId)
+            contentType(ContentType.Application.Json)
+        }
 
         if (!response.status.isSuccess()) {
             error("Kunne ikke hente sak fra veilarboppfolging for oppfolgingsperiode $oppfolgingsperiodeId, status: ${response.status}")
@@ -51,13 +49,12 @@ class VeilarboppfolgingClient(
             return it
         }
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
-        val response =
-            httpClient.post("$url/veilarboppfolging/api/v3/hent-manuell") {
-                header(HttpHeaders.Authorization, token)
-                header("Nav-Consumer-Id", consumerId)
-                contentType(ContentType.Application.Json)
-                setBody(objectMapper.writeValueAsString(ManuellStatusRequest(personident)))
-            }
+        val response = httpClient.post("$url/veilarboppfolging/api/v3/hent-manuell") {
+            header(HttpHeaders.Authorization, token)
+            header("Nav-Consumer-Id", consumerId)
+            contentType(ContentType.Application.Json)
+            setBody(objectMapper.writeValueAsString(ManuellStatusRequest(personident)))
+        }
         if (!response.status.isSuccess()) {
             error("Kunne ikke hente manuell oppfølging fra veilarboppfolging, status: ${response.status}")
         }

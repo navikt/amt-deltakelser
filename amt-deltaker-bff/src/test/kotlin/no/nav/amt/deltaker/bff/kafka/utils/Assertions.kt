@@ -14,34 +14,32 @@ import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
-fun assertProduced(forslag: Forslag) =
-    runTest {
-        val receivedMessages = mutableMapOf<UUID, Forslag>()
+fun assertProduced(forslag: Forslag) = runTest {
+    val receivedMessages = mutableMapOf<UUID, Forslag>()
 
-        val consumer =
-            stringStringConsumer(Environment.ARRANGOR_MELDING_TOPIC) { k, v ->
-                receivedMessages[UUID.fromString(k)] = objectMapper.readValue(v!!)
-            }
+    val consumer = stringStringConsumer(Environment.ARRANGOR_MELDING_TOPIC) { k, v ->
+        receivedMessages[UUID.fromString(k)] = objectMapper.readValue(v!!)
+    }
 
-        consumer.start()
+    consumer.start()
 
-        eventually {
-            val receivedForslag = receivedMessages[forslag.id].shouldNotBeNull()
+    eventually {
+        val receivedForslag = receivedMessages[forslag.id].shouldNotBeNull()
 
-            assertSoftly(receivedForslag) {
-                id shouldBe forslag.id
-                deltakerId shouldBe forslag.deltakerId
-                endring shouldBe forslag.endring
-                begrunnelse shouldBe forslag.begrunnelse
-                opprettet shouldBe forslag.opprettet
-                opprettetAvArrangorAnsattId shouldBe forslag.opprettetAvArrangorAnsattId
-            }
-
-            sammenlignForslagStatus(receivedForslag.status, forslag.status)
+        assertSoftly(receivedForslag) {
+            id shouldBe forslag.id
+            deltakerId shouldBe forslag.deltakerId
+            endring shouldBe forslag.endring
+            begrunnelse shouldBe forslag.begrunnelse
+            opprettet shouldBe forslag.opprettet
+            opprettetAvArrangorAnsattId shouldBe forslag.opprettetAvArrangorAnsattId
         }
 
-        consumer.close()
+        sammenlignForslagStatus(receivedForslag.status, forslag.status)
     }
+
+    consumer.close()
+}
 
 fun assertProduced(
     tilgang: TiltakskoordinatorsDeltakerlisteDto,
@@ -49,10 +47,9 @@ fun assertProduced(
 ) = runTest {
     val receivedDeltakerlister = mutableMapOf<UUID, TiltakskoordinatorsDeltakerlisteDto?>()
 
-    val consumer =
-        stringStringConsumer(Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC) { k, v ->
-            receivedDeltakerlister[UUID.fromString(k)] = v?.let { objectMapper.readValue(it) }
-        }
+    val consumer = stringStringConsumer(Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC) { k, v ->
+        receivedDeltakerlister[UUID.fromString(k)] = v?.let { objectMapper.readValue(it) }
+    }
 
     consumer.start()
 
@@ -73,24 +70,22 @@ fun assertProduced(
     consumer.close()
 }
 
-fun assertProducedTombstone(tilgang: TiltakskoordinatorDeltakerlisteTilgang) =
-    runTest {
-        val receivedDeltakerlister = mutableMapOf<UUID, TiltakskoordinatorsDeltakerlisteDto?>()
+fun assertProducedTombstone(tilgang: TiltakskoordinatorDeltakerlisteTilgang) = runTest {
+    val receivedDeltakerlister = mutableMapOf<UUID, TiltakskoordinatorsDeltakerlisteDto?>()
 
-        val consumer =
-            stringStringConsumer(Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC) { k, v ->
-                receivedDeltakerlister[UUID.fromString(k)] = v?.let { objectMapper.readValue(it) }
-            }
-
-        consumer.start()
-
-        eventually {
-            receivedDeltakerlister.keys.contains(tilgang.id) shouldBe true
-            receivedDeltakerlister[tilgang.id] shouldBe null
-        }
-
-        consumer.close()
+    val consumer = stringStringConsumer(Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC) { k, v ->
+        receivedDeltakerlister[UUID.fromString(k)] = v?.let { objectMapper.readValue(it) }
     }
+
+    consumer.start()
+
+    eventually {
+        receivedDeltakerlister.keys.contains(tilgang.id) shouldBe true
+        receivedDeltakerlister[tilgang.id] shouldBe null
+    }
+
+    consumer.close()
+}
 
 fun sammenlignForslagStatus(
     first: Forslag.Status,

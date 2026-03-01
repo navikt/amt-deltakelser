@@ -34,17 +34,16 @@ class DeltakerlisteRepositoryTest {
             val tiltakstype = lagTiltakstype()
             tiltakstypeRepository.upsert(tiltakstype)
 
-            val deltakerliste =
-                lagDeltakerliste(
-                    arrangor = arrangor,
-                    tiltakstype = tiltakstype,
-                ).copy(
-                    status = null,
-                    startDato = null,
-                    sluttDato = null,
-                    oppstart = null,
-                    antallPlasser = null,
-                )
+            val deltakerliste = lagDeltakerliste(
+                arrangor = arrangor,
+                tiltakstype = tiltakstype,
+            ).copy(
+                status = null,
+                startDato = null,
+                sluttDato = null,
+                oppstart = null,
+                antallPlasser = null,
+            )
 
             deltakerlisteRepository.upsert(deltakerliste)
 

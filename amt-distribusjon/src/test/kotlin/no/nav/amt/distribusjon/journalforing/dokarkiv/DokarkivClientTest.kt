@@ -18,10 +18,9 @@ import java.util.UUID
 class DokarkivClientTest : ClientTestBase() {
     @Test
     fun `skal returnere journalpostId nar opprettJournalpost kalles med gyldig respons`() {
-        val sut =
-            createDokarkivClient(
-                responseBody = expectedResponse,
-            )
+        val sut = createDokarkivClient(
+            responseBody = expectedResponse,
+        )
 
         val actualResponse: String = sut.runOpprettJournalpostWithTestParams()
 
@@ -30,11 +29,10 @@ class DokarkivClientTest : ClientTestBase() {
 
     @Test
     fun `skal skrive warning til loggene nar journalpost for hendelseId allerede er opprettet`() {
-        val sut =
-            createDokarkivClient(
-                statusCode = HttpStatusCode.Conflict,
-                responseBody = expectedResponse,
-            )
+        val sut = createDokarkivClient(
+            statusCode = HttpStatusCode.Conflict,
+            responseBody = expectedResponse,
+        )
 
         withLogCapture("no.nav.amt.distribusjon.journalforing.dokarkiv.DokarkivClient") { logEvents ->
             sut.runOpprettJournalpostWithTestParams()
@@ -47,15 +45,13 @@ class DokarkivClientTest : ClientTestBase() {
 
     @Test
     fun `skal kaste feil nar opprettJournalpost returnerer feilkode`() {
-        val sut =
-            createDokarkivClient(
-                HttpStatusCode.BadRequest,
-            )
+        val sut = createDokarkivClient(
+            HttpStatusCode.BadRequest,
+        )
 
-        val thrown =
-            shouldThrow<IllegalStateException> {
-                sut.runOpprettJournalpostWithTestParams()
-            }
+        val thrown = shouldThrow<IllegalStateException> {
+            sut.runOpprettJournalpostWithTestParams()
+        }
 
         thrown.message shouldStartWith "Kunne ikke opprette journalpost for hendelseId $expectedHendelseId"
     }
@@ -64,12 +60,11 @@ class DokarkivClientTest : ClientTestBase() {
         statusCode: HttpStatusCode = HttpStatusCode.OK,
         responseBody: OpprettJournalpostResponse? = null,
     ) = DokarkivClient(
-        httpClient =
-            createMockHttpClient(
-                expectedUrl = "http://localhost/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true",
-                responseBody = responseBody,
-                statusCode = statusCode,
-            ),
+        httpClient = createMockHttpClient(
+            expectedUrl = "http://localhost/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true",
+            responseBody = responseBody,
+            statusCode = statusCode,
+        ),
         azureAdTokenClient = mockAzureAdTokenClient,
         environment = testEnvironment,
     )
@@ -78,16 +73,15 @@ class DokarkivClientTest : ClientTestBase() {
         private val expectedHendelseId: UUID = UUID.randomUUID()
         private val expectedResponse = OpprettJournalpostResponse("~journalpostId~")
 
-        private fun DokarkivClient.runOpprettJournalpostWithTestParams(): String =
-            runBlocking {
-                opprettJournalpost(
-                    hendelseId = expectedHendelseId,
-                    fnr = "~fnr~",
-                    sak = Sak(oppfolgingsperiodeId, sakId = 42, fagsaksystem = "~fagsaksystem~"),
-                    pdf = "Hello World".toByteArray(),
-                    journalforendeEnhet = "~journalforendeEnhet~",
-                    journalpostNavn = "~journalpostNavn~",
-                )
-            }
+        private fun DokarkivClient.runOpprettJournalpostWithTestParams(): String = runBlocking {
+            opprettJournalpost(
+                hendelseId = expectedHendelseId,
+                fnr = "~fnr~",
+                sak = Sak(oppfolgingsperiodeId, sakId = 42, fagsaksystem = "~fagsaksystem~"),
+                pdf = "Hello World".toByteArray(),
+                journalforendeEnhet = "~journalforendeEnhet~",
+                journalpostNavn = "~journalpostNavn~",
+            )
+        }
     }
 }
