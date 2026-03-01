@@ -18,7 +18,10 @@ fun Deltaker.toUtkastDto() = UtkastDto(
     deltakelsesinnhold?.innhold?.toInnholdDtoList(),
 )
 
-fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFattet: LocalDate?) = HendelseDeltaker(
+fun Deltaker.toHendelseDeltaker(
+    overordnetArrangor: Arrangor?,
+    forsteVedtakFattet: LocalDate?,
+) = HendelseDeltaker(
     id = id,
     personident = navBruker.personident,
     deltakerliste = HendelseDeltaker.Deltakerliste(

@@ -15,7 +15,10 @@ data class UtkastRequest(
 ) {
     private val kanUpserteUtkastStatuser = listOf(DeltakerStatus.Type.KLADD, DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
 
-    fun valider(deltaker: Deltaker, digitalBruker: Boolean) {
+    fun valider(
+        deltaker: Deltaker,
+        digitalBruker: Boolean,
+    ) {
         require(digitalBruker) {
             "Kan ikke dele utkast med en bruker som ikke er digital"
         }

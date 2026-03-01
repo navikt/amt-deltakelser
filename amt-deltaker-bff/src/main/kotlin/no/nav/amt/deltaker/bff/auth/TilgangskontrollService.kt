@@ -30,7 +30,10 @@ class TilgangskontrollService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun verifiserSkrivetilgang(navAnsattAzureId: UUID, norskIdent: String) {
+    fun verifiserSkrivetilgang(
+        navAnsattAzureId: UUID,
+        norskIdent: String,
+    ) {
         val tilgang = poaoTilgangCachedClient
             .evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
@@ -75,7 +78,10 @@ class TilgangskontrollService(
         }
     }
 
-    fun verifiserLesetilgang(navAnsattAzureId: UUID, norskIdent: String) {
+    fun verifiserLesetilgang(
+        navAnsattAzureId: UUID,
+        norskIdent: String,
+    ) {
         val tilgang = poaoTilgangCachedClient
             .evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
@@ -90,7 +96,10 @@ class TilgangskontrollService(
         }
     }
 
-    fun verifiserInnbyggersTilgangTilDeltaker(rekvirentPersonident: String, ressursPersonident: String) {
+    fun verifiserInnbyggersTilgangTilDeltaker(
+        rekvirentPersonident: String,
+        ressursPersonident: String,
+    ) {
         val tilgang = poaoTilgangCachedClient
             .evaluatePolicy(
                 EksternBrukerTilgangTilEksternBrukerPolicyInput(rekvirentPersonident, ressursPersonident),
@@ -101,38 +110,52 @@ class TilgangskontrollService(
         }
     }
 
-    fun harKoordinatorTilgangTilDeltaker(navAnsattAzureId: UUID, deltaker: Deltaker): Boolean {
+    fun harKoordinatorTilgangTilDeltaker(
+        navAnsattAzureId: UUID,
+        deltaker: Deltaker,
+    ): Boolean {
         val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(deltaker.navBruker.adressebeskyttelse, navAnsattAzureId)
         val tilgangTilSkjerming = vurderSkjermingTilgang(deltaker.navBruker, navAnsattAzureId)
 
         return tilgangTilAdressebeskyttelse.isPermit && tilgangTilSkjerming.isPermit
     }
 
-    fun harKoordinatorTilgangTilPerson(navAnsattAzureId: UUID, navBruker: NavBruker): Boolean {
+    fun harKoordinatorTilgangTilPerson(
+        navAnsattAzureId: UUID,
+        navBruker: NavBruker,
+    ): Boolean {
         val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(navBruker.adressebeskyttelse, navAnsattAzureId)
         val tilgangTilSkjerming = vurderSkjermingTilgang(navBruker, navAnsattAzureId)
 
         return tilgangTilAdressebeskyttelse.isPermit && tilgangTilSkjerming.isPermit
     }
 
-    private fun vurderSkjermingTilgang(navBruker: NavBruker, navAnsattAzureId: UUID): Decision = if (navBruker.erSkjermet) {
+    private fun vurderSkjermingTilgang(
+        navBruker: NavBruker,
+        navAnsattAzureId: UUID,
+    ): Decision = if (navBruker.erSkjermet) {
         poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId)).getOrThrow()
     } else {
         Decision.Permit
     }
 
-    private fun vurderAdressebeskyttelseTilgang(adressebeskyttelse: Adressebeskyttelse?, navAnsattAzureId: UUID): Decision =
-        when (adressebeskyttelse) {
-            Adressebeskyttelse.FORTROLIG ->
-                poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
+    private fun vurderAdressebeskyttelseTilgang(
+        adressebeskyttelse: Adressebeskyttelse?,
+        navAnsattAzureId: UUID,
+    ): Decision = when (adressebeskyttelse) {
+        Adressebeskyttelse.FORTROLIG ->
+            poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
 
-            Adressebeskyttelse.STRENGT_FORTROLIG, Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND ->
-                poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
+        Adressebeskyttelse.STRENGT_FORTROLIG, Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND ->
+            poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId)).getOrThrow()
 
-            else -> Decision.Permit
-        }
+        else -> Decision.Permit
+    }
 
-    suspend fun leggTilTiltakskoordinatorTilgang(navIdent: String, deltakerlisteId: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> {
+    suspend fun leggTilTiltakskoordinatorTilgang(
+        navIdent: String,
+        deltakerlisteId: UUID,
+    ): Result<TiltakskoordinatorDeltakerlisteTilgang> {
         val koordinator = navAnsattService.hentEllerOpprettNavAnsatt(navIdent)
         val aktivTilgang = tiltakskoordinatorTilgangRepository.hentAktivTilgang(koordinator.id, deltakerlisteId)
 
@@ -158,7 +181,10 @@ class TilgangskontrollService(
         }
     }
 
-    suspend fun fjernTiltakskoordinatorTilgang(navIdent: String, deltakerlisteId: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> {
+    suspend fun fjernTiltakskoordinatorTilgang(
+        navIdent: String,
+        deltakerlisteId: UUID,
+    ): Result<TiltakskoordinatorDeltakerlisteTilgang> {
         val koordinatorAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navIdent)
 
         val tilgang = tiltakskoordinatorTilgangRepository
@@ -209,7 +235,10 @@ class TilgangskontrollService(
         )
     }
 
-    suspend fun verifiserTiltakskoordinatorTilgang(navIdent: String, deltakerlisteId: UUID) {
+    suspend fun verifiserTiltakskoordinatorTilgang(
+        navIdent: String,
+        deltakerlisteId: UUID,
+    ) {
         val koordinator = navAnsattService.hentEllerOpprettNavAnsatt(navIdent)
         val aktivTilgang = tiltakskoordinatorTilgangRepository.hentAktivTilgang(koordinator.id, deltakerlisteId)
 

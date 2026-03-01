@@ -50,7 +50,10 @@ object TestRepository {
         NavBrukerRepository().upsert(bruker)
     }
 
-    fun insert(deltakerliste: Deltakerliste, overordnetArrangor: Arrangor? = null) {
+    fun insert(
+        deltakerliste: Deltakerliste,
+        overordnetArrangor: Arrangor? = null,
+    ) {
         TiltakstypeRepository().upsert(deltakerliste.tiltakstype)
         overordnetArrangor?.let { ArrangorRepository().upsert(it) }
         ArrangorRepository().upsert(deltakerliste.arrangor)
@@ -74,7 +77,10 @@ object TestRepository {
         }
     }
 
-    fun insert(deltaker: Deltaker, vedtak: Vedtak? = null) {
+    fun insert(
+        deltaker: Deltaker,
+        vedtak: Vedtak? = null,
+    ) {
         insert(deltaker.navBruker)
         insert(deltaker.deltakerliste)
         DeltakerRepository().upsert(deltaker)

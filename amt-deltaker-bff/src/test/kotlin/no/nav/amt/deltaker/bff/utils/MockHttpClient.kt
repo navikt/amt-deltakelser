@@ -212,7 +212,10 @@ object MockResponseHandler {
         )
     }
 
-    fun addEndringsresponse(deltaker: Deltaker, status: HttpStatusCode = HttpStatusCode.OK) {
+    fun addEndringsresponse(
+        deltaker: Deltaker,
+        status: HttpStatusCode = HttpStatusCode.OK,
+    ) {
         val url = "$AMT_DELTAKER_URL/deltaker/${deltaker.id}/${AmtDeltakerClient.ENDRE_DELTAKER_URL_SEGMENT}"
 
         addResponse(
@@ -223,22 +226,34 @@ object MockResponseHandler {
         )
     }
 
-    fun addInnbyggerGodkjennUtkastResponse(deltaker: Deltaker, status: HttpStatusCode = HttpStatusCode.OK) {
+    fun addInnbyggerGodkjennUtkastResponse(
+        deltaker: Deltaker,
+        status: HttpStatusCode = HttpStatusCode.OK,
+    ) {
         val url = "$AMT_DELTAKER_URL/pamelding/${deltaker.id}/innbygger/godkjenn-utkast"
         addResponse(url, HttpMethod.Post, deltaker.toDeltakeroppdatering(), status)
     }
 
-    fun addNavAnsattResponse(navAnsatt: NavAnsatt, status: HttpStatusCode = HttpStatusCode.OK) {
+    fun addNavAnsattResponse(
+        navAnsatt: NavAnsatt,
+        status: HttpStatusCode = HttpStatusCode.OK,
+    ) {
         val url = "$AMT_PERSON_SERVICE_URL/api/nav-ansatt/${navAnsatt.id}"
         addResponse(url, HttpMethod.Get, navAnsatt, status)
     }
 
-    fun addNavEnhetGetResponse(navEnhet: NavEnhet, status: HttpStatusCode = HttpStatusCode.OK) {
+    fun addNavEnhetGetResponse(
+        navEnhet: NavEnhet,
+        status: HttpStatusCode = HttpStatusCode.OK,
+    ) {
         val url = "$AMT_PERSON_SERVICE_URL/api/nav-enhet/${navEnhet.id}"
         addResponse(url, HttpMethod.Get, navEnhet.toDto(), status)
     }
 
-    fun addNavEnhetPostResponse(navEnhet: NavEnhet, status: HttpStatusCode = HttpStatusCode.OK) {
+    fun addNavEnhetPostResponse(
+        navEnhet: NavEnhet,
+        status: HttpStatusCode = HttpStatusCode.OK,
+    ) {
         val url = "$AMT_PERSON_SERVICE_URL/api/nav-enhet"
         addResponse(url, HttpMethod.Post, navEnhet.toDto(), status)
     }

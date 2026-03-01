@@ -10,7 +10,10 @@ import java.util.UUID
 class TilgangskontrollService(
     private val poaoTilgangCachedClient: PoaoTilgangCachedClient,
 ) {
-    fun verifiserLesetilgang(navAnsattAzureId: UUID, norskIdent: String) {
+    fun verifiserLesetilgang(
+        navAnsattAzureId: UUID,
+        norskIdent: String,
+    ) {
         val tilgang = poaoTilgangCachedClient
             .evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(

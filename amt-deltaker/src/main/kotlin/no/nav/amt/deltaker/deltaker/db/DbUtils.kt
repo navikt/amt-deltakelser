@@ -20,7 +20,10 @@ object DbUtils {
      * @return `null` dersom tidspunktet er innenfor gitt toleranse fra nå,
      *         ellers [dateTime].
      */
-    fun nullWhenNearNow(dateTime: LocalDateTime, graceInSeconds: Long = 5): LocalDateTime? = if (Duration
+    fun nullWhenNearNow(
+        dateTime: LocalDateTime,
+        graceInSeconds: Long = 5,
+    ): LocalDateTime? = if (Duration
             .between(dateTime, LocalDateTime.now())
             .abs() <= Duration.ofSeconds(graceInSeconds)
     ) {

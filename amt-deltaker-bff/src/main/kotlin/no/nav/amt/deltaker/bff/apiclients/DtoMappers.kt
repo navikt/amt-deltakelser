@@ -83,21 +83,23 @@ object DtoMappers {
     )
 
     // benyttes kun i tester (tiltakskoordinator)
-    internal fun deltakerOppdateringResponseFromDeltaker(deltaker: Deltaker, feilkode: DeltakerOppdateringFeilkode? = null) =
-        with(deltaker) {
-            DeltakerOppdateringResponse(
-                id = id,
-                startdato = startdato,
-                sluttdato = sluttdato,
-                dagerPerUke = dagerPerUke,
-                deltakelsesprosent = deltakelsesprosent,
-                bakgrunnsinformasjon = bakgrunnsinformasjon,
-                deltakelsesinnhold = deltakelsesinnhold,
-                status = status,
-                historikk = historikk,
-                erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-                sistEndret = sistEndret,
-                feilkode = feilkode,
-            )
-        }
+    internal fun deltakerOppdateringResponseFromDeltaker(
+        deltaker: Deltaker,
+        feilkode: DeltakerOppdateringFeilkode? = null,
+    ) = with(deltaker) {
+        DeltakerOppdateringResponse(
+            id = id,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            dagerPerUke = dagerPerUke,
+            deltakelsesprosent = deltakelsesprosent,
+            bakgrunnsinformasjon = bakgrunnsinformasjon,
+            deltakelsesinnhold = deltakelsesinnhold,
+            status = status,
+            historikk = historikk,
+            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+            sistEndret = sistEndret,
+            feilkode = feilkode,
+        )
+    }
 }

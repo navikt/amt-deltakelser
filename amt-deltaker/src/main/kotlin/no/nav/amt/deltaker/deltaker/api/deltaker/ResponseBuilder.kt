@@ -85,7 +85,10 @@ class ResponseBuilder(
         )
     }
 
-    private fun fromNavBruker(navBruker: NavBruker, erDigital: Boolean): NavBrukerResponse = NavBrukerResponse(
+    private fun fromNavBruker(
+        navBruker: NavBruker,
+        erDigital: Boolean,
+    ): NavBrukerResponse = NavBrukerResponse(
         personident = navBruker.personident,
         fornavn = navBruker.fornavn,
         mellomnavn = navBruker.mellomnavn,

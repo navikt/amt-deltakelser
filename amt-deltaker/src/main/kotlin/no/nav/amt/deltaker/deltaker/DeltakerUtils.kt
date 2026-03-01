@@ -26,8 +26,14 @@ object DeltakerUtils {
         beskrivelse = beskrivelse,
     )
 
-    fun sjekkEndringUtfall(deltaker: Deltaker, endring: EndringFraTiltakskoordinator.Endring): Result<Deltaker> {
-        fun createResult(gyldigEndring: Boolean, deltakerOnSuccess: () -> Deltaker) = if (gyldigEndring) {
+    fun sjekkEndringUtfall(
+        deltaker: Deltaker,
+        endring: EndringFraTiltakskoordinator.Endring,
+    ): Result<Deltaker> {
+        fun createResult(
+            gyldigEndring: Boolean,
+            deltakerOnSuccess: () -> Deltaker,
+        ) = if (gyldigEndring) {
             Result.success(deltakerOnSuccess())
         } else {
             Result.failure(IllegalStateException("Ingen gyldig deltakerendring"))

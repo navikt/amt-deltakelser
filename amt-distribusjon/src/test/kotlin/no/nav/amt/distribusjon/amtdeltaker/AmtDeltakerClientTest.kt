@@ -44,12 +44,14 @@ class AmtDeltakerClientTest : ClientTestBase() {
         thrown.message shouldStartWith "Kunne ikke hente deltaker fra amt-deltaker."
     }
 
-    private fun createAmtDeltakerClient(statusCode: HttpStatusCode = HttpStatusCode.OK, responseBody: DeltakerResponse? = null) =
-        AmtDeltakerClient(
-            httpClient = createMockHttpClient(ENDRINGSVEDTAK_URL, responseBody, statusCode),
-            azureAdTokenClient = mockAzureAdTokenClient,
-            environment = testEnvironment,
-        )
+    private fun createAmtDeltakerClient(
+        statusCode: HttpStatusCode = HttpStatusCode.OK,
+        responseBody: DeltakerResponse? = null,
+    ) = AmtDeltakerClient(
+        httpClient = createMockHttpClient(ENDRINGSVEDTAK_URL, responseBody, statusCode),
+        azureAdTokenClient = mockAzureAdTokenClient,
+        environment = testEnvironment,
+    )
 
     companion object {
         private val deltakerId: UUID = UUID.randomUUID()

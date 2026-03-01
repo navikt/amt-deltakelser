@@ -19,7 +19,10 @@ class NavEnhetConsumer(
         consumeFunc = ::consume,
     )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         if (value == null) throw kotlin.IllegalArgumentException("Mottok uventet tombstone for nav-enhet med id $key")
 
         val dto = objectMapper.readValue<NavEnhetDto>(value)

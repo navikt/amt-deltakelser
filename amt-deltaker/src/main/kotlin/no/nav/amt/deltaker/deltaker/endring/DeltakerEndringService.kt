@@ -42,7 +42,10 @@ class DeltakerEndringService(
         }
     }
 
-    fun upsertEndring(endringRequest: EndringRequest, endringResultat: VellykketEndring): DeltakerEndring {
+    fun upsertEndring(
+        endringRequest: EndringRequest,
+        endringResultat: VellykketEndring,
+    ): DeltakerEndring {
         val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
         val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
 
@@ -81,7 +84,10 @@ class DeltakerEndringService(
         return deltakerEndring
     }
 
-    fun behandleLagretDeltakelsesmengde(deltakerEndring: DeltakerEndring, deltaker: Deltaker): Result<VellykketEndring> {
+    fun behandleLagretDeltakelsesmengde(
+        deltakerEndring: DeltakerEndring,
+        deltaker: Deltaker,
+    ): Result<VellykketEndring> {
         val deltakelsesmengde = deltakerEndring.toDeltakelsesmengde()
             ?: throw IllegalStateException("Endring ${deltakerEndring.id} er ikke en EndreDeltakelsesmengde")
 

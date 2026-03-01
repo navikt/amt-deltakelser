@@ -24,7 +24,10 @@ import java.util.UUID
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getKladdForDeltakerliste(deltakerlisteId: UUID, personident: String): Result<Deltaker> = runCatching {
+    fun getKladdForDeltakerliste(
+        deltakerlisteId: UUID,
+        personident: String,
+    ): Result<Deltaker> = runCatching {
         val sql = buildDeltakerSql(
             "getKladdForDeltakerliste",
             """
@@ -160,7 +163,10 @@ class DeltakerRepository {
         )
     }
 
-    fun getFlereForPerson(personIdent: String, deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
+    fun getFlereForPerson(
+        personIdent: String,
+        deltakerlisteId: UUID,
+    ): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
                 buildDeltakerSql(

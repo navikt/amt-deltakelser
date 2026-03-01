@@ -151,7 +151,10 @@ object DeltakerProgresjonHandler {
         null
     }
 
-    private fun Deltaker.medNyStatus(status: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak? = null) = this.copy(
+    private fun Deltaker.medNyStatus(
+        status: DeltakerStatus.Type,
+        aarsak: DeltakerStatus.Aarsak? = null,
+    ) = this.copy(
         status = DeltakerStatus(
             id = UUID.randomUUID(),
             type = status,

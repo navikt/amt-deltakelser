@@ -46,7 +46,10 @@ class OpprettKladdRequestValidator(
         return ValidationResult.Valid
     }
 
-    private suspend fun harRiktigInnsatsGruppe(personIdent: String, deltakerListe: Deltakerliste): Boolean {
+    private suspend fun harRiktigInnsatsGruppe(
+        personIdent: String,
+        deltakerListe: Deltakerliste,
+    ): Boolean {
         val navBruker = brukerService.get(personIdent).getOrThrow()
 
         return if (navBruker.innsatsgruppe in deltakerListe.tiltakstype.innsatsgrupper) {
@@ -60,7 +63,10 @@ class OpprettKladdRequestValidator(
         }
     }
 
-    private suspend fun deltakerForUng(personIdent: String, deltakerListe: Deltakerliste): Boolean {
+    private suspend fun deltakerForUng(
+        personIdent: String,
+        deltakerListe: Deltakerliste,
+    ): Boolean {
         fun alderVedKursStart(foedselAar: Int): Int {
             val startDato = deltakerListe.startDato
                 ?: throw IllegalStateException("Startdato kan ikke være null for ${Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING}")

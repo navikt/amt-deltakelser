@@ -24,7 +24,10 @@ abstract class ApiClientBase(
         accept(ContentType.Application.Json)
     }
 
-    protected suspend fun performPost(urlSubPath: String, requestBody: Any?): HttpResponse = httpClient.post("$baseUrl/$urlSubPath") {
+    protected suspend fun performPost(
+        urlSubPath: String,
+        requestBody: Any?,
+    ): HttpResponse = httpClient.post("$baseUrl/$urlSubPath") {
         header(HttpHeaders.Authorization, azureAdTokenClient.getMachineToMachineToken(scope))
         accept(ContentType.Application.Json)
         if (requestBody != null) {

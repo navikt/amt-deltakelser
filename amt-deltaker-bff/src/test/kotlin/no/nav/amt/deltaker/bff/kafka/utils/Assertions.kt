@@ -41,7 +41,10 @@ fun assertProduced(forslag: Forslag) = runTest {
     consumer.close()
 }
 
-fun assertProduced(tilgang: TiltakskoordinatorsDeltakerlisteDto, tombstoneExpected: Boolean = false) = runTest {
+fun assertProduced(
+    tilgang: TiltakskoordinatorsDeltakerlisteDto,
+    tombstoneExpected: Boolean = false,
+) = runTest {
     val receivedDeltakerlister = mutableMapOf<UUID, TiltakskoordinatorsDeltakerlisteDto?>()
 
     val consumer = stringStringConsumer(Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC) { k, v ->
@@ -84,7 +87,10 @@ fun assertProducedTombstone(tilgang: TiltakskoordinatorDeltakerlisteTilgang) = r
     consumer.close()
 }
 
-fun sammenlignForslagStatus(first: Forslag.Status, second: Forslag.Status) {
+fun sammenlignForslagStatus(
+    first: Forslag.Status,
+    second: Forslag.Status,
+) {
     when (first) {
         is Forslag.Status.VenterPaSvar -> {
             second as Forslag.Status.VenterPaSvar

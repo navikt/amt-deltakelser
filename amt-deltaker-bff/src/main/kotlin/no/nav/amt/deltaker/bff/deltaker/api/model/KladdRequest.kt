@@ -57,7 +57,10 @@ private fun List<InnholdRequest>.sanitize() = this.map {
     }
 }
 
-private fun Int.clamp(min: Int, max: Int) = when {
+private fun Int.clamp(
+    min: Int,
+    max: Int,
+) = when {
     this < min -> min
     this > max -> max
     else -> this

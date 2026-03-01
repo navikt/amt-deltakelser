@@ -93,6 +93,7 @@ class JournalforingService(
             is HendelseType.DeltakerSistBesokt,
             -> {
             }
+
             is HendelseType.SettPaaVenteliste -> journalforOgSendVentelisteBrev(hendelse, journalforingstatus)
             is HendelseType.TildelPlass -> journalforHovedvedtakForTildeltPlass(hendelse, journalforingstatus)
             is HendelseType.Avslag -> journalforAvslag(hendelse, journalforingstatus)
@@ -111,7 +112,10 @@ class JournalforingService(
         }
     }
 
-    private suspend fun journalforAvslag(hendelse: Hendelse, journalforingstatus: Journalforingstatus?) {
+    private suspend fun journalforAvslag(
+        hendelse: Hendelse,
+        journalforingstatus: Journalforingstatus?,
+    ) {
         val navBruker = amtPersonClient.hentNavBruker(hendelse.deltaker.personident)
         val hendelseAnsvarlig = hendelse.ansvarlig.hentTiltakskoordinator()
 
@@ -139,7 +143,10 @@ class JournalforingService(
         log.info("Journalførte avslag for deltaker ${hendelse.deltaker.id}")
     }
 
-    private suspend fun journalforHovedvedtakForTildeltPlass(hendelse: Hendelse, journalforingstatus: Journalforingstatus?) {
+    private suspend fun journalforHovedvedtakForTildeltPlass(
+        hendelse: Hendelse,
+        journalforingstatus: Journalforingstatus?,
+    ) {
         val navBruker = amtPersonClient.hentNavBruker(hendelse.deltaker.personident)
         val hendelseAnsvarlig = hendelse.ansvarlig.hentTiltakskoordinator()
         val deltaker = amtDeltakerClient.getDeltaker(hendelse.deltaker.id)
@@ -202,7 +209,10 @@ class JournalforingService(
         log.info("Journalførte innsøkingsbrev for deltaker ${hendelse.deltaker.id}")
     }
 
-    private suspend fun journalforOgSendVentelisteBrev(hendelse: Hendelse, journalforingstatus: Journalforingstatus?) {
+    private suspend fun journalforOgSendVentelisteBrev(
+        hendelse: Hendelse,
+        journalforingstatus: Journalforingstatus?,
+    ) {
         val navBruker = amtPersonClient.hentNavBruker(hendelse.deltaker.personident)
         val tiltakskoordinator = hendelse.ansvarlig.hentTiltakskoordinator()
         val pdf: suspend () -> ByteArray = {
@@ -280,7 +290,10 @@ class JournalforingService(
         log.info("Journalførte brev for deltaker ${hendelse.deltaker.id}")
     }
 
-    private fun handleEndringsvedtak(hendelse: Hendelse, journalforingstatus: Journalforingstatus?) {
+    private fun handleEndringsvedtak(
+        hendelse: Hendelse,
+        journalforingstatus: Journalforingstatus?,
+    ) {
         journalforingstatusRepository.upsert(
             Journalforingstatus(
                 hendelseId = hendelse.id,
@@ -343,7 +356,10 @@ class JournalforingService(
         )
     }
 
-    private suspend fun journalforEndringsvedtak(ikkeJournalforteHendelser: List<Hendelse>, navBruker: NavBruker): String? {
+    private suspend fun journalforEndringsvedtak(
+        ikkeJournalforteHendelser: List<Hendelse>,
+        navBruker: NavBruker,
+    ): String? {
         val nyesteHendelse = ikkeJournalforteHendelser.maxBy { it.opprettet }
         val ansvarlig = getAnsvarlig(nyesteHendelse, ikkeJournalforteHendelser)
         val journalforendeEnhet = getJournalforendeEnhet(ansvarlig)
@@ -475,7 +491,10 @@ private fun hendelseErBehandlet(
         manuellOppfolging,
     )
 
-private fun getAnsvarlig(nyesteHendelse: Hendelse, ikkeJournalforteHendelser: List<Hendelse>): HendelseAnsvarlig {
+private fun getAnsvarlig(
+    nyesteHendelse: Hendelse,
+    ikkeJournalforteHendelser: List<Hendelse>,
+): HendelseAnsvarlig {
     if (nyesteHendelse.ansvarlig is HendelseAnsvarlig.NavVeileder) {
         return nyesteHendelse.ansvarlig
     }
@@ -485,7 +504,10 @@ private fun getAnsvarlig(nyesteHendelse: Hendelse, ikkeJournalforteHendelser: Li
     throw IllegalArgumentException("Må ha en ansvarlig som er enten veileder eller arrangør")
 }
 
-private fun getJournalpostNavn(tiltakstype: HendelseDeltaker.Deltakerliste.Tiltak, dokumentType: DokumentType): String {
+private fun getJournalpostNavn(
+    tiltakstype: HendelseDeltaker.Deltakerliste.Tiltak,
+    dokumentType: DokumentType,
+): String {
     val tiltaknavn = if (tiltakstype.tiltakskode == Tiltakskode.JOBBKLUBB) "Jobbsøkerkurs" else tiltakstype.navn
     return when (dokumentType) {
         DokumentType.HOVEDVEDTAK -> "Vedtak - $tiltaknavn"

@@ -50,7 +50,10 @@ class TiltakskoordinatorTilgangRepository {
         }
     }
 
-    fun hentAktivTilgang(navAnsattId: UUID, deltakerlisteId: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
+    fun hentAktivTilgang(
+        navAnsattId: UUID,
+        deltakerlisteId: UUID,
+    ): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
         val sql =
             """
             SELECT *
@@ -84,7 +87,10 @@ class TiltakskoordinatorTilgangRepository {
      * @param paaloggetNavAnsattId ID til Nav-ansatt som er pålogget og gjør spørringen
      * @return en liste av [Tiltakskoordinator]-objekter med tilhørende statusinformasjon
      */
-    fun hentKoordinatorer(deltakerlisteId: UUID, paaloggetNavAnsattId: UUID): List<Tiltakskoordinator> {
+    fun hentKoordinatorer(
+        deltakerlisteId: UUID,
+        paaloggetNavAnsattId: UUID,
+    ): List<Tiltakskoordinator> {
         val sql =
             """
             SELECT DISTINCT ON (nav_ansatt.id)

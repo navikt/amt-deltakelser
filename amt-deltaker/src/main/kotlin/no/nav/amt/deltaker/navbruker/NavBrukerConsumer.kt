@@ -25,7 +25,10 @@ class NavBrukerConsumer(
         consumeFunc = ::consume,
     )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         if (value == null) {
             log.warn("Mottok tombstone for nav-bruker: $key, skal ikke skje.")
             return
@@ -52,7 +55,10 @@ class NavBrukerConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private fun harEndredePersonopplysninger(navBruker: NavBruker?, navBrukerDto: NavBrukerDto): Boolean = if (navBruker == null) {
+    private fun harEndredePersonopplysninger(
+        navBruker: NavBruker?,
+        navBrukerDto: NavBrukerDto,
+    ): Boolean = if (navBruker == null) {
         true
     } else {
         navBrukerDto.toModel() != navBruker

@@ -913,13 +913,15 @@ class TiltakskoordinatorDeltakerApiTest {
     }
 
     companion object {
-        private fun deltakerResponseInTest(deltaker: Deltaker, mocks: Pair<Map<UUID, NavAnsatt>, NavEnhet?>) =
-            DeltakerResponse.fromDeltaker(
-                deltaker = deltaker,
-                ansatte = mocks.first,
-                vedtakSistEndretAvEnhet = mocks.second,
-                digitalBruker = true,
-                forslag = emptyList(),
-            )
+        private fun deltakerResponseInTest(
+            deltaker: Deltaker,
+            mocks: Pair<Map<UUID, NavAnsatt>, NavEnhet?>,
+        ) = DeltakerResponse.fromDeltaker(
+            deltaker = deltaker,
+            ansatte = mocks.first,
+            vedtakSistEndretAvEnhet = mocks.second,
+            digitalBruker = true,
+            forslag = emptyList(),
+        )
     }
 }

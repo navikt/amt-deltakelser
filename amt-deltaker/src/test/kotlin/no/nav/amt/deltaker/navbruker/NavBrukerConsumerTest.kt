@@ -37,7 +37,10 @@ class NavBrukerConsumerTest {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(
+        fun lagNavBrukerDto(
+            navBruker: NavBruker,
+            navEnhet: NavEnhet,
+        ) = NavBrukerDto(
             personId = navBruker.personId,
             personident = navBruker.personident,
             fornavn = navBruker.fornavn,

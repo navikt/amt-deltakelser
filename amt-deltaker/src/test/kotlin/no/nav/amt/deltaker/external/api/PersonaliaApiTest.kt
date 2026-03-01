@@ -163,7 +163,10 @@ class PersonaliaApiTest : RouteTestBase() {
         }
     }
 
-    private fun mockServices(deltakere: List<Deltaker>, navEnheter: Map<UUID, NavEnhet> = emptyMap()) {
+    private fun mockServices(
+        deltakere: List<Deltaker>,
+        navEnheter: Map<UUID, NavEnhet> = emptyMap(),
+    ) {
         every { deltakerRepository.getMany(any()) } returns deltakere
         every { navEnhetService.getEnheter(any()) } returns navEnheter
     }
@@ -174,7 +177,10 @@ class PersonaliaApiTest : RouteTestBase() {
             audience = "amt-deltaker",
         )
 
-        private fun forventetResponse(deltaker: Deltaker, navEnhet: NavEnhet?): List<DeltakerPersonaliaResponse> {
+        private fun forventetResponse(
+            deltaker: Deltaker,
+            navEnhet: NavEnhet?,
+        ): List<DeltakerPersonaliaResponse> {
             val forventetRespons = listOf(
                 DeltakerPersonaliaResponse.from(
                     deltaker,
@@ -187,12 +193,14 @@ class PersonaliaApiTest : RouteTestBase() {
 
         private fun createStandardRequest(deltakerIds: List<UUID>) = objectMapper.writeValueAsString(deltakerIds)
 
-        private suspend fun HttpClient.postPersonalia(deltakerIds: List<UUID>, token: String? = mulighetsrommetSystemToken): HttpResponse =
-            post("/external/deltakere/personalia") {
-                setBody(createStandardRequest(deltakerIds))
-                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                token?.let { bearerAuth(it) }
-            }
+        private suspend fun HttpClient.postPersonalia(
+            deltakerIds: List<UUID>,
+            token: String? = mulighetsrommetSystemToken,
+        ): HttpResponse = post("/external/deltakere/personalia") {
+            setBody(createStandardRequest(deltakerIds))
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            token?.let { bearerAuth(it) }
+        }
 
         private fun createDeltakerWithNavEnhet(
             personident: String,

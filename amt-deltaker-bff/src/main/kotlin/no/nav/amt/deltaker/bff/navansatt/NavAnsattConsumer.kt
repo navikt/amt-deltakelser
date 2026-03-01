@@ -19,7 +19,10 @@ class NavAnsattConsumer(
         consumeFunc = ::consume,
     )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         if (value == null) {
             navAnsattService.slettNavAnsatt(key)
             log.info("Slettet navansatt med id $key")

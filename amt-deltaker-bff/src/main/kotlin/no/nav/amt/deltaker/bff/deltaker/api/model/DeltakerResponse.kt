@@ -95,13 +95,18 @@ data class DeltakerResponse(
         val innhold: List<Innhold>,
     ) {
         companion object {
-            fun fromDeltakelsesinnhold(deltakelsesinnhold: Deltakelsesinnhold, tiltaksInnhold: List<Innholdselement>?) =
-                DeltakelsesinnholdDto(
-                    ledetekst = deltakelsesinnhold.ledetekst,
-                    innhold = fulltInnhold(deltakelsesinnhold.innhold, tiltaksInnhold ?: emptyList()),
-                )
+            fun fromDeltakelsesinnhold(
+                deltakelsesinnhold: Deltakelsesinnhold,
+                tiltaksInnhold: List<Innholdselement>?,
+            ) = DeltakelsesinnholdDto(
+                ledetekst = deltakelsesinnhold.ledetekst,
+                innhold = fulltInnhold(deltakelsesinnhold.innhold, tiltaksInnhold ?: emptyList()),
+            )
 
-            fun fulltInnhold(valgtInnhold: List<Innhold>, innholdselementer: List<Innholdselement>): List<Innhold> = innholdselementer
+            fun fulltInnhold(
+                valgtInnhold: List<Innhold>,
+                innholdselementer: List<Innholdselement>,
+            ): List<Innhold> = innholdselementer
                 .asSequence()
                 .filterNot { it.innholdskode in valgtInnhold.map { vi -> vi.innholdskode } }
                 .map { it.toInnhold() }
@@ -138,7 +143,10 @@ data class DeltakerResponse(
     ) {
         companion object {
             // litt spesiell konstruksjon med nullable innhold, undersøk nærmere
-            fun fromDeltakerRegistreringInnhold(innhold: DeltakerRegistreringInnhold?, tiltakstype: Tiltakskode) = TilgjengeligInnhold(
+            fun fromDeltakerRegistreringInnhold(
+                innhold: DeltakerRegistreringInnhold?,
+                tiltakstype: Tiltakskode,
+            ) = TilgjengeligInnhold(
                 ledetekst = innhold?.ledetekst,
                 innhold = getInnholdselementer(innhold?.innholdselementer, tiltakstype),
             )

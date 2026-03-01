@@ -332,7 +332,10 @@ class DeltakerResponseMapperServiceTest {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        private fun sammenlignPersonalia(personaliaDto: Personalia, navBruker: NavBruker) {
+        private fun sammenlignPersonalia(
+            personaliaDto: Personalia,
+            navBruker: NavBruker,
+        ) {
             personaliaDto.personId shouldBe navBruker.personId
             personaliaDto.personident shouldBe navBruker.personident
             personaliaDto.navn.fornavn shouldBe navBruker.fornavn
@@ -345,7 +348,10 @@ class DeltakerResponseMapperServiceTest {
             personaliaDto.adressebeskyttelse shouldBe navBruker.adressebeskyttelse
         }
 
-        private fun sammenlignStatus(deltakerStatusDto: DeltakerStatusDto, deltakerStatus: DeltakerStatus) {
+        private fun sammenlignStatus(
+            deltakerStatusDto: DeltakerStatusDto,
+            deltakerStatus: DeltakerStatus,
+        ) {
             deltakerStatusDto.id shouldBe deltakerStatus.id
             deltakerStatusDto.type shouldBe deltakerStatus.type
             deltakerStatusDto.aarsak shouldBe deltakerStatus.aarsak?.type

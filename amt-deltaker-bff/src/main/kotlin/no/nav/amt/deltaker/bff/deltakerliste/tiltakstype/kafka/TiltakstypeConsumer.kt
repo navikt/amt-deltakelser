@@ -18,7 +18,10 @@ class TiltakstypeConsumer(
         consumeFunc = ::consume,
     )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         value?.let { handterTiltakstype(objectMapper.readValue(it)) }
     }
 

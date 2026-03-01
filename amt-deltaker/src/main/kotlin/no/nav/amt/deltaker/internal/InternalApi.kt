@@ -63,7 +63,10 @@ fun Routing.registerInternalApi(
         deltakerService.deleteDeltaker(deltakerId)
     }
 
-    suspend fun republiserDeltakere(deltakerIder: List<UUID>, request: RepubliserRequest) {
+    suspend fun republiserDeltakere(
+        deltakerIder: List<UUID>,
+        request: RepubliserRequest,
+    ) {
         deltakerIder.forEach { deltakerId ->
             runCatching {
                 Database.transaction {

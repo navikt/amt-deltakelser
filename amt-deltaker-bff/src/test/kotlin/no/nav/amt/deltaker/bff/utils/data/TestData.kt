@@ -378,12 +378,18 @@ object TestData {
         begrunnelse = begrunnelse,
     )
 
-    private fun lagArenaDeltakerHistorikk(deltaker: Deltaker, innsoktDatoFraArena: LocalDate): List<DeltakerHistorikk> {
+    private fun lagArenaDeltakerHistorikk(
+        deltaker: Deltaker,
+        innsoktDatoFraArena: LocalDate,
+    ): List<DeltakerHistorikk> {
         val importertFraArena = lagImportertFraArena(deltaker = deltaker, innsoktDato = innsoktDatoFraArena)
         return listOf(DeltakerHistorikk.ImportertFraArena(importertFraArena))
     }
 
-    private fun lagImportertFraArena(deltaker: Deltaker, innsoktDato: LocalDate) = ImportertFraArena(
+    private fun lagImportertFraArena(
+        deltaker: Deltaker,
+        innsoktDato: LocalDate,
+    ) = ImportertFraArena(
         deltakerId = deltaker.id,
         importertDato = LocalDateTime.now(),
         deltakerVedImport = DeltakerVedImport(
@@ -407,8 +413,10 @@ object TestData {
         return listOf(DeltakerHistorikk.Vedtak(vedtak))
     }
 
-    fun lagDeltakerStatus(type: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak) =
-        lagDeltakerStatus(type, aarsak.type, aarsak.beskrivelse)
+    fun lagDeltakerStatus(
+        type: DeltakerStatus.Type,
+        aarsak: DeltakerStatus.Aarsak,
+    ) = lagDeltakerStatus(type, aarsak.type, aarsak.beskrivelse)
 
     fun lagDeltakerStatus(
         statusType: DeltakerStatus.Type,

@@ -49,8 +49,14 @@ class EndringFraArrangorService(
         return eksisterendeDeltaker
     }
 
-    private fun endretDeltaker(deltaker: Deltaker, endring: EndringFraArrangor.Endring): Result<Deltaker> {
-        fun endreDeltaker(erEndret: Boolean, block: () -> Deltaker) = if (erEndret) {
+    private fun endretDeltaker(
+        deltaker: Deltaker,
+        endring: EndringFraArrangor.Endring,
+    ): Result<Deltaker> {
+        fun endreDeltaker(
+            erEndret: Boolean,
+            block: () -> Deltaker,
+        ) = if (erEndret) {
             Result.success(block())
         } else {
             Result.failure(IllegalStateException("Ingen gyldig deltakerendring"))

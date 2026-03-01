@@ -6,7 +6,10 @@ import no.nav.amt.lib.testing.SingletonKafkaProvider
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.UUID
 
-fun stringStringConsumer(topic: String, block: suspend (k: String, v: String?) -> Unit): ManagedKafkaConsumer<String, String> {
+fun stringStringConsumer(
+    topic: String,
+    block: suspend (k: String, v: String?) -> Unit,
+): ManagedKafkaConsumer<String, String> {
     val config = LocalKafkaConfig(SingletonKafkaProvider.getHost()).consumerConfig(
         keyDeserializer = StringDeserializer(),
         valueDeserializer = StringDeserializer(),

@@ -52,15 +52,14 @@ class PartitionBackoffManagerTest {
         }
 
         @Test
-        fun `skal returnere false etter at backoff er over`() =
-            runTest {
-                sut.incrementRetryCount(topicPartition1)
-                sut.isInBackoff(topicPartition1) shouldBe true
+        fun `skal returnere false etter at backoff er over`() = runTest {
+            sut.incrementRetryCount(topicPartition1)
+            sut.isInBackoff(topicPartition1) shouldBe true
 
-                eventually {
-                    sut.isInBackoff(topicPartition1) shouldBe false
-                }
+            eventually {
+                sut.isInBackoff(topicPartition1) shouldBe false
             }
+        }
 
         @Test
         fun `skal returnere false etter resetRetryCount`() {

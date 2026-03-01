@@ -150,18 +150,16 @@ class Deltakelsesmengder(
     /**
      * Man må sorterer på opprettet her for at `finnGyldigeDeltakelsesmengde` skal gi riktig svar.
      */
-    private fun sorterMengder(mengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> =
-        mengder.sortedWith(
-            compareByDescending<Deltakelsesmengde> { it.opprettet }
-                .thenByDescending { it.gyldigFra },
-        )
+    private fun sorterMengder(mengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> = mengder.sortedWith(
+        compareByDescending<Deltakelsesmengde> { it.opprettet }
+            .thenByDescending { it.gyldigFra },
+    )
 
-    override fun equals(other: Any?): Boolean =
-        if (other != null && other is Deltakelsesmengder) {
-            this.deltakelsesmengder == other.deltakelsesmengder
-        } else {
-            false
-        }
+    override fun equals(other: Any?): Boolean = if (other != null && other is Deltakelsesmengder) {
+        this.deltakelsesmengder == other.deltakelsesmengder
+    } else {
+        false
+    }
 
     override fun hashCode(): Int = this.deltakelsesmengder.hashCode()
 
@@ -206,57 +204,55 @@ fun List<DeltakerHistorikk>.toDeltakelsesmengder(): Deltakelsesmengder {
     }
 }
 
-private fun DeltakerHistorikk.toDeltakelsesmengde() =
-    when (this) {
-        is DeltakerHistorikk.Endring -> this.endring.toDeltakelsesmengde()
-        is DeltakerHistorikk.EndringFraArrangor -> null
-        is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
-        is DeltakerHistorikk.Forslag -> null
-        is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()
-        is DeltakerHistorikk.Vedtak -> this.vedtak.toDeltakelsesmengde()
-        is DeltakerHistorikk.VurderingFraArrangor -> null
-        is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
-    }
+private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
+    is DeltakerHistorikk.Endring -> this.endring.toDeltakelsesmengde()
+    is DeltakerHistorikk.EndringFraArrangor -> null
+    is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
+    is DeltakerHistorikk.Forslag -> null
+    is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()
+    is DeltakerHistorikk.Vedtak -> this.vedtak.toDeltakelsesmengde()
+    is DeltakerHistorikk.VurderingFraArrangor -> null
+    is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
+}
 
-private fun DeltakerHistorikk.toStartdato() =
-    when (this) {
-        is DeltakerHistorikk.Endring -> {
-            if (this.endring.endring is DeltakerEndring.Endring.EndreStartdato) {
-                this.endring.endring.startdato
-            } else {
-                null
-            }
-        }
-
-        is DeltakerHistorikk.EndringFraArrangor -> {
-            if (this.endringFraArrangor.endring is EndringFraArrangor.LeggTilOppstartsdato) {
-                this.endringFraArrangor.endring.startdato
-            } else {
-                null
-            }
-        }
-
-        is DeltakerHistorikk.InnsokPaaFellesOppstart -> {
-            null
-        }
-
-        is DeltakerHistorikk.Forslag -> {
-            null
-        }
-
-        is DeltakerHistorikk.ImportertFraArena -> {
-            this.importertFraArena.deltakerVedImport.startdato
-        }
-
-        is DeltakerHistorikk.Vedtak -> {
-            this.vedtak.deltakerVedVedtak.startdato
-        }
-
-        is DeltakerHistorikk.VurderingFraArrangor -> {
-            null
-        }
-
-        is DeltakerHistorikk.EndringFraTiltakskoordinator -> {
+private fun DeltakerHistorikk.toStartdato() = when (this) {
+    is DeltakerHistorikk.Endring -> {
+        if (this.endring.endring is DeltakerEndring.Endring.EndreStartdato) {
+            this.endring.endring.startdato
+        } else {
             null
         }
     }
+
+    is DeltakerHistorikk.EndringFraArrangor -> {
+        if (this.endringFraArrangor.endring is EndringFraArrangor.LeggTilOppstartsdato) {
+            this.endringFraArrangor.endring.startdato
+        } else {
+            null
+        }
+    }
+
+    is DeltakerHistorikk.InnsokPaaFellesOppstart -> {
+        null
+    }
+
+    is DeltakerHistorikk.Forslag -> {
+        null
+    }
+
+    is DeltakerHistorikk.ImportertFraArena -> {
+        this.importertFraArena.deltakerVedImport.startdato
+    }
+
+    is DeltakerHistorikk.Vedtak -> {
+        this.vedtak.deltakerVedVedtak.startdato
+    }
+
+    is DeltakerHistorikk.VurderingFraArrangor -> {
+        null
+    }
+
+    is DeltakerHistorikk.EndringFraTiltakskoordinator -> {
+        null
+    }
+}

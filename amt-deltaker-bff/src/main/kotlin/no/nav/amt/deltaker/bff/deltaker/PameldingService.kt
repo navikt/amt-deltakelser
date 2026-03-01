@@ -24,7 +24,10 @@ class PameldingService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun opprettDeltaker(deltakerlisteId: UUID, personIdent: String): Deltaker {
+    suspend fun opprettDeltaker(
+        deltakerlisteId: UUID,
+        personIdent: String,
+    ): Deltaker {
         val eksisterendeDeltaker = deltakerRepository
             .getMany(personIdent, deltakerlisteId)
             .firstOrNull { !it.harSluttet() }

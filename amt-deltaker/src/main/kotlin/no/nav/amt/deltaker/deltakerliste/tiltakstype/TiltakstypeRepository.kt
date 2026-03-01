@@ -76,7 +76,10 @@ class TiltakstypeRepository {
     }
 
     companion object {
-        fun rowMapper(row: Row, alias: String? = null): Tiltakstype {
+        fun rowMapper(
+            row: Row,
+            alias: String? = null,
+        ): Tiltakstype {
             val col = prefixColumn(alias)
 
             return Tiltakstype(

@@ -336,7 +336,10 @@ class DeltakerRepositoryTest {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        fun assertDeltakereAreEqual(first: Deltaker, second: Deltaker) {
+        fun assertDeltakereAreEqual(
+            first: Deltaker,
+            second: Deltaker,
+        ) {
             assertSoftly(first) {
                 id shouldBe second.id
                 navBruker shouldBe second.navBruker

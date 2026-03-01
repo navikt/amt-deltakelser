@@ -123,7 +123,10 @@ fun DeltakerEndring.toResponse(
     forslag = forslag?.toResponse(arrangornavn),
 )
 
-fun Vedtak.toResponse(ansatte: Map<UUID, NavAnsatt>, enheter: Map<UUID, NavEnhet>) = VedtakResponse(
+fun Vedtak.toResponse(
+    ansatte: Map<UUID, NavAnsatt>,
+    enheter: Map<UUID, NavEnhet>,
+) = VedtakResponse(
     fattet = fattet,
     bakgrunnsinformasjon = deltakerVedVedtak.bakgrunnsinformasjon,
     deltakelsesinnhold = deltakerVedVedtak.deltakelsesinnhold,
@@ -158,15 +161,20 @@ fun VurderingFraArrangorData.toResponse(arrangornavn: String) = VurderingFraArra
     endretAv = arrangornavn,
 )
 
-fun EndringFraTiltakskoordinator.toResponse(ansatte: Map<UUID, NavAnsatt>, enheter: Map<UUID, NavEnhet>) =
-    EndringFraTiltakskoordinatorResponse(
-        endring,
-        ansatte[endretAv]!!.navn,
-        enheter[endretAvEnhet]!!.navn,
-        endret,
-    )
+fun EndringFraTiltakskoordinator.toResponse(
+    ansatte: Map<UUID, NavAnsatt>,
+    enheter: Map<UUID, NavEnhet>,
+) = EndringFraTiltakskoordinatorResponse(
+    endring,
+    ansatte[endretAv]!!.navn,
+    enheter[endretAvEnhet]!!.navn,
+    endret,
+)
 
-fun InnsokPaaFellesOppstart.toResponse(ansatte: Map<UUID, NavAnsatt>, enheter: Map<UUID, NavEnhet>) = InnsokPaaFellesOppstartResponse(
+fun InnsokPaaFellesOppstart.toResponse(
+    ansatte: Map<UUID, NavAnsatt>,
+    enheter: Map<UUID, NavEnhet>,
+) = InnsokPaaFellesOppstartResponse(
     innsokt,
     ansatte[innsoktAv]!!.navn,
     enheter[innsoktAvEnhet]!!.navn,

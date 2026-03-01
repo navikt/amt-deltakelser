@@ -29,7 +29,10 @@ object DeltakerStatusRepository {
      * @param deltakerId ID-en til deltakeren statusen tilhører.
      * @return en ferdig parametrisert [Query] som kan kjøres mot databasen.
      */
-    fun lagreStatus(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun lagreStatus(
+        deltakerId: UUID,
+        deltakerStatus: DeltakerStatus,
+    ) {
         val sql =
             """
             INSERT INTO deltaker_status (
@@ -130,7 +133,10 @@ object DeltakerStatusRepository {
     private val IKKE_AVSLUTTENDE_STATUSER_AS_DELIMITED_STRING = IKKE_AVSLUTTENDE_STATUSER
         .joinToString { "'${it.name}'" }
 
-    fun slettTidligereFremtidigeStatuser(deltakerId: UUID, excludeStatusId: UUID) {
+    fun slettTidligereFremtidigeStatuser(
+        deltakerId: UUID,
+        excludeStatusId: UUID,
+    ) {
         val sql =
             """
             DELETE FROM deltaker_status

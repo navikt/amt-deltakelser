@@ -31,7 +31,10 @@ class DokdistkanalClient(
     private val url = environment.dokdistkanalUrl
     private val navCallId = "amt-distribusjon"
 
-    suspend fun bestemDistribusjonskanal(personident: String, deltakerId: UUID? = null): Distribusjonskanal {
+    suspend fun bestemDistribusjonskanal(
+        personident: String,
+        deltakerId: UUID? = null,
+    ): Distribusjonskanal {
         distribusjonskanalCache.getIfPresent(personident)?.let {
             return it
         }

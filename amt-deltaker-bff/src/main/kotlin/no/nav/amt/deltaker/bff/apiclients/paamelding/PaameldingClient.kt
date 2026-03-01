@@ -25,10 +25,12 @@ class PaameldingClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun opprettKladd(deltakerlisteId: UUID, personIdent: String): OpprettKladdResponse =
-        performPost("pamelding", OpprettKladdRequest(deltakerlisteId, personIdent))
-            .failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.")
-            .body()
+    suspend fun opprettKladd(
+        deltakerlisteId: UUID,
+        personIdent: String,
+    ): OpprettKladdResponse = performPost("pamelding", OpprettKladdRequest(deltakerlisteId, personIdent))
+        .failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.")
+        .body()
 
     suspend fun utkast(utkast: Utkast): UtkastResponse = performPost("pamelding/${utkast.deltakerId}", utkastRequestFromUtkast(utkast))
         .failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker.")

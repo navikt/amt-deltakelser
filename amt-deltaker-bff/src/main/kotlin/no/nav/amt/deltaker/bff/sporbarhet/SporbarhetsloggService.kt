@@ -16,7 +16,10 @@ class SporbarhetsloggService(
         const val NAVANSATT_DELTAKER_OPPSLAG_AUDIT_LOG_REASON = "Nav-ansatt har gjort oppslag på deltaker."
     }
 
-    fun sendAuditLog(navIdent: String, deltakerPersonIdent: String) {
+    fun sendAuditLog(
+        navIdent: String,
+        deltakerPersonIdent: String,
+    ) {
         val builder =
             CefMessage
                 .builder()

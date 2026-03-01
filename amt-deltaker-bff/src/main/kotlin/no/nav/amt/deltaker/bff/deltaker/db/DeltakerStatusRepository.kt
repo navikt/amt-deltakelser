@@ -11,7 +11,10 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 object DeltakerStatusRepository {
-    fun insertIfNotExists(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun insertIfNotExists(
+        deltakerId: UUID,
+        deltakerStatus: DeltakerStatus,
+    ) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -31,7 +34,10 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun slettTidligereStatuser(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun slettTidligereStatuser(
+        deltakerId: UUID,
+        deltakerStatus: DeltakerStatus,
+    ) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -101,7 +107,10 @@ object DeltakerStatusRepository {
         ON CONFLICT (id) DO NOTHING
         """.trimIndent()
 
-    private fun buildInsertStatusParams(status: DeltakerStatus, deltakerId: UUID) = mapOf(
+    private fun buildInsertStatusParams(
+        status: DeltakerStatus,
+        deltakerId: UUID,
+    ) = mapOf(
         "id" to status.id,
         "deltaker_id" to deltakerId,
         "type" to status.type.name,
@@ -118,6 +127,8 @@ object DeltakerStatusRepository {
             AND id != :id 
         """.trimIndent()
 
-    private fun buildSlettTidligereStatuserParams(status: DeltakerStatus, deltakerId: UUID) =
-        mapOf("id" to status.id, "deltaker_id" to deltakerId)
+    private fun buildSlettTidligereStatuserParams(
+        status: DeltakerStatus,
+        deltakerId: UUID,
+    ) = mapOf("id" to status.id, "deltaker_id" to deltakerId)
 }

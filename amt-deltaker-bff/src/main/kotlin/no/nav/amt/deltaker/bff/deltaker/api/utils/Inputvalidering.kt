@@ -29,7 +29,10 @@ fun validerBakgrunnsinformasjon(tekst: String?) = tekst?.let {
     }
 }
 
-fun validerAnnetInnhold(tekst: String?, tiltakstype: Tiltakskode) {
+fun validerAnnetInnhold(
+    tekst: String?,
+    tiltakstype: Tiltakskode,
+) {
     if (!tiltakstype.skalKunHaAnnetBeskrivelse()) {
         require(tekst != null && tekst != "") {
             "Innhold med innholdskode: ${annetInnholdselement.innholdskode} må ha en beskrivelse"
@@ -105,7 +108,10 @@ fun statusForMindreEnn15DagerSiden(opprinneligDeltaker: Deltaker): Boolean = opp
     .toLocalDate()
     .isAfter(LocalDate.now().minusDays(15))
 
-fun validerForslagEllerBegrunnelse(forslagId: UUID?, begrunnelse: String?) {
+fun validerForslagEllerBegrunnelse(
+    forslagId: UUID?,
+    begrunnelse: String?,
+) {
     require(forslagId != null || !begrunnelse.isNullOrEmpty()) {
         "Må ha begrunnelse hvis ikke det er et godkjent forslag"
     }

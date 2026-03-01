@@ -56,16 +56,18 @@ class DokarkivClientTest : ClientTestBase() {
         thrown.message shouldStartWith "Kunne ikke opprette journalpost for hendelseId $expectedHendelseId"
     }
 
-    private fun createDokarkivClient(statusCode: HttpStatusCode = HttpStatusCode.OK, responseBody: OpprettJournalpostResponse? = null) =
-        DokarkivClient(
-            httpClient = createMockHttpClient(
-                expectedUrl = "http://localhost/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true",
-                responseBody = responseBody,
-                statusCode = statusCode,
-            ),
-            azureAdTokenClient = mockAzureAdTokenClient,
-            environment = testEnvironment,
-        )
+    private fun createDokarkivClient(
+        statusCode: HttpStatusCode = HttpStatusCode.OK,
+        responseBody: OpprettJournalpostResponse? = null,
+    ) = DokarkivClient(
+        httpClient = createMockHttpClient(
+            expectedUrl = "http://localhost/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true",
+            responseBody = responseBody,
+            statusCode = statusCode,
+        ),
+        azureAdTokenClient = mockAzureAdTokenClient,
+        environment = testEnvironment,
+    )
 
     companion object {
         private val expectedHendelseId: UUID = UUID.randomUUID()

@@ -87,7 +87,10 @@ fun Routing.registerDeltakerApi(
         forslag = forslagRepository.getForDeltaker(deltaker.id),
     )
 
-    fun illegalUpdateGuard(deltaker: Deltaker, tillatEndringUtenOppfPeriode: Boolean) {
+    fun illegalUpdateGuard(
+        deltaker: Deltaker,
+        tillatEndringUtenOppfPeriode: Boolean,
+    ) {
         if (!deltaker.kanEndres) {
             log.error("Kan ikke endre deltaker med id ${deltaker.id} som er låst")
             throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")

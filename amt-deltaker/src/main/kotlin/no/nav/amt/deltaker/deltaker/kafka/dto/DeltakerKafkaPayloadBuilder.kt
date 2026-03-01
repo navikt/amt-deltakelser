@@ -98,7 +98,10 @@ class DeltakerKafkaPayloadBuilder(
         )
     }
 
-    fun buildDeltakerV2Record(deltaker: Deltaker, forcedUpdate: Boolean? = false): DeltakerKafkaPayload {
+    fun buildDeltakerV2Record(
+        deltaker: Deltaker,
+        forcedUpdate: Boolean? = false,
+    ): DeltakerKafkaPayload {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
         val vurderinger = vurderingRepository.getForDeltaker(deltaker.id)
         val sisteEndring = deltakerhistorikk.getSisteEndring()
@@ -262,7 +265,10 @@ class DeltakerKafkaPayloadBuilder(
         it is DeltakerHistorikk.Vedtak || it is DeltakerHistorikk.Endring
     }
 
-    private fun getDeltakelsesmengder(deltaker: Deltaker, historikk: List<DeltakerHistorikk>): List<Deltakelsesmengde> {
+    private fun getDeltakelsesmengder(
+        deltaker: Deltaker,
+        historikk: List<DeltakerHistorikk>,
+    ): List<Deltakelsesmengde> {
         val deltakelsesmengder = if (deltaker.deltakerliste.tiltakstype.harDeltakelsesmengde) {
             val mengder = historikk.toDeltakelsesmengder()
             deltaker.startdato

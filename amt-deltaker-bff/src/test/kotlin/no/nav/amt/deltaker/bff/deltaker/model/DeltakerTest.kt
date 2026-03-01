@@ -103,7 +103,10 @@ class DeltakerTest {
     }
 }
 
-fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
+fun sammenlignHistorikk(
+    a: DeltakerHistorikk,
+    b: DeltakerHistorikk,
+) {
     when (a) {
         is DeltakerHistorikk.Endring -> {
             b as DeltakerHistorikk.Endring

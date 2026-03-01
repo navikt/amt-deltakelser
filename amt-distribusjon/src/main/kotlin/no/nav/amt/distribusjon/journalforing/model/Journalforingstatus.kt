@@ -13,10 +13,12 @@ data class Journalforingstatus(
 ) {
     fun erJournalfort(): Boolean = journalpostId != null || kanIkkeJournalfores == true
 
-    fun erDistribuert(distribusjonskanal: Distribusjonskanal, erUnderManuellOppfolging: Boolean): Boolean =
-        if (DigitalBrukerService.skalDistribueresDigitalt(distribusjonskanal, erUnderManuellOppfolging)) {
-            true
-        } else {
-            bestillingsId != null || kanIkkeDistribueres == true
-        }
+    fun erDistribuert(
+        distribusjonskanal: Distribusjonskanal,
+        erUnderManuellOppfolging: Boolean,
+    ): Boolean = if (DigitalBrukerService.skalDistribueresDigitalt(distribusjonskanal, erUnderManuellOppfolging)) {
+        true
+    } else {
+        bestillingsId != null || kanIkkeDistribueres == true
+    }
 }

@@ -37,7 +37,10 @@ class PameldingService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun opprettDeltaker(deltakerListeId: UUID, personIdent: String): Deltaker {
+    suspend fun opprettDeltaker(
+        deltakerListeId: UUID,
+        personIdent: String,
+    ): Deltaker {
         val eksisterendeDeltaker = deltakerRepository
             .getFlereForPerson(personIdent, deltakerListeId)
             .firstOrNull { !it.harSluttet() }
@@ -73,7 +76,10 @@ class PameldingService(
         }
     }
 
-    suspend fun upsertUtkast(deltakerId: UUID, utkast: UtkastRequest): Deltaker {
+    suspend fun upsertUtkast(
+        deltakerId: UUID,
+        utkast: UtkastRequest,
+    ): Deltaker {
         val opprinneligDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
         require(kanUpserteUtkast(opprinneligDeltaker.status)) {
@@ -176,7 +182,10 @@ class PameldingService(
         return oppdatertDeltaker
     }
 
-    suspend fun avbrytUtkast(deltakerId: UUID, avbrytUtkastRequest: AvbrytUtkastRequest) {
+    suspend fun avbrytUtkast(
+        deltakerId: UUID,
+        avbrytUtkastRequest: AvbrytUtkastRequest,
+    ) {
         val opprinneligDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
         if (opprinneligDeltaker.status.type != DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
@@ -224,7 +233,10 @@ class PameldingService(
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
         )
 
-        private fun lagDeltaker(navBruker: NavBruker, deltakerListe: Deltakerliste) = Deltaker(
+        private fun lagDeltaker(
+            navBruker: NavBruker,
+            deltakerListe: Deltakerliste,
+        ) = Deltaker(
             id = UUID.randomUUID(),
             navBruker = navBruker,
             deltakerliste = deltakerListe,
@@ -242,7 +254,10 @@ class PameldingService(
             opprettet = LocalDateTime.now(),
         )
 
-        internal fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
+        internal fun getOppdatertStatus(
+            opprinneligDeltaker: Deltaker,
+            godkjentAvNav: Boolean,
+        ): DeltakerStatus = if (godkjentAvNav) {
             if (opprinneligDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING) {
                 nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
             } else {

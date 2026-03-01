@@ -14,7 +14,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerEndringRepository {
-    fun upsert(deltakerEndring: DeltakerEndring, behandletTidspunkt: LocalDateTime? = LocalDateTime.now()) {
+    fun upsert(
+        deltakerEndring: DeltakerEndring,
+        behandletTidspunkt: LocalDateTime? = LocalDateTime.now(),
+    ) {
         val sql =
             """
             INSERT INTO deltaker_endring (
@@ -82,7 +85,10 @@ class DeltakerEndringRepository {
         )
     }
 
-    fun getUbehandletDeltakelsesmengder(offset: Int = 0, limit: Int = 500): List<DeltakerEndring> {
+    fun getUbehandletDeltakelsesmengder(
+        offset: Int = 0,
+        limit: Int = 500,
+    ): List<DeltakerEndring> {
         val sql = selectDeltakerEndring(
             """
             de.behandlet IS NULL 

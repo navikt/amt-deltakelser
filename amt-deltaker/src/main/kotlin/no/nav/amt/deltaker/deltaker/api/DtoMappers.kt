@@ -7,7 +7,10 @@ import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.OpprettKl
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.UtkastResponse
 
 object DtoMappers {
-    fun utkastResponseFromDeltaker(deltaker: Deltaker, historikk: List<DeltakerHistorikk>) = with(deltaker) {
+    fun utkastResponseFromDeltaker(
+        deltaker: Deltaker,
+        historikk: List<DeltakerHistorikk>,
+    ) = with(deltaker) {
         UtkastResponse(
             id = id,
             startdato = startdato,
@@ -36,7 +39,10 @@ object DtoMappers {
         )
     }
 
-    fun deltakerEndringResponseFromDeltaker(deltaker: Deltaker, historikk: List<DeltakerHistorikk>) = with(deltaker) {
+    fun deltakerEndringResponseFromDeltaker(
+        deltaker: Deltaker,
+        historikk: List<DeltakerHistorikk>,
+    ) = with(deltaker) {
         DeltakerEndringResponse(
             id = id,
             startdato = startdato,

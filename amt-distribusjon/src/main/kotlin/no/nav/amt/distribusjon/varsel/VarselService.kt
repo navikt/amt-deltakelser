@@ -95,7 +95,10 @@ class VarselService(
         return varsel
     }
 
-    private fun handleNyttVarsel(varsel: Varsel, sendUmiddelbart: Boolean = false) {
+    private fun handleNyttVarsel(
+        varsel: Varsel,
+        sendUmiddelbart: Boolean = false,
+    ) {
         if (varsel.kanRevarsles || varsel.erRevarsel) {
             varselRepository.stoppRevarsler(varsel.deltakerId)
         }
@@ -126,7 +129,10 @@ class VarselService(
         log.info("Sendte varsel ${varsel.id} for deltaker ${varsel.deltakerId}")
     }
 
-    private fun ferdigstillSendtVarsel(varsel: Varsel, nyStatus: Varsel.Status) {
+    private fun ferdigstillSendtVarsel(
+        varsel: Varsel,
+        nyStatus: Varsel.Status,
+    ) {
         if (varsel.erAktiv) {
             val revarsles = if (nyStatus == Varsel.Status.UTFORT) null else varsel.revarsles
 
@@ -159,7 +165,10 @@ class VarselService(
         }
     }
 
-    private fun utforBeskjed(deltaker: HendelseDeltaker, sistBesokt: ZonedDateTime) {
+    private fun utforBeskjed(
+        deltaker: HendelseDeltaker,
+        sistBesokt: ZonedDateTime,
+    ) {
         val beskjeder = varselRepository.getAktiveEllerVentendeBeskjeder(deltaker.id)
         if (beskjeder.isEmpty()) {
             return
@@ -207,7 +216,10 @@ class VarselService(
         log.info("Varsel ${varsel.id} sin aktiv periode er utløpt")
     }
 
-    private fun erBesokTidligereEnnBeskjed(sistBesokt: ZonedDateTime, sisteBeskjed: Varsel): Boolean {
+    private fun erBesokTidligereEnnBeskjed(
+        sistBesokt: ZonedDateTime,
+        sisteBeskjed: Varsel,
+    ): Boolean {
         val besokForSendt = sistBesokt.withZoneSameInstant(ZoneOffset.UTC) < sisteBeskjed.aktivFra && sisteBeskjed.erAktiv
         val besokForIkkeSendt = sistBesokt.withZoneSameInstant(
             ZoneId.of("Z"),

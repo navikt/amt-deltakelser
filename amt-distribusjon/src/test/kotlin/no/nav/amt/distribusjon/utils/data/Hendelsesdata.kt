@@ -56,8 +56,10 @@ object Hendelsesdata {
         enhet: HendelseAnsvarlig.NavVeileder.Enhet = ansvarligNavEnhet(),
     ) = HendelseAnsvarlig.NavVeileder(id, navn, navIdent, enhet)
 
-    fun ansvarligNavEnhet(id: UUID = UUID.randomUUID(), enhetsnummer: String = randomEnhetsnummer()) =
-        HendelseAnsvarlig.NavVeileder.Enhet(id, enhetsnummer)
+    fun ansvarligNavEnhet(
+        id: UUID = UUID.randomUUID(),
+        enhetsnummer: String = randomEnhetsnummer(),
+    ) = HendelseAnsvarlig.NavVeileder.Enhet(id, enhetsnummer)
 
     fun lagDeltaker(
         id: UUID = UUID.randomUUID(),

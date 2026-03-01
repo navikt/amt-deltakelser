@@ -23,7 +23,10 @@ data class DeltakerPersonaliaResponse(
     }
 
     companion object {
-        fun from(deltaker: Deltaker, navEnheter: Map<UUID, NavEnhet>): DeltakerPersonaliaResponse {
+        fun from(
+            deltaker: Deltaker,
+            navEnheter: Map<UUID, NavEnhet>,
+        ): DeltakerPersonaliaResponse {
             val navEnhet = deltaker.navBruker.navEnhetId?.let { navEnheter[it] }
 
             return DeltakerPersonaliaResponse(

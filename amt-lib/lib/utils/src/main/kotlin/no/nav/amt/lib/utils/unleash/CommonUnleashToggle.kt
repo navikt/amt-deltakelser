@@ -8,9 +8,8 @@ import kotlin.collections.any
 class CommonUnleashToggle(
     private val unleashClient: Unleash,
 ) {
-    fun erKometMasterForTiltakstype(tiltakskode: String): Boolean =
-        tiltakstyperKometErMasterFor.any { it.name == tiltakskode } ||
-            (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstyperKometKanskjeErMasterFor.any { it.name == tiltakskode })
+    fun erKometMasterForTiltakstype(tiltakskode: String): Boolean = tiltakstyperKometErMasterFor.any { it.name == tiltakskode } ||
+        (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstyperKometKanskjeErMasterFor.any { it.name == tiltakskode })
 
     fun erKometMasterForTiltakstype(tiltakskode: Tiltakskode): Boolean = erKometMasterForTiltakstype(tiltakskode.name)
 

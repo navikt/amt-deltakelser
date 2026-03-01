@@ -340,8 +340,10 @@ fun List<Innhold>.toInnholdPdfDto(ledetekst: String?): InnholdPdfDto? {
     )
 }
 
-private fun adresseDelesMedArrangor(deltaker: HendelseDeltaker, navBruker: NavBruker): Boolean =
-    navBruker.adressebeskyttelse == null && deltaker.deltakerliste.deltakerAdresseDeles()
+private fun adresseDelesMedArrangor(
+    deltaker: HendelseDeltaker,
+    navBruker: NavBruker,
+): Boolean = navBruker.adressebeskyttelse == null && deltaker.deltakerliste.deltakerAdresseDeles()
 
 private fun List<Innhold>.toVisingstekster() = this.map { innhold ->
     "${innhold.tekst}${innhold.beskrivelse?.let { ": $it" } ?: ""}"
@@ -557,7 +559,10 @@ private fun tilEndringDto(
     }
 }
 
-private fun deltakelsesmengdeTekst(deltakelsesprosent: Int?, dagerPerUke: Int?): String {
+private fun deltakelsesmengdeTekst(
+    deltakelsesprosent: Int?,
+    dagerPerUke: Int?,
+): String {
     val dagerPerUkeTekst = dagerPerUkeTekst(dagerPerUke)?.lowercase()
     if (dagerPerUkeTekst != null) {
         return "${deltakelsesprosent ?: 100} % $dagerPerUkeTekst"
@@ -576,7 +581,10 @@ private fun dagerPerUkeTekst(dagerPerUke: Int?): String? {
     return null
 }
 
-private fun endringFraForslagToForslagDto(endring: Forslag.Endring, begrunnelseFraArrangor: String?): ForslagDto = when (endring) {
+private fun endringFraForslagToForslagDto(
+    endring: Forslag.Endring,
+    begrunnelseFraArrangor: String?,
+): ForslagDto = when (endring) {
     is Forslag.ForlengDeltakelse -> {
         ForslagDto.ForlengDeltakelse(
             sluttdato = endring.sluttdato,

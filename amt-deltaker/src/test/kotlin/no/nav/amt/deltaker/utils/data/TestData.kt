@@ -219,25 +219,27 @@ object TestData {
         pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     )
 
-    fun lagDeltakerlistePayload(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
-        GjennomforingV2KafkaPayload.Gruppe(
-            id = deltakerliste.id,
-            navn = deltakerliste.navn,
-            tiltakskode = deltakerliste.tiltakstype.tiltakskode,
-            startDato = deltakerliste.startDato!!,
-            sluttDato = deltakerliste.sluttDato,
-            status = deltakerliste.status!!,
-            oppstart = deltakerliste.oppstart!!,
-            apentForPamelding = deltakerliste.apentForPamelding,
-            oppmoteSted = deltakerliste.oppmoteSted,
-            tilgjengeligForArrangorFraOgMedDato = null,
-            antallPlasser = 42,
-            deltidsprosent = 42.0,
-            arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor.organisasjonsnummer),
-            oppdatertTidspunkt = OffsetDateTime.now(),
-            opprettetTidspunkt = OffsetDateTime.now(),
-            pameldingType = deltakerliste.pameldingstype,
-        )
+    fun lagDeltakerlistePayload(
+        arrangor: Arrangor = lagArrangor(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
+    ) = GjennomforingV2KafkaPayload.Gruppe(
+        id = deltakerliste.id,
+        navn = deltakerliste.navn,
+        tiltakskode = deltakerliste.tiltakstype.tiltakskode,
+        startDato = deltakerliste.startDato!!,
+        sluttDato = deltakerliste.sluttDato,
+        status = deltakerliste.status!!,
+        oppstart = deltakerliste.oppstart!!,
+        apentForPamelding = deltakerliste.apentForPamelding,
+        oppmoteSted = deltakerliste.oppmoteSted,
+        tilgjengeligForArrangorFraOgMedDato = null,
+        antallPlasser = 42,
+        deltidsprosent = 42.0,
+        arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor.organisasjonsnummer),
+        oppdatertTidspunkt = OffsetDateTime.now(),
+        opprettetTidspunkt = OffsetDateTime.now(),
+        pameldingType = deltakerliste.pameldingstype,
+    )
 
     fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(
         id = navEnhet.id,

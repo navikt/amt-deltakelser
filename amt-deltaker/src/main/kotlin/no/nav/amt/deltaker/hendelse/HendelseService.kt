@@ -38,7 +38,10 @@ class HendelseService(
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun produserHendelseFraTiltaksansvarlig(deltaker: Deltaker, endring: EndringFraTiltakskoordinator) {
+    suspend fun produserHendelseFraTiltaksansvarlig(
+        deltaker: Deltaker,
+        endring: EndringFraTiltakskoordinator,
+    ) {
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endring.endretAv)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(endring.endretAvEnhet)
         produserHendelseFraTiltaksansvarlig(deltaker, navAnsatt, navEnhet, endring.endring)
@@ -84,7 +87,10 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
     }
 
-    fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
+    fun hendelseForEndringFraArrangor(
+        endringFraArrangor: EndringFraArrangor,
+        deltaker: Deltaker,
+    ) {
         val navEnhet = getNavEnhet(deltaker)
         val endring = endringFraArrangor.toHendelseEndring()
 
@@ -135,7 +141,10 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, enhet, endring))
     }
 
-    fun hendelseFraSystem(deltaker: Deltaker, block: (it: UtkastDto) -> HendelseType.HendelseSystemKanOpprette) {
+    fun hendelseFraSystem(
+        deltaker: Deltaker,
+        block: (it: UtkastDto) -> HendelseType.HendelseSystemKanOpprette,
+    ) {
         val endring = block(deltaker.toUtkastDto())
         hendelseProducer.produce(nyHendelseFraSystem(deltaker, endring))
     }
@@ -189,12 +198,18 @@ class HendelseService(
         return nyHendelse(deltaker, ansvarlig, endring)
     }
 
-    private fun nyHendelseFraSystem(deltaker: Deltaker, endring: HendelseType.HendelseSystemKanOpprette): Hendelse {
+    private fun nyHendelseFraSystem(
+        deltaker: Deltaker,
+        endring: HendelseType.HendelseSystemKanOpprette,
+    ): Hendelse {
         val ansvarlig = HendelseAnsvarlig.System
         return nyHendelse(deltaker, ansvarlig, endring)
     }
 
-    fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: ZonedDateTime) {
+    fun hendelseForSistBesokt(
+        deltaker: Deltaker,
+        sistBesokt: ZonedDateTime,
+    ) {
         // hvis ikke Komet er master for tiltakskode
         if (!unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) return
 

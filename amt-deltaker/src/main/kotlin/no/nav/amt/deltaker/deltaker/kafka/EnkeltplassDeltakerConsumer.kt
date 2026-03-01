@@ -41,7 +41,10 @@ class EnkeltplassDeltakerConsumer(
         consumeFunc = ::consume,
     )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         if (value == null) {
             // arena-acl skal aldri tombstone, sletting av enkeltplassdeltakere håndteres med status=feilregistrert
             throw IllegalStateException("Tombstone er ikke støttet. Key: $key")

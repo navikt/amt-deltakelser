@@ -43,7 +43,10 @@ class AmtPersonClientTest : ClientTestBase() {
         thrown.message shouldBe "Kunne ikke hente nav-bruker fra amt-person-service"
     }
 
-    private fun createAmtPersonClient(responseBody: NavBruker?, statusCode: HttpStatusCode = HttpStatusCode.OK) = AmtPersonClient(
+    private fun createAmtPersonClient(
+        responseBody: NavBruker?,
+        statusCode: HttpStatusCode = HttpStatusCode.OK,
+    ) = AmtPersonClient(
         httpClient = createMockHttpClient(
             expectedUrl = "http://amt-person/api/nav-bruker",
             responseBody = responseBody,

@@ -26,7 +26,10 @@ class DeltakerService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun oppdaterDeltaker(deltaker: Deltaker, endringRequest: EndringRequest): Deltaker {
+    suspend fun oppdaterDeltaker(
+        deltaker: Deltaker,
+        endringRequest: EndringRequest,
+    ): Deltaker {
         navEnhetService.hentOpprettEllerOppdaterNavEnhet(endringRequest.endretAvEnhet)
 
         val deltakeroppdatering = amtDeltakerClient
@@ -58,7 +61,10 @@ class DeltakerService(
     /**
      * Benyttes av [oppdaterDeltaker] og kaller ikke amt-deltaker
      */
-    private fun slettKladdIfExists(deltakerlisteId: UUID, personident: String) {
+    private fun slettKladdIfExists(
+        deltakerlisteId: UUID,
+        personident: String,
+    ) {
         deltakerRepository.getKladdForDeltakerliste(deltakerlisteId, personident).onSuccess { deltaker ->
             deleteDeltaker(deltaker.id)
         }
@@ -146,7 +152,10 @@ class DeltakerService(
         }
     }
 
-    private fun laasSingleOrMultipleDeltakelser(iderSomSkalLaases: List<UUID>, nyDeltakerId: UUID) {
+    private fun laasSingleOrMultipleDeltakelser(
+        iderSomSkalLaases: List<UUID>,
+        nyDeltakerId: UUID,
+    ) {
         if (iderSomSkalLaases.isEmpty()) return
 
         log.info(
@@ -160,7 +169,10 @@ class DeltakerService(
         }
     }
 
-    fun lagreDeltakerStatus(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun lagreDeltakerStatus(
+        deltakerId: UUID,
+        deltakerStatus: DeltakerStatus,
+    ) {
         DeltakerStatusRepository.slettTidligereStatuser(deltakerId, deltakerStatus)
         DeltakerStatusRepository.insertIfNotExists(deltakerId, deltakerStatus)
     }

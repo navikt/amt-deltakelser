@@ -38,7 +38,10 @@ class DeltakerV2Consumer(
         consumeFunc = ::consume,
     )
 
-    suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) {
         if (value == null) {
             log.info("Mottok tombstone for deltaker $key - sletter deltaker")
             Database.transaction {
@@ -108,7 +111,10 @@ class DeltakerV2Consumer(
     override suspend fun close() = consumer.close()
 
     companion object {
-        private fun DeltakerKafkaPayload.toDeltaker(navBruker: NavBruker, deltakerliste: Deltakerliste) = Deltaker(
+        private fun DeltakerKafkaPayload.toDeltaker(
+            navBruker: NavBruker,
+            deltakerliste: Deltakerliste,
+        ) = Deltaker(
             id = id,
             navBruker = navBruker,
             deltakerliste = deltakerliste,

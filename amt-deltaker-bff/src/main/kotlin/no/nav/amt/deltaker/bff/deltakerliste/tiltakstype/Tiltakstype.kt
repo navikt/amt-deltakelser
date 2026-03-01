@@ -8,7 +8,10 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 fun Tiltakskode.skalKunHaAnnetBeskrivelse() = this.erOpplaeringstiltak() ||
     this == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET
 
-fun getInnholdselementer(innholdselementer: List<Innholdselement>?, tiltakstype: Tiltakskode): List<Innholdselement> {
+fun getInnholdselementer(
+    innholdselementer: List<Innholdselement>?,
+    tiltakstype: Tiltakskode,
+): List<Innholdselement> {
     if (tiltakstype.skalKunHaAnnetBeskrivelse()) return listOf(annetInnholdselement)
 
     return if (innholdselementer.isNullOrEmpty()) {
@@ -18,7 +21,10 @@ fun getInnholdselementer(innholdselementer: List<Innholdselement>?, tiltakstype:
     }
 }
 
-fun Innholdselement.toInnhold(valgt: Boolean = false, beskrivelse: String? = null) = Innhold(
+fun Innholdselement.toInnhold(
+    valgt: Boolean = false,
+    beskrivelse: String? = null,
+) = Innhold(
     tekst = tekst,
     innholdskode = innholdskode,
     valgt = valgt,

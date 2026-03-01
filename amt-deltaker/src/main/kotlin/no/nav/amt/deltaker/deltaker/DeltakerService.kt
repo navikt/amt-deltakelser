@@ -102,7 +102,10 @@ class DeltakerService(
         log.info("Feilregistrert deltaker med id $deltakerId")
     }
 
-    suspend fun upsertEndretDeltaker(deltakerId: UUID, endringRequest: EndringRequest): Deltaker {
+    suspend fun upsertEndretDeltaker(
+        deltakerId: UUID,
+        endringRequest: EndringRequest,
+    ): Deltaker {
         val eksisterendeDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
@@ -320,7 +323,10 @@ class DeltakerService(
         )
     }
 
-    fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
+    fun oppdaterSistBesokt(
+        deltakerId: UUID,
+        sistBesokt: ZonedDateTime,
+    ) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }

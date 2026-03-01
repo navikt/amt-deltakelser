@@ -36,7 +36,10 @@ class DeltakerlisteConsumer(
 
     override suspend fun close() = consumer.close()
 
-    suspend fun consume(key: UUID, value: String?) = if (value == null) {
+    suspend fun consume(
+        key: UUID,
+        value: String?,
+    ) = if (value == null) {
         deltakerlisteRepository.delete(key)
     } else {
         handterDeltakerliste(objectMapper.readValue(value))
@@ -78,7 +81,10 @@ class DeltakerlisteConsumer(
         deltakerlisteRepository.upsert(deltakerliste)
     }
 
-    suspend fun handterDeltakere(deltakerlisteFromPayload: Deltakerliste, eksisterendeDeltakerliste: Deltakerliste) {
+    suspend fun handterDeltakere(
+        deltakerlisteFromPayload: Deltakerliste,
+        eksisterendeDeltakerliste: Deltakerliste,
+    ) {
         if (deltakerlisteFromPayload.erAvlystEllerAvbrutt() && eksisterendeDeltakerliste.status != deltakerlisteFromPayload.status) {
             deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerlisteFromPayload)
         }

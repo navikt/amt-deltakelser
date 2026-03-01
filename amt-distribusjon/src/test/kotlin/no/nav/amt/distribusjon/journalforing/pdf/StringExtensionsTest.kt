@@ -41,7 +41,10 @@ class StringExtensionsTest {
 
     @ParameterizedTest(name = "{index} => input=''{0}'' => expected=''{1}''")
     @MethodSource("testCases")
-    fun `trimOgFjernAvsluttendePunktum fjerner avsluttende punktum og trimmer whitespace`(input: String, expected: String) {
+    fun `trimOgFjernAvsluttendePunktum fjerner avsluttende punktum og trimmer whitespace`(
+        input: String,
+        expected: String,
+    ) {
         assertEquals(expected, input.trimOgFjernAvsluttendePunktum())
     }
 }

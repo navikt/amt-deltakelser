@@ -96,7 +96,10 @@ suspend fun assertProducedFeilregistrert(deltakerId: UUID) {
     consumer.close()
 }
 
-suspend fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelsetype: KClass<T>) {
+suspend fun <T : HendelseType> assertProducedHendelse(
+    deltakerId: UUID,
+    hendelsetype: KClass<T>,
+) {
     val cache = mutableMapOf<UUID, Hendelse>()
 
     val consumer = stringStringConsumer(Environment.DELTAKER_HENDELSE_TOPIC) { k, v ->
@@ -138,7 +141,10 @@ suspend fun assertProducedForslag(forslag: Forslag) {
     consumer.close()
 }
 
-fun sammenlignForslagStatus(a: Forslag.Status, b: Forslag.Status) {
+fun sammenlignForslagStatus(
+    a: Forslag.Status,
+    b: Forslag.Status,
+) {
     when (a) {
         is Forslag.Status.VenterPaSvar -> {
             b as Forslag.Status.VenterPaSvar

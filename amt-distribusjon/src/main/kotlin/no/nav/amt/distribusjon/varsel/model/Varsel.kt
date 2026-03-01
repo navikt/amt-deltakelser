@@ -141,7 +141,10 @@ data class Varsel(
         },
     )
 
-    private fun VarselActionBuilder.OpprettVarselInstance.varselConfig(varseltype: Varseltype, visEndringsmodal: Boolean) {
+    private fun VarselActionBuilder.OpprettVarselInstance.varselConfig(
+        varseltype: Varseltype,
+        visEndringsmodal: Boolean,
+    ) {
         varselId = this@Varsel.id.toString()
         type = varseltype
         sensitivitet = Sensitivitet.High
@@ -175,7 +178,10 @@ data class Varsel(
     )
 }
 
-fun innbyggerDeltakerUrl(deltakerId: UUID, visEndringsmodal: Boolean): String {
+fun innbyggerDeltakerUrl(
+    deltakerId: UUID,
+    visEndringsmodal: Boolean,
+): String {
     val url = if (Environment.isProd()) {
         "https://www.nav.no/arbeidsmarkedstiltak/$deltakerId"
     } else {

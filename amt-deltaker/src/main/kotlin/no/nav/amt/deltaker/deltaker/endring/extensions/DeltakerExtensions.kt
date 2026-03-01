@@ -30,7 +30,10 @@ fun Deltaker.endreDeltakersOppstart(
     sluttdato: LocalDate?,
     deltakelsesmengder: Deltakelsesmengder,
 ): Deltaker {
-    fun Deltaker.oppdaterDeltakerStatusEndreOppstart(nyStartdato: LocalDate?, nySluttdato: LocalDate?): DeltakerStatus {
+    fun Deltaker.oppdaterDeltakerStatusEndreOppstart(
+        nyStartdato: LocalDate?,
+        nySluttdato: LocalDate?,
+    ): DeltakerStatus {
         // SkalBliIkkeAktuell er kun for Arena deltakere
         fun Deltaker.skalBliIkkeAktuell(
             startdato: LocalDate?,

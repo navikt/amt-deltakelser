@@ -19,7 +19,10 @@ import no.nav.amt.lib.ktor.routing.registerHealthApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-fun Application.configureRouting(digitalBrukerService: DigitalBrukerService, tiltakshendelseService: TiltakshendelseService) {
+fun Application.configureRouting(
+    digitalBrukerService: DigitalBrukerService,
+    tiltakshendelseService: TiltakshendelseService,
+) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.BadRequest, call, cause)

@@ -43,27 +43,27 @@ data class Forslag(
         data object VenterPaSvar : Status
     }
 
-    val sistEndret get(): LocalDateTime {
-        return when (status) {
-            is Status.VenterPaSvar -> opprettet
-            is Status.Avvist -> status.avvist
-            is Status.Godkjent -> status.godkjent
-            is Status.Tilbakekalt -> status.tilbakekalt
-            is Status.Erstattet -> status.erstattet
+    val sistEndret
+        get(): LocalDateTime {
+            return when (status) {
+                is Status.VenterPaSvar -> opprettet
+                is Status.Avvist -> status.avvist
+                is Status.Godkjent -> status.godkjent
+                is Status.Tilbakekalt -> status.tilbakekalt
+                is Status.Erstattet -> status.erstattet
+            }
         }
+
+    fun getNavAnsatt() = when (val status = this.status) {
+        is Status.Avvist -> status.avvistAv
+
+        is Status.Godkjent -> status.godkjentAv
+
+        is Status.Erstattet,
+        is Status.Tilbakekalt,
+        Status.VenterPaSvar,
+        -> null
     }
-
-    fun getNavAnsatt() =
-        when (val status = this.status) {
-            is Status.Avvist -> status.avvistAv
-
-            is Status.Godkjent -> status.godkjentAv
-
-            is Status.Erstattet,
-            is Status.Tilbakekalt,
-            Status.VenterPaSvar,
-            -> null
-        }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     sealed interface Endring

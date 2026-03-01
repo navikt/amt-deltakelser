@@ -165,7 +165,10 @@ class TestApp {
         }
     }
 
-    fun assertProducedBeskjed(id: UUID, forventetUrl: String) {
+    fun assertProducedBeskjed(
+        id: UUID,
+        forventetUrl: String,
+    ) {
         this should haveOutboxRecord(id, Environment.MINSIDE_VARSEL_TOPIC) { record ->
             val json = record.value
             json["varselId"].asText() == id.toString() &&
@@ -182,7 +185,10 @@ class TestApp {
 
 private val testApp = TestApp()
 
-fun integrationTest(appShouldBeReady: Boolean = true, testBlock: suspend (app: TestApp, client: HttpClient) -> Unit) = testApplication {
+fun integrationTest(
+    appShouldBeReady: Boolean = true,
+    testBlock: suspend (app: TestApp, client: HttpClient) -> Unit,
+) = testApplication {
     application {
         configureSerialization()
 

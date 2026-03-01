@@ -16,7 +16,10 @@ import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtka
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 
-fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkService: DeltakerHistorikkService) {
+fun Routing.registerPameldingApi(
+    pameldingService: PameldingService,
+    historikkService: DeltakerHistorikkService,
+) {
     authenticate("SYSTEM") {
         // pamelding/kladd
         post("/pamelding") {

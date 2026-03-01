@@ -35,7 +35,10 @@ class VarselHendelseConsumer(
         consume = ::consume,
     )
 
-    suspend fun consume(key: String, value: String) {
+    suspend fun consume(
+        key: String,
+        value: String,
+    ) {
         val hendelse = objectMapper.readValue<VarselHendelseDto>(value)
         if (hendelse.namespace != Environment.namespace && hendelse.appnavn != Environment.appName) {
             return
@@ -50,7 +53,10 @@ class VarselHendelseConsumer(
         }
     }
 
-    private fun handterVarselHendelse(varsel: Varsel, hendelse: VarselHendelseDto) {
+    private fun handterVarselHendelse(
+        varsel: Varsel,
+        hendelse: VarselHendelseDto,
+    ) {
         when (hendelse) {
             is EksternStatusHendelse -> {
                 log.info("Ekstern varsling for varsel ${varsel.id} er ${hendelse.status}")

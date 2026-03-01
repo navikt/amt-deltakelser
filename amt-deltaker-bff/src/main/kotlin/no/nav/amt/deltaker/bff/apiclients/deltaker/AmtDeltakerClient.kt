@@ -31,7 +31,10 @@ class AmtDeltakerClient(
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
         .body()
 
-    suspend fun sistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
+    suspend fun sistBesokt(
+        deltakerId: UUID,
+        sistBesokt: ZonedDateTime,
+    ) {
         val response = performPost("deltaker/$deltakerId/$SIST_BESOKT_URL_SEGMENT", sistBesokt)
 
         if (!response.status.isSuccess()) {
@@ -41,10 +44,12 @@ class AmtDeltakerClient(
         }
     }
 
-    suspend fun postEndreDeltaker(deltakerId: UUID, requestBody: EndringRequest): DeltakerEndringResponse =
-        performPost("deltaker/$deltakerId/$ENDRE_DELTAKER_URL_SEGMENT", requestBody)
-            .failIfNotSuccess("Kunne ikke oppdatere deltaker $deltakerId med ${requestBody::class.java.simpleName} i amt-deltaker")
-            .body()
+    suspend fun postEndreDeltaker(
+        deltakerId: UUID,
+        requestBody: EndringRequest,
+    ): DeltakerEndringResponse = performPost("deltaker/$deltakerId/$ENDRE_DELTAKER_URL_SEGMENT", requestBody)
+        .failIfNotSuccess("Kunne ikke oppdatere deltaker $deltakerId med ${requestBody::class.java.simpleName} i amt-deltaker")
+        .body()
 
     companion object Endepunkt {
         const val ENDRE_DELTAKER_URL_SEGMENT = "endre-deltaker"

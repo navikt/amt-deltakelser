@@ -76,7 +76,10 @@ sealed class DeltakerEndringEndringDto {
     ) : DeltakerEndringEndringDto()
 
     companion object {
-        fun fromEndring(endring: DeltakerEndring.Endring, oppstartstype: Oppstartstype?): DeltakerEndringEndringDto = with(endring) {
+        fun fromEndring(
+            endring: DeltakerEndring.Endring,
+            oppstartstype: Oppstartstype?,
+        ): DeltakerEndringEndringDto = with(endring) {
             when (this) {
                 is DeltakerEndring.Endring.AvsluttDeltakelse -> AvsluttDeltakelse(
                     aarsak = aarsak,

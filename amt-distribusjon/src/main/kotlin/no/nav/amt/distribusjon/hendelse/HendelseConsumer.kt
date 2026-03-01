@@ -43,7 +43,10 @@ class HendelseConsumer(
         consume = ::consume,
     )
 
-    suspend fun consume(key: UUID, value: String) {
+    suspend fun consume(
+        key: UUID,
+        value: String,
+    ) {
         val hendelseDto: HendelseDto = objectMapper.readValue(value)
         log.info("Mottatt hendelse ${hendelseDto.id} for deltaker ${hendelseDto.deltaker.id}")
 

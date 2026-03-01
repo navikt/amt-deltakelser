@@ -73,7 +73,10 @@ class TiltakskoordinatorService(
         return oppdaterteDeltakereResponses.toTiltakskoordinatorsDeltakere()
     }
 
-    suspend fun giAvslag(request: AvslagRequest, endretAv: String): TiltakskoordinatorsDeltaker {
+    suspend fun giAvslag(
+        request: AvslagRequest,
+        endretAv: String,
+    ): TiltakskoordinatorsDeltaker {
         val deltakeroppdatering = tiltaksKoordinatorClient.giAvslag(request, endretAv)
 
         deltakerService.oppdaterDeltaker(deltakeroppdatering)

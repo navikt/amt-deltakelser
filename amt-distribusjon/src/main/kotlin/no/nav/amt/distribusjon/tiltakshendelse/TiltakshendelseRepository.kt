@@ -67,7 +67,10 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun getHendelse(deltakerId: UUID, hendelseType: Tiltakshendelse.Type): Result<Tiltakshendelse> = runCatching {
+    fun getHendelse(
+        deltakerId: UUID,
+        hendelseType: Tiltakshendelse.Type,
+    ): Result<Tiltakshendelse> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(

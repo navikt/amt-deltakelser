@@ -70,7 +70,10 @@ class VarselRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun getSisteVarsel(deltakerId: UUID, type: Varsel.Type): Result<Varsel> = runCatching {
+    fun getSisteVarsel(
+        deltakerId: UUID,
+        type: Varsel.Type,
+    ): Result<Varsel> = runCatching {
         val sql =
             """
             SELECT * 

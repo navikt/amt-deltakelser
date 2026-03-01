@@ -14,7 +14,10 @@ import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.Gi
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 
-fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService, deltakerHistorikkService: DeltakerHistorikkService) {
+fun Routing.registerTiltakskoordinatorApi(
+    deltakerService: DeltakerService,
+    deltakerHistorikkService: DeltakerHistorikkService,
+) {
     val apiPath = "/tiltakskoordinator/deltakere"
 
     fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {

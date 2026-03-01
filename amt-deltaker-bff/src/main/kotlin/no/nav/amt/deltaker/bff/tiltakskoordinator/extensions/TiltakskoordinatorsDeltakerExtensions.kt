@@ -10,7 +10,10 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 
-fun TiltakskoordinatorsDeltaker.toResponse(harTilgangTilBruker: Boolean, ulesteHendelser: List<UlestHendelse>): DeltakerDetaljerResponse {
+fun TiltakskoordinatorsDeltaker.toResponse(
+    harTilgangTilBruker: Boolean,
+    ulesteHendelser: List<UlestHendelse>,
+): DeltakerDetaljerResponse {
     val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(harTilgangTilBruker)
     val personIdent = if (harTilgangTilBruker) navBruker.personident else null
     val aktiveForslag = forslag

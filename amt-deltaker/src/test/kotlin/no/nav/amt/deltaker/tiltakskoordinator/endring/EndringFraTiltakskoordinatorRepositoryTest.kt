@@ -58,7 +58,10 @@ class EndringFraTiltakskoordinatorRepositoryTest {
     }
 }
 
-fun sammenlignEndringFraTiltakskoordinator(a: EndringFraTiltakskoordinator, b: EndringFraTiltakskoordinator) {
+fun sammenlignEndringFraTiltakskoordinator(
+    a: EndringFraTiltakskoordinator,
+    b: EndringFraTiltakskoordinator,
+) {
     a.id shouldBe b.id
     a.deltakerId shouldBe b.deltakerId
     a.endring shouldBe b.endring

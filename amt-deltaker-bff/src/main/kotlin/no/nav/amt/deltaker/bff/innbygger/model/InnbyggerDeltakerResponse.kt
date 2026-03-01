@@ -115,7 +115,10 @@ fun Deltaker.toInnbyggerDeltakerResponse(
     erManueltDeltMedArrangor = erManueltDeltMedArrangor,
 )
 
-private fun Vedtak.toDto(ansatte: Map<UUID, NavAnsatt>, vedtakSistEndretEnhet: NavEnhet?) = InnbyggerDeltakerResponse.VedtaksinformasjonDto(
+private fun Vedtak.toDto(
+    ansatte: Map<UUID, NavAnsatt>,
+    vedtakSistEndretEnhet: NavEnhet?,
+) = InnbyggerDeltakerResponse.VedtaksinformasjonDto(
     fattet = fattet,
     fattetAvNav = fattetAvNav,
     opprettet = opprettet,

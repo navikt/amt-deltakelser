@@ -117,11 +117,10 @@ sealed interface GjennomforingV2KafkaPayload {
     fun <T : Any> toModel(
         gruppeMapper: (Gruppe) -> T,
         enkeltplassMapper: (Enkeltplass) -> T,
-    ): T =
-        when (this) {
-            is Gruppe -> gruppeMapper(this)
-            is Enkeltplass -> enkeltplassMapper(this)
-        }
+    ): T = when (this) {
+        is Gruppe -> gruppeMapper(this)
+        is Enkeltplass -> enkeltplassMapper(this)
+    }
 
     companion object {
         const val GRUPPE_V2_TYPE = "TiltaksgjennomforingV2.Gruppe"

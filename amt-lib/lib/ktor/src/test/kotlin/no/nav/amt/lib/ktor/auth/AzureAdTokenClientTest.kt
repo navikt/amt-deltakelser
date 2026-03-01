@@ -103,27 +103,32 @@ class AzureAdTokenClientTest {
             thrown.message shouldStartWith "Kunne ikke hente AAD-token"
         }
 
-        private fun runHappyPathTest(expectedResponse: String, block: suspend (AzureAdTokenClient) -> String) = runBlocking {
+        private fun runHappyPathTest(
+            expectedResponse: String,
+            block: suspend (AzureAdTokenClient) -> String,
+        ) = runBlocking {
             val azureAdTokenClient = createAzureAdTokenClient(HttpStatusCode.OK)
             block(azureAdTokenClient) shouldBe expectedResponse
         }
 
-        private fun createAzureAdTokenClient(statusCode: HttpStatusCode = HttpStatusCode.OK, cache: Cache<String, AzureAdToken>? = null) =
-            if (cache == null) {
-                AzureAdTokenClient(
-                    azureAdTokenUrl = AZURE_AD_TOKEN_URL,
-                    clientId = "fake-client-id",
-                    clientSecret = "fake-client-secret",
-                    httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
-                )
-            } else {
-                AzureAdTokenClient(
-                    azureAdTokenUrl = AZURE_AD_TOKEN_URL,
-                    clientId = "fake-client-id",
-                    clientSecret = "fake-client-secret",
-                    httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
-                    tokenCache = cache,
-                )
-            }
+        private fun createAzureAdTokenClient(
+            statusCode: HttpStatusCode = HttpStatusCode.OK,
+            cache: Cache<String, AzureAdToken>? = null,
+        ) = if (cache == null) {
+            AzureAdTokenClient(
+                azureAdTokenUrl = AZURE_AD_TOKEN_URL,
+                clientId = "fake-client-id",
+                clientSecret = "fake-client-secret",
+                httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
+            )
+        } else {
+            AzureAdTokenClient(
+                azureAdTokenUrl = AZURE_AD_TOKEN_URL,
+                clientId = "fake-client-id",
+                clientSecret = "fake-client-secret",
+                httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
+                tokenCache = cache,
+            )
+        }
     }
 }

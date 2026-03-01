@@ -27,7 +27,10 @@ class VarselOutboxHandler(
         )
     }
 
-    fun opprettBeskjed(varsel: Varsel, visEndringsmodal: Boolean) {
+    fun opprettBeskjed(
+        varsel: Varsel,
+        visEndringsmodal: Boolean,
+    ) {
         require(varsel.type == Varsel.Type.BESKJED) {
             "Kan ikke opprette beskjed, feil varseltype ${varsel.type}"
         }

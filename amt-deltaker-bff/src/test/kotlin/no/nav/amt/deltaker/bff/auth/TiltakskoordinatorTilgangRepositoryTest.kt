@@ -188,7 +188,10 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 }
 
-fun sammenlignTilganger(tilgang1: TiltakskoordinatorDeltakerlisteTilgang, tilgang2: TiltakskoordinatorDeltakerlisteTilgang) {
+fun sammenlignTilganger(
+    tilgang1: TiltakskoordinatorDeltakerlisteTilgang,
+    tilgang2: TiltakskoordinatorDeltakerlisteTilgang,
+) {
     tilgang1.id shouldBe tilgang2.id
     tilgang1.navAnsattId shouldBe tilgang2.navAnsattId
     tilgang1.deltakerlisteId shouldBe tilgang2.deltakerlisteId
