@@ -18,36 +18,33 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - ny arrangor - upserter`() =
-        runTest {
-            val arrangor = TestData.lagArrangor()
+    fun `consumeArrangor - ny arrangor - upserter`() = runTest {
+        val arrangor = TestData.lagArrangor()
 
-            arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
+        arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
 
-            arrangorRepository.get(arrangor.id) shouldBe arrangor
-        }
-
-    @Test
-    fun `consumeArrangor - oppdatert arrangor - upserter`() =
-        runTest {
-            val arrangor = TestData.lagArrangor()
-            arrangorRepository.upsert(arrangor)
-
-            val oppdatertArrangor = arrangor.copy(navn = "Oppdatert Arrangor")
-
-            arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
-
-            arrangorRepository.get(arrangor.id) shouldBe oppdatertArrangor
-        }
+        arrangorRepository.get(arrangor.id) shouldBe arrangor
+    }
 
     @Test
-    fun `consumeArrangor - tombstonet arrangor - sletter`() =
-        runTest {
-            val arrangor = TestData.lagArrangor()
-            arrangorRepository.upsert(arrangor)
+    fun `consumeArrangor - oppdatert arrangor - upserter`() = runTest {
+        val arrangor = TestData.lagArrangor()
+        arrangorRepository.upsert(arrangor)
 
-            arrangorConsumer.consume(arrangor.id, null)
+        val oppdatertArrangor = arrangor.copy(navn = "Oppdatert Arrangor")
 
-            arrangorRepository.get(arrangor.id) shouldBe null
-        }
+        arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
+
+        arrangorRepository.get(arrangor.id) shouldBe oppdatertArrangor
+    }
+
+    @Test
+    fun `consumeArrangor - tombstonet arrangor - sletter`() = runTest {
+        val arrangor = TestData.lagArrangor()
+        arrangorRepository.upsert(arrangor)
+
+        arrangorConsumer.consume(arrangor.id, null)
+
+        arrangorRepository.get(arrangor.id) shouldBe null
+    }
 }

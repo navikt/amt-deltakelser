@@ -40,48 +40,43 @@ class TiltakstypeRepository {
                 modified_at         = CURRENT_TIMESTAMP
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to tiltakstype.id,
-                "navn" to tiltakstype.navn,
-                "tiltakskode" to tiltakstype.tiltakskode.name,
-                "innsatsgrupper" to toPGObject(tiltakstype.innsatsgrupper),
-                "innhold" to toPGObject(tiltakstype.innhold),
-            )
+        val params = mapOf(
+            "id" to tiltakstype.id,
+            "navn" to tiltakstype.navn,
+            "tiltakskode" to tiltakstype.tiltakskode.name,
+            "innsatsgrupper" to toPGObject(tiltakstype.innsatsgrupper),
+            "innhold" to toPGObject(tiltakstype.innhold),
+        )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
         log.info("Upsertet tiltakstype med id ${tiltakstype.id}")
     }
 
-    fun get(tiltakskode: Tiltakskode): Result<Tiltakstype> =
-        runCatching {
-            val sql =
-                """
-                SELECT 
-                    id,
-                    navn,
-                    tiltakskode,
-                    innsatsgrupper,
-                    innhold
-                FROM tiltakstype
-                WHERE tiltakskode = :tiltakskode
-                """.trimIndent()
+    fun get(tiltakskode: Tiltakskode): Result<Tiltakstype> = runCatching {
+        val sql =
+            """
+            SELECT 
+                id,
+                navn,
+                tiltakskode,
+                innsatsgrupper,
+                innhold
+            FROM tiltakstype
+            WHERE tiltakskode = :tiltakskode
+            """.trimIndent()
 
-            Database.query { session ->
-                session.run(
-                    queryOf(
-                        sql,
-                        mapOf("tiltakskode" to tiltakskode.name),
-                    ).map(::rowMapper).asSingle,
-                ) ?: throw NoSuchElementException("Fant ikke tiltakstype ${tiltakskode.name}")
-            }
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("tiltakskode" to tiltakskode.name),
+                ).map(::rowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Fant ikke tiltakstype ${tiltakskode.name}")
         }
+    }
 
     companion object {
-        fun rowMapper(
-            row: Row,
-            alias: String? = null,
-        ): Tiltakstype {
+        fun rowMapper(row: Row, alias: String? = null): Tiltakstype {
             val col = prefixColumn(alias)
 
             return Tiltakstype(
@@ -89,10 +84,7 @@ class TiltakstypeRepository {
                 navn = row.string(col("navn")),
                 tiltakskode = Tiltakskode.valueOf(row.string(col("tiltakskode"))),
                 innsatsgrupper = row.string(col("innsatsgrupper")).let { objectMapper.readValue(it) },
-                innhold =
-                    row
-                        .stringOrNull(col("innhold"))
-                        ?.let { objectMapper.readValue<DeltakerRegistreringInnhold?>(it) },
+                innhold = row.stringOrNull(col("innhold"))?.let { objectMapper.readValue<DeltakerRegistreringInnhold?>(it) },
             )
         }
     }

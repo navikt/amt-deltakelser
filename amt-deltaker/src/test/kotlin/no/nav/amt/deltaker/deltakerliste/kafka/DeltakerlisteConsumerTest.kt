@@ -72,20 +72,18 @@ class DeltakerlisteConsumerTest {
         val deltaker = lagDeltaker(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
-        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe =
-            lagDeltakerlistePayload(arrangorInTest, deltakerliste)
-                .copy(
-                    arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-                ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
+        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = lagDeltakerlistePayload(arrangorInTest, deltakerliste)
+            .copy(
+                arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
+            ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
 
         runTest {
-            val thrown =
-                shouldThrow<IllegalArgumentException> {
-                    consumer.consume(
-                        deltakerlistePayload.id,
-                        objectMapper.writeValueAsString(deltakerlistePayload),
-                    )
-                }
+            val thrown = shouldThrow<IllegalArgumentException> {
+                consumer.consume(
+                    deltakerlistePayload.id,
+                    objectMapper.writeValueAsString(deltakerlistePayload),
+                )
+            }
 
             thrown.message shouldBe
                 "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
@@ -101,10 +99,9 @@ class DeltakerlisteConsumerTest {
 
         val expectedDeltakerliste = lagDeltakerliste(arrangor = arrangorInTest, tiltakstype = tiltakstype)
 
-        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe =
-            lagDeltakerlistePayload(arrangorInTest, expectedDeltakerliste).copy(
-                arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-            )
+        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = lagDeltakerlistePayload(arrangorInTest, expectedDeltakerliste).copy(
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
+        )
 
         runTest {
             consumer.consume(
@@ -112,10 +109,9 @@ class DeltakerlisteConsumerTest {
                 objectMapper.writeValueAsString(deltakerlistePayload),
             )
 
-            val thrown =
-                shouldThrow<NoSuchElementException> {
-                    deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
-                }
+            val thrown = shouldThrow<NoSuchElementException> {
+                deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
+            }
 
             thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
         }
@@ -126,17 +122,15 @@ class DeltakerlisteConsumerTest {
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
         tiltakstypeRepository.upsert(tiltakstype)
 
-        val deltakerliste =
-            lagDeltakerliste(
-                arrangor = arrangorInTest,
-                tiltakstype = tiltakstype,
-                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-            )
+        val deltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            tiltakstype = tiltakstype,
+            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+        )
 
-        val deltakerlistePayload =
-            lagDeltakerlistePayload(arrangorInTest, deltakerliste).copy(
-                arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-            )
+        val deltakerlistePayload = lagDeltakerlistePayload(arrangorInTest, deltakerliste).copy(
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
+        )
 
         runTest {
             consumer.consume(
@@ -155,18 +149,16 @@ class DeltakerlisteConsumerTest {
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
         tiltakstypeRepository.upsert(tiltakstype)
 
-        val deltakerliste =
-            lagDeltakerliste(
-                arrangor = arrangorInTest,
-                tiltakstype = tiltakstype,
-                gjennomforingstype = GjennomforingType.Enkeltplass,
-                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            )
+        val deltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            tiltakstype = tiltakstype,
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
 
-        val deltakerlistePayload =
-            lagEnkeltplassDeltakerlistePayload(arrangorInTest, deltakerliste).copy(
-                arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-            )
+        val deltakerlistePayload = lagEnkeltplassDeltakerlistePayload(arrangorInTest, deltakerliste).copy(
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
+        )
 
         runTest {
             consumer.consume(
@@ -174,15 +166,14 @@ class DeltakerlisteConsumerTest {
                 objectMapper.writeValueAsString(deltakerlistePayload),
             )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe
-                deltakerliste.copy(
-                    navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
-                    status = null,
-                    startDato = null,
-                    sluttDato = null,
-                    oppstart = null,
-                    oppmoteSted = null,
-                )
+            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
+                navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
+                status = null,
+                startDato = null,
+                sluttDato = null,
+                oppstart = null,
+                oppmoteSted = null,
+            )
         }
 
         coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
@@ -193,12 +184,11 @@ class DeltakerlisteConsumerTest {
         val tiltakstype = lagTiltakstype()
         tiltakstypeRepository.upsert(tiltakstype)
 
-        val deltakerliste =
-            lagDeltakerliste(
-                arrangor = arrangorInTest,
-                tiltakstype = tiltakstype,
-                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            )
+        val deltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            tiltakstype = tiltakstype,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
 
         runTest {
             consumer.consume(
@@ -214,11 +204,10 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() {
-        val deltakerliste =
-            lagDeltakerliste(
-                arrangor = arrangorInTest,
-                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            )
+        val deltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
         TestRepository.insert(deltakerliste)
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
@@ -237,11 +226,10 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - avbrutt - oppdaterer deltakerliste og avslutter deltakere`() {
-        val deltakerliste =
-            lagDeltakerliste(
-                arrangor = arrangorInTest,
-                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            )
+        val deltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
         TestRepository.insert(deltakerliste)
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
@@ -275,11 +263,10 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato pa deltakere`() {
-        val deltakerliste =
-            lagDeltakerliste(
-                arrangor = arrangorInTest,
-                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            )
+        val deltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
         TestRepository.insert(deltakerliste)
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())

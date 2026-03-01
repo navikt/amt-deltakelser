@@ -85,10 +85,7 @@ fun generateSystemJWT(
         .sign(alg)
 }
 
-fun tokenXToken(
-    pid: String,
-    env: Environment,
-): String? {
+fun tokenXToken(pid: String, env: Environment): String? {
     val key = getDefaultRSAKey()
     return JWT
         .create()

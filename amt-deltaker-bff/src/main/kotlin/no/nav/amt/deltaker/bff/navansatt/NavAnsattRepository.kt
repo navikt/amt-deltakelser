@@ -33,52 +33,48 @@ class NavAnsattRepository {
             RETURNING *
             """.trimIndent()
 
-        val query =
-            queryOf(
-                sql,
-                mapOf(
-                    "id" to navAnsatt.id,
-                    "nav_ident" to navAnsatt.navIdent,
-                    "navn" to navAnsatt.navn,
-                    "epost" to navAnsatt.epost,
-                    "telefon" to navAnsatt.telefon,
-                ),
-            ).map(::rowMapper).asSingle
+        val query = queryOf(
+            sql,
+            mapOf(
+                "id" to navAnsatt.id,
+                "nav_ident" to navAnsatt.navIdent,
+                "navn" to navAnsatt.navn,
+                "epost" to navAnsatt.epost,
+                "telefon" to navAnsatt.telefon,
+            ),
+        ).map(::rowMapper).asSingle
 
         return Database.query { session ->
             session.run(query) ?: throw RuntimeException("Noe gikk galt ved lagring av nav-ansatt")
         }
     }
 
-    fun get(id: UUID): NavAnsatt? =
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM nav_ansatt WHERE id = :id",
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            )
-        }
+    fun get(id: UUID): NavAnsatt? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM nav_ansatt WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
+        )
+    }
 
-    fun get(navIdent: String): NavAnsatt? =
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM nav_ansatt WHERE nav_ident = :nav_ident",
-                    mapOf("nav_ident" to navIdent),
-                ).map(::rowMapper).asSingle,
-            )
-        }
+    fun get(navIdent: String): NavAnsatt? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM nav_ansatt WHERE nav_ident = :nav_ident",
+                mapOf("nav_ident" to navIdent),
+            ).map(::rowMapper).asSingle,
+        )
+    }
 
-    fun delete(id: UUID) =
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    "DELETE FROM nav_ansatt WHERE id = :id",
-                    mapOf("id" to id),
-                ),
-            )
-        }
+    fun delete(id: UUID) = Database.query { session ->
+        session.update(
+            queryOf(
+                "DELETE FROM nav_ansatt WHERE id = :id",
+                mapOf("id" to id),
+            ),
+        )
+    }
 
     fun getMany(veilederIdenter: List<UUID>): List<NavAnsatt> {
         if (veilederIdenter.isEmpty()) return emptyList()
@@ -94,14 +90,13 @@ class NavAnsattRepository {
     }
 
     companion object {
-        private fun rowMapper(row: Row) =
-            NavAnsatt(
-                id = row.uuid("id"),
-                navIdent = row.string("nav_ident"),
-                navn = row.string("navn"),
-                telefon = row.stringOrNull("telefon"),
-                epost = row.stringOrNull("epost"),
-                navEnhetId = null, // Should be same as amt-deltaker?
-            )
+        private fun rowMapper(row: Row) = NavAnsatt(
+            id = row.uuid("id"),
+            navIdent = row.string("nav_ident"),
+            navn = row.string("navn"),
+            telefon = row.stringOrNull("telefon"),
+            epost = row.stringOrNull("epost"),
+            navEnhetId = null, // Should be same as amt-deltaker?
+        )
     }
 }

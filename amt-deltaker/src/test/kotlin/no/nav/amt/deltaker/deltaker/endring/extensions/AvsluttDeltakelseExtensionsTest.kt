@@ -19,24 +19,22 @@ import java.util.UUID
 class AvsluttDeltakelseExtensionsTest {
     @Test
     fun `oppdaterDeltaker - avslutt deltakelse`() {
-        val endringsrequest =
-            AvsluttDeltakelseRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                sluttdato = LocalDate.now(),
-                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-                begrunnelse = "begrunnelse",
-                forslagId = UUID.randomUUID(),
-                harFullfort = null,
-            )
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            sluttdato = LocalDate.now(),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            forslagId = UUID.randomUUID(),
+            harFullfort = null,
+        )
 
-        val resultat =
-            endringsrequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltakerSomDeltar,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltakerSomDeltar,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -47,24 +45,22 @@ class AvsluttDeltakelseExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`() {
-        val endringsrequest =
-            AvsluttDeltakelseRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                sluttdato = LocalDate.now().plusWeeks(1),
-                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-                begrunnelse = null,
-                forslagId = null,
-                harFullfort = null,
-            )
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            sluttdato = LocalDate.now().plusWeeks(1),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
+            harFullfort = null,
+        )
 
-        val resultat =
-            endringsrequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltakerSomDeltar,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltakerSomDeltar,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -75,24 +71,22 @@ class AvsluttDeltakelseExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`() {
-        val endringsrequest =
-            AvsluttDeltakelseRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                sluttdato = LocalDate.now().plusWeeks(1),
-                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-                begrunnelse = null,
-                forslagId = null,
-                harFullfort = null,
-            )
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            sluttdato = LocalDate.now().plusWeeks(1),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
+            harFullfort = null,
+        )
 
-        val resultat =
-            endringsrequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltakerSomHarSluttet,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltakerSomHarSluttet,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -110,24 +104,22 @@ class AvsluttDeltakelseExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`() {
-        val endringsrequest =
-            AvsluttDeltakelseRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                sluttdato = LocalDate.now().minusDays(1),
-                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-                begrunnelse = null,
-                forslagId = null,
-                harFullfort = null,
-            )
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            sluttdato = LocalDate.now().minusDays(1),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
+            harFullfort = null,
+        )
 
-        val resultat =
-            endringsrequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltakerSomHarSluttet,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltakerSomHarSluttet,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -140,16 +132,14 @@ class AvsluttDeltakelseExtensionsTest {
     }
 
     companion object {
-        val deltakerSomDeltar =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                sluttdato = LocalDate.now().plusMonths(1),
-            )
+        val deltakerSomDeltar = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusMonths(1),
+        )
 
-        val deltakerSomHarSluttet =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                sluttdato = LocalDate.now().minusWeeks(1),
-            )
+        val deltakerSomHarSluttet = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            sluttdato = LocalDate.now().minusWeeks(1),
+        )
     }
 }

@@ -23,17 +23,13 @@ const val MIN_DELTAKELSESPROSENT = 1
 const val MAX_DELTAKELSESPROSENT = 100
 const val MAX_BEGRUNNELSE_LENGDE = 200
 
-fun validerBakgrunnsinformasjon(tekst: String?) =
-    tekst?.let {
-        require(it.length <= MAX_BAKGRUNNSINFORMASJON_LENGDE) {
-            "Bakgrunnsinformasjon kan ikke være lengre enn $MAX_BAKGRUNNSINFORMASJON_LENGDE"
-        }
+fun validerBakgrunnsinformasjon(tekst: String?) = tekst?.let {
+    require(it.length <= MAX_BAKGRUNNSINFORMASJON_LENGDE) {
+        "Bakgrunnsinformasjon kan ikke være lengre enn $MAX_BAKGRUNNSINFORMASJON_LENGDE"
     }
+}
 
-fun validerAnnetInnhold(
-    tekst: String?,
-    tiltakstype: Tiltakskode,
-) {
+fun validerAnnetInnhold(tekst: String?, tiltakstype: Tiltakskode) {
     if (!tiltakstype.skalKunHaAnnetBeskrivelse()) {
         require(tekst != null && tekst != "") {
             "Innhold med innholdskode: ${annetInnholdselement.innholdskode} må ha en beskrivelse"
@@ -46,26 +42,23 @@ fun validerAnnetInnhold(
     }
 }
 
-fun validerAarsaksBeskrivelse(tekst: String?) =
-    tekst?.let {
-        require(tekst.length <= MAX_AARSAK_BESKRIVELSE_LENGDE) {
-            "Beskrivelse kan ikke være lengre enn $MAX_AARSAK_BESKRIVELSE_LENGDE"
-        }
+fun validerAarsaksBeskrivelse(tekst: String?) = tekst?.let {
+    require(tekst.length <= MAX_AARSAK_BESKRIVELSE_LENGDE) {
+        "Beskrivelse kan ikke være lengre enn $MAX_AARSAK_BESKRIVELSE_LENGDE"
     }
+}
 
-fun validerDagerPerUke(n: Int?) =
-    n?.let {
-        require(n in MIN_DAGER_PER_UKE..MAX_DAGER_PER_UKE) {
-            "Dager per uke kan ikke være mindre enn $MIN_DAGER_PER_UKE eller større enn $MAX_DAGER_PER_UKE"
-        }
+fun validerDagerPerUke(n: Int?) = n?.let {
+    require(n in MIN_DAGER_PER_UKE..MAX_DAGER_PER_UKE) {
+        "Dager per uke kan ikke være mindre enn $MIN_DAGER_PER_UKE eller større enn $MAX_DAGER_PER_UKE"
     }
+}
 
-fun validerDeltakelsesProsent(n: Int?) =
-    n?.let {
-        require(n in MIN_DELTAKELSESPROSENT..MAX_DELTAKELSESPROSENT) {
-            "Deltakelsesprosent kan ikke være mindre enn $MIN_DELTAKELSESPROSENT eller større enn $MAX_DELTAKELSESPROSENT"
-        }
+fun validerDeltakelsesProsent(n: Int?) = n?.let {
+    require(n in MIN_DELTAKELSESPROSENT..MAX_DELTAKELSESPROSENT) {
+        "Deltakelsesprosent kan ikke være mindre enn $MIN_DELTAKELSESPROSENT eller større enn $MAX_DELTAKELSESPROSENT"
     }
+}
 
 fun validerDeltakelsesmengde(
     nyProsent: Int?,
@@ -108,15 +101,11 @@ fun validerDeltakerKanEndres(opprinneligDeltaker: Deltaker) {
     }
 }
 
-fun statusForMindreEnn15DagerSiden(opprinneligDeltaker: Deltaker): Boolean =
-    opprinneligDeltaker.status.gyldigFra
-        .toLocalDate()
-        .isAfter(LocalDate.now().minusDays(15))
+fun statusForMindreEnn15DagerSiden(opprinneligDeltaker: Deltaker): Boolean = opprinneligDeltaker.status.gyldigFra
+    .toLocalDate()
+    .isAfter(LocalDate.now().minusDays(15))
 
-fun validerForslagEllerBegrunnelse(
-    forslagId: UUID?,
-    begrunnelse: String?,
-) {
+fun validerForslagEllerBegrunnelse(forslagId: UUID?, begrunnelse: String?) {
     require(forslagId != null || !begrunnelse.isNullOrEmpty()) {
         "Må ha begrunnelse hvis ikke det er et godkjent forslag"
     }
@@ -171,11 +160,10 @@ fun harEndretSluttaarsak(
     nyDeltakerStatusAarsak: DeltakerEndring.Aarsak?,
 ): Boolean = nyDeltakerStatusAarsak?.toDeltakerStatusAarsak() != opprinneligDeltakerStatusAarsak
 
-private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() =
-    DeltakerStatus.Aarsak(
-        DeltakerStatus.Aarsak.Type.valueOf(type.name),
-        beskrivelse,
-    )
+private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(
+    DeltakerStatus.Aarsak.Type.valueOf(type.name),
+    beskrivelse,
+)
 
 fun validerKladdInnhold(
     innhold: List<InnholdRequest>,
@@ -219,9 +207,8 @@ private fun validerInnhold(
     tiltaksinnhold: DeltakerRegistreringInnhold?,
     valider: (innholdskoder: List<String>) -> Unit,
 ) {
-    val muligeInnholdskoderForTiltak =
-        getInnholdselementer(tiltaksinnhold?.innholdselementer, tiltakstype)
-            .map { it.innholdskode }
+    val muligeInnholdskoderForTiltak = getInnholdselementer(tiltaksinnhold?.innholdselementer, tiltakstype)
+        .map { it.innholdskode }
 
     if (muligeInnholdskoderForTiltak.isEmpty()) {
         require(valgteInnholdselementer.isEmpty()) { "Et tiltak uten innholdselementer kan ikke ha noe innhold" }

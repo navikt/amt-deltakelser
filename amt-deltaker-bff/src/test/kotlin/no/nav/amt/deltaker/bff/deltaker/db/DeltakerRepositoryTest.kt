@@ -75,10 +75,9 @@ class DeltakerRepositoryTest {
     inner class GetTidligereAvsluttedeDeltakelserTests {
         @Test
         fun `getTidligereAvsluttedeDeltakelser - har ingen tidligere deltakelse - returnerer tom liste`() {
-            val deltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                )
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
             TestRepository.insert(deltaker)
 
             deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe emptyList()
@@ -86,17 +85,15 @@ class DeltakerRepositoryTest {
 
         @Test
         fun `getTidligereAvsluttedeDeltakelser - har aktiv tidligere deltakelse - returnerer tom liste`() {
-            val avsluttetDeltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                )
+            val avsluttetDeltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
             TestRepository.insert(avsluttetDeltaker)
-            val deltaker =
-                lagDeltaker(
-                    deltakerliste = avsluttetDeltaker.deltakerliste,
-                    navBruker = avsluttetDeltaker.navBruker,
-                    status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                )
+            val deltaker = lagDeltaker(
+                deltakerliste = avsluttetDeltaker.deltakerliste,
+                navBruker = avsluttetDeltaker.navBruker,
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
             TestRepository.insert(deltaker)
 
             deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe emptyList()
@@ -104,17 +101,15 @@ class DeltakerRepositoryTest {
 
         @Test
         fun `getTidligereAvsluttedeDeltakelser - har tidligere avsluttet deltakelse - returnerer id`() {
-            val avsluttetDeltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                )
+            val avsluttetDeltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            )
             TestRepository.insert(avsluttetDeltaker)
-            val deltaker =
-                lagDeltaker(
-                    deltakerliste = avsluttetDeltaker.deltakerliste,
-                    navBruker = avsluttetDeltaker.navBruker,
-                    status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                )
+            val deltaker = lagDeltaker(
+                deltakerliste = avsluttetDeltaker.deltakerliste,
+                navBruker = avsluttetDeltaker.navBruker,
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
             TestRepository.insert(deltaker)
 
             deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe listOf(avsluttetDeltaker.id)
@@ -122,17 +117,15 @@ class DeltakerRepositoryTest {
 
         @Test
         fun `getTidligereAvsluttedeDeltakelser - har tidligere avsluttet deltakelse, er avsluttet deltakelse - returnerer id`() {
-            val avsluttetDeltaker =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                )
+            val avsluttetDeltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            )
             TestRepository.insert(avsluttetDeltaker)
-            val deltaker =
-                lagDeltaker(
-                    deltakerliste = avsluttetDeltaker.deltakerliste,
-                    navBruker = avsluttetDeltaker.navBruker,
-                    status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                )
+            val deltaker = lagDeltaker(
+                deltakerliste = avsluttetDeltaker.deltakerliste,
+                navBruker = avsluttetDeltaker.navBruker,
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            )
             TestRepository.insert(deltaker)
 
             deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe listOf(avsluttetDeltaker.id)
@@ -171,13 +164,12 @@ class DeltakerRepositoryTest {
         @Test
         fun `getForDeltakerliste - flere deltakere pa samme liste - returnerer liste med deltakere`() {
             val deltakerliste = lagDeltakerliste()
-            val deltakere =
-                (0..10).map {
-                    lagDeltaker(
-                        deltakerliste = deltakerliste,
-                        status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                    )
-                }
+            val deltakere = (0..10).map {
+                lagDeltaker(
+                    deltakerliste = deltakerliste,
+                    status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                )
+            }
             deltakere.forEach { TestRepository.insert(it) }
 
             val deltakereFraDb = deltakerRepository.getForDeltakerliste(deltakerliste.id)
@@ -275,11 +267,10 @@ class DeltakerRepositoryTest {
 
             val deltakerliste = lagDeltakerliste(arrangor = arrangor)
 
-            val deltakerInTest =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                    deltakerliste = deltakerliste,
-                )
+            val deltakerInTest = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                deltakerliste = deltakerliste,
+            )
             TestRepository.insert(deltakerInTest)
 
             deltakerRepository
@@ -303,11 +294,10 @@ class DeltakerRepositoryTest {
 
             val deltakerliste = lagDeltakerliste(arrangor = arrangor)
 
-            val deltakerInTest =
-                lagDeltaker(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                    deltakerliste = deltakerliste,
-                )
+            val deltakerInTest = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                deltakerliste = deltakerliste,
+            )
             TestRepository.insert(deltakerInTest)
 
             deltakerRepository
@@ -322,9 +312,8 @@ class DeltakerRepositoryTest {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        private fun Deltaker.getAlleVedtak() =
-            historikk
-                .filterIsInstance<DeltakerHistorikk.Vedtak>()
-                .map { it.vedtak }
+        private fun Deltaker.getAlleVedtak() = historikk
+            .filterIsInstance<DeltakerHistorikk.Vedtak>()
+            .map { it.vedtak }
     }
 }

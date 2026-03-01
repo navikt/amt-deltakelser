@@ -37,16 +37,15 @@ class HendelseRepository {
             ON CONFLICT (id) DO NOTHING
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to hendelse.id,
-                "deltaker_id" to hendelse.deltaker.id,
-                "deltaker" to toPGObject(hendelse.deltaker),
-                "ansvarlig" to toPGObject(hendelse.ansvarlig),
-                "payload" to toPGObject(hendelse.payload),
-                "distribusjonskanal" to hendelse.distribusjonskanal.name,
-                "manuelloppfolging" to hendelse.manuellOppfolging,
-            )
+        val params = mapOf(
+            "id" to hendelse.id,
+            "deltaker_id" to hendelse.deltaker.id,
+            "deltaker" to toPGObject(hendelse.deltaker),
+            "ansvarlig" to toPGObject(hendelse.ansvarlig),
+            "payload" to toPGObject(hendelse.payload),
+            "distribusjonskanal" to hendelse.distribusjonskanal.name,
+            "manuelloppfolging" to hendelse.manuellOppfolging,
+        )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
@@ -132,28 +131,25 @@ class HendelseRepository {
                 JOIN journalforingstatus js ON h.id = js.hendelse_id            
             """.trimIndent()
 
-        private fun hendelseRowMapper(row: Row) =
-            Hendelse(
-                id = row.uuid("id"),
-                deltaker = objectMapper.readValue(row.string("deltaker")),
-                ansvarlig = objectMapper.readValue(row.string("ansvarlig")),
-                payload = objectMapper.readValue(row.string("payload")),
-                opprettet = row.localDateTime("created_at"),
-                distribusjonskanal = Distribusjonskanal.valueOf(row.string("distribusjonskanal")),
-                manuellOppfolging = row.boolean("manuelloppfolging"),
-            )
+        private fun hendelseRowMapper(row: Row) = Hendelse(
+            id = row.uuid("id"),
+            deltaker = objectMapper.readValue(row.string("deltaker")),
+            ansvarlig = objectMapper.readValue(row.string("ansvarlig")),
+            payload = objectMapper.readValue(row.string("payload")),
+            opprettet = row.localDateTime("created_at"),
+            distribusjonskanal = Distribusjonskanal.valueOf(row.string("distribusjonskanal")),
+            manuellOppfolging = row.boolean("manuelloppfolging"),
+        )
 
-        private fun hendelseMedJournalforingstatusRowMapper(row: Row) =
-            HendelseMedJournalforingstatus(
-                hendelse = hendelseRowMapper(row),
-                journalforingstatus =
-                    Journalforingstatus(
-                        hendelseId = row.uuid("id"),
-                        journalpostId = row.stringOrNull("journalpost_id"),
-                        bestillingsId = row.uuidOrNull("bestillingsid"),
-                        kanIkkeDistribueres = row.boolean("kan_ikke_distribueres"),
-                        kanIkkeJournalfores = row.boolean("kan_ikke_journalfores"),
-                    ),
-            )
+        private fun hendelseMedJournalforingstatusRowMapper(row: Row) = HendelseMedJournalforingstatus(
+            hendelse = hendelseRowMapper(row),
+            journalforingstatus = Journalforingstatus(
+                hendelseId = row.uuid("id"),
+                journalpostId = row.stringOrNull("journalpost_id"),
+                bestillingsId = row.uuidOrNull("bestillingsid"),
+                kanIkkeDistribueres = row.boolean("kan_ikke_distribueres"),
+                kanIkkeJournalfores = row.boolean("kan_ikke_journalfores"),
+            ),
+        )
     }
 }

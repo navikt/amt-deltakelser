@@ -16,13 +16,12 @@ import org.junit.jupiter.api.Test
 class EndreSluttarsakExtensionsTest {
     @Test
     fun `endret sluttarsak`() {
-        val resultat =
-            endringsrequest
-                .toEndring()
-                .oppdaterDeltaker(
-                    deltaker = deltaker,
-                    getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-                ).shouldBeSuccess()
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -45,22 +44,19 @@ class EndreSluttarsakExtensionsTest {
     }
 
     companion object {
-        private val deltaker =
-            TestData.lagDeltaker(
-                status =
-                    TestData.lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        aarsakType = DeltakerStatus.Aarsak.Type.SYK,
-                    ),
-            )
+        private val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.SYK,
+            ),
+        )
 
-        private val endringsrequest =
-            SluttarsakRequest(
-                endretAv = randomNavIdent(),
-                endretAvEnhet = randomEnhetsnummer(),
-                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-                begrunnelse = null,
-                forslagId = null,
-            )
+        private val endringsrequest = SluttarsakRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
+        )
     }
 }

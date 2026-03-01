@@ -25,12 +25,11 @@ fun Deltaker.toTiltakskoordinatorsDeltaker(
     startdato = startdato,
     sluttdato = sluttdato,
     navEnhet = navEnhet?.navn,
-    navVeileder =
-        NavVeileder(
-            navn = navVeileder?.navn,
-            telefonnummer = navVeileder?.telefon,
-            epost = navVeileder?.epost,
-        ),
+    navVeileder = NavVeileder(
+        navn = navVeileder?.navn,
+        telefonnummer = navVeileder?.telefon,
+        epost = navVeileder?.epost,
+    ),
     beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
     vurdering = sisteVurdering,
     innsatsgruppe = navBruker.innsatsgruppe,

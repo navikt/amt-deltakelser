@@ -18,14 +18,13 @@ import no.nav.amt.lib.utils.objectMapper
 
 object ClientTestUtils {
     @JvmStatic
-    fun failureCases() =
-        listOf(
-            Pair(HttpStatusCode.Unauthorized, AuthenticationException::class),
-            Pair(HttpStatusCode.Forbidden, AuthorizationException::class),
-            Pair(HttpStatusCode.BadRequest, IllegalArgumentException::class),
-            Pair(HttpStatusCode.NotFound, NoSuchElementException::class),
-            Pair(HttpStatusCode.InternalServerError, IllegalStateException::class),
-        )
+    fun failureCases() = listOf(
+        Pair(HttpStatusCode.Unauthorized, AuthenticationException::class),
+        Pair(HttpStatusCode.Forbidden, AuthorizationException::class),
+        Pair(HttpStatusCode.BadRequest, IllegalArgumentException::class),
+        Pair(HttpStatusCode.NotFound, NoSuchElementException::class),
+        Pair(HttpStatusCode.InternalServerError, IllegalStateException::class),
+    )
 
     fun <T> createMockHttpClient(
         expectedUrl: String,
@@ -49,11 +48,7 @@ object ClientTestUtils {
                         respond(
                             content = responseBody,
                             status = statusCode,
-                            headers =
-                                headersOf(
-                                    HttpHeaders.ContentType,
-                                    ContentType.Application.OctetStream.toString(),
-                                ),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
                         )
                     }
 

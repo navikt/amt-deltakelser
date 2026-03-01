@@ -54,13 +54,12 @@ fun Routing.registerExternalApi(
             val request = call.receive<HentDeltakelserRequest>()
             tilgangskontrollService.verifiserLesetilgang(call.getNavAnsattAzureId(), request.norskIdent)
 
-            val deltakelser =
-                deltakerRepository
-                    .getFlereForPerson(request.norskIdent)
-                    .filter {
-                        unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) ||
-                            unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode)
-                    }
+            val deltakelser = deltakerRepository
+                .getFlereForPerson(request.norskIdent)
+                .filter {
+                    unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) ||
+                        unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode)
+                }
 
             val responseBody = deltakelserResponseMapper.toDeltakelserResponse(deltakelser)
             call.respond(responseBody)

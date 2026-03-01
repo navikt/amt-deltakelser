@@ -25,47 +25,30 @@ class TiltaksKoordinatorClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun delMedArrangor(
-        deltakerIder: List<UUID>,
-        endretAv: String,
-    ): List<DeltakerOppdateringResponse> =
-        performPost(
-            "tiltakskoordinator/deltakere/del-med-arrangor",
-            DelMedArrangorRequest(endretAv, deltakerIder),
-        ).failIfNotSuccess("Kunne ikke dele-med-arrangor i amt-deltaker. ").body()
+    suspend fun delMedArrangor(deltakerIder: List<UUID>, endretAv: String): List<DeltakerOppdateringResponse> = performPost(
+        "tiltakskoordinator/deltakere/del-med-arrangor",
+        DelMedArrangorRequest(endretAv, deltakerIder),
+    ).failIfNotSuccess("Kunne ikke dele-med-arrangor i amt-deltaker. ").body()
 
-    suspend fun tildelPlass(
-        deltakerIder: List<UUID>,
-        endretAv: String,
-    ): List<DeltakerOppdateringResponse> =
-        performPost(
-            "tiltakskoordinator/deltakere/tildel-plass",
-            DeltakereRequest(deltakerIder, endretAv),
-        ).failIfNotSuccess("Kunne ikke tildele plass i amt-deltaker.").body()
+    suspend fun tildelPlass(deltakerIder: List<UUID>, endretAv: String): List<DeltakerOppdateringResponse> = performPost(
+        "tiltakskoordinator/deltakere/tildel-plass",
+        DeltakereRequest(deltakerIder, endretAv),
+    ).failIfNotSuccess("Kunne ikke tildele plass i amt-deltaker.").body()
 
-    suspend fun settPaaVenteliste(
-        deltakerIder: List<UUID>,
-        endretAv: String,
-    ): List<DeltakerOppdateringResponse> =
-        performPost(
-            "tiltakskoordinator/deltakere/sett-paa-venteliste",
-            DeltakereRequest(deltakerIder, endretAv),
-        ).failIfNotSuccess("Kunne ikke sette på venteliste i amt-deltaker.").body()
+    suspend fun settPaaVenteliste(deltakerIder: List<UUID>, endretAv: String): List<DeltakerOppdateringResponse> = performPost(
+        "tiltakskoordinator/deltakere/sett-paa-venteliste",
+        DeltakereRequest(deltakerIder, endretAv),
+    ).failIfNotSuccess("Kunne ikke sette på venteliste i amt-deltaker.").body()
 
-    suspend fun giAvslag(
-        avslagRequest: AvslagRequest,
-        endretAv: String,
-    ): Deltakeroppdatering {
-        val requestBody =
-            GiAvslagRequest(
-                deltakerId = avslagRequest.deltakerId,
-                avslag =
-                    EndringFraTiltakskoordinator.Avslag(
-                        avslagRequest.aarsak,
-                        avslagRequest.begrunnelse,
-                    ),
-                endretAv = endretAv,
-            )
+    suspend fun giAvslag(avslagRequest: AvslagRequest, endretAv: String): Deltakeroppdatering {
+        val requestBody = GiAvslagRequest(
+            deltakerId = avslagRequest.deltakerId,
+            avslag = EndringFraTiltakskoordinator.Avslag(
+                avslagRequest.aarsak,
+                avslagRequest.begrunnelse,
+            ),
+            endretAv = endretAv,
+        )
 
         return performPost(
             "tiltakskoordinator/deltakere/gi-avslag",

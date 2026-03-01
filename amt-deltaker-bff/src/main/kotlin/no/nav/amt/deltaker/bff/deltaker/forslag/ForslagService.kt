@@ -25,19 +25,16 @@ class ForslagService(
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(avvistAvAnsatt)
         val navEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(avvistAvEnhet)
 
-        val avvistForslag =
-            opprinneligForslag.copy(
-                status =
-                    Forslag.Status.Avvist(
-                        avvistAv =
-                            Forslag.NavAnsatt(
-                                id = navAnsatt.id,
-                                enhetId = navEnhet.id,
-                            ),
-                        avvist = LocalDateTime.now(),
-                        begrunnelseFraNav = begrunnelse,
-                    ),
-            )
+        val avvistForslag = opprinneligForslag.copy(
+            status = Forslag.Status.Avvist(
+                avvistAv = Forslag.NavAnsatt(
+                    id = navAnsatt.id,
+                    enhetId = navEnhet.id,
+                ),
+                avvist = LocalDateTime.now(),
+                begrunnelseFraNav = begrunnelse,
+            ),
+        )
 
         Database.transaction {
             forslagRepository.delete(opprinneligForslag.id)

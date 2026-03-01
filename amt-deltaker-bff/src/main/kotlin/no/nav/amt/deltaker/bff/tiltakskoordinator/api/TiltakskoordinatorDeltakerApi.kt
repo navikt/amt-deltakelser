@@ -37,19 +37,17 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
             val deltakerId = UUID.fromString(call.parameters["id"])
             val tiltakskoordinatorsDeltaker = tiltakskoordinatorService.getDeltaker(deltakerId)
 
-            val harTilgangTilBruker =
-                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
-                    navIdent = call.getNavIdent(),
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                    navBruker = tiltakskoordinatorsDeltaker.navBruker,
-                    deltakerlisteId = tiltakskoordinatorsDeltaker.deltakerliste.id,
-                )
+            val harTilgangTilBruker = sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                navIdent = call.getNavIdent(),
+                navAnsattAzureId = call.getNavAnsattAzureId(),
+                navBruker = tiltakskoordinatorsDeltaker.navBruker,
+                deltakerlisteId = tiltakskoordinatorsDeltaker.deltakerliste.id,
+            )
 
-            val responseBody =
-                tiltakskoordinatorsDeltaker.toResponse(
-                    harTilgangTilBruker,
-                    ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId),
-                )
+            val responseBody = tiltakskoordinatorsDeltaker.toResponse(
+                harTilgangTilBruker,
+                ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId),
+            )
 
             call.respond(responseBody)
         }
@@ -72,13 +70,12 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
 
             val historikk = deltaker.getDeltakerHistorikkForVisning()
 
-            val historikkResponse =
-                historikk.toResponse(
-                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    oppstartstype = deltaker.deltakerliste.oppstart,
-                )
+            val historikkResponse = historikk.toResponse(
+                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                oppstartstype = deltaker.deltakerliste.oppstart,
+            )
 
             val historikkResponseAsJson = objectMapper.writePolymorphicListAsString(historikkResponse)
 

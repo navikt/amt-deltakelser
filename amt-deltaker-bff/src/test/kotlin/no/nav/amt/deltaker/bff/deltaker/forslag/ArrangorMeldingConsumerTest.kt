@@ -22,42 +22,40 @@ class ArrangorMeldingConsumerTest {
     }
 
     @Test
-    fun `consume - forslag VenterPaSvar - lagrer`(): Unit =
-        runBlocking {
-            val consumer = ArrangorMeldingConsumer(forslagRepository)
-            val deltaker = TestData.lagDeltaker()
-            TestRepository.insert(deltaker)
-            val forslag = TestData.lagForslag(deltakerId = deltaker.id)
+    fun `consume - forslag VenterPaSvar - lagrer`(): Unit = runBlocking {
+        val consumer = ArrangorMeldingConsumer(forslagRepository)
+        val deltaker = TestData.lagDeltaker()
+        TestRepository.insert(deltaker)
+        val forslag = TestData.lagForslag(deltakerId = deltaker.id)
 
-            consumer.consume(
-                forslag.id,
-                objectMapper.writeValueAsString(forslag),
-            )
+        consumer.consume(
+            forslag.id,
+            objectMapper.writeValueAsString(forslag),
+        )
 
-            val forslagFraDb = forslagRepository.getForDeltaker(deltaker.id)
-            forslagFraDb.size shouldBe 1
-            forslagFraDb.first().id shouldBe forslag.id
-        }
+        val forslagFraDb = forslagRepository.getForDeltaker(deltaker.id)
+        forslagFraDb.size shouldBe 1
+        forslagFraDb.first().id shouldBe forslag.id
+    }
 
     @Test
-    fun `consume - forslag tilbakekalt - sletter`(): Unit =
-        runBlocking {
-            val consumer = ArrangorMeldingConsumer(forslagRepository)
-            val deltaker = TestData.lagDeltaker()
-            TestRepository.insert(deltaker)
-            val forslag = TestData.lagForslag(deltakerId = deltaker.id)
-            forslagRepository.upsert(forslag)
+    fun `consume - forslag tilbakekalt - sletter`(): Unit = runBlocking {
+        val consumer = ArrangorMeldingConsumer(forslagRepository)
+        val deltaker = TestData.lagDeltaker()
+        TestRepository.insert(deltaker)
+        val forslag = TestData.lagForslag(deltakerId = deltaker.id)
+        forslagRepository.upsert(forslag)
 
-            consumer.consume(
-                forslag.id,
-                objectMapper.writeValueAsString(
-                    forslag.copy(
-                        status = Forslag.Status.Tilbakekalt(UUID.randomUUID(), LocalDateTime.now()),
-                    ),
+        consumer.consume(
+            forslag.id,
+            objectMapper.writeValueAsString(
+                forslag.copy(
+                    status = Forslag.Status.Tilbakekalt(UUID.randomUUID(), LocalDateTime.now()),
                 ),
-            )
+            ),
+        )
 
-            val forslagFraDb = forslagRepository.getForDeltaker(deltaker.id)
-            forslagFraDb.size shouldBe 0
-        }
+        val forslagFraDb = forslagRepository.getForDeltaker(deltaker.id)
+        forslagFraDb.size shouldBe 0
+    }
 }

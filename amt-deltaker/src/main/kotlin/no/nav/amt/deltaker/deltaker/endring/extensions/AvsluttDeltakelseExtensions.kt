@@ -37,19 +37,17 @@ fun DeltakerEndring.Endring.AvsluttDeltakelse.avsluttDeltakelse(deltaker: Deltak
 private fun DeltakerEndring.Endring.AvsluttDeltakelse.skalFortsattDelta(): Boolean = !sluttdato.isBefore(LocalDate.now())
 
 private fun DeltakerEndring.Endring.AvsluttDeltakelse.getAvsluttendeStatus(deltaker: Deltaker): DeltakerStatus {
-    val gyldigFra =
-        if (skalFortsattDelta()) {
-            sluttdato.atStartOfDay().plusDays(1)
-        } else {
-            LocalDateTime.now()
-        }
+    val gyldigFra = if (skalFortsattDelta()) {
+        sluttdato.atStartOfDay().plusDays(1)
+    } else {
+        LocalDateTime.now()
+    }
     return nyDeltakerStatus(
-        type =
-            if (deltaker.deltakerliste.erFellesOppstart || deltaker.deltarPaOpplaeringstiltak) {
-                DeltakerStatus.Type.FULLFORT
-            } else {
-                DeltakerStatus.Type.HAR_SLUTTET
-            },
+        type = if (deltaker.deltakerliste.erFellesOppstart || deltaker.deltarPaOpplaeringstiltak) {
+            DeltakerStatus.Type.FULLFORT
+        } else {
+            DeltakerStatus.Type.HAR_SLUTTET
+        },
         aarsak = aarsak?.toDeltakerStatusAarsak(),
         gyldigFra = gyldigFra,
     )

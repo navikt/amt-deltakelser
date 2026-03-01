@@ -28,18 +28,17 @@ class DeltakelsesmengdeUpdateJob(
     private val log: Logger = LoggerFactory.getLogger(javaClass)
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    fun startJob(): Timer =
-        fixedRateTimer(
-            name = this.javaClass.simpleName,
-            initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
-            period = Duration.of(1, ChronoUnit.HOURS).toMillis(),
-        ) {
-            scope.launch {
-                if (leaderElection.isLeader() && attributes.getOrNull(isReadyKey) == true) {
-                    behandleDeltakelsesmengder()
-                }
+    fun startJob(): Timer = fixedRateTimer(
+        name = this.javaClass.simpleName,
+        initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
+        period = Duration.of(1, ChronoUnit.HOURS).toMillis(),
+    ) {
+        scope.launch {
+            if (leaderElection.isLeader() && attributes.getOrNull(isReadyKey) == true) {
+                behandleDeltakelsesmengder()
             }
         }
+    }
 
     private suspend fun behandleDeltakelsesmengder() {
         var offset = 0

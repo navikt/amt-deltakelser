@@ -75,10 +75,7 @@ data class Environment(
     }
 }
 
-fun getEnvVar(
-    varName: String,
-    defaultValue: String? = null,
-) = System.getenv(varName)
+fun getEnvVar(varName: String, defaultValue: String? = null) = System.getenv(varName)
     ?: System.getProperty(varName)
     ?: defaultValue
     ?: if (Environment.isLocal()) "" else error("Missing required variable $varName")

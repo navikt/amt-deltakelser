@@ -44,19 +44,17 @@ class DeltakerEndringRepositoryTest {
         navAnsattRepository.upsert(navAnsatt2)
 
         val deltaker = lagDeltaker()
-        val deltakerEndring =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endretAv = navAnsatt1.id,
-                endretAvEnhet = navEnhet1.id,
-            )
-        val deltakerEndring2 =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
-                endretAv = navAnsatt2.id,
-                endretAvEnhet = navEnhet2.id,
-            )
+        val deltakerEndring = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt1.id,
+            endretAvEnhet = navEnhet1.id,
+        )
+        val deltakerEndring2 = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
+            endretAv = navAnsatt2.id,
+            endretAvEnhet = navEnhet2.id,
+        )
         TestRepository.insert(deltaker)
 
         deltakerEndringRepository.upsert(deltakerEndring)
@@ -89,23 +87,20 @@ class DeltakerEndringRepositoryTest {
         val navAnsatt2 = lagNavAnsatt(navEnhetId = navEnhet2.id)
         navAnsattRepository.upsert(navAnsatt2)
 
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
-            )
-        val deltakerEndring =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endretAv = navAnsatt1.id,
-                endretAvEnhet = navEnhet1.id,
-            )
-        val deltakerEndring2 =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
-                endretAv = navAnsatt2.id,
-                endretAvEnhet = navEnhet2.id,
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
+        )
+        val deltakerEndring = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt1.id,
+            endretAvEnhet = navEnhet1.id,
+        )
+        val deltakerEndring2 = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
+            endretAv = navAnsatt2.id,
+            endretAvEnhet = navEnhet2.id,
+        )
         TestRepository.insert(deltaker)
 
         deltakerEndringRepository.upsert(deltakerEndring)
@@ -124,53 +119,46 @@ class DeltakerEndringRepositoryTest {
         val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
         navAnsattRepository.upsert(navAnsatt)
 
-        val deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            )
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
         TestRepository.insertAll(navEnhet, navAnsatt, deltaker)
 
-        val behandlet =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endretAv = navAnsatt.id,
-                endretAvEnhet = navEnhet.id,
-                endring =
-                    DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                        deltakelsesprosent = 100F,
-                        dagerPerUke = null,
-                        gyldigFra = LocalDate.now().plusMonths(1),
-                        begrunnelse = null,
-                    ),
-            )
+        val behandlet = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt.id,
+            endretAvEnhet = navEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now().plusMonths(1),
+                begrunnelse = null,
+            ),
+        )
 
-        val skalBehandles =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endretAv = navAnsatt.id,
-                endretAvEnhet = navEnhet.id,
-                endring =
-                    DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                        deltakelsesprosent = 42F,
-                        dagerPerUke = null,
-                        gyldigFra = LocalDate.now(),
-                        begrunnelse = null,
-                    ),
-            )
+        val skalBehandles = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt.id,
+            endretAvEnhet = navEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 42F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now(),
+                begrunnelse = null,
+            ),
+        )
 
-        val skalBehandlesSenere =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endretAv = navAnsatt.id,
-                endretAvEnhet = navEnhet.id,
-                endring =
-                    DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                        deltakelsesprosent = 100F,
-                        dagerPerUke = null,
-                        gyldigFra = LocalDate.now().plusMonths(1),
-                        begrunnelse = null,
-                    ),
-            )
+        val skalBehandlesSenere = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt.id,
+            endretAvEnhet = navEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now().plusMonths(1),
+                begrunnelse = null,
+            ),
+        )
 
         deltakerEndringRepository.upsert(behandlet)
         deltakerEndringRepository.upsert(skalBehandles, null)

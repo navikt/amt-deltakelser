@@ -76,18 +76,17 @@ data class DeltakerResponse(
                 )
             }
 
-            fun fromVedtak(vedtak: VedtaksinformasjonModel) =
-                with(vedtak) {
-                    VedtaksinformasjonDto(
-                        fattet = fattet,
-                        fattetAvNav = fattetAvNav,
-                        opprettet = opprettet,
-                        opprettetAv = vedtak.opprettetAv,
-                        sistEndret = sistEndret,
-                        sistEndretAv = vedtak.sistEndretAv,
-                        sistEndretAvEnhet = vedtak.sistEndretAvEnhet,
-                    )
-                }
+            fun fromVedtak(vedtak: VedtaksinformasjonModel) = with(vedtak) {
+                VedtaksinformasjonDto(
+                    fattet = fattet,
+                    fattetAvNav = fattetAvNav,
+                    opprettet = opprettet,
+                    opprettetAv = vedtak.opprettetAv,
+                    sistEndret = sistEndret,
+                    sistEndretAv = vedtak.sistEndretAv,
+                    sistEndretAvEnhet = vedtak.sistEndretAvEnhet,
+                )
+            }
         }
     }
 
@@ -96,32 +95,25 @@ data class DeltakerResponse(
         val innhold: List<Innhold>,
     ) {
         companion object {
-            fun fromDeltakelsesinnhold(
-                deltakelsesinnhold: Deltakelsesinnhold,
-                tiltaksInnhold: List<Innholdselement>?,
-            ) = DeltakelsesinnholdDto(
-                ledetekst = deltakelsesinnhold.ledetekst,
-                innhold = fulltInnhold(deltakelsesinnhold.innhold, tiltaksInnhold ?: emptyList()),
-            )
+            fun fromDeltakelsesinnhold(deltakelsesinnhold: Deltakelsesinnhold, tiltaksInnhold: List<Innholdselement>?) =
+                DeltakelsesinnholdDto(
+                    ledetekst = deltakelsesinnhold.ledetekst,
+                    innhold = fulltInnhold(deltakelsesinnhold.innhold, tiltaksInnhold ?: emptyList()),
+                )
 
-            fun fulltInnhold(
-                valgtInnhold: List<Innhold>,
-                innholdselementer: List<Innholdselement>,
-            ): List<Innhold> =
-                innholdselementer
-                    .asSequence()
-                    .filterNot { it.innholdskode in valgtInnhold.map { vi -> vi.innholdskode } }
-                    .map { it.toInnhold() }
-                    .plus(valgtInnhold)
-                    .sortedWith(sortertAlfabetiskMedAnnetSist())
-                    .toList()
+            fun fulltInnhold(valgtInnhold: List<Innhold>, innholdselementer: List<Innholdselement>): List<Innhold> = innholdselementer
+                .asSequence()
+                .filterNot { it.innholdskode in valgtInnhold.map { vi -> vi.innholdskode } }
+                .map { it.toInnhold() }
+                .plus(valgtInnhold)
+                .sortedWith(sortertAlfabetiskMedAnnetSist())
+                .toList()
 
-            private fun sortertAlfabetiskMedAnnetSist() =
-                compareBy<Innhold> {
-                    it.tekst == annetInnholdselement.tekst
-                }.thenBy {
-                    it.tekst
-                }
+            private fun sortertAlfabetiskMedAnnetSist() = compareBy<Innhold> {
+                it.tekst == annetInnholdselement.tekst
+            }.thenBy {
+                it.tekst
+            }
         }
     }
 
@@ -146,10 +138,7 @@ data class DeltakerResponse(
     ) {
         companion object {
             // litt spesiell konstruksjon med nullable innhold, undersøk nærmere
-            fun fromDeltakerRegistreringInnhold(
-                innhold: DeltakerRegistreringInnhold?,
-                tiltakstype: Tiltakskode,
-            ) = TilgjengeligInnhold(
+            fun fromDeltakerRegistreringInnhold(innhold: DeltakerRegistreringInnhold?, tiltakstype: Tiltakskode) = TilgjengeligInnhold(
                 ledetekst = innhold?.ledetekst,
                 innhold = getInnholdselementer(innhold?.innholdselementer, tiltakstype),
             )
@@ -167,14 +156,13 @@ data class DeltakerResponse(
         val gyldigFra: LocalDate,
     ) {
         companion object {
-            fun fromDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde) =
-                with(deltakelsesmengde) {
-                    DeltakelsesmengdeDto(
-                        deltakelsesprosent = deltakelsesprosent,
-                        dagerPerUke = dagerPerUke,
-                        gyldigFra = gyldigFra,
-                    )
-                }
+            fun fromDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde) = with(deltakelsesmengde) {
+                DeltakelsesmengdeDto(
+                    deltakelsesprosent = deltakelsesprosent,
+                    dagerPerUke = dagerPerUke,
+                    gyldigFra = gyldigFra,
+                )
+            }
         }
     }
 
@@ -191,43 +179,39 @@ data class DeltakerResponse(
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste =
-                    DeltakerlisteDto(
-                        deltakerlisteId = deltakerliste.id,
-                        deltakerlisteNavn = deltakerliste.navn,
-                        tiltakskode = deltakerliste.tiltak.tiltakskode,
-                        arrangorNavn = deltakerliste.arrangor.getArrangorNavn(),
-                        oppstartstype = deltakerliste.oppstart,
-                        startdato = deltakerliste.startDato,
-                        sluttdato = deltakerliste.sluttDato,
-                        status = deltakerliste.status,
-                        tilgjengeligInnhold =
-                            TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
-                                deltakerliste.tiltak.innhold,
-                                deltakerliste.tiltak.tiltakskode,
-                            ),
-                        // midlertidig løsning inntil vi vet ner om det foreligger rammeavtale eller ikke
-                        erEnkeltplassUtenRammeavtale = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
-                        oppmoteSted = deltakerliste.oppmoteSted,
-                        pameldingstype = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+                deltakerliste = DeltakerlisteDto(
+                    deltakerlisteId = deltakerliste.id,
+                    deltakerlisteNavn = deltakerliste.navn,
+                    tiltakskode = deltakerliste.tiltak.tiltakskode,
+                    arrangorNavn = deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltakerliste.oppstart,
+                    startdato = deltakerliste.startDato,
+                    sluttdato = deltakerliste.sluttDato,
+                    status = deltakerliste.status,
+                    tilgjengeligInnhold = TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
+                        deltakerliste.tiltak.innhold,
+                        deltakerliste.tiltak.tiltakskode,
                     ),
+                    // midlertidig løsning inntil vi vet ner om det foreligger rammeavtale eller ikke
+                    erEnkeltplassUtenRammeavtale = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
+                    oppmoteSted = deltakerliste.oppmoteSted,
+                    pameldingstype = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+                ),
                 status = status,
                 startdato = startdato,
                 sluttdato = sluttdato,
                 dagerPerUke = dagerPerUke,
                 deltakelsesprosent = deltakelsesprosent,
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
-                deltakelsesinnhold =
-                    deltakelsesinnhold?.let {
-                        DeltakelsesinnholdDto.fromDeltakelsesinnhold(
-                            deltakelsesinnhold = it,
-                            tiltaksInnhold =
-                                getInnholdselementer(
-                                    innholdselementer = deltakerliste.tiltak.innhold?.innholdselementer,
-                                    tiltakstype = deltakerliste.tiltak.tiltakskode,
-                                ),
-                        )
-                    },
+                deltakelsesinnhold = deltakelsesinnhold?.let {
+                    DeltakelsesinnholdDto.fromDeltakelsesinnhold(
+                        deltakelsesinnhold = it,
+                        tiltaksInnhold = getInnholdselementer(
+                            innholdselementer = deltakerliste.tiltak.innhold?.innholdselementer,
+                            tiltakstype = deltakerliste.tiltak.tiltakskode,
+                        ),
+                    )
+                },
                 vedtaksinformasjon = vedtaksinformasjon?.let { VedtaksinformasjonDto.fromVedtak(it, ansatte, vedtakSistEndretAvEnhet) },
                 adresseDelesMedArrangor = adresseDelesMedArrangor(),
                 kanEndres = kanEndres,
@@ -237,94 +221,85 @@ data class DeltakerResponse(
                 forslag = forslag.map { it.toResponse(deltakerliste.arrangor.getArrangorNavn()) },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
-                deltakelsesmengder =
-                    DeltakelsesmengderDto(
-                        nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let { DeltakelsesmengdeDto.fromDeltakelsesmengde(it) },
-                        sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let { DeltakelsesmengdeDto.fromDeltakelsesmengde(it) },
-                    ),
+                deltakelsesmengder = DeltakelsesmengderDto(
+                    nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let { DeltakelsesmengdeDto.fromDeltakelsesmengde(it) },
+                    sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let { DeltakelsesmengdeDto.fromDeltakelsesmengde(it) },
+                ),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             )
         }
 
-        fun fromDeltakerModel(deltaker: DeltakerModel) =
-            with(deltaker) {
-                DeltakerResponse(
-                    deltakerId = id,
-                    fornavn = navBruker.fornavn,
-                    mellomnavn = navBruker.mellomnavn,
-                    etternavn = navBruker.etternavn,
-                    deltakerliste =
-                        DeltakerlisteDto(
-                            deltakerlisteId = gjennomforing.id,
-                            deltakerlisteNavn = gjennomforing.navn,
-                            tiltakskode = gjennomforing.tiltak.tiltakskode,
-                            // Nå er det amtdeltaker som sender med navnet som er riktig for visningen
-                            arrangorNavn = gjennomforing.arrangor.navn,
-                            oppstartstype = gjennomforing.oppstart,
-                            startdato = gjennomforing.startDato,
-                            sluttdato = gjennomforing.sluttDato,
-                            status = gjennomforing.status,
-                            tilgjengeligInnhold =
-                                TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
-                                    gjennomforing.tiltak.innhold,
-                                    gjennomforing.tiltak.tiltakskode,
-                                ),
-                            erEnkeltplassUtenRammeavtale = gjennomforing.tiltak.erEnkeltplass(),
-                            oppmoteSted = gjennomforing.oppmoteSted,
-                            pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+        fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
+            DeltakerResponse(
+                deltakerId = id,
+                fornavn = navBruker.fornavn,
+                mellomnavn = navBruker.mellomnavn,
+                etternavn = navBruker.etternavn,
+                deltakerliste = DeltakerlisteDto(
+                    deltakerlisteId = gjennomforing.id,
+                    deltakerlisteNavn = gjennomforing.navn,
+                    tiltakskode = gjennomforing.tiltak.tiltakskode,
+                    // Nå er det amtdeltaker som sender med navnet som er riktig for visningen
+                    arrangorNavn = gjennomforing.arrangor.navn,
+                    oppstartstype = gjennomforing.oppstart,
+                    startdato = gjennomforing.startDato,
+                    sluttdato = gjennomforing.sluttDato,
+                    status = gjennomforing.status,
+                    tilgjengeligInnhold = TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
+                        gjennomforing.tiltak.innhold,
+                        gjennomforing.tiltak.tiltakskode,
+                    ),
+                    erEnkeltplassUtenRammeavtale = gjennomforing.tiltak.erEnkeltplass(),
+                    oppmoteSted = gjennomforing.oppmoteSted,
+                    pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+                ),
+                status = status,
+                startdato = startdato,
+                sluttdato = sluttdato,
+                dagerPerUke = dagerPerUke,
+                deltakelsesprosent = deltakelsesprosent,
+                bakgrunnsinformasjon = bakgrunnsinformasjon,
+                deltakelsesinnhold = deltakelsesinnhold?.let {
+                    DeltakelsesinnholdDto.fromDeltakelsesinnhold(
+                        it,
+                        getInnholdselementer(
+                            gjennomforing.tiltak.innhold
+                                ?.innholdselementer,
+                            gjennomforing.tiltak.tiltakskode,
                         ),
-                    status = status,
-                    startdato = startdato,
-                    sluttdato = sluttdato,
-                    dagerPerUke = dagerPerUke,
-                    deltakelsesprosent = deltakelsesprosent,
-                    bakgrunnsinformasjon = bakgrunnsinformasjon,
-                    deltakelsesinnhold =
-                        deltakelsesinnhold?.let {
-                            DeltakelsesinnholdDto.fromDeltakelsesinnhold(
+                    )
+                },
+                vedtaksinformasjon = vedtaksinformasjon?.let {
+                    VedtaksinformasjonDto.fromVedtak(it)
+                },
+                adresseDelesMedArrangor = adresseDelesMedArrangor,
+                kanEndres = erLaastForEndringer,
+                digitalBruker = navBruker.erDigital,
+                maxVarighet = maxVarighet?.toMillis(),
+                softMaxVarighet = softMaxVarighet?.toMillis(),
+                forslag = endringsforslagFraArrangor.map { it.toResponse(gjennomforing.arrangor.navn) },
+                importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
+                harAdresse = navBruker.adresse != null,
+                // Her bør det gjøres noen forenklinger
+                // Kan dette utledes i amt-deltaker?
+                deltakelsesmengder = DeltakelsesmengderDto(
+                    nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let {
+                        DeltakelsesmengdeDto
+                            .fromDeltakelsesmengde(
                                 it,
-                                getInnholdselementer(
-                                    gjennomforing.tiltak.innhold
-                                        ?.innholdselementer,
-                                    gjennomforing.tiltak.tiltakskode,
-                                ),
                             )
-                        },
-                    vedtaksinformasjon =
-                        vedtaksinformasjon?.let {
-                            VedtaksinformasjonDto.fromVedtak(it)
-                        },
-                    adresseDelesMedArrangor = adresseDelesMedArrangor,
-                    kanEndres = erLaastForEndringer,
-                    digitalBruker = navBruker.erDigital,
-                    maxVarighet = maxVarighet?.toMillis(),
-                    softMaxVarighet = softMaxVarighet?.toMillis(),
-                    forslag = endringsforslagFraArrangor.map { it.toResponse(gjennomforing.arrangor.navn) },
-                    importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
-                    harAdresse = navBruker.adresse != null,
-                    // Her bør det gjøres noen forenklinger
-                    // Kan dette utledes i amt-deltaker?
-                    deltakelsesmengder =
-                        DeltakelsesmengderDto(
-                            nesteDeltakelsesmengde =
-                                deltakelsesmengder.nesteGjeldende?.let {
-                                    DeltakelsesmengdeDto
-                                        .fromDeltakelsesmengde(
-                                            it,
-                                        )
-                                },
-                            sisteDeltakelsesmengde =
-                                deltakelsesmengder.lastOrNull()?.let {
-                                    DeltakelsesmengdeDto
-                                        .fromDeltakelsesmengde(
-                                            it,
-                                        )
-                                },
-                        ),
-                    erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
-                    erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-                )
-            }
+                    },
+                    sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let {
+                        DeltakelsesmengdeDto
+                            .fromDeltakelsesmengde(
+                                it,
+                            )
+                    },
+                ),
+                erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
+                erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+            )
+        }
     }
 }

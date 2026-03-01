@@ -17,11 +17,10 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
     fun `toModel gruppe - mapper felter korrekt`() {
         val tiltakstypeInTest = lagTiltakstype(tiltakskode = Tiltakskode.JOBBKLUBB)
 
-        val deltakerListeInTest =
-            lagDeltakerliste(
-                tiltakstype = tiltakstypeInTest,
-                arrangor = arrangorInTest,
-            )
+        val deltakerListeInTest = lagDeltakerliste(
+            tiltakstype = tiltakstypeInTest,
+            arrangor = arrangorInTest,
+        )
 
         val payload = lagGruppeDeltakerlistePayload(deltakerliste = deltakerListeInTest)
 
@@ -46,12 +45,11 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
     fun `toModel enkeltplass - mapper felter korrekt`() {
         val tiltakstypeInTest = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING)
 
-        val deltakerListeInTest =
-            lagDeltakerliste(
-                navn = tiltakstypeInTest.tiltakskode.name,
-                tiltakstype = tiltakstypeInTest,
-                arrangor = arrangorInTest,
-            ).copy(navn = tiltakstypeInTest.tiltakskode.name)
+        val deltakerListeInTest = lagDeltakerliste(
+            navn = tiltakstypeInTest.tiltakskode.name,
+            tiltakstype = tiltakstypeInTest,
+            arrangor = arrangorInTest,
+        ).copy(navn = tiltakstypeInTest.tiltakskode.name)
 
         val payload = lagEnkeltplassDeltakerlistePayload(deltakerliste = deltakerListeInTest)
 

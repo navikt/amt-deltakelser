@@ -12,10 +12,7 @@ import org.slf4j.LoggerFactory
  * @param loggerName The fully qualified logger name
  * @param block The suspend function block to run while capturing logs.
  */
-fun withLogCapture(
-    loggerName: String,
-    block: suspend (List<ILoggingEvent>) -> Unit,
-) {
+fun withLogCapture(loggerName: String, block: suspend (List<ILoggingEvent>) -> Unit) {
     val logger = LoggerFactory.getLogger(loggerName) as Logger
     val listAppender = ListAppender<ILoggingEvent>().apply { start() }
     logger.addAppender(listAppender)

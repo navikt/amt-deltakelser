@@ -33,62 +33,57 @@ class AuthenticationTest {
     private val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
     private val navAnsattService = mockk<NavAnsattService>()
     private val tiltakskoordinatorTilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
-    private val tilgangskontrollService =
-        TilgangskontrollService(
-            poaoTilgangCachedClient,
-            navAnsattService,
-            tiltakskoordinatorTilgangRepository,
-            mockk(relaxed = true),
-            mockk<TiltakskoordinatorService>(),
-            mockk<DeltakerlisteService>(),
-        )
+    private val tilgangskontrollService = TilgangskontrollService(
+        poaoTilgangCachedClient,
+        navAnsattService,
+        tiltakskoordinatorTilgangRepository,
+        mockk(relaxed = true),
+        mockk<TiltakskoordinatorService>(),
+        mockk<DeltakerlisteService>(),
+    )
 
     @BeforeEach
     fun setup() = configureEnvForAuthentication()
 
     @Test
-    fun `testAuthentication - gyldig token, ansatt har tilgang - returnerer 200`() =
-        testApplication {
-            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-            setUpTestApplication()
-            client
-                .get("/fnr/12345678910") {
-                    bearerAuth(generateJWT("frontend-clientid", UUID.randomUUID().toString(), "deltaker-bff"))
-                }.apply {
-                    assertEquals(HttpStatusCode.OK, status)
-                    assertEquals("Veileder har tilgang!", bodyAsText())
-                }
-        }
+    fun `testAuthentication - gyldig token, ansatt har tilgang - returnerer 200`() = testApplication {
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+        setUpTestApplication()
+        client
+            .get("/fnr/12345678910") {
+                bearerAuth(generateJWT("frontend-clientid", UUID.randomUUID().toString(), "deltaker-bff"))
+            }.apply {
+                assertEquals(HttpStatusCode.OK, status)
+                assertEquals("Veileder har tilgang!", bodyAsText())
+            }
+    }
 
     @Test
-    fun `testAuthentication - gyldig token, ansatt har ikke tilgang - returnerer 403`() =
-        testApplication {
-            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns
-                ApiResult(
-                    null,
-                    Decision.Deny("Ikke tilgang", ""),
-                )
-            setUpTestApplication()
-            client
-                .get("/fnr/12345678910") {
-                    bearerAuth(generateJWT("frontend-clientid", UUID.randomUUID().toString(), "deltaker-bff"))
-                }.apply {
-                    assertEquals(HttpStatusCode.Forbidden, status)
-                }
-        }
+    fun `testAuthentication - gyldig token, ansatt har ikke tilgang - returnerer 403`() = testApplication {
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
+            null,
+            Decision.Deny("Ikke tilgang", ""),
+        )
+        setUpTestApplication()
+        client
+            .get("/fnr/12345678910") {
+                bearerAuth(generateJWT("frontend-clientid", UUID.randomUUID().toString(), "deltaker-bff"))
+            }.apply {
+                assertEquals(HttpStatusCode.Forbidden, status)
+            }
+    }
 
     @Test
-    fun `testAuthentication - ugyldig tokenissuer - returnerer 401`() =
-        testApplication {
-            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-            setUpTestApplication()
-            client
-                .get("/fnr/12345678910") {
-                    bearerAuth(generateJWT("frontend-clientid", UUID.randomUUID().toString(), "feilIssuer"))
-                }.apply {
-                    assertEquals(HttpStatusCode.Unauthorized, status)
-                }
-        }
+    fun `testAuthentication - ugyldig tokenissuer - returnerer 401`() = testApplication {
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+        setUpTestApplication()
+        client
+            .get("/fnr/12345678910") {
+                bearerAuth(generateJWT("frontend-clientid", UUID.randomUUID().toString(), "feilIssuer"))
+            }.apply {
+                assertEquals(HttpStatusCode.Unauthorized, status)
+            }
+    }
 
     private fun ApplicationTestBuilder.setUpTestApplication() {
         application {

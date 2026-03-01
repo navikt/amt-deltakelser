@@ -71,35 +71,30 @@ object TestData {
         navn: String = "Nav Testheim",
     ) = NavEnhet(id, enhetsnummer, navn)
 
-    fun lagAdresse(): Adresse =
-        Adresse(
-            bostedsadresse =
-                Bostedsadresse(
-                    coAdressenavn = "C/O Gutterommet",
-                    vegadresse = null,
-                    matrikkeladresse =
-                        Matrikkeladresse(
-                            tilleggsnavn = "Gården",
-                            postnummer = "0484",
-                            poststed = "OSLO",
-                        ),
-                ),
-            oppholdsadresse = null,
-            kontaktadresse =
-                Kontaktadresse(
-                    coAdressenavn = null,
-                    vegadresse =
-                        Vegadresse(
-                            husnummer = "1",
-                            husbokstav = null,
-                            adressenavn = "Gate",
-                            tilleggsnavn = null,
-                            postnummer = "1234",
-                            poststed = "MOSS",
-                        ),
-                    postboksadresse = null,
-                ),
-        )
+    fun lagAdresse(): Adresse = Adresse(
+        bostedsadresse = Bostedsadresse(
+            coAdressenavn = "C/O Gutterommet",
+            vegadresse = null,
+            matrikkeladresse = Matrikkeladresse(
+                tilleggsnavn = "Gården",
+                postnummer = "0484",
+                poststed = "OSLO",
+            ),
+        ),
+        oppholdsadresse = null,
+        kontaktadresse = Kontaktadresse(
+            coAdressenavn = null,
+            vegadresse = Vegadresse(
+                husnummer = "1",
+                husbokstav = null,
+                adressenavn = "Gate",
+                tilleggsnavn = null,
+                postnummer = "1234",
+                poststed = "MOSS",
+            ),
+            postboksadresse = null,
+        ),
+    )
 
     fun lagNavBruker(
         personId: UUID = UUID.randomUUID(),
@@ -157,14 +152,13 @@ object TestData {
         innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
         innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
     ): Tiltakstype {
-        val tiltak =
-            tiltakstypeCache[tiltakskode] ?: Tiltakstype(
-                id,
-                navn,
-                tiltakskode,
-                innsatsgrupper,
-                innhold,
-            )
+        val tiltak = tiltakstypeCache[tiltakskode] ?: Tiltakstype(
+            id,
+            navn,
+            tiltakskode,
+            innsatsgrupper,
+            innhold,
+        )
         val nyttTiltak = tiltak.copy(navn = navn, innhold = innhold, innsatsgrupper = innsatsgrupper)
         tiltakstypeCache[tiltak.tiltakskode] = nyttTiltak
 
@@ -225,34 +219,31 @@ object TestData {
         pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     )
 
-    fun lagDeltakerlistePayload(
-        arrangor: Arrangor = lagArrangor(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
-    ) = GjennomforingV2KafkaPayload.Gruppe(
-        id = deltakerliste.id,
-        navn = deltakerliste.navn,
-        tiltakskode = deltakerliste.tiltakstype.tiltakskode,
-        startDato = deltakerliste.startDato!!,
-        sluttDato = deltakerliste.sluttDato,
-        status = deltakerliste.status!!,
-        oppstart = deltakerliste.oppstart!!,
-        apentForPamelding = deltakerliste.apentForPamelding,
-        oppmoteSted = deltakerliste.oppmoteSted,
-        tilgjengeligForArrangorFraOgMedDato = null,
-        antallPlasser = 42,
-        deltidsprosent = 42.0,
-        arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor.organisasjonsnummer),
-        oppdatertTidspunkt = OffsetDateTime.now(),
-        opprettetTidspunkt = OffsetDateTime.now(),
-        pameldingType = deltakerliste.pameldingstype,
-    )
-
-    fun lagNavEnhetDto(navEnhet: NavEnhet) =
-        NavEnhetDto(
-            id = navEnhet.id,
-            enhetId = navEnhet.enhetsnummer,
-            navn = navEnhet.navn,
+    fun lagDeltakerlistePayload(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
+        GjennomforingV2KafkaPayload.Gruppe(
+            id = deltakerliste.id,
+            navn = deltakerliste.navn,
+            tiltakskode = deltakerliste.tiltakstype.tiltakskode,
+            startDato = deltakerliste.startDato!!,
+            sluttDato = deltakerliste.sluttDato,
+            status = deltakerliste.status!!,
+            oppstart = deltakerliste.oppstart!!,
+            apentForPamelding = deltakerliste.apentForPamelding,
+            oppmoteSted = deltakerliste.oppmoteSted,
+            tilgjengeligForArrangorFraOgMedDato = null,
+            antallPlasser = 42,
+            deltidsprosent = 42.0,
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor.organisasjonsnummer),
+            oppdatertTidspunkt = OffsetDateTime.now(),
+            opprettetTidspunkt = OffsetDateTime.now(),
+            pameldingType = deltakerliste.pameldingstype,
         )
+
+    fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(
+        id = navEnhet.id,
+        enhetId = navEnhet.enhetsnummer,
+        navn = navEnhet.navn,
+    )
 
     fun lagDeltaker(
         id: UUID = UUID.randomUUID(),
@@ -329,19 +320,17 @@ object TestData {
         deltakerId: UUID = UUID.randomUUID(),
         opprettetAvArrangorAnsattId: UUID = UUID.randomUUID(),
         opprettet: LocalDateTime = LocalDateTime.now(),
-        endring: EndringFraArrangor.Endring =
-            EndringFraArrangor.LeggTilOppstartsdato(
-                LocalDate.now().plusDays(2),
-                LocalDate.now().plusMonths(3),
-            ),
+        endring: EndringFraArrangor.Endring = EndringFraArrangor.LeggTilOppstartsdato(
+            LocalDate.now().plusDays(2),
+            LocalDate.now().plusMonths(3),
+        ),
     ) = EndringFraArrangor(id, deltakerId, opprettetAvArrangorAnsattId, opprettet, endring)
 
     fun lagVedtak(
         id: UUID = UUID.randomUUID(),
-        deltakerVedVedtak: Deltaker =
-            lagDeltaker(
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            ),
+        deltakerVedVedtak: Deltaker = lagDeltaker(
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        ),
         deltakerId: UUID = deltakerVedVedtak.id,
         fattet: LocalDateTime? = null,
         gyldigTil: LocalDateTime? = null,
@@ -403,13 +392,12 @@ object TestData {
         gyldigFra = gyldigFra,
     )
 
-    private fun finnOppstartstype(tiltakskode: Tiltakskode) =
-        when (tiltakskode) {
-            Tiltakskode.JOBBKLUBB,
-            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-            -> Oppstartstype.FELLES
+    private fun finnOppstartstype(tiltakskode: Tiltakskode) = when (tiltakskode) {
+        Tiltakskode.JOBBKLUBB,
+        Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+        Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+        -> Oppstartstype.FELLES
 
-            else -> Oppstartstype.LOPENDE
-        }
+        else -> Oppstartstype.LOPENDE
+    }
 }

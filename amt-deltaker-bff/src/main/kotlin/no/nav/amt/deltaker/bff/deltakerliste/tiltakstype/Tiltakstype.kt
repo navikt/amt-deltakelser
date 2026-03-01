@@ -5,14 +5,10 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 // Annet beskrivelse feltet brukes som fritekst beskrivelse på noen tiltakstype
-fun Tiltakskode.skalKunHaAnnetBeskrivelse() =
-    this.erOpplaeringstiltak() ||
-        this == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET
+fun Tiltakskode.skalKunHaAnnetBeskrivelse() = this.erOpplaeringstiltak() ||
+    this == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET
 
-fun getInnholdselementer(
-    innholdselementer: List<Innholdselement>?,
-    tiltakstype: Tiltakskode,
-): List<Innholdselement> {
+fun getInnholdselementer(innholdselementer: List<Innholdselement>?, tiltakstype: Tiltakskode): List<Innholdselement> {
     if (tiltakstype.skalKunHaAnnetBeskrivelse()) return listOf(annetInnholdselement)
 
     return if (innholdselementer.isNullOrEmpty()) {
@@ -22,10 +18,7 @@ fun getInnholdselementer(
     }
 }
 
-fun Innholdselement.toInnhold(
-    valgt: Boolean = false,
-    beskrivelse: String? = null,
-) = Innhold(
+fun Innholdselement.toInnhold(valgt: Boolean = false, beskrivelse: String? = null) = Innhold(
     tekst = tekst,
     innholdskode = innholdskode,
     valgt = valgt,

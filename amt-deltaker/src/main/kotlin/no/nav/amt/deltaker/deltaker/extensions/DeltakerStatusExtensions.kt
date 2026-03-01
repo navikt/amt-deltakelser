@@ -25,20 +25,19 @@ fun DeltakerStatus.Aarsak.getVisningsnavn(): String {
     }
 }
 
-fun DeltakerStatus.Type.getStatustekst(): String =
-    when (this) {
-        DeltakerStatus.Type.KLADD -> "Kladden er ikke delt"
-        DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> "Utkastet er delt og venter på godkjenning"
-        DeltakerStatus.Type.AVBRUTT_UTKAST -> "Avbrutt utkast"
-        DeltakerStatus.Type.VENTER_PA_OPPSTART -> "Venter på oppstart"
-        DeltakerStatus.Type.DELTAR -> "Deltar"
-        DeltakerStatus.Type.HAR_SLUTTET -> "Har sluttet"
-        DeltakerStatus.Type.IKKE_AKTUELL -> "Ikke aktuell"
-        DeltakerStatus.Type.SOKT_INN -> "Søkt inn"
-        DeltakerStatus.Type.VURDERES -> "Vurderes"
-        DeltakerStatus.Type.VENTELISTE -> "Venteliste"
-        DeltakerStatus.Type.AVBRUTT -> "Avbrutt"
-        DeltakerStatus.Type.FULLFORT -> "Fullført"
-        DeltakerStatus.Type.FEILREGISTRERT -> "Feilregistrert"
-        DeltakerStatus.Type.PABEGYNT_REGISTRERING -> "Påbegynt registrering"
-    }
+fun DeltakerStatus.Type.getStatustekst(): String = when (this) {
+    DeltakerStatus.Type.KLADD -> "Kladden er ikke delt"
+    DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> "Utkastet er delt og venter på godkjenning"
+    DeltakerStatus.Type.AVBRUTT_UTKAST -> "Avbrutt utkast"
+    DeltakerStatus.Type.VENTER_PA_OPPSTART -> "Venter på oppstart"
+    DeltakerStatus.Type.DELTAR -> "Deltar"
+    DeltakerStatus.Type.HAR_SLUTTET -> "Har sluttet"
+    DeltakerStatus.Type.IKKE_AKTUELL -> "Ikke aktuell"
+    DeltakerStatus.Type.SOKT_INN -> "Søkt inn"
+    DeltakerStatus.Type.VURDERES -> "Vurderes"
+    DeltakerStatus.Type.VENTELISTE -> "Venteliste"
+    DeltakerStatus.Type.AVBRUTT -> "Avbrutt"
+    DeltakerStatus.Type.FULLFORT -> "Fullført"
+    DeltakerStatus.Type.FEILREGISTRERT -> "Feilregistrert"
+    DeltakerStatus.Type.PABEGYNT_REGISTRERING -> "Påbegynt registrering"
+}

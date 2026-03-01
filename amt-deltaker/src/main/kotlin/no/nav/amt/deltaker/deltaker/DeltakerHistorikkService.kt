@@ -27,64 +27,57 @@ class DeltakerHistorikkService(
 ) {
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
-        val vedtak =
-            vedtakRepository
-                .getForDeltaker(id)
-                ?.let { listOf(DeltakerHistorikk.Vedtak(it)) }
-                ?: emptyList()
+        val vedtak = vedtakRepository
+            .getForDeltaker(id)
+            ?.let { listOf(DeltakerHistorikk.Vedtak(it)) }
+            ?: emptyList()
 
         val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
 
-        val vurderinger =
-            vurderingRepository
-                .getForDeltaker(id)
-                .map { DeltakerHistorikk.VurderingFraArrangor(it.toVurderingFraArrangorData()) }
+        val vurderinger = vurderingRepository
+            .getForDeltaker(id)
+            .map { DeltakerHistorikk.VurderingFraArrangor(it.toVurderingFraArrangorData()) }
 
-        val endringerFraArrangor =
-            endringFraArrangorRepository
-                .getForDeltaker(id)
-                .map { DeltakerHistorikk.EndringFraArrangor(it) }
+        val endringerFraArrangor = endringFraArrangorRepository
+            .getForDeltaker(id)
+            .map { DeltakerHistorikk.EndringFraArrangor(it) }
 
-        val importertFraArena =
-            importertFraArenaRepository
-                .getForDeltaker(id)
-                ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
-                ?: emptyList()
+        val importertFraArena = importertFraArenaRepository
+            .getForDeltaker(id)
+            ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
+            ?: emptyList()
 
-        val endringFraTiltakskoordinator =
-            endringFraTiltakskoordinatorRepository
-                .getForDeltaker(id)
-                .map { DeltakerHistorikk.EndringFraTiltakskoordinator(it) }
+        val endringFraTiltakskoordinator = endringFraTiltakskoordinatorRepository
+            .getForDeltaker(id)
+            .map { DeltakerHistorikk.EndringFraTiltakskoordinator(it) }
 
-        val innsok =
-            innsokPaaFellesOppstartRepository
-                .getForDeltaker(id)
-                .getOrNull()
-                ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
-                ?: emptyList()
+        val innsok = innsokPaaFellesOppstartRepository
+            .getForDeltaker(id)
+            .getOrNull()
+            ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
+            ?: emptyList()
 
-        val historikk =
-            endringer
-                .asSequence()
-                .plus(vedtak)
-                .plus(importertFraArena)
-                .plus(innsok)
-                .plus(endringFraTiltakskoordinator)
-                .plus(forslag)
-                .plus(endringerFraArrangor)
-                .plus(vurderinger)
-                .sortedByDescending {
-                    when (it) {
-                        is DeltakerHistorikk.Endring -> it.endring.endret
-                        is DeltakerHistorikk.Vedtak -> it.vedtak.sistEndret
-                        is DeltakerHistorikk.Forslag -> it.forslag.sistEndret
-                        is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.opprettet
-                        is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.importertDato
-                        is DeltakerHistorikk.VurderingFraArrangor -> it.data.opprettet
-                        is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.endret
-                        is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.innsokt
-                    }
-                }.toList()
+        val historikk = endringer
+            .asSequence()
+            .plus(vedtak)
+            .plus(importertFraArena)
+            .plus(innsok)
+            .plus(endringFraTiltakskoordinator)
+            .plus(forslag)
+            .plus(endringerFraArrangor)
+            .plus(vurderinger)
+            .sortedByDescending {
+                when (it) {
+                    is DeltakerHistorikk.Endring -> it.endring.endret
+                    is DeltakerHistorikk.Vedtak -> it.vedtak.sistEndret
+                    is DeltakerHistorikk.Forslag -> it.forslag.sistEndret
+                    is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.opprettet
+                    is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.importertDato
+                    is DeltakerHistorikk.VurderingFraArrangor -> it.data.opprettet
+                    is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.endret
+                    is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.innsokt
+                }
+            }.toList()
 
         return historikk
     }

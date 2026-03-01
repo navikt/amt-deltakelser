@@ -28,20 +28,16 @@ class DeltakerlisteConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer =
-        buildManagedKafkaConsumer(
-            topic = Environment.DELTAKERLISTE_V2_TOPIC,
-            consumeFunc = ::consume,
-        )
+    private val consumer = buildManagedKafkaConsumer(
+        topic = Environment.DELTAKERLISTE_V2_TOPIC,
+        consumeFunc = ::consume,
+    )
 
     override fun start() = consumer.start()
 
     override suspend fun close() = consumer.close()
 
-    suspend fun consume(
-        key: UUID,
-        value: String?,
-    ) {
+    suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
             deltakerlisteRepository.delete(key)
         } else {
@@ -67,11 +63,10 @@ class DeltakerlisteConsumer(
         val arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
         val tiltakstype = tiltakstypeRepository.get(deltakerlistePayload.tiltakskode).getOrThrow()
 
-        val deltakerliste =
-            deltakerlistePayload.toModel(
-                { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
-                { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
-            )
+        val deltakerliste = deltakerlistePayload.toModel(
+            { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
+            { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
+        )
 
         deltakerlisteRepository.upsert(deltakerliste)
 

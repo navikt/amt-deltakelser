@@ -24,13 +24,12 @@ class ArrangorServiceTest {
     @Test
     fun `getArrangorNavn - overordnet arrangør - returnerer eget navn`() {
         val arrangorNavn = "Test Arrangør"
-        val arrangor =
-            Arrangor(
-                id = UUID.randomUUID(),
-                navn = arrangorNavn,
-                organisasjonsnummer = "123456789",
-                overordnetArrangorId = null,
-            )
+        val arrangor = Arrangor(
+            id = UUID.randomUUID(),
+            navn = arrangorNavn,
+            organisasjonsnummer = "123456789",
+            overordnetArrangorId = null,
+        )
         arrangorRepository.upsert(arrangor)
         arrangorService.getArrangorNavn(arrangor) shouldBe arrangorNavn
     }
@@ -38,20 +37,18 @@ class ArrangorServiceTest {
     @Test
     fun `getArrangorNavn - underordnet arrangør - returnerer overordnet arrangør navn`() {
         val arrangorNavn = "Test Arrangør"
-        val overordnetArrangor =
-            Arrangor(
-                id = UUID.randomUUID(),
-                navn = arrangorNavn,
-                organisasjonsnummer = "123456789",
-                overordnetArrangorId = null,
-            )
-        val underordnetArrangor =
-            Arrangor(
-                id = UUID.randomUUID(),
-                navn = "Underordnet arrangør",
-                organisasjonsnummer = "1234567892",
-                overordnetArrangorId = overordnetArrangor.id,
-            )
+        val overordnetArrangor = Arrangor(
+            id = UUID.randomUUID(),
+            navn = arrangorNavn,
+            organisasjonsnummer = "123456789",
+            overordnetArrangorId = null,
+        )
+        val underordnetArrangor = Arrangor(
+            id = UUID.randomUUID(),
+            navn = "Underordnet arrangør",
+            organisasjonsnummer = "1234567892",
+            overordnetArrangorId = overordnetArrangor.id,
+        )
         arrangorRepository.upsert(overordnetArrangor)
         arrangorRepository.upsert(underordnetArrangor)
 
@@ -61,13 +58,12 @@ class ArrangorServiceTest {
     @Test
     fun `getArrangorNavn - CAPS - formaterer navn`() {
         val arrangorNavn = "TEST ARRANGØR"
-        val arrangor =
-            Arrangor(
-                id = UUID.randomUUID(),
-                navn = arrangorNavn,
-                organisasjonsnummer = "123456789",
-                overordnetArrangorId = null,
-            )
+        val arrangor = Arrangor(
+            id = UUID.randomUUID(),
+            navn = arrangorNavn,
+            organisasjonsnummer = "123456789",
+            overordnetArrangorId = null,
+        )
         arrangorRepository.upsert(arrangor)
         arrangorService.getArrangorNavn(arrangor) shouldBe "Test Arrangør"
     }

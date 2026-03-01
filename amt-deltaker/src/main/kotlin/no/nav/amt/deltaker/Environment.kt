@@ -18,13 +18,12 @@ data class Environment(
     val amtArrangorScope: String = getEnvVar(AMT_ARRANGOR_SCOPE_KEY),
     val amtDistribusjonServiceUrl: String = getEnvVar(AMT_DISTRIBUSJON_URL_KEY),
     val amtDistribusjonServiceScope: String = getEnvVar(AMT_DISTRIBUSJON_SCOPE_KEY),
-    val preAuthorizedApps: List<PreAuthorizedApp> =
-        getEnvVar(
-            AZURE_APP_PRE_AUTHORIZED_APPS,
-            objectMapper.writeValueAsString(
-                emptyList<PreAuthorizedApp>(),
-            ),
-        ).let { objectMapper.readValue(it) },
+    val preAuthorizedApps: List<PreAuthorizedApp> = getEnvVar(
+        AZURE_APP_PRE_AUTHORIZED_APPS,
+        objectMapper.writeValueAsString(
+            emptyList<PreAuthorizedApp>(),
+        ),
+    ).let { objectMapper.readValue(it) },
     val electorPath: String = getEnvVar(ELECTOR_PATH),
     val poaoTilgangUrl: String = getEnvVar(POAO_TILGANG_URL_KEY),
     val poaoTilgangScope: String = getEnvVar(POAO_TILGANG_SCOPE_KEY),
@@ -98,10 +97,7 @@ data class Environment(
     }
 }
 
-fun getEnvVar(
-    varName: String,
-    defaultValue: String? = null,
-) = System.getenv(varName)
+fun getEnvVar(varName: String, defaultValue: String? = null) = System.getenv(varName)
     ?: System.getProperty(varName)
     ?: defaultValue
     ?: if (Environment.isLocal()) "" else error("Missing required variable $varName")

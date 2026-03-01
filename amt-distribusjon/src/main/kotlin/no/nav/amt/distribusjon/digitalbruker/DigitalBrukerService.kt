@@ -10,10 +10,7 @@ class DigitalBrukerService(
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
 ) {
     companion object {
-        fun skalDistribueresDigitalt(
-            distribusjonskanal: Distribusjonskanal,
-            erUnderManuellOppfolging: Boolean,
-        ): Boolean {
+        fun skalDistribueresDigitalt(distribusjonskanal: Distribusjonskanal, erUnderManuellOppfolging: Boolean): Boolean {
             if (erUnderManuellOppfolging) {
                 return false
             }

@@ -41,11 +41,10 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
         @ParameterizedTest
         @ValueSource(booleans = [true, false])
         fun `skal returnere DeltakerDetaljerResponse`(harTilgangTilBruker: Boolean) {
-            val expectedResponseBody =
-                tiltakskoordinatorsDeltaker.toResponse(
-                    harTilgangTilBruker = harTilgangTilBruker,
-                    ulesteHendelser = emptyList(),
-                )
+            val expectedResponseBody = tiltakskoordinatorsDeltaker.toResponse(
+                harTilgangTilBruker = harTilgangTilBruker,
+                ulesteHendelser = emptyList(),
+            )
 
             coEvery { tiltakskoordinatorService.getDeltaker(any()) } returns tiltakskoordinatorsDeltaker
 
@@ -58,13 +57,12 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
                 )
             } returns harTilgangTilBruker
 
-            val responseBody =
-                withTestApplicationContext { httpClient ->
-                    httpClient
-                        .get(urlString) {
-                            bearerAuth(bearerTokenInTest)
-                        }.body<DeltakerDetaljerResponse>()
-                }
+            val responseBody = withTestApplicationContext { httpClient ->
+                httpClient
+                    .get(urlString) {
+                        bearerAuth(bearerTokenInTest)
+                    }.body<DeltakerDetaljerResponse>()
+            }
 
             responseBody shouldBe expectedResponseBody
         }
@@ -93,57 +91,53 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
                 )
             } returns false
 
-            val response =
-                withTestApplicationContext { httpClient ->
-                    httpClient.get(urlString) {
-                        bearerAuth(bearerTokenInTest)
-                    }
+            val response = withTestApplicationContext { httpClient ->
+                httpClient.get(urlString) {
+                    bearerAuth(bearerTokenInTest)
                 }
+            }
 
             response.status shouldBe HttpStatusCode.Forbidden
         }
 
         @Test
-        fun `skal returnere liste med DeltakerHistorikk`(): Unit =
-            runBlocking {
-                val historikk = deltaker.getDeltakerHistorikkForVisning()
+        fun `skal returnere liste med DeltakerHistorikk`(): Unit = runBlocking {
+            val historikk = deltaker.getDeltakerHistorikkForVisning()
 
-                val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
-                val navEnhetMap = mapOf(navEnhet.id to navEnhet)
+            val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
+            val navEnhetMap = mapOf(navEnhet.id to navEnhet)
 
-                val expectedResponse =
-                    objectMapper.writePolymorphicListAsString(
-                        historikk.toResponse(
-                            ansatte = navAnsattMap,
-                            enheter = navEnhetMap,
-                            arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                            oppstartstype = deltaker.deltakerliste.oppstart,
-                        ),
-                    )
+            val expectedResponse = objectMapper.writePolymorphicListAsString(
+                historikk.toResponse(
+                    ansatte = navAnsattMap,
+                    enheter = navEnhetMap,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                ),
+            )
 
-                every { deltakerRepository.get(any()) } returns Result.success(deltaker)
-                coEvery {
-                    sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
-                        navIdent = any(),
-                        navAnsattAzureId = any(),
-                        navBruker = any(),
-                        deltakerlisteId = any(),
-                    )
-                } returns true
+            every { deltakerRepository.get(any()) } returns Result.success(deltaker)
+            coEvery {
+                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                    navIdent = any(),
+                    navAnsattAzureId = any(),
+                    navBruker = any(),
+                    deltakerlisteId = any(),
+                )
+            } returns true
 
-                every { navAnsattService.hentAnsatteForHistorikk(any()) } returns navAnsattMap
-                coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns navEnhetMap
+            every { navAnsattService.hentAnsatteForHistorikk(any()) } returns navAnsattMap
+            coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns navEnhetMap
 
-                val responseBody =
-                    withTestApplicationContext { httpClient ->
-                        httpClient
-                            .get(urlString) {
-                                bearerAuth(bearerTokenInTest)
-                            }.bodyAsText()
-                    }
-
-                responseBody shouldBe expectedResponse
+            val responseBody = withTestApplicationContext { httpClient ->
+                httpClient
+                    .get(urlString) {
+                        bearerAuth(bearerTokenInTest)
+                    }.bodyAsText()
             }
+
+            responseBody shouldBe expectedResponse
+        }
     }
 
     companion object {
@@ -151,24 +145,22 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
         private val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
         private val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
 
-        val tiltakskoordinatorsDeltaker =
-            deltaker
-                .toTiltakskoordinatorsDeltaker(
-                    sisteVurdering = null,
-                    navEnhet = navEnhet,
-                    navVeileder = navAnsatt,
-                    feilkode = null,
-                    ikkeDigitalOgManglerAdresse = false,
-                    forslag = emptyList(),
-                    ulesteHendelser = emptyList(),
-                )
-
-        private val bearerTokenInTest =
-            generateJWT(
-                consumerClientId = "frontend-clientid",
-                navAnsattAzureId = UUID.randomUUID().toString(),
-                audience = "deltaker-bff",
-                groups = listOf(UUID(0L, 0L).toString()),
+        val tiltakskoordinatorsDeltaker = deltaker
+            .toTiltakskoordinatorsDeltaker(
+                sisteVurdering = null,
+                navEnhet = navEnhet,
+                navVeileder = navAnsatt,
+                feilkode = null,
+                ikkeDigitalOgManglerAdresse = false,
+                forslag = emptyList(),
+                ulesteHendelser = emptyList(),
             )
+
+        private val bearerTokenInTest = generateJWT(
+            consumerClientId = "frontend-clientid",
+            navAnsattAzureId = UUID.randomUUID().toString(),
+            audience = "deltaker-bff",
+            groups = listOf(UUID(0L, 0L).toString()),
+        )
     }
 }

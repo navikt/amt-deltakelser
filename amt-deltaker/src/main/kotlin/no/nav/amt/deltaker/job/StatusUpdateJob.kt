@@ -24,22 +24,21 @@ class StatusUpdateJob(
     private val job = Job()
     private val scope = CoroutineScope(Dispatchers.IO + job)
 
-    fun startJob(): Timer =
-        fixedRateTimer(
-            name = this.javaClass.simpleName,
-            initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
-            period = Duration.of(1, ChronoUnit.HOURS).toMillis(),
-        ) {
-            scope.launch {
-                if (leaderElection.isLeader() && attributes.getOrNull(isReadyKey) == true) {
-                    try {
-                        log.info("Kjører jobb for å oppdatere deltakerstatuser")
-                        deltakerService.oppdaterDeltakerStatuser()
-                        log.info("Ferdig med å oppdatere deltakerstatuser")
-                    } catch (e: Exception) {
-                        log.error("Noe gikk galt ved oppdatering av deltakerstatus", e)
-                    }
+    fun startJob(): Timer = fixedRateTimer(
+        name = this.javaClass.simpleName,
+        initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
+        period = Duration.of(1, ChronoUnit.HOURS).toMillis(),
+    ) {
+        scope.launch {
+            if (leaderElection.isLeader() && attributes.getOrNull(isReadyKey) == true) {
+                try {
+                    log.info("Kjører jobb for å oppdatere deltakerstatuser")
+                    deltakerService.oppdaterDeltakerStatuser()
+                    log.info("Ferdig med å oppdatere deltakerstatuser")
+                } catch (e: Exception) {
+                    log.error("Noe gikk galt ved oppdatering av deltakerstatus", e)
                 }
             }
         }
+    }
 }

@@ -39,18 +39,16 @@ data class DeltakerModel(
     val deltakelsesmengder: Deltakelsesmengder
         get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()
 
-    val adresseDelesMedArrangor =
-        this.navBruker.adressebeskyttelse == null &&
-            this.gjennomforing.tiltak.adresseKanDelesMedArrangor
+    val adresseDelesMedArrangor = this.navBruker.adressebeskyttelse == null &&
+        this.gjennomforing.tiltak.adresseKanDelesMedArrangor
 
     fun harSluttet(): Boolean = status.type in AVSLUTTENDE_STATUSER
 
     fun harSluttetForMindreEnnToMndSiden(): Boolean {
         if (!harSluttet()) return false
 
-        val nyesteDato =
-            listOfNotNull(sluttdato, status.gyldigFra.toLocalDate())
-                .maxOrNull() ?: return false
+        val nyesteDato = listOfNotNull(sluttdato, status.gyldigFra.toLocalDate())
+            .maxOrNull() ?: return false
 
         val toMndSiden = LocalDate.now().minusMonths(2)
         return nyesteDato.isAfter(toMndSiden)
@@ -65,53 +63,42 @@ data class DeltakerModel(
      https://lovdata.no/forskrift/2015-12-11-1598
      */
     val softMaxVarighet: Duration?
-        get() =
-            when (gjennomforing.tiltak.tiltakskode) {
-                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> {
-                    years(2)
-                }
+        get() = when (gjennomforing.tiltak.tiltakskode) {
+            Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> years(2)
 
-                Tiltakskode.OPPFOLGING -> {
-                    when (navBruker.innsatsgruppe) {
-                        Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-                        Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS,
-                        Innsatsgruppe.VARIG_TILPASSET_INNSATS,
-                        -> years(3)
+            Tiltakskode.OPPFOLGING -> when (navBruker.innsatsgruppe) {
+                Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+                Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS,
+                Innsatsgruppe.VARIG_TILPASSET_INNSATS,
+                -> years(3)
 
-                        Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
-                        Innsatsgruppe.STANDARD_INNSATS,
-                        null,
-                        -> null
-                    }
-                }
-
-                Tiltakskode.ARBEIDSRETTET_REHABILITERING,
-                Tiltakskode.AVKLARING,
-                -> {
-                    weeks(12)
-                }
-
-                Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> {
-                    weeks(8)
-                }
-
-                Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-                Tiltakskode.JOBBKLUBB,
-                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-                Tiltakskode.HOYERE_UTDANNING,
-                Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
-                // nye tiltakskoder
-                Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                Tiltakskode.STUDIESPESIALISERING,
-                Tiltakskode.FAG_OG_YRKESOPPLAERING,
-                Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-                -> {
-                    null
-                }
+                Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+                Innsatsgruppe.STANDARD_INNSATS,
+                null,
+                -> null
             }
+
+            Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+            Tiltakskode.AVKLARING,
+            -> weeks(12)
+
+            Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> weeks(8)
+
+            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.JOBBKLUBB,
+            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.HOYERE_UTDANNING,
+            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            // nye tiltakskoder
+            Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            Tiltakskode.STUDIESPESIALISERING,
+            Tiltakskode.FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+            -> null
+        }
 
     /**
      Noen tiltak har en max varighet som kan overgås ved visse omstendigheter,
@@ -122,58 +109,43 @@ data class DeltakerModel(
      https://lovdata.no/forskrift/2015-12-11-1598
      */
     val maxVarighet: Duration?
-        get() =
-            when (gjennomforing.tiltak.tiltakskode) {
-                Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                -> {
-                    years(3)
-                }
+        get() = when (gjennomforing.tiltak.tiltakskode) {
+            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            -> years(3)
 
-                Tiltakskode.ARBEIDSRETTET_REHABILITERING,
-                Tiltakskode.AVKLARING,
-                -> {
-                    weeks(12 + FERIETILLEGG)
-                }
+            Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+            Tiltakskode.AVKLARING,
+            -> weeks(12 + FERIETILLEGG)
 
-                Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> {
-                    weeks(8 + FERIETILLEGG)
-                }
+            Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> weeks(8 + FERIETILLEGG)
 
-                Tiltakskode.HOYERE_UTDANNING,
-                Tiltakskode.STUDIESPESIALISERING,
-                Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-                Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-                -> {
-                    years(4)
-                }
+            Tiltakskode.HOYERE_UTDANNING,
+            Tiltakskode.STUDIESPESIALISERING,
+            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+            -> years(4)
 
-                Tiltakskode.FAG_OG_YRKESOPPLAERING,
-                -> {
-                    years(5)
-                }
+            Tiltakskode.FAG_OG_YRKESOPPLAERING,
+            -> years(5)
 
-                Tiltakskode.OPPFOLGING -> {
-                    when (navBruker.innsatsgruppe) {
-                        Innsatsgruppe.SITUASJONSBESTEMT_INNSATS -> years(1)
+            Tiltakskode.OPPFOLGING -> when (navBruker.innsatsgruppe) {
+                Innsatsgruppe.SITUASJONSBESTEMT_INNSATS -> years(1)
 
-                        Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-                        Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS,
-                        Innsatsgruppe.VARIG_TILPASSET_INNSATS,
-                        -> years(3).plus(months(6))
+                Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+                Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS,
+                Innsatsgruppe.VARIG_TILPASSET_INNSATS,
+                -> years(3).plus(months(6))
 
-                        else -> null
-                    }
-                }
-
-                Tiltakskode.JOBBKLUBB,
-                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-                Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
-                -> {
-                    null
-                }
+                else -> null
             }
+
+            Tiltakskode.JOBBKLUBB,
+            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            -> null
+        }
 }

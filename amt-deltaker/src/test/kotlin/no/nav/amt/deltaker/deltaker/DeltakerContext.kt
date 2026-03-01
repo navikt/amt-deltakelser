@@ -26,25 +26,22 @@ import java.time.LocalDate
 data class DeltakerContext(
     val navEnhet: NavEnhet = lagNavEnhet(),
     val veileder: NavAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id),
-    var deltaker: Deltaker =
-        lagDeltaker(
-            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
-            startdato = LocalDate.now().minusMonths(1),
-            sluttdato = LocalDate.now().plusMonths(3),
-            deltakerliste =
-                lagDeltakerliste(
-                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
-                ),
-            navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
+    var deltaker: Deltaker = lagDeltaker(
+        status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+        startdato = LocalDate.now().minusMonths(1),
+        sluttdato = LocalDate.now().plusMonths(3),
+        deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         ),
+        navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
+    ),
 ) {
-    var vedtak: Vedtak =
-        lagVedtak(
-            deltakerVedVedtak = deltaker,
-            fattet = deltaker.sistEndret.minusMonths(3),
-            opprettetAv = veileder,
-            opprettetAvEnhet = navEnhet,
-        )
+    var vedtak: Vedtak = lagVedtak(
+        deltakerVedVedtak = deltaker,
+        fattet = deltaker.sistEndret.minusMonths(3),
+        opprettetAv = veileder,
+        opprettetAvEnhet = navEnhet,
+    )
     val historikk: MutableList<DeltakerHistorikk> = mutableListOf(DeltakerHistorikk.Vedtak(vedtak))
 
     val vedtakRepository = VedtakRepository()
@@ -56,10 +53,9 @@ data class DeltakerContext(
     }
 
     fun withTiltakstype(tiltakskode: Tiltakskode) {
-        deltaker =
-            deltaker.copy(
-                deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = tiltakskode)),
-            )
+        deltaker = deltaker.copy(
+            deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = tiltakskode)),
+        )
     }
 
     fun medVedtak(fattet: Boolean = true) {

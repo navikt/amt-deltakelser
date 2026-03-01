@@ -40,27 +40,23 @@ class DeltakerProgresjonTest {
     @Test
     fun `getAvsluttendeStatusUtfall - deltaker deltatt paa opplaering - status fullfort`() {
         val yesterday = LocalDate.now().minusDays(1)
-        val deltakerliste =
-            lagDeltakerliste(
-                tiltakstype =
-                    lagTiltakstype(
-                        tiltakskode = Tiltakskode.HOYERE_UTDANNING,
-                    ),
-            )
-        val deltaker =
-            lagDeltaker(
-                deltakerliste = deltakerliste,
-                startdato = deltakerliste.startDato,
-                sluttdato = yesterday,
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            )
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(
+                tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            ),
+        )
+        val deltaker = lagDeltaker(
+            deltakerliste = deltakerliste,
+            startdato = deltakerliste.startDato,
+            sluttdato = yesterday,
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
 
         every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
-        val oppdatertDeltaker =
-            DeltakerProgresjonHandler
-                .getAvsluttendeStatusUtfall(listOf(deltaker))
-                .first()
+        val oppdatertDeltaker = DeltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(listOf(deltaker))
+            .first()
 
         assertSoftly(oppdatertDeltaker) {
             startdato shouldBe deltaker.startdato
@@ -73,28 +69,24 @@ class DeltakerProgresjonTest {
     @Test
     fun `getAvsluttendeStatusUtfall - deltaker deltatt paa lopende oppstart - status har sluttet`() {
         val yesterday = LocalDate.now().minusDays(1)
-        val deltakerliste =
-            lagDeltakerliste(
-                tiltakstype =
-                    lagTiltakstype(
-                        tiltakskode = Tiltakskode.HOYERE_UTDANNING,
-                    ),
-                oppstart = Oppstartstype.LOPENDE,
-            )
-        val deltaker =
-            lagDeltaker(
-                deltakerliste = deltakerliste,
-                startdato = deltakerliste.startDato,
-                sluttdato = yesterday,
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            )
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(
+                tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            ),
+            oppstart = Oppstartstype.LOPENDE,
+        )
+        val deltaker = lagDeltaker(
+            deltakerliste = deltakerliste,
+            startdato = deltakerliste.startDato,
+            sluttdato = yesterday,
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
 
         every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
-        val oppdatertDeltaker =
-            DeltakerProgresjonHandler
-                .getAvsluttendeStatusUtfall(listOf(deltaker))
-                .first()
+        val oppdatertDeltaker = DeltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(listOf(deltaker))
+            .first()
 
         assertSoftly(oppdatertDeltaker) {
             startdato shouldBe deltaker.startdato
@@ -107,20 +99,18 @@ class DeltakerProgresjonTest {
     @Test
     fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() {
         val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
-        val deltaker =
-            lagDeltaker(
-                deltakerliste = deltakerliste,
-                startdato = deltakerliste.startDato,
-                sluttdato = deltakerliste.sluttDato,
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = deltakerliste,
+            startdato = deltakerliste.startDato,
+            sluttdato = deltakerliste.sluttDato,
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
 
         every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
-        val oppdatertDeltaker =
-            DeltakerProgresjonHandler
-                .getAvsluttendeStatusUtfall(listOf(deltaker))
-                .first()
+        val oppdatertDeltaker = DeltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(listOf(deltaker))
+            .first()
 
         assertSoftly(oppdatertDeltaker) {
             sluttdato shouldBe LocalDate.now()
@@ -132,20 +122,18 @@ class DeltakerProgresjonTest {
     @Test
     fun `getAvsluttendeStatusUtfall - venter avbrutt deltakerliste - far riktig status og arsak`() {
         val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
-        val deltaker =
-            lagDeltaker(
-                deltakerliste = deltakerliste,
-                startdato = deltakerliste.startDato,
-                sluttdato = deltakerliste.sluttDato,
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = deltakerliste,
+            startdato = deltakerliste.startDato,
+            sluttdato = deltakerliste.sluttDato,
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        )
 
         every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
-        val oppdatertDeltaker =
-            DeltakerProgresjonHandler
-                .getAvsluttendeStatusUtfall(listOf(deltaker))
-                .first()
+        val oppdatertDeltaker = DeltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(listOf(deltaker))
+            .first()
 
         assertSoftly(oppdatertDeltaker) {
             startdato shouldBe null
@@ -158,13 +146,12 @@ class DeltakerProgresjonTest {
     @Test
     fun `getAvsluttendeStatusUtfall - fremtig avsluttende status - returnerer deltaker med neste status`() {
         val deltakerliste = lagDeltakerlisteMedDirekteVedtak().copy(status = GjennomforingStatusType.AVBRUTT)
-        val deltaker =
-            lagDeltaker(
-                deltakerliste = deltakerliste,
-                startdato = deltakerliste.startDato,
-                sluttdato = deltakerliste.sluttDato,
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            )
+        val deltaker = lagDeltaker(
+            deltakerliste = deltakerliste,
+            startdato = deltakerliste.startDato,
+            sluttdato = deltakerliste.sluttDato,
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        )
 
         val fremtidigStatus =
             DeltakerStatus(
@@ -176,15 +163,13 @@ class DeltakerProgresjonTest {
                 opprettet = LocalDateTime.now().minusDays(2),
             )
 
-        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns
-            listOf(
-                DeltakerStatusMedDeltakerId(fremtidigStatus, deltaker.id),
-            )
+        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns listOf(
+            DeltakerStatusMedDeltakerId(fremtidigStatus, deltaker.id),
+        )
 
-        val oppdatertDeltaker =
-            DeltakerProgresjonHandler
-                .getAvsluttendeStatusUtfall(listOf(deltaker))
-                .first()
+        val oppdatertDeltaker = DeltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(listOf(deltaker))
+            .first()
 
         assertSoftly(oppdatertDeltaker) {
             startdato shouldBe deltaker.startdato

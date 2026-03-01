@@ -79,28 +79,23 @@ class VarselService(
         }
     }
 
-    private fun skalIkkeVarsles(hendelse: Hendelse): Boolean =
-        if (varselRepository.getByHendelseId(hendelse.id).isSuccess) {
-            log.info("Varsel for hendelse ${hendelse.id} er allerede opprettet. Oppretter ikke nytt varsel.")
-            true
-        } else {
-            !DigitalBrukerService.skalDistribueresDigitalt(hendelse.distribusjonskanal, hendelse.manuellOppfolging)
-        }
+    private fun skalIkkeVarsles(hendelse: Hendelse): Boolean = if (varselRepository.getByHendelseId(hendelse.id).isSuccess) {
+        log.info("Varsel for hendelse ${hendelse.id} er allerede opprettet. Oppretter ikke nytt varsel.")
+        true
+    } else {
+        !DigitalBrukerService.skalDistribueresDigitalt(hendelse.distribusjonskanal, hendelse.manuellOppfolging)
+    }
 
     private fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel {
-        val varsel =
-            varselRepository.getVentendeVarsel(nyttVarsel.deltakerId).fold(
-                onSuccess = { it.merge(nyttVarsel) },
-                onFailure = { nyttVarsel },
-            )
+        val varsel = varselRepository.getVentendeVarsel(nyttVarsel.deltakerId).fold(
+            onSuccess = { it.merge(nyttVarsel) },
+            onFailure = { nyttVarsel },
+        )
 
         return varsel
     }
 
-    private fun handleNyttVarsel(
-        varsel: Varsel,
-        sendUmiddelbart: Boolean = false,
-    ) {
+    private fun handleNyttVarsel(varsel: Varsel, sendUmiddelbart: Boolean = false) {
         if (varsel.kanRevarsles || varsel.erRevarsel) {
             varselRepository.stoppRevarsler(varsel.deltakerId)
         }
@@ -120,25 +115,18 @@ class VarselService(
         varselRepository.upsert(oppdatertVarsel)
 
         when (varsel.type) {
-            Varsel.Type.BESKJED -> {
-                outboxHandler.opprettBeskjed(
-                    varsel = oppdatertVarsel,
-                    visEndringsmodal = skalViseHistorikkModal(oppdatertVarsel.hendelser),
-                )
-            }
+            Varsel.Type.BESKJED -> outboxHandler.opprettBeskjed(
+                varsel = oppdatertVarsel,
+                visEndringsmodal = skalViseHistorikkModal(oppdatertVarsel.hendelser),
+            )
 
-            Varsel.Type.OPPGAVE -> {
-                outboxHandler.opprettOppgave(oppdatertVarsel)
-            }
+            Varsel.Type.OPPGAVE -> outboxHandler.opprettOppgave(oppdatertVarsel)
         }
 
         log.info("Sendte varsel ${varsel.id} for deltaker ${varsel.deltakerId}")
     }
 
-    private fun ferdigstillSendtVarsel(
-        varsel: Varsel,
-        nyStatus: Varsel.Status,
-    ) {
+    private fun ferdigstillSendtVarsel(varsel: Varsel, nyStatus: Varsel.Status) {
         if (varsel.erAktiv) {
             val revarsles = if (nyStatus == Varsel.Status.UTFORT) null else varsel.revarsles
 
@@ -171,10 +159,7 @@ class VarselService(
         }
     }
 
-    private fun utforBeskjed(
-        deltaker: HendelseDeltaker,
-        sistBesokt: ZonedDateTime,
-    ) {
+    private fun utforBeskjed(deltaker: HendelseDeltaker, sistBesokt: ZonedDateTime) {
         val beskjeder = varselRepository.getAktiveEllerVentendeBeskjeder(deltaker.id)
         if (beskjeder.isEmpty()) {
             return
@@ -222,17 +207,12 @@ class VarselService(
         log.info("Varsel ${varsel.id} sin aktiv periode er utløpt")
     }
 
-    private fun erBesokTidligereEnnBeskjed(
-        sistBesokt: ZonedDateTime,
-        sisteBeskjed: Varsel,
-    ): Boolean {
-        val besokForSendt =
-            sistBesokt.withZoneSameInstant(ZoneOffset.UTC) < sisteBeskjed.aktivFra && sisteBeskjed.erAktiv
-        val besokForIkkeSendt =
-            sistBesokt.withZoneSameInstant(
-                ZoneId.of("Z"),
-            ) < sisteBeskjed.aktivFra.minusMinutes(Varsel.BESKJED_FORSINKELSE_MINUTTER) &&
-                sisteBeskjed.venterPaUsendelse
+    private fun erBesokTidligereEnnBeskjed(sistBesokt: ZonedDateTime, sisteBeskjed: Varsel): Boolean {
+        val besokForSendt = sistBesokt.withZoneSameInstant(ZoneOffset.UTC) < sisteBeskjed.aktivFra && sisteBeskjed.erAktiv
+        val besokForIkkeSendt = sistBesokt.withZoneSameInstant(
+            ZoneId.of("Z"),
+        ) < sisteBeskjed.aktivFra.minusMinutes(Varsel.BESKJED_FORSINKELSE_MINUTTER) &&
+            sisteBeskjed.venterPaUsendelse
 
         return besokForSendt || besokForIkkeSendt
     }
@@ -265,32 +245,31 @@ class VarselService(
 
 fun nowUTC(): ZonedDateTime = ZonedDateTime.now(ZoneId.of("Z"))
 
-fun Hendelse.skalVarslesEksternt() =
-    when (payload) {
-        is HendelseType.AvbrytUtkast,
-        is HendelseType.EndreBakgrunnsinformasjon,
-        is HendelseType.EndreDeltakelsesmengde,
-        is HendelseType.EndreInnhold,
-        is HendelseType.EndreSluttarsak,
-        is HendelseType.EndreStartdato,
-        is HendelseType.EndreUtkast,
-        is HendelseType.EndreAvslutning,
-        is HendelseType.ForlengDeltakelse,
-        is HendelseType.InnbyggerGodkjennUtkast,
-        is HendelseType.DeltakerSistBesokt,
-        is HendelseType.LeggTilOppstartsdato,
-        is HendelseType.FjernOppstartsdato,
-        -> false
+fun Hendelse.skalVarslesEksternt() = when (payload) {
+    is HendelseType.AvbrytUtkast,
+    is HendelseType.EndreBakgrunnsinformasjon,
+    is HendelseType.EndreDeltakelsesmengde,
+    is HendelseType.EndreInnhold,
+    is HendelseType.EndreSluttarsak,
+    is HendelseType.EndreStartdato,
+    is HendelseType.EndreUtkast,
+    is HendelseType.EndreAvslutning,
+    is HendelseType.ForlengDeltakelse,
+    is HendelseType.InnbyggerGodkjennUtkast,
+    is HendelseType.DeltakerSistBesokt,
+    is HendelseType.LeggTilOppstartsdato,
+    is HendelseType.FjernOppstartsdato,
+    -> false
 
-        is HendelseType.EndreSluttdato,
-        is HendelseType.IkkeAktuell,
-        is HendelseType.NavGodkjennUtkast,
-        is HendelseType.OpprettUtkast,
-        is HendelseType.AvsluttDeltakelse,
-        is HendelseType.AvbrytDeltakelse,
-        is HendelseType.ReaktiverDeltakelse,
-        is HendelseType.SettPaaVenteliste,
-        is HendelseType.TildelPlass,
-        is HendelseType.Avslag,
-        -> true
-    }
+    is HendelseType.EndreSluttdato,
+    is HendelseType.IkkeAktuell,
+    is HendelseType.NavGodkjennUtkast,
+    is HendelseType.OpprettUtkast,
+    is HendelseType.AvsluttDeltakelse,
+    is HendelseType.AvbrytDeltakelse,
+    is HendelseType.ReaktiverDeltakelse,
+    is HendelseType.SettPaaVenteliste,
+    is HendelseType.TildelPlass,
+    is HendelseType.Avslag,
+    -> true
+}

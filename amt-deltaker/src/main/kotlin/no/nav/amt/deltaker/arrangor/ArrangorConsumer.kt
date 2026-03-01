@@ -13,16 +13,12 @@ class ArrangorConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer =
-        buildManagedKafkaConsumer(
-            topic = Environment.AMT_ARRANGOR_TOPIC,
-            consumeFunc = ::consume,
-        )
+    private val consumer = buildManagedKafkaConsumer(
+        topic = Environment.AMT_ARRANGOR_TOPIC,
+        consumeFunc = ::consume,
+    )
 
-    suspend fun consume(
-        key: UUID,
-        value: String?,
-    ) {
+    suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
             repository.delete(key)
             log.info("Slettet arrangør med id $key")

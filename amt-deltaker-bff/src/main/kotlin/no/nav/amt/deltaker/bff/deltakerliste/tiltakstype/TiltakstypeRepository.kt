@@ -57,34 +57,29 @@ class TiltakstypeRepository {
         log.info("Upsertet tiltakstype med id ${tiltakstype.id}")
     }
 
-    fun get(tiltakskode: Tiltakskode): Result<Tiltakstype> =
-        runCatching {
-            val query =
-                queryOf(
-                    """
-                    SELECT 
-                        id,
-                        navn,
-                        tiltakskode,
-                        innsatsgrupper,
-                        innhold
-                    FROM tiltakstype
-                    WHERE tiltakskode = :tiltakskode
-                    """.trimIndent(),
-                    mapOf("tiltakskode" to tiltakskode.name),
-                ).map(::rowMapper).asSingle
+    fun get(tiltakskode: Tiltakskode): Result<Tiltakstype> = runCatching {
+        val query = queryOf(
+            """
+            SELECT 
+                id,
+                navn,
+                tiltakskode,
+                innsatsgrupper,
+                innhold
+            FROM tiltakstype
+            WHERE tiltakskode = :tiltakskode
+            """.trimIndent(),
+            mapOf("tiltakskode" to tiltakskode.name),
+        ).map(::rowMapper).asSingle
 
-            Database.query { session ->
-                session.run(query)
-                    ?: throw NoSuchElementException("Fant ikke tiltakstype ${tiltakskode.name}")
-            }
+        Database.query { session ->
+            session.run(query)
+                ?: throw NoSuchElementException("Fant ikke tiltakstype ${tiltakskode.name}")
         }
+    }
 
     companion object {
-        fun rowMapper(
-            row: Row,
-            alias: String? = null,
-        ): Tiltakstype {
+        fun rowMapper(row: Row, alias: String? = null): Tiltakstype {
             val prefix = alias?.let { "$alias." } ?: ""
             val col = { label: String -> prefix + label }
 
@@ -93,10 +88,7 @@ class TiltakstypeRepository {
                 navn = row.string(col("navn")),
                 tiltakskode = Tiltakskode.valueOf(row.string(col("tiltakskode"))),
                 innsatsgrupper = objectMapper.readValue(row.string(col("innsatsgrupper"))),
-                innhold =
-                    row
-                        .stringOrNull(col("innhold"))
-                        ?.let { objectMapper.readValue<DeltakerRegistreringInnhold?>(it) },
+                innhold = row.stringOrNull(col("innhold"))?.let { objectMapper.readValue<DeltakerRegistreringInnhold?>(it) },
             )
         }
     }

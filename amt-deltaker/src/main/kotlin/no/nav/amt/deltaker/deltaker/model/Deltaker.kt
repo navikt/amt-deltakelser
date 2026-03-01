@@ -36,42 +36,39 @@ data class Deltaker(
 
     val deltarPaOpplaeringstiltak get(): Boolean = deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()
 
-    fun toDeltakerVedVedtak(): DeltakerVedVedtak =
-        DeltakerVedVedtak(
-            id = id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = deltakelsesinnhold,
-            status = status,
-        )
+    fun toDeltakerVedVedtak(): DeltakerVedVedtak = DeltakerVedVedtak(
+        id = id,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        deltakelsesinnhold = deltakelsesinnhold,
+        status = status,
+    )
 
-    fun toDeltakerVedImport(innsoktDato: LocalDate) =
-        DeltakerVedImport(
-            deltakerId = id,
-            innsoktDato = innsoktDato,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            status = status,
-        )
+    fun toDeltakerVedImport(innsoktDato: LocalDate) = DeltakerVedImport(
+        deltakerId = id,
+        innsoktDato = innsoktDato,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        status = status,
+    )
 
-    fun toDeltakerOppdatering(historikk: List<DeltakerHistorikk>): Deltakeroppdatering =
-        Deltakeroppdatering(
-            id = id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = deltakelsesinnhold,
-            status = status,
-            historikk = historikk,
-            sistEndret = sistEndret,
-            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            forcedUpdate = false,
-        )
+    fun toDeltakerOppdatering(historikk: List<DeltakerHistorikk>): Deltakeroppdatering = Deltakeroppdatering(
+        id = id,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        deltakelsesinnhold = deltakelsesinnhold,
+        status = status,
+        historikk = historikk,
+        sistEndret = sistEndret,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        forcedUpdate = false,
+    )
 }

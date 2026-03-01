@@ -56,10 +56,8 @@ object Hendelsesdata {
         enhet: HendelseAnsvarlig.NavVeileder.Enhet = ansvarligNavEnhet(),
     ) = HendelseAnsvarlig.NavVeileder(id, navn, navIdent, enhet)
 
-    fun ansvarligNavEnhet(
-        id: UUID = UUID.randomUUID(),
-        enhetsnummer: String = randomEnhetsnummer(),
-    ) = HendelseAnsvarlig.NavVeileder.Enhet(id, enhetsnummer)
+    fun ansvarligNavEnhet(id: UUID = UUID.randomUUID(), enhetsnummer: String = randomEnhetsnummer()) =
+        HendelseAnsvarlig.NavVeileder.Enhet(id, enhetsnummer)
 
     fun lagDeltaker(
         id: UUID = UUID.randomUUID(),
@@ -83,14 +81,13 @@ object Hendelsesdata {
         startdato: LocalDate = LocalDate.now(),
         sluttdato: LocalDate? = LocalDate.now().plusDays(1),
         oppstartstype: HendelseDeltaker.Deltakerliste.Oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
-        pameldingType: GjennomforingPameldingType =
-            if (oppstartstype ==
-                HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE
-            ) {
-                GjennomforingPameldingType.DIREKTE_VEDTAK
-            } else {
-                GjennomforingPameldingType.TRENGER_GODKJENNING
-            },
+        pameldingType: GjennomforingPameldingType = if (oppstartstype ==
+            HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE
+        ) {
+            GjennomforingPameldingType.DIREKTE_VEDTAK
+        } else {
+            GjennomforingPameldingType.TRENGER_GODKJENNING
+        },
     ) = HendelseDeltaker.Deltakerliste(id, navn, arrangor, tiltak, startdato, sluttdato, oppstartstype, pameldingType)
 
     fun arrangor(
@@ -224,10 +221,9 @@ object HendelseTypeData {
         innhold,
     )
 
-    fun innhold() =
-        InnholdDto(
-            "Innholdstekst",
-            "Innholdskode",
-            "Beskrivelse av annet innhold",
-        )
+    fun innhold() = InnholdDto(
+        "Innholdstekst",
+        "Innholdskode",
+        "Beskrivelse av annet innhold",
+    )
 }

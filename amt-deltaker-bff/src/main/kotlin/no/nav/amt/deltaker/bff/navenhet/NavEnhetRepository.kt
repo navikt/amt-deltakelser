@@ -41,25 +41,23 @@ class NavEnhetRepository {
         }
     }
 
-    fun get(enhetsnummer: String): NavEnhetDbo? =
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
-                    mapOf("nav_enhet_nummer" to enhetsnummer),
-                ).map(::rowMapper).asSingle,
-            )
-        }
+    fun get(enhetsnummer: String): NavEnhetDbo? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
+                mapOf("nav_enhet_nummer" to enhetsnummer),
+            ).map(::rowMapper).asSingle,
+        )
+    }
 
-    fun get(id: UUID): NavEnhetDbo? =
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM nav_enhet WHERE id = :id",
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            )
-        }
+    fun get(id: UUID): NavEnhetDbo? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM nav_enhet WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
+        )
+    }
 
     fun getMany(enhetIder: List<UUID>): List<NavEnhetDbo> {
         if (enhetIder.isEmpty()) return emptyList()
@@ -75,12 +73,11 @@ class NavEnhetRepository {
     }
 
     companion object {
-        private fun rowMapper(row: Row) =
-            NavEnhetDbo(
-                id = row.uuid("id"),
-                enhetsnummer = row.string("nav_enhet_nummer"),
-                navn = row.string("navn"),
-                sistEndret = row.localDateTime("modified_at"),
-            )
+        private fun rowMapper(row: Row) = NavEnhetDbo(
+            id = row.uuid("id"),
+            enhetsnummer = row.string("nav_enhet_nummer"),
+            navn = row.string("navn"),
+            sistEndret = row.localDateTime("modified_at"),
+        )
     }
 }

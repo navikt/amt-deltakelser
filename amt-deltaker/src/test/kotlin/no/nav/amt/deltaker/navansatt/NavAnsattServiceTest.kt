@@ -35,34 +35,31 @@ class NavAnsattServiceTest {
     }
 
     @Test
-    fun `hentEllerOpprettNavAnsatt - navansatt finnes i db - henter fra db`() =
-        runTest {
-            val navAnsattFraDb = navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent)
+    fun `hentEllerOpprettNavAnsatt - navansatt finnes i db - henter fra db`() = runTest {
+        val navAnsattFraDb = navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent)
 
-            navAnsattFraDb shouldBe navAnsatt
-        }
-
-    @Test
-    fun `hentEllerOpprettNavAnsatt - navansatt finnes ikke i db - henter fra personservice og lagrer`() =
-        runTest {
-            val navAnsattResponse = lagNavAnsatt()
-
-            MockResponseHandler.addNavAnsattPostResponse(navAnsattResponse)
-            MockResponseHandler.addNavEnhetGetResponse(lagNavEnhet(navAnsattResponse.navEnhetId!!))
-
-            val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattResponse.navIdent)
-
-            navAnsatt shouldBe navAnsattResponse
-            navAnsattRepository.get(navAnsattResponse.id) shouldBe navAnsattResponse
-        }
+        navAnsattFraDb shouldBe navAnsatt
+    }
 
     @Test
-    fun `oppdaterNavAnsatt - navansatt finnes - blir oppdatert`() =
-        runTest {
-            val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
+    fun `hentEllerOpprettNavAnsatt - navansatt finnes ikke i db - henter fra personservice og lagrer`() = runTest {
+        val navAnsattResponse = lagNavAnsatt()
 
-            navAnsattService.oppdaterNavAnsatt(oppdatertNavAnsatt)
+        MockResponseHandler.addNavAnsattPostResponse(navAnsattResponse)
+        MockResponseHandler.addNavEnhetGetResponse(lagNavEnhet(navAnsattResponse.navEnhetId!!))
 
-            navAnsattRepository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
-        }
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattResponse.navIdent)
+
+        navAnsatt shouldBe navAnsattResponse
+        navAnsattRepository.get(navAnsattResponse.id) shouldBe navAnsattResponse
+    }
+
+    @Test
+    fun `oppdaterNavAnsatt - navansatt finnes - blir oppdatert`() = runTest {
+        val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
+
+        navAnsattService.oppdaterNavAnsatt(oppdatertNavAnsatt)
+
+        navAnsattRepository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
+    }
 }

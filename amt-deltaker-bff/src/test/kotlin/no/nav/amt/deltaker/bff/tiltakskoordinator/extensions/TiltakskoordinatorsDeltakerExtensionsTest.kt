@@ -39,75 +39,56 @@ class TiltakskoordinatorsDeltakerExtensionsTest {
 
         @Test
         fun `skal returnere null hvis annetInnholdselement ikke finnes`() {
-            val deltakelsesinnhold =
-                Deltakelsesinnhold(
-                    ledetekst = null,
-                    innhold = listOf(Innhold(innholdskode = "IKKE_ANNET", beskrivelse = "beskrivelse", valgt = true, tekst = "IKKE annet")),
-                )
+            val deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = null,
+                innhold = listOf(Innhold(innholdskode = "IKKE_ANNET", beskrivelse = "beskrivelse", valgt = true, tekst = "IKKE annet")),
+            )
             getDeltakelsesinnholdAnnet(true, GjennomforingPameldingType.TRENGER_GODKJENNING, deltakelsesinnhold) shouldBe null
         }
 
         @Test
         fun `skal returnere beskrivelse hvis annetInnholdselement finnes`() {
-            val deltakelsesinnhold =
-                Deltakelsesinnhold(
-                    ledetekst = null,
-                    innhold =
-                        listOf(
-                            Innhold(
-                                innholdskode = annetInnholdselement.innholdskode,
-                                beskrivelse = "beskrivelse",
-                                valgt = true,
-                                tekst = "Annet",
-                            ),
-                        ),
-                )
+            val deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = null,
+                innhold = listOf(
+                    Innhold(innholdskode = annetInnholdselement.innholdskode, beskrivelse = "beskrivelse", valgt = true, tekst = "Annet"),
+                ),
+            )
 
             getDeltakelsesinnholdAnnet(true, GjennomforingPameldingType.TRENGER_GODKJENNING, deltakelsesinnhold) shouldBe "beskrivelse"
         }
 
         @Test
         fun `skal returnere null hvis beskrivelse er tom eller whitespace`() {
-            val deltakelsesinnhold =
-                Deltakelsesinnhold(
-                    ledetekst = null,
-                    innhold =
-                        listOf(
-                            Innhold(innholdskode = annetInnholdselement.innholdskode, beskrivelse = "   ", valgt = true, tekst = "Annet"),
-                        ),
-                )
+            val deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = null,
+                innhold = listOf(
+                    Innhold(innholdskode = annetInnholdselement.innholdskode, beskrivelse = "   ", valgt = true, tekst = "Annet"),
+                ),
+            )
             getDeltakelsesinnholdAnnet(true, GjennomforingPameldingType.TRENGER_GODKJENNING, deltakelsesinnhold) shouldBe null
         }
 
         @Test
         fun `skal returnere null hvis beskrivelse er null`() {
-            val deltakelsesinnhold =
-                Deltakelsesinnhold(
-                    ledetekst = null,
-                    innhold =
-                        listOf(
-                            Innhold(innholdskode = annetInnholdselement.innholdskode, beskrivelse = null, valgt = true, tekst = "Annet"),
-                        ),
-                )
+            val deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = null,
+                innhold = listOf(
+                    Innhold(innholdskode = annetInnholdselement.innholdskode, beskrivelse = null, valgt = true, tekst = "Annet"),
+                ),
+            )
             getDeltakelsesinnholdAnnet(true, GjennomforingPameldingType.TRENGER_GODKJENNING, deltakelsesinnhold) shouldBe null
         }
 
         @Test
         fun `skal returnere beskrivelse for riktig element selv om flere finnes`() {
-            val deltakelsesinnhold =
-                Deltakelsesinnhold(
-                    ledetekst = null,
-                    innhold =
-                        listOf(
-                            Innhold(innholdskode = "IKKE_ANNET", beskrivelse = "feil", valgt = true, tekst = "Feil"),
-                            Innhold(
-                                innholdskode = annetInnholdselement.innholdskode,
-                                beskrivelse = "riktig",
-                                valgt = true,
-                                tekst = "Annet",
-                            ),
-                        ),
-                )
+            val deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = null,
+                innhold = listOf(
+                    Innhold(innholdskode = "IKKE_ANNET", beskrivelse = "feil", valgt = true, tekst = "Feil"),
+                    Innhold(innholdskode = annetInnholdselement.innholdskode, beskrivelse = "riktig", valgt = true, tekst = "Annet"),
+                ),
+            )
             getDeltakelsesinnholdAnnet(true, GjennomforingPameldingType.TRENGER_GODKJENNING, deltakelsesinnhold) shouldBe "riktig"
         }
     }

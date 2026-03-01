@@ -63,49 +63,46 @@ class EnkeltplassDeltakerConsumerTest {
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val deltakerlisteRepository = DeltakerlisteRepository()
     private val tiltakstypeRepository = TiltakstypeRepository()
-    private val deltakerProducerService =
-        spyk(
-            DeltakerProducerService(
-                deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
-                deltakerProducer = deltakerProducer,
-                deltakerV1Producer = mockk(),
-                deltakerEksternV1Producer = deltakerEksternV1Producer,
-                unleashToggle = unleashToggle,
-            ),
-        )
-    private val deltakerService =
-        spyk(
-            DeltakerService(
-                deltakerRepository = deltakerRepository,
-                deltakerProducerService = deltakerProducerService,
-                importertFraArenaRepository = importertFraArenaRepository,
-                deltakerEndringRepository = mockk(),
-                deltakerEndringService = mockk(),
-                navAnsattService = mockk(),
-                vedtakRepository = mockk(),
-                vedtakService = mockk(),
-                hendelseService = mockk(),
-                endringFraArrangorRepository = mockk(),
-                deltakerHistorikkService = mockk(),
-                endringFraTiltakskoordinatorRepository = mockk(),
-                navEnhetService = mockk(),
-                forslagRepository = mockk(),
-            ),
-        )
+    private val deltakerProducerService = spyk(
+        DeltakerProducerService(
+            deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
+            deltakerProducer = deltakerProducer,
+            deltakerV1Producer = mockk(),
+            deltakerEksternV1Producer = deltakerEksternV1Producer,
+            unleashToggle = unleashToggle,
+        ),
+    )
+    private val deltakerService = spyk(
+        DeltakerService(
+            deltakerRepository = deltakerRepository,
+            deltakerProducerService = deltakerProducerService,
+            importertFraArenaRepository = importertFraArenaRepository,
+            deltakerEndringRepository = mockk(),
+            deltakerEndringService = mockk(),
+            navAnsattService = mockk(),
+            vedtakRepository = mockk(),
+            vedtakService = mockk(),
+            hendelseService = mockk(),
+            endringFraArrangorRepository = mockk(),
+            deltakerHistorikkService = mockk(),
+            endringFraTiltakskoordinatorRepository = mockk(),
+            navEnhetService = mockk(),
+            forslagRepository = mockk(),
+        ),
+    )
 
-    private val consumer =
-        EnkeltplassDeltakerConsumer(
-            deltakerRepository,
-            deltakerService,
-            deltakerlisteRepository,
-            navBrukerService,
-            importertFraArenaRepository,
-            unleashToggle,
-            mulighetsrommetApiClient,
-            arrangorService,
-            tiltakstypeRepository,
-            deltakerProducerService,
-        )
+    private val consumer = EnkeltplassDeltakerConsumer(
+        deltakerRepository,
+        deltakerService,
+        deltakerlisteRepository,
+        navBrukerService,
+        importertFraArenaRepository,
+        unleashToggle,
+        mulighetsrommetApiClient,
+        arrangorService,
+        tiltakstypeRepository,
+        deltakerProducerService,
+    )
 
     @BeforeEach
     fun setup() {
@@ -121,21 +118,19 @@ class EnkeltplassDeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - skalLeseArenaDataForTiltakstype=false - lagrer ikke enkeltplasser og produserer ikke til deltaker-v2 topic`() {
-        val deltakerListe =
-            lagDeltakerliste(
-                tiltakstype = lagTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
-            )
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+        )
         TestRepository.insert(deltakerListe)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker =
-            lagDeltaker(
-                kilde = Kilde.ARENA,
-                deltakerliste = deltakerListe,
-                innhold = null,
-                navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = sistEndret),
-                sistEndret = sistEndret,
-            )
+        val deltaker = lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = sistEndret),
+            sistEndret = sistEndret,
+        )
 
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
 
@@ -149,33 +144,29 @@ class EnkeltplassDeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - gjennomforing er allerede lagret - lagrer enkeltplasser og produserer til deltaker-v2`() {
-        val deltakerListe =
-            lagDeltakerliste(
-                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
-            )
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+        )
         TestRepository.insert(deltakerListe)
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker =
-            lagDeltaker(
-                kilde = Kilde.ARENA,
-                deltakerliste = deltakerListe,
-                innhold = null,
-                navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
-                sistEndret = sistEndret,
-            )
+        val deltaker = lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
+        )
         TestRepository.insert(deltaker.navBruker)
-        val importertFraArena =
-            DeltakerHistorikk.ImportertFraArena(
-                importertFraArena =
-                    ImportertFraArena(
-                        deltakerId = deltaker.id,
-                        importertDato = LocalDateTime.now(),
-                        deltakerVedImport = deltaker.toDeltakerVedImport(LocalDate.now()),
-                    ),
-            )
+        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = deltaker.toDeltakerVedImport(LocalDate.now()),
+            ),
+        )
 
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
@@ -189,13 +180,12 @@ class EnkeltplassDeltakerConsumerTest {
 
         coVerify(exactly = 1) {
             deltakerService.transactionalDeltakerUpsert(
-                deltaker =
-                    match {
-                        it.id == deltaker.id &&
-                            it.deltakerliste.id == deltaker.deltakerliste.id &&
-                            it.status.type == deltaker.status.type &&
-                            it.bakgrunnsinformasjon == null // comes from payload
-                    },
+                deltaker = match {
+                    it.id == deltaker.id &&
+                        it.deltakerliste.id == deltaker.deltakerliste.id &&
+                        it.status.type == deltaker.status.type &&
+                        it.bakgrunnsinformasjon == null // comes from payload
+                },
                 erDeltakerSluttdatoEndret = any(),
                 nesteStatus = any(),
                 beforeDeltakerUpsert = any(),
@@ -229,37 +219,33 @@ class EnkeltplassDeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - gjennomforing eksisterer ikke i db - henter gjennomforing synkront fra mulighetsrommet api og lagrer`() {
-        val deltakerListe =
-            lagDeltakerliste(
-                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
-                oppmoteSted = null,
-                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            )
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+            oppmoteSted = null,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker =
-            lagDeltaker(
-                kilde = Kilde.ARENA,
-                deltakerliste = deltakerListe,
-                innhold = null,
-                navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
-                sistEndret = sistEndret,
-            )
+        val deltaker = lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
+        )
         arrangorRepository.upsert(deltakerListe.arrangor)
 
         tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
         TestRepository.insert(deltaker.navBruker)
-        val importertFraArena =
-            DeltakerHistorikk.ImportertFraArena(
-                importertFraArena =
-                    ImportertFraArena(
-                        deltakerId = deltaker.id,
-                        importertDato = LocalDateTime.now(),
-                        deltakerVedImport = deltaker.toDeltakerVedImport(LocalDate.now()),
-                    ),
-            )
+        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = deltaker.toDeltakerVedImport(LocalDate.now()),
+            ),
+        )
         coEvery { arrangorService.hentArrangor(deltakerListe.arrangor.organisasjonsnummer) } returns deltakerListe.arrangor
         coEvery { mulighetsrommetApiClient.hentGjennomforingV2(deltakerListe.id) } returns deltakerListe.toV2Response()
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
@@ -293,13 +279,12 @@ class EnkeltplassDeltakerConsumerTest {
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         importertFraArenaFromDb.shouldNotBeNull()
 
-        val expectedDeltaker =
-            deltaker.copy(
-                status = deltaker.status.copy(id = deltakerFromDb.status.id, opprettet = deltakerFromDb.status.opprettet),
-                bakgrunnsinformasjon = null,
-                sistEndret = deltakerFromDb.sistEndret,
-                opprettet = deltakerFromDb.opprettet,
-            )
+        val expectedDeltaker = deltaker.copy(
+            status = deltaker.status.copy(id = deltakerFromDb.status.id, opprettet = deltakerFromDb.status.opprettet),
+            bakgrunnsinformasjon = null,
+            sistEndret = deltakerFromDb.sistEndret,
+            opprettet = deltakerFromDb.opprettet,
+        )
 
         deltakerFromDb shouldBe expectedDeltaker
 
@@ -312,40 +297,35 @@ class EnkeltplassDeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - Deltaker eksisterer allerede - lagrer deltaker og importertFraArenaData med ny status`() {
-        val deltakerListe =
-            lagDeltakerliste(
-                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
-            )
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+        )
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker =
-            lagDeltaker(
-                kilde = Kilde.ARENA,
-                deltakerliste = deltakerListe,
-                innhold = null,
-                navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
-                sistEndret = sistEndret,
-            )
+        val deltaker = lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
+        )
         val nyStatus = lagDeltakerStatus(statusType = DeltakerStatus.Type.FULLFORT, opprettet = LocalDate.now().atStartOfDay())
-        val deltakerMedNyStatus =
-            deltaker.copy(
-                status = nyStatus,
-                sluttdato = LocalDate.now().minusDays(1),
-            )
+        val deltakerMedNyStatus = deltaker.copy(
+            status = nyStatus,
+            sluttdato = LocalDate.now().minusDays(1),
+        )
 
         TestRepository.insert(deltaker)
         tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
-        val importertFraArena =
-            DeltakerHistorikk.ImportertFraArena(
-                importertFraArena =
-                    ImportertFraArena(
-                        deltakerId = deltaker.id,
-                        importertDato = LocalDateTime.now(),
-                        deltakerVedImport = deltakerMedNyStatus.toDeltakerVedImport(LocalDate.now()),
-                    ),
-            )
+        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = deltakerMedNyStatus.toDeltakerVedImport(LocalDate.now()),
+            ),
+        )
 
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
@@ -376,17 +356,15 @@ class EnkeltplassDeltakerConsumerTest {
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         importertFraArenaFromDb.shouldNotBeNull()
 
-        val expectedDeltaker =
-            deltakerMedNyStatus.copy(
-                status =
-                    deltakerMedNyStatus.status.copy(
-                        id = deltakerFromDb.status.id,
-                        opprettet = deltakerFromDb.status.opprettet,
-                    ),
-                bakgrunnsinformasjon = null,
-                sistEndret = deltakerFromDb.sistEndret,
-                opprettet = deltakerFromDb.opprettet,
-            )
+        val expectedDeltaker = deltakerMedNyStatus.copy(
+            status = deltakerMedNyStatus.status.copy(
+                id = deltakerFromDb.status.id,
+                opprettet = deltakerFromDb.status.opprettet,
+            ),
+            bakgrunnsinformasjon = null,
+            sistEndret = deltakerFromDb.sistEndret,
+            opprettet = deltakerFromDb.opprettet,
+        )
 
         expectedDeltaker shouldBe deltakerFromDb
 
@@ -399,39 +377,34 @@ class EnkeltplassDeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - Deltaker eksisterer, lik status, andre endringer pa deltaker - lagrer deltaker`() {
-        val deltakerListe =
-            lagDeltakerliste(
-                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
-            )
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+        )
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker =
-            lagDeltaker(
-                kilde = Kilde.ARENA,
-                deltakerliste = deltakerListe,
-                innhold = null,
-                navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
-                sistEndret = sistEndret,
-            )
+        val deltaker = lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
+        )
 
-        val endretDeltaker =
-            deltaker.copy(
-                sluttdato = LocalDate.now().plusDays(1),
-            )
+        val endretDeltaker = deltaker.copy(
+            sluttdato = LocalDate.now().plusDays(1),
+        )
 
         TestRepository.insert(deltaker)
         tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
-        val importertFraArena =
-            DeltakerHistorikk.ImportertFraArena(
-                importertFraArena =
-                    ImportertFraArena(
-                        deltakerId = deltaker.id,
-                        importertDato = LocalDateTime.now(),
-                        deltakerVedImport = endretDeltaker.toDeltakerVedImport(LocalDate.now()),
-                    ),
-            )
+        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = endretDeltaker.toDeltakerVedImport(LocalDate.now()),
+            ),
+        )
 
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
@@ -463,13 +436,12 @@ class EnkeltplassDeltakerConsumerTest {
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         importertFraArenaFromDb.shouldNotBeNull()
 
-        val expectedDeltaker =
-            endretDeltaker.copy(
-                status = endretDeltaker.status.copy(opprettet = deltakerFromDb.status.opprettet),
-                bakgrunnsinformasjon = null,
-                sistEndret = deltakerFromDb.sistEndret,
-                opprettet = deltakerFromDb.opprettet,
-            )
+        val expectedDeltaker = endretDeltaker.copy(
+            status = endretDeltaker.status.copy(opprettet = deltakerFromDb.status.opprettet),
+            bakgrunnsinformasjon = null,
+            sistEndret = deltakerFromDb.sistEndret,
+            opprettet = deltakerFromDb.opprettet,
+        )
 
         expectedDeltaker shouldBe deltakerFromDb
 
@@ -504,24 +476,23 @@ class EnkeltplassDeltakerConsumerTest {
             innsokBegrunnelse = innsokBegrunnelse,
         )
 
-        private fun Deltakerliste.toV2Response() =
-            GjennomforingV2KafkaPayload.Gruppe(
-                id = id,
-                navn = navn,
-                startDato = startDato!!,
-                sluttDato = sluttDato,
-                status = status!!,
-                oppstart = oppstart!!,
-                apentForPamelding = apentForPamelding,
-                opprettetTidspunkt = OffsetDateTime.now(),
-                oppdatertTidspunkt = OffsetDateTime.now(),
-                tiltakskode = tiltakstype.tiltakskode,
-                antallPlasser = 42,
-                tilgjengeligForArrangorFraOgMedDato = startDato,
-                deltidsprosent = 42.0,
-                oppmoteSted = oppmoteSted,
-                arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
-                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            )
+        private fun Deltakerliste.toV2Response() = GjennomforingV2KafkaPayload.Gruppe(
+            id = id,
+            navn = navn,
+            startDato = startDato!!,
+            sluttDato = sluttDato,
+            status = status!!,
+            oppstart = oppstart!!,
+            apentForPamelding = apentForPamelding,
+            opprettetTidspunkt = OffsetDateTime.now(),
+            oppdatertTidspunkt = OffsetDateTime.now(),
+            tiltakskode = tiltakstype.tiltakskode,
+            antallPlasser = 42,
+            tilgjengeligForArrangorFraOgMedDato = startDato,
+            deltidsprosent = 42.0,
+            oppmoteSted = oppmoteSted,
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
     }
 }

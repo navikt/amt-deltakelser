@@ -94,13 +94,11 @@ class InputvalideringTest {
 
     @Test
     fun testValiderDeltakelsesinnhold() {
-        val tiltaksinnhold =
-            TestData.lagDeltakerRegistreringInnhold(
-                innholdselementer =
-                    listOf(
-                        Innholdselement("Type", "type"),
-                    ),
-            )
+        val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+            innholdselementer = listOf(
+                Innholdselement("Type", "type"),
+            ),
+        )
         val tiltakstype = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
 
         shouldThrow<IllegalArgumentException> {
@@ -170,14 +168,12 @@ class InputvalideringTest {
 
     @Test
     fun testValiderKladdInnhold() {
-        val tiltaksinnhold =
-            TestData.lagDeltakerRegistreringInnhold(
-                innholdselementer =
-                    listOf(
-                        Innholdselement("Type", "type"),
-                        annetInnholdselement,
-                    ),
-            )
+        val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+            innholdselementer = listOf(
+                Innholdselement("Type", "type"),
+                annetInnholdselement,
+            ),
+        )
         val tiltakstype = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
 
         shouldThrow<IllegalArgumentException> {
@@ -247,34 +243,28 @@ class InputvalideringTest {
 
     @Test
     fun testValiderDeltakerKanEndres() {
-        val deltakerDeltar =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                sluttdato = LocalDate.now().plusMonths(6),
-            )
-        val deltakerSluttetFireUkerSiden =
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                sluttdato = LocalDate.now().minusWeeks(4),
-            )
-        val deltakerSluttetFireMndSiden =
-            TestData.lagDeltaker(
-                status =
-                    TestData.lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        gyldigFra = LocalDateTime.now().minusMonths(4),
-                    ),
-                sluttdato = LocalDate.now().minusMonths(4),
-            )
-        val deltakerIkkeAktuellFireMndSiden =
-            TestData.lagDeltaker(
-                status =
-                    TestData.lagDeltakerStatus(
-                        statusType = DeltakerStatus.Type.IKKE_AKTUELL,
-                        gyldigFra = LocalDateTime.now().minusMonths(4),
-                    ),
-                sluttdato = null,
-            )
+        val deltakerDeltar = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusMonths(6),
+        )
+        val deltakerSluttetFireUkerSiden = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            sluttdato = LocalDate.now().minusWeeks(4),
+        )
+        val deltakerSluttetFireMndSiden = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                gyldigFra = LocalDateTime.now().minusMonths(4),
+            ),
+            sluttdato = LocalDate.now().minusMonths(4),
+        )
+        val deltakerIkkeAktuellFireMndSiden = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                gyldigFra = LocalDateTime.now().minusMonths(4),
+            ),
+            sluttdato = null,
+        )
 
         shouldNotThrow<IllegalArgumentException> {
             validerDeltakerKanEndres(deltakerDeltar)
@@ -295,14 +285,12 @@ class InputvalideringTest {
 
     @Test
     fun testValiderSluttdatoForDeltaker() {
-        val deltaker =
-            TestData.lagDeltaker(
-                deltakerliste =
-                    TestData.lagDeltakerliste(
-                        startDato = LocalDate.now().minusYears(2),
-                        sluttDato = LocalDate.now().plusYears(1),
-                    ),
-            )
+        val deltaker = TestData.lagDeltaker(
+            deltakerliste = TestData.lagDeltakerliste(
+                startDato = LocalDate.now().minusYears(2),
+                sluttDato = LocalDate.now().plusYears(1),
+            ),
+        )
 
         shouldNotThrow<IllegalArgumentException> {
             validerSluttdatoForDeltaker(
@@ -332,13 +320,11 @@ class InputvalideringTest {
 
     @Test
     fun `validerSluttdato - skal feile hvis sluttdato er utenfor max varighet`() {
-        val deltaker =
-            TestData.lagDeltaker(
-                deltakerliste =
-                    TestData.lagDeltakerliste(
-                        tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK),
-                    ),
-            )
+        val deltaker = TestData.lagDeltaker(
+            deltakerliste = TestData.lagDeltakerliste(
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK),
+            ),
+        )
 
         shouldNotThrow<IllegalArgumentException> {
             validerSluttdatoForDeltaker(

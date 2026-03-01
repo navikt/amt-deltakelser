@@ -14,10 +14,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerEndringRepository {
-    fun upsert(
-        deltakerEndring: DeltakerEndring,
-        behandletTidspunkt: LocalDateTime? = LocalDateTime.now(),
-    ) {
+    fun upsert(deltakerEndring: DeltakerEndring, behandletTidspunkt: LocalDateTime? = LocalDateTime.now()) {
         val sql =
             """
             INSERT INTO deltaker_endring (
@@ -51,64 +48,56 @@ class DeltakerEndringRepository {
                 behandlet = :behandlet
             """.trimIndent()
 
-        val params =
-            mapOf(
-                "id" to deltakerEndring.id,
-                "deltaker_id" to deltakerEndring.deltakerId,
-                "endring" to toPGObject(deltakerEndring.endring),
-                "endret" to deltakerEndring.endret,
-                "endret_av" to deltakerEndring.endretAv,
-                "endret_av_enhet" to deltakerEndring.endretAvEnhet,
-                "forslag_id" to deltakerEndring.forslag?.id,
-                "behandlet" to behandletTidspunkt,
-            )
+        val params = mapOf(
+            "id" to deltakerEndring.id,
+            "deltaker_id" to deltakerEndring.deltakerId,
+            "endring" to toPGObject(deltakerEndring.endring),
+            "endret" to deltakerEndring.endret,
+            "endret_av" to deltakerEndring.endretAv,
+            "endret_av_enhet" to deltakerEndring.endretAvEnhet,
+            "forslag_id" to deltakerEndring.forslag?.id,
+            "behandlet" to behandletTidspunkt,
+        )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun get(id: UUID): Result<DeltakerEndring> =
-        runCatching {
-            Database.query { session ->
-                session.run(
-                    queryOf(
-                        selectDeltakerEndring("de.id = :id"),
-                        mapOf("id" to id),
-                    ).map(::rowMapper).asSingle,
-                ) ?: throw NoSuchElementException()
-            }
-        }
-
-    fun getForDeltaker(deltakerId: UUID): List<DeltakerEndring> =
+    fun get(id: UUID): Result<DeltakerEndring> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
-                    selectDeltakerEndring("de.deltaker_id = :deltaker_id"),
-                    mapOf("deltaker_id" to deltakerId),
-                ).map(::rowMapper).asList,
-            )
+                    selectDeltakerEndring("de.id = :id"),
+                    mapOf("id" to id),
+                ).map(::rowMapper).asSingle,
+            ) ?: throw NoSuchElementException()
         }
+    }
 
-    fun getUbehandletDeltakelsesmengder(
-        offset: Int = 0,
-        limit: Int = 500,
-    ): List<DeltakerEndring> {
-        val sql =
-            selectDeltakerEndring(
-                """
-                de.behandlet IS NULL 
-                AND ds.type in ('${DeltakerStatus.Type.VENTER_PA_OPPSTART.name}', '${DeltakerStatus.Type.DELTAR.name}')
-                AND de.endring->>'type' = :type
-                AND de.endring->>'gyldigFra' <= :now
-                """.trimIndent(),
-                offset,
-                limit,
-            )
+    fun getForDeltaker(deltakerId: UUID): List<DeltakerEndring> = Database.query { session ->
+        session.run(
+            queryOf(
+                selectDeltakerEndring("de.deltaker_id = :deltaker_id"),
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::rowMapper).asList,
+        )
+    }
 
-        val params =
-            mapOf(
-                "type" to DeltakerEndring.Endring.EndreDeltakelsesmengde::class.simpleName,
-                "now" to LocalDate.now(),
-            )
+    fun getUbehandletDeltakelsesmengder(offset: Int = 0, limit: Int = 500): List<DeltakerEndring> {
+        val sql = selectDeltakerEndring(
+            """
+            de.behandlet IS NULL 
+            AND ds.type in ('${DeltakerStatus.Type.VENTER_PA_OPPSTART.name}', '${DeltakerStatus.Type.DELTAR.name}')
+            AND de.endring->>'type' = :type
+            AND de.endring->>'gyldigFra' <= :now
+            """.trimIndent(),
+            offset,
+            limit,
+        )
+
+        val params = mapOf(
+            "type" to DeltakerEndring.Endring.EndreDeltakelsesmengde::class.simpleName,
+            "now" to LocalDate.now(),
+        )
 
         return Database.query { session ->
             session.run(queryOf(sql, params).map(::rowMapper).asList)
@@ -127,16 +116,15 @@ class DeltakerEndringRepository {
     }
 
     companion object {
-        private fun rowMapper(row: Row) =
-            DeltakerEndring(
-                id = row.uuid("de.id"),
-                deltakerId = row.uuid("de.deltaker_id"),
-                endring = objectMapper.readValue(row.string("de.endring")),
-                endretAv = row.uuid("de.endret_av"),
-                endretAvEnhet = row.uuid("de.endret_av_enhet"),
-                endret = row.localDateTime("de.endret"),
-                forslag = row.uuidOrNull("f.id")?.let { ForslagRepository.rowMapper(row) },
-            )
+        private fun rowMapper(row: Row) = DeltakerEndring(
+            id = row.uuid("de.id"),
+            deltakerId = row.uuid("de.deltaker_id"),
+            endring = objectMapper.readValue(row.string("de.endring")),
+            endretAv = row.uuid("de.endret_av"),
+            endretAvEnhet = row.uuid("de.endret_av_enhet"),
+            endret = row.localDateTime("de.endret"),
+            forslag = row.uuidOrNull("f.id")?.let { ForslagRepository.rowMapper(row) },
+        )
 
         private fun selectDeltakerEndring(
             whereClause: String,

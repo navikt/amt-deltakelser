@@ -106,100 +106,89 @@ fun Application.module() {
 
     Database.init(environment.databaseConfig)
 
-    val httpClient =
-        HttpClient(CIO.create()) {
-            install(ContentNegotiation) {
-                jackson { applicationConfig() }
-            }
-
-            install(HttpTimeout) {
-                requestTimeoutMillis = HTTP_REQUEST_TIMEOUT_MILLIS
-                connectTimeoutMillis = HTTP_CONNECT_TIMEOUT_MILLIS
-                socketTimeoutMillis = HTTP_SOCKET_TIMEOUT_MILLIS
-            }
+    val httpClient = HttpClient(CIO.create()) {
+        install(ContentNegotiation) {
+            jackson { applicationConfig() }
         }
+
+        install(HttpTimeout) {
+            requestTimeoutMillis = HTTP_REQUEST_TIMEOUT_MILLIS
+            connectTimeoutMillis = HTTP_CONNECT_TIMEOUT_MILLIS
+            socketTimeoutMillis = HTTP_SOCKET_TIMEOUT_MILLIS
+        }
+    }
 
     val leaderElection = LeaderElection(httpClient, environment.electorPath)
 
-    val azureAdTokenClient =
-        AzureAdTokenClient(
-            azureAdTokenUrl = environment.azureAdTokenUrl,
-            clientId = environment.azureClientId,
-            clientSecret = environment.azureClientSecret,
-            httpClient = httpClient,
-        )
+    val azureAdTokenClient = AzureAdTokenClient(
+        azureAdTokenUrl = environment.azureAdTokenUrl,
+        clientId = environment.azureClientId,
+        clientSecret = environment.azureClientSecret,
+        httpClient = httpClient,
+    )
 
-    val amtArrangorClient =
-        AmtArrangorClient(
-            baseUrl = environment.amtArrangorUrl,
-            scope = environment.amtArrangorScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val amtArrangorClient = AmtArrangorClient(
+        baseUrl = environment.amtArrangorUrl,
+        scope = environment.amtArrangorScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
-    val amtPersonServiceClient =
-        AmtPersonServiceClient(
-            baseUrl = environment.amtPersonServiceUrl,
-            scope = environment.amtPersonServiceScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val amtPersonServiceClient = AmtPersonServiceClient(
+        baseUrl = environment.amtPersonServiceUrl,
+        scope = environment.amtPersonServiceScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
-    val amtDeltakerClient =
-        AmtDeltakerClient(
-            baseUrl = environment.amtDeltakerUrl,
-            scope = environment.amtDeltakerScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val amtDeltakerClient = AmtDeltakerClient(
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
-    val paameldingClient =
-        PaameldingClient(
-            baseUrl = environment.amtDeltakerUrl,
-            scope = environment.amtDeltakerScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val paameldingClient = PaameldingClient(
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
-    val tiltakskoordinatorClient =
-        TiltaksKoordinatorClient(
-            baseUrl = environment.amtDeltakerUrl,
-            scope = environment.amtDeltakerScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val tiltakskoordinatorClient = TiltaksKoordinatorClient(
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
-    val amtDistribusjonClient =
-        AmtDistribusjonClient(
-            baseUrl = environment.amtDistribusjonUrl,
-            scope = environment.amtDistribusjonScope,
-            httpClient = httpClient,
-            azureAdTokenClient = azureAdTokenClient,
-        )
+    val amtDistribusjonClient = AmtDistribusjonClient(
+        baseUrl = environment.amtDistribusjonUrl,
+        scope = environment.amtDistribusjonScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
 
-    val unleash =
-        DefaultUnleash(
-            UnleashConfig
-                .builder()
-                .appName(environment.appName)
-                .instanceId(environment.appName)
-                .unleashAPI("${environment.unleashUrl}/api")
-                .apiKey(environment.unleashApiToken)
-                .build(),
-        )
+    val unleash = DefaultUnleash(
+        UnleashConfig
+            .builder()
+            .appName(environment.appName)
+            .instanceId(environment.appName)
+            .unleashAPI("${environment.unleashUrl}/api")
+            .apiKey(environment.unleashApiToken)
+            .build(),
+    )
 
-    val kafkaProducer =
-        Producer<String, String>(
-            if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
-        )
+    val kafkaProducer = Producer<String, String>(
+        if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
+    )
 
     // START outbox config
     val outboxService = OutboxService()
-    val jobManager =
-        JobManager(
-            isLeader = leaderElection::isLeader,
-            applicationIsReady = { attributes.getOrNull(isReadyKey) == true },
-        )
+    val jobManager = JobManager(
+        isLeader = leaderElection::isLeader,
+        applicationIsReady = { attributes.getOrNull(isReadyKey) == true },
+    )
     val outboxProcessor = OutboxProcessor(outboxService, jobManager, kafkaProducer)
     outboxProcessor.start()
     // END outbox config
@@ -212,31 +201,28 @@ fun Application.module() {
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
 
     val navBrukerRepository = NavBrukerRepository()
-    val navBrukerService =
-        NavBrukerService(
-            amtPersonServiceClient,
-            navBrukerRepository,
-            navAnsattService,
-            navEnhetService,
-        )
+    val navBrukerService = NavBrukerService(
+        amtPersonServiceClient,
+        navBrukerRepository,
+        navAnsattService,
+        navEnhetService,
+    )
 
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
     val deltakerlisteService = DeltakerlisteService(deltakerlisteRepository)
 
-    val poaoTilgangCachedClient =
-        PoaoTilgangCachedClient.createDefaultCacheClient(
-            PoaoTilgangHttpClient(
-                baseUrl = environment.poaoTilgangUrl,
-                tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
-            ),
-        )
+    val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
+        PoaoTilgangHttpClient(
+            baseUrl = environment.poaoTilgangUrl,
+            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
+        ),
+    )
 
     val tiltakskoordinatorTilgangRepository = TiltakskoordinatorTilgangRepository()
-    val tiltakskoordinatorsDeltakerlisteProducer =
-        TiltakskoordinatorsDeltakerlisteProducer(
-            outboxService,
-            kafkaProducer,
-        )
+    val tiltakskoordinatorsDeltakerlisteProducer = TiltakskoordinatorsDeltakerlisteProducer(
+        outboxService,
+        kafkaProducer,
+    )
 
     val sporbarhetsloggService = SporbarhetsloggService(AuditLoggerImpl())
 
@@ -248,96 +234,89 @@ fun Application.module() {
 
     val vurderingRepository = VurderingRepository()
     val vurderingService = VurderingService(vurderingRepository)
-    val deltakerService =
-        DeltakerService(
-            deltakerRepository = deltakerRepository,
-            amtDeltakerClient = amtDeltakerClient,
-            navEnhetService = navEnhetService,
-            forslagRepository = forslagRepository,
-        )
+    val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        amtDeltakerClient = amtDeltakerClient,
+        navEnhetService = navEnhetService,
+        forslagRepository = forslagRepository,
+    )
 
-    val pameldingService =
-        PameldingService(
-            deltakerRepository = deltakerRepository,
-            deltakerService = deltakerService,
-            navBrukerService = navBrukerService,
-            navEnhetService = navEnhetService,
-            paameldingClient = paameldingClient,
-        )
+    val pameldingService = PameldingService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        navBrukerService = navBrukerService,
+        navEnhetService = navEnhetService,
+        paameldingClient = paameldingClient,
+    )
 
     val innbyggerService = InnbyggerService(deltakerService, paameldingClient)
 
     val ulestHendelseRepository = UlestHendelseRepository()
     val ulestHendelseService = UlestHendelseService(ulestHendelseRepository)
 
-    val tiltakskoordinatorService =
-        TiltakskoordinatorService(
-            tiltaksKoordinatorClient = tiltakskoordinatorClient,
-            deltakerRepository = deltakerRepository,
-            deltakerService = deltakerService,
-            vurderingService = vurderingService,
-            navEnhetService = navEnhetService,
-            navAnsattService = navAnsattService,
-            amtDistribusjonClient = amtDistribusjonClient,
-            forslagRepository = forslagRepository,
-            ulesteHendelseService = ulestHendelseService,
-        )
+    val tiltakskoordinatorService = TiltakskoordinatorService(
+        tiltaksKoordinatorClient = tiltakskoordinatorClient,
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        vurderingService = vurderingService,
+        navEnhetService = navEnhetService,
+        navAnsattService = navAnsattService,
+        amtDistribusjonClient = amtDistribusjonClient,
+        forslagRepository = forslagRepository,
+        ulesteHendelseService = ulestHendelseService,
+    )
 
-    val tilgangskontrollService =
-        TilgangskontrollService(
-            poaoTilgangCachedClient,
-            navAnsattService,
-            tiltakskoordinatorTilgangRepository,
-            tiltakskoordinatorsDeltakerlisteProducer,
-            tiltakskoordinatorService,
-            deltakerlisteService,
-        )
+    val tilgangskontrollService = TilgangskontrollService(
+        poaoTilgangCachedClient,
+        navAnsattService,
+        tiltakskoordinatorTilgangRepository,
+        tiltakskoordinatorsDeltakerlisteProducer,
+        tiltakskoordinatorService,
+        deltakerlisteService,
+    )
 
-    val sporbarhetOgTilgangskontrollSvc =
-        SporbarhetOgTilgangskontrollSvc(
-            sporbarhetsloggService = sporbarhetsloggService,
-            tilgangskontrollService,
-            deltakerlisteService,
-        )
+    val sporbarhetOgTilgangskontrollSvc = SporbarhetOgTilgangskontrollSvc(
+        sporbarhetsloggService = sporbarhetsloggService,
+        tilgangskontrollService,
+        deltakerlisteService,
+    )
 
     val tiltakstypeRepository = TiltakstypeRepository()
 
-    val testdataService =
-        TestdataService(
-            pameldingService = pameldingService,
-            deltakerlisteService = deltakerlisteService,
-            arrangorMeldingProducer = arrangorMeldingProducer,
-            deltakerRepository = deltakerRepository,
-        )
+    val testdataService = TestdataService(
+        pameldingService = pameldingService,
+        deltakerlisteService = deltakerlisteService,
+        arrangorMeldingProducer = arrangorMeldingProducer,
+        deltakerRepository = deltakerRepository,
+    )
 
     val unleashToggle = CommonUnleashToggle(unleash)
-    val consumers =
-        listOf(
-            ArrangorConsumer(arrangorRepository),
-            DeltakerlisteConsumer(
-                deltakerRepository = deltakerRepository,
-                deltakerlisteRepository = deltakerlisteRepository,
-                arrangorService = arrangorService,
-                tiltakstypeRepository = tiltakstypeRepository,
-                pameldingService = pameldingService,
-                tilgangskontrollService = tilgangskontrollService,
-                unleashToggle = unleashToggle,
-            ),
-            NavAnsattConsumer(navAnsattService),
-            NavBrukerConsumer(navBrukerService, pameldingService),
-            TiltakstypeConsumer(tiltakstypeRepository),
-            DeltakerV2Consumer(
-                deltakerRepository,
-                deltakerService,
-                deltakerlisteRepository,
-                vurderingService,
-                navBrukerService,
-                unleashToggle,
-            ),
-            ArrangorMeldingConsumer(forslagRepository),
-            HendelseConsumer(ulestHendelseService),
-            NavEnhetConsumer(navEnhetService),
-        )
+    val consumers = listOf(
+        ArrangorConsumer(arrangorRepository),
+        DeltakerlisteConsumer(
+            deltakerRepository = deltakerRepository,
+            deltakerlisteRepository = deltakerlisteRepository,
+            arrangorService = arrangorService,
+            tiltakstypeRepository = tiltakstypeRepository,
+            pameldingService = pameldingService,
+            tilgangskontrollService = tilgangskontrollService,
+            unleashToggle = unleashToggle,
+        ),
+        NavAnsattConsumer(navAnsattService),
+        NavBrukerConsumer(navBrukerService, pameldingService),
+        TiltakstypeConsumer(tiltakstypeRepository),
+        DeltakerV2Consumer(
+            deltakerRepository,
+            deltakerService,
+            deltakerlisteRepository,
+            vurderingService,
+            navBrukerService,
+            unleashToggle,
+        ),
+        ArrangorMeldingConsumer(forslagRepository),
+        HendelseConsumer(ulestHendelseService),
+        NavEnhetConsumer(navEnhetService),
+    )
     consumers.forEach { it.start() }
 
     configureAuthentication(environment)

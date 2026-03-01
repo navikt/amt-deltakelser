@@ -53,15 +53,7 @@ class TiltakskoordinatorService(
             )
         }
 
-        return deltaker.toTiltakskoordinatorsDeltaker(
-            sisteVurdering,
-            navEnhet,
-            navVeileder,
-            null,
-            false,
-            forslag,
-            ulesteHendelser,
-        )
+        return deltaker.toTiltakskoordinatorsDeltaker(sisteVurdering, navEnhet, navVeileder, null, false, forslag, ulesteHendelser)
     }
 
     suspend fun endreDeltakere(
@@ -69,40 +61,19 @@ class TiltakskoordinatorService(
         endring: EndringFraTiltakskoordinator.Endring,
         endretAv: String,
     ): List<TiltakskoordinatorsDeltaker> {
-        val oppdaterteDeltakereResponses =
-            when (endring) {
-                EndringFraTiltakskoordinator.SettPaaVenteliste -> {
-                    tiltaksKoordinatorClient.settPaaVenteliste(
-                        deltakerIder,
-                        endretAv,
-                    )
-                }
-
-                EndringFraTiltakskoordinator.DelMedArrangor -> {
-                    tiltaksKoordinatorClient.delMedArrangor(
-                        deltakerIder,
-                        endretAv,
-                    )
-                }
-
-                EndringFraTiltakskoordinator.TildelPlass -> {
-                    tiltaksKoordinatorClient.tildelPlass(deltakerIder, endretAv)
-                }
-
-                is EndringFraTiltakskoordinator.Avslag -> {
-                    throw NotImplementedError("Batch håndtering for avslag er ikke støttet")
-                }
-            }
+        val oppdaterteDeltakereResponses = when (endring) {
+            EndringFraTiltakskoordinator.SettPaaVenteliste -> tiltaksKoordinatorClient.settPaaVenteliste(deltakerIder, endretAv)
+            EndringFraTiltakskoordinator.DelMedArrangor -> tiltaksKoordinatorClient.delMedArrangor(deltakerIder, endretAv)
+            EndringFraTiltakskoordinator.TildelPlass -> tiltaksKoordinatorClient.tildelPlass(deltakerIder, endretAv)
+            is EndringFraTiltakskoordinator.Avslag -> throw NotImplementedError("Batch håndtering for avslag er ikke støttet")
+        }
         val deltakerOppdateringer = oppdaterteDeltakereResponses.map { it.toDeltakerOppdatering() }
         deltakerService.oppdaterDeltakere(deltakerOppdateringer)
 
         return oppdaterteDeltakereResponses.toTiltakskoordinatorsDeltakere()
     }
 
-    suspend fun giAvslag(
-        request: AvslagRequest,
-        endretAv: String,
-    ): TiltakskoordinatorsDeltaker {
+    suspend fun giAvslag(request: AvslagRequest, endretAv: String): TiltakskoordinatorsDeltaker {
         val deltakeroppdatering = tiltaksKoordinatorClient.giAvslag(request, endretAv)
 
         deltakerService.oppdaterDeltaker(deltakeroppdatering)
@@ -115,15 +86,13 @@ class TiltakskoordinatorService(
         return deltakere.toTiltakskoordinatorsDeltaker()
     }
 
-    fun TiltakskoordinatorsDeltaker.skalSkjules() =
-        status.type in
-            listOf(
-                DeltakerStatus.Type.KLADD,
-                DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-                DeltakerStatus.Type.AVBRUTT_UTKAST,
-                DeltakerStatus.Type.FEILREGISTRERT,
-                DeltakerStatus.Type.PABEGYNT_REGISTRERING,
-            )
+    fun TiltakskoordinatorsDeltaker.skalSkjules() = status.type in listOf(
+        DeltakerStatus.Type.KLADD,
+        DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        DeltakerStatus.Type.AVBRUTT_UTKAST,
+        DeltakerStatus.Type.FEILREGISTRERT,
+        DeltakerStatus.Type.PABEGYNT_REGISTRERING,
+    )
 
     private suspend fun Deltaker.toTiltakskoordinatorsDeltaker() = listOf(this).toTiltakskoordinatorsDeltaker().first()
 

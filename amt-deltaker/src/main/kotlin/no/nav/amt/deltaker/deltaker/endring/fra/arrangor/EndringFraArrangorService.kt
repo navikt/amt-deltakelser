@@ -24,12 +24,11 @@ class EndringFraArrangorService(
         val eksisterendeDeltaker = deltakerRepository.get(endringFraArrangor.deltakerId).getOrThrow()
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
-        val endretDeltaker =
-            when (endringFraArrangor.endring) {
-                is EndringFraArrangor.LeggTilOppstartsdato -> {
-                    endretDeltaker(eksisterendeDeltaker, endringFraArrangor.endring)
-                }
+        val endretDeltaker = when (endringFraArrangor.endring) {
+            is EndringFraArrangor.LeggTilOppstartsdato -> {
+                endretDeltaker(eksisterendeDeltaker, endringFraArrangor.endring)
             }
+        }
 
         endretDeltaker.onSuccess { innerDeltaker ->
             return deltakerService.upsertAndProduceDeltaker(
@@ -50,14 +49,8 @@ class EndringFraArrangorService(
         return eksisterendeDeltaker
     }
 
-    private fun endretDeltaker(
-        deltaker: Deltaker,
-        endring: EndringFraArrangor.Endring,
-    ): Result<Deltaker> {
-        fun endreDeltaker(
-            erEndret: Boolean,
-            block: () -> Deltaker,
-        ) = if (erEndret) {
+    private fun endretDeltaker(deltaker: Deltaker, endring: EndringFraArrangor.Endring): Result<Deltaker> {
+        fun endreDeltaker(erEndret: Boolean, block: () -> Deltaker) = if (erEndret) {
             Result.success(block())
         } else {
             Result.failure(IllegalStateException("Ingen gyldig deltakerendring"))
@@ -69,10 +62,7 @@ class EndringFraArrangorService(
                     deltaker.endreDeltakersOppstart(
                         startdato = endring.startdato,
                         sluttdato = endring.sluttdato,
-                        deltakelsesmengder =
-                            deltakerHistorikkService
-                                .getForDeltaker(deltaker.id)
-                                .toDeltakelsesmengder(),
+                        deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
                     )
                 }
             }

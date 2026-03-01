@@ -56,11 +56,10 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
-        val request =
-            DeltakereRequest(
-                deltakere = listOf(deltaker.id),
-                endretAv = "Nav Veiledersen",
-            )
+        val request = DeltakereRequest(
+            deltakere = listOf(deltaker.id),
+            endretAv = "Nav Veiledersen",
+        )
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/sett-paa-venteliste") { postRequest(request) }.apply {
@@ -76,11 +75,10 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
-        val request =
-            DeltakereRequest(
-                deltakere = listOf(deltaker.id),
-                endretAv = "Nav Veiledersen",
-            )
+        val request = DeltakereRequest(
+            deltakere = listOf(deltaker.id),
+            endretAv = "Nav Veiledersen",
+        )
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/tildel-plass") { postRequest(request) }.apply {
@@ -95,36 +93,33 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
         private val deltaker = lagDeltaker()
         private val historikk = emptyList<DeltakerHistorikk>()
 
-        private val delMedArrangorRequest =
-            DelMedArrangorRequest(
-                endretAv = "koordinator",
-                deltakerIder = listOf(UUID.randomUUID()),
-            )
+        private val delMedArrangorRequest = DelMedArrangorRequest(
+            endretAv = "koordinator",
+            deltakerIder = listOf(UUID.randomUUID()),
+        )
 
-        private fun Deltaker.toDeltakerOppdateringResult() =
-            DeltakerOppdateringResult(
-                deltaker = this,
-                isSuccess = true,
-                exception = null,
-            )
+        private fun Deltaker.toDeltakerOppdateringResult() = DeltakerOppdateringResult(
+            deltaker = this,
+            isSuccess = true,
+            exception = null,
+        )
 
         private fun Deltaker.toDeltakerResponse(
             historikk: List<DeltakerHistorikk>,
             feilkode: DeltakerOppdateringFeilkode? = null,
-        ): DeltakerOppdateringResponse =
-            DeltakerOppdateringResponse(
-                id = id,
-                startdato = startdato,
-                sluttdato = sluttdato,
-                dagerPerUke = dagerPerUke,
-                deltakelsesprosent = deltakelsesprosent,
-                bakgrunnsinformasjon = bakgrunnsinformasjon,
-                deltakelsesinnhold = deltakelsesinnhold,
-                status = status,
-                historikk = historikk,
-                sistEndret = sistEndret,
-                erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-                feilkode = feilkode,
-            )
+        ): DeltakerOppdateringResponse = DeltakerOppdateringResponse(
+            id = id,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            dagerPerUke = dagerPerUke,
+            deltakelsesprosent = deltakelsesprosent,
+            bakgrunnsinformasjon = bakgrunnsinformasjon,
+            deltakelsesinnhold = deltakelsesinnhold,
+            status = status,
+            historikk = historikk,
+            sistEndret = sistEndret,
+            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+            feilkode = feilkode,
+        )
     }
 }

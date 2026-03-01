@@ -37,34 +37,30 @@ class DeltakerKafkaPayloadBuilderTest {
 
     val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
     val vurderingRepository = mockk<VurderingRepository>()
-    val deltakerKafkaPayloadBuilder =
-        DeltakerKafkaPayloadBuilder(
-            navAnsattRepository = navAnsattRepository,
-            navEnhetRepository = navEnhetRepository,
-            deltakerHistorikkService = deltakerHistorikkService,
-            vurderingRepository = vurderingRepository,
-        )
+    val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
+        vurderingRepository = vurderingRepository,
+    )
     val veileder: NavAnsatt = lagNavAnsatt()
     val navEnhet: NavEnhet = lagNavEnhet()
 
-    var deltaker: Deltaker =
-        lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            startdato = LocalDate.now().minusMonths(1),
-            sluttdato = LocalDate.now().plusMonths(3),
-            deltakerliste =
-                lagDeltakerliste(
-                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
-                ),
-            navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
-        )
-    var vedtak: Vedtak =
-        lagVedtak(
-            deltakerVedVedtak = deltaker,
-            fattet = deltaker.sistEndret.minusMonths(3),
-            opprettetAv = veileder,
-            opprettetAvEnhet = navEnhet,
-        )
+    var deltaker: Deltaker = lagDeltaker(
+        status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        startdato = LocalDate.now().minusMonths(1),
+        sluttdato = LocalDate.now().plusMonths(3),
+        deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+        ),
+        navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
+    )
+    var vedtak: Vedtak = lagVedtak(
+        deltakerVedVedtak = deltaker,
+        fattet = deltaker.sistEndret.minusMonths(3),
+        opprettetAv = veileder,
+        opprettetAvEnhet = navEnhet,
+    )
     val historikk: MutableList<DeltakerHistorikk> = mutableListOf(DeltakerHistorikk.Vedtak(vedtak))
 
     @BeforeEach
@@ -76,58 +72,52 @@ class DeltakerKafkaPayloadBuilderTest {
     fun `buildDeltakerV1Record - deltaker med deltakelsesmengder - v1 har deltakelsesmengder`() {
         deltakerKafkaPayloadBuilder
             .buildDeltakerV1Record(deltaker)
-            .deltakelsesmengder shouldBe
-            historikk.toDeltakelsesmengder().map {
-                DeltakerV1Dto.DeltakelsesmengdeDto(
-                    it.deltakelsesprosent,
-                    it.dagerPerUke,
-                    it.gyldigFra,
-                    it.opprettet,
-                )
-            }
+            .deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
+            DeltakerV1Dto.DeltakelsesmengdeDto(
+                it.deltakelsesprosent,
+                it.dagerPerUke,
+                it.gyldigFra,
+                it.opprettet,
+            )
+        }
     }
 
     @Test
     fun `buildDeltakerV1Record - deltaker med pa tiltak som ikke skal ha deltakelsesmengder - v1 har ikke deltakelsesmengder`(): Unit =
         Tiltakskode.entries
             .filter {
-                it !in
-                    setOf(
-                        Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                        Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                        Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                        Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                        Tiltakskode.STUDIESPESIALISERING,
-                        Tiltakskode.FAG_OG_YRKESOPPLAERING,
-                        Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-                    )
+                it !in setOf(
+                    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                    Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                    Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                    Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                    Tiltakskode.STUDIESPESIALISERING,
+                    Tiltakskode.FAG_OG_YRKESOPPLAERING,
+                    Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+                )
             }.forEach {
-                val deltaker2 =
-                    deltaker.copy(
-                        deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
-                    )
+                val deltaker2 = deltaker.copy(
+                    deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
+                )
                 deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
             }
 
     @Test
     fun `buildDeltakerV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() {
         val nyStartdato = deltaker.startdato!!.plusMonths(1)
-        val deltakerMedStartDatoFrem =
-            deltaker
-                .copy(startdato = nyStartdato)
+        val deltakerMedStartDatoFrem = deltaker
+            .copy(startdato = nyStartdato)
 
-        val endring =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endring =
-                    DeltakerEndring.Endring.EndreStartdato(
-                        startdato = nyStartdato,
-                        sluttdato = deltaker.sluttdato,
-                        begrunnelse = null,
-                    ),
-                endretAv = veileder.id,
-                endretAvEnhet = navEnhet.id,
-            )
+        val endring = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreStartdato(
+                startdato = nyStartdato,
+                sluttdato = deltaker.sluttdato,
+                begrunnelse = null,
+            ),
+            endretAv = veileder.id,
+            endretAvEnhet = navEnhet.id,
+        )
         historikk.add(DeltakerHistorikk.Endring(endring))
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
@@ -142,58 +132,51 @@ class DeltakerKafkaPayloadBuilderTest {
     fun `buildDeltakerEksternV1Record - deltaker med deltakelsesmengder - eksternV1 har deltakelsesmengder`() {
         deltakerKafkaPayloadBuilder
             .buildDeltakerEksternV1Record(deltaker)
-            .deltakelsesmengder shouldBe
-            historikk.toDeltakelsesmengder().map {
-                DeltakerEksternV1Dto.DeltakelsesmengdeDto(
-                    it.deltakelsesprosent,
-                    it.dagerPerUke,
-                    it.gyldigFra,
-                    it.opprettet,
-                )
-            }
+            .deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
+            DeltakerEksternV1Dto.DeltakelsesmengdeDto(
+                it.deltakelsesprosent,
+                it.dagerPerUke,
+                it.gyldigFra,
+                it.opprettet,
+            )
+        }
     }
 
     @Test
-    fun `buildDeltakerEksternV1Record - tiltak uten deltakelsesmengder - har ikke deltakelsesmengder`(): Unit =
-        Tiltakskode.entries
-            .filter {
-                it !in
-                    setOf(
-                        Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                        Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                        Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                        Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                        Tiltakskode.STUDIESPESIALISERING,
-                        Tiltakskode.FAG_OG_YRKESOPPLAERING,
-                        Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-                    )
-            }.forEach {
-                val deltaker2 =
-                    deltaker.copy(
-                        deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
-                    )
-                deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
-            }
+    fun `buildDeltakerEksternV1Record - tiltak uten deltakelsesmengder - har ikke deltakelsesmengder`(): Unit = Tiltakskode.entries
+        .filter {
+            it !in setOf(
+                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                Tiltakskode.STUDIESPESIALISERING,
+                Tiltakskode.FAG_OG_YRKESOPPLAERING,
+                Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+            )
+        }.forEach {
+            val deltaker2 = deltaker.copy(
+                deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
+            )
+            deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
+        }
 
     @Test
     fun `buildDeltakerEksternV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() {
         val nyStartdato = deltaker.startdato!!.plusMonths(1)
-        val deltakerMedStartDatoFrem =
-            deltaker
-                .copy(startdato = nyStartdato)
+        val deltakerMedStartDatoFrem = deltaker
+            .copy(startdato = nyStartdato)
 
-        val endring =
-            lagDeltakerEndring(
-                deltakerId = deltaker.id,
-                endring =
-                    DeltakerEndring.Endring.EndreStartdato(
-                        startdato = nyStartdato,
-                        sluttdato = deltaker.sluttdato,
-                        begrunnelse = null,
-                    ),
-                endretAv = veileder.id,
-                endretAvEnhet = navEnhet.id,
-            )
+        val endring = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreStartdato(
+                startdato = nyStartdato,
+                sluttdato = deltaker.sluttdato,
+                begrunnelse = null,
+            ),
+            endretAv = veileder.id,
+            endretAvEnhet = navEnhet.id,
+        )
         historikk.add(DeltakerHistorikk.Endring(endring))
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 

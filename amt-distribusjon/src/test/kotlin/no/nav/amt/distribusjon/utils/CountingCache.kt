@@ -8,10 +8,7 @@ class CountingCache<K : Any, V>(
 ) : Cache<K, V> by delegate {
     var putCount = 0
 
-    override fun put(
-        key: K,
-        value: V & Any,
-    ) {
+    override fun put(key: K, value: V & Any) {
         putCount++
         delegate.put(key, value)
     }

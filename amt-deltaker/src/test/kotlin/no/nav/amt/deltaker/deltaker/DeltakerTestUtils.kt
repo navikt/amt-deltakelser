@@ -9,10 +9,7 @@ import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.testing.shouldBeCloseTo
 
 object DeltakerTestUtils {
-    fun sammenlignDeltakerEndring(
-        first: DeltakerEndring,
-        second: DeltakerEndring,
-    ) {
+    fun sammenlignDeltakerEndring(first: DeltakerEndring, second: DeltakerEndring) {
         first.id shouldBe second.id
         first.deltakerId shouldBe second.deltakerId
         first.endring shouldBe second.endring
@@ -21,10 +18,7 @@ object DeltakerTestUtils {
         first.endret shouldBeCloseTo second.endret
     }
 
-    fun sammenlignVedtak(
-        first: Vedtak,
-        second: Vedtak,
-    ) {
+    fun sammenlignVedtak(first: Vedtak, second: Vedtak) {
         first.id shouldBe second.id
         first.deltakerId shouldBe second.deltakerId
         first.fattet shouldBeCloseTo second.fattet
@@ -39,10 +33,7 @@ object DeltakerTestUtils {
         first.sistEndretAvEnhet shouldBe second.sistEndretAvEnhet
     }
 
-    fun sammenlignDeltakereVedVedtak(
-        first: DeltakerVedVedtak,
-        second: DeltakerVedVedtak,
-    ) {
+    fun sammenlignDeltakereVedVedtak(first: DeltakerVedVedtak, second: DeltakerVedVedtak) {
         first.id shouldBe second.id
         first.startdato shouldBe second.startdato
         first.sluttdato shouldBe second.sluttdato
@@ -59,10 +50,7 @@ object DeltakerTestUtils {
         first.status.opprettet shouldBeCloseTo second.status.opprettet
     }
 
-    fun sammenlignHistorikk(
-        first: DeltakerHistorikk,
-        second: DeltakerHistorikk,
-    ) {
+    fun sammenlignHistorikk(first: DeltakerHistorikk, second: DeltakerHistorikk) {
         when (first) {
             is DeltakerHistorikk.Endring -> {
                 second as DeltakerHistorikk.Endring

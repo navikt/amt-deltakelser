@@ -41,30 +41,27 @@ class TestdataServiceTest {
     private val navEnhetService = NavEnhetService(navEnhetRepository, mockAmtPersonServiceClient())
 
     private val deltakerRepository = DeltakerRepository()
-    private val deltakerService =
-        DeltakerService(
-            deltakerRepository = deltakerRepository,
-            amtDeltakerClient = mockAmtDeltakerClient(),
-            navEnhetService = navEnhetService,
-            forslagRepository = mockk(),
-        )
+    private val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        amtDeltakerClient = mockAmtDeltakerClient(),
+        navEnhetService = navEnhetService,
+        forslagRepository = mockk(),
+    )
     private val deltakerlisteService = DeltakerlisteService(DeltakerlisteRepository())
-    private var pameldingService =
-        PameldingService(
-            deltakerRepository = deltakerRepository,
-            deltakerService = deltakerService,
-            navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
-            navEnhetService = navEnhetService,
-            paameldingClient = mockPaameldingClient(),
-        )
+    private var pameldingService = PameldingService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
+        navEnhetService = navEnhetService,
+        paameldingClient = mockPaameldingClient(),
+    )
     private val arrangorMeldingProducer = mockk<ArrangorMeldingProducer>(relaxed = true)
-    private val testdataService =
-        TestdataService(
-            pameldingService = pameldingService,
-            deltakerRepository = deltakerRepository,
-            deltakerlisteService = deltakerlisteService,
-            arrangorMeldingProducer = arrangorMeldingProducer,
-        )
+    private val testdataService = TestdataService(
+        pameldingService = pameldingService,
+        deltakerRepository = deltakerRepository,
+        deltakerlisteService = deltakerlisteService,
+        arrangorMeldingProducer = arrangorMeldingProducer,
+    )
 
     companion object {
         @RegisterExtension
@@ -74,11 +71,10 @@ class TestdataServiceTest {
     @Test
     fun `opprettDeltakelse - deltaker finnes ikke, gyldig request - oppretter ny deltaker`() {
         val arrangor = lagArrangor()
-        val deltakerliste =
-            TestData.lagDeltakerliste(
-                arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
-            )
+        val deltakerliste = TestData.lagDeltakerliste(
+            arrangor = arrangor,
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+        )
         val opprettetAv = TestData.lagNavAnsatt(navIdent = TESTVEILEDER)
         val opprettetAvEnhet = TestData.lagNavEnhet(enhetsnummer = TESTENHET)
 
@@ -87,39 +83,34 @@ class TestdataServiceTest {
 
         val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
 
-        val opprettTestDeltakelseRequest =
-            OpprettTestDeltakelseRequest(
-                personident = navBruker.personident,
-                deltakerlisteId = deltakerliste.id,
-                startdato = LocalDate.now().minusDays(1),
-                deltakelsesprosent = 60,
-                dagerPerUke = 3,
-            )
+        val opprettTestDeltakelseRequest = OpprettTestDeltakelseRequest(
+            personident = navBruker.personident,
+            deltakerlisteId = deltakerliste.id,
+            startdato = LocalDate.now().minusDays(1),
+            deltakelsesprosent = 60,
+            dagerPerUke = 3,
+        )
 
-        val kladd =
-            TestData.lagDeltakerKladd(
-                deltakerliste = deltakerliste,
-                navBruker = navBruker,
-            )
-        val godkjentUtkast =
-            kladd.copy(
-                dagerPerUke = opprettTestDeltakelseRequest.dagerPerUke?.toFloat(),
-                deltakelsesprosent = opprettTestDeltakelseRequest.deltakelsesprosent.toFloat(),
-                bakgrunnsinformasjon = null,
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                kanEndres = true,
-                deltakelsesinnhold =
-                    Deltakelsesinnhold(
-                        ledetekst = deltakerliste.tiltak.innhold!!.ledetekst,
-                        innhold =
-                            listOf(
-                                deltakerliste.tiltak.innhold!!
-                                    .innholdselementer
-                                    .first()
-                                    .toInnhold(valgt = true),
-                            ),
-                    ),
-            )
+        val kladd = TestData.lagDeltakerKladd(
+            deltakerliste = deltakerliste,
+            navBruker = navBruker,
+        )
+        val godkjentUtkast = kladd.copy(
+            dagerPerUke = opprettTestDeltakelseRequest.dagerPerUke?.toFloat(),
+            deltakelsesprosent = opprettTestDeltakelseRequest.deltakelsesprosent.toFloat(),
+            bakgrunnsinformasjon = null,
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            kanEndres = true,
+            deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = deltakerliste.tiltak.innhold!!.ledetekst,
+                innhold = listOf(
+                    deltakerliste.tiltak.innhold!!
+                        .innholdselementer
+                        .first()
+                        .toInnhold(valgt = true),
+                ),
+            ),
+        )
 
         TestRepository.insert(deltakerliste)
         MockResponseHandler.addOpprettKladdResponse(kladd)
@@ -146,8 +137,7 @@ class TestdataServiceTest {
                         it is EndringFraArrangor &&
                             it.deltakerId == deltaker.id &&
                             it.opprettetAvArrangorAnsattId.toString() == TESTARRANGORANSATT &&
-                            it.endring ==
-                            EndringFraArrangor.LeggTilOppstartsdato(
+                            it.endring == EndringFraArrangor.LeggTilOppstartsdato(
                                 startdato = opprettTestDeltakelseRequest.startdato,
                                 sluttdato = opprettTestDeltakelseRequest.startdato.plusMonths(3),
                             )

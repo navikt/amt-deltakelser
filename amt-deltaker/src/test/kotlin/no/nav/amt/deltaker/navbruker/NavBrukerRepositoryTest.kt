@@ -39,13 +39,12 @@ class NavBrukerRepositoryTest {
         val bruker = TestData.lagNavBruker()
         TestRepository.insert(bruker)
 
-        val oppdatertBruker =
-            bruker.copy(
-                personident = TestData.randomIdent(),
-                fornavn = "Nytt Fornavn",
-                mellomnavn = null,
-                etternavn = "Nytt Etternavn",
-            )
+        val oppdatertBruker = bruker.copy(
+            personident = TestData.randomIdent(),
+            fornavn = "Nytt Fornavn",
+            mellomnavn = null,
+            etternavn = "Nytt Etternavn",
+        )
         navBrukerRepository.upsert(oppdatertBruker).getOrNull() shouldBe oppdatertBruker
         navBrukerRepository.get(bruker.personId).getOrNull() shouldBe oppdatertBruker
     }

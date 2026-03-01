@@ -13,10 +13,9 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 
 fun Application.configureAuthentication(environment: Environment) {
-    val jwkProvider =
-        JwkProviderBuilder(URI(environment.azureJwkKeysUrl).toURL())
-            .cached(5, 12, TimeUnit.HOURS)
-            .build()
+    val jwkProvider = JwkProviderBuilder(URI(environment.azureJwkKeysUrl).toURL())
+        .cached(5, 12, TimeUnit.HOURS)
+        .build()
 
     install(Authentication) {
         jwt("SYSTEM") {

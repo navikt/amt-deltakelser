@@ -23,13 +23,12 @@ data class KladdRequest(
      *
      * Disse reglene gjelder kun for kladd.
      */
-    fun sanitize() =
-        KladdRequest(
-            innhold = innhold.sanitize(),
-            bakgrunnsinformasjon = bakgrunnsinformasjon?.sanitize(),
-            deltakelsesprosent = deltakelsesprosent?.clamp(MIN_DELTAKELSESPROSENT, MAX_DELTAKELSESPROSENT),
-            dagerPerUke = dagerPerUke?.clamp(MIN_DAGER_PER_UKE, MAX_DAGER_PER_UKE),
-        )
+    fun sanitize() = KladdRequest(
+        innhold = innhold.sanitize(),
+        bakgrunnsinformasjon = bakgrunnsinformasjon?.sanitize(),
+        deltakelsesprosent = deltakelsesprosent?.clamp(MIN_DELTAKELSESPROSENT, MAX_DELTAKELSESPROSENT),
+        dagerPerUke = dagerPerUke?.clamp(MIN_DAGER_PER_UKE, MAX_DAGER_PER_UKE),
+    )
 
     fun valider(deltaker: Deltaker) =
         validerKladdInnhold(this.innhold, deltaker.deltakerliste.tiltak.innhold, deltaker.deltakerliste.tiltak.tiltakskode)
@@ -45,24 +44,20 @@ private fun String.sanitize(): String {
     }
 }
 
-private fun List<InnholdRequest>.sanitize() =
-    this.map {
-        val gyldigLengde = 0..<MAX_ANNET_INNHOLD_LENGDE * 2
-        if (
-            it.innholdskode == annetInnholdselement.innholdskode &&
-            it.beskrivelse != null &&
-            it.beskrivelse.length > gyldigLengde.max()
-        ) {
-            it.copy(beskrivelse = it.beskrivelse.slice(gyldigLengde))
-        } else {
-            it
-        }
+private fun List<InnholdRequest>.sanitize() = this.map {
+    val gyldigLengde = 0..<MAX_ANNET_INNHOLD_LENGDE * 2
+    if (
+        it.innholdskode == annetInnholdselement.innholdskode &&
+        it.beskrivelse != null &&
+        it.beskrivelse.length > gyldigLengde.max()
+    ) {
+        it.copy(beskrivelse = it.beskrivelse.slice(gyldigLengde))
+    } else {
+        it
     }
+}
 
-private fun Int.clamp(
-    min: Int,
-    max: Int,
-) = when {
+private fun Int.clamp(min: Int, max: Int) = when {
     this < min -> min
     this > max -> max
     else -> this

@@ -15,13 +15,12 @@ data class TiltakshendelseDto(
     val avsender: String = "KOMET",
 )
 
-fun Tiltakshendelse.toDto() =
-    TiltakshendelseDto(
-        id = id,
-        fnr = personident,
-        aktiv = aktiv,
-        tekst = tekst,
-        lenke = lenke,
-        tiltakstype = tiltakskode,
-        opprettet = opprettet,
-    )
+fun Tiltakshendelse.toDto() = TiltakshendelseDto(
+    id = id,
+    fnr = personident,
+    aktiv = aktiv,
+    tekst = tekst,
+    lenke = lenke,
+    tiltakstype = tiltakskode,
+    opprettet = opprettet,
+)

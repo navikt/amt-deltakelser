@@ -26,21 +26,17 @@ class DeltakerlisteConsumer(
     private val deltakerService: DeltakerService,
     private val unleashToggle: CommonUnleashToggle,
 ) : Consumer<UUID, String?> {
-    private val consumer =
-        buildManagedKafkaConsumer(
-            topic = Environment.DELTAKERLISTE_V2_TOPIC,
-            consumeFunc = ::consume,
-        )
+    private val consumer = buildManagedKafkaConsumer(
+        topic = Environment.DELTAKERLISTE_V2_TOPIC,
+        consumeFunc = ::consume,
+    )
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun start() = consumer.start()
 
     override suspend fun close() = consumer.close()
 
-    suspend fun consume(
-        key: UUID,
-        value: String?,
-    ) = if (value == null) {
+    suspend fun consume(key: UUID, value: String?) = if (value == null) {
         deltakerlisteRepository.delete(key)
     } else {
         handterDeltakerliste(objectMapper.readValue(value))
@@ -56,11 +52,10 @@ class DeltakerlisteConsumer(
         val arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
         val tiltakstype = tiltakstypeRepository.get(deltakerlistePayload.tiltakskode).getOrThrow()
 
-        val deltakerliste =
-            deltakerlistePayload.toModel(
-                { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
-                { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
-            )
+        val deltakerliste = deltakerlistePayload.toModel(
+            { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
+            { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
+        )
 
         val eksisterendeDeltakerliste = deltakerlisteRepository.get(deltakerlistePayload.id).getOrNull()
 
@@ -83,10 +78,7 @@ class DeltakerlisteConsumer(
         deltakerlisteRepository.upsert(deltakerliste)
     }
 
-    suspend fun handterDeltakere(
-        deltakerlisteFromPayload: Deltakerliste,
-        eksisterendeDeltakerliste: Deltakerliste,
-    ) {
+    suspend fun handterDeltakere(deltakerlisteFromPayload: Deltakerliste, eksisterendeDeltakerliste: Deltakerliste) {
         if (deltakerlisteFromPayload.erAvlystEllerAvbrutt() && eksisterendeDeltakerliste.status != deltakerlisteFromPayload.status) {
             deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerlisteFromPayload)
         }

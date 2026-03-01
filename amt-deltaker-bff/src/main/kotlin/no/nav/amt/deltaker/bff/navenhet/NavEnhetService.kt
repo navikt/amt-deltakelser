@@ -44,10 +44,7 @@ class NavEnhetService(
         }
     }
 
-    private suspend fun hentManglendeEnheter(
-        ider: List<UUID>,
-        lagredeEnheter: Map<UUID, NavEnhet>,
-    ): List<NavEnhet> {
+    private suspend fun hentManglendeEnheter(ider: List<UUID>, lagredeEnheter: Map<UUID, NavEnhet>): List<NavEnhet> {
         val manglendeEnheter = ider.toSet() - lagredeEnheter.keys
         return manglendeEnheter.map { hentEllerOpprettEnhet(it) }
     }

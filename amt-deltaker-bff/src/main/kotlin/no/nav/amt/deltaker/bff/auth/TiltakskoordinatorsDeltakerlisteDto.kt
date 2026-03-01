@@ -8,10 +8,7 @@ data class TiltakskoordinatorsDeltakerlisteDto(
     val gjennomforingId: UUID,
 ) {
     companion object {
-        fun fromModel(
-            model: TiltakskoordinatorDeltakerlisteTilgang,
-            navIdent: String,
-        ) = TiltakskoordinatorsDeltakerlisteDto(
+        fun fromModel(model: TiltakskoordinatorDeltakerlisteTilgang, navIdent: String) = TiltakskoordinatorsDeltakerlisteDto(
             id = model.id,
             navIdent = navIdent,
             gjennomforingId = model.deltakerlisteId,

@@ -84,51 +84,49 @@ fun Application.module() {
 
     Database.init(config = environment.databaseConfig)
 
-    val httpClient =
-        HttpClient(CIO) {
-            engine {
-                endpoint {
-                    keepAliveTime = 0
-                }
-            }
-
-            install(ContentNegotiation) {
-                jackson { applicationConfig() }
-            }
-
-            install(HttpTimeout) {
-                requestTimeoutMillis = HTTP_REQUEST_TIMEOUT_MILLIS
-                connectTimeoutMillis = HTTP_CONNECT_TIMEOUT_MILLIS
-                socketTimeoutMillis = HTTP_SOCKET_TIMEOUT_MILLIS
-            }
-
-            install(HttpRequestRetry) {
-                retryOnServerErrors(maxRetries = 3)
-                retryOnException(maxRetries = 3, retryOnTimeout = true)
-                exponentialDelay()
-
-                retryIf { _, response ->
-                    !response.status.isSuccess()
-                }
-
-                retryOnExceptionIf { _, cause ->
-                    when (cause) {
-                        is java.io.EOFException,
-                        is java.net.ConnectException,
-                        is java.net.SocketTimeoutException,
-                        is io.ktor.client.plugins.HttpRequestTimeoutException,
-                        -> true
-
-                        else -> false
-                    }
-                }
+    val httpClient = HttpClient(CIO) {
+        engine {
+            endpoint {
+                keepAliveTime = 0
             }
         }
 
-    val leaderProvider =
-        LeaderProvider { path ->
-            httpClient.get(path).body<Leader>()
+        install(ContentNegotiation) {
+            jackson { applicationConfig() }
         }
+
+        install(HttpTimeout) {
+            requestTimeoutMillis = HTTP_REQUEST_TIMEOUT_MILLIS
+            connectTimeoutMillis = HTTP_CONNECT_TIMEOUT_MILLIS
+            socketTimeoutMillis = HTTP_SOCKET_TIMEOUT_MILLIS
+        }
+
+        install(HttpRequestRetry) {
+            retryOnServerErrors(maxRetries = 3)
+            retryOnException(maxRetries = 3, retryOnTimeout = true)
+            exponentialDelay()
+
+            retryIf { _, response ->
+                !response.status.isSuccess()
+            }
+
+            retryOnExceptionIf { _, cause ->
+                when (cause) {
+                    is java.io.EOFException,
+                    is java.net.ConnectException,
+                    is java.net.SocketTimeoutException,
+                    is io.ktor.client.plugins.HttpRequestTimeoutException,
+                    -> true
+
+                    else -> false
+                }
+            }
+        }
+    }
+
+    val leaderProvider = LeaderProvider { path ->
+        httpClient.get(path).body<Leader>()
+    }
 
     val leaderElection = LeaderElectionClient(leaderProvider, environment.leaderElectorUrl)
     val jobManager = JobManager(leaderElection::isLeader, ::isReady)
@@ -151,10 +149,9 @@ fun Application.module() {
 
     val digitalBrukerService = DigitalBrukerService(dokdistkanalClient, veilarboppfolgingClient)
 
-    val kafkaProducer =
-        Producer<String, String>(
-            if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
-        )
+    val kafkaProducer = Producer<String, String>(
+        if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
+    )
 
     val outboxService = OutboxService()
     val outboxProcessor = OutboxProcessor(outboxService, jobManager, kafkaProducer)
@@ -162,23 +159,21 @@ fun Application.module() {
     val hendelseRepository = HendelseRepository()
     val varselRepository = VarselRepository()
 
-    val varselService =
-        VarselService(
-            varselRepository = VarselRepository(),
-            hendelseRepository = hendelseRepository,
-            outboxHandler = VarselOutboxHandler(outboxService),
-        )
+    val varselService = VarselService(
+        varselRepository = VarselRepository(),
+        hendelseRepository = hendelseRepository,
+        outboxHandler = VarselOutboxHandler(outboxService),
+    )
 
-    val journalforingService =
-        JournalforingService(
-            JournalforingstatusRepository(),
-            amtPersonClient,
-            pdfgenClient,
-            veilarboppfolgingClient,
-            dokarkivClient,
-            dokdistfordelingClient,
-            amtDeltakerClient,
-        )
+    val journalforingService = JournalforingService(
+        JournalforingstatusRepository(),
+        amtPersonClient,
+        pdfgenClient,
+        veilarboppfolgingClient,
+        dokarkivClient,
+        dokdistfordelingClient,
+        amtDeltakerClient,
+    )
 
     val tiltakshendelseService =
         TiltakshendelseService(
@@ -187,19 +182,18 @@ fun Application.module() {
             tiltakshendelseProducer = TiltakshendelseProducer(outboxService),
         )
 
-    val consumers =
-        listOf(
-            HendelseConsumer(
-                varselService,
-                journalforingService,
-                tiltakshendelseService,
-                hendelseRepository,
-                dokdistkanalClient,
-                veilarboppfolgingClient,
-            ),
-            VarselHendelseConsumer(varselRepository, varselService),
-            ArrangorMeldingConsumer(tiltakshendelseService),
-        )
+    val consumers = listOf(
+        HendelseConsumer(
+            varselService,
+            journalforingService,
+            tiltakshendelseService,
+            hendelseRepository,
+            dokdistkanalClient,
+            veilarboppfolgingClient,
+        ),
+        VarselHendelseConsumer(varselRepository, varselService),
+        ArrangorMeldingConsumer(tiltakshendelseService),
+    )
     consumers.forEach { it.start() }
 
     configureAuthentication(environment)
