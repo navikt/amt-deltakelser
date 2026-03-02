@@ -179,10 +179,18 @@ class DeltakerLaaseSvcLegacyTest {
         @Test
         fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste - låser den eldste`() {
             // Arrange
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    gyldigFra = LocalDateTime.now().minusDays(10),
+                ),
+            )
             TestRepository.insert(deltaker)
 
-            val deltaker2 = lagDeltaker(navBruker = deltaker.navBruker, deltakerliste = deltaker.deltakerliste)
+            val deltaker2 = lagDeltaker(
+                navBruker = deltaker.navBruker,
+                deltakerliste = deltaker.deltakerliste,
+            )
             TestRepository.insert(deltaker2)
 
             // Act
