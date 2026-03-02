@@ -49,7 +49,7 @@ class ForslagRepository {
                 endring,
                 status
             FROM forslag 
-            WHERE deltaker_id = ANY(:deltaker_ider::uuid[])
+            WHERE deltaker_id = ANY(:deltaker_ider)
             """.trimIndent(),
             mapOf("deltaker_ider" to deltakerIder.toTypedArray()),
         )
