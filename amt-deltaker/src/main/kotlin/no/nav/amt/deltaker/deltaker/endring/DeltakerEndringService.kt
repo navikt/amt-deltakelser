@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
+import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -45,15 +46,15 @@ class DeltakerEndringService(
     fun upsertEndring(
         endringRequest: EndringRequest,
         endringResultat: VellykketEndring,
+        endretAvNavAnsatt: NavAnsatt,
     ): DeltakerEndring {
-        val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
-        val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
+        val navEnhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
 
         val godkjentForslag = endringRequest.getForslagId()?.let { forslagId ->
             forslagService.godkjennForslag(
                 forslagId = forslagId,
-                godkjentAvAnsattId = ansatt.id,
-                godkjentAvEnhetId = enhet.id,
+                godkjentAvAnsattId = endretAvNavAnsatt.id,
+                godkjentAvEnhetId = navEnhet.id,
             )
         }
 
@@ -61,8 +62,8 @@ class DeltakerEndringService(
             id = UUID.randomUUID(),
             deltakerId = endringResultat.deltaker.id,
             endring = endringRequest.toEndring(),
-            endretAv = ansatt.id,
-            endretAvEnhet = enhet.id,
+            endretAv = endretAvNavAnsatt.id,
+            endretAvEnhet = navEnhet.id,
             endret = LocalDateTime.now(),
             forslag = godkjentForslag,
         )
@@ -77,8 +78,8 @@ class DeltakerEndringService(
         hendelseService.hendelseForDeltakerEndring(
             deltakerEndring = deltakerEndring,
             deltaker = endringResultat.deltaker,
-            navAnsatt = ansatt,
-            navEnhet = enhet,
+            navAnsatt = endretAvNavAnsatt,
+            navEnhet = navEnhet,
         )
 
         return deltakerEndring

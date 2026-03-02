@@ -140,6 +140,7 @@ class DeltakerEndringServiceTest {
             deltakerEndringService.upsertEndring(
                 endringResultat = endringResultat,
                 endringRequest = endringsrequest,
+                endretAvNavAnsatt = endretAv,
             )
         }
 
@@ -175,6 +176,7 @@ class DeltakerEndringServiceTest {
                 .upsertEndring(
                     endringResultat = utfall,
                     endringRequest = endringsrequest,
+                    endretAvNavAnsatt = endretAv,
                 ).endring
                 as DeltakerEndring.Endring.EndreInnhold
         }
@@ -213,6 +215,7 @@ class DeltakerEndringServiceTest {
             deltakerEndringService.upsertEndring(
                 endringResultat = utfall,
                 endringRequest = endringsrequest,
+                endretAvNavAnsatt = endretAv,
             )
         }
 
@@ -263,6 +266,7 @@ class DeltakerEndringServiceTest {
             deltakerEndringService.upsertEndring(
                 endringResultat = utfall,
                 endringRequest = endringsrequest,
+                endretAvNavAnsatt = endretAv,
             )
         }
 
@@ -316,6 +320,7 @@ class DeltakerEndringServiceTest {
             deltakerEndringService.upsertEndring(
                 endringResultat = utfall,
                 endringRequest = endringsrequest,
+                endretAvNavAnsatt = endretAv,
             )
         }
 

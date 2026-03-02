@@ -130,6 +130,9 @@ class DeltakerService(
 
         log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
 
+        // hent eller opprett Nav-ansatt før transaksjonen starter
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endringRequest.endretAv)
+
         return upsertAndProduceDeltaker(
             deltaker = updateResult.deltaker,
             erDeltakerSluttdatoEndret = eksisterendeDeltaker.sluttdato != updateResult.deltaker.sluttdato,
@@ -138,6 +141,7 @@ class DeltakerService(
                 deltakerEndringService.upsertEndring(
                     endringRequest = endringRequest,
                     endringResultat = updateResult,
+                    endretAvNavAnsatt = navAnsatt,
                 )
                 deltaker
             },
