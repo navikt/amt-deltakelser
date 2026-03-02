@@ -87,6 +87,17 @@ For å fikse lint-feil og formatere koden i henhold til KtLint-reglene, kjør:
 ./gradlew ktlintFormat build
 ```
 
+For å bygge enkeltmoduler, f.eks. `amt-deltaker-bff`:
+```bash
+./gradlew build -p amt-deltaker-bff
+```
+eller
+```bash
+./gradlew :amt-deltaker-bff:build
+```
+
+Bygging av hele repoet skal normal gå raskt etter første bygg grunnet caching. Ved bumping av versjoner, vil alt bygges på nytt.
+
 ---
 
 ## CI/CD
