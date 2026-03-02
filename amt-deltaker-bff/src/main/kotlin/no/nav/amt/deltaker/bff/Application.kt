@@ -303,7 +303,7 @@ fun Application.module() {
             unleashToggle = unleashToggle,
         ),
         NavAnsattConsumer(navAnsattService),
-        NavBrukerConsumer(navBrukerService, pameldingService),
+        NavBrukerConsumer(navBrukerService, pameldingService, deltakerRepository),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerV2Consumer(
             deltakerRepository,

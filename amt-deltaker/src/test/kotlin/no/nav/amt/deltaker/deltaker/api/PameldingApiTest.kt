@@ -128,7 +128,7 @@ class PameldingApiTest : RouteTestBase() {
     @Test
     fun `post avbryt utkast - har tilgang - returnerer 200`() {
         val deltakerId = UUID.randomUUID()
-        coEvery { pameldingService.avbrytUtkast(deltakerId, any()) } just Runs
+        coEvery { pameldingService.avbrytUtkast(deltakerId, any()) } returns null
 
         withTestApplicationContext { client ->
             client

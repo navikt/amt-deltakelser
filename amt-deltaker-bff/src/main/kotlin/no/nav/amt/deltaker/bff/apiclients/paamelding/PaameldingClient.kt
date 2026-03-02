@@ -10,6 +10,7 @@ import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.AvbrytUtkastResponse
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.OpprettKladdResponse
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.UtkastResponse
 import java.util.UUID
@@ -45,10 +46,9 @@ class PaameldingClient(
         deltakerId: UUID,
         avbruttAv: String,
         avbruttAvEnhet: String,
-    ) {
-        performPost("pamelding/$deltakerId/avbryt", AvbrytUtkastRequest(avbruttAv, avbruttAvEnhet))
-            .failIfNotSuccess("Kunne ikke avbryte utkast i amt-deltaker.")
-    }
+    ): AvbrytUtkastResponse = performPost("pamelding/$deltakerId/avbryt", AvbrytUtkastRequest(avbruttAv, avbruttAvEnhet))
+        .failIfNotSuccess("Kunne ikke avbryte utkast i amt-deltaker.")
+        .body()
 
     suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltakeroppdatering =
         performPost("pamelding/$deltakerId/innbygger/godkjenn-utkast", null)

@@ -48,6 +48,8 @@ class NavBrukerConsumerTest {
         paameldingClient = mockPaameldingClient(),
     )
 
+    private val sut = NavBrukerConsumer(navBrukerService, pameldingService, deltakerRepository)
+
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
@@ -58,12 +60,11 @@ class NavBrukerConsumerTest {
         val navBruker = TestData.lagNavBruker()
         val navVeileder = TestData.lagNavAnsatt(navBruker.navVeilederId!!)
         val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
 
         MockResponseHandler.addNavAnsattResponse(navVeileder)
         MockResponseHandler.addNavEnhetGetResponse(navEnhet)
 
-        navBrukerConsumer.consume(navBruker.personId, navBruker.toDto(navEnhet).toJSON())
+        sut.consume(navBruker.personId, navBruker.toDto(navEnhet).toJSON())
 
         navBrukerService.get(navBruker.personId).getOrNull() shouldBe navBruker
     }
@@ -77,9 +78,7 @@ class NavBrukerConsumerTest {
 
         val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
 
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
-
-        navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
+        sut.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
 
         navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
     }
@@ -103,9 +102,7 @@ class NavBrukerConsumerTest {
             ),
         )
 
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
-
-        navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
+        sut.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
 
         navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
         deltakerRepository.get(kladd.id).getOrNull() shouldBe null

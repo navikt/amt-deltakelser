@@ -28,6 +28,7 @@ data class Deltaker(
     val sistEndret: LocalDateTime,
     val kilde: Kilde,
     val erManueltDeltMedArrangor: Boolean,
+    val kanEndres: Boolean,
     val opprettet: LocalDateTime,
 ) {
     fun harSluttet(): Boolean = status.type in AVSLUTTENDE_STATUSER

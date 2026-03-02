@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.AvbrytUtkastResponse
 
 fun Routing.registerPameldingApi(
     pameldingService: PameldingService,
@@ -64,12 +65,13 @@ fun Routing.registerPameldingApi(
         }
 
         post("/pamelding/{deltakerId}/avbryt") {
-            pameldingService.avbrytUtkast(
+            val deltakerIdSomSkalLaasesOpp = pameldingService.avbrytUtkast(
                 deltakerId = call.getDeltakerId(),
                 avbrytUtkastRequest = call.receive<AvbrytUtkastRequest>(),
             )
 
-            call.respond(HttpStatusCode.OK)
+            // repons kan fjernes når amt-deltaker har tatt over låsing
+            call.respond(AvbrytUtkastResponse(deltakerIdSomSkalLaasesOpp))
         }
 
         delete("/pamelding/{deltakerId}") {

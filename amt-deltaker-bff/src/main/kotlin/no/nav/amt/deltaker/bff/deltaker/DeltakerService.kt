@@ -133,7 +133,7 @@ class DeltakerService(
 
         if (deltakelserSomSkalLaases.any()) {
             laasSingleOrMultipleDeltakelser(
-                iderSomSkalLaases = deltakelserSomSkalLaases.map { it.id },
+                iderSomSkalLaases = deltakelserSomSkalLaases.map { it.id }.toSet(),
                 nyDeltakerId = nyesteDeltakelse.id,
             )
         }
@@ -145,7 +145,7 @@ class DeltakerService(
 
             if (tidligereDeltakelser.any()) {
                 laasSingleOrMultipleDeltakelser(
-                    iderSomSkalLaases = tidligereDeltakelser,
+                    iderSomSkalLaases = tidligereDeltakelser.toSet(),
                     nyDeltakerId = deltakeroppdatering.id,
                 )
             }
@@ -153,7 +153,7 @@ class DeltakerService(
     }
 
     private fun laasSingleOrMultipleDeltakelser(
-        iderSomSkalLaases: List<UUID>,
+        iderSomSkalLaases: Set<UUID>,
         nyDeltakerId: UUID,
     ) {
         if (iderSomSkalLaases.isEmpty()) return

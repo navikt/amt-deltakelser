@@ -20,6 +20,7 @@ import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.AvbrytUtkastResponse
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.OpprettKladdResponse
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
@@ -195,12 +196,15 @@ object MockResponseHandler {
         )
     }
 
-    fun avbrytUtkastResponse(deltaker: Deltaker) {
-        val url = "$AMT_DELTAKER_URL/pamelding/${deltaker.id}/avbryt"
+    fun avbrytUtkastResponse(
+        deltakerId: UUID,
+        forrigeDeltakerId: UUID? = null,
+    ) {
+        val url = "$AMT_DELTAKER_URL/pamelding/$deltakerId/avbryt"
         addResponse(
             url = url,
             method = HttpMethod.Post,
-            responseBody = deltaker.toDeltakeroppdatering(),
+            responseBody = AvbrytUtkastResponse(forrigeDeltakerId),
         )
     }
 

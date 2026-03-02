@@ -114,30 +114,18 @@ class PameldingService(
         avbruttAv: String,
     ) {
         navEnhetService.hentOpprettEllerOppdaterNavEnhet(avbruttAvEnhet)
-        paameldingClient.avbrytUtkast(deltaker.id, avbruttAv, avbruttAvEnhet)
 
-        val forrigeDeltaker = deltakerRepository
-            .getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id)
-            .filter { it.id !== deltaker.id && it.paameldtDato != null }
-            .sortedByDescending { it.paameldtDato }
-            .firstOrNull() ?: return
-
-        if (forrigeDeltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT &&
-            forrigeDeltaker.status.type != DeltakerStatus.Type.AVBRUTT_UTKAST &&
-            forrigeDeltaker.status.aarsak?.type != DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-        ) {
-            laasOppDeltaker(forrigeDeltaker)
-        }
-    }
-
-    private fun laasOppDeltaker(deltaker: Deltaker) {
-        deltakerRepository.settKanEndres(deltaker.id, true)
-        log.info(
-            "Har låst opp tidligere deltaker ${deltaker.id} for endringer pga avbrutt utkast på nåværende deltaker",
+        val avbrytUtkastResponse = paameldingClient.avbrytUtkast(
+            deltakerId = deltaker.id,
+            avbruttAv = avbruttAv,
+            avbruttAvEnhet = avbruttAvEnhet,
         )
-    }
 
-    fun getKladder(personident: String): List<Deltaker> = deltakerRepository.getMany(personident).filter {
-        it.status.type == DeltakerStatus.Type.KLADD
+        avbrytUtkastResponse.deltakerIdSomSkalLaasesOpp?.let { deltakerId ->
+            deltakerRepository.settKanEndres(deltakerId, true)
+            log.info(
+                "Har låst opp tidligere deltaker $deltakerId for endringer pga avbrutt utkast på nåværende deltaker",
+            )
+        }
     }
 }

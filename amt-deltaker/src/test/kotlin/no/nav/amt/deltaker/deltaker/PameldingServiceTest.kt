@@ -597,6 +597,11 @@ class PameldingServiceTest {
         forslagRepository = forslagRepository,
     )
 
+    val deltakerLaaseSvc = DeltakerLaaseSvc(
+        deltakerRepository = deltakerRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+    )
+
     private val pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
@@ -612,6 +617,7 @@ class PameldingServiceTest {
         vedtakService = vedtakService,
         hendelseService = hendelseService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        deltakerLaaseSvc = deltakerLaaseSvc,
     )
 
     companion object {
