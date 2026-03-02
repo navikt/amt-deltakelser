@@ -29,4 +29,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Run tests
-        run: ./gradlew check --no-daemon -p ${{ inputs.module-path }}
+        run: ./gradlew check --no-daemon -p ${{ inputs.module-path }} --info --no-configuration-cache
