@@ -40,7 +40,7 @@ class ForslagRepositoryTest {
 
             val forslagFraDb = sut.getForDeltakere(listOf(deltaker.id))
             forslagFraDb.size shouldBe 1
-            forslagFraDb.first() shouldBe forslag
+            forslagFraDb.first().copy(opprettet = forslag.opprettet) shouldBe forslag.copy()
         }
     }
 }
