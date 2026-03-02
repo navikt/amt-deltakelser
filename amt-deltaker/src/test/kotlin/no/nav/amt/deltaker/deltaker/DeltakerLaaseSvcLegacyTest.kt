@@ -78,6 +78,7 @@ class DeltakerLaaseSvcLegacyTest {
                 ),
                 kanEndres = true,
             )
+            TestRepository.insert(deltaker)
 
             val historisertDeltaker = lagDeltaker(
                 navBruker = deltaker.navBruker,
@@ -90,7 +91,6 @@ class DeltakerLaaseSvcLegacyTest {
             )
 
             TestRepository.insert(historisertDeltaker)
-            TestRepository.insert(deltaker)
 
             every {
                 mockImportertFraArenaRepository.getForDeltaker(deltaker.id)
@@ -132,6 +132,7 @@ class DeltakerLaaseSvcLegacyTest {
                     gyldigFra = LocalDateTime.now().minusDays(1),
                 ),
             )
+            TestRepository.insert(deltaker)
 
             val historisertDeltaker = lagDeltaker(
                 navBruker = deltaker.navBruker,
@@ -142,9 +143,7 @@ class DeltakerLaaseSvcLegacyTest {
                 ),
                 kanEndres = false,
             )
-
             TestRepository.insert(historisertDeltaker)
-            TestRepository.insert(deltaker)
 
             every {
                 mockImportertFraArenaRepository.getForDeltaker(deltaker.id)
@@ -201,25 +200,34 @@ class DeltakerLaaseSvcLegacyTest {
         @Test
         fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste, nyeste er feilregistrert - låser begge`() {
             // Arrange
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
-            val deltaker2 = lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
-                navBruker = deltaker.navBruker,
-                deltakerliste = deltaker.deltakerliste,
+            val harSluttetDeltaker = lagDeltaker(
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    gyldigFra = LocalDateTime.now().minusDays(10),
+                ),
             )
-            TestRepository.insert(deltaker)
-            TestRepository.insert(deltaker2)
+            TestRepository.insert(harSluttetDeltaker)
+
+            val feilregistrertdeltaker = lagDeltaker(
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.FEILREGISTRERT,
+                    gyldigFra = LocalDateTime.now().minusDays(3),
+                ),
+                navBruker = harSluttetDeltaker.navBruker,
+                deltakerliste = harSluttetDeltaker.deltakerliste,
+            )
+            TestRepository.insert(feilregistrertdeltaker)
 
             // Act
             deltakerService.oppdaterDeltakerLaas(
-                deltakerId = deltaker.id,
-                personident = deltaker.navBruker.personident,
-                deltakerlisteId = deltaker.deltakerliste.id,
+                deltakerId = harSluttetDeltaker.id,
+                personident = harSluttetDeltaker.navBruker.personident,
+                deltakerlisteId = harSluttetDeltaker.deltakerliste.id,
             )
 
             // Assert
-            deltakerRepository.get(deltaker.id).getOrThrow().kanEndres shouldBe false
-            deltakerRepository.get(deltaker2.id).getOrThrow().kanEndres shouldBe false
+            deltakerRepository.get(harSluttetDeltaker.id).getOrThrow().kanEndres shouldBe false
+            deltakerRepository.get(feilregistrertdeltaker.id).getOrThrow().kanEndres shouldBe false
         }
 
         @Test
@@ -227,16 +235,14 @@ class DeltakerLaaseSvcLegacyTest {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                // historikk = true,
             )
+            TestRepository.insert(deltaker)
+
             val deltaker2 = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 navBruker = deltaker.navBruker,
                 deltakerliste = deltaker.deltakerliste,
-                // historikk = true,
-            ) // .copy(historikk = deltaker.historikk)
-
-            TestRepository.insert(deltaker)
+            )
             TestRepository.insert(deltaker2)
 
             // Act
@@ -256,16 +262,14 @@ class DeltakerLaaseSvcLegacyTest {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                // historikk = true,
             )
+            TestRepository.insert(deltaker)
+
             val deltaker2 = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 navBruker = deltaker.navBruker,
                 deltakerliste = deltaker.deltakerliste,
-                // historikk = true,
-            ) // .copy(historikk = deltaker.historikk)
-
-            TestRepository.insert(deltaker)
+            )
             TestRepository.insert(deltaker2)
 
             // Act & Assert

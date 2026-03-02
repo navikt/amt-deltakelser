@@ -113,14 +113,14 @@ class DeltakerLaaseSvcTest {
     }
 
     @Nested
-    inner class GetPameldTidspunktTests {
+    inner class GetPaameldtTidspunktTests {
         @Test
         fun `skal returnere null hvis deltaker ikke har vedtak eller importert fra Arena`() {
             // Arrange
             every { mockImportertFraArenaRepository.getForDeltaker(any()) } returns null
 
             // Act
-            val result = sut.getPameldTidspunkt(tidligereDeltakerInTest)
+            val result = sut.getPaameldtTidspunkt(tidligereDeltakerInTest)
 
             // Assert
             result shouldBe null
@@ -135,7 +135,7 @@ class DeltakerLaaseSvcTest {
             every { mockImportertFraArenaRepository.getForDeltaker(any()) } returns null
 
             // Act
-            val result = sut.getPameldTidspunkt(tidligereDeltaker)
+            val result = sut.getPaameldtTidspunkt(tidligereDeltaker)
 
             // Assert
             result shouldBe vedtakInTest.fattet
@@ -149,7 +149,7 @@ class DeltakerLaaseSvcTest {
             } returns importertFraArena
 
             // Act
-            val result = sut.getPameldTidspunkt(tidligereDeltakerInTest)
+            val result = sut.getPaameldtTidspunkt(tidligereDeltakerInTest)
 
             // Assert
             result shouldBe importertFraArena.deltakerVedImport.innsoktDato.atStartOfDay()

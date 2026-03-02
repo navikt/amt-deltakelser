@@ -37,7 +37,7 @@ class DeltakerLaaseSvc(
                 personIdent = gjeldendeDeltaker.navBruker.personident,
                 deltakerlisteId = gjeldendeDeltaker.deltakerliste.id,
             ).filter { it.id != gjeldendeDeltaker.id } // fjern gjeldende deltaker
-            .mapNotNull { deltaker -> getPameldTidspunkt(deltaker)?.let { deltaker to it } } // hent påmeldingstidspunkt
+            .mapNotNull { deltaker -> getPaameldtTidspunkt(deltaker)?.let { deltaker to it } } // hent påmeldingstidspunkt
             .maxByOrNull { it.second } // finn nyeste deltakelse
             ?.first
             ?: return null
@@ -63,7 +63,7 @@ class DeltakerLaaseSvc(
      * @param deltaker deltaker som skal sjekkes.
      * @return Nyeste påmeldingstidspunkt, eller `null` hvis ingen datoer er tilgjengelige.
      */
-    fun getPameldTidspunkt(deltaker: Deltaker): LocalDateTime? = listOfNotNull(
+    fun getPaameldtTidspunkt(deltaker: Deltaker): LocalDateTime? = listOfNotNull(
         deltaker.vedtaksinformasjon?.fattet,
         importertFraArenaRepository
             .getForDeltaker(deltaker.id)

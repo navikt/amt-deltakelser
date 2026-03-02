@@ -33,7 +33,7 @@ class DeltakerLaaseSvcLegacy(
         val deltakelserPaaPerson = deltakerRepository
             .getFlereForPerson(personident, deltakerlisteId)
             .sortedWith(
-                compareByDescending<Deltaker> { deltakerLaaseSvc.getPameldTidspunkt(it) }
+                compareByDescending<Deltaker> { deltakerLaaseSvc.getPaameldtTidspunkt(it) }
                     .thenByDescending { it.status.gyldigFra },
             )
 
