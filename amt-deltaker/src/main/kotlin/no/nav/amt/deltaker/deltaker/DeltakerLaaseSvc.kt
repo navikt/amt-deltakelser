@@ -63,7 +63,7 @@ class DeltakerLaaseSvc(
      * @param deltaker deltaker som skal sjekkes.
      * @return Nyeste påmeldingstidspunkt, eller `null` hvis ingen datoer er tilgjengelige.
      */
-    internal fun getPameldTidspunkt(deltaker: Deltaker): LocalDateTime? = listOfNotNull(
+    fun getPameldTidspunkt(deltaker: Deltaker): LocalDateTime? = listOfNotNull(
         deltaker.vedtaksinformasjon?.fattet,
         importertFraArenaRepository
             .getForDeltaker(deltaker.id)
@@ -73,7 +73,7 @@ class DeltakerLaaseSvc(
     ).maxOrNull()
 
     companion object {
-        private fun Deltaker.skalLaasesOpp(): Boolean = status.type != DeltakerStatus.Type.FEILREGISTRERT &&
+        fun Deltaker.skalLaasesOpp(): Boolean = status.type != DeltakerStatus.Type.FEILREGISTRERT &&
             status.type != DeltakerStatus.Type.AVBRUTT_UTKAST &&
             status.aarsak?.type != DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
     }

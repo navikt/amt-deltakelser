@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
+import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
@@ -23,6 +24,31 @@ import java.util.UUID
 
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    fun getTidligereAvsluttedeDeltakelser(deltakerId: UUID): List<UUID> {
+        val sql =
+            """
+            SELECT d2.id
+            FROM 
+                deltaker d
+                JOIN deltaker d2 ON 
+                    d.person_id = d2.person_id
+                    AND d.deltakerliste_id = d2.deltakerliste_id
+                JOIN deltaker_status ds ON d2.id = ds.deltaker_id
+            WHERE 
+                d.id = ?
+                AND d.kan_endres = TRUE
+                AND ds.type in ($AVSLUTTENDE_STATUSER_DELIMITED)
+                AND d2.id != d.id
+            """.trimIndent()
+
+        val query = queryOf(
+            sql,
+            deltakerId,
+        ).map { it.uuid("id") }.asList
+
+        return Database.query { session -> session.run(query) }
+    }
 
     fun settKanEndres(
         deltakerId: UUID,
@@ -350,6 +376,7 @@ class DeltakerRepository {
     }
 
     companion object {
+        private val AVSLUTTENDE_STATUSER_DELIMITED = AVSLUTTENDE_STATUSER.joinToString { "'${it.name}'" }
         private val IKKE_AVSLUTTENDE_STATUSER_DELIMITED = IKKE_AVSLUTTENDE_STATUSER.joinToString { "'${it.name}'" }
 
         private val SLUTTDATO_PASSERT_STATUSER_DELIMITED = setOf(

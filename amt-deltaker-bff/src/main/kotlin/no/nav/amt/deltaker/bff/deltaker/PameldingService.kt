@@ -121,6 +121,7 @@ class PameldingService(
             avbruttAvEnhet = avbruttAvEnhet,
         )
 
+        // fjernes når amt-deltaker har tatt over låsing
         avbrytUtkastResponse.deltakerIdSomSkalLaasesOpp?.let { deltakerId ->
             deltakerRepository.settKanEndres(deltakerId, true)
             log.info(

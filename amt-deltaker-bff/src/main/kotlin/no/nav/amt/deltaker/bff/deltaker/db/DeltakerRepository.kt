@@ -221,6 +221,7 @@ class DeltakerRepository {
         }
     }
 
+    // fjernes når amt-deltaker har tatt over låsing
     fun getTidligereAvsluttedeDeltakelser(deltakerId: UUID): List<UUID> {
         val sql =
             """

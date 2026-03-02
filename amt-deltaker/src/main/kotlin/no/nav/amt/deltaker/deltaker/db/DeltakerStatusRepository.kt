@@ -14,6 +14,22 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 object DeltakerStatusRepository {
+    fun getAktivDeltakerStatus(deltakerId: UUID): DeltakerStatus? = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT * 
+                FROM deltaker_status 
+                WHERE 
+                    deltaker_id = :deltaker_id
+                    AND gyldig_fra <= CURRENT_TIMESTAMP
+                    AND gyldig_til IS NULL
+                """.trimIndent(),
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::deltakerStatusRowMapper).asSingle,
+        )
+    }
+
     /**
      * Setter inn en ny rad i tabellen `deltaker_status`.
      *
@@ -195,7 +211,7 @@ object DeltakerStatusRepository {
             WHERE 
                 ds.deltaker_id IN (${sqlPlaceholders(deltakerIder.size)})
                 AND ds.gyldig_til IS NULL 
-                AND ds.gyldig_fra < current_date + interval '1 day' 
+                AND ds.gyldig_fra < CURRENT_DATE + INTERVAL '1 day' 
                 AND ds.type IN ('AVBRUTT', 'FULLFORT', 'HAR_SLUTTET') 
                 AND EXISTS ( 
                     SELECT 1 
