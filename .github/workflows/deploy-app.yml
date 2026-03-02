@@ -34,7 +34,15 @@ jobs:
           dependency-graph: generate-and-submit
 
       - name: Build artifacts
-        run: ./gradlew build installDist --no-daemon -p ${{ inputs.module-path }}
+        run: |
+          ./gradlew build \
+            installDist \
+            -p ${{ inputs.module-path }} \
+            --no-daemon \
+            --no-configuration-cache \
+            --info \
+            --console=plain \
+            --warning-mode=all
 
       - name: docker-build-push
         uses: nais/docker-build-push@v0

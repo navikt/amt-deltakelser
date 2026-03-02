@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+
     // --- Audit logging ---
     implementation(libs.nav.common.audit.log)
 

@@ -31,8 +31,8 @@ jobs:
       - name: Run tests
         run: |
           ./gradlew check \
-            --no-daemon \
             -p ${{ inputs.module-path }} \
+            --no-daemon \
             --no-configuration-cache \
             --info \
             --console=plain \
