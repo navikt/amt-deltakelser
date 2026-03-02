@@ -156,7 +156,7 @@ class DeltakerRepository {
         return Database.query { session ->
             session.run(
                 queryOf(
-                    getDeltakerSql("d.id = ANY(:ider::uuid[])"),
+                    getDeltakerSql("d.id = ANY(:ider)"),
                     mapOf("ider" to ider.toTypedArray()),
                 ).map(::rowMapper).asList,
             )
@@ -297,7 +297,7 @@ class DeltakerRepository {
             SET 
                 kan_endres = FALSE, 
                 modified_at = CURRENT_TIMESTAMP
-            WHERE id = ANY(:ider::uuid[])
+            WHERE id = ANY(:ider)
             """.trimIndent()
 
         val parameters = mapOf("ider" to ider.toTypedArray())
