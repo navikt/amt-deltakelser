@@ -20,6 +20,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Year
 
 class DeltakerLaaseSvcLegacyTest {
     private val deltakerRepository = DeltakerRepository()
@@ -34,7 +35,7 @@ class DeltakerLaaseSvcLegacyTest {
         deltakerLaaseSvc = deltakerLaaseSvc,
     )
 
-    private val innsoktDatoInTest = LocalDate.of(2015, 2, 18)
+    private val innsoktDatoInTest = LocalDate.of(Year.now().value - 1, 2, 18)
 
     companion object {
         @RegisterExtension

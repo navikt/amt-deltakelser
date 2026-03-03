@@ -30,13 +30,14 @@ class DeltakerLaaseSvc(
      * Hvis denne deltakeren kan låses opp, settes den som redigerbar i databasen.
      *
      * @param gjeldendeDeltaker Deltakeren som utløser opphevingen av lås på en tidligere deltaker.
+     * @return id til deltakeren som er låst opp, eller `null` hvis ingen deltaker ble låst opp.
      */
     fun laasOppForrigeDeltaker(gjeldendeDeltaker: Deltaker): UUID? {
         val forrigeDeltaker = deltakerRepository
             .getFlereForPerson(
                 personIdent = gjeldendeDeltaker.navBruker.personident,
                 deltakerlisteId = gjeldendeDeltaker.deltakerliste.id,
-            ).filter { it.id != gjeldendeDeltaker.id } // fjern gjeldende deltaker
+            ).filterNot { it.id == gjeldendeDeltaker.id } // fjern gjeldende deltaker
             .mapNotNull { deltaker -> getPaameldtTidspunkt(deltaker)?.let { deltaker to it } } // hent påmeldingstidspunkt
             .maxByOrNull { it.second } // finn nyeste deltakelse
             ?.first
@@ -44,9 +45,7 @@ class DeltakerLaaseSvc(
 
         return if (forrigeDeltaker.skalLaasesOpp()) {
             deltakerRepository.settKanEndres(forrigeDeltaker.id, true)
-            log.info(
-                "Har låst opp tidligere deltaker ${forrigeDeltaker.id} for endringer pga. avbrutt utkast på nåværende deltaker",
-            )
+            log.info("Har låst opp tidligere deltaker ${forrigeDeltaker.id} for endringer pga. avbrutt utkast på nåværende deltaker")
             forrigeDeltaker.id
         } else {
             null
