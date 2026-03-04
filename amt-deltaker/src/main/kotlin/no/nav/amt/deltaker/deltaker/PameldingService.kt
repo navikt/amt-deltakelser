@@ -227,6 +227,7 @@ class PameldingService(
                     enhet = endretAvNavEnhet,
                 ) { utkastDto -> HendelseType.AvbrytUtkast(utkastDto) }
 
+                // lås opp forrige deltaker om en slik finnes
                 deltakerIdSomSkalLaasesOpp = deltakerLaaseSvc.laasOppForrigeDeltaker(deltaker)
             },
         )

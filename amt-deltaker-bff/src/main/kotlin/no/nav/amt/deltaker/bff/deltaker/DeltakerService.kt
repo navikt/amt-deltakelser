@@ -96,7 +96,8 @@ class DeltakerService(
             throw IllegalStateException("Den nye deltakelsen $deltakerId må være upsertet for å bruke denne funksjonen")
         }
 
-        val nyesteDeltakelse = deltakelserPaaPerson.firstOrNull { it.status.type in AKTIVE_STATUSER } ?: deltakelserPaaPerson.first()
+        val nyesteDeltakelse = deltakelserPaaPerson.firstOrNull { it.status.type in AKTIVE_STATUSER }
+            ?: deltakelserPaaPerson.first() // denne er altså inaktiv
 
         if (deltakerId != nyesteDeltakelse.id) {
             log.info("Fikk oppdatering på $deltakerId som skal låses fordi det er nyere deltakelse ${nyesteDeltakelse.id} på personen")

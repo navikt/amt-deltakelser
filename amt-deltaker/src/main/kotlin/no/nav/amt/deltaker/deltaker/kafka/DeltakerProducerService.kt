@@ -23,7 +23,7 @@ class DeltakerProducerService(
         publiserTilDeltakerV2: Boolean = true,
     ) {
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
-            log.info("Skipper publisering deltaker ${deltaker.id} med status ${DeltakerStatus.Type.KLADD.name}")
+            log.info("Skipper publisering av deltaker ${deltaker.id} med status ${DeltakerStatus.Type.KLADD.name}")
             return
         }
 
