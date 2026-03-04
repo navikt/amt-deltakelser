@@ -194,7 +194,8 @@ class DeltakerService(
             deltakerRepository.update(deltakeroppdatering)
             lagreDeltakerStatus(deltakeroppdatering.id, deltakeroppdatering.status)
 
-            // deltakerRepository.settKanEndres kalles også i laasTidligereDeltakelser, undersøk
+            // hvis dette er eneste deltakelse for person på deltakerliste, låses den opp igjen
+            // rett etterpå av consumer for deltaker-v2 via oppdaterDeltakerLaas
             if (disableKanEndres) {
                 deltakerRepository.settKanEndres(deltakeroppdatering.id, false)
             }
