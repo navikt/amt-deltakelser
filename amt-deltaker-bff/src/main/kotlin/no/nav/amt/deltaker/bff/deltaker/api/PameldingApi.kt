@@ -57,6 +57,22 @@ fun Routing.registerPameldingApi(
 
     authenticate("VEILEDER") {
         post("/pamelding") {
+            // opprett kladd
+            // erstattes av /opprett-kladd
+            val request = call.receive<PameldingRequest>()
+
+            tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
+
+            val deltaker = pameldingService.opprettDeltaker(
+                deltakerlisteId = request.deltakerlisteId,
+                personIdent = request.personident,
+            )
+
+            call.respond(komplettDeltakerResponse(deltaker))
+        }
+
+        post("/opprett-kladd") {
+            //Erstatter /pamelding
             val request = call.receive<PameldingRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)

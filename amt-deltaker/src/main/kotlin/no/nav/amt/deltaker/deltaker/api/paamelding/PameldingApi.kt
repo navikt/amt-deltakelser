@@ -23,6 +23,19 @@ fun Routing.registerPameldingApi(
     authenticate("SYSTEM") {
         // pamelding/kladd
         post("/pamelding") {
+            //erstattes av opprett-kladd
+            val opprettKladdRequest = call.receive<OpprettKladdRequest>()
+
+            val deltaker = pameldingService.opprettDeltaker(
+                deltakerListeId = opprettKladdRequest.deltakerlisteId,
+                personIdent = opprettKladdRequest.personident,
+            )
+
+            call.respond(opprettKladdResponseFromDeltaker(deltaker))
+        }
+
+        post("/opprett-kladd") {
+            //hvorfor opprettes kladd her og ikke oppdateres når det skjer endringer?
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
             val deltaker = pameldingService.opprettDeltaker(
