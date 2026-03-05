@@ -72,7 +72,7 @@ fun Routing.registerPameldingApi(
         }
 
         post("/opprett-kladd") {
-            //Erstatter /pamelding
+            // Erstatter /pamelding
             val request = call.receive<PameldingRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)

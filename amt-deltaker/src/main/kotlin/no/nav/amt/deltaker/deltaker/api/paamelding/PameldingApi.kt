@@ -23,7 +23,7 @@ fun Routing.registerPameldingApi(
     authenticate("SYSTEM") {
         // pamelding/kladd
         post("/pamelding") {
-            //erstattes av opprett-kladd
+            // erstattes av opprett-kladd
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
             val deltaker = pameldingService.opprettDeltaker(
@@ -35,7 +35,7 @@ fun Routing.registerPameldingApi(
         }
 
         post("/opprett-kladd") {
-            //hvorfor opprettes kladd her og ikke oppdateres når det skjer endringer?
+            // hvorfor opprettes kladd her og ikke oppdateres når det skjer endringer?
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
             val deltaker = pameldingService.opprettDeltaker(
