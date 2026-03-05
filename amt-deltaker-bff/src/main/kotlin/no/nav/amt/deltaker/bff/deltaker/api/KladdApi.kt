@@ -1,12 +1,14 @@
 package no.nav.amt.deltaker.bff.deltaker.api
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
@@ -46,73 +48,74 @@ fun Routing.registerKladdApi(
         digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
         forslag = forslageRepository.getForDeltaker(deltaker.id),
     )
+    authenticate(AuthLevel.VEILEDER.name) {
+        post("/kladd") {
+            // Erstatter /pamelding
+            val request = call.receive<OpprettNyKladdRequest>()
 
-    post("/kladd") {
-        // Erstatter /pamelding
-        val request = call.receive<OpprettNyKladdRequest>()
+            tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
-        tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
+            val deltaker = pameldingService.opprettDeltaker(
+                deltakerlisteId = request.deltakerlisteId,
+                personIdent = request.personident,
+            )
 
-        val deltaker = pameldingService.opprettDeltaker(
-            deltakerlisteId = request.deltakerlisteId,
-            personIdent = request.personident,
-        )
-
-        call.respond(komplettDeltakerResponse(deltaker))
-    }
-
-    // Dette endepunktet kommuniserer ikke med amt-deltaker
-    post("/kladd/{deltakerId}") {
-        // Erstatter /pamelding/{deltakerId}/kladd
-        val request = call.receive<KladdRequest>().sanitize()
-
-        val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
-        request.valider(deltaker)
-
-        tilgangskontrollService.verifiserSkrivetilgang(
-            navAnsattAzureId = call.getNavAnsattAzureId(),
-            norskIdent = deltaker.navBruker.personident,
-        )
-
-        val nyKladd = pameldingService.upsertKladd(
-            kladd = Kladd(
-                opprinneligDeltaker = deltaker,
-                pamelding = Pamelding(
-                    deltakelsesinnhold = Deltakelsesinnhold(
-                        deltaker.deltakelsesinnhold?.ledetekst,
-                        request.innhold.toInnholdModel(deltaker),
-                    ),
-                    bakgrunnsinformasjon = request.bakgrunnsinformasjon,
-                    deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
-                    dagerPerUke = request.dagerPerUke?.toFloat(),
-                    endretAv = call.getNavIdent(),
-                    endretAvEnhet = call.getEnhetsnummer(),
-                ),
-            ),
-        )
-
-        nyKladd
-            ?.let { call.respond(HttpStatusCode.OK) }
-            ?: call.respond(HttpStatusCode.BadRequest, "Kladden ble ikke opprettet")
-    }
-
-    delete("/kladd/{deltakerId}") {
-        // Erstatter delete /pamelding/{deltakerId}/kladd
-
-        val deltakerId = call.getDeltakerId()
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-
-        tilgangskontrollService.verifiserSkrivetilgang(
-            navAnsattAzureId = call.getNavAnsattAzureId(),
-            norskIdent = deltaker.navBruker.personident,
-        )
-
-        if (!pameldingService.slettKladd(deltaker)) {
-            call.respond(HttpStatusCode.BadRequest, "Kan ikke slette deltaker")
+            call.respond(komplettDeltakerResponse(deltaker))
         }
 
-        log.info("${call.getNavIdent()} har slettet kladd for deltaker med id $deltakerId")
+        // Dette endepunktet kommuniserer ikke med amt-deltaker
+        post("/kladd/{deltakerId}") {
+            // Erstatter /pamelding/{deltakerId}/kladd
+            val request = call.receive<KladdRequest>().sanitize()
 
-        call.respond(HttpStatusCode.OK)
+            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            request.valider(deltaker)
+
+            tilgangskontrollService.verifiserSkrivetilgang(
+                navAnsattAzureId = call.getNavAnsattAzureId(),
+                norskIdent = deltaker.navBruker.personident,
+            )
+
+            val nyKladd = pameldingService.upsertKladd(
+                kladd = Kladd(
+                    opprinneligDeltaker = deltaker,
+                    pamelding = Pamelding(
+                        deltakelsesinnhold = Deltakelsesinnhold(
+                            deltaker.deltakelsesinnhold?.ledetekst,
+                            request.innhold.toInnholdModel(deltaker),
+                        ),
+                        bakgrunnsinformasjon = request.bakgrunnsinformasjon,
+                        deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
+                        dagerPerUke = request.dagerPerUke?.toFloat(),
+                        endretAv = call.getNavIdent(),
+                        endretAvEnhet = call.getEnhetsnummer(),
+                    ),
+                ),
+            )
+
+            nyKladd
+                ?.let { call.respond(HttpStatusCode.OK) }
+                ?: call.respond(HttpStatusCode.BadRequest, "Kladden ble ikke opprettet")
+        }
+
+        delete("/kladd/{deltakerId}") {
+            // Erstatter delete /pamelding/{deltakerId}/kladd
+
+            val deltakerId = call.getDeltakerId()
+            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+
+            tilgangskontrollService.verifiserSkrivetilgang(
+                navAnsattAzureId = call.getNavAnsattAzureId(),
+                norskIdent = deltaker.navBruker.personident,
+            )
+
+            if (!pameldingService.slettKladd(deltaker)) {
+                call.respond(HttpStatusCode.BadRequest, "Kan ikke slette deltaker")
+            }
+
+            log.info("${call.getNavIdent()} har slettet kladd for deltaker med id $deltakerId")
+
+            call.respond(HttpStatusCode.OK)
+        }
     }
 }
