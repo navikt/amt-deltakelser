@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
 class PaameldingClientTest {
     @Nested
     inner class OpprettKladd {
-        val expectedUrl = "$DELTAKER_BASE_URL/pamelding"
+        val expectedUrl = "$DELTAKER_BASE_URL/kladd"
         val expectedErrorMessage = "Kunne ikke opprette kladd i amt-deltaker."
         val opprettKladdLambda: suspend (PaameldingClient) -> OpprettKladdResponse =
             { client -> client.opprettKladd(deltakerlisteId = UUID.randomUUID(), personIdent = "~personident~") }
@@ -86,7 +86,7 @@ class PaameldingClientTest {
 
     @Nested
     inner class SlettKladd {
-        val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}"
+        val expectedUrl = "$DELTAKER_BASE_URL/kladd/${deltakerInTest.id}"
         val expectedErrorMessage = "Kunne ikke slette kladd i amt-deltaker."
         val slettKladdLambda: suspend (PaameldingClient) -> Unit = { client -> client.slettKladd(deltakerInTest.id) }
 

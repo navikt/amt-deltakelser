@@ -119,7 +119,7 @@ class PameldingServiceTest {
             MockResponseHandler.addNavAnsattResponse(navVeilederInTest)
             MockResponseHandler.addNavEnhetGetResponse(navEnhetInTest)
 
-            val deltaker = pameldingService.opprettDeltaker(
+            val deltaker = pameldingService.opprettKladd(
                 deltakerlisteId = deltakerListeInTest.id,
                 personIdent = kladdInTest.navBruker.personident,
             )
@@ -155,7 +155,7 @@ class PameldingServiceTest {
             MockResponseHandler.addOpprettKladdResponse(null)
 
             val thrown = shouldThrow<IllegalStateException> {
-                pameldingService.opprettDeltaker(UUID.randomUUID(), personIdent)
+                pameldingService.opprettKladd(UUID.randomUUID(), personIdent)
             }
 
             thrown.message shouldBe "Kunne ikke opprette kladd i amt-deltaker. Status=500 error=Noe gikk galt"

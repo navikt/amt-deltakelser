@@ -8,7 +8,6 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
-import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
@@ -48,14 +47,13 @@ fun Routing.registerKladdApi(
         digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
         forslag = forslageRepository.getForDeltaker(deltaker.id),
     )
-    authenticate(AuthLevel.VEILEDER.name) {
+    authenticate("VEILEDER") {
         post("/kladd") {
-            // Erstatter /pamelding
             val request = call.receive<OpprettNyKladdRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
-            val deltaker = pameldingService.opprettDeltaker(
+            val deltaker = pameldingService.opprettKladd(
                 deltakerlisteId = request.deltakerlisteId,
                 personIdent = request.personident,
             )
@@ -65,7 +63,6 @@ fun Routing.registerKladdApi(
 
         // Dette endepunktet kommuniserer ikke med amt-deltaker
         post("/kladd/{deltakerId}") {
-            // Erstatter /pamelding/{deltakerId}/kladd
             val request = call.receive<KladdRequest>().sanitize()
 
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
@@ -99,8 +96,6 @@ fun Routing.registerKladdApi(
         }
 
         delete("/kladd/{deltakerId}") {
-            // Erstatter delete /pamelding/{deltakerId}/kladd
-
             val deltakerId = call.getDeltakerId()
             val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 

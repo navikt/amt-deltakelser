@@ -24,7 +24,7 @@ class PameldingService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun opprettDeltaker(
+    suspend fun opprettKladd(
         deltakerlisteId: UUID,
         personIdent: String,
     ): Deltaker {

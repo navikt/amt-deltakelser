@@ -76,13 +76,13 @@ class KladdApiTest {
     fun setup() = configureEnvForAuthentication()
 
     @Test
-    fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
+    fun `post kladd - har tilgang - returnerer deltaker`() = testApplication {
         val deltaker = TestData.lagDeltaker()
         val ansatte = TestData.lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
         val navEnhet = TestData.lagNavEnhet(id = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet)
 
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        coEvery { pameldingService.opprettDeltaker(any(), any()) } returns deltaker
+        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltaker
         every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
         every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
@@ -106,7 +106,32 @@ class KladdApiTest {
     }
 
     @Test
-    fun `kladd deltakerId - har tilgang - returnerer 200`() = testApplication {
+    fun `post - har ikke tilgang - returnerer 403`() = testApplication {
+        val deltaker = TestData.lagDeltaker()
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
+            null,
+            Decision.Deny("Ikke tilgang", ""),
+        )
+        every { deltakerRepository.get(any()) } returns Result.success(
+            TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            ),
+        )
+        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
+
+        setUpTestApplication()
+
+        client.post("/kladd") { createPostRequest(opprettNyKladdRequest) }.status shouldBe HttpStatusCode.Forbidden
+        client
+            .post("/kladd/${UUID.randomUUID()}") {
+                createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
+            }.status shouldBe HttpStatusCode.Forbidden
+        client.post("/kladd/${UUID.randomUUID()}") { createPostRequest(kladdRequest) }.status shouldBe HttpStatusCode.Forbidden
+        client.delete("/kladd/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
+    }
+
+    @Test
+    fun `post kladd - har tilgang - returnerer 200`() = testApplication {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
@@ -120,7 +145,7 @@ class KladdApiTest {
     }
 
     @Test
-    fun `kladd deltakerId - har tilgang, feil deltakerstatus - returnerer 400`() = testApplication {
+    fun `post kladd - feil deltakerstatus - returnerer 400`() = testApplication {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
@@ -148,7 +173,7 @@ class KladdApiTest {
     }
 
     @Test
-    fun `slett kladd - har tilgang, deltaker er KLADD - sletter deltaker og returnerer 200`() = testApplication {
+    fun `slett kladd - deltaker er KLADD - sletter deltaker og returnerer 200`() = testApplication {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
@@ -161,37 +186,27 @@ class KladdApiTest {
     }
 
     @Test
-    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() = testApplication {
-        val deltaker = TestData.lagDeltaker()
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
-            null,
-            Decision.Deny("Ikke tilgang", ""),
-        )
-        every { deltakerRepository.get(any()) } returns Result.success(
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            ),
-        )
-        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-
-        setUpTestApplication()
-
-        client.post("/kladd") { createPostRequest(opprettNyKladdRequest) }.status shouldBe HttpStatusCode.Forbidden
-        client
-            .post("/kladd/${UUID.randomUUID()}") {
-                createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
-            }.status shouldBe HttpStatusCode.Forbidden
-        client.post("/kladd/${UUID.randomUUID()}") { createPostRequest(kladdRequest) }.status shouldBe HttpStatusCode.Forbidden
-        client.delete("/kladd/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
-    }
-
-    @Test
-    fun `skal teste autentisering - mangler token - returnerer 401`() = testApplication {
+    fun `post - mangler token - returnerer 401`() = testApplication {
         setUpTestApplication()
         client.post("/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/kladd/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/kladd/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.delete("/kladd/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+    }
+
+    @Test
+    fun `post kladd - deltakerliste finnes ikke - returnerer 404`() = testApplication {
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+
+        coEvery {
+            pameldingService.opprettKladd(any(), any())
+        } throws NoSuchElementException("Deltaker ikke funnet")
+
+        setUpTestApplication()
+
+        val response = client.post("/kladd") { createPostRequest(opprettNyKladdRequest) }
+
+        response.status shouldBe HttpStatusCode.NotFound
     }
 
     fun ApplicationTestBuilder.setUpTestApplication() {
