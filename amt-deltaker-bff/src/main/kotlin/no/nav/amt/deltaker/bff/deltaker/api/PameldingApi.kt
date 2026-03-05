@@ -17,7 +17,7 @@ import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.deltaker.api.model.DeltakerResponse
 import no.nav.amt.deltaker.bff.deltaker.api.model.KladdRequest
-import no.nav.amt.deltaker.bff.deltaker.api.model.PameldingRequest
+import no.nav.amt.deltaker.bff.deltaker.api.model.OpprettNyKladdRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.toInnholdModel
@@ -57,7 +57,9 @@ fun Routing.registerPameldingApi(
 
     authenticate("VEILEDER") {
         post("/pamelding") {
-            val request = call.receive<PameldingRequest>()
+            // opprett kladd
+            // erstattes av pamelding/kladd
+            val request = call.receive<OpprettNyKladdRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
@@ -71,6 +73,8 @@ fun Routing.registerPameldingApi(
 
         // migration note: Dette endepunktet kommuniserer ikke med amt-deltaker
         post("/pamelding/{deltakerId}/kladd") {
+            // erstattes av post /kladd/{deltakerId}
+
             val request = call.receive<KladdRequest>().sanitize()
 
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
@@ -198,6 +202,7 @@ fun Routing.registerPameldingApi(
         }
 
         delete("/pamelding/{deltakerId}") {
+            // erstattes av delete /kladd/{deltakerId}
             val deltakerId = call.getDeltakerId()
             val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 

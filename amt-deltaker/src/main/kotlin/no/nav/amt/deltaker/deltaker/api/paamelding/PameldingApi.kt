@@ -21,8 +21,8 @@ fun Routing.registerPameldingApi(
     historikkService: DeltakerHistorikkService,
 ) {
     authenticate("SYSTEM") {
-        // pamelding/kladd
         post("/pamelding") {
+            // erstattes av pamelding/kladd
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
             val deltaker = pameldingService.opprettDeltaker(
@@ -73,6 +73,7 @@ fun Routing.registerPameldingApi(
         }
 
         delete("/pamelding/{deltakerId}") {
+            // Erstattes av /kladd/{deltakerId}
             pameldingService.slettKladd(call.getDeltakerId())
             call.respond(HttpStatusCode.OK)
         }

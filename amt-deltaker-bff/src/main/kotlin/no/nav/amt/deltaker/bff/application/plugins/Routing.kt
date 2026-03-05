@@ -20,6 +20,7 @@ import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.deltaker.api.registerDeltakerApi
+import no.nav.amt.deltaker.bff.deltaker.api.registerKladdApi
 import no.nav.amt.deltaker.bff.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
@@ -112,6 +113,16 @@ fun Application.configureRouting(
         )
 
         registerPameldingApi(
+            tilgangskontrollService,
+            deltakerRepository,
+            pameldingService,
+            navAnsattService,
+            navEnhetService,
+            forslagRepository,
+            amtDistribusjonClient,
+        )
+
+        registerKladdApi(
             tilgangskontrollService,
             deltakerRepository,
             pameldingService,

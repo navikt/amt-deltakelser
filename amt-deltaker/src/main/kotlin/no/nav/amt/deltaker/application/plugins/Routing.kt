@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.api.deltaker.registerDeltakerApi
+import no.nav.amt.deltaker.deltaker.api.paamelding.registerKladdApi
 import no.nav.amt.deltaker.deltaker.api.paamelding.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -102,6 +103,9 @@ fun Application.configureRouting(
         registerPameldingApi(
             pameldingService = pameldingService,
             historikkService = deltakerHistorikkService,
+        )
+        registerKladdApi(
+            pameldingService = pameldingService,
         )
         registerDeltakerApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
         registerInternalApi(
