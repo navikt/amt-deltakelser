@@ -21,21 +21,8 @@ fun Routing.registerPameldingApi(
     historikkService: DeltakerHistorikkService,
 ) {
     authenticate("SYSTEM") {
-        // pamelding/kladd
         post("/pamelding") {
-            // erstattes av opprett-kladd
-            val opprettKladdRequest = call.receive<OpprettKladdRequest>()
-
-            val deltaker = pameldingService.opprettDeltaker(
-                deltakerListeId = opprettKladdRequest.deltakerlisteId,
-                personIdent = opprettKladdRequest.personident,
-            )
-
-            call.respond(opprettKladdResponseFromDeltaker(deltaker))
-        }
-
-        post("/opprett-kladd") {
-            // hvorfor opprettes kladd her og ikke oppdateres når det skjer endringer?
+            // erstattes av pamelding/kladd
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
             val deltaker = pameldingService.opprettDeltaker(
@@ -86,6 +73,7 @@ fun Routing.registerPameldingApi(
         }
 
         delete("/pamelding/{deltakerId}") {
+            // Erstattes av /kladd/{deltakerId}
             pameldingService.slettKladd(call.getDeltakerId())
             call.respond(HttpStatusCode.OK)
         }

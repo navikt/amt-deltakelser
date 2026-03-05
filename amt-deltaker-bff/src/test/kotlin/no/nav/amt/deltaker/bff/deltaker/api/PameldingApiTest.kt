@@ -25,7 +25,7 @@ import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.deltaker.api.model.DeltakerResponse
 import no.nav.amt.deltaker.bff.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.KladdRequest
-import no.nav.amt.deltaker.bff.deltaker.api.model.PameldingRequest
+import no.nav.amt.deltaker.bff.deltaker.api.model.OpprettNyKladdRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.bff.deltaker.api.utils.createPostRequest
@@ -95,7 +95,7 @@ class PameldingApiTest {
 
         setUpTestApplication()
 
-        client.post("/pamelding") { createPostRequest(pameldingRequest) }.status shouldBe HttpStatusCode.Forbidden
+        client.post("/pamelding") { createPostRequest(opprettNyKladdRequest) }.status shouldBe HttpStatusCode.Forbidden
         client
             .post("/pamelding/${UUID.randomUUID()}") {
                 createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
@@ -139,7 +139,7 @@ class PameldingApiTest {
 
         setUpTestApplication()
 
-        client.post("/pamelding") { createPostRequest(pameldingRequest) }.apply {
+        client.post("/pamelding") { createPostRequest(opprettNyKladdRequest) }.apply {
             assertEquals(HttpStatusCode.OK, status)
 
             val expected = DeltakerResponse.fromDeltaker(
@@ -164,7 +164,7 @@ class PameldingApiTest {
 
         setUpTestApplication()
 
-        val response = client.post("/pamelding") { createPostRequest(pameldingRequest) }
+        val response = client.post("/pamelding") { createPostRequest(opprettNyKladdRequest) }
 
         response.status shouldBe HttpStatusCode.NotFound
     }
@@ -350,7 +350,7 @@ class PameldingApiTest {
     private fun utkastRequest(innhold: List<InnholdRequest> = emptyList()) = UtkastRequest(innhold, "Bakgrunnen for...", null, null)
 
     private val kladdRequest = KladdRequest(emptyList(), "Bakgrunnen for...", null, null)
-    private val pameldingRequest = PameldingRequest(UUID.randomUUID(), "1234")
+    private val opprettNyKladdRequest = OpprettNyKladdRequest(UUID.randomUUID(), "1234")
 
     private fun pameldingUtenGodkjenningRequest(innhold: List<InnholdRequest> = emptyList()) = PameldingUtenGodkjenningRequest(
         innhold,
