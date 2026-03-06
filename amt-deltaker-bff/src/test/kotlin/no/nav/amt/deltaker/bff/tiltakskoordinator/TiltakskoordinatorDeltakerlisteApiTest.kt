@@ -7,10 +7,6 @@ import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import no.nav.amt.deltaker.bff.deltaker.api.utils.createPostRequest
-import no.nav.amt.deltaker.bff.deltaker.api.utils.createPostTiltakskoordinatorRequest
-import no.nav.amt.deltaker.bff.deltaker.api.utils.noBodyRequest
-import no.nav.amt.deltaker.bff.deltaker.api.utils.noBodyTiltakskoordinatorRequest
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerlisteResponse
@@ -22,6 +18,10 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakskoordinatorDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakskoordinatorTilgang
+import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
+import no.nav.amt.deltaker.bff.veileder.api.utils.createPostTiltakskoordinatorRequest
+import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
+import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import org.junit.jupiter.api.Test

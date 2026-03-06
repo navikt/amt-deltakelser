@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.bff.tiltakskoordinator.api.response
 
-import no.nav.amt.deltaker.bff.deltaker.api.model.ForslagResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.model.NavVeileder
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.model.UlestHendelse
+import no.nav.amt.deltaker.bff.veileder.api.model.ForslagResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
