@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.extensions
 
 import io.ktor.server.application.ApplicationCall
-import no.nav.amt.deltaker.bff.deltaker.api.headerNotNull
+import no.nav.amt.deltaker.bff.veileder.api.headerNotNull
 import java.util.UUID
 
 private const val DELTAKER_ID_PARAM = "deltakerId"
