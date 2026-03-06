@@ -39,7 +39,7 @@ class TestdataService(
             sluttdato = forventetSluttdato,
             deltakerliste = deltakerliste,
         )
-        val deltaker = pameldingService.opprettDeltaker(
+        val deltaker = pameldingService.opprettKladd(
             deltakerlisteId = opprettTestDeltakelseRequest.deltakerlisteId,
             personIdent = opprettTestDeltakelseRequest.personident,
         )

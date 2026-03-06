@@ -5,15 +5,12 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
-import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 
 fun Routing.registerPameldingApi(
@@ -21,22 +18,11 @@ fun Routing.registerPameldingApi(
     historikkService: DeltakerHistorikkService,
 ) {
     authenticate("SYSTEM") {
-        post("/pamelding") {
-            // erstattes av pamelding/kladd
-            val opprettKladdRequest = call.receive<OpprettKladdRequest>()
-
-            val deltaker = pameldingService.opprettDeltaker(
-                deltakerListeId = opprettKladdRequest.deltakerlisteId,
-                personIdent = opprettKladdRequest.personident,
-            )
-
-            call.respond(opprettKladdResponseFromDeltaker(deltaker))
-        }
-
         /*
             Kalles av av frontend via amt-deltaker-bff med:
             /pamelding/{deltakerId} godkjentAvNav=false
             /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true
+            sånn sett så kan dette kalles "godkjenn påmelding"
          */
         post("/pamelding/{deltakerId}") {
             val deltaker = pameldingService.upsertUtkast(
@@ -69,12 +55,6 @@ fun Routing.registerPameldingApi(
                 avbrytUtkastRequest = call.receive<AvbrytUtkastRequest>(),
             )
 
-            call.respond(HttpStatusCode.OK)
-        }
-
-        delete("/pamelding/{deltakerId}") {
-            // Erstattes av /kladd/{deltakerId}
-            pameldingService.slettKladd(call.getDeltakerId())
             call.respond(HttpStatusCode.OK)
         }
     }

@@ -50,12 +50,11 @@ fun Routing.registerKladdApi(
     )
     authenticate(AuthLevel.VEILEDER.name) {
         post("/kladd") {
-            // Erstatter /pamelding
             val request = call.receive<OpprettNyKladdRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
-            val deltaker = pameldingService.opprettDeltaker(
+            val deltaker = pameldingService.opprettKladd(
                 deltakerlisteId = request.deltakerlisteId,
                 personIdent = request.personident,
             )
@@ -65,7 +64,6 @@ fun Routing.registerKladdApi(
 
         // Dette endepunktet kommuniserer ikke med amt-deltaker
         post("/kladd/{deltakerId}") {
-            // Erstatter /pamelding/{deltakerId}/kladd
             val request = call.receive<KladdRequest>().sanitize()
 
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
@@ -99,8 +97,6 @@ fun Routing.registerKladdApi(
         }
 
         delete("/kladd/{deltakerId}") {
-            // Erstatter delete /pamelding/{deltakerId}/kladd
-
             val deltakerId = call.getDeltakerId()
             val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
