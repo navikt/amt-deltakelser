@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
+import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
@@ -23,6 +24,69 @@ import java.util.UUID
 
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    fun getTidligereAvsluttedeDeltakelser(deltakerId: UUID): List<UUID> {
+        val sql =
+            """
+            SELECT d2.id
+            FROM 
+                deltaker d
+                JOIN deltaker d2 ON 
+                    d.person_id = d2.person_id
+                    AND d.deltakerliste_id = d2.deltakerliste_id
+                JOIN deltaker_status ds ON d2.id = ds.deltaker_id
+            WHERE 
+                d.id = ?
+                AND d.kan_endres = TRUE
+                AND ds.type in ($AVSLUTTENDE_STATUSER_DELIMITED)
+                AND d2.id != d.id
+            """.trimIndent()
+
+        val query = queryOf(
+            sql,
+            deltakerId,
+        ).map { it.uuid("id") }.asList
+
+        return Database.query { session -> session.run(query) }
+    }
+
+    fun settKanEndres(
+        deltakerId: UUID,
+        kanEndres: Boolean,
+    ) {
+        val sql =
+            """
+            UPDATE deltaker
+            SET 
+                kan_endres = :kan_endres, 
+                modified_at = CURRENT_TIMESTAMP
+            WHERE id = :deltaker_id
+            """.trimIndent()
+
+        val parameters = mapOf(
+            "kan_endres" to kanEndres,
+            "deltaker_id" to deltakerId,
+        )
+
+        Database.query { session -> session.update(queryOf(sql, parameters)) }
+    }
+
+    fun disableKanEndresMany(ider: Set<UUID>) {
+        if (ider.isEmpty()) return
+
+        val sql =
+            """
+            UPDATE deltaker
+            SET 
+                kan_endres = FALSE, 
+                modified_at = CURRENT_TIMESTAMP
+            WHERE id = ANY(:ider)
+            """.trimIndent()
+
+        val parameters = mapOf("ider" to ider.toTypedArray())
+
+        Database.query { session -> session.update(queryOf(sql, parameters)) }
+    }
 
     fun getKladdForDeltakerliste(
         deltakerlisteId: UUID,
@@ -73,8 +137,8 @@ class DeltakerRepository {
                 bakgrunnsinformasjon, 
                 innhold, 
                 kilde, 
-                modified_at,
-                er_manuelt_delt_med_arrangor
+                er_manuelt_delt_med_arrangor,
+                modified_at
             )
             VALUES (
                 :id, 
@@ -87,8 +151,8 @@ class DeltakerRepository {
                 :bakgrunnsinformasjon, 
                 :innhold, 
                 :kilde, 
-                :modified_at,
-                :er_manuelt_delt_med_arrangor
+                :er_manuelt_delt_med_arrangor,
+                :modified_at
             )
             ON CONFLICT (id) DO UPDATE SET 
                 person_id            = :person_id,
@@ -99,8 +163,8 @@ class DeltakerRepository {
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
                 kilde                = :kilde,
-                modified_at          = :modified_at,
-                er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor
+                er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor,
+                modified_at          = :modified_at
             """.trimIndent()
 
         val parameters = mapOf(
@@ -114,8 +178,8 @@ class DeltakerRepository {
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
             "kilde" to deltaker.kilde.name,
-            "modified_at" to deltaker.sistEndret,
             "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
+            "modified_at" to deltaker.sistEndret,
         )
 
         Database.query { session -> session.update(queryOf(sql, parameters)) }
@@ -312,6 +376,7 @@ class DeltakerRepository {
     }
 
     companion object {
+        private val AVSLUTTENDE_STATUSER_DELIMITED = AVSLUTTENDE_STATUSER.joinToString { "'${it.name}'" }
         private val IKKE_AVSLUTTENDE_STATUSER_DELIMITED = IKKE_AVSLUTTENDE_STATUSER.joinToString { "'${it.name}'" }
 
         private val SLUTTDATO_PASSERT_STATUSER_DELIMITED = setOf(
@@ -376,6 +441,7 @@ class DeltakerRepository {
                 sistEndret = row.localDateTime("d.modified_at"),
                 kilde = Kilde.valueOf(row.string("d.kilde")),
                 erManueltDeltMedArrangor = row.boolean("d.er_manuelt_delt_med_arrangor"),
+                kanEndres = row.boolean("d.kan_endres"),
                 opprettet = row.localDateTime("d.created_at"),
             )
 
@@ -400,6 +466,7 @@ class DeltakerRepository {
         ): String = """
         SELECT 
             1 AS "$methodName",
+            
             d.id AS "d.id",
             d.person_id AS "d.person_id",
             d.deltakerliste_id AS "d.deltakerliste_id",
@@ -412,7 +479,9 @@ class DeltakerRepository {
             d.modified_at AS "d.modified_at",
             d.kilde AS "d.kilde",
             d.er_manuelt_delt_med_arrangor AS "d.er_manuelt_delt_med_arrangor",
+            d.kan_endres AS "d.kan_endres",
             d.created_at AS "d.created_at",
+            
             nb.personident AS "nb.personident",
             nb.fornavn AS "nb.fornavn",
             nb.mellomnavn AS "nb.mellomnavn",
@@ -426,6 +495,7 @@ class DeltakerRepository {
             nb.adressebeskyttelse AS "nb.adressebeskyttelse",
             nb.oppfolgingsperioder AS "nb.oppfolgingsperioder",
             nb.innsatsgruppe AS "nb.innsatsgruppe",
+            
             ds.id AS "ds.id",
             ds.deltaker_id AS "ds.deltaker_id",
             ds.type AS "ds.type",
@@ -434,6 +504,7 @@ class DeltakerRepository {
             ds.gyldig_til AS "ds.gyldig_til",
             ds.created_at AS "ds.created_at",
             ds.modified_at AS "ds.modified_at",
+            
             dl.id AS "dl.id",
             dl.navn AS "dl.navn",
             dl.gjennomforingstype AS "dl.gjennomforingstype",
@@ -444,15 +515,18 @@ class DeltakerRepository {
             dl.apent_for_pamelding AS "dl.apent_for_pamelding",
             dl.oppmote_sted AS "dl.oppmote_sted",
             dl.pameldingstype AS "dl.pameldingstype",
+            
             a.navn AS "a.navn",
             a.id AS "a.id",
             a.organisasjonsnummer AS "a.organisasjonsnummer",
             a.overordnet_arrangor_id AS "a.overordnet_arrangor_id",
+            
             t.id AS "t.id",
             t.navn AS "t.navn",
             t.tiltakskode AS "t.tiltakskode",
             t.innsatsgrupper AS "t.innsatsgrupper",
             t.innhold AS "t.innhold",
+            
             v.fattet AS "v.fattet",
             v.fattet_av_nav AS "v.fattet_av_nav",
             v.created_at AS "v.opprettet",

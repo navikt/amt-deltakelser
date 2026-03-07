@@ -32,6 +32,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerLaaseSvc
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
@@ -317,6 +318,11 @@ fun Application.module() {
         forslagRepository = forslagRepository,
     )
 
+    val deltakerLaaseSvc = DeltakerLaaseSvc(
+        deltakerRepository = deltakerRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+    )
+
     val endringFraArrangorService = EndringFraArrangorService(
         deltakerRepository,
         deltakerService,
@@ -342,6 +348,7 @@ fun Application.module() {
         vedtakService = vedtakService,
         hendelseService = hendelseService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        deltakerLaaseSvc = deltakerLaaseSvc,
     )
 
     val responseBuilder = ResponseBuilder(

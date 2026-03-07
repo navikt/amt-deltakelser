@@ -86,6 +86,10 @@ object TestRepository {
         DeltakerRepository().upsert(deltaker)
         DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
         vedtak?.let { insert(vedtak) }
+
+        if (!deltaker.kanEndres) {
+            DeltakerRepository().settKanEndres(deltaker.id, false)
+        }
     }
 
     fun <T> insertAll(vararg values: T) {

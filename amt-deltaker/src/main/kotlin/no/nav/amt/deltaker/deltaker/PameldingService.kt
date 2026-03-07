@@ -34,6 +34,7 @@ class PameldingService(
     private val vedtakService: VedtakService,
     private val hendelseService: HendelseService,
     private val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
+    private val deltakerLaaseSvc: DeltakerLaaseSvc,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -185,7 +186,7 @@ class PameldingService(
     suspend fun avbrytUtkast(
         deltakerId: UUID,
         avbrytUtkastRequest: AvbrytUtkastRequest,
-    ) {
+    ): UUID? {
         val opprinneligDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
         if (opprinneligDeltaker.status.type != DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
@@ -197,7 +198,7 @@ class PameldingService(
             )
         }
 
-        val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(avbrytUtkastRequest.avbruttAv)
+        val endretAvNavAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(avbrytUtkastRequest.avbruttAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(avbrytUtkastRequest.avbruttAvEnhet)
 
         val oppdatertDeltaker = opprinneligDeltaker.copy(
@@ -205,26 +206,34 @@ class PameldingService(
             sistEndret = LocalDateTime.now(),
         )
 
+        var deltakerIdSomSkalLaasesOpp: UUID? = null
+
         deltakerService.upsertAndProduceDeltaker(
             deltaker = oppdatertDeltaker,
             erDeltakerSluttdatoEndret = opprinneligDeltaker.sluttdato != oppdatertDeltaker.sluttdato,
             beforeUpsert = { deltaker ->
                 val vedtak = vedtakService.avbrytVedtak(
                     deltakerId = deltaker.id,
-                    avbruttAv = endretAv,
+                    avbruttAv = endretAvNavAnsatt,
                     avbruttAvNavEnhet = endretAvNavEnhet,
                 )
 
                 deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
             },
             afterUpsert = { deltaker ->
-                hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) { utkastDto ->
-                    HendelseType.AvbrytUtkast(utkastDto)
-                }
+                hendelseService.produceHendelseForUtkast(
+                    deltaker = deltaker,
+                    navAnsatt = endretAvNavAnsatt,
+                    enhet = endretAvNavEnhet,
+                ) { utkastDto -> HendelseType.AvbrytUtkast(utkastDto) }
+
+                // lås opp forrige deltaker om en slik finnes
+                deltakerIdSomSkalLaasesOpp = deltakerLaaseSvc.laasOppForrigeDeltaker(deltaker)
             },
         )
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
+        return deltakerIdSomSkalLaasesOpp // returverdi kan fjernes når amt-deltaker har tatt over låsing
     }
 
     companion object {
@@ -251,6 +260,7 @@ class PameldingService(
             sistEndret = LocalDateTime.now(),
             kilde = Kilde.KOMET,
             erManueltDeltMedArrangor = false,
+            kanEndres = true,
             opprettet = LocalDateTime.now(),
         )
 

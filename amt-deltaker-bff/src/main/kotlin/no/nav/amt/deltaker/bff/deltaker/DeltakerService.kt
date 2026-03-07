@@ -96,7 +96,8 @@ class DeltakerService(
             throw IllegalStateException("Den nye deltakelsen $deltakerId må være upsertet for å bruke denne funksjonen")
         }
 
-        val nyesteDeltakelse = deltakelserPaaPerson.firstOrNull { it.status.type in AKTIVE_STATUSER } ?: deltakelserPaaPerson.first()
+        val nyesteDeltakelse = deltakelserPaaPerson.firstOrNull { it.status.type in AKTIVE_STATUSER }
+            ?: deltakelserPaaPerson.first() // denne er altså inaktiv
 
         if (deltakerId != nyesteDeltakelse.id) {
             log.info("Fikk oppdatering på $deltakerId som skal låses fordi det er nyere deltakelse ${nyesteDeltakelse.id} på personen")
@@ -133,7 +134,7 @@ class DeltakerService(
 
         if (deltakelserSomSkalLaases.any()) {
             laasSingleOrMultipleDeltakelser(
-                iderSomSkalLaases = deltakelserSomSkalLaases.map { it.id },
+                iderSomSkalLaases = deltakelserSomSkalLaases.map { it.id }.toSet(),
                 nyDeltakerId = nyesteDeltakelse.id,
             )
         }
@@ -145,7 +146,7 @@ class DeltakerService(
 
             if (tidligereDeltakelser.any()) {
                 laasSingleOrMultipleDeltakelser(
-                    iderSomSkalLaases = tidligereDeltakelser,
+                    iderSomSkalLaases = tidligereDeltakelser.toSet(),
                     nyDeltakerId = deltakeroppdatering.id,
                 )
             }
@@ -153,7 +154,7 @@ class DeltakerService(
     }
 
     private fun laasSingleOrMultipleDeltakelser(
-        iderSomSkalLaases: List<UUID>,
+        iderSomSkalLaases: Set<UUID>,
         nyDeltakerId: UUID,
     ) {
         if (iderSomSkalLaases.isEmpty()) return
@@ -193,7 +194,8 @@ class DeltakerService(
             deltakerRepository.update(deltakeroppdatering)
             lagreDeltakerStatus(deltakeroppdatering.id, deltakeroppdatering.status)
 
-            // deltakerRepository.settKanEndres kalles også i laasTidligereDeltakelser, undersøk
+            // hvis dette er eneste deltakelse for person på deltakerliste, låses den opp igjen
+            // rett etterpå av consumer for deltaker-v2 via oppdaterDeltakerLaas
             if (disableKanEndres) {
                 deltakerRepository.settKanEndres(deltakeroppdatering.id, false)
             }

@@ -3,8 +3,10 @@ package no.nav.amt.deltaker.bff.deltaker.navbruker
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
+import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
@@ -13,6 +15,7 @@ import java.util.UUID
 class NavBrukerConsumer(
     private val navBrukerService: NavBrukerService,
     private val pameldingService: PameldingService,
+    private val deltakerRepository: DeltakerRepository,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -32,7 +35,10 @@ class NavBrukerConsumer(
         val navBruker = objectMapper.readValue<NavBrukerDto>(value).toModel()
         navBrukerService.upsert(navBruker)
         if (navBruker.innsatsgruppe == null) {
-            val kladder = pameldingService.getKladder(navBruker.personident)
+            val kladder = deltakerRepository.getMany(navBruker.personident).filter {
+                it.status.type == DeltakerStatus.Type.KLADD
+            }
+
             kladder.forEach {
                 pameldingService.slettKladd(it)
                 log.info("Slettet kladd med id ${it.id} fordi bruker ikke er under oppfølging")

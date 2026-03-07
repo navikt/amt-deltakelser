@@ -67,14 +67,14 @@ class DeltakerRepositoryTest {
         @Test
         fun `tom liste med ider - kaster ikke feil`() {
             shouldNotThrowAny {
-                deltakerRepository.disableKanEndresMany(emptyList())
+                deltakerRepository.disableKanEndresMany(emptySet())
             }
         }
 
         @Test
         fun `tom database - kaster ikke feil`() {
             shouldNotThrowAny {
-                deltakerRepository.disableKanEndresMany(listOf(UUID.randomUUID()))
+                deltakerRepository.disableKanEndresMany(setOf(UUID.randomUUID()))
             }
         }
 
@@ -88,7 +88,7 @@ class DeltakerRepositoryTest {
             scondDeltaker.kanEndres.shouldBeTrue()
             TestRepository.insert(scondDeltaker)
 
-            deltakerRepository.disableKanEndresMany(listOf(firstDeltaker.id, scondDeltaker.id))
+            deltakerRepository.disableKanEndresMany(setOf(firstDeltaker.id, scondDeltaker.id))
 
             deltakerRepository
                 .get(firstDeltaker.id)

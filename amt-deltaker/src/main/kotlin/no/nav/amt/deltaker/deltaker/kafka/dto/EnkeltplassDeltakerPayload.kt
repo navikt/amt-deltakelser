@@ -63,6 +63,7 @@ data class EnkeltplassDeltakerPayload(
         kilde = Kilde.ARENA,
         sistEndret = LocalDateTime.now(),
         erManueltDeltMedArrangor = false,
+        kanEndres = true,
         opprettet = registrertDato,
     )
 }

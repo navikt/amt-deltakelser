@@ -62,18 +62,13 @@ data class Deltaker(
             .firstOrNull { it is DeltakerHistorikk.Vedtak || it is DeltakerHistorikk.ImportertFraArena }
             ?.let {
                 when (it) {
-                    is DeltakerHistorikk.ImportertFraArena -> {
+                    is DeltakerHistorikk.ImportertFraArena ->
                         it.importertFraArena.deltakerVedImport.innsoktDato
                             .atStartOfDay()
-                    }
 
-                    is DeltakerHistorikk.Vedtak -> {
-                        it.vedtak.fattet
-                    }
+                    is DeltakerHistorikk.Vedtak -> it.vedtak.fattet
 
-                    else -> {
-                        null
-                    }
+                    else -> null
                 }
             }
 

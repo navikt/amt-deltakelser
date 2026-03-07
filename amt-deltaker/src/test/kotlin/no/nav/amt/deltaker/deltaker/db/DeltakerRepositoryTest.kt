@@ -1,6 +1,9 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -23,9 +26,138 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
+import java.util.UUID
 
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
+
+    @Nested
+    inner class GetTidligereAvsluttedeDeltakelserTests {
+        @Test
+        fun `getTidligereAvsluttedeDeltakelser - har ingen tidligere deltakelse - returnerer tom liste`() {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            TestRepository.insert(deltaker)
+
+            deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe emptyList()
+        }
+
+        @Test
+        fun `getTidligereAvsluttedeDeltakelser - har aktiv tidligere deltakelse - returnerer tom liste`() {
+            val avsluttetDeltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(avsluttetDeltaker)
+            val deltaker = lagDeltaker(
+                deltakerliste = avsluttetDeltaker.deltakerliste,
+                navBruker = avsluttetDeltaker.navBruker,
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            TestRepository.insert(deltaker)
+
+            deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe emptyList()
+        }
+
+        @Test
+        fun `getTidligereAvsluttedeDeltakelser - har tidligere avsluttet deltakelse - returnerer id`() {
+            val avsluttetDeltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            )
+            TestRepository.insert(avsluttetDeltaker)
+            val deltaker = lagDeltaker(
+                deltakerliste = avsluttetDeltaker.deltakerliste,
+                navBruker = avsluttetDeltaker.navBruker,
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            TestRepository.insert(deltaker)
+
+            deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe listOf(avsluttetDeltaker.id)
+        }
+
+        @Test
+        fun `getTidligereAvsluttedeDeltakelser - har tidligere avsluttet deltakelse, er avsluttet deltakelse - returnerer id`() {
+            val avsluttetDeltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            )
+            TestRepository.insert(avsluttetDeltaker)
+            val deltaker = lagDeltaker(
+                deltakerliste = avsluttetDeltaker.deltakerliste,
+                navBruker = avsluttetDeltaker.navBruker,
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            )
+            TestRepository.insert(deltaker)
+
+            deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe listOf(avsluttetDeltaker.id)
+        }
+    }
+
+    @Nested
+    inner class SettKanEndresTests {
+        @Test
+        fun `deltaker finnes ikke - kaster ikke feil`() {
+            shouldNotThrowAny {
+                deltakerRepository.settKanEndres(UUID.randomUUID(), true)
+            }
+        }
+
+        @Test
+        fun `deltaker finnes - oppdaterer deltaker`() {
+            val deltaker = lagDeltaker()
+            deltaker.kanEndres.shouldBeTrue()
+            TestRepository.insert(deltaker)
+
+            deltakerRepository.settKanEndres(deltaker.id, false)
+
+            deltakerRepository
+                .get(deltaker.id)
+                .shouldBeSuccess()
+                .kanEndres
+                .shouldBeFalse()
+        }
+    }
+
+    @Nested
+    inner class DisableKanEndresManyTests {
+        @Test
+        fun `tom liste med ider - kaster ikke feil`() {
+            shouldNotThrowAny {
+                deltakerRepository.disableKanEndresMany(emptySet())
+            }
+        }
+
+        @Test
+        fun `tom database - kaster ikke feil`() {
+            shouldNotThrowAny {
+                deltakerRepository.disableKanEndresMany(setOf(UUID.randomUUID()))
+            }
+        }
+
+        @Test
+        fun `deltakere finnes - oppdaterer deltakere`() {
+            val firstDeltaker = lagDeltaker()
+            firstDeltaker.kanEndres.shouldBeTrue()
+            TestRepository.insert(firstDeltaker)
+
+            val scondDeltaker = lagDeltaker()
+            scondDeltaker.kanEndres.shouldBeTrue()
+            TestRepository.insert(scondDeltaker)
+
+            deltakerRepository.disableKanEndresMany(setOf(firstDeltaker.id, scondDeltaker.id))
+
+            deltakerRepository
+                .get(firstDeltaker.id)
+                .shouldBeSuccess()
+                .kanEndres
+                .shouldBeFalse()
+
+            deltakerRepository
+                .get(scondDeltaker.id)
+                .shouldBeSuccess()
+                .kanEndres
+                .shouldBeFalse()
+        }
+    }
 
     @Nested
     inner class GetDeltakereForDeltakerlisteTests {

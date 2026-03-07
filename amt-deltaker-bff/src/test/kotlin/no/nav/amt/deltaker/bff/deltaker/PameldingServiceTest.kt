@@ -2,7 +2,9 @@ package no.nav.amt.deltaker.bff.deltaker
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -237,15 +239,15 @@ class PameldingServiceTest {
             )
 
             deltakerService.oppdaterDeltaker(nyDeltakerOppdaterUtkast)
-            deltakerRepository.get(gammelDeltaker.id).getOrThrow().kanEndres shouldBe false
+            deltakerRepository.get(gammelDeltaker.id).shouldBeSuccess().kanEndres shouldBe false
 
             MockResponseHandler.addNavEnhetPostResponse(navEnhet)
-            MockResponseHandler.avbrytUtkastResponse(nyDeltaker)
+            MockResponseHandler.avbrytUtkastResponse(nyDeltaker.id, gammelDeltaker.id)
 
             pameldingService.avbrytUtkast(nyDeltaker, navEnhet.enhetsnummer, "test")
 
-            val gammelDeltakerFraDb = deltakerRepository.get(gammelDeltaker.id).getOrThrow()
-            gammelDeltakerFraDb.kanEndres shouldBe true
+            val gammelDeltakerFraDb = deltakerRepository.get(gammelDeltaker.id).shouldBeSuccess()
+            gammelDeltakerFraDb.kanEndres.shouldBeTrue()
         }
 
         @Test
@@ -281,7 +283,7 @@ class PameldingServiceTest {
             deltakerService.oppdaterDeltaker(nyDeltakerOppdaterUtkast)
             deltakerRepository.get(gammelDeltaker.id).getOrThrow().kanEndres shouldBe false
 
-            MockResponseHandler.avbrytUtkastResponse(nyDeltaker)
+            MockResponseHandler.avbrytUtkastResponse(nyDeltaker.id)
 
             pameldingService.avbrytUtkast(nyDeltaker, navEnhet.enhetsnummer, "test")
 

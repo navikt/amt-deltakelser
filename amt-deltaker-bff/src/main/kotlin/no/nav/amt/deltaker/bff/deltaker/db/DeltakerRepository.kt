@@ -221,6 +221,7 @@ class DeltakerRepository {
         }
     }
 
+    // fjernes når amt-deltaker har tatt over låsing
     fun getTidligereAvsluttedeDeltakelser(deltakerId: UUID): List<UUID> {
         val sql =
             """
@@ -267,6 +268,7 @@ class DeltakerRepository {
         }
     }
 
+    // fjernes når logikk rundt låsing er flyttet til amt-deltaker
     fun settKanEndres(
         deltakerId: UUID,
         kanEndres: Boolean,
@@ -288,7 +290,8 @@ class DeltakerRepository {
         Database.query { session -> session.update(queryOf(sql, parameters)) }
     }
 
-    fun disableKanEndresMany(ider: List<UUID>) {
+    // fjernes når logikk rundt låsing er flyttet til amt-deltaker
+    fun disableKanEndresMany(ider: Set<UUID>) {
         if (ider.isEmpty()) return
 
         val sql =

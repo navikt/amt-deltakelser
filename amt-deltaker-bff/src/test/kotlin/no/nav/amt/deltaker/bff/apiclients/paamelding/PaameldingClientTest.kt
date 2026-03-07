@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toUtkastResponse
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.AvbrytUtkastResponse
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.OpprettKladdResponse
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.UtkastResponse
 import org.junit.jupiter.api.Assertions
@@ -107,7 +108,7 @@ class PaameldingClientTest {
     inner class AvbrytUtkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}/avbryt"
         val expectedErrorMessage = "Kunne ikke avbryte utkast i amt-deltaker."
-        val avbrytUtkastLambda: suspend (PaameldingClient) -> Unit =
+        val avbrytUtkastLambda: suspend (PaameldingClient) -> AvbrytUtkastResponse =
             { client ->
                 client.avbrytUtkast(
                     deltakerId = deltakerInTest.id,
@@ -125,7 +126,11 @@ class PaameldingClientTest {
 
         @Test
         fun `skal avbryte utkast uten feil`() {
-            runHappyPathTest(expectedUrl, null, avbrytUtkastLambda)
+            runHappyPathTest(
+                expectedUrl = expectedUrl,
+                expectedResponse = AvbrytUtkastResponse(UUID.randomUUID()),
+                block = avbrytUtkastLambda,
+            )
         }
     }
 
