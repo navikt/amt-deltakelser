@@ -72,7 +72,10 @@ class DeltakerHistorikkService(
                     is DeltakerHistorikk.Vedtak -> it.vedtak.sistEndret
                     is DeltakerHistorikk.Forslag -> it.forslag.sistEndret
                     is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.opprettet
-                    is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.importertDato
+                    is DeltakerHistorikk.ImportertFraArena ->
+                        it.importertFraArena.deltakerVedImport.innsoktDato
+                            .atStartOfDay()
+
                     is DeltakerHistorikk.VurderingFraArrangor -> it.data.opprettet
                     is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.endret
                     is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.innsokt
