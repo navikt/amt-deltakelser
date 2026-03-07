@@ -2,6 +2,7 @@
 
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -190,12 +191,12 @@ class DeltakerLaaseSvcTest {
         }
 
         @Test
-        fun `oppdaterDeltakerLaas - ny deltaker - beholder låsing`() {
+        fun `oppdaterDeltakerLaas - ny deltaker - beholder kanEndres = true`() {
             // Arrange
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
-            deltakerRepository.get(deltaker.id).getOrThrow().kanEndres shouldBe true
+            deltakerRepository.get(deltaker.id).shouldBeSuccess().kanEndres shouldBe true
 
             // Act
             deltakerLaaseSvc.oppdaterDeltakerLaas(
@@ -205,7 +206,26 @@ class DeltakerLaaseSvcTest {
             )
 
             // Assert
-            deltakerRepository.get(deltaker.id).getOrThrow().kanEndres shouldBe true
+            deltakerRepository.get(deltaker.id).shouldBeSuccess().kanEndres shouldBe true
+        }
+
+        @Test
+        fun `oppdaterDeltakerLaas - deltaker med kanEndres = false - endres til kanEndres = true`() {
+            // Arrange
+            val deltaker = lagDeltaker(kanEndres = false)
+            TestRepository.insert(deltaker)
+
+            deltakerRepository.get(deltaker.id).shouldBeSuccess().kanEndres shouldBe false
+
+            // Act
+            deltakerLaaseSvc.oppdaterDeltakerLaas(
+                deltakerId = deltaker.id,
+                personident = deltaker.navBruker.personident,
+                deltakerlisteId = deltaker.deltakerliste.id,
+            )
+
+            // Assert
+            deltakerRepository.get(deltaker.id).shouldBeSuccess().kanEndres shouldBe true
         }
 
         @Test
