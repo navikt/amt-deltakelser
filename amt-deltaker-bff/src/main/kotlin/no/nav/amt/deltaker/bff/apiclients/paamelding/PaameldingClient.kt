@@ -29,18 +29,18 @@ class PaameldingClient(
     suspend fun opprettKladd(
         deltakerlisteId: UUID,
         personIdent: String,
-    ): OpprettKladdResponse = performPost("pamelding", OpprettKladdRequest(deltakerlisteId, personIdent))
+    ): OpprettKladdResponse = performPost("kladd", OpprettKladdRequest(deltakerlisteId, personIdent))
         .failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.")
         .body()
+
+    suspend fun slettKladd(deltakerId: UUID) {
+        performDelete("kladd/$deltakerId")
+            .failIfNotSuccess("Kunne ikke slette kladd i amt-deltaker.")
+    }
 
     suspend fun utkast(utkast: Utkast): UtkastResponse = performPost("pamelding/${utkast.deltakerId}", utkastRequestFromUtkast(utkast))
         .failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker.")
         .body()
-
-    suspend fun slettKladd(deltakerId: UUID) {
-        performDelete("pamelding/$deltakerId")
-            .failIfNotSuccess("Kunne ikke slette kladd i amt-deltaker.")
-    }
 
     suspend fun avbrytUtkast(
         deltakerId: UUID,

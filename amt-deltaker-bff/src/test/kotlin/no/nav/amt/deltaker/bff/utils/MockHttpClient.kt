@@ -164,7 +164,7 @@ object MockResponseHandler {
     }
 
     fun addOpprettKladdResponse(deltaker: Deltaker?) {
-        val url = "$AMT_DELTAKER_URL/pamelding"
+        val url = "$AMT_DELTAKER_URL/kladd"
         if (deltaker == null) {
             addResponse(url, HttpMethod.Post, "Noe gikk galt", HttpStatusCode.InternalServerError)
         } else {
@@ -209,7 +209,7 @@ object MockResponseHandler {
     }
 
     fun addSlettKladdResponse(deltakerId: UUID) {
-        val url = "$AMT_DELTAKER_URL/pamelding/$deltakerId"
+        val url = "$AMT_DELTAKER_URL/kladd/$deltakerId"
         addResponse(
             url = url,
             method = HttpMethod.Delete,
