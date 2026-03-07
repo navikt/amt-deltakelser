@@ -697,6 +697,23 @@ class DeltakerServiceTest {
     }
 
     @Test
+    fun `oppdaterDeltakerLaas - låst, unik deltaker på deltakerliste - låser opp`() {
+        val deltaker = lagDeltaker(
+            kanEndres = false,
+            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+        )
+        TestRepository.insert(deltaker)
+
+        deltakerService.oppdaterDeltakerLaas(
+            deltakerId = deltaker.id,
+            personident = deltaker.navBruker.personident,
+            deltakerlisteId = deltaker.deltakerliste.id,
+        )
+
+        deltakerRepository.get(deltaker.id).shouldBeSuccess().kanEndres shouldBe true
+    }
+
+    @Test
     fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste - låser den eldste`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
         val deltaker2 = lagDeltaker(navBruker = deltaker.navBruker, deltakerliste = deltaker.deltakerliste)
