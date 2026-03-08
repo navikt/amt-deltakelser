@@ -66,18 +66,8 @@ class DeltakerHistorikkService(
             .plus(forslag)
             .plus(endringerFraArrangor)
             .plus(vurderinger)
-            .sortedByDescending {
-                when (it) {
-                    is DeltakerHistorikk.Endring -> it.endring.endret
-                    is DeltakerHistorikk.Vedtak -> it.vedtak.sistEndret
-                    is DeltakerHistorikk.Forslag -> it.forslag.sistEndret
-                    is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.opprettet
-                    is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.importertDato
-                    is DeltakerHistorikk.VurderingFraArrangor -> it.data.opprettet
-                    is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.endret
-                    is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.innsokt
-                }
-            }.toList()
+            .sortedByDescending { it.sorteringsDato }
+            .toList()
 
         return historikk
     }
