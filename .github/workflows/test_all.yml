@@ -1,8 +1,8 @@
-name: amt-distribusjon - Run tests
+name: amt-deltakelser - Run all tests
 on:
   push:
     paths:
-      - "amt-distribusjon/**"
+      - "gradle/libs.versions.toml"
     branches-ignore:
       - main
 
@@ -13,4 +13,4 @@ jobs:
   run-tests:
     uses: ./.github/workflows/test.yml
     with:
-      module-path: "amt-distribusjon"
+      module-path: "all"

@@ -41,7 +41,6 @@ prometheus-metrics-exporter = { module = "io.prometheus:prometheus-metrics-expor
 # fikser CVE-2023-3635 ved å gjøre en oppgradering av okhttp som er en transitive dependency av unleash
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp-version" }
 
-
 # ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter-version" }
