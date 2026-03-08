@@ -8,6 +8,7 @@ import java.util.UUID
 sealed interface DeltakerHistorikk {
     val sistEndret: LocalDateTime
     val sorteringsDato: LocalDateTime
+        get() = sistEndret
 
     fun navAnsatte(): List<UUID> = emptyList()
 
@@ -17,7 +18,6 @@ sealed interface DeltakerHistorikk {
         val data: VurderingFraArrangorData,
     ) : DeltakerHistorikk {
         override val sistEndret = data.opprettet
-        override val sorteringsDato = data.opprettet
     }
 
     data class ImportertFraArena(
@@ -31,7 +31,6 @@ sealed interface DeltakerHistorikk {
         val endring: DeltakerEndring,
     ) : DeltakerHistorikk {
         override val sistEndret = endring.endret
-        override val sorteringsDato = endring.endret
 
         override fun navAnsatte() = listOf(endring.endretAv)
 
@@ -42,7 +41,6 @@ sealed interface DeltakerHistorikk {
         val vedtak: no.nav.amt.lib.models.deltaker.Vedtak,
     ) : DeltakerHistorikk {
         override val sistEndret = vedtak.sistEndret
-        override val sorteringsDato = vedtak.sistEndret
 
         override fun navAnsatte() = listOf(vedtak.sistEndretAv, vedtak.opprettetAv)
 
@@ -53,7 +51,6 @@ sealed interface DeltakerHistorikk {
         val data: no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart,
     ) : DeltakerHistorikk {
         override val sistEndret = data.innsokt
-        override val sorteringsDato = data.innsokt
 
         override fun navAnsatte() = listOf(data.innsoktAv)
 
@@ -64,7 +61,6 @@ sealed interface DeltakerHistorikk {
         val forslag: no.nav.amt.lib.models.arrangor.melding.Forslag,
     ) : DeltakerHistorikk {
         override val sistEndret = forslag.sistEndret
-        override val sorteringsDato = forslag.sistEndret
 
         override fun navAnsatte() = listOfNotNull(forslag.getNavAnsatt()?.id)
 
@@ -75,14 +71,12 @@ sealed interface DeltakerHistorikk {
         val endringFraArrangor: no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor,
     ) : DeltakerHistorikk {
         override val sistEndret = endringFraArrangor.opprettet
-        override val sorteringsDato = endringFraArrangor.opprettet
     }
 
     data class EndringFraTiltakskoordinator(
         val endringFraTiltakskoordinator: no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator,
     ) : DeltakerHistorikk {
         override val sistEndret = endringFraTiltakskoordinator.endret
-        override val sorteringsDato = endringFraTiltakskoordinator.endret
 
         override fun navAnsatte() = listOf(endringFraTiltakskoordinator.endretAv)
 
