@@ -3,7 +3,6 @@ on:
   push:
     paths:
       - "amt-deltaker/**"
-      - "gradle/libs.versions.toml"
     branches-ignore:
       - main
 

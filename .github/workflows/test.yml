@@ -30,8 +30,14 @@ jobs:
 
       - name: Run tests
         run: |
+          GRADLE_ARGS=""
+          
+          if [ "${{ inputs.module-path }}" != "all" ]; then
+            GRADLE_ARGS="-p ${{ inputs.module-path }}"
+          fi
+          
           ./gradlew check \
-            -p ${{ inputs.module-path }} \
+            $GRADLE_ARGS \
             --no-daemon \
             --no-configuration-cache \
             --info \
