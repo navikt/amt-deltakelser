@@ -9,6 +9,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 object TestPostgresContainer {
     private const val POSTGRES_DOCKER_IMAGE_NAME = "postgres:17-alpine"
     private var dbInitialized = false
+
     val isInitialized: Boolean get() = dbInitialized
 
     fun bootstrap() {
