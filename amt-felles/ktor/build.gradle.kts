@@ -10,6 +10,7 @@ plugins {
 dependencies {
     api(project(":amt-lib:lib:kafka"))
 
+    // --- Metrics ---
     api(libs.micrometer.prometheus)
     implementation(libs.prometheus.metrics.instrumentation)
     implementation(libs.prometheus.metrics.exporter)
@@ -19,10 +20,10 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.server.core)
 
-    implementation(libs.bundles.database)
+    api(libs.bundles.database)
 
     api(project(":amt-lib:lib:models"))
-    implementation(project(":amt-lib:lib:utils"))
+    api(project(":amt-lib:lib:utils"))
 
     api(libs.caffeine)
 

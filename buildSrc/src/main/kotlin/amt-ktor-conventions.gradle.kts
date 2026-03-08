@@ -17,22 +17,14 @@ dependencies {
     libsWrapper.getBundle("ktor.server").forEach { implementation(it) }
     libsWrapper.getBundle("ktor.client").forEach { implementation(it) }
 
-    // --- Metrics ---
-    implementation(libsWrapper.getLibrary("micrometer.prometheus"))
-
     // --- Logging ---
     libsWrapper.getBundle("logging").forEach { implementation(it) }
 
-    // --- Database ---
-    libsWrapper.getBundle("database").forEach { implementation(it) }
-
-    // --- amt-lib, lib:ktor drar inn models og utils
+    // --- amt-felles, amt-felles:ktor drar inn database, models og utils
     implementation(project(":amt-felles:ktor"))
-    implementation(project(":amt-lib:lib:utils"))
 
     // --- Test ---
     testImplementation(project(":amt-felles:ktor-test"))
-    testImplementation(project(":amt-lib:lib:testing"))
     libsWrapper.getBundle("ktor.test").forEach { testImplementation(it) }
     testImplementation(libsWrapper.getLibrary("nimbus.jose.jwt"))
 }
