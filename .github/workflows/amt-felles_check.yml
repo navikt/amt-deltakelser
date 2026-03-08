@@ -1,8 +1,8 @@
-name: amt-lib - Run tests
+name: amt-felles - Run tests
 on:
   push:
     paths:
-      - "amt-lib/**"
+      - "amt-felles/**"
     branches-ignore:
       - main
 
@@ -13,4 +13,4 @@ jobs:
   run-tests:
     uses: ./.github/workflows/test.yml
     with:
-      module-path: "amt-lib"
+      module-path: "amt-felles"

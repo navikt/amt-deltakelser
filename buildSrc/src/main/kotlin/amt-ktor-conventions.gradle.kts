@@ -6,7 +6,7 @@ repositories {
 }
 
 plugins {
-    kotlin
+    kotlin("jvm")
     application
     id("org.jlleitschuh.gradle.ktlint")
 }
@@ -17,21 +17,14 @@ dependencies {
     libsWrapper.getBundle("ktor.server").forEach { implementation(it) }
     libsWrapper.getBundle("ktor.client").forEach { implementation(it) }
 
-    // --- Metrics ---
-    implementation(libsWrapper.getLibrary("micrometer.prometheus"))
-
     // --- Logging ---
     libsWrapper.getBundle("logging").forEach { implementation(it) }
 
-    // --- Database ---
-    libsWrapper.getBundle("database").forEach { implementation(it) }
-
-    // --- amt-lib, lib:ktor drar inn models og utils
-    implementation(project(":amt-lib:lib:ktor"))
-    implementation(project(":amt-lib:lib:outbox"))
+    // --- amt-felles, amt-felles:ktor drar inn database, models og utils
+    implementation(project(":amt-felles:ktor"))
 
     // --- Test ---
-    testImplementation(project(":amt-lib:lib:testing"))
+    testImplementation(project(":amt-felles:ktor-test"))
     libsWrapper.getBundle("ktor.test").forEach { testImplementation(it) }
     testImplementation(libsWrapper.getLibrary("nimbus.jose.jwt"))
 }
