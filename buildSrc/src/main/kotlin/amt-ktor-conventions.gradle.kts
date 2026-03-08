@@ -6,7 +6,7 @@ repositories {
 }
 
 plugins {
-    kotlin
+    kotlin("jvm")
     application
     id("org.jlleitschuh.gradle.ktlint")
 }
@@ -27,10 +27,11 @@ dependencies {
     libsWrapper.getBundle("database").forEach { implementation(it) }
 
     // --- amt-lib, lib:ktor drar inn models og utils
-    implementation(project(":amt-lib:lib:ktor"))
-    implementation(project(":amt-lib:lib:outbox"))
+    implementation(project(":amt-felles:ktor"))
+    implementation(project(":amt-lib:lib:utils"))
 
     // --- Test ---
+    testImplementation(project(":amt-felles:ktor-test"))
     testImplementation(project(":amt-lib:lib:testing"))
     libsWrapper.getBundle("ktor.test").forEach { testImplementation(it) }
     testImplementation(libsWrapper.getLibrary("nimbus.jose.jwt"))

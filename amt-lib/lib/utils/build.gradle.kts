@@ -7,8 +7,6 @@ dependencies {
 
     api(libs.logback.classic)
 
-    implementation(libs.bundles.database)
-
     api(libs.jackson.module.kotlin)
     api(libs.jackson.datatype.jsr310)
 
@@ -22,5 +20,4 @@ dependencies {
     implementation(libs.unleash)
 
     testImplementation(project(":amt-lib:lib:testing"))
-    testImplementation(libs.kotlinx.coroutines.test)
 }
