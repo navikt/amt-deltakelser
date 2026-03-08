@@ -114,7 +114,6 @@ kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref
 ktlint-gradle-plugin = {module="org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref="ktlint-version"}
 ktor-plugin = { module = "io.ktor.plugin:io.ktor.plugin.gradle.plugin", version.ref = "ktor-version" }
 
-
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
