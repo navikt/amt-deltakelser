@@ -18,7 +18,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.generateJWT
-import no.nav.amt.deltaker.bff.veileder.api.model.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

@@ -17,7 +17,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.SporbarhetOgTilgangskontrollSv
 import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.veileder.api.model.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID

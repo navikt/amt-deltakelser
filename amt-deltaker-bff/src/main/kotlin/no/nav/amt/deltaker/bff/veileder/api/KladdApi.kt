@@ -22,10 +22,10 @@ import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.veileder.api.model.DeltakerResponse
-import no.nav.amt.deltaker.bff.veileder.api.model.KladdRequest
-import no.nav.amt.deltaker.bff.veileder.api.model.OpprettNyKladdRequest
-import no.nav.amt.deltaker.bff.veileder.api.model.toInnholdModel
+import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettNyKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import org.slf4j.LoggerFactory
 

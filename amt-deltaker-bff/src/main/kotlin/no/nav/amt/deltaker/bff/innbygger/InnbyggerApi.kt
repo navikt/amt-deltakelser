@@ -24,7 +24,7 @@ import no.nav.amt.deltaker.bff.innbygger.model.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.innbygger.model.toInnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.veileder.api.model.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
 

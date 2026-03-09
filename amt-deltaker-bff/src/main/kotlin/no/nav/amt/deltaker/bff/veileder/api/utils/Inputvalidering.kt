@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.skalKunHaAnnetBeskrivelse
-import no.nav.amt.deltaker.bff.veileder.api.model.InnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde

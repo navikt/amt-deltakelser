@@ -5,7 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.input
-import no.nav.amt.deltaker.bff.veileder.api.model.InnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement

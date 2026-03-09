@@ -31,10 +31,10 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.veileder.api.model.DeltakerResponse
-import no.nav.amt.deltaker.bff.veileder.api.model.InnholdRequest
-import no.nav.amt.deltaker.bff.veileder.api.model.PameldingUtenGodkjenningRequest
-import no.nav.amt.deltaker.bff.veileder.api.model.UtkastRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

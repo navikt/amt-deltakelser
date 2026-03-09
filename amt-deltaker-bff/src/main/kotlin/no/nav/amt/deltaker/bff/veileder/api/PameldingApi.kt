@@ -23,10 +23,10 @@ import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.veileder.api.model.DeltakerResponse
-import no.nav.amt.deltaker.bff.veileder.api.model.PameldingUtenGodkjenningRequest
-import no.nav.amt.deltaker.bff.veileder.api.model.UtkastRequest
-import no.nav.amt.deltaker.bff.veileder.api.model.toInnholdModel
+import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 

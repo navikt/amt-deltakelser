@@ -7,7 +7,7 @@ import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.tiltakskoordinator.model.TiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.veileder.api.model.DeltakerResponse.DeltakelsesinnholdDto.Companion.fulltInnhold
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse.DeltakelsesinnholdDto.Companion.fulltInnhold
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
