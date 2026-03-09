@@ -10,12 +10,13 @@ import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.utils.data.TestData.lagImportertFraArena
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.testing.utils.TestData.lagImportertFraArena
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class DeltakerLaaseSvcTest {
     private val mockDeltakerRepository = mockk<DeltakerRepository>(relaxUnitFun = true)
@@ -28,7 +29,10 @@ class DeltakerLaaseSvcTest {
         navBruker = deltakerInTest.navBruker,
     )
 
-    private val importertFraArena = lagImportertFraArena(deltaker = tidligereDeltakerInTest)
+    private val importertFraArena = lagImportertFraArena(
+        deltakerId = tidligereDeltakerInTest.id,
+        deltakerVedImport = deltakerInTest.toDeltakerVedImport(LocalDate.now()),
+    )
 
     @BeforeEach
     fun setup() {
@@ -154,7 +158,7 @@ class DeltakerLaaseSvcTest {
         }
 
         @Test
-        fun `skal returnere innsoktDato fra Arena hvis deltaker er importert fra Arena`() {
+        fun `skal returnere innsoktDatoAsLocalDateTime fra Arena hvis deltaker er importert fra Arena`() {
             // Arrange
             every {
                 mockImportertFraArenaRepository.getForDeltaker(tidligereDeltakerInTest.id)
@@ -164,7 +168,7 @@ class DeltakerLaaseSvcTest {
             val result = sut.getPaameldtTidspunkt(tidligereDeltakerInTest)
 
             // Assert
-            result shouldBe importertFraArena.deltakerVedImport.innsoktDato.atStartOfDay()
+            result shouldBe importertFraArena.innsoktDatoAsLocalDateTime
         }
     }
 }

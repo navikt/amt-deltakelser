@@ -33,9 +33,7 @@ class DeltakerLaaseSvc(
         deltaker.vedtaksinformasjon?.fattet,
         importertFraArenaRepository
             .getForDeltaker(deltaker.id)
-            ?.deltakerVedImport
-            ?.innsoktDato
-            ?.atStartOfDay(),
+            ?.innsoktDatoAsLocalDateTime,
     ).maxOrNull()
 
     /**
