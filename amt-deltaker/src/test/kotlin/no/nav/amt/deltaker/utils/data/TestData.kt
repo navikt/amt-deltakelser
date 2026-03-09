@@ -11,6 +11,8 @@ import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerVedImport
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -48,6 +50,23 @@ object TestData {
     fun randomEnhetsnummer() = (1000..9999999999).random().toString()
 
     fun randomOrgnr() = (900_000_000..999_999_998).random().toString()
+
+    fun lagImportertFraArena(
+        deltaker: Deltaker = lagDeltaker(),
+        innsoktDato: LocalDate = LocalDate.now(),
+    ) = ImportertFraArena(
+        deltakerId = deltaker.id,
+        importertDato = LocalDateTime.now(),
+        deltakerVedImport = DeltakerVedImport(
+            deltakerId = deltaker.id,
+            innsoktDato = innsoktDato,
+            startdato = deltaker.startdato,
+            sluttdato = deltaker.sluttdato,
+            dagerPerUke = deltaker.dagerPerUke,
+            deltakelsesprosent = deltaker.deltakelsesprosent,
+            status = deltaker.status,
+        ),
+    )
 
     fun lagArrangor(
         id: UUID = UUID.randomUUID(),

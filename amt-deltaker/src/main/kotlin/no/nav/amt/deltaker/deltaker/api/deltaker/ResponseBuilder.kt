@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.api.deltaker
 import no.nav.amt.deltaker.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerLaaseSvc
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
@@ -22,6 +23,7 @@ class ResponseBuilder(
     private val amtDistribusjonClient: AmtDistribusjonClient,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val forslagRepository: ForslagRepository,
+    private val deltakerLaaseSvc: DeltakerLaaseSvc,
 ) {
     suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
         val arrangorNavn = arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor)
@@ -61,7 +63,7 @@ class ResponseBuilder(
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
             historikk = historikk,
-            erLaastForEndringer = true, // TODO(),
+            erLaastForEndringer = deltakerLaaseSvc.erLaastForEndringer(deltaker),
             endringsforslagFraArrangor = forslag,
         )
     }
