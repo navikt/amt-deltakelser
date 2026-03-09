@@ -11,7 +11,7 @@ repositories {
 plugins {
     `java-library`
     `maven-publish`
-    kotlin
+    kotlin("jvm")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
@@ -20,7 +20,7 @@ java {
     withSourcesJar()
 
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
