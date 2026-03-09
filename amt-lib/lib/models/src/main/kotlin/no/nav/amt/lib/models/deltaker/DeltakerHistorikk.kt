@@ -7,6 +7,8 @@ import java.util.UUID
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface DeltakerHistorikk {
     val sistEndret: LocalDateTime
+    val sorteringsDato: LocalDateTime
+        get() = sistEndret
 
     fun navAnsatte(): List<UUID> = emptyList()
 
@@ -22,6 +24,7 @@ sealed interface DeltakerHistorikk {
         val importertFraArena: no.nav.amt.lib.models.deltaker.ImportertFraArena,
     ) : DeltakerHistorikk {
         override val sistEndret = importertFraArena.importertDato
+        override val sorteringsDato: LocalDateTime = importertFraArena.deltakerVedImport.innsoktDato.atStartOfDay()
     }
 
     data class Endring(
