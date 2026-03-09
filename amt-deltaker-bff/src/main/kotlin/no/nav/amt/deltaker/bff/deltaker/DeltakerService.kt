@@ -76,6 +76,11 @@ class DeltakerService(
         personident: String,
         deltakerlisteId: UUID,
     ) {
+        fun laasOppDeltakelse(deltakerId: UUID) {
+            log.info("Nyeste deltakelse $deltakerId var låst for endringer. Låser opp")
+            deltakerRepository.settKanEndres(deltakerId, true)
+        }
+
         /*
             Denne funksjonen er ment til alle scenarioer hvor det er relevant med låsing av deltakere.
             Skal kalles etter at databasen er oppdatert med ny/oppdatering av deltaker som gjør at den er vanskelig å gjenbruke noen steder
@@ -87,22 +92,33 @@ class DeltakerService(
          */
         val deltakelserPaaPerson = deltakerRepository
             .getMany(personident, deltakerlisteId)
-            .sortedWith(
-                compareByDescending<Deltaker> { it.paameldtDato }
-                    .thenByDescending { it.status.gyldigFra },
-            )
 
         if (deltakelserPaaPerson.none { it.id == deltakerId }) {
             throw IllegalStateException("Den nye deltakelsen $deltakerId må være upsertet for å bruke denne funksjonen")
         }
 
-        val nyesteDeltakelse = deltakelserPaaPerson.firstOrNull { it.status.type in AKTIVE_STATUSER } ?: deltakelserPaaPerson.first()
+        // early-return hvis kun en deltakelse
+        deltakelserPaaPerson.singleOrNull()?.let { deltakelse ->
+            if (!deltakelse.kanEndres) {
+                laasOppDeltakelse(deltakelse.id)
+            }
+            return
+        }
+
+        val deltakelserPaaPersonSorted = deltakelserPaaPerson
+            .sortedWith(
+                compareByDescending<Deltaker> { it.paameldtDato }
+                    .thenByDescending { it.status.gyldigFra },
+            )
+
+        val nyesteDeltakelse = deltakelserPaaPersonSorted.firstOrNull { it.status.type in AKTIVE_STATUSER }
+            ?: deltakelserPaaPersonSorted.first()
 
         if (deltakerId != nyesteDeltakelse.id) {
             log.info("Fikk oppdatering på $deltakerId som skal låses fordi det er nyere deltakelse ${nyesteDeltakelse.id} på personen")
         }
 
-        val deltakelserSomSkalLaases = deltakelserPaaPerson
+        val deltakelserSomSkalLaases = deltakelserPaaPersonSorted
             .filter {
                 it.id != nyesteDeltakelse.id ||
                     nyesteDeltakelse.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
@@ -127,8 +143,7 @@ class DeltakerService(
         if (!nyesteDeltakelse.kanEndres) {
             // Dette skal ikke skje i en ventet funksjonell flyt men mange feil med
             // låsing opp igjennom tidene har ført til at nyeste deltakelse er låst
-            log.info("Nyeste deltakelse ${nyesteDeltakelse.id} var låst for endringer. Låser opp")
-            deltakerRepository.settKanEndres(nyesteDeltakelse.id, true)
+            laasOppDeltakelse(nyesteDeltakelse.id)
         }
 
         if (deltakelserSomSkalLaases.any()) {
