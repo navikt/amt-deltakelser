@@ -8,11 +8,10 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
 /**
- * Tjeneste for å håndtere låsing og oppheving av lås på deltakere.
+ * Tjeneste som avgjør om en [Deltaker] er låst for endringer.
  *
- * Hovedfunksjonaliteten er å låse opp tidligere deltakere for endringer
- * basert på påmeldingstidspunkt og status, typisk når et utkast for en
- * gjeldende deltaker er avbrutt.
+ * Kun den nyeste relevante deltakelsen for en person i en deltakerliste kan
+ * endres. Eldre deltakelser låses for å bevare historikk.
  */
 class DeltakerLaaseSvc(
     private val deltakerRepository: DeltakerRepository,
@@ -40,26 +39,13 @@ class DeltakerLaaseSvc(
     ).maxOrNull()
 
     /**
-     * Sjekker om en gitt [deltaker] kan endres.
+     * Sjekker om en [deltaker] er låst for endringer.
      *
-     * En deltaker kan kun endres dersom den er den nyeste relevante deltakelsen
-     * for personen i samme deltakerliste. Dersom det finnes flere deltakelser på
-     * samme person, vil eldre deltakelser bli låst for endring.
+     * Hvis personen har flere deltakelser i samme deltakerliste, anses kun den
+     * nyeste relevante deltakelsen som redigerbar. Alle tidligere deltakelser
+     * er låst.
      *
-     * Logikken fungerer slik:
-     * - Hvis personen kun har én deltakelse i deltakerlisten, kan den alltid endres.
-     * - Hvis det finnes flere deltakelser, sorteres disse etter:
-     *   1. Påmeldt-tidspunkt (nyeste først)
-     *   2. Statusens `gyldigFra` (nyeste først)
-     * - Deretter velges den nyeste deltakelsen med en aktiv status dersom en finnes,
-     *   ellers velges den nyeste deltakelsen uavhengig av status.
-     * - Kun denne nyeste deltakelsen kan endres. Alle eldre deltakelser anses som låst.
-     *
-     * Hvis [deltaker] ikke er den nyeste relevante deltakelsen, returneres `false`
-     * og det logges at deltakeren er låst fordi en nyere deltakelse finnes.
-     *
-     * @param deltaker deltakeren som vurderes for endring
-     * @return `true` dersom deltakeren kan endres, ellers `false`
+     * @return `true` dersom deltakeren er låst, ellers `false`
      */
     fun erLaastForEndringer(deltaker: Deltaker): Boolean {
         val deltakelserForPerson = deltakerRepository.getFlereForPerson(
