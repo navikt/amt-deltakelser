@@ -8,7 +8,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":amt-lib:lib:testing"))
+    api(project(":amt-lib:testing"))
     implementation(project(":amt-felles:ktor"))
 
     implementation(libs.testcontainers.postgresql)

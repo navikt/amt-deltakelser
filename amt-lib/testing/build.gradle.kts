@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":amt-lib:lib:models"))
-    api(project(":amt-lib:lib:utils"))
+    implementation(project(":amt-lib:models"))
+    api(project(":amt-lib:utils"))
 
     implementation(libs.kafka.clients)
     implementation(libs.logback.classic)

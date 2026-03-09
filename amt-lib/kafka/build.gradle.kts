@@ -6,8 +6,8 @@ dependencies {
     api(libs.kafka.clients)
     api(libs.kotlinx.coroutines.core)
     implementation(libs.logback.classic)
-    implementation(project(":amt-lib:lib:utils"))
+    implementation(project(":amt-lib:utils"))
 
-    testImplementation(project(":amt-lib:lib:testing"))
+    testImplementation(project(":amt-lib:testing"))
     testImplementation(libs.kotlinx.coroutines.test)
 }

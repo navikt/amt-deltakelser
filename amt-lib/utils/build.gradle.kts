@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":amt-lib:lib:models"))
+    implementation(project(":amt-lib:models"))
 
     api(libs.logback.classic)
 
@@ -19,5 +19,5 @@ dependencies {
     }
     implementation(libs.unleash)
 
-    testImplementation(project(":amt-lib:lib:testing"))
+    testImplementation(project(":amt-lib:testing"))
 }

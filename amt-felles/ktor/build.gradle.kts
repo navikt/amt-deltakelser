@@ -8,7 +8,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":amt-lib:lib:kafka"))
+    api(project(":amt-lib:kafka"))
 
     // --- Metrics ---
     api(libs.micrometer.prometheus)
@@ -22,8 +22,8 @@ dependencies {
 
     api(libs.bundles.database)
 
-    api(project(":amt-lib:lib:models"))
-    api(project(":amt-lib:lib:utils"))
+    api(project(":amt-lib:models"))
+    api(project(":amt-lib:utils"))
 
     api(libs.caffeine)
 
