@@ -93,8 +93,6 @@ class ResponseBuilder(
     private fun fromNavBruker(
         navBruker: NavBruker,
         erDigital: Boolean,
-        navVeilederNavn: String? = null,
-        navEnhetNavn: String? = null,
     ): NavBrukerResponse = NavBrukerResponse(
         personident = navBruker.personident,
         fornavn = navBruker.fornavn,
@@ -108,7 +106,7 @@ class ResponseBuilder(
         oppfolgingsperioder = navBruker.oppfolgingsperioder,
         innsatsgruppe = navBruker.innsatsgruppe,
         erDigital = erDigital,
-        navVeileder = navVeilederNavn,
-        navEnhet = navEnhetNavn,
+        navVeileder = "", // TODO(),
+        navEnhet = "", // TODO(),
     )
 }
