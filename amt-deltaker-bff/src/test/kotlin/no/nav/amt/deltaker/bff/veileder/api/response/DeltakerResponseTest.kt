@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse.DeltakelsesinnholdDto.Companion.fulltInnhold
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import org.junit.jupiter.api.Test

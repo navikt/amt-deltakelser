@@ -7,12 +7,12 @@ import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.tiltakskoordinator.model.TiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse.DeltakelsesinnholdDto.Companion.fulltInnhold
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
