@@ -32,6 +32,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
@@ -344,6 +345,11 @@ fun Application.module() {
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
 
+    val deltakerLaaseService = DeltakerLaaseService(
+        deltakerRepository = deltakerRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+    )
+
     val responseBuilder = ResponseBuilder(
         arrangorService = arrangorService,
         navAnsattRepository = navAnsattRepository,
@@ -351,6 +357,7 @@ fun Application.module() {
         amtDistribusjonClient = amtDistribusjonClient,
         deltakerHistorikkService = deltakerHistorikkService,
         forslagRepository = forslagRepository,
+        deltakerLaaseService = deltakerLaaseService,
     )
 
     val consumers = listOf(
