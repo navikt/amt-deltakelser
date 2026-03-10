@@ -2,14 +2,14 @@ package no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import no.nav.amt.api.tiltakskoordinator.request.DeltakereRequest
+import no.nav.amt.api.tiltakskoordinator.request.GiAvslagRequest
+import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.AvslagRequest
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.DeltakereRequest
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.GiAvslagRequest
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import java.util.UUID

@@ -3,12 +3,12 @@ package no.nav.amt.deltaker.bff.apiclients
 import no.nav.amt.api.paamelding.request.UtkastRequest
 import no.nav.amt.api.paamelding.response.OpprettKladdResponse
 import no.nav.amt.api.paamelding.response.UtkastResponse
+import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringFeilkode
+import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringResponse
 
 object DtoMappers {
     fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) = with(deltaker) {

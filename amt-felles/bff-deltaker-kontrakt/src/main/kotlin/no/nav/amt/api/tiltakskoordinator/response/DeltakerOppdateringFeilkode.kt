@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response
+package no.nav.amt.api.tiltakskoordinator.response
 
 enum class DeltakerOppdateringFeilkode {
     UGYLDIG_STATE,

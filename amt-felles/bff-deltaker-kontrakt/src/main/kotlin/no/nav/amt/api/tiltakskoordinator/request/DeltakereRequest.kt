@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request
+package no.nav.amt.api.tiltakskoordinator.request
 
 import java.util.UUID
 

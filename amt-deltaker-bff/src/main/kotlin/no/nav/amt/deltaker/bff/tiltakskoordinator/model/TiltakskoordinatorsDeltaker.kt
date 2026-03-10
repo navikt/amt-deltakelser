@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.tiltakskoordinator.model
 
+import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -7,7 +8,6 @@ import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.person.Beskyttelsesmarkering
 import no.nav.amt.lib.models.person.NavBruker
 import java.time.LocalDate
