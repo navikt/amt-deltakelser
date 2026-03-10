@@ -5,13 +5,13 @@ import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.utkastRequestFromUtkast
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
+import no.nav.amt.kladd.request.AvbrytUtkastRequest
+import no.nav.amt.kladd.request.OpprettKladdRequest
+import no.nav.amt.kladd.response.OpprettKladdResponse
+import no.nav.amt.kladd.response.UtkastResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.OpprettKladdResponse
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.UtkastResponse
 import java.util.UUID
 
 class PaameldingClient(

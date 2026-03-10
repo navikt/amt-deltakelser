@@ -16,7 +16,7 @@ import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
+import no.nav.amt.kladd.request.OpprettKladdRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import java.util.UUID

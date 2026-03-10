@@ -10,8 +10,8 @@ import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
 import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
+import no.nav.amt.kladd.request.AvbrytUtkastRequest
+import no.nav.amt.kladd.request.UtkastRequest
 
 fun Routing.registerPameldingApi(
     pameldingService: PameldingService,

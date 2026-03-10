@@ -33,7 +33,10 @@ class ResponseBuilder(
         val forslag = forslagRepository.getForDeltaker(deltaker.id)
         return DeltakerResponse(
             id = deltaker.id,
-            navBruker = fromNavBruker(deltaker.navBruker, erDigital),
+            navBruker = fromNavBruker(
+                navBruker = deltaker.navBruker,
+                erDigital = erDigital,
+            ),
             gjennomforing = GjennomforingResponse(
                 id = deltaker.deltakerliste.id,
                 tiltakstype = deltaker.deltakerliste.tiltakstype,
@@ -90,6 +93,8 @@ class ResponseBuilder(
     private fun fromNavBruker(
         navBruker: NavBruker,
         erDigital: Boolean,
+        navVeilederNavn: String? = null,
+        navEnhetNavn: String? = null,
     ): NavBrukerResponse = NavBrukerResponse(
         personident = navBruker.personident,
         fornavn = navBruker.fornavn,
@@ -103,7 +108,7 @@ class ResponseBuilder(
         oppfolgingsperioder = navBruker.oppfolgingsperioder,
         innsatsgruppe = navBruker.innsatsgruppe,
         erDigital = erDigital,
-        navVeileder = "", // TODO(),
-        navEnhet = "", // TODO(),
+        navVeileder = navVeilederNavn,
+        navEnhet = navEnhetNavn,
     )
 }

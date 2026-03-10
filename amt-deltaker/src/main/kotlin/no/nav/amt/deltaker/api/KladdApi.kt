@@ -10,7 +10,7 @@ import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
+import no.nav.amt.kladd.request.OpprettKladdRequest
 
 fun Routing.registerKladdApi(pameldingService: PameldingService) {
     authenticate("SYSTEM") {

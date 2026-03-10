@@ -3,10 +3,10 @@ package no.nav.amt.deltaker.bff.apiclients
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
+import no.nav.amt.kladd.request.UtkastRequest
+import no.nav.amt.kladd.response.OpprettKladdResponse
+import no.nav.amt.kladd.response.UtkastResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.OpprettKladdResponse
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.UtkastResponse
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringResponse
 

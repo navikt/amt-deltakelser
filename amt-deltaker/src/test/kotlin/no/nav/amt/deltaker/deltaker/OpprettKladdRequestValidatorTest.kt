@@ -14,9 +14,9 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.kladd.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach

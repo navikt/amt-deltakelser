@@ -8,9 +8,9 @@ import no.nav.amt.deltaker.bff.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.kladd.response.OpprettKladdResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.response.OpprettKladdResponse
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database

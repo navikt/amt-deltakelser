@@ -36,10 +36,10 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.kladd.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.routing.registerHealthApi
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

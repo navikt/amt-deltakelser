@@ -13,12 +13,12 @@ import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.kladd.request.AvbrytUtkastRequest
+import no.nav.amt.kladd.request.UtkastRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import java.util.UUID
