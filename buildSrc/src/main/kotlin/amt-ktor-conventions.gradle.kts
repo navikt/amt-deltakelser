@@ -23,7 +23,7 @@ dependencies {
     // --- amt-felles, amt-felles:ktor drar inn database, models og utils
     implementation(project(":amt-felles:ktor"))
 
-    implementation(project(":amt-felles:bff-deltaker-relatert"))
+    implementation(project(":amt-felles:bff-deltaker-kontrakt"))
 
     // --- Test ---
     testImplementation(project(":amt-felles:ktor-test"))
