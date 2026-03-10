@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api
+package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -11,11 +11,11 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -48,7 +48,7 @@ class KladdApiTest : RouteTestBase() {
 
     @Test
     fun `post kladd - har tilgang - returnerer deltaker`() {
-        val deltaker = lagDeltaker()
+        val deltaker = TestData.lagDeltaker()
 
         coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
         coEvery { pameldingService.opprettDeltaker(any(), any()) } returns deltaker
@@ -59,7 +59,11 @@ class KladdApiTest : RouteTestBase() {
             }
 
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(opprettKladdResponseFromDeltaker(deltaker))
+            response.bodyAsText() shouldBe objectMapper.writeValueAsString(
+                DtoMappers.opprettKladdResponseFromDeltaker(
+                    deltaker,
+                ),
+            )
         }
     }
 

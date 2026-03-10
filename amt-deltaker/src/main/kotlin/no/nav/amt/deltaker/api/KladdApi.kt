@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api.paamelding
+package no.nav.amt.deltaker.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate

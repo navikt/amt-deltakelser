@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.navtiltakskoordinator
+package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
@@ -12,7 +12,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.RouteTestBase
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
@@ -90,7 +90,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
     companion object {
         private const val API_PATH = "/tiltakskoordinator/deltakere"
-        private val deltaker = lagDeltaker()
+        private val deltaker = TestData.lagDeltaker()
         private val historikk = emptyList<DeltakerHistorikk>()
 
         private val delMedArrangorRequest = DelMedArrangorRequest(

@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api
+package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
@@ -9,12 +9,10 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -38,7 +36,8 @@ class PameldingApiTest : RouteTestBase() {
 
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() {
-        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        val deltaker =
+            TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
 
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
@@ -50,7 +49,12 @@ class PameldingApiTest : RouteTestBase() {
                     postRequest(utkastRequest)
                 }.apply {
                     status shouldBe HttpStatusCode.OK
-                    bodyAsText() shouldBe objectMapper.writeValueAsString(utkastResponseFromDeltaker(deltaker, historikk))
+                    bodyAsText() shouldBe objectMapper.writeValueAsString(
+                        DtoMappers.utkastResponseFromDeltaker(
+                            deltaker,
+                            historikk,
+                        ),
+                    )
                 }
         }
     }
