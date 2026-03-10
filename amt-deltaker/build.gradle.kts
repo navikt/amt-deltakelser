@@ -4,6 +4,8 @@ plugins {
 
 dependencies {
 
+    implementation(project(":amt-felles:bff-deltaker-kontrakt"))
+
     // --- POAO ---
     implementation(libs.poao.tilgang.client)
 
