@@ -13,6 +13,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.amt.api.paamelding.request.OpprettKladdRequest
 import no.nav.amt.deltaker.api.registerExternalApi
 import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
@@ -36,7 +37,6 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.kladd.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.routing.registerHealthApi

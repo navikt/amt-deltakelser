@@ -9,12 +9,12 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
+import no.nav.amt.api.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.api.paamelding.request.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.kladd.request.AvbrytUtkastRequest
-import no.nav.amt.kladd.request.UtkastRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

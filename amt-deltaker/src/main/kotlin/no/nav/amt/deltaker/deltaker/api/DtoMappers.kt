@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.deltaker.api
 
+import no.nav.amt.api.paamelding.response.OpprettKladdResponse
+import no.nav.amt.api.paamelding.response.UtkastResponse
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.kladd.response.OpprettKladdResponse
-import no.nav.amt.kladd.response.UtkastResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
 

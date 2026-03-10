@@ -1,4 +1,4 @@
-package no.nav.amt.kladd.response
+package no.nav.amt.api.paamelding.response
 
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk

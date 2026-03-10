@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
+import no.nav.amt.api.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.api.paamelding.request.UtkastRequest
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
@@ -11,8 +13,6 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.kladd.request.AvbrytUtkastRequest
-import no.nav.amt.kladd.request.UtkastRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde

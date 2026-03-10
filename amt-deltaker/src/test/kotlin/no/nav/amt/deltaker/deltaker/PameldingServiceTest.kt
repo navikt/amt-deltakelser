@@ -10,6 +10,8 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.api.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.api.paamelding.request.UtkastRequest
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDto
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
@@ -62,8 +64,6 @@ import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
-import no.nav.amt.kladd.request.AvbrytUtkastRequest
-import no.nav.amt.kladd.request.UtkastRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold

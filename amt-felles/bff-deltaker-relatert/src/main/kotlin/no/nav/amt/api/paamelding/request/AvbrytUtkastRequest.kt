@@ -1,4 +1,4 @@
-package no.nav.amt.kladd.request
+package no.nav.amt.api.paamelding.request
 
 data class AvbrytUtkastRequest(
     val avbruttAv: String,
