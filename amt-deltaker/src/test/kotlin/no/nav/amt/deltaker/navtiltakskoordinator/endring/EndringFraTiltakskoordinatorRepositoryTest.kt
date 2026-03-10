@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.tiltakskoordinator.endring
+package no.nav.amt.deltaker.navtiltakskoordinator.endring
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository

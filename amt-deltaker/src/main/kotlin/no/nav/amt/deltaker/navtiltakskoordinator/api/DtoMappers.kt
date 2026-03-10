@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.tiltakskoordinator.api
+package no.nav.amt.deltaker.navtiltakskoordinator.api
 
 import io.ktor.network.sockets.SocketTimeoutException
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult

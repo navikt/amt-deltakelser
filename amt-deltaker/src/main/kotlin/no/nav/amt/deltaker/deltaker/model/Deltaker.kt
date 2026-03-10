@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltaker.model
 
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.tiltakskoordinator.Deltakeroppdatering
+import no.nav.amt.deltaker.navtiltakskoordinator.Deltakeroppdatering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

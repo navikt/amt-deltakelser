@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.tiltakskoordinator.endring
+package no.nav.amt.deltaker.navtiltakskoordinator.endring
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row

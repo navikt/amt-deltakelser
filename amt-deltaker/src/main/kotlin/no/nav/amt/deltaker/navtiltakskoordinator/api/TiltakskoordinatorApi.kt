@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.tiltakskoordinator.api
+package no.nav.amt.deltaker.navtiltakskoordinator.api
 
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
@@ -8,7 +8,7 @@ import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.tiltakskoordinator.api.DtoMappers.fromDeltakerOppdateringResult
+import no.nav.amt.deltaker.navtiltakskoordinator.api.DtoMappers.fromDeltakerOppdateringResult
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator

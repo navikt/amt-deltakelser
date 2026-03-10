@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
+import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.junit.jupiter.api.Test
