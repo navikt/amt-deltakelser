@@ -19,9 +19,6 @@ import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.api.registerDeltakerApi
-import no.nav.amt.deltaker.bff.deltaker.api.registerKladdApi
-import no.nav.amt.deltaker.bff.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
@@ -41,6 +38,9 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.api.registerTiltakskoordinator
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.registerUlestHendelseApi
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.unleash.registerUnleashApi
+import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
+import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi
+import no.nav.amt.deltaker.bff.veileder.api.registerVeilederApi
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.routing.registerHealthApi
@@ -98,7 +98,7 @@ fun Application.configureRouting(
     routing {
         registerHealthApi()
 
-        registerDeltakerApi(
+        registerVeilederApi(
             tilgangskontrollService,
             deltakerRepository,
             deltakerService,

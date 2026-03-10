@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.testdata
 
-import no.nav.amt.deltaker.bff.deltaker.api.utils.validerDagerPerUke
-import no.nav.amt.deltaker.bff.deltaker.api.utils.validerDeltakelsesProsent
+import no.nav.amt.deltaker.bff.veileder.api.utils.validerDagerPerUke
+import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesProsent
 import java.time.LocalDate
 import java.util.UUID
 
