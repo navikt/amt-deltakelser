@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.tiltakskoordinator
+package no.nav.amt.deltaker.navtiltakskoordinator
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post

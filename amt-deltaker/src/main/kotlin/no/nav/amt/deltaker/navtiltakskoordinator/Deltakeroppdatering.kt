@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.tiltakskoordinator
+package no.nav.amt.deltaker.navtiltakskoordinator
 
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
