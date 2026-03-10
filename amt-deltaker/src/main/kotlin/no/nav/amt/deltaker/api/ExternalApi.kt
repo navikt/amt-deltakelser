@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.external.api
+package no.nav.amt.deltaker.api
 
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
+import no.nav.amt.deltaker.external.api.erAktiv
 import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
 import no.nav.amt.deltaker.external.data.HarAktiveDeltakelserResponse
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest

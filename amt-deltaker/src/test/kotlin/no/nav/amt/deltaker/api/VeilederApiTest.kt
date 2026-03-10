@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api
+package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
@@ -11,15 +11,11 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.RouteTestBase
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
-import no.nav.amt.deltaker.utils.data.TestData.randomIdent
+import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -45,25 +41,27 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 
-class DeltakerApiTest : RouteTestBase() {
+class VeilederApiTest : RouteTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") { setBody("foo") }.status shouldBe
+                HttpStatusCode.Companion.Unauthorized
+            client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe
+                HttpStatusCode.Companion.Unauthorized
         }
     }
 
     @Test
     fun `post bakgrunnsinformasjon til felles endepunkt for endringer - har tilgang - returnerer 200`() {
         val bakgrunnsinformasjonRequest = BakgrunnsinformasjonRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             bakgrunnsinformasjon = "bakgrunnsinformasjon",
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = bakgrunnsinformasjonRequest.toEndring())))
-        val deltaker = lagDeltaker(bakgrunnsinformasjon = bakgrunnsinformasjonRequest.bakgrunnsinformasjon)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = bakgrunnsinformasjonRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(bakgrunnsinformasjon = bakgrunnsinformasjonRequest.bakgrunnsinformasjon)
 
         runEndringTest(bakgrunnsinformasjonRequest, deltaker, historikk)
     }
@@ -71,8 +69,8 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post innhold - har tilgang - returnerer 200`() {
         val innholdRequest = InnholdRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             deltakelsesinnhold = Deltakelsesinnhold(
                 ledetekst = "ledetekst",
                 innhold = listOf(
@@ -87,8 +85,8 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         val innholdEndring = innholdRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = innholdEndring)))
-        val deltaker = lagDeltaker(
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = innholdEndring)))
+        val deltaker = TestData.lagDeltaker(
             innhold = Deltakelsesinnhold(
                 ledetekst = "test",
                 innhold = innholdEndring.innhold,
@@ -101,8 +99,8 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post deltakelsesmengde - har tilgang - returnerer 200`() {
         val deltakelsesmengdeRequest = DeltakelsesmengdeRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             deltakelsesprosent = 50,
             dagerPerUke = 2,
@@ -111,8 +109,8 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         val deltakelsesmengdeEndring = deltakelsesmengdeRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = deltakelsesmengdeEndring)))
-        val deltaker = lagDeltaker(
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = deltakelsesmengdeEndring)))
+        val deltaker = TestData.lagDeltaker(
             deltakelsesprosent = deltakelsesmengdeEndring.deltakelsesprosent,
             dagerPerUke = deltakelsesmengdeEndring.dagerPerUke,
         )
@@ -123,16 +121,16 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post startdato - har tilgang - returnerer 200`() {
         val startdatoRequest = StartdatoRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             startdato = LocalDate.now().minusDays(2),
             sluttdato = LocalDate.now().plusMonths(2),
             begrunnelse = "begrunnelse",
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = startdatoRequest.toEndring())))
-        val deltaker = lagDeltaker(startdato = startdatoRequest.startdato)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = startdatoRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(startdato = startdatoRequest.startdato)
 
         runEndringTest(startdatoRequest, deltaker, historikk)
     }
@@ -140,15 +138,15 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post sluttdato - har tilgang - returnerer 200`() {
         val sluttdatoRequest = SluttdatoRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             sluttdato = LocalDate.now().minusDays(2),
             begrunnelse = "begrunnelse",
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = sluttdatoRequest.toEndring())))
-        val deltaker = lagDeltaker(sluttdato = sluttdatoRequest.sluttdato)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = sluttdatoRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(sluttdato = sluttdatoRequest.sluttdato)
 
         runEndringTest(sluttdatoRequest, deltaker, historikk)
     }
@@ -156,8 +154,8 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post sluttarsak - har tilgang - returnerer 200`() {
         val sluttarsakRequest = SluttarsakRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             aarsak = DeltakerEndring.Aarsak(
                 type = DeltakerEndring.Aarsak.Type.ANNET,
@@ -166,9 +164,9 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = sluttarsakRequest.toEndring())))
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = sluttarsakRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
                 aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
             ),
@@ -180,15 +178,15 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post forleng - har tilgang - returnerer 200`() {
         val forlengDeltakelseRequest = ForlengDeltakelseRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             sluttdato = LocalDate.now().plusWeeks(2),
             begrunnelse = "begrunnelse",
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = forlengDeltakelseRequest.toEndring())))
-        val deltaker = lagDeltaker(sluttdato = forlengDeltakelseRequest.sluttdato)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = forlengDeltakelseRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(sluttdato = forlengDeltakelseRequest.sluttdato)
 
         runEndringTest(forlengDeltakelseRequest, deltaker, historikk)
     }
@@ -196,8 +194,8 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post ikke aktuell - har tilgang - returnerer 200`() {
         val ikkeAktuellRequest = IkkeAktuellRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             aarsak = DeltakerEndring.Aarsak(
                 type = DeltakerEndring.Aarsak.Type.IKKE_MOTT,
@@ -206,9 +204,9 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = ikkeAktuellRequest.toEndring())))
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = ikkeAktuellRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.IKKE_AKTUELL,
                 aarsakType = DeltakerStatus.Aarsak.Type.IKKE_MOTT,
             ),
@@ -220,8 +218,8 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post avslutt deltakelse - har tilgang - returnerer 200`() {
         val avsluttDeltakelseRequest = AvsluttDeltakelseRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             sluttdato = LocalDate.now(),
             aarsak = DeltakerEndring.Aarsak(
@@ -232,9 +230,9 @@ class DeltakerApiTest : RouteTestBase() {
             harFullfort = null,
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = avsluttDeltakelseRequest.toEndring())))
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = avsluttDeltakelseRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
                 aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
             ),
@@ -247,8 +245,8 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post endre avslutning - har tilgang - returnerer 200`() {
         val endreAvslutningRequest = EndreAvslutningRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             aarsak = DeltakerEndring.Aarsak(
                 type = DeltakerEndring.Aarsak.Type.UTDANNING,
@@ -259,9 +257,9 @@ class DeltakerApiTest : RouteTestBase() {
             harFullfort = true,
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endreAvslutningRequest.toEndring())))
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endreAvslutningRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.FULLFORT,
                 aarsakType = null,
             ),
@@ -273,14 +271,14 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post reaktiver - har tilgang - returnerer 200`() {
         val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             begrunnelse = "begrunnelse",
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = reaktiverDeltakelseRequest.toEndring())))
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = reaktiverDeltakelseRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
         )
@@ -291,15 +289,15 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post fjern oppstartsdato - har tilgang - returnerer 200`() {
         val fjernOppstartsdatoRequest = FjernOppstartsdatoRequest(
-            endretAv = randomIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
+            endretAv = TestData.randomIdent(),
+            endretAvEnhet = TestData.randomEnhetsnummer(),
             forslagId = null,
             begrunnelse = "begrunnelse",
         )
 
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = fjernOppstartsdatoRequest.toEndring())))
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = fjernOppstartsdatoRequest.toEndring())))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
         )
@@ -309,8 +307,8 @@ class DeltakerApiTest : RouteTestBase() {
 
     @Test
     fun `post sist-besokt - har tilgang - returnerer 200`() {
-        val deltakerInTest = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        val deltakerInTest = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
         )
@@ -324,7 +322,7 @@ class DeltakerApiTest : RouteTestBase() {
                 postRequest(sistBesoktInTest)
             }
 
-            response.status shouldBe HttpStatusCode.OK
+            response.status shouldBe HttpStatusCode.Companion.OK
         }
 
         verify(exactly = 1) {
@@ -348,9 +346,9 @@ class DeltakerApiTest : RouteTestBase() {
                 postRequest(request)
             }
 
-            response.status shouldBe HttpStatusCode.OK
+            response.status shouldBe HttpStatusCode.Companion.OK
             response.bodyAsText() shouldBe
-                objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
+                objectMapper.writeValueAsString(DtoMappers.deltakerEndringResponseFromDeltaker(deltaker, historikk))
         }
 
         coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }

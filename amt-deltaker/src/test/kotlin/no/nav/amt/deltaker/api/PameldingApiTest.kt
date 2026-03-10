@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api
+package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
@@ -9,12 +9,10 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -30,15 +28,16 @@ class PameldingApiTest : RouteTestBase() {
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("/pamelding/${UUID.randomUUID()}/innbygger/godkjenn-utkast") { setBody("foo") }.status shouldBe
-                HttpStatusCode.Unauthorized
-            client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+                HttpStatusCode.Companion.Unauthorized
+            client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
         }
     }
 
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() {
-        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        val deltaker =
+            TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
 
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
@@ -49,8 +48,13 @@ class PameldingApiTest : RouteTestBase() {
                 .post("/pamelding/${deltaker.id}") {
                     postRequest(utkastRequest)
                 }.apply {
-                    status shouldBe HttpStatusCode.OK
-                    bodyAsText() shouldBe objectMapper.writeValueAsString(utkastResponseFromDeltaker(deltaker, historikk))
+                    status shouldBe HttpStatusCode.Companion.OK
+                    bodyAsText() shouldBe objectMapper.writeValueAsString(
+                        DtoMappers.utkastResponseFromDeltaker(
+                            deltaker,
+                            historikk,
+                        ),
+                    )
                 }
         }
     }
@@ -65,7 +69,7 @@ class PameldingApiTest : RouteTestBase() {
                 .post("/pamelding/$deltakerId") {
                     postRequest(utkastRequest)
                 }.apply {
-                    status shouldBe HttpStatusCode.NotFound
+                    status shouldBe HttpStatusCode.Companion.NotFound
                 }
         }
     }
@@ -80,7 +84,7 @@ class PameldingApiTest : RouteTestBase() {
                 .post("/pamelding/$deltakerId/avbryt") {
                     postRequest(avbrytUtkastRequest)
                 }.apply {
-                    status shouldBe HttpStatusCode.OK
+                    status shouldBe HttpStatusCode.Companion.OK
                 }
         }
     }

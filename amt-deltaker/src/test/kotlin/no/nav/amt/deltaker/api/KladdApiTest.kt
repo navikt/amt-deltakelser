@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api
+package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -11,11 +11,11 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -25,8 +25,8 @@ class KladdApiTest : RouteTestBase() {
     @Test
     fun `post - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.delete("/kladd/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+            client.post("/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.delete("/kladd/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Companion.Unauthorized
         }
     }
 
@@ -41,14 +41,14 @@ class KladdApiTest : RouteTestBase() {
                 postRequest(opprettKladdRequest)
             }
 
-            response.status shouldBe HttpStatusCode.BadRequest
+            response.status shouldBe HttpStatusCode.Companion.BadRequest
             response.bodyAsText() shouldContain ("~some error~, ~some other error~")
         }
     }
 
     @Test
     fun `post kladd - har tilgang - returnerer deltaker`() {
-        val deltaker = lagDeltaker()
+        val deltaker = TestData.lagDeltaker()
 
         coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
         coEvery { pameldingService.opprettDeltaker(any(), any()) } returns deltaker
@@ -58,8 +58,12 @@ class KladdApiTest : RouteTestBase() {
                 postRequest(opprettKladdRequest)
             }
 
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(opprettKladdResponseFromDeltaker(deltaker))
+            response.status shouldBe HttpStatusCode.Companion.OK
+            response.bodyAsText() shouldBe objectMapper.writeValueAsString(
+                DtoMappers.opprettKladdResponseFromDeltaker(
+                    deltaker,
+                ),
+            )
         }
     }
 
@@ -73,7 +77,7 @@ class KladdApiTest : RouteTestBase() {
                 postRequest(opprettKladdRequest)
             }
 
-            response.status shouldBe HttpStatusCode.NotFound
+            response.status shouldBe HttpStatusCode.Companion.NotFound
         }
     }
 
@@ -84,7 +88,7 @@ class KladdApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.delete("/kladd/$deltakerId") { noBodyRequest() }.apply {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Companion.OK
             }
         }
     }

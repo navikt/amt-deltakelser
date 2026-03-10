@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.navtiltakskoordinator.api
+package no.nav.amt.deltaker.api
 
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive

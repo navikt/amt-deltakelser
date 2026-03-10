@@ -13,6 +13,12 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.amt.deltaker.api.registerExternalApi
+import no.nav.amt.deltaker.api.registerInternalApi
+import no.nav.amt.deltaker.api.registerKladdApi
+import no.nav.amt.deltaker.api.registerPameldingApi
+import no.nav.amt.deltaker.api.registerTiltakskoordinatorApi
+import no.nav.amt.deltaker.api.registerVeilederApi
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -20,21 +26,15 @@ import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
-import no.nav.amt.deltaker.deltaker.api.deltaker.registerDeltakerApi
-import no.nav.amt.deltaker.deltaker.api.paamelding.registerKladdApi
-import no.nav.amt.deltaker.deltaker.api.paamelding.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
-import no.nav.amt.deltaker.external.api.registerExternalApi
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.internal.registerInternalApi
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.navtiltakskoordinator.api.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
@@ -107,7 +107,7 @@ fun Application.configureRouting(
         registerKladdApi(
             pameldingService = pameldingService,
         )
-        registerDeltakerApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
+        registerVeilederApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
         registerInternalApi(
             deltakerRepository,
             deltakerService,

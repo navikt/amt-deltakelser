@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.navtiltakskoordinator
+package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
@@ -12,7 +12,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.RouteTestBase
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
@@ -30,10 +30,10 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("$API_PATH/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("$API_PATH/gi-avslag") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("$API_PATH/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.post("$API_PATH/gi-avslag") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
         }
     }
 
@@ -44,7 +44,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Companion.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(emptyList())))
             }
         }
@@ -63,7 +63,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/sett-paa-venteliste") { postRequest(request) }.apply {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Companion.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(historikk)))
             }
         }
@@ -82,7 +82,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/tildel-plass") { postRequest(request) }.apply {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Companion.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(historikk)))
             }
         }
@@ -90,7 +90,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
     companion object {
         private const val API_PATH = "/tiltakskoordinator/deltakere"
-        private val deltaker = lagDeltaker()
+        private val deltaker = TestData.lagDeltaker()
         private val historikk = emptyList<DeltakerHistorikk>()
 
         private val delMedArrangorRequest = DelMedArrangorRequest(

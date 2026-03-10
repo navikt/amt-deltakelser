@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.internal
+package no.nav.amt.deltaker.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
