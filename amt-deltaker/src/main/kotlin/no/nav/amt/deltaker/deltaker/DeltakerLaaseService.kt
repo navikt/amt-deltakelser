@@ -13,7 +13,7 @@ import java.time.LocalDateTime
  * Kun den nyeste relevante deltakelsen for en person i en deltakerliste kan
  * endres. Eldre deltakelser låses for å bevare historikk.
  */
-class DeltakerLaaseSvc(
+class DeltakerLaaseService(
     private val deltakerRepository: DeltakerRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
 ) {
@@ -33,7 +33,9 @@ class DeltakerLaaseSvc(
         deltaker.vedtaksinformasjon?.fattet,
         importertFraArenaRepository
             .getForDeltaker(deltaker.id)
-            ?.innsoktDatoAsLocalDateTime,
+            ?.deltakerVedImport
+            ?.innsoktDato
+            ?.atStartOfDay(),
     ).maxOrNull()
 
     /**

@@ -18,10 +18,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class DeltakerLaaseSvcTest {
+class DeltakerLaaseServiceTest {
     private val mockDeltakerRepository = mockk<DeltakerRepository>(relaxUnitFun = true)
     private val mockImportertFraArenaRepository = mockk<ImportertFraArenaRepository>(relaxUnitFun = true)
-    private val sut = DeltakerLaaseSvc(mockDeltakerRepository, mockImportertFraArenaRepository)
+    private val sut = DeltakerLaaseService(mockDeltakerRepository, mockImportertFraArenaRepository)
 
     private val deltakerInTest = lagDeltaker()
     private val tidligereDeltakerInTest = lagDeltaker(
@@ -158,7 +158,7 @@ class DeltakerLaaseSvcTest {
         }
 
         @Test
-        fun `skal returnere innsoktDatoAsLocalDateTime fra Arena hvis deltaker er importert fra Arena`() {
+        fun `skal returnere innsoktDato fra Arena hvis deltaker er importert fra Arena`() {
             // Arrange
             every {
                 mockImportertFraArenaRepository.getForDeltaker(tidligereDeltakerInTest.id)
@@ -168,7 +168,7 @@ class DeltakerLaaseSvcTest {
             val result = sut.getPaameldtTidspunkt(tidligereDeltakerInTest)
 
             // Assert
-            result shouldBe importertFraArena.innsoktDatoAsLocalDateTime
+            result shouldBe importertFraArena.deltakerVedImport.innsoktDato.atStartOfDay()
         }
     }
 }
