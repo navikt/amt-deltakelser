@@ -23,7 +23,8 @@ import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.OpprettNyKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdEnkelUtenRammeRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -50,7 +51,7 @@ fun Routing.registerKladdApi(
     )
     authenticate(AuthLevel.VEILEDER.name) {
         post("/kladd") {
-            val request = call.receive<OpprettNyKladdRequest>()
+            val request = call.receive<OpprettKladdRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
@@ -60,6 +61,26 @@ fun Routing.registerKladdApi(
             )
 
             call.respond(komplettDeltakerResponse(deltaker))
+        }
+
+        post("/opprett-kladd-enkeltplass-uten-rammeavtale") {
+            // hente ut request fra call
+            val request = call.receive<OpprettKladdEnkelUtenRammeRequest>()
+
+            // verifisere tilgang
+            tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
+
+            // opprette ny gjennomføring basert på tiltakskode
+            // opprettGjennomføring(tiltakskode, personident) -- hvis denne kombinasjonen finnes så returneres eksisterende
+            // opprett deltakelse med status kladd
+            val response = pameldingService
+                .opprettKladdForEnkelUtenRamme(
+                    personident = request.personident,
+                    tiltakskode = request.tiltakskode,
+                )
+            // .toResponse
+            // returnere deltaker komplettdeltaker
+            call.respond(response)
         }
 
         // Dette endepunktet kommuniserer ikke med amt-deltaker

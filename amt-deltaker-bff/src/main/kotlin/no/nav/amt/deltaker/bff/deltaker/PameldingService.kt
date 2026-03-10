@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -23,6 +24,11 @@ class PameldingService(
     private val navEnhetService: NavEnhetService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    suspend fun opprettKladdForEnkelUtenRamme(
+        tiltakskode: Tiltakskode,
+        personident: String,
+    ) = paameldingClient.opprettKladdEnkelUtenRamme(tiltakskode, personident)
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,

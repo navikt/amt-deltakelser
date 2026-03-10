@@ -33,7 +33,7 @@ import no.nav.amt.deltaker.bff.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.OpprettNyKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
@@ -90,7 +90,7 @@ class KladdApiTest {
 
         setUpTestApplication()
 
-        client.post("/kladd") { createPostRequest(opprettNyKladdRequest) }.apply {
+        client.post("/kladd") { createPostRequest(opprettKladdRequest) }.apply {
             assertEquals(HttpStatusCode.OK, status)
 
             val expected = DeltakerResponse.fromDeltaker(
@@ -121,7 +121,7 @@ class KladdApiTest {
 
         setUpTestApplication()
 
-        client.post("/kladd") { createPostRequest(opprettNyKladdRequest) }.status shouldBe HttpStatusCode.Forbidden
+        client.post("/kladd") { createPostRequest(opprettKladdRequest) }.status shouldBe HttpStatusCode.Forbidden
         client
             .post("/kladd/${UUID.randomUUID()}") {
                 createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
@@ -204,7 +204,7 @@ class KladdApiTest {
 
         setUpTestApplication()
 
-        val response = client.post("/kladd") { createPostRequest(opprettNyKladdRequest) }
+        val response = client.post("/kladd") { createPostRequest(opprettKladdRequest) }
 
         response.status shouldBe HttpStatusCode.NotFound
     }
@@ -240,7 +240,7 @@ class KladdApiTest {
     private fun utkastRequest(innhold: List<InnholdRequest> = emptyList()) = UtkastRequest(innhold, "Bakgrunnen for...", null, null)
 
     private val kladdRequest = KladdRequest(emptyList(), "Bakgrunnen for...", null, null)
-    private val opprettNyKladdRequest = OpprettNyKladdRequest(UUID.randomUUID(), "1234")
+    private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
 }
 
 private fun List<Innhold>.toInnholdDto() = this.map {
