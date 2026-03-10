@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.tiltakskoordinator.api.response
 
+import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.person.Beskyttelsesmarkering
 import java.time.LocalDate
 import java.util.UUID

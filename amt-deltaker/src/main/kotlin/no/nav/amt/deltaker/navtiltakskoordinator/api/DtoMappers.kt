@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.navtiltakskoordinator.api
 
 import io.ktor.network.sockets.SocketTimeoutException
+import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringFeilkode
+import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
-import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringResponse
 import java.net.SocketException
 import java.sql.SQLException
 

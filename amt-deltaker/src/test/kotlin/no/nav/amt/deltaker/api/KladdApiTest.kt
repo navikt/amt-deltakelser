@@ -11,12 +11,12 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
+import no.nav.amt.api.paamelding.request.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import java.util.UUID

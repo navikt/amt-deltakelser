@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response
+package no.nav.amt.api.tiltakskoordinator.response
 
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk

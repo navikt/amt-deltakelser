@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.deltaker.internalapis.paamelding.request
+package no.nav.amt.api.paamelding.request
 
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 

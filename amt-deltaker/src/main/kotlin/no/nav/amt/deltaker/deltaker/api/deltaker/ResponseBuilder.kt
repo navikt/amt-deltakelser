@@ -33,7 +33,10 @@ class ResponseBuilder(
         val forslag = forslagRepository.getForDeltaker(deltaker.id)
         return DeltakerResponse(
             id = deltaker.id,
-            navBruker = fromNavBruker(deltaker.navBruker, erDigital),
+            navBruker = fromNavBruker(
+                navBruker = deltaker.navBruker,
+                erDigital = erDigital,
+            ),
             gjennomforing = GjennomforingResponse(
                 id = deltaker.deltakerliste.id,
                 tiltakstype = deltaker.deltakerliste.tiltakstype,
