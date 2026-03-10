@@ -28,9 +28,9 @@ class PameldingApiTest : RouteTestBase() {
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("/pamelding/${UUID.randomUUID()}/innbygger/godkjenn-utkast") { setBody("foo") }.status shouldBe
-                HttpStatusCode.Companion.Unauthorized
-            client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
-            client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
+                HttpStatusCode.Unauthorized
+            client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -48,7 +48,7 @@ class PameldingApiTest : RouteTestBase() {
                 .post("/pamelding/${deltaker.id}") {
                     postRequest(utkastRequest)
                 }.apply {
-                    status shouldBe HttpStatusCode.Companion.OK
+                    status shouldBe HttpStatusCode.OK
                     bodyAsText() shouldBe objectMapper.writeValueAsString(
                         DtoMappers.utkastResponseFromDeltaker(
                             deltaker,
@@ -69,7 +69,7 @@ class PameldingApiTest : RouteTestBase() {
                 .post("/pamelding/$deltakerId") {
                     postRequest(utkastRequest)
                 }.apply {
-                    status shouldBe HttpStatusCode.Companion.NotFound
+                    status shouldBe HttpStatusCode.NotFound
                 }
         }
     }
@@ -84,7 +84,7 @@ class PameldingApiTest : RouteTestBase() {
                 .post("/pamelding/$deltakerId/avbryt") {
                     postRequest(avbrytUtkastRequest)
                 }.apply {
-                    status shouldBe HttpStatusCode.Companion.OK
+                    status shouldBe HttpStatusCode.OK
                 }
         }
     }

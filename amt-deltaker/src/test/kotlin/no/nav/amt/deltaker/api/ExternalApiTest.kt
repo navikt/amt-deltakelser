@@ -258,19 +258,19 @@ class ExternalApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             val tomtToken = null
-            client.postPersonalia(deltakerIds, tomtToken).status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.postPersonalia(deltakerIds, tomtToken).status shouldBe HttpStatusCode.Unauthorized
 
             val ugyldigToken = "ugyldig-token"
-            client.postPersonalia(deltakerIds, ugyldigToken).status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.postPersonalia(deltakerIds, ugyldigToken).status shouldBe HttpStatusCode.Unauthorized
 
             val feilApp = "feil-app"
             val feilToken = generateJWT(consumerClientId = feilApp, audience = "amt-deltaker")
-            client.postPersonalia(deltakerIds, feilToken).status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.postPersonalia(deltakerIds, feilToken).status shouldBe HttpStatusCode.Unauthorized
 
             val preauthorizedAppUtenTilgang = "amt-deltaker-bff"
             val utenTilgangToken =
                 generateJWT(consumerClientId = preauthorizedAppUtenTilgang, audience = "amt-deltaker")
-            client.postPersonalia(deltakerIds, utenTilgangToken).status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.postPersonalia(deltakerIds, utenTilgangToken).status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -284,7 +284,7 @@ class ExternalApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.postPersonalia(listOf(deltaker.id)).apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
             }
         }
@@ -309,7 +309,7 @@ class ExternalApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.postPersonalia(listOf(deltaker.id)).apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
             }
         }
@@ -330,7 +330,7 @@ class ExternalApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.postPersonalia(listOf(deltaker.id)).apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
             }
         }
@@ -365,7 +365,7 @@ class ExternalApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.postPersonalia(listOf(deltaker1.id, deltaker2.id)).apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 val response = objectMapper.readValue(bodyAsText(), Array<DeltakerPersonaliaResponse>::class.java).toList()
                 response.size shouldBe 2
                 response.find { it.deltakerId == deltaker1.id }?.navEnhetsnummer shouldBe "1111"
@@ -382,7 +382,7 @@ class ExternalApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.postPersonalia(deltakerIds).apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe "[ ]"
             }
         }

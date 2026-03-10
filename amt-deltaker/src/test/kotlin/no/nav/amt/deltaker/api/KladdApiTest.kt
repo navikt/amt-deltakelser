@@ -25,8 +25,8 @@ class KladdApiTest : RouteTestBase() {
     @Test
     fun `post - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
-            client.delete("/kladd/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.post("/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.delete("/kladd/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -41,7 +41,7 @@ class KladdApiTest : RouteTestBase() {
                 postRequest(opprettKladdRequest)
             }
 
-            response.status shouldBe HttpStatusCode.Companion.BadRequest
+            response.status shouldBe HttpStatusCode.BadRequest
             response.bodyAsText() shouldContain ("~some error~, ~some other error~")
         }
     }
@@ -58,7 +58,7 @@ class KladdApiTest : RouteTestBase() {
                 postRequest(opprettKladdRequest)
             }
 
-            response.status shouldBe HttpStatusCode.Companion.OK
+            response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe objectMapper.writeValueAsString(
                 DtoMappers.opprettKladdResponseFromDeltaker(
                     deltaker,
@@ -77,7 +77,7 @@ class KladdApiTest : RouteTestBase() {
                 postRequest(opprettKladdRequest)
             }
 
-            response.status shouldBe HttpStatusCode.Companion.NotFound
+            response.status shouldBe HttpStatusCode.NotFound
         }
     }
 
@@ -88,7 +88,7 @@ class KladdApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.delete("/kladd/$deltakerId") { noBodyRequest() }.apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
             }
         }
     }

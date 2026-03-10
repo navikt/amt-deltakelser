@@ -46,9 +46,9 @@ class VeilederApiTest : RouteTestBase() {
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") { setBody("foo") }.status shouldBe
-                HttpStatusCode.Companion.Unauthorized
+                HttpStatusCode.Unauthorized
             client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe
-                HttpStatusCode.Companion.Unauthorized
+                HttpStatusCode.Unauthorized
         }
     }
 
@@ -322,7 +322,7 @@ class VeilederApiTest : RouteTestBase() {
                 postRequest(sistBesoktInTest)
             }
 
-            response.status shouldBe HttpStatusCode.Companion.OK
+            response.status shouldBe HttpStatusCode.OK
         }
 
         verify(exactly = 1) {
@@ -346,7 +346,7 @@ class VeilederApiTest : RouteTestBase() {
                 postRequest(request)
             }
 
-            response.status shouldBe HttpStatusCode.Companion.OK
+            response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe
                 objectMapper.writeValueAsString(DtoMappers.deltakerEndringResponseFromDeltaker(deltaker, historikk))
         }

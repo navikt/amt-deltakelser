@@ -30,10 +30,10 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("$API_PATH/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
-            client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
-            client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
-            client.post("$API_PATH/gi-avslag") { setBody("foo") }.status shouldBe HttpStatusCode.Companion.Unauthorized
+            client.post("$API_PATH/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("$API_PATH/gi-avslag") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -44,7 +44,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(emptyList())))
             }
         }
@@ -63,7 +63,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/sett-paa-venteliste") { postRequest(request) }.apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(historikk)))
             }
         }
@@ -82,7 +82,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/tildel-plass") { postRequest(request) }.apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(historikk)))
             }
         }
