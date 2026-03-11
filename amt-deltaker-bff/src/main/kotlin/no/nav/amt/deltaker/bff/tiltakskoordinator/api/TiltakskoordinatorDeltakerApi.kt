@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
+import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
@@ -20,15 +21,18 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseSer
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerApi(
     sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc,
     tiltakskoordinatorService: TiltakskoordinatorService,
     deltakerRepository: DeltakerRepository,
+    deltakerService: DeltakerService,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     ulesteHendelserService: UlestHendelseService,
+    unleashToggle: CommonUnleashToggle,
 ) {
     val apiPath = "/tiltakskoordinator/deltaker/{id}"
 
@@ -68,7 +72,12 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     }
                 }
 
-            val historikk = deltaker.getDeltakerHistorikkForVisning()
+            val historikk =
+                if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                    deltakerService.hentDeltakerHistorikk(deltaker.id)
+                } else {
+                    deltaker.getDeltakerHistorikkForVisning()
+                }
 
             val historikkResponse = historikk.toResponse(
                 ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),

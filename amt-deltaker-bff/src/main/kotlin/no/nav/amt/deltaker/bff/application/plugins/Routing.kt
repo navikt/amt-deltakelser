@@ -140,6 +140,7 @@ fun Application.configureRouting(
             navEnhetService,
             innbyggerService,
             forslagRepository,
+            CommonUnleashToggle(unleash),
         )
 
         registerUnleashApi(unleash)
@@ -148,9 +149,11 @@ fun Application.configureRouting(
             sporbarhetOgTilgangskontrollSvc,
             tiltakskoordinatorService,
             deltakerRepository,
+            deltakerService,
             navAnsattService,
             navEnhetService,
             ulestHendelseService,
+            CommonUnleashToggle(unleash),
         )
 
         registerTiltakskoordinatorDeltakerlisteApi(
