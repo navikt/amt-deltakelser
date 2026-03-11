@@ -7,6 +7,7 @@ import io.ktor.http.isSuccess
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
@@ -31,6 +32,10 @@ class AmtDeltakerClient(
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
         .body()
 
+    suspend fun getDeltakerHistorikk(deltakerId: UUID): List<DeltakerHistorikk> = performGet("deltaker/$deltakerId/historikk")
+        .failIfNotSuccess("Fant ikke deltakerhistorikk for $deltakerId i amt-deltaker.")
+        .body()
+
     suspend fun sistBesokt(
         deltakerId: UUID,
         sistBesokt: ZonedDateTime,
@@ -40,6 +45,16 @@ class AmtDeltakerClient(
         if (!response.status.isSuccess()) {
             log.warn(
                 "Kunne ikke endre $SIST_BESOKT_URL_SEGMENT i amt-deltaker. Status=${response.status.value} error=${response.bodyAsText()}",
+            )
+        }
+    }
+
+    suspend fun historikk(deltakerId: UUID) {
+        val response = performGet("deltaker/$deltakerId/historikk")
+
+        if (!response.status.isSuccess()) {
+            log.warn(
+                "Kunne ikke hente deltakerhistorikk for $deltakerId i amt-deltaker. Status=${response.status.value} error=${response.bodyAsText()}",
             )
         }
     }

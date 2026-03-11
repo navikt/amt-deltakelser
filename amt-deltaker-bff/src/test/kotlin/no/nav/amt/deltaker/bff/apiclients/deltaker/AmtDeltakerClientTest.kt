@@ -571,6 +571,34 @@ class AmtDeltakerClientTest {
         }
     }
 
+    @Nested
+    inner class Historikk {
+        val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/historikk"
+
+        @Test
+        fun `skal logge warning ved feil`() {
+            val deltakerClient = createDeltakerClient(expectedUrl, HttpStatusCode.Unauthorized)
+
+            withLogCapture("no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient") { logEvents ->
+                deltakerClient.historikk(deltakerInTest.id)
+
+                val logEntry = logEvents.find { it.level.levelStr == "WARN" }
+                logEntry.shouldNotBeNull()
+                logEntry.message shouldStartWith "Kunne ikke hente deltakerhistorikk for ${deltakerInTest.id} i amt-deltaker."
+            }
+        }
+
+        @Test
+        fun `skal ikke kaste feil nar historikk kalles`() {
+            runHappyPathTest(
+                expectedUrl = expectedUrl,
+                expectedResponse = null,
+            ) { deltakerClient ->
+                deltakerClient.historikk(deltakerInTest.id)
+            }
+        }
+    }
+
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
         private val deltakerInTest = lagDeltaker()

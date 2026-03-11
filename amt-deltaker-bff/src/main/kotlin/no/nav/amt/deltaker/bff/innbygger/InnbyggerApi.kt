@@ -27,6 +27,7 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 
 fun Routing.registerInnbyggerApi(
     deltakerRepository: DeltakerRepository,
@@ -36,6 +37,7 @@ fun Routing.registerInnbyggerApi(
     navEnhetService: NavEnhetService,
     innbyggerService: InnbyggerService,
     forslageRepository: ForslagRepository,
+    unleashToggle: CommonUnleashToggle,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
@@ -81,7 +83,7 @@ fun Routing.registerInnbyggerApi(
             call.respond(komplettInnbyggerDeltakerResponse(oppdatertDeltaker))
         }
 
-        // kaller ikke amt-deltaker
+        // kaller amtDeltakerClient.getDeltakerHistorikk
         get("/innbygger/{deltakerId}/historikk") {
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
 
@@ -90,7 +92,12 @@ fun Routing.registerInnbyggerApi(
                 ressursPersonident = deltaker.navBruker.personident,
             )
 
-            val historikk = deltaker.getDeltakerHistorikkForVisning()
+            val historikk =
+                if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                    deltakerService.hentDeltakerHistorikk(deltaker.id)
+                } else {
+                    deltaker.getDeltakerHistorikkForVisning()
+                }
 
             val historikkResponse = historikk.toResponse(
                 enheter = navEnhetService.hentEnheterForHistorikk(historikk),

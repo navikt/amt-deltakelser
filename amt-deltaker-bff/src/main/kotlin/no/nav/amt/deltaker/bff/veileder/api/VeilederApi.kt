@@ -182,7 +182,12 @@ fun Routing.registerVeilederApi(
 
             log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id ${deltaker.id}")
 
-            val historikk = deltaker.getDeltakerHistorikkForVisning()
+            val historikk =
+                if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                    deltakerService.hentDeltakerHistorikk(deltaker.id)
+                } else {
+                    deltaker.getDeltakerHistorikkForVisning()
+                }
 
             val historikkResponse = historikk.toResponse(
                 enheter = navEnhetService.hentEnheterForHistorikk(historikk),

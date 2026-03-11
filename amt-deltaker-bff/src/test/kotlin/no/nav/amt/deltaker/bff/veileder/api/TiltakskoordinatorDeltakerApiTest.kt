@@ -69,6 +69,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -91,6 +92,7 @@ class TiltakskoordinatorDeltakerApiTest {
     private val amtDeltakerClient = mockk<AmtDeltakerClient>()
     private val sporbarhetsloggService = mockk<SporbarhetsloggService>(relaxed = true)
     private val unleash = mockk<Unleash>()
+    private val unleashToggle = CommonUnleashToggle(unleash)
     private val tiltakskoordinatorTilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
     private val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
     private val deltakerlisteService = mockk<DeltakerlisteService>()
@@ -128,14 +130,14 @@ class TiltakskoordinatorDeltakerApiTest {
                 "/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon",
             ) { createPostRequest(bakgrunnsinformasjonRequest) }
             .status shouldBe
-            HttpStatusCode.Forbidden
+                HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/innhold") { createPostRequest(innholdRequest) }.status shouldBe HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { createPostRequest(deltakelsesmengdeRequest) }.status shouldBe
-            HttpStatusCode.Forbidden
+                HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/startdato") { createPostRequest(startdatoRequest) }.status shouldBe
-            HttpStatusCode.Forbidden
+                HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/sluttdato") { createPostRequest(sluttdatoRequest) }.status shouldBe
-            HttpStatusCode.Forbidden
+                HttpStatusCode.Forbidden
         client
             .post(
                 "/deltaker/${UUID.randomUUID()}/ikke-aktuell",
@@ -167,7 +169,7 @@ class TiltakskoordinatorDeltakerApiTest {
             ) { createPostRequest(reaktiverDeltakelseRequest) }
             .status shouldBe HttpStatusCode.Forbidden
         client.post("/forslag/${UUID.randomUUID()}/avvis") { createPostRequest(avvisForslagRequest) }.status shouldBe
-            HttpStatusCode.Forbidden
+                HttpStatusCode.Forbidden
         client
             .post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") {
                 createPostRequest(fjernOppstartsdatoRequest)
@@ -457,7 +459,9 @@ class TiltakskoordinatorDeltakerApiTest {
         val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
+        every { unleashToggle.prioriterSynkronKommunikasjon() } returns true
         every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
+        coEvery { deltakerService.hentDeltakerHistorikk(any()) } returns historikk
         coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
         client.get("/deltaker/${deltaker.id}/historikk") { noBodyRequest() }.apply {
             status shouldBe HttpStatusCode.OK

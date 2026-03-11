@@ -43,6 +43,11 @@ fun Routing.registerVeilederApi(
             call.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))
         }
 
+        post("/deltaker/{deltakerId}/historikk") {
+            val historikk = historikkService.getForDeltaker(call.getDeltakerId())
+            call.respond(historikk)
+        }
+
         post("/deltaker/{deltakerId}/sist-besokt") {
             deltakerService.oppdaterSistBesokt(
                 deltakerId = call.getDeltakerId(),
