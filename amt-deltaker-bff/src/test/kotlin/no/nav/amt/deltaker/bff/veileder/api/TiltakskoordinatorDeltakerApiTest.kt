@@ -130,14 +130,14 @@ class TiltakskoordinatorDeltakerApiTest {
                 "/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon",
             ) { createPostRequest(bakgrunnsinformasjonRequest) }
             .status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/innhold") { createPostRequest(innholdRequest) }.status shouldBe HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { createPostRequest(deltakelsesmengdeRequest) }.status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/startdato") { createPostRequest(startdatoRequest) }.status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/sluttdato") { createPostRequest(sluttdatoRequest) }.status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client
             .post(
                 "/deltaker/${UUID.randomUUID()}/ikke-aktuell",
@@ -169,7 +169,7 @@ class TiltakskoordinatorDeltakerApiTest {
             ) { createPostRequest(reaktiverDeltakelseRequest) }
             .status shouldBe HttpStatusCode.Forbidden
         client.post("/forslag/${UUID.randomUUID()}/avvis") { createPostRequest(avvisForslagRequest) }.status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client
             .post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") {
                 createPostRequest(fjernOppstartsdatoRequest)
