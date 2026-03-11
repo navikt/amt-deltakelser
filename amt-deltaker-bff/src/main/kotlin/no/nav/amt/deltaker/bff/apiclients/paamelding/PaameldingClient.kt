@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.bff.apiclients.paamelding
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import no.nav.amt.api.DeltakerIdResponse
 import no.nav.amt.api.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.api.paamelding.request.OpprettKladdEnkelUtenRammeRequest
 import no.nav.amt.api.paamelding.request.OpprettKladdRequest
-import no.nav.amt.api.paamelding.response.OpprettKladdEnkelUtenRammeResponse
 import no.nav.amt.api.paamelding.response.OpprettKladdResponse
 import no.nav.amt.api.paamelding.response.UtkastResponse
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.utkastRequestFromUtkast
@@ -31,11 +31,10 @@ class PaameldingClient(
     suspend fun opprettKladdEnkelUtenRamme(
         tiltakskode: Tiltakskode,
         personident: String,
-    ): OpprettKladdEnkelUtenRammeResponse = performPost(
+    ): DeltakerIdResponse = performPost(
         "opprett-kladd-enkel-uten-ramme",
         OpprettKladdEnkelUtenRammeRequest(tiltakskode = tiltakskode, personident = personident),
-    ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.")
-        .body()
+    ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,

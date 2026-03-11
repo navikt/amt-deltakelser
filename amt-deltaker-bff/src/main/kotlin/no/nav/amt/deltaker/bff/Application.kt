@@ -247,6 +247,7 @@ fun Application.module() {
         navBrukerService = navBrukerService,
         navEnhetService = navEnhetService,
         paameldingClient = paameldingClient,
+        amtDeltakerClient = amtDeltakerClient,
     )
 
     val innbyggerService = InnbyggerService(deltakerService, paameldingClient)

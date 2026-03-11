@@ -73,6 +73,7 @@ class DeltakerlisteConsumerTest {
         navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
         navEnhetService = navEnhetService,
         paameldingClient = mockPaameldingClient(),
+        amtDeltakerClient = mockAmtDeltakerClient(),
     )
 
     private val consumer =

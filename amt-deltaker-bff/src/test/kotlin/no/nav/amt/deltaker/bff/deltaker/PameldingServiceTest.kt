@@ -57,6 +57,7 @@ class PameldingServiceTest {
         navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
         navEnhetService = navEnhetService,
         paameldingClient = mockPaameldingClient(),
+        amtDeltakerClient = mockAmtDeltakerClient(),
     )
 
     companion object {

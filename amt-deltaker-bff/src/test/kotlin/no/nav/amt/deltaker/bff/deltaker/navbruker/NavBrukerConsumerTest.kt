@@ -46,6 +46,7 @@ class NavBrukerConsumerTest {
         navBrukerService = navBrukerService,
         navEnhetService = navEnhetService,
         paameldingClient = mockPaameldingClient(),
+        amtDeltakerClient = mockAmtDeltakerClient(),
     )
 
     companion object {

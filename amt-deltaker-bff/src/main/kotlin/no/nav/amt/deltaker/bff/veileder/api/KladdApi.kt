@@ -64,22 +64,16 @@ fun Routing.registerKladdApi(
         }
 
         post("/opprett-kladd-enkeltplass-uten-rammeavtale") {
-            // hente ut request fra call
             val request = call.receive<OpprettKladdEnkelUtenRammeRequest>()
 
-            // verifisere tilgang
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
-            // opprette ny gjennomføring basert på tiltakskode
-            // opprettGjennomføring(tiltakskode, personident) -- hvis denne kombinasjonen finnes så returneres eksisterende
-            // opprett deltakelse med status kladd
             val response = pameldingService
                 .opprettKladdForEnkelUtenRamme(
                     personident = request.personident,
                     tiltakskode = request.tiltakskode,
-                )
-            // .toResponse
-            // returnere deltaker komplettdeltaker
+                ).let { DeltakerResponse.fromDeltakerModel(it) }
+
             call.respond(response)
         }
 
