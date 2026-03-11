@@ -1,10 +1,13 @@
 package no.nav.amt.deltaker.bff.deltaker
 
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakerOppdatering
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.deltaker.ModelMapper
 import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.deltaker.model.Kladd
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
@@ -22,13 +25,17 @@ class PameldingService(
     private val navBrukerService: NavBrukerService,
     private val paameldingClient: PaameldingClient,
     private val navEnhetService: NavEnhetService,
+    private val amtDeltakerClient: AmtDeltakerClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun opprettKladdForEnkelUtenRamme(
         tiltakskode: Tiltakskode,
         personident: String,
-    ) = paameldingClient.opprettKladdEnkelUtenRamme(tiltakskode, personident)
+    ): DeltakerModel = paameldingClient
+        .opprettKladdEnkelUtenRamme(tiltakskode, personident)
+        .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
+        .let { ModelMapper.toDeltaker(it) }
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,
