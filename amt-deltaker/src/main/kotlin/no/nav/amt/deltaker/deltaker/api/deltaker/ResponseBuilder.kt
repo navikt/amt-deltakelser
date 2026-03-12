@@ -28,7 +28,7 @@ class ResponseBuilder(
     private val forslagRepository: ForslagRepository,
     private val deltakerLaaseService: DeltakerLaaseService,
 ) {
-    suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse(
+    suspend fun buildDeltakerResponse(deltaker: Deltaker) = DeltakerResponse(
         id = deltaker.id,
         navBruker = buildNavBrukerResponseFromNavBruker(navBruker = deltaker.navBruker),
         gjennomforing = buildGjennomforingResponse(deltaker.deltakerliste),
@@ -92,7 +92,7 @@ class ResponseBuilder(
         )
     }
 
-    internal suspend fun buildNavBrukerResponseFromNavBruker(navBruker: NavBruker): NavBrukerResponse = NavBrukerResponse(
+    internal suspend fun buildNavBrukerResponseFromNavBruker(navBruker: NavBruker) = NavBrukerResponse(
         personident = navBruker.personident,
         fornavn = navBruker.fornavn,
         mellomnavn = navBruker.mellomnavn,
