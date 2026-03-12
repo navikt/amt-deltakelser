@@ -42,9 +42,9 @@ class EnkeltplassDeltakerConsumer(
             // arena-acl skal aldri tombstone, sletting av enkeltplassdeltakere håndteres med status=feilregistrert
             throw IllegalStateException("Tombstone er ikke støttet. Key: $key")
         } else {
-            log.info("Konsumerer enkeltplass deltaker med key $key")
+            log.info("Konsumerer enkeltplassdeltaker $key")
             consumeDeltaker(objectMapper.readValue(value))
-            log.info("Ferdig med å konsumere enkeltplass deltaker med key $key")
+            log.info("Enkeltplassdeltaker $key ferdig konsumert")
         }
     }
 
@@ -62,7 +62,7 @@ class EnkeltplassDeltakerConsumer(
         // Work-around for falsk identitet i dev sånn at consumeren ikke blir stuck på noen deltakere
         if (navBruker.isFailure && Environment.isDev()) {
             log.error(
-                "Klarte ikke hente Nav-bruker med ident ${deltakerPayload.personIdent} for deltaker ${deltakerPayload.id}. Feilen var: ${navBruker.exceptionOrNull()}",
+                "Klarte ikke å hente Nav-bruker med ident ${deltakerPayload.personIdent} for deltaker ${deltakerPayload.id}. Feilen var: ${navBruker.exceptionOrNull()}",
             )
             return
         }
@@ -86,8 +86,6 @@ class EnkeltplassDeltakerConsumer(
                     deltaker
                 },
             ).getOrThrow()
-
-        log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
     }
 
     override fun start() = consumer.start()
