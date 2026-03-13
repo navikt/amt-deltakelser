@@ -90,10 +90,6 @@ spec:
       value: api://prod-gcp.teamsykefravr.isoppfolgingstilfelle/.default
     - name: ISOPPFOLGINGSTILFELLE_URL
       value: http://isoppfolgingstilfelle.teamsykefravr
-    - name: MULIGHETSROMMET_API_SCOPE
-      value: api://prod-gcp.team-mulighetsrommet.mulighetsrommet-api/.default
-    - name: MULIGHETSROMMET_API_URL
-      value: http://mulighetsrommet-api.team-mulighetsrommet.svc.cluster.local
     - name: AMT_DISTRIBUSJON_SCOPE
       value: api://prod-gcp.amt.amt-distribusjon/.default
     - name: AMT_DISTRIBUSJON_URL

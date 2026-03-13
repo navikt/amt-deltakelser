@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -14,16 +15,12 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
-import no.nav.amt.deltaker.arrangor.ArrangorRepository
-import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.kafka.dto.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -38,7 +35,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeEqualTo
@@ -48,13 +44,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 
 class EnkeltplassDeltakerConsumerTest {
     private val unleashToggle = mockk<CommonUnleashToggle>()
-    private val mulighetsrommetApiClient = mockk<MulighetsrommetApiClient>()
-    private val arrangorRepository = ArrangorRepository()
-    private val arrangorService = mockk<ArrangorService>()
     private val navBrukerService = mockk<NavBrukerService>()
     private val deltakerKafkaPayloadBuilder = mockk<DeltakerKafkaPayloadBuilder>()
     private val deltakerProducer = mockk<DeltakerProducer>()
@@ -98,9 +90,6 @@ class EnkeltplassDeltakerConsumerTest {
         navBrukerService,
         importertFraArenaRepository,
         unleashToggle,
-        mulighetsrommetApiClient,
-        arrangorService,
-        tiltakstypeRepository,
         deltakerProducerService,
     )
 
@@ -218,7 +207,7 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - gjennomforing eksisterer ikke i db - henter gjennomforing synkront fra mulighetsrommet api og lagrer`() {
+    fun `consumeDeltaker - gjennomforing eksisterer ikke i db - kaster exception`() {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
             oppmoteSted = null,
@@ -235,63 +224,18 @@ class EnkeltplassDeltakerConsumerTest {
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
-        arrangorRepository.upsert(deltakerListe.arrangor)
 
         tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
         TestRepository.insert(deltaker.navBruker)
-        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
-            importertFraArena = ImportertFraArena(
-                deltakerId = deltaker.id,
-                importertDato = LocalDateTime.now(),
-                deltakerVedImport = deltaker.toDeltakerVedImport(LocalDate.now()),
-            ),
-        )
-        coEvery { arrangorService.hentArrangor(deltakerListe.arrangor.organisasjonsnummer) } returns deltakerListe.arrangor
-        coEvery { mulighetsrommetApiClient.hentGjennomforingV2(deltakerListe.id) } returns deltakerListe.toV2Response()
-        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
-        every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
 
         every { deltakerProducer.produce(any()) } just Runs
-        coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
 
         runTest {
-            consumer.consumeDeltaker(toPayload(deltaker))
-        }
+            val thrown = shouldThrow<IllegalStateException> {
+                consumer.consumeDeltaker(toPayload(deltaker))
+            }
 
-        coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(
-                deltaker = any(),
-                erDeltakerSluttdatoEndret = any(),
-                nesteStatus = any(),
-                beforeDeltakerUpsert = any(),
-                afterDeltakerUpsert = any(),
-            )
-        }
-        verify(exactly = 1) {
-            deltakerProducerService.produce(any(), any(), any())
-        }
-        verify { deltakerProducer.produce(any()) }
-
-        coVerify(exactly = 1) { mulighetsrommetApiClient.hentGjennomforingV2(deltakerListe.id) }
-
-        val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
-        deltakerFromDb.shouldNotBeNull()
-        val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
-        importertFraArenaFromDb.shouldNotBeNull()
-
-        val expectedDeltaker = deltaker.copy(
-            status = deltaker.status.copy(id = deltakerFromDb.status.id, opprettet = deltakerFromDb.status.opprettet),
-            bakgrunnsinformasjon = null,
-            sistEndret = deltakerFromDb.sistEndret,
-            opprettet = deltakerFromDb.opprettet,
-        )
-
-        deltakerFromDb shouldBe expectedDeltaker
-
-        assertSoftly(importertFraArenaFromDb) {
-            deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
-            deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-            importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+            thrown.message shouldBe "Deltakerliste ${deltakerListe.id} ikke mottatt fra Mulighetsrommet ennå"
         }
     }
 
@@ -474,25 +418,6 @@ class EnkeltplassDeltakerConsumerTest {
             registrertDato = registrertDato,
             statusEndretDato = statusEndretDato,
             innsokBegrunnelse = innsokBegrunnelse,
-        )
-
-        private fun Deltakerliste.toV2Response() = GjennomforingV2KafkaPayload.Gruppe(
-            id = id,
-            navn = navn,
-            startDato = startDato!!,
-            sluttDato = sluttDato,
-            status = status!!,
-            oppstart = oppstart!!,
-            apentForPamelding = apentForPamelding,
-            opprettetTidspunkt = OffsetDateTime.now(),
-            oppdatertTidspunkt = OffsetDateTime.now(),
-            tiltakskode = tiltakstype.tiltakskode,
-            antallPlasser = 42,
-            tilgjengeligForArrangorFraOgMedDato = startDato,
-            deltidsprosent = 42.0,
-            oppmoteSted = oppmoteSted,
-            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
-            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
     }
 }
