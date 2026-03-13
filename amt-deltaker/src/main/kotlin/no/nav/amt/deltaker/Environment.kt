@@ -34,8 +34,6 @@ data class Environment(
     val isOppfolgingstilfelleScope: String = getEnvVar(ISOPPFOLGINGSTILFELLE_SCOPE_KEY),
     val amtTiltakUrl: String = getEnvVar(AMT_TILTAK_URL_KEY),
     val amtTiltakScope: String = getEnvVar(AMT_TILTAK_SCOPE_KEY),
-    val mulighetsrommetApiUrl: String = getEnvVar(MULIGHETSROMMET_API_URL_KEY),
-    val mulighetsrommetApiScope: String = getEnvVar(MULIGHETSROMMET_API_SCOPE_KEY),
 ) {
     companion object {
         const val KAFKA_CONSUMER_GROUP_ID = "amt-deltaker-consumer"
@@ -74,8 +72,6 @@ data class Environment(
         const val POAO_TILGANG_SCOPE_KEY = "POAO_TILGANG_SCOPE"
         const val ISOPPFOLGINGSTILFELLE_URL_KEY = "ISOPPFOLGINGSTILFELLE_URL"
         const val ISOPPFOLGINGSTILFELLE_SCOPE_KEY = "ISOPPFOLGINGSTILFELLE_SCOPE"
-        const val MULIGHETSROMMET_API_URL_KEY = "MULIGHETSROMMET_API_URL"
-        const val MULIGHETSROMMET_API_SCOPE_KEY = "MULIGHETSROMMET_API_SCOPE"
 
         const val ELECTOR_PATH = "ELECTOR_PATH"
 
