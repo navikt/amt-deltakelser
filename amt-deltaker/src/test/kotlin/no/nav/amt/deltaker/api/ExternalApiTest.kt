@@ -407,7 +407,7 @@ class ExternalApiTest : RouteTestBase() {
             navEnhet: NavEnhet?,
         ): List<DeltakerPersonaliaResponse> {
             val forventetRespons = listOf(
-                DeltakerPersonaliaResponse.Companion.from(
+                DeltakerPersonaliaResponse.from(
                     deltaker,
                     navEnhet?.let { mapOf(navEnhet.id to navEnhet) }
                         ?: emptyMap(),

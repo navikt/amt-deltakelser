@@ -353,7 +353,7 @@ fun Application.module() {
     val responseBuilder = ResponseBuilder(
         arrangorService = arrangorService,
         navAnsattRepository = navAnsattRepository,
-        navEnhetService = navEnhetService,
+        navEnhetRepository = navEnhetRepository,
         amtDistribusjonClient = amtDistribusjonClient,
         deltakerHistorikkService = deltakerHistorikkService,
         forslagRepository = forslagRepository,

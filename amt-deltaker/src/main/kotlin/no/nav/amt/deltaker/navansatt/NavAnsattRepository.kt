@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.navansatt
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
@@ -86,21 +85,27 @@ class NavAnsattRepository {
         }
     }
 
-    fun getMany(veilederIdenter: List<String>): List<NavAnsatt> {
-        if (veilederIdenter.isEmpty()) return emptyList()
-
-        val sql =
-            """
-            SELECT * 
-            FROM nav_ansatt 
-            WHERE nav_ident IN (${sqlPlaceholders(veilederIdenter.size)})
-            """.trimIndent()
-
-        return Database.query { session ->
+    fun getManyById(ider: Set<UUID>): List<NavAnsatt> = if (ider.isEmpty()) {
+        emptyList()
+    } else {
+        Database.query { session ->
             session.run(
                 queryOf(
-                    sql,
-                    *veilederIdenter.toTypedArray(),
+                    "SELECT * FROM nav_ansatt WHERE id = ANY(:ider)",
+                    mapOf("ider" to ider.toTypedArray()),
+                ).map(::rowMapper).asList,
+            )
+        }
+    }
+
+    fun getManyByNavIdent(veilederIdenter: Set<String>): List<NavAnsatt> = if (veilederIdenter.isEmpty()) {
+        emptyList()
+    } else {
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM nav_ansatt WHERE nav_ident = ANY(:ider)",
+                    mapOf("ider" to veilederIdenter.toTypedArray()),
                 ).map(::rowMapper).asList,
             )
         }

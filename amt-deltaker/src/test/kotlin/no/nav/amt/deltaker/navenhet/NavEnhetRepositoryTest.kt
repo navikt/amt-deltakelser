@@ -78,7 +78,7 @@ class NavEnhetRepositoryTest {
     @Nested
     inner class GetManyTests {
         @Test
-        fun `getMany - flere nav enheter - returnerer alle enheter`() {
+        fun `getMany - flere Nav-enheter - returnerer alle enheter`() {
             val navEnheter = listOf(
                 lagNavEnhet(enhetsnummer = "1111", navn = "Nav En"),
                 lagNavEnhet(enhetsnummer = "2222", navn = "Nav To"),
