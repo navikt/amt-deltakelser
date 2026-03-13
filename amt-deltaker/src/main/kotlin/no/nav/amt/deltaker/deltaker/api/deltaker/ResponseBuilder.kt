@@ -10,7 +10,6 @@ import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.ArrangorResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.GjennomforingResponse
@@ -22,7 +21,6 @@ class ResponseBuilder(
     private val arrangorService: ArrangorService,
     private val navAnsattRepository: NavAnsattRepository,
     private val navEnhetRepository: NavEnhetRepository,
-    private val navEnhetService: NavEnhetService,
     private val amtDistribusjonClient: AmtDistribusjonClient,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val forslagRepository: ForslagRepository,
@@ -66,31 +64,17 @@ class ResponseBuilder(
         pameldingstype = deltakerliste.pameldingstype,
     )
 
-    internal fun buildVedtaksinformasjonResponse(vedtaksinformasjon: Vedtaksinformasjon): VedtaksinformasjonResponse {
-        val vedtakOpprettetAvAnsattNavn = navAnsattRepository.get(vedtaksinformasjon.opprettetAv)?.navn
-            ?: throw IllegalStateException("Fant ikke opprettet av Nav-ansatt ${vedtaksinformasjon.opprettetAv} for vedtaksinformasjon")
-
-        val enheter = navEnhetService.getEnheter(
-            setOf(
-                vedtaksinformasjon.opprettetAvEnhet,
-                vedtaksinformasjon.sistEndretAvEnhet,
-            ),
-        )
-
-        val opprettetAvEnhetNavn = enheter[vedtaksinformasjon.opprettetAvEnhet]?.navn
-            ?: throw IllegalStateException("Fant ikke opprettet av Nav-enhet ${vedtaksinformasjon.opprettetAvEnhet} for vedtaksinformasjon")
-
-        return VedtaksinformasjonResponse(
+    internal fun buildVedtaksinformasjonResponse(vedtaksinformasjon: Vedtaksinformasjon): VedtaksinformasjonResponse =
+        VedtaksinformasjonResponse(
             fattet = vedtaksinformasjon.fattet,
             fattetAvNav = vedtaksinformasjon.fattetAvNav,
             opprettet = vedtaksinformasjon.opprettet,
-            opprettetAv = vedtakOpprettetAvAnsattNavn,
-            opprettetAvEnhet = opprettetAvEnhetNavn,
+            opprettetAv = navAnsattRepository.getOrThrow(vedtaksinformasjon.opprettetAv).navn,
+            opprettetAvEnhet = navEnhetRepository.getOrThrow(vedtaksinformasjon.opprettetAvEnhet).navn,
             sistEndret = vedtaksinformasjon.sistEndret,
-            sistEndretAv = navAnsattRepository.get(vedtaksinformasjon.sistEndretAv)?.navn,
-            sistEndretAvEnhet = enheter[vedtaksinformasjon.sistEndretAvEnhet]?.navn,
+            sistEndretAv = navAnsattRepository.getOrThrow(vedtaksinformasjon.sistEndretAv).navn,
+            sistEndretAvEnhet = navEnhetRepository.getOrThrow(vedtaksinformasjon.sistEndretAvEnhet).navn,
         )
-    }
 
     internal suspend fun buildNavBrukerResponseFromNavBruker(navBruker: NavBruker) = NavBrukerResponse(
         personident = navBruker.personident,
@@ -105,11 +89,7 @@ class ResponseBuilder(
         oppfolgingsperioder = navBruker.oppfolgingsperioder,
         innsatsgruppe = navBruker.innsatsgruppe,
         erDigital = amtDistribusjonClient.digitalBruker(navBruker.personident),
-        navVeileder = navBruker.navVeilederId?.let {
-            navAnsattRepository.get(it)?.navn ?: throw IllegalStateException("Fant ikke Nav-veileder $it for innbygger")
-        },
-        navEnhet = navBruker.navEnhetId?.let {
-            navEnhetRepository.get(it)?.navn ?: throw IllegalStateException("Fant ikke Nav-enhet $it for innbygger")
-        },
+        navVeileder = navBruker.navVeilederId?.let { navAnsattRepository.getOrThrow(it).navn },
+        navEnhet = navBruker.navEnhetId?.let { navEnhetRepository.getOrThrow(it).navn },
     )
 }

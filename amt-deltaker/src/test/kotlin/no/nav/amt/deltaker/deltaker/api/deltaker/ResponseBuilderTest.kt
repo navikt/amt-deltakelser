@@ -15,7 +15,6 @@ import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
@@ -39,7 +38,6 @@ class ResponseBuilderTest {
     private val arrangorService: ArrangorService = mockk(relaxed = true)
     private val navAnsattRepository: NavAnsattRepository = mockk(relaxed = true)
     private val navEnhetRepository: NavEnhetRepository = mockk(relaxed = true)
-    private val navEnhetService: NavEnhetService = mockk(relaxed = true)
     private val amtDistribusjonClient: AmtDistribusjonClient = mockk(relaxed = true)
     private val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
     private val forslagRepository: ForslagRepository = mockk(relaxed = true)
@@ -49,7 +47,6 @@ class ResponseBuilderTest {
         arrangorService = arrangorService,
         navAnsattRepository = navAnsattRepository,
         navEnhetRepository = navEnhetRepository,
-        navEnhetService = navEnhetService,
         amtDistribusjonClient = amtDistribusjonClient,
         deltakerHistorikkService = deltakerHistorikkService,
         forslagRepository = forslagRepository,
@@ -69,11 +66,11 @@ class ResponseBuilderTest {
             adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
         )
 
-        every { navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()) } returns mockk {
+        every { navAnsattRepository.getOrThrow(navBruker.navVeilederId.shouldNotBeNull()) } returns mockk {
             every { navn } returns "Nav-ansatt"
         }
 
-        every { navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()) } returns mockk {
+        every { navEnhetRepository.getOrThrow(navBruker.navEnhetId.shouldNotBeNull()) } returns mockk {
             every { navn } returns "Nav-enhet"
         }
 
@@ -147,24 +144,21 @@ class ResponseBuilderTest {
             sistEndretAv = lagNavAnsatt(),
         ).tilVedtaksInformasjon()
 
-        every { navAnsattRepository.get(any<UUID>()) } answers {
-            val id = firstArg<UUID>()
-
-            mockk {
-                every { navn } returns if (id == vedtaksinformasjon.opprettetAv) {
-                    "Nav-ansatt 1"
-                } else {
-                    "Nav-ansatt 2"
-                }
-            }
+        every { navAnsattRepository.getOrThrow(vedtaksinformasjon.opprettetAv) } returns mockk {
+            every { navn } returns "Nav-ansatt 1"
         }
 
-        every {
-            navEnhetService.getEnheter(any())
-        } returns mapOf(
-            vedtaksinformasjon.opprettetAvEnhet to mockk { every { navn } returns "Nav Stovner" },
-            vedtaksinformasjon.sistEndretAvEnhet to mockk { every { navn } returns "Nav Grunerløkka" },
-        )
+        every { navAnsattRepository.getOrThrow(vedtaksinformasjon.sistEndretAv) } returns mockk {
+            every { navn } returns "Nav-ansatt 2"
+        }
+
+        every { navEnhetRepository.getOrThrow(vedtaksinformasjon.opprettetAvEnhet) } returns mockk {
+            every { navn } returns "Nav Stovner"
+        }
+
+        every { navEnhetRepository.getOrThrow(vedtaksinformasjon.sistEndretAvEnhet) } returns mockk {
+            every { navn } returns "Nav Grunerløkka"
+        }
 
         // Act
         val vedtaksinformasjonResponse = responseBuilder.buildVedtaksinformasjonResponse(vedtaksinformasjon)

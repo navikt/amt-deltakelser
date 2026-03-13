@@ -354,7 +354,6 @@ fun Application.module() {
         arrangorService = arrangorService,
         navAnsattRepository = navAnsattRepository,
         navEnhetRepository = navEnhetRepository,
-        navEnhetService = navEnhetService,
         amtDistribusjonClient = amtDistribusjonClient,
         deltakerHistorikkService = deltakerHistorikkService,
         forslagRepository = forslagRepository,
