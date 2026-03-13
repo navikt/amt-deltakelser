@@ -73,6 +73,12 @@ class TiltakshendelseService(
         log.info("Reproduserte tiltakshendelse $id")
     }
 
+    fun reproduserOgSettAktivFalse(id: UUID) {
+        val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
+        tiltakshendelseProducer.produce(tiltakshendelse.copy(aktiv = false))
+        log.info("Reproduserte tiltakshendelse med $id og aktiv=false for deltakerId ${tiltakshendelse.deltakerId}")
+    }
+
     private fun opprettStartHendelse(hendelse: Hendelse) {
         lagreOgDistribuer(hendelse.toTiltakshendelse())
     }
