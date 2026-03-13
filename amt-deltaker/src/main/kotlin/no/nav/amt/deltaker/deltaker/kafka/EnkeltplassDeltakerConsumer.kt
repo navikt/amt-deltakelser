@@ -51,7 +51,7 @@ class EnkeltplassDeltakerConsumer(
     suspend fun consumeDeltaker(deltakerPayload: EnkeltplassDeltakerPayload) {
         val deltakerliste = deltakerlisteRepository.get(deltakerPayload.gjennomforingId).getOrElse { throwable ->
             if (throwable is NoSuchElementException) {
-                throw NoSuchElementException(
+                throw IllegalStateException(
                     "Deltakerliste ${deltakerPayload.gjennomforingId} ikke mottatt fra Mulighetsrommet ennå",
                     throwable,
                 )
