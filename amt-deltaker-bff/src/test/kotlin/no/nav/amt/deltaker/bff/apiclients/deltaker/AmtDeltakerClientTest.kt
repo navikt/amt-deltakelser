@@ -617,10 +617,16 @@ class AmtDeltakerClientTest {
             expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
+            isPolymorphicBody: Boolean = false,
         ) = AmtDeltakerClient(
             baseUrl = DELTAKER_BASE_URL,
             scope = "scope",
-            httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
+            httpClient = createMockHttpClient(
+                expectedUrl = expectedUrl,
+                responseBody = responseBody,
+                isPolymorphicBody = isPolymorphicBody,
+                statusCode = statusCode,
+            ),
             azureAdTokenClient = mockAzureAdClient(),
         )
     }
