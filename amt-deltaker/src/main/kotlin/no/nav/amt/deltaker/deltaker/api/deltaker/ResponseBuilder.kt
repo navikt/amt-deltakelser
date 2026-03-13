@@ -30,38 +30,37 @@ class ResponseBuilder(
     private val deltakerLaaseService: DeltakerLaaseService,
 ) {
     data class GenericCache<T>(
-        private val items: List<T>,
+        private val itemMap: Map<UUID, T>,
     ) {
-        private val itemMap: Map<UUID, T> = items.associateBy {
-            when (it) {
-                is NavAnsatt -> it.id
-                is NavEnhet -> it.id
-                else -> throw IllegalArgumentException("Unsupported type for GenericCache")
-            }
-        }
+        constructor(items: List<T>, idSelector: (T) -> UUID) : this(
+            itemMap = items.associateBy(idSelector),
+        )
 
-        fun getOrThrow(id: UUID): T = itemMap[id] ?: throw NoSuchElementException("Fant ikke entry med id $id")
+        fun getOrThrow(id: UUID): T = itemMap[id]
+            ?: throw NoSuchElementException("Fant ikke entry med id $id")
     }
 
     suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
         val navAnsattCache = GenericCache(
-            navAnsattRepository.getManyById(
-                setOfNotNull(
+            items = navAnsattRepository.getManyById(
+                ider = setOfNotNull(
                     deltaker.navBruker.navVeilederId,
                     deltaker.vedtaksinformasjon?.opprettetAv,
                     deltaker.vedtaksinformasjon?.sistEndretAv,
                 ),
             ),
+            idSelector = NavAnsatt::id,
         )
 
         val navEnhetCache = GenericCache(
-            navEnhetRepository.getMany(
+            items = navEnhetRepository.getMany(
                 setOfNotNull(
                     deltaker.navBruker.navEnhetId,
                     deltaker.vedtaksinformasjon?.opprettetAvEnhet,
                     deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
                 ),
             ),
+            idSelector = NavEnhet::id,
         )
 
         return DeltakerResponse(

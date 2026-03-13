@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.api.deltaker
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -32,10 +33,12 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.collections.emptyList
 
 class ResponseBuilderTest {
     private val arrangorService: ArrangorService = mockk(relaxed = true)
@@ -58,6 +61,24 @@ class ResponseBuilderTest {
 
     @BeforeEach
     fun setup() = clearAllMocks()
+
+    @Nested
+    inner class CacheTests {
+        val idInTest: UUID = UUID.randomUUID()
+        val cache = ResponseBuilder.GenericCache(listOf("foo"), { idInTest })
+
+        @Test
+        fun `getOrThrow - skal returnere cachet verdi`() {
+            cache.getOrThrow(idInTest) shouldBe "foo"
+        }
+
+        @Test
+        fun `getOrThrow - skal kaste feil hvis nokkel ikke finnes i cache`() {
+            shouldThrow<NoSuchElementException> {
+                cache.getOrThrow(UUID.randomUUID())
+            }
+        }
+    }
 
     @Test
     fun `buildNavBrukerResponseFromNavBruker - skal mappe innbygger korrekt`() = runTest {
@@ -108,7 +129,7 @@ class ResponseBuilderTest {
     }
 
     @Test
-    fun `buildGjennomforingResponse - skal mappe deltakerliste korrekt`() = runTest {
+    fun `buildGjennomforingResponse - skal mappe deltakerliste korrekt`() {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             status = GjennomforingStatusType.GJENNOMFORES,
@@ -147,7 +168,7 @@ class ResponseBuilderTest {
     }
 
     @Test
-    fun `buildVedtaksinformasjonResponse - mapper vedtaksinformasjon korrekt`() = runTest {
+    fun `buildVedtaksinformasjonResponse - mapper vedtaksinformasjon korrekt`() {
         // Arrange
         val vedtaksinformasjon = lagVedtak(
             fattet = LocalDateTime.now(),
