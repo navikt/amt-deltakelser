@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.apiclients.paamelding
 
+import OpprettKladdEnkeltplassRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.api.DeltakerIdResponse

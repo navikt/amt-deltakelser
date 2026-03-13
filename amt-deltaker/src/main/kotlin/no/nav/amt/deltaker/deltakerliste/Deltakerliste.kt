@@ -20,7 +20,7 @@ data class Deltakerliste(
     val oppstart: Oppstartstype?,
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,
-    val arrangor: Arrangor,
+    val arrangor: Arrangor?,
     val pameldingstype: GjennomforingPameldingType?,
 ) {
     fun erAvlystEllerAvbrutt(): Boolean = status == GjennomforingStatusType.AVLYST ||

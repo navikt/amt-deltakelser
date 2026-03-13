@@ -59,6 +59,7 @@ class DeltakerRepository {
         ) ?: 0
     }
 
+    // TODO: Fjerne denne til fordel for upsert(deltaker: DeltakerUpsertDbo)
     fun upsert(deltaker: Deltaker) {
         val sql =
             """
@@ -115,6 +116,66 @@ class DeltakerRepository {
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
             "kilde" to deltaker.kilde.name,
             "modified_at" to deltaker.sistEndret,
+            "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
+        )
+
+        Database.query { session -> session.update(queryOf(sql, parameters)) }
+        log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
+    }
+
+    fun upsert(deltaker: DeltakerUpsertDbo) {
+        val sql =
+            """
+            INSERT INTO deltaker (
+                id, 
+                person_id, 
+                deltakerliste_id, 
+                startdato, 
+                sluttdato, 
+                dager_per_uke, 
+                deltakelsesprosent, 
+                bakgrunnsinformasjon, 
+                innhold, 
+                kilde, 
+                er_manuelt_delt_med_arrangor
+            )
+            VALUES (
+                :id, 
+                :person_id, 
+                :deltakerlisteId, 
+                :startdato, 
+                :sluttdato, 
+                :dagerPerUke, 
+                :deltakelsesprosent, 
+                :bakgrunnsinformasjon, 
+                :innhold, 
+                :kilde, 
+                :er_manuelt_delt_med_arrangor
+            )
+            ON CONFLICT (id) DO UPDATE SET 
+                person_id            = :person_id,
+                startdato            = :startdato,
+                sluttdato            = :sluttdato,
+                dager_per_uke        = :dagerPerUke,
+                deltakelsesprosent   = :deltakelsesprosent,
+                bakgrunnsinformasjon = :bakgrunnsinformasjon,
+                innhold              = :innhold,
+                kilde                = :kilde,
+                modified_at          = CURRENT_TIMESTAMP,
+                er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor
+            """.trimIndent()
+
+        val parameters = mapOf(
+            "id" to deltaker.id,
+            "person_id" to deltaker.navBrukerId,
+            "deltakerlisteId" to deltaker.deltakerlisteId,
+            "startdato" to deltaker.startdato,
+            "sluttdato" to deltaker.sluttdato,
+            "dagerPerUke" to deltaker.dagerPerUke,
+            "deltakelsesprosent" to deltaker.deltakelsesprosent,
+            "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
+            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
+            "kilde" to deltaker.kilde.name,
             "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
         )
 

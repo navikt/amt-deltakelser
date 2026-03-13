@@ -90,7 +90,9 @@ class DeltakelserResponseMapper(
     }
 
     private fun lagTittel(deltaker: Deltaker): String {
-        val arrangorNavn = arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor)
+        val arrangorNavn = deltaker.deltakerliste.arrangor
+            ?.let { arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor) }
+            ?: "Ukjent arrangør"
         return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
             Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"
 

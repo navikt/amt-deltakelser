@@ -15,7 +15,7 @@ data class GjennomforingModel(
     val startDato: LocalDate?,
     val sluttDato: LocalDate? = null,
     val oppstart: Oppstartstype?,
-    val arrangor: ArrangorModel,
+    val arrangor: ArrangorModel?,
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType?,

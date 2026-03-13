@@ -107,6 +107,6 @@ class DeltakerlisteRepositoryTest {
         val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
 
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
-        deltakerlisteMedArrangor.arrangor.navn shouldBe arrangor.navn
+        deltakerlisteMedArrangor.arrangor!!.navn shouldBe arrangor.navn
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.api
 
+import OpprettKladdEnkeltplassRequest
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.delete
@@ -11,13 +12,16 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
+import no.nav.amt.api.DeltakerIdResponse
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -93,7 +97,39 @@ class KladdApiTest : RouteTestBase() {
         }
     }
 
+    @Nested
+    inner class Enkeltplass {
+        @Test
+        fun `post - mangler token - returnerer 401`() {
+            withTestApplicationContext { client ->
+                client.post("/opprett-enkeltplass-kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            }
+        }
+
+        @Test
+        fun `post enkeltplass kladd - har tilgang - returnerer deltakerId`() {
+            val deltaker = TestData.lagDeltaker()
+
+            coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
+            coEvery { kladdService.opprettKladd(any<Tiltakskode>(), any()) } returns deltaker.id
+
+            withTestApplicationContext { client ->
+                val response = client.post("/opprett-enkeltplass-kladd") {
+                    postRequest(opprettEnkeltplassKladdRequest)
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                response.bodyAsText() shouldBe objectMapper.writeValueAsString(
+                    DeltakerIdResponse(
+                        deltaker.id,
+                    ),
+                )
+            }
+        }
+    }
+
     companion object {
         private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
+        private val opprettEnkeltplassKladdRequest = OpprettKladdEnkeltplassRequest(Tiltakskode.ARBEIDSMARKEDSOPPLAERING, "1234")
     }
 }

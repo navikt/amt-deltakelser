@@ -17,6 +17,6 @@ data class GjennomforingResponse(
     val oppstart: Oppstartstype?,
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,
-    val arrangor: ArrangorResponse,
+    val arrangor: ArrangorResponse?,
     val pameldingstype: GjennomforingPameldingType?,
 )
