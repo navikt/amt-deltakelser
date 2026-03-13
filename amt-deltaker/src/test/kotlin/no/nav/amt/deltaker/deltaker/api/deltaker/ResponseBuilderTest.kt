@@ -4,6 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -38,7 +39,7 @@ class ResponseBuilderTest {
     private val arrangorService: ArrangorService = mockk(relaxed = true)
     private val navAnsattRepository: NavAnsattRepository = mockk(relaxed = true)
     private val navEnhetRepository: NavEnhetRepository = mockk(relaxed = true)
-    private val amtDistribusjonClient: AmtDistribusjonClient = mockk(relaxed = true)
+    private val amtDistribusjonClient: AmtDistribusjonClient = mockk()
     private val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
     private val forslagRepository: ForslagRepository = mockk(relaxed = true)
     private val deltakerLaaseService: DeltakerLaaseService = mockk(relaxed = true)
@@ -65,6 +66,8 @@ class ResponseBuilderTest {
             erSkjermet = true,
             adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
         )
+
+        coEvery { amtDistribusjonClient.digitalBruker(navBruker.personident) } returns true
 
         every { navAnsattRepository.getOrThrow(navBruker.navVeilederId.shouldNotBeNull()) } returns mockk {
             every { navn } returns "Nav-ansatt"
@@ -188,6 +191,7 @@ class ResponseBuilderTest {
             erManueltDeltMedArrangor = true,
         )
 
+        coEvery { amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
         every { deltakerLaaseService.erLaastForEndringer(any()) } returns true
 
         val expectedForslag = listOf(
