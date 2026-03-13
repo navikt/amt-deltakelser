@@ -69,7 +69,7 @@ class EnkeltplassDeltakerConsumer(
         // Work-around for falsk identitet i dev sånn at consumeren ikke blir stuck på noen deltakere
         if (navBruker.isFailure && Environment.isDev()) {
             log.error(
-                "Klarte ikke hente Nav-bruker med ident ${deltakerPayload.personIdent} for deltaker ${deltakerPayload.id}. Feilen var: ${navBruker.exceptionOrNull()}",
+                "Klarte ikke hente nav-bruker med ident ${deltakerPayload.personIdent} for deltaker ${deltakerPayload.id}. Feilen var: ${navBruker.exceptionOrNull()}",
             )
             return
         }
