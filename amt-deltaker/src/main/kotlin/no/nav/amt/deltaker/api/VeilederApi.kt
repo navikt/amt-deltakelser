@@ -43,7 +43,7 @@ fun Routing.registerVeilederApi(
             call.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))
         }
 
-        post("/deltaker/{deltakerId}/historikk") {
+        get("/deltaker/{deltakerId}/historikk") {
             val historikk = historikkService.getForDeltaker(call.getDeltakerId())
             call.respond(historikk)
         }
