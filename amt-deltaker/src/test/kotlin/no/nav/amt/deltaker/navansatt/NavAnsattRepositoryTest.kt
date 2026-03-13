@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
@@ -26,17 +26,46 @@ class NavAnsattRepositoryTest {
         navEnhetRepository.upsert(navEnhet)
     }
 
-    @Test
-    fun `getMany - flere navidenter - returnerer flere ansatte`() {
-        val ansatte = List(3) { lagNavAnsatt(navEnhetId = navEnhet.id) }
-        ansatte.forEach { navAnsattRepository.upsert(it) }
+    @Nested
+    inner class GetManyByIdTests {
+        @Test
+        fun `tomt sett med ider - returnerer tom liste`() {
+            navAnsattRepository.getManyById(emptySet()) shouldBe emptyList()
+        }
 
-        val faktiskeAnsatte = navAnsattRepository.getMany(ansatte.map { it.navIdent })
+        @Test
+        fun `flere ider - returnerer flere ansatte`() {
+            // Arrange
+            val ansatteInTest = List(3) { lagNavAnsatt(navEnhetId = navEnhet.id) }
+            ansatteInTest.forEach { navAnsattRepository.upsert(it) }
 
-        faktiskeAnsatte.size shouldBe ansatte.size
-        faktiskeAnsatte.find { it == ansatte[0] } shouldNotBe null
-        faktiskeAnsatte.find { it == ansatte[1] } shouldNotBe null
-        faktiskeAnsatte.find { it == ansatte[2] } shouldNotBe null
+            // Act
+            val faktiskeAnsatte = navAnsattRepository.getManyById(ansatteInTest.map { it.id }.toSet())
+
+            // Assert
+            faktiskeAnsatte shouldBe ansatteInTest
+        }
+    }
+
+    @Nested
+    inner class GetManyByNavIdentTests {
+        @Test
+        fun `tomt sett med Nav-identer - returnerer tom liste`() {
+            navAnsattRepository.getManyByNavIdent(emptySet()) shouldBe emptyList()
+        }
+
+        @Test
+        fun `flere Nav-identer - returnerer flere ansatte`() {
+            // Arrange
+            val ansatteInTest = List(3) { lagNavAnsatt(navEnhetId = navEnhet.id) }
+            ansatteInTest.forEach { navAnsattRepository.upsert(it) }
+
+            // Act
+            val faktiskeAnsatte = navAnsattRepository.getManyByNavIdent(ansatteInTest.map { it.navIdent }.toSet())
+
+            // Assert
+            faktiskeAnsatte shouldBe ansatteInTest
+        }
     }
 
     @Test

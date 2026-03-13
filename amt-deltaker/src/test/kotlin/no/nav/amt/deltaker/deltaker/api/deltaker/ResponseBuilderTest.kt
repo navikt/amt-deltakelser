@@ -28,6 +28,8 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.ArrangorRes
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -67,18 +69,25 @@ class ResponseBuilderTest {
             adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
         )
 
+        val navAnsattCache: ResponseBuilder.GenericCache<NavAnsatt> = mockk()
+        val navEnhetCache: ResponseBuilder.GenericCache<NavEnhet> = mockk()
+
         coEvery { amtDistribusjonClient.digitalBruker(navBruker.personident) } returns true
 
-        every { navAnsattRepository.getOrThrow(navBruker.navVeilederId.shouldNotBeNull()) } returns mockk {
+        every { navAnsattCache.getOrThrow(navBruker.navVeilederId.shouldNotBeNull()) } returns mockk {
             every { navn } returns "Nav-ansatt"
         }
 
-        every { navEnhetRepository.getOrThrow(navBruker.navEnhetId.shouldNotBeNull()) } returns mockk {
+        every { navEnhetCache.getOrThrow(navBruker.navEnhetId.shouldNotBeNull()) } returns mockk {
             every { navn } returns "Nav-enhet"
         }
 
         // Act
-        val navBrukerResponse = responseBuilder.buildNavBrukerResponseFromNavBruker(navBruker)
+        val navBrukerResponse = responseBuilder.buildNavBrukerResponseFromNavBruker(
+            navBruker = navBruker,
+            navAnsattCache = navAnsattCache,
+            navEnhetCache = navEnhetCache,
+        )
 
         // Assert
         assertSoftly(navBrukerResponse) {
@@ -138,7 +147,7 @@ class ResponseBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerResponse - mapper vedtaksinformasjon korrekt`() = runTest {
+    fun `buildVedtaksinformasjonResponse - mapper vedtaksinformasjon korrekt`() = runTest {
         // Arrange
         val vedtaksinformasjon = lagVedtak(
             fattet = LocalDateTime.now(),
@@ -148,24 +157,31 @@ class ResponseBuilderTest {
             sistEndretAv = lagNavAnsatt(),
         ).tilVedtaksInformasjon()
 
-        every { navAnsattRepository.getOrThrow(vedtaksinformasjon.opprettetAv) } returns mockk {
+        val navAnsattCache: ResponseBuilder.GenericCache<NavAnsatt> = mockk()
+        val navEnhetCache: ResponseBuilder.GenericCache<NavEnhet> = mockk()
+
+        every { navAnsattCache.getOrThrow(vedtaksinformasjon.opprettetAv) } returns mockk {
             every { navn } returns "Nav-ansatt 1"
         }
 
-        every { navAnsattRepository.getOrThrow(vedtaksinformasjon.sistEndretAv) } returns mockk {
+        every { navAnsattCache.getOrThrow(vedtaksinformasjon.sistEndretAv) } returns mockk {
             every { navn } returns "Nav-ansatt 2"
         }
 
-        every { navEnhetRepository.getOrThrow(vedtaksinformasjon.opprettetAvEnhet) } returns mockk {
+        every { navEnhetCache.getOrThrow(vedtaksinformasjon.opprettetAvEnhet) } returns mockk {
             every { navn } returns "Nav Stovner"
         }
 
-        every { navEnhetRepository.getOrThrow(vedtaksinformasjon.sistEndretAvEnhet) } returns mockk {
+        every { navEnhetCache.getOrThrow(vedtaksinformasjon.sistEndretAvEnhet) } returns mockk {
             every { navn } returns "Nav Grunerløkka"
         }
 
         // Act
-        val vedtaksinformasjonResponse = responseBuilder.buildVedtaksinformasjonResponse(vedtaksinformasjon)
+        val vedtaksinformasjonResponse = responseBuilder.buildVedtaksinformasjonResponse(
+            vedtaksinformasjon = vedtaksinformasjon,
+            navAnsattCache = navAnsattCache,
+            navEnhetCache = navEnhetCache,
+        )
 
         // Assert
         assertSoftly(vedtaksinformasjonResponse.shouldNotBeNull()) {
@@ -182,7 +198,14 @@ class ResponseBuilderTest {
     @Test
     fun `buildDeltakerResponse - mapper felter korrekt`() = runTest {
         // Arrange
+        val navAnsatt = lagNavAnsatt()
+        val navEnhet = lagNavEnhet()
+
         val deltaker = lagDeltaker(
+            navBruker = lagNavBruker(
+                navVeilederId = navAnsatt.id,
+                navEnhetId = navEnhet.id,
+            ),
             startdato = LocalDate.now(),
             sluttdato = LocalDate.now().plusDays(1),
             dagerPerUke = 4F,
@@ -207,6 +230,8 @@ class ResponseBuilderTest {
             ),
         )
 
+        every { navAnsattRepository.getManyById(any()) } returns listOf(navAnsatt)
+        every { navEnhetRepository.getMany(any()) } returns listOf(navEnhet)
         every { forslagRepository.getForDeltaker(any()) } returns expectedForslag
 
         // Act
