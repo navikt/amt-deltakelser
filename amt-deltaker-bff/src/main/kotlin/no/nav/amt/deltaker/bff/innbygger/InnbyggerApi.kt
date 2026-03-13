@@ -83,7 +83,7 @@ fun Routing.registerInnbyggerApi(
             call.respond(komplettInnbyggerDeltakerResponse(oppdatertDeltaker))
         }
 
-        // kaller amtDeltakerClient.getDeltakerHistorikk
+        // henter deltakerhistorikk via amtDeltakerClient.getDeltakerHistorikk når prioriterSynkronKommunikasjon-toggle er aktiv, ellers brukes lokal historikk fra deltaker
         get("/innbygger/{deltakerId}/historikk") {
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
 

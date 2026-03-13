@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -12,6 +13,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
+import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.RouteTestBase
@@ -40,19 +42,17 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
-import io.ktor.client.request.get
-import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 
 class VeilederApiTest : RouteTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") { setBody("foo") }.status shouldBe
-                    HttpStatusCode.Unauthorized
+                HttpStatusCode.Unauthorized
             client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe
-                    HttpStatusCode.Unauthorized
+                HttpStatusCode.Unauthorized
             client.get("/deltaker/${UUID.randomUUID()}/historikk").status shouldBe
-                    HttpStatusCode.Unauthorized
+                HttpStatusCode.Unauthorized
         }
     }
 
@@ -362,7 +362,6 @@ class VeilederApiTest : RouteTestBase() {
         }
     }
 
-
     private fun runEndringTest(
         request: EndringRequest,
         deltaker: Deltaker,
@@ -378,7 +377,7 @@ class VeilederApiTest : RouteTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe
-                    objectMapper.writeValueAsString(DtoMappers.deltakerEndringResponseFromDeltaker(deltaker, historikk))
+                objectMapper.writeValueAsString(DtoMappers.deltakerEndringResponseFromDeltaker(deltaker, historikk))
         }
 
         coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }
