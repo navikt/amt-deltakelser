@@ -43,7 +43,7 @@ class NavAnsattRepositoryTest {
             val faktiskeAnsatte = navAnsattRepository.getManyById(ansatteInTest.map { it.id }.toSet())
 
             // Assert
-            faktiskeAnsatte shouldBe ansatteInTest
+            faktiskeAnsatte.toSet() shouldBe ansatteInTest.toSet()
         }
     }
 
@@ -64,7 +64,7 @@ class NavAnsattRepositoryTest {
             val faktiskeAnsatte = navAnsattRepository.getManyByNavIdent(ansatteInTest.map { it.navIdent }.toSet())
 
             // Assert
-            faktiskeAnsatte shouldBe ansatteInTest
+            faktiskeAnsatte.toSet() shouldBe ansatteInTest.toSet()
         }
     }
 
