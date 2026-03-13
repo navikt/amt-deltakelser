@@ -278,10 +278,8 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
 }
 
 fun EndringFraArrangor.toHendelseEndring() = when (val endring = this.endring) {
-    is EndringFraArrangor.LeggTilOppstartsdato -> {
-        HendelseType.LeggTilOppstartsdato(
-            startdato = endring.startdato,
-            sluttdato = endring.sluttdato,
-        )
-    }
+    is EndringFraArrangor.LeggTilOppstartsdato -> HendelseType.LeggTilOppstartsdato(
+        startdato = endring.startdato,
+        sluttdato = endring.sluttdato,
+    )
 }

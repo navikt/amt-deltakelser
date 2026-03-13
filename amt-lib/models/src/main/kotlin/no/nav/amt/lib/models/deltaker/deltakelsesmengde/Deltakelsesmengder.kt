@@ -215,43 +215,29 @@ private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
 }
 
 private fun DeltakerHistorikk.toStartdato() = when (this) {
-    is DeltakerHistorikk.Endring -> {
+    is DeltakerHistorikk.Endring ->
         if (this.endring.endring is DeltakerEndring.Endring.EndreStartdato) {
             this.endring.endring.startdato
         } else {
             null
         }
-    }
 
-    is DeltakerHistorikk.EndringFraArrangor -> {
+    is DeltakerHistorikk.EndringFraArrangor ->
         if (this.endringFraArrangor.endring is EndringFraArrangor.LeggTilOppstartsdato) {
             this.endringFraArrangor.endring.startdato
         } else {
             null
         }
-    }
 
-    is DeltakerHistorikk.InnsokPaaFellesOppstart -> {
-        null
-    }
+    is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
 
-    is DeltakerHistorikk.Forslag -> {
-        null
-    }
+    is DeltakerHistorikk.Forslag -> null
 
-    is DeltakerHistorikk.ImportertFraArena -> {
-        this.importertFraArena.deltakerVedImport.startdato
-    }
+    is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.deltakerVedImport.startdato
 
-    is DeltakerHistorikk.Vedtak -> {
-        this.vedtak.deltakerVedVedtak.startdato
-    }
+    is DeltakerHistorikk.Vedtak -> this.vedtak.deltakerVedVedtak.startdato
 
-    is DeltakerHistorikk.VurderingFraArrangor -> {
-        null
-    }
+    is DeltakerHistorikk.VurderingFraArrangor -> null
 
-    is DeltakerHistorikk.EndringFraTiltakskoordinator -> {
-        null
-    }
+    is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
 }

@@ -46,28 +46,22 @@ fun <T> createMockHttpClient(
             if (requiresAuthHeader) request.headers[HttpHeaders.Authorization] shouldBe "Bearer XYZ"
 
             when (responseBody) {
-                null -> {
-                    respond(
-                        content = "",
-                        status = statusCode,
-                    )
-                }
+                null -> respond(
+                    content = "",
+                    status = statusCode,
+                )
 
-                is ByteArray -> {
-                    respond(
-                        content = responseBody,
-                        status = statusCode,
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
-                    )
-                }
+                is ByteArray -> respond(
+                    content = responseBody,
+                    status = statusCode,
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
+                )
 
-                else -> {
-                    respond(
-                        content = ByteReadChannel(objectMapper.writeValueAsBytes(responseBody)),
-                        status = statusCode,
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                    )
-                }
+                else -> respond(
+                    content = ByteReadChannel(objectMapper.writeValueAsBytes(responseBody)),
+                    status = statusCode,
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                )
             }
         }
     }

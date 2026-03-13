@@ -58,28 +58,22 @@ fun <T> createMockHttpClient(
             if (requiresAuthHeader) request.headers[HttpHeaders.Authorization] shouldBe "Bearer XYZ"
 
             when (responseBody) {
-                null -> {
-                    respond(
-                        content = "",
-                        status = statusCode,
-                    )
-                }
+                null -> respond(
+                    content = "",
+                    status = statusCode,
+                )
 
-                is ByteArray -> {
-                    respond(
-                        content = responseBody,
-                        status = statusCode,
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
-                    )
-                }
+                is ByteArray -> respond(
+                    content = responseBody,
+                    status = statusCode,
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
+                )
 
-                else -> {
-                    respond(
-                        content = objectMapper.writeValueAsString(responseBody),
-                        status = statusCode,
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                    )
-                }
+                else -> respond(
+                    content = objectMapper.writeValueAsString(responseBody),
+                    status = statusCode,
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                )
             }
         }
     }
@@ -90,17 +84,11 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
         MockEngine {
             val body =
                 when (it.body) {
-                    is TextContent -> {
-                        (it.body as TextContent).text
-                    }
+                    is TextContent -> (it.body as TextContent).text
 
-                    is ByteArrayContent -> {
-                        (it.body as ByteArrayContent).toByteArray().decodeToString()
-                    }
+                    is ByteArrayContent -> (it.body as ByteArrayContent).toByteArray().decodeToString()
 
-                    else -> {
-                        null
-                    }
+                    else -> null
                 }
 
             val request = MockResponseHandler.Request(it.url.toString(), it.method, body)

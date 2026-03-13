@@ -25,9 +25,8 @@ class EndringFraArrangorService(
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
         val endretDeltaker = when (endringFraArrangor.endring) {
-            is EndringFraArrangor.LeggTilOppstartsdato -> {
+            is EndringFraArrangor.LeggTilOppstartsdato ->
                 endretDeltaker(eksisterendeDeltaker, endringFraArrangor.endring)
-            }
         }
 
         endretDeltaker.onSuccess { innerDeltaker ->
@@ -63,7 +62,7 @@ class EndringFraArrangorService(
         }
 
         return when (endring) {
-            is EndringFraArrangor.LeggTilOppstartsdato -> {
+            is EndringFraArrangor.LeggTilOppstartsdato ->
                 endreDeltaker(deltaker.startdato != endring.startdato) {
                     deltaker.endreDeltakersOppstart(
                         startdato = endring.startdato,
@@ -71,7 +70,6 @@ class EndringFraArrangorService(
                         deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
                     )
                 }
-            }
         }
     }
 }

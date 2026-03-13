@@ -322,9 +322,8 @@ class DeltakerServiceTest {
                 )
 
                 when (endringRequest) {
-                    is BakgrunnsinformasjonRequest -> {
+                    is BakgrunnsinformasjonRequest ->
                         oppdatertDeltaker.bakgrunnsinformasjon shouldBe endringRequest.bakgrunnsinformasjon
-                    }
 
                     is InnholdRequest -> {
                         oppdatertDeltaker.deltakelsesinnhold.shouldNotBeNull().innhold shouldBe endringRequest.deltakelsesinnhold.innhold
@@ -341,17 +340,12 @@ class DeltakerServiceTest {
                         oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
                     }
 
-                    is SluttdatoRequest -> {
-                        oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
-                    }
+                    is SluttdatoRequest -> oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
 
-                    is SluttarsakRequest -> {
+                    is SluttarsakRequest ->
                         oppdatertDeltaker.status.aarsak shouldBe endringRequest.aarsak.toDeltakerStatusAarsak()
-                    }
 
-                    is ForlengDeltakelseRequest -> {
-                        oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
-                    }
+                    is ForlengDeltakelseRequest -> oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
 
                     is IkkeAktuellRequest -> {
                         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL

@@ -29,18 +29,13 @@ class TiltakshendelseService(
         }
 
         when (hendelse.payload) {
-            is HendelseType.OpprettUtkast -> {
-                opprettStartHendelse(hendelse)
-            }
-
+            is HendelseType.OpprettUtkast -> opprettStartHendelse(hendelse)
             is HendelseType.AvbrytUtkast,
             is HendelseType.InnbyggerGodkjennUtkast,
             is HendelseType.NavGodkjennUtkast,
-            -> {
-                stoppUtkastHendelse(hendelse)
-            }
+            -> stoppUtkastHendelse(hendelse)
 
-            else -> {}
+            else -> Unit
         }
     }
 
