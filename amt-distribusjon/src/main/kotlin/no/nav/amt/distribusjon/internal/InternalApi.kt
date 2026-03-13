@@ -34,6 +34,16 @@ fun Routing.registerInternalApi(tiltakshendelseService: TiltakshendelseService) 
         tiltakshendelseService.reproduser(id)
         call.respond(HttpStatusCode.OK)
     }
+
+    // Brukes til å reprodusere tiltakshendelse med aktiv=false, brukes kun for å rette opp i feil som har kommet pga. manglende transaksjonshåndtering
+    post("/internal/tiltakshendelse/reproduser-og-sett-aktiv-false/{id}") {
+        if (!isInternal(call.request.local.remoteAddress)) {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+        val id = UUID.fromString(call.parameters["id"])
+        tiltakshendelseService.reproduserOgSettAktivFalse(id)
+        call.respond(HttpStatusCode.OK)
+    }
 }
 
 fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"

@@ -36,7 +36,7 @@ class TiltakshendelseService(
             is HendelseType.AvbrytUtkast,
             is HendelseType.InnbyggerGodkjennUtkast,
             is HendelseType.NavGodkjennUtkast,
-            -> {
+                -> {
                 stoppUtkastHendelse(hendelse)
             }
 
@@ -52,7 +52,7 @@ class TiltakshendelseService(
             is Forslag.Status.Avvist,
             is Forslag.Status.Tilbakekalt,
             is Forslag.Status.Erstattet,
-            -> stoppForslagHendelse(forslag.id)
+                -> stoppForslagHendelse(forslag.id)
         }
     }
 
@@ -71,6 +71,12 @@ class TiltakshendelseService(
         val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
         tiltakshendelseProducer.produce(tiltakshendelse)
         log.info("Reproduserte tiltakshendelse $id")
+    }
+
+    fun reproduserOgSettAktivFalse(id: UUID) {
+        val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
+        tiltakshendelseProducer.produce(tiltakshendelse.copy(aktiv = false))
+        log.info("Reproduserte tiltakshendelse $id med aktiv false deltakerId ${tiltakshendelse.deltakerId}")
     }
 
     private fun opprettStartHendelse(hendelse: Hendelse) {
