@@ -19,7 +19,6 @@ import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
 import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
-import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorsDeltakerlisteProducer
@@ -45,6 +44,7 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -69,8 +69,7 @@ class InnbyggerApiTest {
     private val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
     private val tiltakskoordinatorService = mockk<TiltakskoordinatorService>()
     private val deltakerlisteService = mockk<DeltakerlisteService>()
-    private val unleash = mockk<Unleash>()
-    private val unleashToggle = CommonUnleashToggle(unleash)
+    private val unleashToggle = mockk<CommonUnleashToggle>()
     private val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient,
         navAnsattService,
@@ -186,7 +185,7 @@ class InnbyggerApiTest {
 
         every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
         every { unleashToggle.prioriterSynkronKommunikasjon() } returns true
-        coEvery { deltakerService.hentDeltakerHistorikk(deltaker.id) } returns historikk
+        coEvery { amtDeltakerClient.getDeltakerHistorikk(deltaker.id) } returns historikk
         coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
         client.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
             status shouldBe HttpStatusCode.OK
@@ -221,7 +220,8 @@ class InnbyggerApiTest {
                 sporbarhetsloggService = mockk(),
                 deltakerRepository = deltakerRepository,
                 deltakerlisteService = mockk(),
-                unleash = unleash,
+                unleash = mockk(),
+                commonUnleashToggle = unleashToggle,
                 sporbarhetOgTilgangskontrollSvc = mockk(),
                 tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),

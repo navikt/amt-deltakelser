@@ -228,6 +228,7 @@ class KladdApiTest {
                 sporbarhetsloggService = mockk(),
                 deltakerlisteService = deltakerlisteService,
                 unleash = mockk(),
+                commonUnleashToggle = mockk(),
                 sporbarhetOgTilgangskontrollSvc = mockk(),
                 tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
