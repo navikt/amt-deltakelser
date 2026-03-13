@@ -231,7 +231,7 @@ class EnkeltplassDeltakerConsumerTest {
         every { deltakerProducer.produce(any()) } just Runs
 
         runTest {
-            val thrown = shouldThrow<NoSuchElementException> {
+            val thrown = shouldThrow<IllegalStateException> {
                 consumer.consumeDeltaker(toPayload(deltaker))
             }
 
