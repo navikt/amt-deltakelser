@@ -49,8 +49,15 @@ class EnkeltplassDeltakerConsumer(
     }
 
     suspend fun consumeDeltaker(deltakerPayload: EnkeltplassDeltakerPayload) {
-        val deltakerliste = deltakerlisteRepository.get(deltakerPayload.gjennomforingId).getOrElse {
-            throw NoSuchElementException("Deltakerliste ${deltakerPayload.gjennomforingId} ikke mottatt fra Mulighetsrommet ennå")
+        val deltakerliste = deltakerlisteRepository.get(deltakerPayload.gjennomforingId).getOrElse { throwable ->
+            if (throwable is NoSuchElementException) {
+                throw NoSuchElementException(
+                    "Deltakerliste ${deltakerPayload.gjennomforingId} ikke mottatt fra Mulighetsrommet ennå",
+                    throwable,
+                )
+            } else {
+                throw throwable
+            }
         }
 
         if (!unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) return
