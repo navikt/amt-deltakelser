@@ -30,18 +30,25 @@ class ResponseBuilder(
     private val deltakerLaaseService: DeltakerLaaseService,
 ) {
     data class GenericCache<T>(
+        private val cacheName: String,
         private val itemMap: Map<UUID, T>,
     ) {
-        constructor(items: List<T>, idSelector: (T) -> UUID) : this(
+        constructor(
+            cacheName: String,
+            items: List<T>,
+            idSelector: (T) -> UUID,
+        ) : this(
+            cacheName = cacheName,
             itemMap = items.associateBy(idSelector),
         )
 
         fun getOrThrow(id: UUID): T = itemMap[id]
-            ?: throw NoSuchElementException("Fant ikke entry med id $id")
+            ?: throw NoSuchElementException("Fant ikke entry med id $id i cache $cacheName")
     }
 
     suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
         val navAnsattCache = GenericCache(
+            cacheName = "navAnsattCache",
             items = navAnsattRepository.getManyById(
                 ider = setOfNotNull(
                     deltaker.navBruker.navVeilederId,
@@ -53,6 +60,7 @@ class ResponseBuilder(
         )
 
         val navEnhetCache = GenericCache(
+            cacheName = "navEnhetCache",
             items = navEnhetRepository.getMany(
                 setOfNotNull(
                     deltaker.navBruker.navEnhetId,

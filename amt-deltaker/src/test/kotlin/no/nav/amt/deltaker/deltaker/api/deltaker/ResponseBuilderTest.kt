@@ -65,7 +65,11 @@ class ResponseBuilderTest {
     @Nested
     inner class CacheTests {
         val idInTest: UUID = UUID.randomUUID()
-        val cache = ResponseBuilder.GenericCache(listOf("foo"), { idInTest })
+        val cache = ResponseBuilder.GenericCache(
+            cacheName = "fooCache",
+            items = listOf("foo"),
+            idSelector = { idInTest },
+        )
 
         @Test
         fun `getOrThrow - skal returnere cachet verdi`() {
