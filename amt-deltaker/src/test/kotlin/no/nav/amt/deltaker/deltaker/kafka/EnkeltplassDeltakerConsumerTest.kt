@@ -235,7 +235,7 @@ class EnkeltplassDeltakerConsumerTest {
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
-        arrangorRepository.upsert(deltakerListe.arrangor)
+        arrangorRepository.upsert(deltakerListe.arrangor!!)
 
         tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
         TestRepository.insert(deltaker.navBruker)
@@ -491,7 +491,7 @@ class EnkeltplassDeltakerConsumerTest {
             tilgjengeligForArrangorFraOgMedDato = startDato,
             deltidsprosent = 42.0,
             oppmoteSted = oppmoteSted,
-            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor!!.organisasjonsnummer),
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
     }

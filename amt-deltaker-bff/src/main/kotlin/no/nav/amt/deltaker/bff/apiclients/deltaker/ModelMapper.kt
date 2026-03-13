@@ -65,7 +65,7 @@ class ModelMapper {
                 oppstart = oppstart,
                 apentForPamelding = apentForPamelding,
                 oppmoteSted = oppmoteSted,
-                arrangor = toArrangor(arrangor),
+                arrangor = arrangor?.let { toArrangor(it) },
                 pameldingstype = pameldingstype,
             )
         }

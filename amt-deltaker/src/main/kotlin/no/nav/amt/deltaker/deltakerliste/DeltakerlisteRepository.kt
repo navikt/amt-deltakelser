@@ -67,7 +67,7 @@ class DeltakerlisteRepository {
             "navn" to deltakerliste.navn,
             "gjennomforingstype" to deltakerliste.gjennomforingstype.name,
             "status" to deltakerliste.status?.name,
-            "arrangor_id" to deltakerliste.arrangor.id,
+            "arrangor_id" to deltakerliste.arrangor!!.id,
             "tiltakstype_id" to deltakerliste.tiltakstype.id,
             "start_dato" to deltakerliste.startDato,
             "slutt_dato" to deltakerliste.sluttDato,

@@ -27,7 +27,7 @@ fun Deltaker.toHendelseDeltaker(
     deltakerliste = HendelseDeltaker.Deltakerliste(
         id = deltakerliste.id,
         navn = deltakerliste.navn,
-        arrangor = deltakerliste.arrangor.toHendelseArrangor(overordnetArrangor?.toHendelseArrangor()),
+        arrangor = deltakerliste.arrangor!!.toHendelseArrangor(overordnetArrangor?.toHendelseArrangor()),
         startdato = deltakerliste.startDato,
         sluttdato = deltakerliste.sluttDato,
         oppstartstype = deltakerliste.oppstart

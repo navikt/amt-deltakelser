@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerUpsertDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -16,6 +17,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -35,6 +37,7 @@ class KladdService(
         tiltakskode: Tiltakskode,
         personident: String,
     ): UUID {
+        val navBruker = navBrukerService.get(personident).getOrThrow()
         val tiltak = Tiltakskode.valueOf(tiltakskode.name).let {
             tiltakRepository.get(tiltakskode).getOrThrow()
         }
@@ -51,9 +54,10 @@ class KladdService(
             pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
-        val kladd = lagKladd(
-            navBrukerService.get(personident).getOrThrow(),
-            deltakerListeRepository.get(gjennomforing.id).getOrThrow(),
+        val kladd = lagEnkeltplassKladd(
+            navBruker.personId,
+            gjennomforing.id,
+            tiltak,
         )
 
         Database.transaction {
@@ -122,6 +126,27 @@ class KladdService(
             kilde = Kilde.KOMET,
             erManueltDeltMedArrangor = false,
             opprettet = LocalDateTime.now(),
+        )
+
+        private fun lagEnkeltplassKladd(
+            navBrukerId: UUID,
+            deltakerlisteId: UUID,
+            tiltakstype: Tiltakstype,
+        ) = DeltakerUpsertDbo(
+            id = UUID.randomUUID(),
+            navBrukerId = navBrukerId,
+            deltakerlisteId = deltakerlisteId,
+            startdato = null,
+            sluttdato = null,
+            dagerPerUke = null,
+            deltakelsesprosent = null,
+            bakgrunnsinformasjon = null,
+            deltakelsesinnhold = Deltakelsesinnhold(tiltakstype.innhold?.ledetekst, emptyList()),
+            status = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
+            vedtaksinformasjon = null,
+            sistEndret = LocalDateTime.now(),
+            kilde = Kilde.KOMET,
+            erManueltDeltMedArrangor = false,
         )
     }
 }

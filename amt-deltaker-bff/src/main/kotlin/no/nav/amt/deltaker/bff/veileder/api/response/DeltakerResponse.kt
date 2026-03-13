@@ -140,7 +140,7 @@ data class DeltakerResponse(
                     deltakerlisteNavn = gjennomforing.navn,
                     tiltakskode = gjennomforing.tiltak.tiltakskode,
                     // Nå er det amtdeltaker som sender med navnet som er riktig for visningen
-                    arrangorNavn = gjennomforing.arrangor.navn,
+                    arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør", // TODO: Hva skal stå
                     oppstartstype = gjennomforing.oppstart,
                     startdato = gjennomforing.startDato,
                     sluttdato = gjennomforing.sluttDato,
@@ -177,7 +177,7 @@ data class DeltakerResponse(
                 digitalBruker = navBruker.erDigital,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = endringsforslagFraArrangor.map { it.toResponse(gjennomforing.arrangor.navn) },
+                forslag = endringsforslagFraArrangor.map { it.toResponse(gjennomforing.arrangor!!.navn) },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger

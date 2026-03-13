@@ -26,7 +26,8 @@ class ResponseBuilder(
     private val deltakerLaaseService: DeltakerLaaseService,
 ) {
     suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
-        val arrangorNavn = arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor)
+        val arrangorNavn = deltaker.deltakerliste.arrangor
+            ?.let { arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor) }
         // Flyttet as is fra deltaker-bff. Kan dette gjøres asynkront?
         val erDigital = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident)
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
@@ -47,10 +48,12 @@ class ResponseBuilder(
                 oppstart = deltaker.deltakerliste.oppstart,
                 apentForPamelding = deltaker.deltakerliste.apentForPamelding,
                 oppmoteSted = deltaker.deltakerliste.oppmoteSted,
-                arrangor = ArrangorResponse(
-                    navn = arrangorNavn,
-                    deltaker.deltakerliste.arrangor.organisasjonsnummer,
-                ),
+                arrangor = deltaker.deltakerliste.arrangor.let {
+                    ArrangorResponse(
+                        navn = arrangorNavn!!,
+                        deltaker.deltakerliste.arrangor.organisasjonsnummer,
+                    )
+                },
                 pameldingstype = deltaker.deltakerliste.pameldingstype,
             ),
             startdato = deltaker.startdato,

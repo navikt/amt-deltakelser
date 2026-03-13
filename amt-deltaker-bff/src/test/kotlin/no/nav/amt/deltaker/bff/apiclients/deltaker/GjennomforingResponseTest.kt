@@ -25,7 +25,7 @@ class GjennomforingResponseTest {
             apentForPamelding shouldBe response.apentForPamelding
             oppmoteSted shouldBe response.oppmoteSted.shouldNotBeNull()
             pameldingstype shouldBe response.pameldingstype.shouldNotBeNull()
-            arrangor shouldBe ModelMapper.toArrangor(response.arrangor)
+            arrangor shouldBe ModelMapper.toArrangor(response.arrangor!!)
         }
     }
 }

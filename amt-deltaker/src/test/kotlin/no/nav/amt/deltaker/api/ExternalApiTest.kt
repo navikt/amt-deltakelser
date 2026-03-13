@@ -99,7 +99,7 @@ class ExternalApiTest : RouteTestBase() {
                 ),
             )
 
-            every { arrangorService.getArrangorNavn(any()) } returns deltaker.deltakerliste.arrangor.navn
+            every { arrangorService.getArrangorNavn(any()) } returns deltaker.deltakerliste.arrangor!!.navn
 
             every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltaker)
             every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
@@ -152,7 +152,7 @@ class ExternalApiTest : RouteTestBase() {
                 ),
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
-            every { arrangorService.getArrangorNavn(any()) } returns deltakerKladd.deltakerliste.arrangor.navn
+            every { arrangorService.getArrangorNavn(any()) } returns deltakerKladd.deltakerliste.arrangor!!.navn
 
             val avsluttetDeltaker = lagDeltaker(
                 deltakerliste = lagDeltakerliste(

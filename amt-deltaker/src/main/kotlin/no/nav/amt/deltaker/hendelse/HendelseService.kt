@@ -230,7 +230,8 @@ class HendelseService(
         ansvarlig: HendelseAnsvarlig,
         endring: HendelseType,
     ): Hendelse {
-        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
+        val overordnetArrangor = deltaker.deltakerliste.arrangor!!
+            .overordnetArrangorId
             ?.let { arrangorService.hentArrangor(it) }
 
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
