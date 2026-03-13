@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.apiclients.paamelding
 
-import OpprettKladdEnkelUtenRammeRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.api.DeltakerIdResponse
@@ -28,12 +27,12 @@ class PaameldingClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun opprettKladdEnkelUtenRamme(
+    suspend fun opprettKladdEnkeltplass(
         tiltakskode: Tiltakskode,
         personident: String,
     ): DeltakerIdResponse = performPost(
-        "opprett-kladd-enkel-uten-ramme",
-        OpprettKladdEnkelUtenRammeRequest(tiltakskode = tiltakskode, personident = personident),
+        "/opprett-enkeltplass-kladd",
+        OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
 
     suspend fun opprettKladd(

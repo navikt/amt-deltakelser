@@ -51,7 +51,7 @@ class KladdApiTest : RouteTestBase() {
         val deltaker = TestData.lagDeltaker()
 
         coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
-        coEvery { pameldingService.opprettDeltaker(any(), any()) } returns deltaker
+        coEvery { kladdService.opprettKladd(any<UUID>(), any()) } returns deltaker
 
         withTestApplicationContext { client ->
             val response = client.post("/kladd") {
@@ -70,7 +70,7 @@ class KladdApiTest : RouteTestBase() {
     @Test
     fun `post kladd - deltakerliste finnes ikke - returnerer 404`() {
         coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
-        coEvery { pameldingService.opprettDeltaker(any(), any()) } throws NoSuchElementException("Fant ikke deltakerliste")
+        coEvery { kladdService.opprettKladd(any<UUID>(), any()) } throws NoSuchElementException("Fant ikke deltakerliste")
 
         withTestApplicationContext { client ->
             val response = client.post("/kladd") {
@@ -84,7 +84,7 @@ class KladdApiTest : RouteTestBase() {
     @Test
     fun `delete kladd - har tilgang - returnerer 200`() {
         val deltakerId = UUID.randomUUID()
-        coEvery { pameldingService.slettKladd(deltakerId) } just Runs
+        coEvery { kladdService.slettKladd(deltakerId) } just Runs
 
         withTestApplicationContext { client ->
             client.delete("/kladd/$deltakerId") { noBodyRequest() }.apply {
