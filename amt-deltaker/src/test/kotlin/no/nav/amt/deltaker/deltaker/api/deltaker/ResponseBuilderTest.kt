@@ -98,7 +98,7 @@ class ResponseBuilderTest {
     }
 
     @Test
-    fun `buildGjennomforingResponse - skal mnappe deltakerliste korrekt`() = runTest {
+    fun `buildGjennomforingResponse - skal mappe deltakerliste korrekt`() = runTest {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             status = GjennomforingStatusType.GJENNOMFORES,
