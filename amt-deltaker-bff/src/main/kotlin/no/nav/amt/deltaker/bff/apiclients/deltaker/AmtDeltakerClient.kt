@@ -21,11 +21,11 @@ class AmtDeltakerClient(
     httpClient: HttpClient,
     azureAdTokenClient: AzureAdTokenClient,
 ) : ApiClientBase(
-        baseUrl = baseUrl,
-        scope = scope,
-        httpClient = httpClient,
-        azureAdTokenClient = azureAdTokenClient,
-    ) {
+    baseUrl = baseUrl,
+    scope = scope,
+    httpClient = httpClient,
+    azureAdTokenClient = azureAdTokenClient,
+) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse = performGet("deltaker/$deltakerId")
@@ -45,16 +45,6 @@ class AmtDeltakerClient(
         if (!response.status.isSuccess()) {
             log.warn(
                 "Kunne ikke endre $SIST_BESOKT_URL_SEGMENT i amt-deltaker. Status=${response.status.value} error=${response.bodyAsText()}",
-            )
-        }
-    }
-
-    suspend fun historikk(deltakerId: UUID) {
-        val response = performGet("deltaker/$deltakerId/historikk")
-
-        if (!response.status.isSuccess()) {
-            log.warn(
-                "Kunne ikke hente deltakerhistorikk for $deltakerId i amt-deltaker. Status=${response.status.value} error=${response.bodyAsText()}",
             )
         }
     }

@@ -9,7 +9,6 @@ import no.nav.amt.deltaker.bff.deltaker.model.AKTIVE_STATUSER
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringForslagRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
@@ -26,8 +25,6 @@ class DeltakerService(
     private val forslagRepository: ForslagRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    suspend fun hentDeltakerHistorikk(deltakerId: UUID): List<DeltakerHistorikk> = amtDeltakerClient.getDeltakerHistorikk(deltakerId)
 
     suspend fun oppdaterDeltaker(
         deltaker: Deltaker,
@@ -124,8 +121,8 @@ class DeltakerService(
         val deltakelserSomSkalLaases = deltakelserPaaPersonSorted
             .filter {
                 it.id != nyesteDeltakelse.id ||
-                    nyesteDeltakelse.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
-                    nyesteDeltakelse.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+                        nyesteDeltakelse.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
+                        nyesteDeltakelse.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
             }.filter { it.kanEndres }
 
         val laasesMedAktivStatus = deltakelserSomSkalLaases
@@ -134,12 +131,12 @@ class DeltakerService(
         if (laasesMedAktivStatus.isNotEmpty()) {
             throw IllegalStateException(
                 "ugyldig state. Fant eldre deltakelser med aktiv status: " +
-                    "Nyeste deltaker ${nyesteDeltakelse.id} " +
-                    "påmeldt ${nyesteDeltakelse.paameldtDato} " +
-                    "har status ${nyesteDeltakelse.status.type}. " +
-                    "Eldre deltakelse(r) ${laasesMedAktivStatus.map { it.id }} " +
-                    "påmeldt ${laasesMedAktivStatus.map { it.paameldtDato }} " +
-                    "har status ${laasesMedAktivStatus.map { it.status.type }}. ",
+                        "Nyeste deltaker ${nyesteDeltakelse.id} " +
+                        "påmeldt ${nyesteDeltakelse.paameldtDato} " +
+                        "har status ${nyesteDeltakelse.status.type}. " +
+                        "Eldre deltakelse(r) ${laasesMedAktivStatus.map { it.id }} " +
+                        "påmeldt ${laasesMedAktivStatus.map { it.paameldtDato }} " +
+                        "har status ${laasesMedAktivStatus.map { it.status.type }}. ",
             )
         }
 
@@ -201,7 +198,7 @@ class DeltakerService(
         afterUpsert: () -> Unit = {},
     ) {
         val disableKanEndres = deltakeroppdatering.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
-            deltakeroppdatering.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+                deltakeroppdatering.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
 
         Database.transaction {
             beforeUpsert()

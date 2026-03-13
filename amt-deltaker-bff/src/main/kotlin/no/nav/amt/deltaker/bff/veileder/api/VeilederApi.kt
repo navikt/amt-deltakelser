@@ -17,7 +17,6 @@ import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
-import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
@@ -60,6 +59,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoReq
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -184,7 +184,7 @@ fun Routing.registerVeilederApi(
 
             val historikk =
                 if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    deltakerService.hentDeltakerHistorikk(deltaker.id)
+                    amtDeltakerClient.getDeltakerHistorikk(deltaker.id)
                 } else {
                     deltaker.getDeltakerHistorikkForVisning()
                 }

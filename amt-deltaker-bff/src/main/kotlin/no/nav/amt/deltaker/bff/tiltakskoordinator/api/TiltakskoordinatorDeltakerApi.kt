@@ -6,10 +6,10 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
-import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
@@ -22,13 +22,14 @@ import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerApi(
     sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc,
     tiltakskoordinatorService: TiltakskoordinatorService,
     deltakerRepository: DeltakerRepository,
-    deltakerService: DeltakerService,
+    amtDeltakerClient: AmtDeltakerClient,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     ulesteHendelserService: UlestHendelseService,
@@ -74,7 +75,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
 
             val historikk =
                 if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    deltakerService.hentDeltakerHistorikk(deltaker.id)
+                    amtDeltakerClient.getDeltakerHistorikk(deltaker.id)
                 } else {
                     deltaker.getDeltakerHistorikkForVisning()
                 }

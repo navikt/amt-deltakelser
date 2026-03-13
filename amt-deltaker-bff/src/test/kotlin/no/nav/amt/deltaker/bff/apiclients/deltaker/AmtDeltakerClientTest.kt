@@ -4,15 +4,20 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
@@ -28,7 +33,10 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoReq
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.testing.utils.withLogCapture
+import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -574,29 +582,49 @@ class AmtDeltakerClientTest {
     @Nested
     inner class Historikk {
         val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/historikk"
+        val expectedErrorMessage = "Fant ikke deltakerhistorikk for ${deltakerInTest.id} i amt-deltaker."
+        val historikk = TestData.leggTilHistorikk(deltakerInTest, 2, 2, 1).historikk
 
-        @Test
-        fun `skal logge warning ved feil`() {
-            val deltakerClient = createDeltakerClient(expectedUrl, HttpStatusCode.Unauthorized)
-
-            withLogCapture("no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient") { logEvents ->
-                deltakerClient.historikk(deltakerInTest.id)
-
-                val logEntry = logEvents.find { it.level.levelStr == "WARN" }
-                logEntry.shouldNotBeNull()
-                logEntry.message shouldStartWith "Kunne ikke hente deltakerhistorikk for ${deltakerInTest.id} i amt-deltaker."
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            val thrown = Assertions.assertThrows(expectedExceptionType.java) {
+                runTest {
+                    createDeltakerClient(
+                        expectedUrl = expectedUrl,
+                        statusCode = statusCode,
+                        responseBody = "feil",
+                    ).getDeltakerHistorikk(deltakerInTest.id)
+                }
             }
+
+            thrown.message shouldStartWith expectedErrorMessage
         }
 
         @Test
-        fun `skal ikke kaste feil nar historikk kalles`() {
-            runHappyPathTest(
+        fun `skal returnere deltakerhistorikk`() {
+            // TODO
+            val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
+            val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
+
+            val amtDeltakerClient = createDeltakerClient2(
                 expectedUrl = expectedUrl,
-                expectedResponse = null,
-            ) { deltakerClient ->
-                deltakerClient.historikk(deltakerInTest.id)
+                responseBody = objectMapper.writePolymorphicListAsString(historikk.toResponse(ansatte, "test", enheter, null)),
+            )
+
+            runTest {
+                amtDeltakerClient.getDeltakerHistorikk(deltakerInTest.id) shouldBe objectMapper.writePolymorphicListAsString(
+                    historikk.toResponse(
+                        ansatte,
+                        "test",
+                        enheter,
+                        null
+                    )
+                )
             }
         }
+
     }
 
     companion object {
@@ -655,6 +683,17 @@ class AmtDeltakerClientTest {
                 isPolymorphicBody = isPolymorphicBody,
                 statusCode = statusCode,
             ),
+            azureAdTokenClient = mockAzureAdClient(),
+        )
+
+        private fun createDeltakerClient2(
+            expectedUrl: String,
+            statusCode: HttpStatusCode = HttpStatusCode.OK,
+            responseBody: String,
+        ) = AmtDeltakerClient(
+            baseUrl = DELTAKER_BASE_URL,
+            scope = "scope",
+            httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
             azureAdTokenClient = mockAzureAdClient(),
         )
     }
