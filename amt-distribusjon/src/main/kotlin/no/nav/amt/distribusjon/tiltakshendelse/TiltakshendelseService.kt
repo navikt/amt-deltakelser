@@ -36,7 +36,7 @@ class TiltakshendelseService(
             is HendelseType.AvbrytUtkast,
             is HendelseType.InnbyggerGodkjennUtkast,
             is HendelseType.NavGodkjennUtkast,
-                -> {
+            -> {
                 stoppUtkastHendelse(hendelse)
             }
 
@@ -52,7 +52,7 @@ class TiltakshendelseService(
             is Forslag.Status.Avvist,
             is Forslag.Status.Tilbakekalt,
             is Forslag.Status.Erstattet,
-                -> stoppForslagHendelse(forslag.id)
+            -> stoppForslagHendelse(forslag.id)
         }
     }
 
