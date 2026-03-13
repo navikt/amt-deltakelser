@@ -23,7 +23,8 @@ import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdEnkeltplassRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -64,7 +65,7 @@ fun Routing.registerKladdApi(
         }
 
         post("/opprett-enkeltplass-kladd") {
-            val request = call.receive<OpprettKladdEnkeltplassRequest>()
+            val request = call.receive<OpprettEnkeltplassKladdRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
@@ -75,6 +76,11 @@ fun Routing.registerKladdApi(
                 ).let { DeltakerResponse.fromDeltakerModel(it) }
 
             call.respond(response)
+        }
+
+        post("/oppdater-enkeltplass-kladd/{deltakerId}") {
+            val request = call.receive<OppdaterEnkeltplassKladdRequest>()
+            throw NotImplementedError("Må implementeres for å endre på kladd")
         }
 
         // Dette endepunktet kommuniserer ikke med amt-deltaker
