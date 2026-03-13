@@ -94,6 +94,7 @@ class ResponseBuilderTest {
             navVeileder shouldBe "Nav-ansatt"
             navEnhet shouldBe "Nav-enhet"
             innsatsgruppe shouldBe navBruker.innsatsgruppe.shouldNotBeNull()
+            erDigital shouldBe true
         }
     }
 
