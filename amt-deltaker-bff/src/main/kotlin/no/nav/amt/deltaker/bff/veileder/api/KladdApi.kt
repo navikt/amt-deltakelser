@@ -23,7 +23,7 @@ import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdEnkelUtenRammeRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -63,13 +63,13 @@ fun Routing.registerKladdApi(
             call.respond(komplettDeltakerResponse(deltaker))
         }
 
-        post("/opprett-kladd-enkeltplass-uten-rammeavtale") {
-            val request = call.receive<OpprettKladdEnkelUtenRammeRequest>()
+        post("/opprett-enkeltplass-kladd") {
+            val request = call.receive<OpprettKladdEnkeltplassRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
             val response = pameldingService
-                .opprettKladdForEnkelUtenRamme(
+                .opprettKladdForEnkeltplass(
                     personident = request.personident,
                     tiltakskode = request.tiltakskode,
                 ).let { DeltakerResponse.fromDeltakerModel(it) }

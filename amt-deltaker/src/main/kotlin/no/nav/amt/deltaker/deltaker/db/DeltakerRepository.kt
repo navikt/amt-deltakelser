@@ -393,6 +393,7 @@ class DeltakerRepository {
             }
         }
 
+        // TODO: Fikse left joint på arrangør
         private fun buildDeltakerSql(
             methodName: String,
             whereClause: String,

@@ -4,7 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.api.DeltakerIdResponse
 import no.nav.amt.api.paamelding.request.AvbrytUtkastRequest
-import no.nav.amt.api.paamelding.request.OpprettKladdEnkelUtenRammeRequest
+import no.nav.amt.api.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.api.paamelding.request.OpprettKladdRequest
 import no.nav.amt.api.paamelding.response.OpprettKladdResponse
 import no.nav.amt.api.paamelding.response.UtkastResponse
@@ -28,12 +28,12 @@ class PaameldingClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun opprettKladdEnkelUtenRamme(
+    suspend fun opprettKladdEnkeltplass(
         tiltakskode: Tiltakskode,
         personident: String,
     ): DeltakerIdResponse = performPost(
-        "opprett-kladd-enkel-uten-ramme",
-        OpprettKladdEnkelUtenRammeRequest(tiltakskode = tiltakskode, personident = personident),
+        "/opprett-enkeltplass-kladd",
+        OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
 
     suspend fun opprettKladd(

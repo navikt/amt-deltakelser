@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
-import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -39,7 +39,7 @@ import java.util.UUID
 fun Routing.registerInternalApi(
     deltakerRepository: DeltakerRepository,
     deltakerService: DeltakerService,
-    pameldingService: PameldingService,
+    kladdService: KladdService,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
     innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
@@ -238,7 +238,7 @@ fun Routing.registerInternalApi(
         val request = call.receive<DeleteDeltakereRequest>()
         scope.launch {
             log.info("Sletter ${request.deltakere.size} deltakere med status KLADD")
-            request.deltakere.forEach { deltakerId -> pameldingService.slettKladd(deltakerId) }
+            request.deltakere.forEach { deltakerId -> kladdService.slettKladd(deltakerId) }
             log.info("Slettet ${request.deltakere.size} deltakere med status KLADD")
         }
         call.respond(HttpStatusCode.OK)

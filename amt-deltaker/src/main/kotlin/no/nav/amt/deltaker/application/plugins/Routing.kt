@@ -23,6 +23,7 @@ import no.nav.amt.deltaker.api.registerVeilederApi
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
@@ -54,6 +55,7 @@ fun Application.configureRequestValidation(opprettKladdRequestValidator: Opprett
 
 fun Application.configureRouting(
     pameldingService: PameldingService,
+    kladdService: KladdService,
     deltakerService: DeltakerService,
     deltakerRepository: DeltakerRepository,
     deltakerHistorikkService: DeltakerHistorikkService,
@@ -105,13 +107,13 @@ fun Application.configureRouting(
             historikkService = deltakerHistorikkService,
         )
         registerKladdApi(
-            pameldingService = pameldingService,
+            kladdService = kladdService,
         )
         registerVeilederApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
         registerInternalApi(
             deltakerRepository,
             deltakerService,
-            pameldingService,
+            kladdService,
             deltakerProducerService,
             vedtakService,
             innsokPaaFellesOppstartRepository,

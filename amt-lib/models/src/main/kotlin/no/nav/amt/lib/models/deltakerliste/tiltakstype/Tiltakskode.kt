@@ -48,6 +48,7 @@ enum class Tiltakskode {
     ;
 
     // Ved lansering av ny forskrift/påmelding av nye typer må vi bruke type feltet GRUPPE/ENKELPLASS istedet for tiltakskode
+    @Deprecated("Kan ikke bruke tiltakskode til å utlede om det er enkeltplass fordi de nye tiltakstypene kan være enten eller")
     fun erEnkeltplass() = this in setOf(HOYERE_UTDANNING, ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING, ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
 
     fun erOpplaeringstiltak() = this in

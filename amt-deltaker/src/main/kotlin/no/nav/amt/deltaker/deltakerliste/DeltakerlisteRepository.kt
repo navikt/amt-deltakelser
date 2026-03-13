@@ -81,6 +81,63 @@ class DeltakerlisteRepository {
         log.info("Upsertet deltakerliste med id ${deltakerliste.id}")
     }
 
+    fun upsert(gjennomforing: GjennomforingInsertDbo) {
+        val sql =
+            """
+            INSERT INTO deltakerliste(
+                id, 
+                navn, 
+                gjennomforingstype,
+                status, 
+                arrangor_id,  
+                tiltakstype_id, 
+                start_dato, 
+                slutt_dato, 
+                oppstart,
+                apent_for_pamelding,
+                oppmote_sted,
+                pameldingstype
+            )
+            VALUES (
+                :id,
+                :navn,
+                :gjennomforingstype,
+                :status,
+                :arrangor_id,
+                :tiltakstype_id,
+                :start_dato,
+                :slutt_dato,
+                :oppstart,
+                :apent_for_pamelding,
+                :oppmote_sted,
+                :pameldingstype
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                navn     				= :navn,
+                gjennomforingstype      = :gjennomforingstype,
+                status					= :status,
+                tiltakstype_id			= :tiltakstype_id,
+                oppstart                = :oppstart,
+                apent_for_pamelding     = :apent_for_pamelding,
+                pameldingstype          = :pameldingstype,
+                modified_at             = CURRENT_TIMESTAMP
+            """.trimIndent()
+
+        val params = mapOf(
+            "id" to gjennomforing.id,
+            "navn" to gjennomforing.navn,
+            "gjennomforingstype" to gjennomforing.type.name,
+            "status" to gjennomforing.status?.name,
+            "tiltakstype_id" to gjennomforing.tiltakId,
+            "oppstart" to gjennomforing.oppstart?.name,
+            "apent_for_pamelding" to gjennomforing.apentForPamelding,
+            "pameldingstype" to gjennomforing.pameldingstype?.name,
+        )
+
+        Database.query { session -> session.update(queryOf(sql, params)) }
+        log.info("Upsertet gjennomføring med id ${gjennomforing.id}")
+    }
+
     fun delete(id: UUID) = Database.query {
         it.update(
             queryOf(

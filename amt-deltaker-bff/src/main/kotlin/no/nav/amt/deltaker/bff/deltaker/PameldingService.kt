@@ -29,11 +29,11 @@ class PameldingService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun opprettKladdForEnkelUtenRamme(
+    suspend fun opprettKladdForEnkeltplass(
         tiltakskode: Tiltakskode,
         personident: String,
     ): DeltakerModel = paameldingClient
-        .opprettKladdEnkelUtenRamme(tiltakskode, personident)
+        .opprettKladdEnkeltplass(tiltakskode, personident)
         .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
         .let { ModelMapper.toDeltaker(it) }
 
