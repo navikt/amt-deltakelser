@@ -37,6 +37,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRe
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -354,7 +355,7 @@ class VeilederApiTest : RouteTestBase() {
             }
 
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(historikk)
+            response.bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(historikk)
         }
 
         verify(exactly = 1) {
