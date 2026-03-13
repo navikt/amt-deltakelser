@@ -40,15 +40,19 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
+import io.ktor.client.request.get
+import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 
 class VeilederApiTest : RouteTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") { setBody("foo") }.status shouldBe
-                HttpStatusCode.Unauthorized
+                    HttpStatusCode.Unauthorized
             client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe
-                HttpStatusCode.Unauthorized
+                    HttpStatusCode.Unauthorized
+            client.get("/deltaker/${UUID.randomUUID()}/historikk").status shouldBe
+                    HttpStatusCode.Unauthorized
         }
     }
 
@@ -333,6 +337,32 @@ class VeilederApiTest : RouteTestBase() {
         }
     }
 
+    @Test
+    fun `get historikk - har tilgang - returnerer 200`() {
+        val deltakerId = UUID.randomUUID()
+        val historikk = listOf(
+            DeltakerHistorikk.Endring(
+                TestData.lagDeltakerEndring(deltakerId = deltakerId),
+            ),
+        )
+
+        every { deltakerHistorikkService.getForDeltaker(deltakerId) } returns historikk
+
+        withTestApplicationContext { client ->
+            val response = client.get("/deltaker/$deltakerId/historikk") {
+                noBodyRequest()
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe objectMapper.writeValueAsString(historikk)
+        }
+
+        verify(exactly = 1) {
+            deltakerHistorikkService.getForDeltaker(deltakerId)
+        }
+    }
+
+
     private fun runEndringTest(
         request: EndringRequest,
         deltaker: Deltaker,
@@ -348,7 +378,7 @@ class VeilederApiTest : RouteTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe
-                objectMapper.writeValueAsString(DtoMappers.deltakerEndringResponseFromDeltaker(deltaker, historikk))
+                    objectMapper.writeValueAsString(DtoMappers.deltakerEndringResponseFromDeltaker(deltaker, historikk))
         }
 
         coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }
