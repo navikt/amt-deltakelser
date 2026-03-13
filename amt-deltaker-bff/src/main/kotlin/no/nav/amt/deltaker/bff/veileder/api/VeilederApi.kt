@@ -10,7 +10,6 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import jakarta.ws.rs.ForbiddenException
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.ModelMapper
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -47,6 +46,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest
@@ -93,15 +93,15 @@ fun Routing.registerVeilederApi(
     ) {
         if (!deltaker.kanEndres) {
             log.error("Kan ikke endre deltaker med id ${deltaker.id} som er låst")
-            throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")
+            throw AuthorizationException("Kan ikke endre låst deltaker ${deltaker.id}")
         }
 
         if (deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
-            throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")
+            throw AuthorizationException("Kan ikke endre låst deltaker ${deltaker.id}")
         }
 
         if (!unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltak.tiltakskode)) {
-            throw ForbiddenException("Kan ikke utføre endring på deltaker ${deltaker.id}")
+            throw AuthorizationException("Kan ikke utføre endring på deltaker ${deltaker.id}")
         }
 
         if (!deltaker.navBruker.harAktivOppfolgingsperiode && !tillatEndringUtenOppfPeriode) {

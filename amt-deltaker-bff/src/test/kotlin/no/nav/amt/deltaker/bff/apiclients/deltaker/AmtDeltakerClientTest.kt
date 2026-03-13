@@ -4,8 +4,6 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -14,10 +12,8 @@ import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
@@ -33,7 +29,6 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoReq
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.testing.utils.withLogCapture
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -604,27 +599,16 @@ class AmtDeltakerClientTest {
 
         @Test
         fun `skal returnere deltakerhistorikk`() {
-            // TODO
-            val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
-            val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
-
-            val amtDeltakerClient = createDeltakerClient2(
+            val amtDeltakerClient = createDeltakerClient(
                 expectedUrl = expectedUrl,
-                responseBody = objectMapper.writePolymorphicListAsString(historikk.toResponse(ansatte, "test", enheter, null)),
+                responseBody = objectMapper.writePolymorphicListAsString(historikk),
+                isPolymorphicBody = true,
             )
 
             runTest {
-                amtDeltakerClient.getDeltakerHistorikk(deltakerInTest.id) shouldBe objectMapper.writePolymorphicListAsString(
-                    historikk.toResponse(
-                        ansatte,
-                        "test",
-                        enheter,
-                        null
-                    )
-                )
+                amtDeltakerClient.getDeltakerHistorikk(deltakerInTest.id) shouldBe historikk
             }
         }
-
     }
 
     companion object {
@@ -680,20 +664,9 @@ class AmtDeltakerClientTest {
             httpClient = createMockHttpClient(
                 expectedUrl = expectedUrl,
                 responseBody = responseBody,
-                isPolymorphicBody = isPolymorphicBody,
                 statusCode = statusCode,
+                isPolymorphicBody = isPolymorphicBody,
             ),
-            azureAdTokenClient = mockAzureAdClient(),
-        )
-
-        private fun createDeltakerClient2(
-            expectedUrl: String,
-            statusCode: HttpStatusCode = HttpStatusCode.OK,
-            responseBody: String,
-        ) = AmtDeltakerClient(
-            baseUrl = DELTAKER_BASE_URL,
-            scope = "scope",
-            httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
             azureAdTokenClient = mockAzureAdClient(),
         )
     }

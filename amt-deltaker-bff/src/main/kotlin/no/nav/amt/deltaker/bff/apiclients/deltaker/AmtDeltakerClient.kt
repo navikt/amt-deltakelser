@@ -21,11 +21,11 @@ class AmtDeltakerClient(
     httpClient: HttpClient,
     azureAdTokenClient: AzureAdTokenClient,
 ) : ApiClientBase(
-    baseUrl = baseUrl,
-    scope = scope,
-    httpClient = httpClient,
-    azureAdTokenClient = azureAdTokenClient,
-) {
+        baseUrl = baseUrl,
+        scope = scope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse = performGet("deltaker/$deltakerId")

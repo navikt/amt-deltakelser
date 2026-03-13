@@ -15,7 +15,6 @@ import io.ktor.utils.io.ByteReadChannel
 import no.nav.amt.api.paamelding.response.OpprettKladdResponse
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
-import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
@@ -62,10 +61,10 @@ fun <T> createMockHttpClient(
                     )
                 }
 
-                else -> {
+                is String -> {
                     if (isPolymorphicBody) {
                         respond(
-                            content = ByteReadChannel(objectMapper.writePolymorphicListAsString(responseBody)),
+                            content = ByteReadChannel(responseBody.toByteArray()),
                             status = statusCode,
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
@@ -76,6 +75,14 @@ fun <T> createMockHttpClient(
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
                     }
+                }
+
+                else -> {
+                    respond(
+                        content = ByteReadChannel(objectMapper.writeValueAsBytes(responseBody)),
+                        status = statusCode,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
                 }
             }
         }

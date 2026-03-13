@@ -195,8 +195,8 @@ object StatusPageLogger {
         cause: Throwable,
     ) {
         val msg = "${statusCode.value} ${statusCode.description}: " +
-                "${call.request.httpMethod.value} ${call.request.path()}\n" +
-                "Error: ${cause.message}"
+            "${call.request.httpMethod.value} ${call.request.path()}\n" +
+            "Error: ${cause.message}"
 
         when (statusCode.value) {
             in 100..399 -> log.info(msg)

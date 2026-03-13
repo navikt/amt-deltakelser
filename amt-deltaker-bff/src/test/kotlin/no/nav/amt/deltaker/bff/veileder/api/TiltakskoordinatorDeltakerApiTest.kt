@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.getunleash.Unleash
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.bearerAuth
@@ -65,6 +64,7 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.objectMapper
@@ -91,7 +91,6 @@ class TiltakskoordinatorDeltakerApiTest {
     private val amtDistribusjonClient = mockk<AmtDistribusjonClient>()
     private val amtDeltakerClient = mockk<AmtDeltakerClient>()
     private val sporbarhetsloggService = mockk<SporbarhetsloggService>(relaxed = true)
-    private val unleash = mockk<Unleash>()
     private val commonUnleashToggle = mockk<CommonUnleashToggle>(relaxed = true)
     private val tiltakskoordinatorTilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
     private val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
@@ -122,7 +121,7 @@ class TiltakskoordinatorDeltakerApiTest {
             deltakerRepository.get(any())
         } returns Result.success(TestData.lagDeltaker(navBruker = TestData.lagNavBruker(personident = "1234")))
         every { forslagRepository.get(any()) } returns Result.success(TestData.lagForslag())
-        every { unleash.isEnabled("amt.prioriter-synkron-kommunikasjon") } returns false
+        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
 
         setUpTestApplication()
         client
@@ -130,14 +129,14 @@ class TiltakskoordinatorDeltakerApiTest {
                 "/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon",
             ) { createPostRequest(bakgrunnsinformasjonRequest) }
             .status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/innhold") { createPostRequest(innholdRequest) }.status shouldBe HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { createPostRequest(deltakelsesmengdeRequest) }.status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/startdato") { createPostRequest(startdatoRequest) }.status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client.post("/deltaker/${UUID.randomUUID()}/sluttdato") { createPostRequest(sluttdatoRequest) }.status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client
             .post(
                 "/deltaker/${UUID.randomUUID()}/ikke-aktuell",
@@ -169,7 +168,7 @@ class TiltakskoordinatorDeltakerApiTest {
             ) { createPostRequest(reaktiverDeltakelseRequest) }
             .status shouldBe HttpStatusCode.Forbidden
         client.post("/forslag/${UUID.randomUUID()}/avvis") { createPostRequest(avvisForslagRequest) }.status shouldBe
-                HttpStatusCode.Forbidden
+            HttpStatusCode.Forbidden
         client
             .post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") {
                 createPostRequest(fjernOppstartsdatoRequest)
@@ -892,7 +891,9 @@ class TiltakskoordinatorDeltakerApiTest {
         every { deltakerRepository.getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id) } returns listOf(deltaker)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
-        every { unleash.isEnabled("amt.prioriter-synkron-kommunikasjon") } returns false
+        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
+        every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
+        every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
 
         return if (oppdatertDeltaker != null) {
             coEvery {
