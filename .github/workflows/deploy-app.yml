@@ -35,8 +35,14 @@ jobs:
 
       - name: Build artifacts
         run: |
+          GRADLE_ARGS=""
+          
+          if [ "${{ inputs.module-path }}" != "amt-tiltaksarrangor-bff" ]; then
+            GRADLE_ARGS="installDist"
+          fi
+
           ./gradlew build \
-            installDist \
+            $GRADLE_ARGS \
             -p ${{ inputs.module-path }} \
             --no-daemon \
             --no-configuration-cache \

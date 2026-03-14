@@ -2,11 +2,12 @@
 kotlin-version = "2.3.10"
 ktor-version = "3.4.0"
 logback-version = "1.5.32"
+logstash-encoder-version = "9.0"
 prometheus-version = "1.16.3"
 ktlint-version = "14.0.1"
 ktlint-cli-version = "1.8.0"
 jackson-version = "2.21.1"
-common-version = "3.2025.10.10_08.21-bb7c7830d93c"
+nav-common-version = "3.2025.10.10_08.21-bb7c7830d93c"
 poao-tilgang-version = "2025.11.03_14.33-9c5783f38a9a"
 kotest-version = "6.1.4"
 flyway-version = "12.0.3"
@@ -24,11 +25,28 @@ kafka-clients-version = "4.2.0"
 kotlinx-version = "1.10.2"
 prometheus-metrics-version = "1.5.0"
 okhttp-version = "5.3.2"
-
 jupiter-version = "6.0.3"
 testcontainers-version = "2.0.3"
 
+# spring-boot specifikt
+spring-boot-version = "4.0.3"
+spring-dependency-management-version = "1.1.7"
+tools-jackson-module-kotlin-version = "3.1.0"
+token-support-version = "6.0.1"
+shedlock-spring-version = "7.6.0"
+springmockk-version = "5.0.1"
+
 [libraries]
+
+# spring-boot spesifikt
+tools-jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "tools-jackson-module-kotlin-version" }
+token-validation-spring = { module = "no.nav.security:token-validation-spring", version.ref = "token-support-version" }
+token-client-spring = { module = "no.nav.security:token-client-spring", version.ref = "token-support-version" }
+token-validation-spring-test = { module = "no.nav.security:token-validation-spring-test", version.ref = "token-support-version" }
+shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock-spring-version" }
+shedlock-jdbc-template = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock-spring-version" }
+springmockk = { module = "com.ninja-squad:springmockk", version.ref = "springmockk-version" }
+okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp-version" }
 
 # amt-lib spesifikt
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson-version" }
@@ -44,7 +62,6 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp-version
 # ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter-version" }
-
 
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers-version" }
 testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers-version" }
@@ -77,9 +94,9 @@ micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus
 
 # --- Logging ---
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
-logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logback-version" }
-nav-common-log = { module = "no.nav.common:log", version.ref = "common-version" }
-nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "common-version" }
+logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-encoder-version" }
+nav-common-log = { module = "no.nav.common:log", version.ref = "nav-common-version" }
+nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "nav-common-version" }
 
 # --- POAO ---
 poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "poao-tilgang-version" }
@@ -115,6 +132,9 @@ ktlint-gradle-plugin = {module="org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gr
 ktor-plugin = { module = "io.ktor.plugin:io.ktor.plugin.gradle.plugin", version.ref = "ktor-version" }
 
 [plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot-version" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management-version" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin-version" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }

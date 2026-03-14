@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY IF NOT EXISTS deltakerliste_arrangor_id_idx ON deltakerliste (arrangor_id);

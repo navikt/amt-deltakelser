@@ -1,0 +1,1 @@
+alter table deltaker add column forste_vedtak_fattet date;

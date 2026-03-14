@@ -1,0 +1,1 @@
+CREATE INDEX deltaker_navveileder_id_idx ON deltaker (navveileder_id);

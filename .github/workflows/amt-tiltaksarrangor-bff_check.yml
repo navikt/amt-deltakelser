@@ -1,0 +1,16 @@
+name: amt-tiltaksarrangor-bff - Run tests
+on:
+  push:
+    paths:
+      - "amt-tiltaksarrangor-bff/**"
+    branches-ignore:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/test.yml
+    with:
+      module-path: "amt-tiltaksarrangor-bff"

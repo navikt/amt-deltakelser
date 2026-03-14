@@ -1,0 +1,2 @@
+ALTER TABLE endringsmelding
+    ADD COLUMN status VARCHAR NOT NULL DEFAULT 'AKTIV';
