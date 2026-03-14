@@ -1,0 +1,41 @@
+name: Run tests
+on:
+  push:
+    branches-ignore:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      packages: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            amt-deltaker-bff: amt-deltaker-bff/**
+            amt-deltaker: amt-deltaker/**
+            amt-distribusjon: amt-distribusjon/**
+            amt-felles: amt-felles/**
+            amt-lib: amt-lib/**
+            amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
+
+  build:
+    needs: changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run tests
+        uses: ./.github/workflows/reusable/test.yml
+        with:
+          module-path: ${{ matrix.package }}

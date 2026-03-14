@@ -11,6 +11,6 @@ permissions:
 
 jobs:
   run-tests:
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/reusable/test.yml
     with:
       module-path: "all"

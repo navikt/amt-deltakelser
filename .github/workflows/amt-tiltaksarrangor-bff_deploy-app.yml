@@ -13,6 +13,6 @@ permissions:
 
 jobs:
   call-deploy:
-    uses: ./.github/workflows/deploy-app.yml
+    uses: ./.github/workflows/reusable/deploy-app.yml
     with:
       module-path: "amt-tiltaksarrangor-bff"

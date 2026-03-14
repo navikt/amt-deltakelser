@@ -10,6 +10,6 @@ permissions:
 
 jobs:
   call-deploy:
-    uses: ./.github/workflows/deploy-unleash-apitoken.yml
+    uses: ./.github/workflows/reusable/deploy-unleash-apitoken.yml
     with:
       module-path: "amt-tiltaksarrangor-bff"
