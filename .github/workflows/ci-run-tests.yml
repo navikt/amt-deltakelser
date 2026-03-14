@@ -36,6 +36,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Run tests
-        uses: ./.github/workflows/reusable/test.yml
+        uses: ./.github/workflows/test.yml
         with:
           module-path: ${{ matrix.package }}
