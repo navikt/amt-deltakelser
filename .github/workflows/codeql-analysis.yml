@@ -6,24 +6,46 @@ on:
   pull_request:
     branches: [ "main" ]
   schedule:
-    - cron: '28 9 * * 2'  # Weekly scan, can adjust time
+    - cron: '28 9 * * 2'  # Ukentlig full scan, tirsdager kl 09:28
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  packages: read
 
 jobs:
-  analyze:
-    name: Analyze (${{ matrix.language }})
+  detect-changes:
+    if: github.event_name != 'schedule'  # Skip for scheduled full scan
     runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      packages: read
-      actions: read
-      contents: read
+    outputs:
+      modules: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            amt-deltaker-bff: amt-deltaker-bff/**
+            amt-deltaker: amt-deltaker/**
+            amt-distribusjon: amt-distribusjon/**
+            amt-felles: amt-felles/**
+            amt-lib: amt-lib/**
+            amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
 
+      - name: Debug changed packages
+        run: |
+          echo "Changed packages raw output:"
+          echo '${{ steps.filter.outputs.changes }}'
+
+  codeql:
+    needs: detect-changes
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - language: java-kotlin
-            build-mode: manual
+        module: ${{ github.event_name == 'schedule' && 'all' || fromJSON(needs.detect-changes.outputs.modules) }}
+        language: [java-kotlin]
 
     steps:
       - name: Checkout repository
@@ -43,18 +65,18 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
-          # Optional: add custom queries if needed
-          # queries: security-extended,security-and-quality
+          build-mode: manual
 
-      - name: Run manual build steps
-        if: matrix.build-mode == 'manual'
+      - name: Build module(s) for CodeQL
         shell: bash
         run: |
-          # Build Kotlin/Java artifacts for CodeQL
-          ./gradlew build -x test --no-daemon --no-configuration-cache
+          if [ "${{ matrix.module }}" == "all" ]; then
+            ./gradlew assemble -x test --no-daemon --no-configuration-cache
+          else
+            ./gradlew :${{ matrix.module }}:assemble -x test --no-daemon --no-configuration-cache
+          fi
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/module:${{ matrix.module }}/language:${{ matrix.language }}"
