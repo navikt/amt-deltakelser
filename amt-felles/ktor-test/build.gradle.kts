@@ -1,10 +1,5 @@
-repositories {
-    mavenCentral()
-}
-
 plugins {
-    kotlin("jvm")
-    id("org.jlleitschuh.gradle.ktlint")
+    id("amt-felles-conventions")
 }
 
 dependencies {
@@ -12,12 +7,4 @@ dependencies {
     implementation(project(":amt-felles:ktor"))
 
     implementation(libs.testcontainers.postgresql)
-}
-
-kotlin {
-    jvmToolchain(25)
-}
-
-ktlint {
-    version = libs.versions.ktlint.cli.version
 }

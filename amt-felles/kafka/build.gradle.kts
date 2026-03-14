@@ -1,5 +1,5 @@
 plugins {
-    id("amt-lib.conventions")
+    id("amt-felles-conventions")
 }
 
 dependencies {

@@ -12,7 +12,6 @@ Se [siste release](https://github.com/navikt/amt-deltakelser/releases) eller
 val amtLibVersion = "1.2026.02.28_12.19-0d67545b99df"
 
 dependencies {
-    implementation("no.nav.amt.deltakelser.lib:kafka:$amtLibVersion")
     implementation("no.nav.amt.deltakelser.lib:utils:$amtLibVersion")
     testImplementation("no.nav.amt.deltakelser.lib:testing:$amtLibVersion")
 }
@@ -23,12 +22,6 @@ dependencies {
 <dependency>
     <groupId>no.nav.amt.deltakelser.lib</groupId>
     <artifactId>utils</artifactId>
-    <version>1.2026.02.28_12.19-0d67545b99df</version>
-</dependency>
-
-<dependency>
-    <groupId>no.nav.amt.deltakelser.lib</groupId>
-    <artifactId>kafka</artifactId>
     <version>1.2026.02.28_12.19-0d67545b99df</version>
 </dependency>
 

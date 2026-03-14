@@ -44,8 +44,8 @@ dependencies {
 
     implementation(libs.postgresql)
 
+    implementation(project(":amt-felles:kafka"))
     implementation(project(":amt-lib:models"))
-    implementation(project(":amt-lib:kafka"))
     implementation(project(":amt-lib:utils"))
 
     implementation(libs.shedlock.spring)

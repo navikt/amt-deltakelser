@@ -1,14 +1,9 @@
-repositories {
-    mavenCentral()
-}
-
 plugins {
-    kotlin("jvm")
-    id("org.jlleitschuh.gradle.ktlint")
+    id("amt-felles-conventions")
 }
 
 dependencies {
-    api(project(":amt-lib:kafka"))
+    api(project(":amt-felles:kafka"))
 
     // --- Metrics ---
     api(libs.micrometer.prometheus)
@@ -33,20 +28,4 @@ dependencies {
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.ktor.serialization.jackson)
     testImplementation(libs.kotlinx.coroutines.test)
-}
-
-kotlin {
-    jvmToolchain(25)
-}
-
-ktlint {
-    version = libs.versions.ktlint.cli.version
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-    jvmArgs(
-        "-Xshare:off",
-        "-XX:+EnableDynamicAgentLoading",
-    )
 }

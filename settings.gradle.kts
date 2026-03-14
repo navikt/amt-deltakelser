@@ -7,7 +7,7 @@ include(
     "amt-felles:bff-deltaker-kontrakt",
     "amt-felles:ktor",
     "amt-felles:ktor-test",
-    "amt-lib:kafka",
+    "amt-felles:kafka",
     "amt-lib:testing",
     "amt-lib:utils",
     "amt-lib:models",
