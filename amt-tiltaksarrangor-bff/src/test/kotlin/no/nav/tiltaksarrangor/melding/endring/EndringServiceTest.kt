@@ -26,90 +26,93 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 class EndringServiceTest(
-	private val endringService: EndringService,
-	@MockkBean private val unleashToggle: CommonUnleashToggle,
-	@MockkBean @Suppress("unused") private val amtArrangorClient: AmtArrangorClient,
+    private val endringService: EndringService,
+    @MockkBean private val unleashToggle: CommonUnleashToggle,
+    @MockkBean @Suppress("unused") private val amtArrangorClient: AmtArrangorClient,
 ) : IntegrationTest() {
-	@BeforeEach
-	fun setup() {
-		every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false
-	}
+    @BeforeEach
+    fun setup() {
+        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false
+    }
 
-	@Test
-	fun `endreDeltaker - ny endring - returnerer oppdaterer deltaker og produserer melding`() {
-		with(DeltakerContext(applicationContext)) {
-			setVenterPaOppstart()
-			val request = LeggTilOppstartsdatoRequest(
-				startdato = LocalDate.now().plusWeeks(7),
-				sluttdato = LocalDate.now().plusWeeks(42),
-			)
-			val oppdatertDeltaker = endringService.endreDeltaker(
-				deltaker = deltaker,
-				deltakerliste = deltakerliste,
-				ansatt = koordinator,
-				request = request,
-			)
+    @Test
+    fun `endreDeltaker - ny endring - returnerer oppdaterer deltaker og produserer melding`() {
+        with(DeltakerContext(applicationContext)) {
+            setVenterPaOppstart()
+            val request = LeggTilOppstartsdatoRequest(
+                startdato = LocalDate.now().plusWeeks(7),
+                sluttdato = LocalDate.now().plusWeeks(42),
+            )
+            val oppdatertDeltaker = endringService.endreDeltaker(
+                deltaker = deltaker,
+                deltakerliste = deltakerliste,
+                ansatt = koordinator,
+                request = request,
+            )
 
-			oppdatertDeltaker.startDato shouldBe request.startdato
-			oppdatertDeltaker.sluttDato shouldBe request.sluttdato
+            oppdatertDeltaker.startDato shouldBe request.startdato
+            oppdatertDeltaker.sluttDato shouldBe request.sluttdato
 
-			assertProducedEndring(
-				deltakerId = deltaker.id,
-				endringstype = EndringFraArrangor.LeggTilOppstartsdato::class,
-			)
-		}
-	}
+            assertProducedEndring(
+                deltakerId = deltaker.id,
+                endringstype = EndringFraArrangor.LeggTilOppstartsdato::class,
+            )
+        }
+    }
 
-	@Test
-	fun `endreDeltaker - ny endring - oppdaterer og lagrer deltaker`() {
-		with(DeltakerContext(applicationContext)) {
-			setVenterPaOppstart()
-			val request = LeggTilOppstartsdatoRequest(
-				startdato = LocalDate.now().plusWeeks(7),
-				sluttdato = LocalDate.now().plusWeeks(42),
-			)
-			endringService.endreDeltaker(
-				deltaker = deltaker,
-				deltakerliste = deltakerliste,
-				ansatt = koordinator,
-				request = request,
-			)
+    @Test
+    fun `endreDeltaker - ny endring - oppdaterer og lagrer deltaker`() {
+        with(DeltakerContext(applicationContext)) {
+            setVenterPaOppstart()
+            val request = LeggTilOppstartsdatoRequest(
+                startdato = LocalDate.now().plusWeeks(7),
+                sluttdato = LocalDate.now().plusWeeks(42),
+            )
+            endringService.endreDeltaker(
+                deltaker = deltaker,
+                deltakerliste = deltakerliste,
+                ansatt = koordinator,
+                request = request,
+            )
 
-			val oppdatertDeltaker = deltakerRepository.getDeltaker(deltaker.id)
-			oppdatertDeltaker?.startdato shouldBe request.startdato
-			oppdatertDeltaker?.sluttdato shouldBe request.sluttdato
-		}
-	}
+            val oppdatertDeltaker = deltakerRepository.getDeltaker(deltaker.id)
+            oppdatertDeltaker?.startdato shouldBe request.startdato
+            oppdatertDeltaker?.sluttdato shouldBe request.sluttdato
+        }
+    }
 }
 
-fun <T : EndringFraArrangor.Endring> assertProducedEndring(deltakerId: UUID, endringstype: KClass<T>) {
-	val cache = mutableMapOf<UUID, Melding>()
+fun <T : EndringFraArrangor.Endring> assertProducedEndring(
+    deltakerId: UUID,
+    endringstype: KClass<T>,
+) {
+    val cache = mutableMapOf<UUID, Melding>()
 
-	val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
-		cache[UUID.fromString(k)] = objectMapper.readValue(v)
-	}
+    val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
-	consumer.start()
+    consumer.start()
 
-	await().untilAsserted {
-		val endring = cache.firstNotNullOf {
-			when (val endring = it.value) {
-				is EndringFraArrangor -> {
-					if (endring.deltakerId == deltakerId) {
-						endring
-					} else {
-						null
-					}
-				}
+    await().untilAsserted {
+        val endring = cache.firstNotNullOf {
+            when (val endring = it.value) {
+                is EndringFraArrangor -> {
+                    if (endring.deltakerId == deltakerId) {
+                        endring
+                    } else {
+                        null
+                    }
+                }
 
-				is Forslag,
-				is Vurdering,
-				-> null
-			}
-		}
+                is Forslag,
+                is Vurdering,
+                -> null
+            }
+        }
 
-		endring.endring::class shouldBe endringstype
-	}
+        endring.endring::class shouldBe endringstype
+    }
 
-	runBlocking { consumer.close() }
+    runBlocking { consumer.close() }
 }

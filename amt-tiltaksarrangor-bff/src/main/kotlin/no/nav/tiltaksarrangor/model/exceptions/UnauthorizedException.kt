@@ -1,5 +1,5 @@
 package no.nav.tiltaksarrangor.model.exceptions
 
 class UnauthorizedException(
-	message: String,
+    message: String,
 ) : RuntimeException(message)

@@ -20,41 +20,41 @@ import java.util.UUID
 @RestController
 @RequestMapping("/tiltaksarrangor/koordinator")
 class KoordinatorAPI(
-	private val tokenService: TokenService,
-	private val koordinatorService: KoordinatorService,
+    private val tokenService: TokenService,
+    private val koordinatorService: KoordinatorService,
 ) {
-	@GetMapping("/mine-deltakerlister")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getMineDeltakerlister(): MineDeltakerlister {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return koordinatorService.getMineDeltakerlister(personIdent)
-	}
+    @GetMapping("/mine-deltakerlister")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getMineDeltakerlister(): MineDeltakerlister {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return koordinatorService.getMineDeltakerlister(personIdent)
+    }
 
-	@GetMapping("/deltakerliste/{deltakerlisteId}")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getDeltakerliste(
-		@PathVariable deltakerlisteId: UUID,
-	): Deltakerliste {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return koordinatorService.getDeltakerliste(deltakerlisteId, personIdent)
-	}
+    @GetMapping("/deltakerliste/{deltakerlisteId}")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getDeltakerliste(
+        @PathVariable deltakerlisteId: UUID,
+    ): Deltakerliste {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return koordinatorService.getDeltakerliste(deltakerlisteId, personIdent)
+    }
 
-	@GetMapping("/{deltakerlisteId}/veiledere")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getTilgjengeligeVeiledere(
-		@PathVariable deltakerlisteId: UUID,
-	): List<TilgjengeligVeileder> {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return koordinatorService.getTilgjengeligeVeiledere(deltakerlisteId, personIdent)
-	}
+    @GetMapping("/{deltakerlisteId}/veiledere")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getTilgjengeligeVeiledere(
+        @PathVariable deltakerlisteId: UUID,
+    ): List<TilgjengeligVeileder> {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return koordinatorService.getTilgjengeligeVeiledere(deltakerlisteId, personIdent)
+    }
 
-	@PostMapping("/veiledere", params = ["deltakerId"])
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun tildelVeiledereForDeltaker(
-		@RequestParam("deltakerId") deltakerId: UUID,
-		@RequestBody request: LeggTilVeiledereRequest,
-	) {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		koordinatorService.tildelVeiledereForDeltaker(deltakerId, request, personIdent)
-	}
+    @PostMapping("/veiledere", params = ["deltakerId"])
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun tildelVeiledereForDeltaker(
+        @RequestParam("deltakerId") deltakerId: UUID,
+        @RequestBody request: LeggTilVeiledereRequest,
+    ) {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        koordinatorService.tildelVeiledereForDeltaker(deltakerId, request, personIdent)
+    }
 }

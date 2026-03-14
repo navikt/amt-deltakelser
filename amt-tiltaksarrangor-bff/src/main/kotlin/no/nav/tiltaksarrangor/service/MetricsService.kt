@@ -15,71 +15,67 @@ private const val VURDERING_OPPRETTET_METRIC = "tiltaksarrangorbff_vurdering_opp
 
 @Service
 class MetricsService(
-	private val registry: MeterRegistry,
+    private val registry: MeterRegistry,
 ) {
-	private val innloggetKoordinatorCounter = registry.counter(INNLOGGING_METRIC, "rolle", RollePermutasjon.KOORDINATOR.name)
-	private val innloggetVeilederCounter = registry.counter(INNLOGGING_METRIC, "rolle", RollePermutasjon.VEILEDER.name)
-	private val innloggetKoordinatorOgVeilederCounter =
-		registry.counter(
-			INNLOGGING_METRIC,
-			"rolle",
-			RollePermutasjon.KOORDINATOR_OG_VEILEDER.name,
-		)
-	private val innloggetTotaltCounter = registry.counter(INNLOGGING_METRIC, "rolle", RollePermutasjon.TOTALT.name)
-	private val fjernetDeltakerCounter = registry.counter(FJERNET_DELTAKER_METRIC)
-	private val lagtTilDeltakerlisteCounter = registry.counter(LAGT_TIL_DELTAKERLISTE_METRIC)
-	private val fjernetDeltakerlisteCounter = registry.counter(FJERNET_DELTAKERLISTE_METRIC)
-	private val tildeltVeilederCounter = registry.counter(TILDELT_VEILEDER_METRIC)
-	private val tilbakekaltEndringsmeldingCounter = registry.counter(TILBAKEKALT_EM_METRIC)
+    private val innloggetKoordinatorCounter = registry.counter(INNLOGGING_METRIC, "rolle", RollePermutasjon.KOORDINATOR.name)
+    private val innloggetVeilederCounter = registry.counter(INNLOGGING_METRIC, "rolle", RollePermutasjon.VEILEDER.name)
+    private val innloggetKoordinatorOgVeilederCounter =
+        registry.counter(
+            INNLOGGING_METRIC,
+            "rolle",
+            RollePermutasjon.KOORDINATOR_OG_VEILEDER.name,
+        )
+    private val innloggetTotaltCounter = registry.counter(INNLOGGING_METRIC, "rolle", RollePermutasjon.TOTALT.name)
+    private val fjernetDeltakerCounter = registry.counter(FJERNET_DELTAKER_METRIC)
+    private val lagtTilDeltakerlisteCounter = registry.counter(LAGT_TIL_DELTAKERLISTE_METRIC)
+    private val fjernetDeltakerlisteCounter = registry.counter(FJERNET_DELTAKERLISTE_METRIC)
+    private val tildeltVeilederCounter = registry.counter(TILDELT_VEILEDER_METRIC)
+    private val tilbakekaltEndringsmeldingCounter = registry.counter(TILBAKEKALT_EM_METRIC)
 
-	fun incInnloggetAnsatt(roller: List<String>) {
-		if (roller.isEmpty()) {
-			return
-		}
-		if (roller.size == 1) {
-			if (roller.contains("KOORDINATOR")) {
-				innloggetKoordinatorCounter.increment()
-			} else {
-				innloggetVeilederCounter.increment()
-			}
-		} else {
-			innloggetKoordinatorOgVeilederCounter.increment()
-		}
-		innloggetTotaltCounter.increment()
-	}
+    fun incInnloggetAnsatt(roller: List<String>) {
+        if (roller.isEmpty()) {
+            return
+        }
+        if (roller.size == 1) {
+            if (roller.contains("KOORDINATOR")) {
+                innloggetKoordinatorCounter.increment()
+            } else {
+                innloggetVeilederCounter.increment()
+            }
+        } else {
+            innloggetKoordinatorOgVeilederCounter.increment()
+        }
+        innloggetTotaltCounter.increment()
+    }
 
-	fun incFjernetDeltaker() {
-		fjernetDeltakerCounter.increment()
-	}
+    fun incFjernetDeltaker() {
+        fjernetDeltakerCounter.increment()
+    }
 
-	fun incLagtTilDeltakerliste() {
-		lagtTilDeltakerlisteCounter.increment()
-	}
+    fun incLagtTilDeltakerliste() {
+        lagtTilDeltakerlisteCounter.increment()
+    }
 
-	fun incFjernetDeltakerliste() {
-		fjernetDeltakerlisteCounter.increment()
-	}
+    fun incFjernetDeltakerliste() {
+        fjernetDeltakerlisteCounter.increment()
+    }
 
-	fun incTildeltVeileder() {
-		tildeltVeilederCounter.increment()
-	}
+    fun incTildeltVeileder() {
+        tildeltVeilederCounter.increment()
+    }
 
-	fun incTilbakekaltEndringsmelding() {
-		tilbakekaltEndringsmeldingCounter.increment()
-	}
+    fun incVurderingOpprettet(vurderingstype: Vurderingstype) {
+        Counter
+            .builder(VURDERING_OPPRETTET_METRIC)
+            .tags("vurderingstype", vurderingstype.name)
+            .register(registry)
+            .increment()
+    }
 
-	fun incVurderingOpprettet(vurderingstype: Vurderingstype) {
-		Counter
-			.builder(VURDERING_OPPRETTET_METRIC)
-			.tags("vurderingstype", vurderingstype.name)
-			.register(registry)
-			.increment()
-	}
-
-	enum class RollePermutasjon {
-		KOORDINATOR,
-		VEILEDER,
-		KOORDINATOR_OG_VEILEDER,
-		TOTALT,
-	}
+    enum class RollePermutasjon {
+        KOORDINATOR,
+        VEILEDER,
+        KOORDINATOR_OG_VEILEDER,
+        TOTALT,
+    }
 }

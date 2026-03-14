@@ -9,10 +9,10 @@ import org.springframework.context.annotation.Profile
 
 @Configuration(proxyBeanMethods = false)
 class KafkaProducerConfig {
-	@Bean
-	@Profile("default")
-	fun config(): KafkaConfig = KafkaConfigImpl()
+    @Bean
+    @Profile("default")
+    fun config(): KafkaConfig = KafkaConfigImpl()
 
-	@Bean(destroyMethod = "close")
-	fun producer(kafkaConfig: KafkaConfig) = Producer<String, String>(kafkaConfig)
+    @Bean(destroyMethod = "close")
+    fun producer(kafkaConfig: KafkaConfig) = Producer<String, String>(kafkaConfig)
 }

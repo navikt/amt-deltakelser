@@ -9,28 +9,28 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class Deltaker(
-	val id: UUID,
-	val fornavn: String,
-	val mellomnavn: String?,
-	val etternavn: String,
-	val fodselsnummer: String,
-	val startDato: LocalDate?,
-	val sluttDato: LocalDate?,
-	val status: DeltakerStatusInternalModel,
-	val deltakerliste: Deltakerliste,
-	val veiledertype: Veiledertype,
-	val aktiveEndringsmeldinger: List<Endringsmelding>,
-	val aktivEndring: AktivEndring?,
-	val sistEndret: LocalDateTime,
-	val adressebeskyttet: Boolean,
-	val svarFraNav: Boolean,
-	val oppdateringFraNav: Boolean,
-	val nyDeltaker: Boolean,
-	val erUnderOppfolging: Boolean,
+    val id: UUID,
+    val fornavn: String,
+    val mellomnavn: String?,
+    val etternavn: String,
+    val fodselsnummer: String,
+    val startDato: LocalDate?,
+    val sluttDato: LocalDate?,
+    val status: DeltakerStatusInternalModel,
+    val deltakerliste: Deltakerliste,
+    val veiledertype: Veiledertype,
+    val aktiveEndringsmeldinger: List<Endringsmelding>,
+    val aktivEndring: AktivEndring?,
+    val sistEndret: LocalDateTime,
+    val adressebeskyttet: Boolean,
+    val svarFraNav: Boolean,
+    val oppdateringFraNav: Boolean,
+    val nyDeltaker: Boolean,
+    val erUnderOppfolging: Boolean,
 ) {
-	data class Deltakerliste(
-		val id: UUID,
-		val type: String,
-		val navn: String,
-	)
+    data class Deltakerliste(
+        val id: UUID,
+        val type: String,
+        val navn: String,
+    )
 }

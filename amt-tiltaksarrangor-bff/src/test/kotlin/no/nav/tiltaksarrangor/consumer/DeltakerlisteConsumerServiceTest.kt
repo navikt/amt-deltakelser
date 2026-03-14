@@ -28,95 +28,95 @@ import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 
 class DeltakerlisteConsumerServiceTest {
-	private val arrangorRepository = mockk<ArrangorRepository>()
-	private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
-	private val tiltakstypeRepository = mockk<TiltakstypeRepository>()
-	private val amtArrangorClient = mockk<AmtArrangorClient>()
+    private val arrangorRepository = mockk<ArrangorRepository>()
+    private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
+    private val tiltakstypeRepository = mockk<TiltakstypeRepository>()
+    private val amtArrangorClient = mockk<AmtArrangorClient>()
 
-	private val sut =
-		DeltakerlisteConsumerService(
-			arrangorRepository = arrangorRepository,
-			deltakerlisteRepository = deltakerlisteRepository,
-			tiltakstypeRepository = tiltakstypeRepository,
-			amtArrangorClient = amtArrangorClient,
-		)
+    private val sut =
+        DeltakerlisteConsumerService(
+            arrangorRepository = arrangorRepository,
+            deltakerlisteRepository = deltakerlisteRepository,
+            tiltakstypeRepository = tiltakstypeRepository,
+            amtArrangorClient = amtArrangorClient,
+        )
 
-	@BeforeEach
-	fun resetMocks() {
-		clearAllMocks()
+    @BeforeEach
+    fun resetMocks() {
+        clearAllMocks()
 
-		every { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) } just Runs
-		every { deltakerlisteRepository.getDeltakerliste(any()) } returns getDeltakerliste(arrangorInTest.id)
-		every { deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(any()) } returns 1
-		every { tiltakstypeRepository.getByTiltakskode(any()) } returns tiltakstypePayloadInTest.toModel()
+        every { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) } just Runs
+        every { deltakerlisteRepository.getDeltakerliste(any()) } returns getDeltakerliste(arrangorInTest.id)
+        every { deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(any()) } returns 1
+        every { tiltakstypeRepository.getByTiltakskode(any()) } returns tiltakstypePayloadInTest.toModel()
 
-		every { arrangorRepository.getArrangor(arrangorInTest.organisasjonsnummer) } returns null
-		every { arrangorRepository.insertOrUpdateArrangor(any()) } just Runs
-		coEvery { amtArrangorClient.getArrangor(arrangorInTest.organisasjonsnummer) } returns arrangorInTest
-	}
+        every { arrangorRepository.getArrangor(arrangorInTest.organisasjonsnummer) } returns null
+        every { arrangorRepository.insertOrUpdateArrangor(any()) } just Runs
+        coEvery { amtArrangorClient.getArrangor(arrangorInTest.organisasjonsnummer) } returns arrangorInTest
+    }
 
-	@Test
-	fun `lagreDeltakerliste - status GJENNOMFORES - lagres i db `() {
-		sut.lagreDeltakerliste(
-			deltakerlisteId = deltakerlisteIdInTest,
-			value = objectMapper.writeValueAsString(
-				gjennomforingPayloadInTest.copy(
-					pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-				),
-			),
-		)
+    @Test
+    fun `lagreDeltakerliste - status GJENNOMFORES - lagres i db `() {
+        sut.lagreDeltakerliste(
+            deltakerlisteId = deltakerlisteIdInTest,
+            value = objectMapper.writeValueAsString(
+                gjennomforingPayloadInTest.copy(
+                    pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+                ),
+            ),
+        )
 
-		verify(exactly = 1) { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) }
-	}
+        verify(exactly = 1) { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) }
+    }
 
-	@Test
-	fun `lagreDeltakerliste - status AVSLUTTET for 6 mnd siden - lagres ikke`() {
-		val deltakerlisteDto = gjennomforingPayloadInTest.copy(
-			navn = "Avsluttet tiltak",
-			sluttDato = LocalDate.now().minusMonths(6),
-			status = GjennomforingStatusType.AVSLUTTET,
-		)
+    @Test
+    fun `lagreDeltakerliste - status AVSLUTTET for 6 mnd siden - lagres ikke`() {
+        val deltakerlisteDto = gjennomforingPayloadInTest.copy(
+            navn = "Avsluttet tiltak",
+            sluttDato = LocalDate.now().minusMonths(6),
+            status = GjennomforingStatusType.AVSLUTTET,
+        )
 
-		sut.lagreDeltakerliste(
-			deltakerlisteId = deltakerlisteIdInTest,
-			value = objectMapper.writeValueAsString(deltakerlisteDto),
-		)
+        sut.lagreDeltakerliste(
+            deltakerlisteId = deltakerlisteIdInTest,
+            value = objectMapper.writeValueAsString(deltakerlisteDto),
+        )
 
-		verify(exactly = 0) { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) }
-		verify(exactly = 1) { deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(deltakerlisteIdInTest) }
-	}
+        verify(exactly = 0) { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) }
+        verify(exactly = 1) { deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(deltakerlisteIdInTest) }
+    }
 
-	@Test
-	fun `lagreDeltakerliste - status AVSLUTTET for 1 uke siden - lagres i db`() {
-		val deltakerlisteDto = gjennomforingPayloadInTest.copy(
-			navn = "Avsluttet tiltak",
-			sluttDato = LocalDate.now().minusWeeks(1),
-			status = GjennomforingStatusType.AVSLUTTET,
-			pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-		)
+    @Test
+    fun `lagreDeltakerliste - status AVSLUTTET for 1 uke siden - lagres i db`() {
+        val deltakerlisteDto = gjennomforingPayloadInTest.copy(
+            navn = "Avsluttet tiltak",
+            sluttDato = LocalDate.now().minusWeeks(1),
+            status = GjennomforingStatusType.AVSLUTTET,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
 
-		sut.lagreDeltakerliste(
-			deltakerlisteId = deltakerlisteIdInTest,
-			value = objectMapper.writeValueAsString(deltakerlisteDto),
-		)
+        sut.lagreDeltakerliste(
+            deltakerlisteId = deltakerlisteIdInTest,
+            value = objectMapper.writeValueAsString(deltakerlisteDto),
+        )
 
-		verify(exactly = 1) { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) }
-	}
+        verify(exactly = 1) { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) }
+    }
 
-	@Test
-	fun `lagreDeltakerliste - ikke stottet gjennomforingstype - lagres ikke i db `() {
-		val gjennomforingPayload = gjennomforingPayloadInTest.copy(
-			tiltakskode = Tiltakskode.STUDIESPESIALISERING,
-		)
+    @Test
+    fun `lagreDeltakerliste - ikke stottet gjennomforingstype - lagres ikke i db `() {
+        val gjennomforingPayload = gjennomforingPayloadInTest.copy(
+            tiltakskode = Tiltakskode.STUDIESPESIALISERING,
+        )
 
-		val jsonAsMap = objectMapper.readValue<MutableMap<String, Any>>(objectMapper.writeValueAsString(gjennomforingPayload))
-		jsonAsMap[GJENNOMFORINGSTYPE_KEY] = GjennomforingV2KafkaPayload.ENKELTPLASS_V2_TYPE
+        val jsonAsMap = objectMapper.readValue<MutableMap<String, Any>>(objectMapper.writeValueAsString(gjennomforingPayload))
+        jsonAsMap[GJENNOMFORINGSTYPE_KEY] = GjennomforingV2KafkaPayload.ENKELTPLASS_V2_TYPE
 
-		sut.lagreDeltakerliste(
-			deltakerlisteId = deltakerlisteIdInTest,
-			value = objectMapper.writeValueAsString(jsonAsMap),
-		)
+        sut.lagreDeltakerliste(
+            deltakerlisteId = deltakerlisteIdInTest,
+            value = objectMapper.writeValueAsString(jsonAsMap),
+        )
 
-		verify(exactly = 0) { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) }
-	}
+        verify(exactly = 0) { deltakerlisteRepository.insertOrUpdateDeltakerliste(any()) }
+    }
 }

@@ -29,181 +29,181 @@ val tiltakMedDeltakelsesmengder = setOf(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
 
 @Service
 class DeltakerMapper(
-	private val ansattService: AnsattService,
-	private val forslagService: ForslagService,
-	private val endringsmeldingRepository: EndringsmeldingRepository,
-	private val unleashToggle: CommonUnleashToggle,
+    private val ansattService: AnsattService,
+    private val forslagService: ForslagService,
+    private val endringsmeldingRepository: EndringsmeldingRepository,
+    private val unleashToggle: CommonUnleashToggle,
 ) {
-	fun map(
-		deltaker: DeltakerDbo,
-		deltakerliste: DeltakerlisteDbo,
-		ansatt: AnsattDbo,
-		ulesteEndringer: List<UlestEndringResponse> = emptyList(),
-	): Deltaker {
-		val ansattErVeileder = ansattService.erVeilederForDeltaker(
-			deltakerId = deltaker.id,
-			deltakerlisteArrangorId = deltakerliste.arrangorId,
-			ansattDbo = ansatt,
-		)
+    fun map(
+        deltaker: DeltakerDbo,
+        deltakerliste: DeltakerlisteDbo,
+        ansatt: AnsattDbo,
+        ulesteEndringer: List<UlestEndringResponse> = emptyList(),
+    ): Deltaker {
+        val ansattErVeileder = ansattService.erVeilederForDeltaker(
+            deltakerId = deltaker.id,
+            deltakerlisteArrangorId = deltakerliste.arrangorId,
+            ansattDbo = ansatt,
+        )
 
-		val aktiveForslag = forslagService.getAktiveForslag(deltaker.id).map { it.tilAktivtForslagResponse() }
+        val aktiveForslag = forslagService.getAktiveForslag(deltaker.id).map { it.tilAktivtForslagResponse() }
 
-		val endringsmeldinger = if (unleashToggle.erKometMasterForTiltakstype(deltakerliste.tiltakskode) ||
-			(deltaker.adressebeskyttet && !ansattErVeileder)
-		) {
-			emptyList()
-		} else {
-			endringsmeldingRepository.getEndringsmeldingerForDeltaker(deltaker.id)
-		}
-		val veiledere = ansattService.getVeiledereForDeltaker(deltaker.id)
+        val endringsmeldinger = if (unleashToggle.erKometMasterForTiltakstype(deltakerliste.tiltakskode) ||
+            (deltaker.adressebeskyttet && !ansattErVeileder)
+        ) {
+            emptyList()
+        } else {
+            endringsmeldingRepository.getEndringsmeldingerForDeltaker(deltaker.id)
+        }
+        val veiledere = ansattService.getVeiledereForDeltaker(deltaker.id)
 
-		val deltakelsesmengder = if (deltakerliste.tiltakskode in tiltakMedDeltakelsesmengder) {
-			deltaker.startdato?.let { deltaker.historikk.toDeltakelsesmengder().periode(it, deltaker.sluttdato) }
-				?: deltaker.historikk.toDeltakelsesmengder()
-		} else {
-			null
-		}
+        val deltakelsesmengder = if (deltakerliste.tiltakskode in tiltakMedDeltakelsesmengder) {
+            deltaker.startdato?.let { deltaker.historikk.toDeltakelsesmengder().periode(it, deltaker.sluttdato) }
+                ?: deltaker.historikk.toDeltakelsesmengder()
+        } else {
+            null
+        }
 
-		return tilDeltaker(
-			deltaker,
-			deltakerliste,
-			veiledere,
-			endringsmeldinger,
-			aktiveForslag,
-			ansattErVeileder,
-			deltakelsesmengder,
-			ulesteEndringer,
-		)
-	}
+        return tilDeltaker(
+            deltaker,
+            deltakerliste,
+            veiledere,
+            endringsmeldinger,
+            aktiveForslag,
+            ansattErVeileder,
+            deltakelsesmengder,
+            ulesteEndringer,
+        )
+    }
 }
 
 private fun tilDeltaker(
-	deltakerDbo: DeltakerDbo,
-	deltakerliste: DeltakerlisteDbo,
-	veiledere: List<Veileder>,
-	endringsmeldinger: List<EndringsmeldingDbo>,
-	aktiveForslag: List<AktivtForslagResponse>,
-	ansattErVeileder: Boolean,
-	deltakelsesmengder: Deltakelsesmengder?,
-	ulesteEndringer: List<UlestEndringResponse>,
+    deltakerDbo: DeltakerDbo,
+    deltakerliste: DeltakerlisteDbo,
+    veiledere: List<Veileder>,
+    endringsmeldinger: List<EndringsmeldingDbo>,
+    aktiveForslag: List<AktivtForslagResponse>,
+    ansattErVeileder: Boolean,
+    deltakelsesmengder: Deltakelsesmengder?,
+    ulesteEndringer: List<UlestEndringResponse>,
 ): Deltaker {
-	val adressebeskyttet = deltakerDbo.adressebeskyttet
-	val deltaker = Deltaker(
-		id = deltakerDbo.id,
-		deltakerliste =
-			Deltaker.Deltakerliste(
-				id = deltakerliste.id,
-				startDato = deltakerliste.startDato,
-				sluttDato = deltakerliste.sluttDato,
-				tiltakskode = deltakerliste.tiltakskode,
-				oppstartstype = deltakerliste.oppstartstype,
-				pameldingstype = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-			),
-		fornavn = deltakerDbo.fornavn,
-		mellomnavn = deltakerDbo.mellomnavn,
-		etternavn = deltakerDbo.etternavn,
-		fodselsnummer = deltakerDbo.personident,
-		telefonnummer = deltakerDbo.telefonnummer,
-		epost = deltakerDbo.epost,
-		status =
-			DeltakerStatusInternalModel(
-				type = deltakerDbo.status,
-				endretDato = deltakerDbo.statusOpprettetDato,
-				aarsak = deltakerDbo.statusAarsak,
-			),
-		startDato = deltakerDbo.startdato,
-		sluttDato = deltakerDbo.sluttdato,
-		deltakelseProsent = deltakerDbo.prosentStilling?.toInt(),
-		dagerPerUke = deltakerDbo.dagerPerUke,
-		soktInnPa = deltakerliste.navn,
-		soktInnDato = deltakerDbo.innsoktDato.atStartOfDay(),
-		tiltakskode = deltakerliste.tiltakskode,
-		bestillingTekst = deltakerDbo.bestillingstekst,
-		innhold = deltakerDbo.innhold?.let {
-			if (deltakerDbo.innhold.innhold.isEmpty() && deltakerDbo.innhold.ledetekst == null) {
-				null
-			} else {
-				deltakerDbo.innhold
-			}
-		},
-		fjernesDato = deltakerDbo.skalFjernesDato(),
-		navInformasjon =
-			NavInformasjon(
-				navkontor = deltakerDbo.navKontor,
-				navVeileder =
-					deltakerDbo.navVeilederId?.let {
-						NavVeileder(
-							navn = deltakerDbo.navVeilederNavn ?: "",
-							epost = deltakerDbo.navVeilederEpost,
-							telefon = deltakerDbo.navVeilederTelefon,
-						)
-					},
-			),
-		veiledere = veiledere,
-		aktiveForslag = aktiveForslag,
-		aktiveEndringsmeldinger = endringsmeldinger.filter { it.erAktiv() }.sortedBy { it.sendt }.map { it.toEndringsmelding() },
-		historiskeEndringsmeldinger = endringsmeldinger
-			.filter { !it.erAktiv() }
-			.sortedByDescending { it.sendt }
-			.map { it.toEndringsmelding() },
-		adresse = if (adressebeskyttet) null else deltakerDbo.getAdresse(deltakerliste),
-		gjeldendeVurderingFraArrangor = deltakerDbo.getGjeldendeVurdering(),
-		adressebeskyttet = adressebeskyttet,
-		kilde = deltakerDbo.kilde ?: Kilde.ARENA,
-		historikk = deltakerDbo.historikk,
-		deltakelsesmengder = deltakelsesmengder?.let {
-			DeltakelsesmengderDto(
-				nesteDeltakelsesmengde = it.nesteGjeldende?.toDto(),
-				sisteDeltakelsesmengde = it.lastOrNull()?.toDto(),
-			)
-		},
-		ulesteEndringer = ulesteEndringer,
-		erManueltDeltMedArrangor = deltakerDbo.erManueltDeltMedArrangor,
-		erUnderOppfolging = deltakerDbo.erUnderOppfolging,
-	)
+    val adressebeskyttet = deltakerDbo.adressebeskyttet
+    val deltaker = Deltaker(
+        id = deltakerDbo.id,
+        deltakerliste =
+            Deltaker.Deltakerliste(
+                id = deltakerliste.id,
+                startDato = deltakerliste.startDato,
+                sluttDato = deltakerliste.sluttDato,
+                tiltakskode = deltakerliste.tiltakskode,
+                oppstartstype = deltakerliste.oppstartstype,
+                pameldingstype = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+            ),
+        fornavn = deltakerDbo.fornavn,
+        mellomnavn = deltakerDbo.mellomnavn,
+        etternavn = deltakerDbo.etternavn,
+        fodselsnummer = deltakerDbo.personident,
+        telefonnummer = deltakerDbo.telefonnummer,
+        epost = deltakerDbo.epost,
+        status =
+            DeltakerStatusInternalModel(
+                type = deltakerDbo.status,
+                endretDato = deltakerDbo.statusOpprettetDato,
+                aarsak = deltakerDbo.statusAarsak,
+            ),
+        startDato = deltakerDbo.startdato,
+        sluttDato = deltakerDbo.sluttdato,
+        deltakelseProsent = deltakerDbo.prosentStilling?.toInt(),
+        dagerPerUke = deltakerDbo.dagerPerUke,
+        soktInnPa = deltakerliste.navn,
+        soktInnDato = deltakerDbo.innsoktDato.atStartOfDay(),
+        tiltakskode = deltakerliste.tiltakskode,
+        bestillingTekst = deltakerDbo.bestillingstekst,
+        innhold = deltakerDbo.innhold?.let {
+            if (deltakerDbo.innhold.innhold.isEmpty() && deltakerDbo.innhold.ledetekst == null) {
+                null
+            } else {
+                deltakerDbo.innhold
+            }
+        },
+        fjernesDato = deltakerDbo.skalFjernesDato(),
+        navInformasjon =
+            NavInformasjon(
+                navkontor = deltakerDbo.navKontor,
+                navVeileder =
+                    deltakerDbo.navVeilederId?.let {
+                        NavVeileder(
+                            navn = deltakerDbo.navVeilederNavn ?: "",
+                            epost = deltakerDbo.navVeilederEpost,
+                            telefon = deltakerDbo.navVeilederTelefon,
+                        )
+                    },
+            ),
+        veiledere = veiledere,
+        aktiveForslag = aktiveForslag,
+        aktiveEndringsmeldinger = endringsmeldinger.filter { it.erAktiv() }.sortedBy { it.sendt }.map { it.toEndringsmelding() },
+        historiskeEndringsmeldinger = endringsmeldinger
+            .filter { !it.erAktiv() }
+            .sortedByDescending { it.sendt }
+            .map { it.toEndringsmelding() },
+        adresse = if (adressebeskyttet) null else deltakerDbo.getAdresse(deltakerliste),
+        gjeldendeVurderingFraArrangor = deltakerDbo.getGjeldendeVurdering(),
+        adressebeskyttet = adressebeskyttet,
+        kilde = deltakerDbo.kilde ?: Kilde.ARENA,
+        historikk = deltakerDbo.historikk,
+        deltakelsesmengder = deltakelsesmengder?.let {
+            DeltakelsesmengderDto(
+                nesteDeltakelsesmengde = it.nesteGjeldende?.toDto(),
+                sisteDeltakelsesmengde = it.lastOrNull()?.toDto(),
+            )
+        },
+        ulesteEndringer = ulesteEndringer,
+        erManueltDeltMedArrangor = deltakerDbo.erManueltDeltMedArrangor,
+        erUnderOppfolging = deltakerDbo.erUnderOppfolging,
+    )
 
-	return if (adressebeskyttet && !ansattErVeileder) {
-		deltaker.utenPersonligInformasjon()
-	} else {
-		deltaker
-	}
+    return if (adressebeskyttet && !ansattErVeileder) {
+        deltaker.utenPersonligInformasjon()
+    } else {
+        deltaker
+    }
 }
 
 fun Deltaker.utenPersonligInformasjon() = this.copy(
-	fornavn = "",
-	mellomnavn = null,
-	etternavn = "",
-	fodselsnummer = "",
-	telefonnummer = null,
-	epost = null,
-	deltakelseProsent = null,
-	dagerPerUke = null,
-	bestillingTekst = null,
-	navInformasjon = NavInformasjon(
-		navkontor = null,
-		navVeileder = null,
-	),
-	aktiveForslag = emptyList(),
-	aktiveEndringsmeldinger = emptyList(),
-	historiskeEndringsmeldinger = emptyList(),
-	gjeldendeVurderingFraArrangor = null,
-	historikk = emptyList(),
+    fornavn = "",
+    mellomnavn = null,
+    etternavn = "",
+    fodselsnummer = "",
+    telefonnummer = null,
+    epost = null,
+    deltakelseProsent = null,
+    dagerPerUke = null,
+    bestillingTekst = null,
+    navInformasjon = NavInformasjon(
+        navkontor = null,
+        navVeileder = null,
+    ),
+    aktiveForslag = emptyList(),
+    aktiveEndringsmeldinger = emptyList(),
+    historiskeEndringsmeldinger = emptyList(),
+    gjeldendeVurderingFraArrangor = null,
+    historikk = emptyList(),
 )
 
 fun DeltakerDbo.getAdresse(deltakerliste: DeltakerlisteDbo) = if (deltakerliste.skalViseAdresseForDeltaker()) {
-	this.adresse?.kontaktadresse?.toAdresse()
-		?: this.adresse?.oppholdsadresse?.toAdresse()
-		?: this.adresse?.bostedsadresse?.toAdresse()
+    this.adresse?.kontaktadresse?.toAdresse()
+        ?: this.adresse?.oppholdsadresse?.toAdresse()
+        ?: this.adresse?.bostedsadresse?.toAdresse()
 } else {
-	null
+    null
 }
 
 fun DeltakerDbo.getGjeldendeVurdering(): Vurdering? {
-	val gjeldendeVurdering = vurderingerFraArrangor?.maxByOrNull { it.opprettet } ?: return null
-	return Vurdering(
-		vurderingstype = gjeldendeVurdering.vurderingstype,
-		begrunnelse = gjeldendeVurdering.begrunnelse,
-		gyldigFra = gjeldendeVurdering.opprettet,
-		gyldigTil = null,
-	)
+    val gjeldendeVurdering = vurderingerFraArrangor?.maxByOrNull { it.opprettet } ?: return null
+    return Vurdering(
+        vurderingstype = gjeldendeVurdering.vurderingstype,
+        begrunnelse = gjeldendeVurdering.begrunnelse,
+        gyldigFra = gjeldendeVurdering.opprettet,
+        gyldigTil = null,
+    )
 }

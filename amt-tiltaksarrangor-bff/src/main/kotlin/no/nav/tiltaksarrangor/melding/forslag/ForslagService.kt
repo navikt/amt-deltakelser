@@ -21,91 +21,99 @@ import java.util.UUID
 
 @Service
 class ForslagService(
-	private val repository: ForslagRepository,
-	private val meldingProducer: MeldingProducer,
+    private val repository: ForslagRepository,
+    private val meldingProducer: MeldingProducer,
 ) {
-	private val log = LoggerFactory.getLogger(javaClass)
+    private val log = LoggerFactory.getLogger(javaClass)
 
-	fun opprettForslag(
-		request: ForslagRequest,
-		ansatt: AnsattDbo,
-		deltaker: DeltakerDbo,
-	): Forslag {
-		val endring = when (request) {
-			is ForlengDeltakelseRequest -> Forslag.ForlengDeltakelse(request.sluttdato)
-			is AvsluttDeltakelseRequest -> Forslag.AvsluttDeltakelse(request.sluttdato, request.aarsak, request.harDeltatt, request.harFullfort)
-			is IkkeAktuellRequest -> Forslag.IkkeAktuell(request.aarsak)
-			is DeltakelsesmengdeRequest -> Forslag.Deltakelsesmengde(request.deltakelsesprosent, request.dagerPerUke, request.gyldigFra)
-			is SluttdatoRequest -> Forslag.Sluttdato(request.sluttdato)
-			is SluttarsakRequest -> Forslag.Sluttarsak(request.aarsak)
-			is StartdatoRequest -> Forslag.Startdato(request.startdato, request.sluttdato)
-			is FjernOppstartsdatoRequest -> Forslag.FjernOppstartsdato
-			is EndreAvslutningRequest -> Forslag.EndreAvslutning(request.aarsak, request.harDeltatt, request.harFullfort, request.sluttdato)
-		}
+    fun opprettForslag(
+        request: ForslagRequest,
+        ansatt: AnsattDbo,
+        deltaker: DeltakerDbo,
+    ): Forslag {
+        val endring = when (request) {
+            is ForlengDeltakelseRequest -> Forslag.ForlengDeltakelse(request.sluttdato)
+            is AvsluttDeltakelseRequest -> Forslag.AvsluttDeltakelse(
+                request.sluttdato,
+                request.aarsak,
+                request.harDeltatt,
+                request.harFullfort,
+            )
+            is IkkeAktuellRequest -> Forslag.IkkeAktuell(request.aarsak)
+            is DeltakelsesmengdeRequest -> Forslag.Deltakelsesmengde(request.deltakelsesprosent, request.dagerPerUke, request.gyldigFra)
+            is SluttdatoRequest -> Forslag.Sluttdato(request.sluttdato)
+            is SluttarsakRequest -> Forslag.Sluttarsak(request.aarsak)
+            is StartdatoRequest -> Forslag.Startdato(request.startdato, request.sluttdato)
+            is FjernOppstartsdatoRequest -> Forslag.FjernOppstartsdato
+            is EndreAvslutningRequest -> Forslag.EndreAvslutning(request.aarsak, request.harDeltatt, request.harFullfort, request.sluttdato)
+        }
 
-		val forslag = Forslag(
-			id = UUID.randomUUID(),
-			deltakerId = deltaker.id,
-			opprettetAvArrangorAnsattId = ansatt.id,
-			opprettet = LocalDateTime.now(),
-			begrunnelse = request.begrunnelse,
-			endring = endring,
-			status = Forslag.Status.VenterPaSvar,
-		)
+        val forslag = Forslag(
+            id = UUID.randomUUID(),
+            deltakerId = deltaker.id,
+            opprettetAvArrangorAnsattId = ansatt.id,
+            opprettet = LocalDateTime.now(),
+            begrunnelse = request.begrunnelse,
+            endring = endring,
+            status = Forslag.Status.VenterPaSvar,
+        )
 
-		erstattVentendeForslagAvSammeType(forslag)
+        erstattVentendeForslagAvSammeType(forslag)
 
-		repository.upsert(forslag)
-		meldingProducer.produce(forslag)
+        repository.upsert(forslag)
+        meldingProducer.produce(forslag)
 
-		log.info("Opprettet nytt forslag ${forslag.id} for deltaker ${deltaker.id}")
+        log.info("Opprettet nytt forslag ${forslag.id} for deltaker ${deltaker.id}")
 
-		return forslag
-	}
+        return forslag
+    }
 
-	private fun erstattVentendeForslagAvSammeType(forslag: Forslag) {
-		val ventende = repository.getVentende(forslag).getOrElse { return }
+    private fun erstattVentendeForslagAvSammeType(forslag: Forslag) {
+        val ventende = repository.getVentende(forslag).getOrElse { return }
 
-		val erstattet = ventende.copy(
-			status = Forslag.Status.Erstattet(
-				erstattetMedForslagId = forslag.id,
-				erstattet = forslag.opprettet,
-			),
-		)
-		repository.delete(erstattet.id)
-		meldingProducer.produce(erstattet)
+        val erstattet = ventende.copy(
+            status = Forslag.Status.Erstattet(
+                erstattetMedForslagId = forslag.id,
+                erstattet = forslag.opprettet,
+            ),
+        )
+        repository.delete(erstattet.id)
+        meldingProducer.produce(erstattet)
 
-		log.info("Forslag ${erstattet.id} ble erstattet av ${forslag.id}")
-	}
+        log.info("Forslag ${erstattet.id} ble erstattet av ${forslag.id}")
+    }
 
-	fun get(id: UUID) = repository.get(id)
+    fun get(id: UUID) = repository.get(id)
 
-	fun getAktiveForslag(deltakerId: UUID) = repository.getForDeltaker(deltakerId).filter { it.status is Forslag.Status.VenterPaSvar }
+    fun getAktiveForslag(deltakerId: UUID) = repository.getForDeltaker(deltakerId).filter { it.status is Forslag.Status.VenterPaSvar }
 
-	fun delete(id: UUID) {
-		val slettedeRader = repository.delete(id)
-		if (slettedeRader > 0) {
-			log.info("Slettet forslag $id")
-		}
-	}
+    fun delete(id: UUID) {
+        val slettedeRader = repository.delete(id)
+        if (slettedeRader > 0) {
+            log.info("Slettet forslag $id")
+        }
+    }
 
-	fun tilbakekall(id: UUID, ansatt: AnsattDbo) {
-		val opprinneligForslag = repository.get(id).getOrThrow()
+    fun tilbakekall(
+        id: UUID,
+        ansatt: AnsattDbo,
+    ) {
+        val opprinneligForslag = repository.get(id).getOrThrow()
 
-		require(opprinneligForslag.status is Forslag.Status.VenterPaSvar) {
-			"Kan ikke tilbakekalle forslag $id med status ${opprinneligForslag.status.javaClass.simpleName}"
-		}
+        require(opprinneligForslag.status is Forslag.Status.VenterPaSvar) {
+            "Kan ikke tilbakekalle forslag $id med status ${opprinneligForslag.status.javaClass.simpleName}"
+        }
 
-		val tilbakekaltForslag = opprinneligForslag.copy(
-			status = Forslag.Status.Tilbakekalt(
-				tilbakekaltAvArrangorAnsattId = ansatt.id,
-				tilbakekalt = LocalDateTime.now(),
-			),
-		)
+        val tilbakekaltForslag = opprinneligForslag.copy(
+            status = Forslag.Status.Tilbakekalt(
+                tilbakekaltAvArrangorAnsattId = ansatt.id,
+                tilbakekalt = LocalDateTime.now(),
+            ),
+        )
 
-		repository.delete(id)
-		meldingProducer.produce(tilbakekaltForslag)
+        repository.delete(id)
+        meldingProducer.produce(tilbakekaltForslag)
 
-		log.info("Tilbakekalte forslag $id")
-	}
+        log.info("Tilbakekalte forslag $id")
+    }
 }

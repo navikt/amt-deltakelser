@@ -12,24 +12,24 @@ import org.springframework.context.annotation.Profile
 @Profile("default")
 @Configuration(proxyBeanMethods = false)
 class UnleashConfig {
-	@Bean
-	fun unleashClient(
-		@Value($$"${app.env.unleashUrl}") unleashUrl: String,
-		@Value($$"${app.env.unleashApiToken}") unleashApiToken: String,
-	) = DefaultUnleash(
-		UnleashConfig
-			.builder()
-			.appName(APP_NAME)
-			.instanceId(APP_NAME)
-			.unleashAPI(unleashUrl)
-			.apiKey(unleashApiToken)
-			.build(),
-	)
+    @Bean
+    fun unleashClient(
+        @Value($$"${app.env.unleashUrl}") unleashUrl: String,
+        @Value($$"${app.env.unleashApiToken}") unleashApiToken: String,
+    ) = DefaultUnleash(
+        UnleashConfig
+            .builder()
+            .appName(APP_NAME)
+            .instanceId(APP_NAME)
+            .unleashAPI(unleashUrl)
+            .apiKey(unleashApiToken)
+            .build(),
+    )
 
-	@Bean
-	fun commonUnleashToggle(unleash: Unleash): CommonUnleashToggle = CommonUnleashToggle(unleash)
+    @Bean
+    fun commonUnleashToggle(unleash: Unleash): CommonUnleashToggle = CommonUnleashToggle(unleash)
 
-	companion object {
-		const val APP_NAME = "amt-tiltaksarrangor-bff"
-	}
+    companion object {
+        const val APP_NAME = "amt-tiltaksarrangor-bff"
+    }
 }

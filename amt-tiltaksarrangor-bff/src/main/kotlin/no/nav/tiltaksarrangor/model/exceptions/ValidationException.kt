@@ -1,5 +1,5 @@
 package no.nav.tiltaksarrangor.model.exceptions
 
 class ValidationException(
-	message: String,
+    message: String,
 ) : RuntimeException(message)

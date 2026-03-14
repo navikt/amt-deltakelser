@@ -32,148 +32,151 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 class ForslagCtx(
-	applicationContext: ApplicationContext,
-	var forslag: Forslag,
-	arrangor: ArrangorDbo = getArrangor(),
-	deltakerliste: DeltakerlisteDbo = getDeltakerliste(arrangorId = arrangor.id),
-	koordinator: AnsattDbo = getKoordinator(
-		id = forslag.opprettetAvArrangorAnsattId,
-		arrangorId = arrangor.id,
-		deltakerlisteId = deltakerliste.id,
-	),
-	deltaker: DeltakerDbo = getDeltaker(forslag.deltakerId, deltakerlisteId = deltakerliste.id),
+    applicationContext: ApplicationContext,
+    var forslag: Forslag,
+    arrangor: ArrangorDbo = getArrangor(),
+    deltakerliste: DeltakerlisteDbo = getDeltakerliste(arrangorId = arrangor.id),
+    koordinator: AnsattDbo = getKoordinator(
+        id = forslag.opprettetAvArrangorAnsattId,
+        arrangorId = arrangor.id,
+        deltakerlisteId = deltakerliste.id,
+    ),
+    deltaker: DeltakerDbo = getDeltaker(forslag.deltakerId, deltakerlisteId = deltakerliste.id),
 ) : DeltakerContext(
-		applicationContext,
-		arrangor = arrangor,
-		deltakerliste = deltakerliste,
-		koordinator = koordinator,
-		deltaker = deltaker,
-	) {
-	var navAnsatt: NavAnsatt? = null
+        applicationContext,
+        arrangor = arrangor,
+        deltakerliste = deltakerliste,
+        koordinator = koordinator,
+        deltaker = deltaker,
+    ) {
+    var navAnsatt: NavAnsatt? = null
 
-	var navEnhet: NavEnhet? = null
+    var navEnhet: NavEnhet? = null
 
-	private val navAnsattRepository = getOrCreateBean { template -> NavAnsattRepository(template) }
-	private val forslagRepository = getOrCreateBean { template -> ForslagRepository(template) }
-	private val navEnhetRepository = getOrCreateBean { template -> NavEnhetRepository(template) }
+    private val navAnsattRepository = getOrCreateBean { template -> NavAnsattRepository(template) }
+    private val forslagRepository = getOrCreateBean { template -> ForslagRepository(template) }
+    private val navEnhetRepository = getOrCreateBean { template -> NavEnhetRepository(template) }
 
-	init {
-		opprettNavAnsattForForslag()
-	}
+    init {
+        opprettNavAnsattForForslag()
+    }
 
-	fun setForslagGodkjent() {
-		val status = Forslag.Status.Godkjent(
-			Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-			LocalDateTime.now(),
-		)
+    fun setForslagGodkjent() {
+        val status = Forslag.Status.Godkjent(
+            Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+            LocalDateTime.now(),
+        )
 
-		forslag = forslag.copy(status = status)
-		opprettNavAnsattForForslag()
-	}
+        forslag = forslag.copy(status = status)
+        opprettNavAnsattForForslag()
+    }
 
-	fun medInaktiveForslag() {
-		leggTilForslagMedStatus(
-			Forslag.Status.Tilbakekalt(
-				UUID.randomUUID(),
-				LocalDateTime.now(),
-			),
-		)
-		leggTilForslagMedStatus(
-			Forslag.Status.Godkjent(
-				Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-				LocalDateTime.now(),
-			),
-		)
-		leggTilForslagMedStatus(
-			Forslag.Status.Avvist(
-				Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-				LocalDateTime.now(),
-				"Avvist!",
-			),
-		)
-	}
+    fun medInaktiveForslag() {
+        leggTilForslagMedStatus(
+            Forslag.Status.Tilbakekalt(
+                UUID.randomUUID(),
+                LocalDateTime.now(),
+            ),
+        )
+        leggTilForslagMedStatus(
+            Forslag.Status.Godkjent(
+                Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                LocalDateTime.now(),
+            ),
+        )
+        leggTilForslagMedStatus(
+            Forslag.Status.Avvist(
+                Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                LocalDateTime.now(),
+                "Avvist!",
+            ),
+        )
+    }
 
-	fun leggTilForslagMedStatus(status: Forslag.Status) {
-		forslagRepository.upsert(
-			forlengDeltakelseForslag(
-				deltakerId = deltaker.id,
-				opprettetAvArrangorAnsattId = koordinator.id,
-				status = status,
-			),
-		)
-	}
+    fun leggTilForslagMedStatus(status: Forslag.Status) {
+        forslagRepository.upsert(
+            forlengDeltakelseForslag(
+                deltakerId = deltaker.id,
+                opprettetAvArrangorAnsattId = koordinator.id,
+                status = status,
+            ),
+        )
+    }
 
-	fun upsertForslag() = forslagRepository.upsert(forslag)
+    fun upsertForslag() = forslagRepository.upsert(forslag)
 
-	private fun opprettNavAnsattForForslag() {
-		val forslagNavAnsatt = when (val status = forslag.status) {
-			is Forslag.Status.Avvist -> status.avvistAv
-			is Forslag.Status.Godkjent -> status.godkjentAv
-			is Forslag.Status.Tilbakekalt -> null
-			Forslag.Status.VenterPaSvar -> null
-			is Forslag.Status.Erstattet -> null
-		}
+    private fun opprettNavAnsattForForslag() {
+        val forslagNavAnsatt = when (val status = forslag.status) {
+            is Forslag.Status.Avvist -> status.avvistAv
+            is Forslag.Status.Godkjent -> status.godkjentAv
+            is Forslag.Status.Tilbakekalt -> null
+            Forslag.Status.VenterPaSvar -> null
+            is Forslag.Status.Erstattet -> null
+        }
 
-		if (forslagNavAnsatt != null) {
-			navAnsatt = getNavAnsatt(id = forslagNavAnsatt.id)
-			navEnhet = getNavEnhet(id = forslagNavAnsatt.enhetId)
-			navAnsatt?.let { navAnsattRepository.upsert(it) }
-			navEnhet?.let { navEnhetRepository.upsert(it) }
-		} else {
-			navAnsatt = null
-			navEnhet = null
-		}
-	}
+        if (forslagNavAnsatt != null) {
+            navAnsatt = getNavAnsatt(id = forslagNavAnsatt.id)
+            navEnhet = getNavEnhet(id = forslagNavAnsatt.enhetId)
+            navAnsatt?.let { navAnsattRepository.upsert(it) }
+            navEnhet?.let { navEnhetRepository.upsert(it) }
+        } else {
+            navAnsatt = null
+            navEnhet = null
+        }
+    }
 }
 
 fun forlengDeltakelseForslag(
-	deltakerId: UUID = UUID.randomUUID(),
-	opprettetAvArrangorAnsattId: UUID = UUID.randomUUID(),
-	sluttdato: LocalDate = LocalDate.now(),
-	begrunnelse: String = "Fordi...",
-	status: Forslag.Status = Forslag.Status.VenterPaSvar,
+    deltakerId: UUID = UUID.randomUUID(),
+    opprettetAvArrangorAnsattId: UUID = UUID.randomUUID(),
+    sluttdato: LocalDate = LocalDate.now(),
+    begrunnelse: String = "Fordi...",
+    status: Forslag.Status = Forslag.Status.VenterPaSvar,
 ) = Forslag(
-	id = UUID.randomUUID(),
-	deltakerId = deltakerId,
-	opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
-	opprettet = LocalDateTime.now(),
-	begrunnelse = begrunnelse,
-	endring = Forslag.ForlengDeltakelse(sluttdato),
-	status = status,
+    id = UUID.randomUUID(),
+    deltakerId = deltakerId,
+    opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
+    opprettet = LocalDateTime.now(),
+    begrunnelse = begrunnelse,
+    endring = Forslag.ForlengDeltakelse(sluttdato),
+    status = status,
 )
 
-fun <T : Forslag.Endring> assertProducedForslag(forslagId: UUID, endringstype: KClass<T>) {
-	val cache = mutableMapOf<UUID, Melding>()
+fun <T : Forslag.Endring> assertProducedForslag(
+    forslagId: UUID,
+    endringstype: KClass<T>,
+) {
+    val cache = mutableMapOf<UUID, Melding>()
 
-	val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
-		cache[UUID.fromString(k)] = objectMapper.readValue(v)
-	}
+    val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
-	consumer.start()
+    consumer.start()
 
-	await().untilAsserted {
-		val cachedForslag = cache[forslagId]!! as Forslag
-		cachedForslag.id shouldBe forslagId
-		cachedForslag.endring::class shouldBe endringstype
-	}
+    await().untilAsserted {
+        val cachedForslag = cache[forslagId]!! as Forslag
+        cachedForslag.id shouldBe forslagId
+        cachedForslag.endring::class shouldBe endringstype
+    }
 
-	runBlocking { consumer.close() }
+    runBlocking { consumer.close() }
 }
 
 fun getProducedForslag(id: UUID): Forslag {
-	val cache = mutableMapOf<UUID, Melding>()
+    val cache = mutableMapOf<UUID, Melding>()
 
-	val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
-		cache[UUID.fromString(k)] = objectMapper.readValue(v)
-	}
+    val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
 
-	consumer.start()
+    consumer.start()
 
-	await().untilAsserted {
-		cache[id] shouldNotBe null
-	}
+    await().untilAsserted {
+        cache[id] shouldNotBe null
+    }
 
-	runBlocking { consumer.close() }
+    runBlocking { consumer.close() }
 
-	return cache[id]!! as Forslag
+    return cache[id]!! as Forslag
 }

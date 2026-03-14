@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/unleash/api/feature")
 class UnleashAPI(
-	private val unleashToggle: CommonUnleashToggle,
+    private val unleashToggle: CommonUnleashToggle,
 ) {
-	@GetMapping
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getFeaturetoggles(
-		@RequestParam("feature") features: List<String>,
-	): Map<String, Boolean> = unleashToggle.getFeaturetoggles(features)
+    @GetMapping
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getFeaturetoggles(
+        @RequestParam("feature") features: List<String>,
+    ): Map<String, Boolean> = unleashToggle.getFeaturetoggles(features)
 }

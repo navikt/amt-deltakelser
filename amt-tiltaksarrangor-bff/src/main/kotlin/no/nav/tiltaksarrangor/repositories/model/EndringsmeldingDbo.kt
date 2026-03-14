@@ -8,20 +8,20 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class EndringsmeldingDbo(
-	val id: UUID,
-	val deltakerId: UUID,
-	val type: EndringsmeldingType,
-	val innhold: Innhold?,
-	val status: Endringsmelding.Status,
-	val sendt: LocalDateTime,
+    val id: UUID,
+    val deltakerId: UUID,
+    val type: EndringsmeldingType,
+    val innhold: Innhold?,
+    val status: Endringsmelding.Status,
+    val sendt: LocalDateTime,
 ) {
-	fun toEndringsmelding(): Endringsmelding = Endringsmelding(
-		id = id,
-		innhold = innhold?.toEndringsmeldingInnhold(),
-		type = Endringsmelding.Type.valueOf(type.name),
-		status = status,
-		sendt = sendt.toLocalDate(),
-	)
+    fun toEndringsmelding(): Endringsmelding = Endringsmelding(
+        id = id,
+        innhold = innhold?.toEndringsmeldingInnhold(),
+        type = Endringsmelding.Type.valueOf(type.name),
+        status = status,
+        sendt = sendt.toLocalDate(),
+    )
 
-	fun erAktiv(): Boolean = status == Endringsmelding.Status.AKTIV
+    fun erAktiv(): Boolean = status == Endringsmelding.Status.AKTIV
 }

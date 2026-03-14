@@ -17,61 +17,64 @@ import java.util.UUID
 
 @Service
 class DeltakerlisteConsumerService(
-	private val arrangorRepository: ArrangorRepository,
-	private val deltakerlisteRepository: DeltakerlisteRepository,
-	private val tiltakstypeRepository: TiltakstypeRepository,
-	private val amtArrangorClient: AmtArrangorClient,
+    private val arrangorRepository: ArrangorRepository,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val tiltakstypeRepository: TiltakstypeRepository,
+    private val amtArrangorClient: AmtArrangorClient,
 ) {
-	private val log = LoggerFactory.getLogger(javaClass)
+    private val log = LoggerFactory.getLogger(javaClass)
 
-	fun lagreDeltakerliste(deltakerlisteId: UUID, value: String?) {
-		if (value == null) {
-			deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(deltakerlisteId)
-			log.info("Slettet tombstonet deltakerliste med id $deltakerlisteId")
-			return
-		}
+    fun lagreDeltakerliste(
+        deltakerlisteId: UUID,
+        value: String?,
+    ) {
+        if (value == null) {
+            deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(deltakerlisteId)
+            log.info("Slettet tombstonet deltakerliste med id $deltakerlisteId")
+            return
+        }
 
-		val gjennomforingstypeFromJson = getGjennomforingstypeFromJson(value)
+        val gjennomforingstypeFromJson = getGjennomforingstypeFromJson(value)
 
-		if (gjennomforingstypeFromJson != GjennomforingV2KafkaPayload.GRUPPE_V2_TYPE) {
-			log.info("Gjennomføringstype $gjennomforingstypeFromJson er ikke støttet.")
-			return
-		}
+        if (gjennomforingstypeFromJson != GjennomforingV2KafkaPayload.GRUPPE_V2_TYPE) {
+            log.info("Gjennomføringstype $gjennomforingstypeFromJson er ikke støttet.")
+            return
+        }
 
-		val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = objectMapper.readValue(value)
+        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = objectMapper.readValue(value)
 
-		if (deltakerlistePayload.skalLagres()) {
-			deltakerlistePayload.assertPameldingstypeIsValid()
+        if (deltakerlistePayload.skalLagres()) {
+            deltakerlistePayload.assertPameldingstypeIsValid()
 
-			deltakerlisteRepository.insertOrUpdateDeltakerliste(
-				deltakerlistePayload.toDeltakerlisteDbo(
-					arrangorId = hentArrangorId(deltakerlistePayload.arrangor.organisasjonsnummer),
-					navnTiltakstype = tiltakstypeRepository
-						.getByTiltakskode(deltakerlistePayload.tiltakskode.name)
-						?.navn
-						?: throw IllegalStateException("Tiltakstype med tiltakskode ${deltakerlistePayload.tiltakskode} finnes ikke i db"),
-				),
-			)
-			log.info("Lagret deltakerliste med id $deltakerlisteId")
-		} else {
-			val antallSlettedeDeltakerlister = deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(deltakerlisteId)
-			if (antallSlettedeDeltakerlister > 0) {
-				log.info("Slettet deltakerliste med id $deltakerlisteId")
-			} else {
-				log.info("Ignorert deltakerliste med id $deltakerlisteId")
-			}
-		}
-	}
+            deltakerlisteRepository.insertOrUpdateDeltakerliste(
+                deltakerlistePayload.toDeltakerlisteDbo(
+                    arrangorId = hentArrangorId(deltakerlistePayload.arrangor.organisasjonsnummer),
+                    navnTiltakstype = tiltakstypeRepository
+                        .getByTiltakskode(deltakerlistePayload.tiltakskode.name)
+                        ?.navn
+                        ?: throw IllegalStateException("Tiltakstype med tiltakskode ${deltakerlistePayload.tiltakskode} finnes ikke i db"),
+                ),
+            )
+            log.info("Lagret deltakerliste med id $deltakerlisteId")
+        } else {
+            val antallSlettedeDeltakerlister = deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(deltakerlisteId)
+            if (antallSlettedeDeltakerlister > 0) {
+                log.info("Slettet deltakerliste med id $deltakerlisteId")
+            } else {
+                log.info("Ignorert deltakerliste med id $deltakerlisteId")
+            }
+        }
+    }
 
-	private fun hentArrangorId(organisasjonsnummer: String): UUID {
-		arrangorRepository.getArrangor(organisasjonsnummer)?.let { arrangor -> return arrangor.id }
+    private fun hentArrangorId(organisasjonsnummer: String): UUID {
+        arrangorRepository.getArrangor(organisasjonsnummer)?.let { arrangor -> return arrangor.id }
 
-		log.info("Fant ikke arrangør med orgnummer $organisasjonsnummer i databasen, henter fra amt-arrangør")
-		val arrangor =
-			amtArrangorClient.getArrangor(organisasjonsnummer)
-				?: throw RuntimeException("Kunne ikke hente arrangør med orgnummer $organisasjonsnummer")
+        log.info("Fant ikke arrangør med orgnummer $organisasjonsnummer i databasen, henter fra amt-arrangør")
+        val arrangor =
+            amtArrangorClient.getArrangor(organisasjonsnummer)
+                ?: throw RuntimeException("Kunne ikke hente arrangør med orgnummer $organisasjonsnummer")
 
-		arrangorRepository.insertOrUpdateArrangor(arrangor.toArrangorDbo())
-		return arrangor.id
-	}
+        arrangorRepository.insertOrUpdateArrangor(arrangor.toArrangorDbo())
+        return arrangor.id
+    }
 }

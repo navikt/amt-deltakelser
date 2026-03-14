@@ -12,4 +12,4 @@ val objectMapper: ObjectMapper = jacksonObjectMapper()
  * Hvis man bruker `writeValueAsString` på en `List<GeneriskType>` så vil den ikke inkludere `type`.
  */
 inline fun <reified T : Any> ObjectMapper.writePolymorphicListAsString(value: T): String =
-	this.writerFor(object : TypeReference<T>() {}).writeValueAsString(value)
+    this.writerFor(object : TypeReference<T>() {}).writeValueAsString(value)

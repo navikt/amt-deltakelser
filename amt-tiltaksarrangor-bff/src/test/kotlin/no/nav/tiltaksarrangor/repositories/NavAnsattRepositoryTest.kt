@@ -8,24 +8,24 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest(classes = [NavAnsattRepository::class])
 class NavAnsattRepositoryTest(
-	private val ansattRepository: NavAnsattRepository,
+    private val ansattRepository: NavAnsattRepository,
 ) : RepositoryTestBase() {
-	@Test
-	fun `upsert - ny ansatt - inserter`() {
-		val ansatt = getNavAnsatt()
-		ansattRepository.upsert(ansatt)
-		val insertedAnsatt = ansattRepository.get(ansatt.id)
-		insertedAnsatt shouldBe ansatt
-	}
+    @Test
+    fun `upsert - ny ansatt - inserter`() {
+        val ansatt = getNavAnsatt()
+        ansattRepository.upsert(ansatt)
+        val insertedAnsatt = ansattRepository.get(ansatt.id)
+        insertedAnsatt shouldBe ansatt
+    }
 
-	@Test
-	fun `upsert - endret ansatt - oppdaterer`() {
-		val ansatt = getNavAnsatt()
-		ansattRepository.upsert(ansatt)
-		val nyEpost = "foo@bar.baz"
-		ansattRepository.upsert(ansatt.copy(epost = "foo@bar.baz"))
+    @Test
+    fun `upsert - endret ansatt - oppdaterer`() {
+        val ansatt = getNavAnsatt()
+        ansattRepository.upsert(ansatt)
+        val nyEpost = "foo@bar.baz"
+        ansattRepository.upsert(ansatt.copy(epost = "foo@bar.baz"))
 
-		val insertedAnsatt = ansattRepository.get(ansatt.id)
-		insertedAnsatt!!.epost shouldBe nyEpost
-	}
+        val insertedAnsatt = ansattRepository.get(ansatt.id)
+        insertedAnsatt!!.epost shouldBe nyEpost
+    }
 }

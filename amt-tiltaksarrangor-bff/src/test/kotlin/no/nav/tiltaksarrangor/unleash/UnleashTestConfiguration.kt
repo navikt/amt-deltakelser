@@ -8,11 +8,11 @@ import org.springframework.context.annotation.Bean
 
 @TestConfiguration
 class UnleashTestConfiguration {
-	@Bean
-	fun unleashClient(): Unleash = FakeUnleash().apply {
-		enableAll()
-	}
+    @Bean
+    fun unleashClient(): Unleash = FakeUnleash().apply {
+        enableAll()
+    }
 
-	@Bean
-	fun commonUnleashToggle(fakeUnleash: Unleash): CommonUnleashToggle = CommonUnleashToggle(fakeUnleash)
+    @Bean
+    fun commonUnleashToggle(fakeUnleash: Unleash): CommonUnleashToggle = CommonUnleashToggle(fakeUnleash)
 }

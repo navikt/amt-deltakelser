@@ -7,6 +7,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration(proxyBeanMethods = false)
 class LogConfig {
-	@Bean
-	fun auditLogger(): AuditLogger = AuditLoggerImpl()
+    @Bean
+    fun auditLogger(): AuditLogger = AuditLoggerImpl()
 }

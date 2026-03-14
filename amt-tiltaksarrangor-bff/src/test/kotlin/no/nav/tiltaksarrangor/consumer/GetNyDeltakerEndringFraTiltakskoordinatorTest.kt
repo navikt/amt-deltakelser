@@ -10,54 +10,54 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class GetNyDeltakerEndringFraTiltakskoordinatorTest {
-	@Test
-	fun `skal returnere null - ingen TildelPlass eller DelMedArrangor endringer`() {
-		val foerrsteEndring = endringFraTiltakskoordinatorInTest
-		val andreEndring = endringFraTiltakskoordinatorInTest.copy(
-			endring = EndringFraTiltakskoordinator.Avslag(
-				aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT),
-				begrunnelse = "z",
-			),
-		)
+    @Test
+    fun `skal returnere null - ingen TildelPlass eller DelMedArrangor endringer`() {
+        val foerrsteEndring = endringFraTiltakskoordinatorInTest
+        val andreEndring = endringFraTiltakskoordinatorInTest.copy(
+            endring = EndringFraTiltakskoordinator.Avslag(
+                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT),
+                begrunnelse = "z",
+            ),
+        )
 
-		val result = listOf(
-			DeltakerHistorikk.EndringFraTiltakskoordinator(
-				endringFraTiltakskoordinator = foerrsteEndring,
-			),
-			DeltakerHistorikk.EndringFraTiltakskoordinator(
-				endringFraTiltakskoordinator = andreEndring,
-			),
-		).getNyDeltakerEndringFraTiltakskoordinator()
+        val result = listOf(
+            DeltakerHistorikk.EndringFraTiltakskoordinator(
+                endringFraTiltakskoordinator = foerrsteEndring,
+            ),
+            DeltakerHistorikk.EndringFraTiltakskoordinator(
+                endringFraTiltakskoordinator = andreEndring,
+            ),
+        ).getNyDeltakerEndringFraTiltakskoordinator()
 
-		result.shouldBeNull()
-	}
+        result.shouldBeNull()
+    }
 
-	@Test
-	fun `skal returnere nyeste TildelPlass endring`() {
-		val foerrsteEndring = endringFraTiltakskoordinatorInTest.copy(endring = EndringFraTiltakskoordinator.TildelPlass)
-		val andreEndring = foerrsteEndring.copy(endret = endringFraTiltakskoordinatorInTest.endret.plusDays(1))
+    @Test
+    fun `skal returnere nyeste TildelPlass endring`() {
+        val foerrsteEndring = endringFraTiltakskoordinatorInTest.copy(endring = EndringFraTiltakskoordinator.TildelPlass)
+        val andreEndring = foerrsteEndring.copy(endret = endringFraTiltakskoordinatorInTest.endret.plusDays(1))
 
-		val result = listOf(
-			DeltakerHistorikk.EndringFraTiltakskoordinator(
-				endringFraTiltakskoordinator = foerrsteEndring,
-			),
-			DeltakerHistorikk.EndringFraTiltakskoordinator(
-				endringFraTiltakskoordinator = andreEndring,
-			),
-		).getNyDeltakerEndringFraTiltakskoordinator()
+        val result = listOf(
+            DeltakerHistorikk.EndringFraTiltakskoordinator(
+                endringFraTiltakskoordinator = foerrsteEndring,
+            ),
+            DeltakerHistorikk.EndringFraTiltakskoordinator(
+                endringFraTiltakskoordinator = andreEndring,
+            ),
+        ).getNyDeltakerEndringFraTiltakskoordinator()
 
-		result.shouldNotBeNull()
-		result.endringFraTiltakskoordinator shouldBe andreEndring
-	}
+        result.shouldNotBeNull()
+        result.endringFraTiltakskoordinator shouldBe andreEndring
+    }
 
-	companion object {
-		private val endringFraTiltakskoordinatorInTest = EndringFraTiltakskoordinator(
-			id = UUID.randomUUID(),
-			deltakerId = UUID.randomUUID(),
-			endring = EndringFraTiltakskoordinator.SettPaaVenteliste,
-			endret = LocalDateTime.now(),
-			endretAv = UUID.randomUUID(),
-			endretAvEnhet = UUID.randomUUID(),
-		)
-	}
+    companion object {
+        private val endringFraTiltakskoordinatorInTest = EndringFraTiltakskoordinator(
+            id = UUID.randomUUID(),
+            deltakerId = UUID.randomUUID(),
+            endring = EndringFraTiltakskoordinator.SettPaaVenteliste,
+            endret = LocalDateTime.now(),
+            endretAv = UUID.randomUUID(),
+            endretAvEnhet = UUID.randomUUID(),
+        )
+    }
 }

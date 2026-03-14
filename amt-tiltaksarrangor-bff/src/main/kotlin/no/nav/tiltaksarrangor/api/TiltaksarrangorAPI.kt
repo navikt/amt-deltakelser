@@ -20,61 +20,61 @@ import java.util.UUID
 @RestController
 @RequestMapping("/tiltaksarrangor")
 class TiltaksarrangorAPI(
-	private val tokenService: TokenService,
-	private val tiltaksarrangorService: TiltaksarrangorService,
+    private val tokenService: TokenService,
+    private val tiltaksarrangorService: TiltaksarrangorService,
 ) {
-	@GetMapping("/meg/roller")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getMineRoller(): List<String> {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return tiltaksarrangorService.getMineRoller(personIdent)
-	}
+    @GetMapping("/meg/roller")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getMineRoller(): List<String> {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return tiltaksarrangorService.getMineRoller(personIdent)
+    }
 
-	@GetMapping("/deltaker/{deltakerId}")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getDeltaker(
-		@PathVariable deltakerId: UUID,
-	): Deltaker {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return tiltaksarrangorService.getDeltaker(personIdent, deltakerId)
-	}
+    @GetMapping("/deltaker/{deltakerId}")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getDeltaker(
+        @PathVariable deltakerId: UUID,
+    ): Deltaker {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return tiltaksarrangorService.getDeltaker(personIdent, deltakerId)
+    }
 
-	@GetMapping("/deltaker/{deltakerId}/historikk")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getDeltakerhistorikk(
-		@PathVariable deltakerId: UUID,
-	): String {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		val historikk = tiltaksarrangorService.getDeltakerHistorikk(personIdent, deltakerId)
-		return objectMapper.writePolymorphicListAsString(historikk)
-	}
+    @GetMapping("/deltaker/{deltakerId}/historikk")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getDeltakerhistorikk(
+        @PathVariable deltakerId: UUID,
+    ): String {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        val historikk = tiltaksarrangorService.getDeltakerHistorikk(personIdent, deltakerId)
+        return objectMapper.writePolymorphicListAsString(historikk)
+    }
 
-	@PostMapping("/deltaker/{deltakerId}/endring/{ulestEndringId}/marker-som-lest")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun markerSomLest(
-		@PathVariable deltakerId: UUID,
-		@PathVariable ulestEndringId: UUID,
-	) {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		tiltaksarrangorService.markerEndringSomLest(personIdent, deltakerId, ulestEndringId)
-	}
+    @PostMapping("/deltaker/{deltakerId}/endring/{ulestEndringId}/marker-som-lest")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun markerSomLest(
+        @PathVariable deltakerId: UUID,
+        @PathVariable ulestEndringId: UUID,
+    ) {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        tiltaksarrangorService.markerEndringSomLest(personIdent, deltakerId, ulestEndringId)
+    }
 
-	@PostMapping("/deltaker/{deltakerId}/vurdering")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun registrerVurdering(
-		@PathVariable deltakerId: UUID,
-		@RequestBody request: RegistrerVurderingRequest,
-	) {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		tiltaksarrangorService.registrerVurdering(personIdent, deltakerId, request)
-	}
+    @PostMapping("/deltaker/{deltakerId}/vurdering")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun registrerVurdering(
+        @PathVariable deltakerId: UUID,
+        @RequestBody request: RegistrerVurderingRequest,
+    ) {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        tiltaksarrangorService.registrerVurdering(personIdent, deltakerId, request)
+    }
 
-	@DeleteMapping("/deltaker/{deltakerId}")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun fjernDeltaker(
-		@PathVariable deltakerId: UUID,
-	) {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		tiltaksarrangorService.fjernDeltaker(personIdent, deltakerId)
-	}
+    @DeleteMapping("/deltaker/{deltakerId}")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun fjernDeltaker(
+        @PathVariable deltakerId: UUID,
+    ) {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        tiltaksarrangorService.fjernDeltaker(personIdent, deltakerId)
+    }
 }

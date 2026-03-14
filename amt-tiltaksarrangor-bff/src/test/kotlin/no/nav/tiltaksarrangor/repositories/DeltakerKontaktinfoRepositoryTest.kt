@@ -10,58 +10,61 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest(classes = [DeltakerKontaktinfoRepository::class])
 class DeltakerKontaktinfoRepositoryTest(
-	private val deltakerKontaktinfoRepository: DeltakerKontaktinfoRepository,
+    private val deltakerKontaktinfoRepository: DeltakerKontaktinfoRepository,
 ) : RepositoryTestBase() {
-	val kontaktinfo = Kontaktinformasjon(
-		epost = "ny@epost",
-		telefonnummer = "nyttTelefonnummer",
-	)
+    val kontaktinfo = Kontaktinformasjon(
+        epost = "ny@epost",
+        telefonnummer = "nyttTelefonnummer",
+    )
 
-	@Test
-	fun `oppdaterKontaktinfo - en deltaker - oppdaterer`() {
-		with(DeltakerContext(applicationContext)) {
-			deltakerKontaktinfoRepository.oppdaterKontaktinformasjon(mapOf(deltaker.personident to kontaktinfo))
+    @Test
+    fun `oppdaterKontaktinfo - en deltaker - oppdaterer`() {
+        with(DeltakerContext(applicationContext)) {
+            deltakerKontaktinfoRepository.oppdaterKontaktinformasjon(mapOf(deltaker.personident to kontaktinfo))
 
-			assertKontaktinfoOppdatert(this, kontaktinfo)
-		}
-	}
+            assertKontaktinfoOppdatert(this, kontaktinfo)
+        }
+    }
 
-	@Test
-	fun `oppdaterKontaktinfo - flere deltakere - oppdaterer`() {
-		val deltakerCtx1 = DeltakerContext(applicationContext)
-		val deltakerCtx2 = DeltakerContext(applicationContext)
-		deltakerKontaktinfoRepository.oppdaterKontaktinformasjon(
-			mapOf(
-				deltakerCtx1.deltaker.personident to kontaktinfo,
-				deltakerCtx2.deltaker.personident to kontaktinfo,
-			),
-		)
+    @Test
+    fun `oppdaterKontaktinfo - flere deltakere - oppdaterer`() {
+        val deltakerCtx1 = DeltakerContext(applicationContext)
+        val deltakerCtx2 = DeltakerContext(applicationContext)
+        deltakerKontaktinfoRepository.oppdaterKontaktinformasjon(
+            mapOf(
+                deltakerCtx1.deltaker.personident to kontaktinfo,
+                deltakerCtx2.deltaker.personident to kontaktinfo,
+            ),
+        )
 
-		assertKontaktinfoOppdatert(deltakerCtx1, kontaktinfo)
-		assertKontaktinfoOppdatert(deltakerCtx2, kontaktinfo)
-	}
+        assertKontaktinfoOppdatert(deltakerCtx1, kontaktinfo)
+        assertKontaktinfoOppdatert(deltakerCtx2, kontaktinfo)
+    }
 
-	@Test
-	fun `getPersonerForOppdatering - distribuerer deltakere på time`() {
-		with(
-			DeltakerContext(applicationContext),
-		) {
-			(0..23).forEach { time ->
-				medPersonident(time.toString())
-				deltakerKontaktinfoRepository
-					.getPersonerForOppdatering(time)
-					.shouldNotBeNull()
-					.shouldBe(listOf(deltaker.personident))
-			}
-		}
-	}
+    @Test
+    fun `getPersonerForOppdatering - distribuerer deltakere på time`() {
+        with(
+            DeltakerContext(applicationContext),
+        ) {
+            (0..23).forEach { time ->
+                medPersonident(time.toString())
+                deltakerKontaktinfoRepository
+                    .getPersonerForOppdatering(time)
+                    .shouldNotBeNull()
+                    .shouldBe(listOf(deltaker.personident))
+            }
+        }
+    }
 
-	private fun assertKontaktinfoOppdatert(deltakerContext: DeltakerContext, kontaktinfo: Kontaktinformasjon) {
-		val oppdatertDeltaker = deltakerContext.deltakerRepository
-			.getDeltaker(deltakerContext.deltaker.id)
-			.shouldNotBeNull()
+    private fun assertKontaktinfoOppdatert(
+        deltakerContext: DeltakerContext,
+        kontaktinfo: Kontaktinformasjon,
+    ) {
+        val oppdatertDeltaker = deltakerContext.deltakerRepository
+            .getDeltaker(deltakerContext.deltaker.id)
+            .shouldNotBeNull()
 
-		oppdatertDeltaker.telefonnummer shouldBe kontaktinfo.telefonnummer
-		oppdatertDeltaker.epost shouldBe kontaktinfo.epost
-	}
+        oppdatertDeltaker.telefonnummer shouldBe kontaktinfo.telefonnummer
+        oppdatertDeltaker.epost shouldBe kontaktinfo.epost
+    }
 }

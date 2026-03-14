@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/tiltaksarrangor/veileder")
 class VeilederAPI(
-	private val tokenService: TokenService,
-	private val veilederService: VeilederService,
+    private val tokenService: TokenService,
+    private val veilederService: VeilederService,
 ) {
-	@GetMapping("/mine-deltakere")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getMineDeltakere(): List<Deltaker> {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return veilederService.getMineDeltakere(personIdent)
-	}
+    @GetMapping("/mine-deltakere")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getMineDeltakere(): List<Deltaker> {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return veilederService.getMineDeltakere(personIdent)
+    }
 }

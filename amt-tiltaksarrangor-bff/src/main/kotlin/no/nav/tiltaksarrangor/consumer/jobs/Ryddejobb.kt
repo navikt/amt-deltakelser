@@ -11,25 +11,25 @@ import java.time.LocalDate
 
 @Component
 class Ryddejobb(
-	private val leaderElection: LeaderElection,
-	private val deltakerlisteRepository: DeltakerlisteRepository,
-	private val deltakerRepository: DeltakerRepository,
+    private val leaderElection: LeaderElection,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val deltakerRepository: DeltakerRepository,
 ) {
-	private val log = LoggerFactory.getLogger(javaClass)
+    private val log = LoggerFactory.getLogger(javaClass)
 
-	@Scheduled(cron = "0 0 3 * * *") // kl 03.00 hver natt
-	fun slettUtdaterteDeltakerlisterOgDeltakere() {
-		if (leaderElection.isLeader()) {
-			val slettesDato = LocalDate.now().minusDays(DAGER_AVSLUTTET_DELTAKER_VISES)
-			val deltakerlisterSomSkalSlettes = deltakerlisteRepository.getDeltakerlisterSomSkalSlettes(slettesDato)
-			deltakerlisterSomSkalSlettes.forEach { deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(it) }
-			log.info("Slettet ${deltakerlisterSomSkalSlettes.size} deltakerlister med deltakere")
+    @Scheduled(cron = "0 0 3 * * *") // kl 03.00 hver natt
+    fun slettUtdaterteDeltakerlisterOgDeltakere() {
+        if (leaderElection.isLeader()) {
+            val slettesDato = LocalDate.now().minusDays(DAGER_AVSLUTTET_DELTAKER_VISES)
+            val deltakerlisterSomSkalSlettes = deltakerlisteRepository.getDeltakerlisterSomSkalSlettes(slettesDato)
+            deltakerlisterSomSkalSlettes.forEach { deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(it) }
+            log.info("Slettet ${deltakerlisterSomSkalSlettes.size} deltakerlister med deltakere")
 
-			val deltakereSomSkalSlettes = deltakerRepository.getDeltakereSomSkalSlettes(slettesDato)
-			deltakereSomSkalSlettes.forEach { deltakerRepository.deleteDeltaker(it) }
-			log.info("Slettet ${deltakereSomSkalSlettes.size} deltakere")
-		} else {
-			log.info("Kjører ikke ryddejobb siden denne podden ikke er leader")
-		}
-	}
+            val deltakereSomSkalSlettes = deltakerRepository.getDeltakereSomSkalSlettes(slettesDato)
+            deltakereSomSkalSlettes.forEach { deltakerRepository.deleteDeltaker(it) }
+            log.info("Slettet ${deltakereSomSkalSlettes.size} deltakere")
+        } else {
+            log.info("Kjører ikke ryddejobb siden denne podden ikke er leader")
+        }
+    }
 }

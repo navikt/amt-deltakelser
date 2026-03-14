@@ -14,29 +14,29 @@ import java.util.UUID
 
 @Service
 class MeldingTilgangskontrollService(
-	private val tokenService: TokenService,
-	private val ansattService: AnsattService,
-	private val deltakerRepository: DeltakerRepository,
-	private val tilgangskontrollService: TilgangskontrollService,
-	private val unleashToggle: CommonUnleashToggle,
+    private val tokenService: TokenService,
+    private val ansattService: AnsattService,
+    private val deltakerRepository: DeltakerRepository,
+    private val tilgangskontrollService: TilgangskontrollService,
+    private val unleashToggle: CommonUnleashToggle,
 ) {
-	fun <T> medTilgangTilAnsattOgDeltaker(
-		deltakerId: UUID,
-		block: (ansatt: AnsattDbo, deltaker: DeltakerDbo, deltakerliste: DeltakerlisteDbo) -> T,
-	): T {
-		val personident = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		val ansatt = ansattService.getAnsattMedRoller(personident)
-		val deltakerMedDeltakerliste = deltakerRepository
-			.getDeltakerMedDeltakerliste(deltakerId)
-			?.takeIf { it.deltakerliste.erTilgjengeligForArrangor() }
-			?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
+    fun <T> medTilgangTilAnsattOgDeltaker(
+        deltakerId: UUID,
+        block: (ansatt: AnsattDbo, deltaker: DeltakerDbo, deltakerliste: DeltakerlisteDbo) -> T,
+    ): T {
+        val personident = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        val ansatt = ansattService.getAnsattMedRoller(personident)
+        val deltakerMedDeltakerliste = deltakerRepository
+            .getDeltakerMedDeltakerliste(deltakerId)
+            ?.takeIf { it.deltakerliste.erTilgjengeligForArrangor() }
+            ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
 
-		if (!unleashToggle.erKometMasterForTiltakstype(deltakerMedDeltakerliste.deltakerliste.tiltakskode)) {
-			throw UnauthorizedException("Endepunkt er utilgjenglig")
-		}
+        if (!unleashToggle.erKometMasterForTiltakstype(deltakerMedDeltakerliste.deltakerliste.tiltakskode)) {
+            throw UnauthorizedException("Endepunkt er utilgjenglig")
+        }
 
-		tilgangskontrollService.verifiserTilgangTilDeltakerOgMeldinger(ansatt, deltakerMedDeltakerliste)
+        tilgangskontrollService.verifiserTilgangTilDeltakerOgMeldinger(ansatt, deltakerMedDeltakerliste)
 
-		return block(ansatt, deltakerMedDeltakerliste.deltaker, deltakerMedDeltakerliste.deltakerliste)
-	}
+        return block(ansatt, deltakerMedDeltakerliste.deltaker, deltakerMedDeltakerliste.deltakerliste)
+    }
 }

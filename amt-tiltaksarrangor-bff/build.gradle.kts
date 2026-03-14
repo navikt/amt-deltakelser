@@ -1,37 +1,18 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    val kotlinVersion = "2.3.10"
+    kotlin("jvm")
+    id("org.jlleitschuh.gradle.ktlint")
 
-    id("org.springframework.boot") version "4.0.3"
-    id("io.spring.dependency-management") version "1.1.7"
-    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.spring") version kotlinVersion
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.spring.dependency.management)
 }
-
-group = "no.nav.amt-tiltaksarrangor-bff"
-version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_25
 
 repositories {
     mavenCentral()
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
-
-val logstashEncoderVersion = "9.0"
-val kafkaClientsVersion = "4.2.0"
-val tokenSupportVersion = "6.0.1"
-val okHttpVersion = "5.3.2"
-val kotestVersion = "6.1.4"
-val mockkVersion = "1.14.9"
-val commonVersion = "3.2026.03.03_07.58-86d37775258a"
-val unleashVersion = "12.2.0"
-val ktlintVersion = "1.4.1"
-val amtLibVersion = "1.2026.03.09_15.52-6a513965cd5d"
-val shedlockVersion = "7.6.0"
-val springmockkVersion = "5.0.1"
-val jacksonModuleKotlinVersion = "3.1.0"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -42,47 +23,48 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-flyway")
     implementation("org.springframework.boot:spring-boot-kafka")
 
-    implementation("tools.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion")
+    implementation(libs.tools.jackson.module.kotlin)
 
-    implementation("org.flywaydb:flyway-database-postgresql")
-    implementation("io.micrometer:micrometer-registry-prometheus")
-    implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
-    implementation("no.nav.common:audit-log:$commonVersion")
-    implementation("no.nav.common:log:$commonVersion") {
+    implementation(libs.flyway.postgres)
+    implementation(libs.micrometer.prometheus)
+
+    implementation(libs.logstash.encoder)
+    implementation(libs.nav.common.audit.log)
+    implementation(libs.nav.common.log) {
         exclude("com.squareup.okhttp3", "okhttp")
     }
 
-    implementation("org.apache.kafka:kafka-clients:$kafkaClientsVersion")
+    implementation(libs.kafka.clients)
 
-    implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
-    implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
-    implementation("com.squareup.okhttp3:okhttp:$okHttpVersion")
-    implementation("com.github.ben-manes.caffeine:caffeine")
-    implementation("io.getunleash:unleash-client-java:$unleashVersion")
+    implementation(libs.token.validation.spring)
+    implementation(libs.token.client.spring)
+    implementation(libs.okhttp)
+    implementation(libs.caffeine)
+    implementation(libs.unleash)
 
-    implementation("org.postgresql:postgresql")
+    implementation(libs.postgresql)
 
-    implementation("no.nav.amt.deltakelser.lib:models:$amtLibVersion")
-    implementation("no.nav.amt.deltakelser.lib:kafka:$amtLibVersion")
-    implementation("no.nav.amt.deltakelser.lib:utils:$amtLibVersion")
+    implementation(project(":amt-lib:models"))
+    implementation(project(":amt-lib:kafka"))
+    implementation(project(":amt-lib:utils"))
 
-    implementation("net.javacrumbs.shedlock:shedlock-spring:$shedlockVersion")
-    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:$shedlockVersion")
+    implementation(libs.shedlock.spring)
+    implementation(libs.shedlock.jdbc.template)
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-data-jdbc-test")
     testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
 
-    testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
-    testImplementation("no.nav.security:token-validation-spring-test:$tokenSupportVersion")
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.token.validation.spring.test)
 
-    testImplementation("org.testcontainers:testcontainers-postgresql")
-    testImplementation("org.testcontainers:testcontainers-kafka")
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.kafka)
 
-    testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("com.squareup.okhttp3:mockwebserver:$okHttpVersion")
-    testImplementation("com.ninja-squad:springmockk:$springmockkVersion")
+    testImplementation(libs.mockk)
+    testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.springmockk)
 }
 
 kotlin {
@@ -97,7 +79,7 @@ kotlin {
 }
 
 ktlint {
-    version = ktlintVersion
+    version = libs.versions.ktlint.cli.version
 }
 
 tasks.named<Jar>("jar") {

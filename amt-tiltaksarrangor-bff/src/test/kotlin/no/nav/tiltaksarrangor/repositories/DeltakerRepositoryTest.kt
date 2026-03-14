@@ -13,72 +13,72 @@ import java.time.LocalDateTime
 
 @SpringBootTest(classes = [DeltakerRepository::class])
 class DeltakerRepositoryTest(
-	private val sut: DeltakerRepository,
+    private val sut: DeltakerRepository,
 ) : RepositoryTestBase() {
-	@Test
-	fun `oppdaterEnhetsnavnForDeltakere - nytt enhetsnavn - oppdaterer`() {
-		with(DeltakerContext(applicationContext)) {
-			val nyttEnhetsNavn = "Nytt Navn"
-			sut.oppdaterEnhetsnavnForDeltakere(deltaker.navKontor!!, nyttEnhetsNavn)
+    @Test
+    fun `oppdaterEnhetsnavnForDeltakere - nytt enhetsnavn - oppdaterer`() {
+        with(DeltakerContext(applicationContext)) {
+            val nyttEnhetsNavn = "Nytt Navn"
+            sut.oppdaterEnhetsnavnForDeltakere(deltaker.navKontor!!, nyttEnhetsNavn)
 
-			sut.getDeltaker(deltaker.id)!!.navKontor shouldBe nyttEnhetsNavn
-		}
-	}
+            sut.getDeltaker(deltaker.id)!!.navKontor shouldBe nyttEnhetsNavn
+        }
+    }
 
-	@Nested
-	inner class GetDeltakereForDeltakerlisteTests {
-		@Test
-		fun `getDeltakereForDeltakerliste skal returnere deltaker`() {
-			with(DeltakerContext(applicationContext)) {
-				val deltakere = sut.getDeltakereForDeltakerliste(deltaker.deltakerlisteId)
+    @Nested
+    inner class GetDeltakereForDeltakerlisteTests {
+        @Test
+        fun `getDeltakereForDeltakerliste skal returnere deltaker`() {
+            with(DeltakerContext(applicationContext)) {
+                val deltakere = sut.getDeltakereForDeltakerliste(deltaker.deltakerlisteId)
 
-				deltakere.size shouldBe 1
-			}
-		}
+                deltakere.size shouldBe 1
+            }
+        }
 
-		@Test
-		fun `getDeltakereForDeltakerliste med skjult_date, skal ikke returnere deltaker`() {
-			with(DeltakerContext(applicationContext)) {
-				deltakerRepository.insertOrUpdateDeltaker(
-					deltaker.copy(
-						skjultDato = LocalDateTime.now(),
-					),
-				)
+        @Test
+        fun `getDeltakereForDeltakerliste med skjult_date, skal ikke returnere deltaker`() {
+            with(DeltakerContext(applicationContext)) {
+                deltakerRepository.insertOrUpdateDeltaker(
+                    deltaker.copy(
+                        skjultDato = LocalDateTime.now(),
+                    ),
+                )
 
-				val deltakere = sut.getDeltakereForDeltakerliste(deltaker.deltakerlisteId)
+                val deltakere = sut.getDeltakereForDeltakerliste(deltaker.deltakerlisteId)
 
-				deltakere.shouldBeEmpty()
-			}
-		}
+                deltakere.shouldBeEmpty()
+            }
+        }
 
-		@Test
-		fun `getDeltakereForDeltakerliste med sluttdato 40 dager tilbake i tid, skal ikke returnere deltaker`() {
-			with(DeltakerContext(applicationContext)) {
-				deltakerRepository.insertOrUpdateDeltaker(
-					deltaker.copy(
-						sluttdato = LocalDate.now().minusDays(40),
-					),
-				)
+        @Test
+        fun `getDeltakereForDeltakerliste med sluttdato 40 dager tilbake i tid, skal ikke returnere deltaker`() {
+            with(DeltakerContext(applicationContext)) {
+                deltakerRepository.insertOrUpdateDeltaker(
+                    deltaker.copy(
+                        sluttdato = LocalDate.now().minusDays(40),
+                    ),
+                )
 
-				val deltakere = sut.getDeltakereForDeltakerliste(deltaker.deltakerlisteId)
+                val deltakere = sut.getDeltakereForDeltakerliste(deltaker.deltakerlisteId)
 
-				deltakere.shouldBeEmpty()
-			}
-		}
+                deltakere.shouldBeEmpty()
+            }
+        }
 
-		@Test
-		fun `getDeltakereForDeltakerliste med sluttdato 39 dager tilbake i tid, skal returnere deltaker`() {
-			with(DeltakerContext(applicationContext)) {
-				deltakerRepository.insertOrUpdateDeltaker(
-					deltaker.copy(
-						sluttdato = LocalDate.now().minusDays(39),
-					),
-				)
+        @Test
+        fun `getDeltakereForDeltakerliste med sluttdato 39 dager tilbake i tid, skal returnere deltaker`() {
+            with(DeltakerContext(applicationContext)) {
+                deltakerRepository.insertOrUpdateDeltaker(
+                    deltaker.copy(
+                        sluttdato = LocalDate.now().minusDays(39),
+                    ),
+                )
 
-				val deltakere = sut.getDeltakereForDeltakerliste(deltaker.deltakerlisteId)
+                val deltakere = sut.getDeltakereForDeltakerliste(deltaker.deltakerlisteId)
 
-				deltakere.shouldNotBeEmpty()
-			}
-		}
-	}
+                deltakere.shouldNotBeEmpty()
+            }
+        }
+    }
 }

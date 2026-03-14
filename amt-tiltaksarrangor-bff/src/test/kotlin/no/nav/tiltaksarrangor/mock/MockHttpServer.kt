@@ -13,91 +13,78 @@ private val requestBodyCache = mutableMapOf<RecordedRequest, String>()
 fun RecordedRequest.getBodyAsString(): String = requestBodyCache.getOrPut(this) { this.body.readUtf8() }
 
 abstract class MockHttpServer(
-	private val name: String,
+    private val name: String,
 ) {
-	private val server = MockWebServer()
+    private val server = MockWebServer()
 
-	private val log = LoggerFactory.getLogger(javaClass)
+    private val log = LoggerFactory.getLogger(javaClass)
 
-	private var lastRequestCount = 0
+    private var lastRequestCount = 0
 
-	private val responses = mutableMapOf<(request: RecordedRequest) -> Boolean, ResponseHolder>()
+    private val responses = mutableMapOf<(request: RecordedRequest) -> Boolean, ResponseHolder>()
 
-	fun start() {
-		try {
-			server.start()
+    fun start() {
+        try {
+            server.start()
 
-			server.dispatcher = object : Dispatcher() {
-				override fun dispatch(request: RecordedRequest): MockResponse {
-					val response = responses.entries.find { it.key.invoke(request) }?.value
-						?: throw IllegalStateException(
-							"$name: Mock has no handler for $request\n" +
-								"	Headers: \n${printHeaders(request.headers)}\n" +
-								"	Body: ${request.getBodyAsString()}",
-						)
+            server.dispatcher = object : Dispatcher() {
+                override fun dispatch(request: RecordedRequest): MockResponse {
+                    val response = responses.entries.find { it.key.invoke(request) }?.value
+                        ?: throw IllegalStateException(
+                            "$name: Mock has no handler for $request\n" +
+                                "	Headers: \n${printHeaders(request.headers)}\n" +
+                                "	Body: ${request.getBodyAsString()}",
+                        )
 
-					response.count = response.count + 1
+                    response.count = response.count + 1
 
-					log.info("Responding [${request.method}: ${request.path}]: $response")
-					return response.response.invoke(request)
-				}
-			}
-		} catch (e: IllegalArgumentException) {
-			log.info("${javaClass.simpleName} is already started")
-		}
-	}
+                    log.info("Responding [${request.method}: ${request.path}]: $response")
+                    return response.response.invoke(request)
+                }
+            }
+        } catch (_: IllegalArgumentException) {
+            log.info("${javaClass.simpleName} is already started")
+        }
+    }
 
-	fun addResponseHandler(predicate: (req: RecordedRequest) -> Boolean, response: (req: RecordedRequest) -> MockResponse): UUID {
-		val id = UUID.randomUUID()
-		responses[predicate] = ResponseHolder(id, response)
-		return id
-	}
+    fun addResponseHandler(
+        predicate: (req: RecordedRequest) -> Boolean,
+        response: (req: RecordedRequest) -> MockResponse,
+    ): UUID {
+        val id = UUID.randomUUID()
+        responses[predicate] = ResponseHolder(id, response)
+        return id
+    }
 
-	fun addResponseHandler(predicate: (req: RecordedRequest) -> Boolean, response: MockResponse): UUID = addResponseHandler(predicate) {
-		response
-	}
+    fun addResponseHandler(
+        predicate: (req: RecordedRequest) -> Boolean,
+        response: MockResponse,
+    ): UUID = addResponseHandler(predicate) {
+        response
+    }
 
-	fun addResponseHandler(path: String, response: MockResponse): UUID {
-		val predicate = { req: RecordedRequest -> req.path == path }
-		return addResponseHandler(predicate) { response }
-	}
+    fun addResponseHandler(
+        path: String,
+        response: MockResponse,
+    ): UUID {
+        val predicate = { req: RecordedRequest -> req.path == path }
+        return addResponseHandler(predicate) { response }
+    }
 
-	fun resetHttpServer() {
-		responses.clear()
-		lastRequestCount = server.requestCount
-	}
+    fun resetHttpServer() {
+        responses.clear()
+        lastRequestCount = server.requestCount
+    }
 
-	fun serverUrl(): String = server.url("").toString().removeSuffix("/")
+    fun serverUrl(): String = server.url("").toString().removeSuffix("/")
 
-	fun latestRequest(): RecordedRequest = server.takeRequest()
+    private fun printHeaders(headers: Headers): String = headers
+        .map { "		${it.first} : ${it.second}" }
+        .joinToString("\n")
 
-	fun requestCount(): Int = server.requestCount - lastRequestCount
-
-	fun shutdown() {
-		server.shutdown()
-	}
-
-	fun getRequestCount(id: UUID): Int {
-		val responseCount = responses.entries
-			.find { it.value.id == id }
-			?.value
-			?.count
-			?: throw IllegalStateException("No request with id $id")
-
-		return responseCount
-	}
-
-	fun clearResponses() {
-		responses.clear()
-	}
-
-	private fun printHeaders(headers: Headers): String = headers
-		.map { "		${it.first} : ${it.second}" }
-		.joinToString("\n")
-
-	private data class ResponseHolder(
-		val id: UUID,
-		val response: (request: RecordedRequest) -> MockResponse,
-		var count: Int = 0,
-	)
+    private data class ResponseHolder(
+        val id: UUID,
+        val response: (request: RecordedRequest) -> MockResponse,
+        var count: Int = 0,
+    )
 }

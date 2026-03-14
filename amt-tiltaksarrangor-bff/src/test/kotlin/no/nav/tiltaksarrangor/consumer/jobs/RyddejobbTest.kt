@@ -19,84 +19,84 @@ import java.time.LocalDate
 import java.util.UUID
 
 class RyddejobbTest(
-	private val deltakerlisteRepository: DeltakerlisteRepository,
-	private val ansattRepository: AnsattRepository,
-	private val endringsmeldingRepository: EndringsmeldingRepository,
-	private val ryddejobb: Ryddejobb,
-	@MockkBean private val leaderElection: LeaderElection,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val ansattRepository: AnsattRepository,
+    private val endringsmeldingRepository: EndringsmeldingRepository,
+    private val ryddejobb: Ryddejobb,
+    @MockkBean private val leaderElection: LeaderElection,
 ) : IntegrationTest() {
-	@BeforeEach
-	fun setUp() {
-		every { leaderElection.isLeader() } returns true
-	}
+    @BeforeEach
+    fun setUp() {
+        every { leaderElection.isLeader() } returns true
+    }
 
-	@Test
-	fun `slettUtdaterteDeltakerlisterOgDeltakere - deltakerliste avsluttet for 42 dager siden - sletter deltakerliste og deltaker`() {
-		with(DeltakerContext(applicationContext)) {
-			deltakerlisteRepository.insertOrUpdateDeltakerliste(
-				deltakerliste.copy(
-					status = GjennomforingStatusType.AVSLUTTET,
-					sluttDato = LocalDate.now().minusDays(42),
-				),
-			)
-			ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+    @Test
+    fun `slettUtdaterteDeltakerlisterOgDeltakere - deltakerliste avsluttet for 42 dager siden - sletter deltakerliste og deltaker`() {
+        with(DeltakerContext(applicationContext)) {
+            deltakerlisteRepository.insertOrUpdateDeltakerliste(
+                deltakerliste.copy(
+                    status = GjennomforingStatusType.AVSLUTTET,
+                    sluttDato = LocalDate.now().minusDays(42),
+                ),
+            )
+            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
 
-			deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldBe null
-			deltakerRepository.getDeltaker(deltaker.id) shouldBe null
-			ansattRepository.getKoordinatorDeltakerlisteDboListe(koordinator.id).size shouldBe 0
-			ansattRepository.getVeilederDeltakerDboListe(veileder.id).size shouldBe 0
-		}
-	}
+            deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldBe null
+            deltakerRepository.getDeltaker(deltaker.id) shouldBe null
+            ansattRepository.getKoordinatorDeltakerlisteDboListe(koordinator.id).size shouldBe 0
+            ansattRepository.getVeilederDeltakerDboListe(veileder.id).size shouldBe 0
+        }
+    }
 
-	@Test
-	fun `slettUtdaterteDeltakerlisterOgDeltakere - deltakerliste avsluttet for 38 dager siden - sletter ikke deltakerliste`() {
-		val deltakerliste = getDeltakerliste(UUID.randomUUID()).copy(
-			status = GjennomforingStatusType.AVSLUTTET,
-			sluttDato = LocalDate.now().minusDays(38),
-		)
-		deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
+    @Test
+    fun `slettUtdaterteDeltakerlisterOgDeltakere - deltakerliste avsluttet for 38 dager siden - sletter ikke deltakerliste`() {
+        val deltakerliste = getDeltakerliste(UUID.randomUUID()).copy(
+            status = GjennomforingStatusType.AVSLUTTET,
+            sluttDato = LocalDate.now().minusDays(38),
+        )
+        deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
 
-		ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+        ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
 
-		deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
-	}
+        deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
+    }
 
-	@Test
-	fun `slettUtdaterteDeltakerlisterOgDeltakere - deltaker har sluttet for 42 dager siden - sletter deltaker`() {
-		with(DeltakerContext(applicationContext)) {
-			medStatus(DeltakerStatus.Type.HAR_SLUTTET, 42)
-			medEndringsmelding()
+    @Test
+    fun `slettUtdaterteDeltakerlisterOgDeltakere - deltaker har sluttet for 42 dager siden - sletter deltaker`() {
+        with(DeltakerContext(applicationContext)) {
+            medStatus(DeltakerStatus.Type.HAR_SLUTTET, 42)
+            medEndringsmelding()
 
-			ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
 
-			deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
-			deltakerRepository.getDeltaker(deltaker.id) shouldBe null
-			ansattRepository.getKoordinatorDeltakerlisteDboListe(koordinator.id).size shouldBe 1
-			ansattRepository.getVeilederDeltakerDboListe(veileder.id).size shouldBe 0
-			endringsmeldingRepository.getEndringsmeldingerForDeltaker(deltaker.id) shouldBe emptyList()
-		}
-	}
+            deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
+            deltakerRepository.getDeltaker(deltaker.id) shouldBe null
+            ansattRepository.getKoordinatorDeltakerlisteDboListe(koordinator.id).size shouldBe 1
+            ansattRepository.getVeilederDeltakerDboListe(veileder.id).size shouldBe 0
+            endringsmeldingRepository.getEndringsmeldingerForDeltaker(deltaker.id) shouldBe emptyList()
+        }
+    }
 
-	@Test
-	fun `slettUtdaterteDeltakerlisterOgDeltakere - deltaker har sluttet for 38 dager siden - sletter ikke deltaker`() {
-		with(DeltakerContext(applicationContext)) {
-			medStatus(DeltakerStatus.Type.HAR_SLUTTET, 38)
-			medEndringsmelding()
+    @Test
+    fun `slettUtdaterteDeltakerlisterOgDeltakere - deltaker har sluttet for 38 dager siden - sletter ikke deltaker`() {
+        with(DeltakerContext(applicationContext)) {
+            medStatus(DeltakerStatus.Type.HAR_SLUTTET, 38)
+            medEndringsmelding()
 
-			ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
 
-			deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
-			deltakerRepository.getDeltaker(deltaker.id) shouldNotBe null
-		}
-	}
+            deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
+            deltakerRepository.getDeltaker(deltaker.id) shouldNotBe null
+        }
+    }
 
-	@Test
-	fun `slettUtdaterteDeltakerlisterOgDeltakere - ingenting skal slettes - sletter ingenting`() {
-		with(DeltakerContext(applicationContext)) {
-			ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+    @Test
+    fun `slettUtdaterteDeltakerlisterOgDeltakere - ingenting skal slettes - sletter ingenting`() {
+        with(DeltakerContext(applicationContext)) {
+            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
 
-			deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
-			deltakerRepository.getDeltaker(deltaker.id) shouldNotBe null
-		}
-	}
+            deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
+            deltakerRepository.getDeltaker(deltaker.id) shouldNotBe null
+        }
+    }
 }

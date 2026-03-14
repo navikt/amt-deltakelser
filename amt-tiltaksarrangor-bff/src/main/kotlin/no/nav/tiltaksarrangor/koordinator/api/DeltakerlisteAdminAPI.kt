@@ -16,31 +16,31 @@ import java.util.UUID
 @RestController
 @RequestMapping("/tiltaksarrangor/koordinator/admin")
 class DeltakerlisteAdminAPI(
-	private val deltakerlisteAdminService: DeltakerlisteAdminService,
-	private val tokenService: TokenService,
+    private val deltakerlisteAdminService: DeltakerlisteAdminService,
+    private val tokenService: TokenService,
 ) {
-	@GetMapping("/deltakerlister")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun getAlleDeltakerlister(): List<AdminDeltakerliste> {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return deltakerlisteAdminService.getAlleDeltakerlister(personIdent)
-	}
+    @GetMapping("/deltakerlister")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun getAlleDeltakerlister(): List<AdminDeltakerliste> {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return deltakerlisteAdminService.getAlleDeltakerlister(personIdent)
+    }
 
-	@PostMapping("/deltakerliste/{deltakerlisteId}")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun leggTilDeltakerliste(
-		@PathVariable deltakerlisteId: UUID,
-	) {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return deltakerlisteAdminService.leggTilDeltakerliste(deltakerlisteId, personIdent)
-	}
+    @PostMapping("/deltakerliste/{deltakerlisteId}")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun leggTilDeltakerliste(
+        @PathVariable deltakerlisteId: UUID,
+    ) {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return deltakerlisteAdminService.leggTilDeltakerliste(deltakerlisteId, personIdent)
+    }
 
-	@DeleteMapping("/deltakerliste/{deltakerlisteId}")
-	@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
-	fun fjernDeltakerliste(
-		@PathVariable deltakerlisteId: UUID,
-	) {
-		val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-		return deltakerlisteAdminService.fjernDeltakerliste(deltakerlisteId, personIdent)
-	}
+    @DeleteMapping("/deltakerliste/{deltakerlisteId}")
+    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+    fun fjernDeltakerliste(
+        @PathVariable deltakerlisteId: UUID,
+    ) {
+        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
+        return deltakerlisteAdminService.fjernDeltakerliste(deltakerlisteId, personIdent)
+    }
 }
