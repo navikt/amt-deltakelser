@@ -101,20 +101,18 @@ class HendelseService(
         val navEnhetId: UUID? = deltaker.navBruker.navEnhetId
 
         return when {
-            deltaker.vedtaksinformasjon != null -> {
+            deltaker.vedtaksinformasjon != null ->
                 navEnhetRepository.getOrThrow(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
-            }
 
             navEnhetId != null -> {
                 log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
                 navEnhetRepository.getOrThrow(navEnhetId)
             }
 
-            else -> {
+            else ->
                 throw IllegalStateException(
                     "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten oppfølgingsenhet, id ${deltaker.id}",
                 )
-            }
         }
     }
 

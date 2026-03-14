@@ -58,9 +58,7 @@ class VarselHendelseConsumer(
         hendelse: VarselHendelseDto,
     ) {
         when (hendelse) {
-            is EksternStatusHendelse -> {
-                log.info("Ekstern varsling for varsel ${varsel.id} er ${hendelse.status}")
-            }
+            is EksternStatusHendelse -> log.info("Ekstern varsling for varsel ${varsel.id} er ${hendelse.status}")
 
             is InaktivertVarselHendelse -> {
                 // Vi inaktiverer alle varsler selv med unntak av de som går ut på tid.
@@ -75,8 +73,7 @@ class VarselHendelseConsumer(
 
             is OpprettetVarselHendelse,
             is SlettetVarselHendelse,
-            -> {
-            }
+            -> Unit
         }
     }
 

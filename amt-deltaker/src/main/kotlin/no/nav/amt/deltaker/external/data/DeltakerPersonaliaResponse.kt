@@ -38,21 +38,13 @@ data class DeltakerPersonaliaResponse(
                 navEnhetsnummer = navEnhet?.enhetsnummer,
                 erSkjermet = deltaker.navBruker.erSkjermet,
                 adressebeskyttelse = when (deltaker.navBruker.adressebeskyttelse) {
-                    Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND -> {
-                        AdressebeskyttelseResponse.STRENGT_FORTROLIG_UTLAND
-                    }
+                    Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND -> AdressebeskyttelseResponse.STRENGT_FORTROLIG_UTLAND
 
-                    Adressebeskyttelse.STRENGT_FORTROLIG -> {
-                        AdressebeskyttelseResponse.STRENGT_FORTROLIG
-                    }
+                    Adressebeskyttelse.STRENGT_FORTROLIG -> AdressebeskyttelseResponse.STRENGT_FORTROLIG
 
-                    Adressebeskyttelse.FORTROLIG -> {
-                        AdressebeskyttelseResponse.FORTROLIG
-                    }
+                    Adressebeskyttelse.FORTROLIG -> AdressebeskyttelseResponse.FORTROLIG
 
-                    null -> {
-                        null
-                    }
+                    null -> null
                 },
             )
         }

@@ -46,29 +46,23 @@ class JournalforingService(
             return
         }
         when (hendelse.payload) {
-            is HendelseType.InnbyggerGodkjennUtkast -> {
-                handleUtkastGodkjent(
-                    hendelse,
-                    hendelse.payload.utkast,
-                    journalforingstatus,
-                )
-            }
+            is HendelseType.InnbyggerGodkjennUtkast -> handleUtkastGodkjent(
+                hendelse,
+                hendelse.payload.utkast,
+                journalforingstatus,
+            )
 
-            is HendelseType.ReaktiverDeltakelse -> {
-                handleUtkastGodkjent(
-                    hendelse,
-                    hendelse.payload.utkast,
-                    journalforingstatus,
-                )
-            }
+            is HendelseType.ReaktiverDeltakelse -> handleUtkastGodkjent(
+                hendelse,
+                hendelse.payload.utkast,
+                journalforingstatus,
+            )
 
-            is HendelseType.NavGodkjennUtkast -> {
-                handleUtkastGodkjent(
-                    hendelse,
-                    hendelse.payload.utkast,
-                    journalforingstatus,
-                )
-            }
+            is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
+                hendelse,
+                hendelse.payload.utkast,
+                journalforingstatus,
+            )
 
             is HendelseType.AvsluttDeltakelse,
             is HendelseType.EndreAvslutning,
@@ -82,17 +76,14 @@ class JournalforingService(
             is HendelseType.EndreBakgrunnsinformasjon,
             is HendelseType.LeggTilOppstartsdato,
             is HendelseType.FjernOppstartsdato,
-            -> {
-                handleEndringsvedtak(hendelse, journalforingstatus)
-            }
+            -> handleEndringsvedtak(hendelse, journalforingstatus)
 
             is HendelseType.EndreSluttarsak,
             is HendelseType.EndreUtkast,
             is HendelseType.OpprettUtkast,
             is HendelseType.AvbrytUtkast,
             is HendelseType.DeltakerSistBesokt,
-            -> {
-            }
+            -> Unit
 
             is HendelseType.SettPaaVenteliste -> journalforOgSendVentelisteBrev(hendelse, journalforingstatus)
             is HendelseType.TildelPlass -> journalforHovedvedtakForTildeltPlass(hendelse, journalforingstatus)

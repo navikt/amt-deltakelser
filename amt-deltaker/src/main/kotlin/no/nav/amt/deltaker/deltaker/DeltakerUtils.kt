@@ -48,7 +48,7 @@ object DeltakerUtils {
         }
 
         return when (endring) {
-            is EndringFraTiltakskoordinator.SettPaaVenteliste -> {
+            is EndringFraTiltakskoordinator.SettPaaVenteliste ->
                 createResult(deltaker.status.type != DeltakerStatus.Type.VENTELISTE) {
                     deltaker.copy(
                         status = nyDeltakerStatus(DeltakerStatus.Type.VENTELISTE),
@@ -56,13 +56,11 @@ object DeltakerUtils {
                         sluttdato = null,
                     )
                 }
-            }
 
-            is EndringFraTiltakskoordinator.DelMedArrangor -> {
+            is EndringFraTiltakskoordinator.DelMedArrangor ->
                 createResult(deltaker.status.type == DeltakerStatus.Type.SOKT_INN && !deltaker.erManueltDeltMedArrangor) {
                     deltaker.copy(erManueltDeltMedArrangor = true)
                 }
-            }
 
             is EndringFraTiltakskoordinator.TildelPlass -> {
                 checkNotNull(deltaker.deltakerliste.startDato) { "Kursdeltaker mangler startdato" }
@@ -78,21 +76,19 @@ object DeltakerUtils {
                 }
             }
 
-            is EndringFraTiltakskoordinator.Avslag -> {
-                createResult(
-                    deltaker.status.type in listOf(
-                        DeltakerStatus.Type.SOKT_INN,
-                        DeltakerStatus.Type.VURDERES,
-                        DeltakerStatus.Type.VENTELISTE,
-                        DeltakerStatus.Type.VENTER_PA_OPPSTART,
-                    ),
-                ) {
-                    deltaker.copy(
-                        status = nyDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),
-                        startdato = null,
-                        sluttdato = null,
-                    )
-                }
+            is EndringFraTiltakskoordinator.Avslag -> createResult(
+                deltaker.status.type in listOf(
+                    DeltakerStatus.Type.SOKT_INN,
+                    DeltakerStatus.Type.VURDERES,
+                    DeltakerStatus.Type.VENTELISTE,
+                    DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                ),
+            ) {
+                deltaker.copy(
+                    status = nyDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),
+                    startdato = null,
+                    sluttdato = null,
+                )
             }
         }
     }

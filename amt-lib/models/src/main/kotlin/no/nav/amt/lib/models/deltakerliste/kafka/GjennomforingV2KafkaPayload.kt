@@ -54,29 +54,26 @@ sealed interface GjennomforingV2KafkaPayload {
 
     fun assertPameldingstypeIsValid() {
         when {
-            tiltakskode in direktetiltak -> {
+            tiltakskode in direktetiltak ->
                 require(pameldingType == GjennomforingPameldingType.DIREKTE_VEDTAK) {
                     "$tiltakskode krever DIREKTE_VEDTAK"
                 }
-            }
 
             this is Gruppe &&
                 tiltakskode in gruppetiltak &&
                 oppstart == Oppstartstype.FELLES &&
-                tiltakskode != Tiltakskode.JOBBKLUBB -> {
+                tiltakskode != Tiltakskode.JOBBKLUBB ->
                 require(pameldingType == GjennomforingPameldingType.TRENGER_GODKJENNING) {
                     "FELLES oppstart for $tiltakskode krever TRENGER_GODKJENNING"
                 }
-            }
 
             this is Gruppe &&
                 tiltakskode in gruppetiltak &&
                 oppstart == Oppstartstype.LOPENDE &&
-                tiltakskode != Tiltakskode.JOBBKLUBB -> {
+                tiltakskode != Tiltakskode.JOBBKLUBB ->
                 require(pameldingType == GjennomforingPameldingType.DIREKTE_VEDTAK) {
                     "LOPENDE oppstart for $tiltakskode krever DIREKTE_VEDTAK"
                 }
-            }
         }
     }
 

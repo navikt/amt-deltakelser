@@ -22,8 +22,7 @@ class ForslagService(
         when (forslag.status) {
             is Forslag.Status.Godkjent,
             Forslag.Status.VenterPaSvar,
-            -> {
-            }
+            -> Unit
 
             is Forslag.Status.Avvist,
             is Forslag.Status.Erstattet,
