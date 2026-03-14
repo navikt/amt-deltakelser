@@ -36,6 +36,7 @@ token-support-version = "6.0.1"
 shedlock-spring-version = "7.6.0"
 springmockk-version = "5.0.1"
 
+
 [libraries]
 
 # spring-boot spesifikt

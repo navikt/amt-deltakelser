@@ -28,6 +28,7 @@ jobs:
             amt-felles: amt-felles/**
             amt-lib: amt-lib/**
             amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
+            all: gradle/libs.versions.toml
 
       - name: Debug changed packages
         run: |
