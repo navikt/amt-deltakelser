@@ -1,0 +1,1 @@
+alter table deltaker add column innhold jsonb;

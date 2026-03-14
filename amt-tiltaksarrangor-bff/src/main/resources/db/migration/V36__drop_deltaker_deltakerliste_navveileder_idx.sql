@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS deltaker_deltakerliste_navveileder_idx;

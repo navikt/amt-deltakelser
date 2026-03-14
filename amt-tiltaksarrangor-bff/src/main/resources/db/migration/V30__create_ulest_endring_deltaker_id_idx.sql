@@ -1,0 +1,1 @@
+CREATE INDEX ulest_endring_deltaker_id_idx ON ulest_endring(deltaker_id);

@@ -1,0 +1,2 @@
+ALTER TABLE ansatt
+    ADD COLUMN sist_innlogget TIMESTAMP WITH TIME ZONE;

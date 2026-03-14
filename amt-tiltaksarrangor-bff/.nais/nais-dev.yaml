@@ -1,0 +1,87 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-tiltaksarrangor-bff
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  gcp:
+    sqlInstances:
+      - name: amt-tiltaksarrangor-bff-1
+        type: POSTGRES_17
+        tier: db-f1-micro
+        databases:
+          - name: amt-tiltaksarrangor-bff
+            envVarPrefix: DB
+        diskAutoresize: false
+        highAvailability: false
+        insights:
+          enabled: true
+  port: 8080
+  ingresses:
+    - https://amt-tiltaksarrangor-bff.intern.dev.nav.no
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  readiness:
+    path: /internal/health/readiness
+    initialDelay: 30
+  liveness:
+    path: /internal/health/liveness
+    initialDelay: 30
+  replicas:
+    disableAutoScaling: true
+    min: 1
+    max: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+  kafka:
+    pool: nav-dev
+  tokenx:
+    enabled: true
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-tiltaksarrangor-flate
+    outbound:
+      rules:
+        - application: amt-tiltak
+        - application: amt-arrangor
+        - application: amt-person-service
+        - application: amt-deltaker
+      external:
+        - host: amt-unleash-api.nav.cloud.nais.io
+  leaderElection: true
+  envFrom:
+    - secret: amt-tiltaksarrangor-bff-unleash-api-token
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0"
+    - name: AMT_TILTAK_TOKENX_CLIENT_ID
+      value: dev-gcp:amt:amt-tiltak
+    - name: AMT_ARRANGOR_TOKENX_CLIENT_ID
+      value: dev-gcp:amt:amt-arrangor
+    - name: AMT_ARRANGOR_AAD_CLIENT_ID
+      value: api://dev-gcp.amt.amt-arrangor/.default
+    - name: AMT_PERSON_AAD_CLIENT_ID
+      value: api://dev-gcp.amt.amt-person-service/.default
+    - name: AMT_DELTAKER_AAD_CLIENT_ID
+      value: api://dev-gcp.amt.amt-deltaker/.default
+
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki

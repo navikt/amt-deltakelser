@@ -1,0 +1,1 @@
+CREATE INDEX deltaker_personident_idx ON deltaker(personident);
