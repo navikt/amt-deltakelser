@@ -2,6 +2,8 @@ name: Deploy unleash-apitoken
 
 on:
   push:
+    paths:
+      - "*/.nais/unleash-apitoken-*.yaml"
 
 permissions:
   id-token: write
@@ -9,8 +11,6 @@ permissions:
 jobs:
   changes:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
     steps:
@@ -21,14 +21,11 @@ jobs:
         with:
           filters: |
             amt-deltaker-bff:
-              - amt-deltaker-bff/.nais/unleash-apitoken-dev.yaml
-              - amt-deltaker-bff/.nais/unleash-apitoken-prod.yaml
+              - amt-deltaker-bff/.nais/unleash-apitoken-*.yaml
             amt-deltaker:
-              - amt-deltaker/.nais/unleash-apitoken-dev.yaml
-              - amt-deltaker/.nais/unleash-apitoken-prod.yaml
+              - amt-deltaker/.nais/unleash-apitoken-*.yaml
             amt-tiltaksarrangor-bff:
-              - amt-tiltaksarrangor-bff/.nais/unleash-apitoken-dev.yaml
-              - amt-tiltaksarrangor-bff/.nais/unleash-apitoken-prod.yaml
+              - amt-tiltaksarrangor-bff/.nais/unleash-apitoken-*.yaml
 
       - name: Debug changed packages
         run: |
