@@ -1,4 +1,4 @@
-name: amt-deltaker-bff - Deploy unleash-apitoken
+name: amt-tiltaksarrangor-bff - Deploy unleash-apitoken
 on:
   push:
     paths:
