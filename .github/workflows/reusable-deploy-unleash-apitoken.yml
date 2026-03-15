@@ -1,4 +1,4 @@
-name: Deploy Unleash Apitoken
+name: Reusable Deploy Unleash API Token
 
 on:
   workflow_call:

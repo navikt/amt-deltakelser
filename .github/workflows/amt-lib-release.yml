@@ -1,4 +1,4 @@
-name: amt-lib - Create release
+name: amt-lib - Create Release
 on:
   workflow_dispatch: # This workflow can be triggered manually
   push:

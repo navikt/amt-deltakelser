@@ -1,4 +1,4 @@
-name: Deploy unleash-apitoken
+name: Deploy Unleash API Token
 
 on:
   push:
