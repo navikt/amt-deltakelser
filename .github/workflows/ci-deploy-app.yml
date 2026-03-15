@@ -1,9 +1,9 @@
-name: Deploy unleash-apitoken
+name: Deploy app
 
 on:
   push:
-    paths:
-      - "*/.nais/unleash-apitoken-*.yaml"
+    branches:
+      - main
 
 permissions:
   id-token: write
@@ -11,8 +11,10 @@ permissions:
 jobs:
   changes:
     runs-on: ubuntu-latest
+
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
+
     steps:
       - uses: actions/checkout@v6
 
@@ -21,16 +23,23 @@ jobs:
         with:
           filters: |
             amt-deltaker-bff:
-              - amt-deltaker-bff/.nais/unleash-apitoken-*.yaml
+              - amt-deltaker-bff/**
+              - gradle/libs.versions.toml
+
             amt-deltaker:
-              - amt-deltaker/.nais/unleash-apitoken-*.yaml
+              - amt-deltaker/**
+              - gradle/libs.versions.toml
+
+            amt-distribusjon:
+              - amt-distribusjon/**
+              - gradle/libs.versions.toml
+
             amt-tiltaksarrangor-bff:
-              - amt-tiltaksarrangor-bff/.nais/unleash-apitoken-*.yaml
+              - amt-tiltaksarrangor-bff/**
+              - gradle/libs.versions.toml
 
       - name: Debug changed packages
-        run: |
-          echo "Changed packages raw output:"
-          echo '${{ steps.filter.outputs.changes }}'
+        run: echo '${{ steps.filter.outputs.changes }}'
 
   deploy:
     needs: changes
@@ -38,6 +47,7 @@ jobs:
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
-    uses: ./.github/workflows/reusable-deploy-unleash-apitoken.yml
+
+    uses: ./.github/workflows/reusable-deploy-app.yml
     with:
       module-path: ${{ matrix.package }}
