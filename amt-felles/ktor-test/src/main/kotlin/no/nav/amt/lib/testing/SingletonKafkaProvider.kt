@@ -55,9 +55,7 @@ object SingletonKafkaProvider {
     }
 
     fun cleanup() {
-        val topics = adminClient.listTopics().names().get()
-
-        topics.forEach {
+        adminClient.listTopics().names().get().forEach {
             try {
                 adminClient.deleteTopics(listOf(it))
                 log.info("Deleted topic $it")

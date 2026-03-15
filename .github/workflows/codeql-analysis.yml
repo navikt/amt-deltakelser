@@ -73,7 +73,7 @@ jobs:
           if [ "${{ matrix.module }}" == "all" ]; then
             ./gradlew assemble -x test --no-daemon --no-configuration-cache
           else
-            ./gradlew :${{ matrix.module }}:assemble -x test --no-daemon --no-configuration-cache
+            ./gradlew assemble -p ${{ matrix.module }} -x test --no-daemon --no-configuration-cache
           fi
 
       - name: Perform CodeQL Analysis
