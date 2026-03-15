@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: ${{ github.event_name == 'schedule' && 'all' || fromJSON(needs.changes.outputs.modules) }}
+        module: ${{ github.event_name == 'schedule' && fromJSON('["all"]') || fromJSON(needs.changes.outputs.modules) }}
         language: [java-kotlin]
 
     steps:
