@@ -1,0 +1,23 @@
+name: Deploy app (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      module-path:
+        description: Velg app
+        required: true
+        type: choice
+        options:
+          - amt-deltaker-bff
+          - amt-deltaker
+          - amt-distribusjon
+          - amt-tiltaksarrangor-bff
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/reusable-deploy-app.yml
+    with:
+      module-path: ${{ inputs.module-path }}
