@@ -15,7 +15,7 @@ permissions:
   packages: read
 
 jobs:
-  detect-changes:
+  changes:
     if: github.event_name != 'schedule'  # Skip for scheduled full scan
     runs-on: ubuntu-latest
     outputs:
@@ -39,7 +39,8 @@ jobs:
           echo '${{ steps.filter.outputs.changes }}'
 
   codeql:
-    needs: detect-changes
+    needs: changes
+    if: ${{ needs.changes.outputs.modules != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
