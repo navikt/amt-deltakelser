@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "amt-deltaker-bff/**"
+      - "amt-deltaker/**"
+      - "amt-distribusjon/**"
+      - "amt-tiltaksarrangor-bff/**"
 
 permissions:
   id-token: write
