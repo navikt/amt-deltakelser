@@ -10,10 +10,10 @@ import io.ktor.server.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getPersonIdent
-import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
@@ -27,15 +27,19 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 
 fun Routing.registerInnbyggerApi(
     deltakerRepository: DeltakerRepository,
     deltakerService: DeltakerService,
+    amtDeltakerClient: AmtDeltakerClient,
     tilgangskontrollService: TilgangskontrollService,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     innbyggerService: InnbyggerService,
     forslageRepository: ForslagRepository,
+    unleashToggle: CommonUnleashToggle,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
@@ -81,7 +85,7 @@ fun Routing.registerInnbyggerApi(
             call.respond(komplettInnbyggerDeltakerResponse(oppdatertDeltaker))
         }
 
-        // kaller ikke amt-deltaker
+        // henter deltakerhistorikk via amtDeltakerClient.getDeltakerHistorikk når prioriterSynkronKommunikasjon-toggle er aktiv, ellers brukes lokal historikk fra deltaker
         get("/innbygger/{deltakerId}/historikk") {
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
 
@@ -90,7 +94,12 @@ fun Routing.registerInnbyggerApi(
                 ressursPersonident = deltaker.navBruker.personident,
             )
 
-            val historikk = deltaker.getDeltakerHistorikkForVisning()
+            val historikk =
+                if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                    amtDeltakerClient.getDeltakerHistorikk(deltaker.id)
+                } else {
+                    deltaker.getDeltakerHistorikkForVisning()
+                }
 
             val historikkResponse = historikk.toResponse(
                 enheter = navEnhetService.hentEnheterForHistorikk(historikk),

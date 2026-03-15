@@ -7,6 +7,7 @@ import io.ktor.http.isSuccess
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
@@ -29,6 +30,10 @@ class AmtDeltakerClient(
 
     suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse = performGet("deltaker/$deltakerId")
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
+        .body()
+
+    suspend fun getDeltakerHistorikk(deltakerId: UUID): List<DeltakerHistorikk> = performGet("deltaker/$deltakerId/historikk")
+        .failIfNotSuccess("Fant ikke deltakerhistorikk for $deltakerId i amt-deltaker.")
         .body()
 
     suspend fun sistBesokt(

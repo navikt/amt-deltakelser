@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.getunleash.Unleash
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.bearerAuth
@@ -24,7 +23,6 @@ import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
 import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
-import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorsDeltakerlisteProducer
@@ -66,9 +64,12 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -90,7 +91,7 @@ class TiltakskoordinatorDeltakerApiTest {
     private val amtDistribusjonClient = mockk<AmtDistribusjonClient>()
     private val amtDeltakerClient = mockk<AmtDeltakerClient>()
     private val sporbarhetsloggService = mockk<SporbarhetsloggService>(relaxed = true)
-    private val unleash = mockk<Unleash>()
+    private val commonUnleashToggle = mockk<CommonUnleashToggle>(relaxed = true)
     private val tiltakskoordinatorTilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
     private val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
     private val deltakerlisteService = mockk<DeltakerlisteService>()
@@ -120,7 +121,7 @@ class TiltakskoordinatorDeltakerApiTest {
             deltakerRepository.get(any())
         } returns Result.success(TestData.lagDeltaker(navBruker = TestData.lagNavBruker(personident = "1234")))
         every { forslagRepository.get(any()) } returns Result.success(TestData.lagForslag())
-        every { unleash.isEnabled("amt.prioriter-synkron-kommunikasjon") } returns false
+        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
 
         setUpTestApplication()
         client
@@ -457,7 +458,9 @@ class TiltakskoordinatorDeltakerApiTest {
         val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
+        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
         every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
+        coEvery { amtDeltakerClient.getDeltakerHistorikk(any()) } returns historikk
         coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
         client.get("/deltaker/${deltaker.id}/historikk") { noBodyRequest() }.apply {
             status shouldBe HttpStatusCode.OK
@@ -828,7 +831,8 @@ class TiltakskoordinatorDeltakerApiTest {
                 sporbarhetsloggService = sporbarhetsloggService,
                 deltakerRepository = deltakerRepository,
                 deltakerlisteService = mockk(),
-                unleash = unleash,
+                unleash = mockk(),
+                commonUnleashToggle = commonUnleashToggle,
                 sporbarhetOgTilgangskontrollSvc = mockk(),
                 tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
@@ -887,7 +891,9 @@ class TiltakskoordinatorDeltakerApiTest {
         every { deltakerRepository.getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id) } returns listOf(deltaker)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
-        every { unleash.isEnabled("amt.prioriter-synkron-kommunikasjon") } returns false
+        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
+        every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
+        every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
 
         return if (oppdatertDeltaker != null) {
             coEvery {

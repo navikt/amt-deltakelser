@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
@@ -29,6 +30,8 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoReq
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.testing.utils.withLogCapture
+import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -571,6 +574,43 @@ class AmtDeltakerClientTest {
         }
     }
 
+    @Nested
+    inner class Historikk {
+        val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/historikk"
+        val expectedErrorMessage = "Fant ikke deltakerhistorikk for ${deltakerInTest.id} i amt-deltaker."
+        val historikk = TestData.leggTilHistorikk(deltakerInTest, 2, 2, 1).historikk
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            val thrown = Assertions.assertThrows(expectedExceptionType.java) {
+                runTest {
+                    createDeltakerClient(
+                        expectedUrl = expectedUrl,
+                        statusCode = statusCode,
+                        responseBody = "feil",
+                    ).getDeltakerHistorikk(deltakerInTest.id)
+                }
+            }
+
+            thrown.message shouldStartWith expectedErrorMessage
+        }
+
+        @Test
+        fun `skal returnere deltakerhistorikk`() {
+            val amtDeltakerClient = createDeltakerClient(
+                expectedUrl = expectedUrl,
+                responseBody = objectMapper.writePolymorphicListAsString(historikk),
+                isPolymorphicBody = true,
+            )
+
+            runTest {
+                amtDeltakerClient.getDeltakerHistorikk(deltakerInTest.id) shouldBe historikk
+            }
+        }
+    }
+
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
         private val deltakerInTest = lagDeltaker()
@@ -624,8 +664,8 @@ class AmtDeltakerClientTest {
             httpClient = createMockHttpClient(
                 expectedUrl = expectedUrl,
                 responseBody = responseBody,
-                isPolymorphicBody = isPolymorphicBody,
                 statusCode = statusCode,
+                isPolymorphicBody = isPolymorphicBody,
             ),
             azureAdTokenClient = mockAzureAdClient(),
         )

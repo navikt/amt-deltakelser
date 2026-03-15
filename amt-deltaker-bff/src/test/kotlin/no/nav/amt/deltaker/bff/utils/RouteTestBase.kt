@@ -30,6 +30,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.SporbarhetOgTilgangskontrollSv
 import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
 import no.nav.amt.lib.utils.applicationConfig
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
 
 abstract class RouteTestBase {
@@ -47,6 +48,7 @@ abstract class RouteTestBase {
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk(relaxed = true)
     protected val deltakerlisteService: DeltakerlisteService = mockk(relaxed = true)
     protected val unleash: Unleash = mockk(relaxed = true)
+    protected val commonUnleashToggle: CommonUnleashToggle = mockk(relaxed = true)
     protected val sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc = mockk(relaxed = true)
     protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk(relaxed = true)
     protected val tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository = mockk(relaxed = true)
@@ -81,6 +83,7 @@ abstract class RouteTestBase {
                     deltakerRepository,
                     deltakerlisteService,
                     unleash,
+                    commonUnleashToggle,
                     sporbarhetOgTilgangskontrollSvc,
                     tiltakskoordinatorService,
                     tiltakskoordinatorTilgangRepository,

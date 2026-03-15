@@ -63,6 +63,7 @@ fun Application.configureRouting(
     deltakerRepository: DeltakerRepository,
     deltakerlisteService: DeltakerlisteService,
     unleash: Unleash,
+    commonUnleashToggle: CommonUnleashToggle,
     sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc,
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
@@ -99,66 +100,70 @@ fun Application.configureRouting(
         registerHealthApi()
 
         registerVeilederApi(
-            tilgangskontrollService,
-            deltakerRepository,
-            deltakerService,
-            navAnsattService,
-            navEnhetService,
-            forslagRepository,
-            forslagService,
-            amtDistribusjonClient,
-            amtDeltakerClient,
-            sporbarhetsloggService,
-            CommonUnleashToggle(unleash),
+            tilgangskontrollService = tilgangskontrollService,
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            forslagRepository = forslagRepository,
+            forslagService = forslagService,
+            amtDistribusjonClient = amtDistribusjonClient,
+            amtDeltakerClient = amtDeltakerClient,
+            sporbarhetsloggService = sporbarhetsloggService,
+            unleashToggle = commonUnleashToggle,
         )
 
         registerPameldingApi(
-            tilgangskontrollService,
-            deltakerRepository,
-            pameldingService,
-            navAnsattService,
-            navEnhetService,
-            forslagRepository,
-            amtDistribusjonClient,
+            tilgangskontrollService = tilgangskontrollService,
+            deltakerRepository = deltakerRepository,
+            pameldingService = pameldingService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            forslageRepository = forslagRepository,
+            amtDistribusjonClient = amtDistribusjonClient,
         )
 
         registerKladdApi(
-            tilgangskontrollService,
-            deltakerRepository,
-            pameldingService,
-            navAnsattService,
-            navEnhetService,
-            forslagRepository,
-            amtDistribusjonClient,
+            tilgangskontrollService = tilgangskontrollService,
+            deltakerRepository = deltakerRepository,
+            pameldingService = pameldingService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            forslageRepository = forslagRepository,
+            amtDistribusjonClient = amtDistribusjonClient,
         )
 
         registerInnbyggerApi(
-            deltakerRepository,
-            deltakerService,
-            tilgangskontrollService,
-            navAnsattService,
-            navEnhetService,
-            innbyggerService,
-            forslagRepository,
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            amtDeltakerClient = amtDeltakerClient,
+            tilgangskontrollService = tilgangskontrollService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            innbyggerService = innbyggerService,
+            forslageRepository = forslagRepository,
+            unleashToggle = commonUnleashToggle,
         )
 
         registerUnleashApi(unleash)
 
         registerTiltakskoordinatorDeltakerApi(
-            sporbarhetOgTilgangskontrollSvc,
-            tiltakskoordinatorService,
-            deltakerRepository,
-            navAnsattService,
-            navEnhetService,
-            ulestHendelseService,
+            sporbarhetOgTilgangskontrollSvc = sporbarhetOgTilgangskontrollSvc,
+            tiltakskoordinatorService = tiltakskoordinatorService,
+            deltakerRepository = deltakerRepository,
+            amtDeltakerClient = amtDeltakerClient,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            ulesteHendelserService = ulestHendelseService,
+            unleashToggle = commonUnleashToggle,
         )
 
         registerTiltakskoordinatorDeltakerlisteApi(
-            deltakerlisteService,
-            tilgangskontrollService,
-            tiltakskoordinatorService,
-            tiltakskoordinatorTilgangRepository,
-            navAnsattService,
+            deltakerlisteService = deltakerlisteService,
+            tilgangskontrollService = tilgangskontrollService,
+            tiltakskoordinatorService = tiltakskoordinatorService,
+            tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
+            navAnsattService = navAnsattService,
         )
 
         registerUlestHendelseApi(ulestHendelseService)
