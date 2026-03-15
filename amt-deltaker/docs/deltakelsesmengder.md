@@ -253,7 +253,7 @@ Deltaker(
 
 **05.01.2025: Sluttdato endres til 31.03.2024**
 
-Siden sluttdatoen 31.03 er etter den fremtidige deltakelsesmengden 01.02 så er den nå gyldig igjen for denne perioden.
+Fordi sluttdatoen 31.03 er etter den fremtidige deltakelsesmengden 01.02, vil den nå være gyldig igjen for denne perioden.
 
 ```kotlin
 Deltaker(
