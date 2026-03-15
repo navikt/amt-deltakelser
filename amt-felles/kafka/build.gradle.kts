@@ -8,6 +8,6 @@ dependencies {
     implementation(libs.logback.classic)
     implementation(project(":amt-lib:utils"))
 
-    testImplementation(project(":amt-lib:testing"))
+    testImplementation(project(":amt-felles:ktor-test"))
     testImplementation(libs.kotlinx.coroutines.test)
 }

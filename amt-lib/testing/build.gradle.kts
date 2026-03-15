@@ -6,10 +6,7 @@ dependencies {
     implementation(project(":amt-lib:models"))
     api(project(":amt-lib:utils"))
 
-    implementation(libs.kafka.clients)
     implementation(libs.logback.classic)
-
-    implementation(libs.testcontainers.kafka)
 
     implementation(libs.caffeine)
 

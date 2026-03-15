@@ -7,4 +7,5 @@ dependencies {
     implementation(project(":amt-felles:ktor"))
 
     implementation(libs.testcontainers.postgresql)
+    implementation(libs.testcontainers.kafka)
 }
