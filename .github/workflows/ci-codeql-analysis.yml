@@ -66,7 +66,7 @@ jobs:
           build-mode: manual
 
       - name: Build artifacts
-        run: ./gradlew build --no-daemon --no-configuration-cache -x test
+        run: ./gradlew assemble --no-daemon --no-configuration-cache -x test
         env:
           JAVA_TOOL_OPTIONS: "-Dkotlin.daemon.jvmargs=-Xmx5g"
 
