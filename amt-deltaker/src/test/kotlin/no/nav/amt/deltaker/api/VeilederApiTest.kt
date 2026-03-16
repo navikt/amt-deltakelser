@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.api
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -12,6 +13,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
+import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.RouteTestBase
@@ -35,6 +37,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRe
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -48,6 +51,8 @@ class VeilederApiTest : RouteTestBase() {
             client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") { setBody("foo") }.status shouldBe
                 HttpStatusCode.Unauthorized
             client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe
+                HttpStatusCode.Unauthorized
+            client.get("/deltaker/${UUID.randomUUID()}/historikk").status shouldBe
                 HttpStatusCode.Unauthorized
         }
     }
@@ -330,6 +335,31 @@ class VeilederApiTest : RouteTestBase() {
                 deltakerId = deltakerInTest.id,
                 sistBesokt = sistBesoktInTest.withZoneSameInstant(ZoneOffset.UTC),
             )
+        }
+    }
+
+    @Test
+    fun `get historikk - har tilgang - returnerer 200`() {
+        val deltakerId = UUID.randomUUID()
+        val historikk = listOf(
+            DeltakerHistorikk.Endring(
+                TestData.lagDeltakerEndring(deltakerId = deltakerId),
+            ),
+        )
+
+        every { deltakerHistorikkService.getForDeltaker(deltakerId) } returns historikk
+
+        withTestApplicationContext { client ->
+            val response = client.get("/deltaker/$deltakerId/historikk") {
+                noBodyRequest()
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(historikk)
+        }
+
+        verify(exactly = 1) {
+            deltakerHistorikkService.getForDeltaker(deltakerId)
         }
     }
 

@@ -179,6 +179,8 @@ fun Application.module() {
             .build(),
     )
 
+    val commonUnleashToggle = CommonUnleashToggle(unleash)
+
     val kafkaProducer = Producer<String, String>(
         if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
     )
@@ -335,6 +337,7 @@ fun Application.module() {
         deltakerRepository = deltakerRepository,
         deltakerlisteService = deltakerlisteService,
         unleash = unleash,
+        commonUnleashToggle = commonUnleashToggle,
         sporbarhetOgTilgangskontrollSvc = sporbarhetOgTilgangskontrollSvc,
         tiltakskoordinatorService = tiltakskoordinatorService,
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,

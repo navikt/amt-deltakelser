@@ -15,7 +15,6 @@ import io.ktor.utils.io.ByteReadChannel
 import no.nav.amt.api.paamelding.response.OpprettKladdResponse
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
-import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
@@ -37,7 +36,6 @@ fun <T> createMockHttpClient(
     expectedUrl: String,
     responseBody: T?,
     statusCode: HttpStatusCode = HttpStatusCode.OK,
-    isPolymorphicBody: Boolean = false,
     requiresAuthHeader: Boolean = true,
 ) = HttpClient(MockEngine) {
     install(ContentNegotiation) { jackson { applicationConfig() } }
@@ -62,20 +60,20 @@ fun <T> createMockHttpClient(
                     )
                 }
 
+                is String -> {
+                    respond(
+                        content = ByteReadChannel(responseBody),
+                        status = statusCode,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
+
                 else -> {
-                    if (isPolymorphicBody) {
-                        respond(
-                            content = ByteReadChannel(objectMapper.writePolymorphicListAsString(responseBody)),
-                            status = statusCode,
-                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                        )
-                    } else {
-                        respond(
-                            content = ByteReadChannel(objectMapper.writeValueAsBytes(responseBody)),
-                            status = statusCode,
-                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                        )
-                    }
+                    respond(
+                        content = ByteReadChannel(objectMapper.writeValueAsBytes(responseBody)),
+                        status = statusCode,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
                 }
             }
         }

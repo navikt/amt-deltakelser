@@ -9,7 +9,6 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.bff.application.plugins.writePolymorphicListAsString
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
@@ -20,6 +19,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.generateJWT
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
