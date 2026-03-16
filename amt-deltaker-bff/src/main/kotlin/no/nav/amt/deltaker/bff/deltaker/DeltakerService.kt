@@ -9,10 +9,10 @@ import no.nav.amt.deltaker.bff.deltaker.model.AKTIVE_STATUSER
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
+import no.nav.amt.internapi.deltaker.request.EndringForslagRequest
+import no.nav.amt.internapi.deltaker.request.EndringRequest
+import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringForslagRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.ZonedDateTime

@@ -8,9 +8,9 @@ import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDelt
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
 import no.nav.amt.deltaker.utils.data.TestData.randomNavIdent
+import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
 import org.junit.jupiter.api.Test
 
 class EndreSluttarsakExtensionsTest {

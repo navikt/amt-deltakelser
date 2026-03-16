@@ -8,8 +8,8 @@ import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDelt
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
 import no.nav.amt.deltaker.utils.data.TestData.randomNavIdent
+import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
 import org.junit.jupiter.api.Test
 
 class DeltakerEndringExtensionsTest {

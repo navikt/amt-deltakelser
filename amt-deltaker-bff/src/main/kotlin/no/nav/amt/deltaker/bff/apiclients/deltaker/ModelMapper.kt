@@ -5,11 +5,11 @@ import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.deltaker.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.deltaker.model.NavBrukerModel
 import no.nav.amt.deltaker.bff.deltaker.model.VedtaksinformasjonModel
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.ArrangorResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.GjennomforingResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.NavBrukerResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
+import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
+import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 
 class ModelMapper {
     companion object {

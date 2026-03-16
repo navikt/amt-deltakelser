@@ -8,10 +8,10 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory

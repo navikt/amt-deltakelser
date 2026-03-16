@@ -41,6 +41,11 @@ import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
+import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
+import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
+import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
+import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.internapi.deltaker.request.InnholdRequest
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -49,11 +54,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.FjernOppstartsdatoRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment

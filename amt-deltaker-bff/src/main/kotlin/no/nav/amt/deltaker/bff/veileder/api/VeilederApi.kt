@@ -47,16 +47,16 @@ import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
+import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
+import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
+import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
+import no.nav.amt.internapi.deltaker.request.EndringRequest
+import no.nav.amt.internapi.deltaker.request.InnholdRequest
+import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
+import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
+import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -287,7 +287,7 @@ fun Routing.registerVeilederApi(
         post("/deltaker/{deltakerId}/ikke-aktuell") {
             val request = call.receive<IkkeAktuellRequest>()
             call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest(
+                no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest(
                     endretAv = endretAv,
                     endretAvEnhet = endretAvEnhet,
                     forslagId = request.forslagId,
@@ -300,7 +300,7 @@ fun Routing.registerVeilederApi(
         post("/deltaker/{deltakerId}/reaktiver") {
             val request = call.receive<ReaktiverDeltakelseRequest>()
             call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest(
+                no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest(
                     endretAv = endretAv,
                     endretAvEnhet = endretAvEnhet,
                     begrunnelse = request.begrunnelse,
@@ -315,7 +315,7 @@ fun Routing.registerVeilederApi(
                 when {
                     request.harDeltatt() && request.harFullfort() -> {
                         require(request.sluttdato != null) { "Sluttdato er påkrevd for å avslutte deltakelse" }
-                        no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest(
+                        no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest(
                             endretAv = endretAv,
                             endretAvEnhet = endretAvEnhet,
                             forslagId = request.forslagId,
@@ -341,14 +341,13 @@ fun Routing.registerVeilederApi(
 
                     else -> {
                         require(request.aarsak != null) { "Årsak er påkrevd for å sette deltaker til ikke aktuell" }
-                        no.nav.amt.lib.models.deltaker.internalapis.deltaker.request
-                            .IkkeAktuellRequest(
-                                endretAv = endretAv,
-                                endretAvEnhet = endretAvEnhet,
-                                forslagId = request.forslagId,
-                                aarsak = request.aarsak,
-                                begrunnelse = request.begrunnelse,
-                            )
+                        no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest(
+                            endretAv = endretAv,
+                            endretAvEnhet = endretAvEnhet,
+                            forslagId = request.forslagId,
+                            aarsak = request.aarsak,
+                            begrunnelse = request.begrunnelse,
+                        )
                     }
                 }
             }
@@ -360,7 +359,7 @@ fun Routing.registerVeilederApi(
             call.handleEndring(request) { _, endretAv, endretAvEnhet ->
                 // code-review note: Denne logikken bør flyttes til amt-deltaker
                 if (request.harDeltatt()) {
-                    no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndreAvslutningRequest(
+                    no.nav.amt.internapi.deltaker.request.EndreAvslutningRequest(
                         endretAv = endretAv,
                         endretAvEnhet = endretAvEnhet,
                         forslagId = request.forslagId,
@@ -371,7 +370,7 @@ fun Routing.registerVeilederApi(
                     )
                 } else {
                     require(request.aarsak != null) { "Årsak er påkrevd for å sette deltaker til ikke aktuell" }
-                    no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest(
+                    no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest(
                         endretAv = endretAv,
                         endretAvEnhet = endretAvEnhet,
                         forslagId = request.forslagId,
@@ -385,7 +384,7 @@ fun Routing.registerVeilederApi(
         post("/deltaker/{deltakerId}/forleng") {
             val request = call.receive<ForlengDeltakelseRequest>()
             call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest(
+                no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest(
                     endretAv = endretAv,
                     endretAvEnhet = endretAvEnhet,
                     forslagId = request.forslagId,
@@ -398,7 +397,7 @@ fun Routing.registerVeilederApi(
         post("/deltaker/{deltakerId}/fjern-oppstartsdato") {
             val request = call.receive<FjernOppstartsdatoRequest>()
             call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.FjernOppstartsdatoRequest(
+                no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest(
                     endretAv = endretAv,
                     endretAvEnhet = endretAvEnhet,
                     forslagId = request.forslagId,

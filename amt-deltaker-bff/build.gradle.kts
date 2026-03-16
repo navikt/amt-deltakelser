@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":amt-felles:bff-deltaker-kontrakt"))
 
     // --- Audit logging ---
     implementation(libs.nav.common.audit.log)
