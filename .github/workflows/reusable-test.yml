@@ -40,6 +40,7 @@ jobs:
             $GRADLE_ARGS \
             --no-daemon \
             --no-configuration-cache
-            # --info \
-            # --console=plain \
-            # --warning-mode=all
+# Kommenter inn ved behov
+#             --info \
+#             --console=plain \
+#             --warning-mode=all

@@ -46,6 +46,7 @@ jobs:
             -p ${{ inputs.module_path }} \
             --no-daemon \
             --no-configuration-cache
+# Kommenter inn ved behov
 #            --info \
 #            --console=plain \
 #            --warning-mode=all
