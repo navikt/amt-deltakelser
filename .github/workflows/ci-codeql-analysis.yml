@@ -14,7 +14,6 @@ permissions:
 
 jobs:
   changes:
-    if: github.event_name != 'schedule'  # Skip for scheduled full scan
     runs-on: ubuntu-latest
     outputs:
       modules: ${{ steps.filter.outputs.changes }}
@@ -40,7 +39,7 @@ jobs:
 
   codeql:
     needs: changes
-    if: ${{ needs.changes.outputs.modules != '[]' }}
+    if: ${{ github.event_name == 'schedule' || needs.changes.outputs.modules != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
