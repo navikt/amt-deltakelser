@@ -4,7 +4,7 @@ include(
     "amt-deltaker",
     "amt-deltaker-bff",
     "amt-distribusjon",
-    "amt-felles:bff-deltaker-kontrakt",
+    "amt-felles:intern-api-kontrakter",
     "amt-felles:ktor",
     "amt-felles:ktor-test",
     "amt-felles:kafka",

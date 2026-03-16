@@ -4,13 +4,13 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
+import no.nav.amt.internapi.deltaker.request.EndringRequest
+import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerEndringResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import org.slf4j.LoggerFactory
 import java.time.ZonedDateTime
 import java.util.UUID

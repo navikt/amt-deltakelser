@@ -8,14 +8,14 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.amt.api.tiltakskoordinator.request.DeltakereRequest
-import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringFeilkode
-import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest

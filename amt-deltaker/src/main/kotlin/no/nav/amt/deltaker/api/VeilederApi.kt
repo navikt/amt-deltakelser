@@ -15,7 +15,7 @@ import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDe
 import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
+import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import java.time.ZonedDateTime

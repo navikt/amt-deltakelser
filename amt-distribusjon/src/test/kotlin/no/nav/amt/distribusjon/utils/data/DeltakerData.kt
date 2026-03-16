@@ -1,12 +1,12 @@
 package no.nav.amt.distribusjon.utils.data
 
 import no.nav.amt.distribusjon.utils.data.Persondata.lagNavBrukerResponse
+import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.ArrangorResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.GjennomforingResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode

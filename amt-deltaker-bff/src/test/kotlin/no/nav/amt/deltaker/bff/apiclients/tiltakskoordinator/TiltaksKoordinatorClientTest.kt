@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
@@ -13,6 +12,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested

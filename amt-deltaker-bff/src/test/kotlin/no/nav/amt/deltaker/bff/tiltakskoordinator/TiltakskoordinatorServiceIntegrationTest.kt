@@ -6,7 +6,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.deltakerOppdateringResponseFromDeltaker
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -22,6 +21,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.model.TiltakskoordinatorsDelta
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.DatabaseTestExtension

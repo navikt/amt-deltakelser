@@ -39,8 +39,8 @@ import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.veilarboppfolging.ManuellStatusRequest
 import no.nav.amt.distribusjon.veilarboppfolging.ManuellV2Response
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
 import java.util.UUID
 
 fun <T> createMockHttpClient(

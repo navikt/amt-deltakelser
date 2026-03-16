@@ -2,11 +2,11 @@ package no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.api.tiltakskoordinator.request.DeltakereRequest
-import no.nav.amt.api.tiltakskoordinator.request.GiAvslagRequest
-import no.nav.amt.api.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.AvslagRequest
+import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
+import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess

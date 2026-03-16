@@ -10,11 +10,11 @@ import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.ArrangorResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.DeltakerResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.GjennomforingResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.NavBrukerResponse
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
+import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
+import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
