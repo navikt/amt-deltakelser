@@ -68,7 +68,7 @@ jobs:
       - name: Build artifacts
         run: ./gradlew assemble --no-daemon --no-configuration-cache -x test
         env:
-          JAVA_TOOL_OPTIONS: "-Dkotlin.daemon.jvmargs=-Xmx4g"
+          JAVA_TOOL_OPTIONS: "-Dkotlin.daemon.jvmargs=-Xmx5g"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
