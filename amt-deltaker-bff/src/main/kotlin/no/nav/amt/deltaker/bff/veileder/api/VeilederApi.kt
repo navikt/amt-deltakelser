@@ -165,6 +165,7 @@ fun Routing.registerVeilederApi(
                     amtDeltakerClient
                         .getDeltaker(deltakerId)
                         .let { ModelMapper.toDeltaker(it) }
+                        .let { DeltakerResponse.fromDeltakerModel(it) }
                 } else {
                     komplettDeltakerResponse(deltaker)
                 }
