@@ -91,11 +91,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Deploy application
+      - name: Deploy application (amt-tiltaksarrangor-bff)
+        if: inputs.module-path == 'amt-tiltaksarrangor-bff'
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
           RESOURCE: ${{ inputs.module-path }}/.nais/nais-prod.yaml
           VAR: image=${{ needs.test-build-and-push.outputs.image }}
+          VARS: ${{ inputs.module-path }}/.nais/vars-prod.yaml
           TELEMETRY: ${{ needs.test-build-and-push.outputs.telemetry }}
+
+      - name: Deploy application
+        if: inputs.module-path != 'amt-tiltaksarrangor-bff'
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: ${{ inputs.module-path }}/.nais/nais-prod.yaml
+          VAR: image=${{ needs.test-build-and-push.outputs.image }}
           VARS: ${{ inputs.module-path }}/.nais/vars-prod.yaml
