@@ -1,51 +1,42 @@
 name: CodeQL
 
 on:
+  merge_group:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+    paths:
+      - "amt-deltaker/**"
+      - "amt-deltaker-bff/**"
+      - "amt-distribusjon/**"
+      - "amt-felles/**"
+      - "amt-lib/**"
+      - "amt-tiltaksarrangor-bff/**"
+
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+    paths:
+      - "amt-deltaker/**"
+      - "amt-deltaker-bff/**"
+      - "amt-distribusjon/**"
+      - "amt-felles/**"
+      - "amt-lib/**"
+      - "amt-tiltaksarrangor-bff/**"
+
   schedule:
     - cron: '28 9 * * 2'  # Ukentlig full scan, tirsdager kl 09:28
 
 permissions:
   contents: read
   security-events: write
-  actions: read
-  packages: read
 
 jobs:
-  changes:
-    if: github.event_name != 'schedule'  # Skip for scheduled full scan
-    runs-on: ubuntu-latest
-    outputs:
-      modules: ${{ steps.filter.outputs.changes }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@v4
-        id: filter
-        with:
-          filters: |
-            amt-deltaker-bff: amt-deltaker-bff/**
-            amt-deltaker: amt-deltaker/**
-            amt-distribusjon: amt-distribusjon/**
-            amt-felles: amt-felles/**
-            amt-lib: amt-lib/**
-            amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
-
-      - name: Debug changed modules
-        run: |
-          echo "Changed modules raw output:"
-          echo '${{ steps.filter.outputs.changes }}'
-
   codeql:
-    needs: changes
-    if: ${{ needs.changes.outputs.modules != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module: ${{ github.event_name == 'schedule' && fromJSON('["all"]') || fromJSON(needs.changes.outputs.modules) }}
         language: [java-kotlin]
 
     steps:
@@ -68,16 +59,12 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: manual
 
-      - name: Build module(s) for CodeQL
-        shell: bash
-        run: |
-          if [ "${{ matrix.module }}" == "all" ]; then
-            ./gradlew assemble -x test --no-daemon --no-configuration-cache
-          else
-            ./gradlew assemble -p ${{ matrix.module }} -x test --no-daemon --no-configuration-cache
-          fi
+      - name: Build artifacts
+        run: ./gradlew build --no-daemon --no-configuration-cache -x test
+        env:
+          JAVA_TOOL_OPTIONS: "-Dkotlin.daemon.jvmargs=-Xmx5g"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/module:${{ matrix.module }}/language:${{ matrix.language }}"
+          category: "/language:${{matrix.language}}"
