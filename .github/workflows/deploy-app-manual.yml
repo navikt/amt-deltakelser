@@ -3,7 +3,7 @@ name: Deploy Application (Manual)
 on:
   workflow_dispatch:
     inputs:
-      module-path:
+      module_path:
         description: Velg app
         required: true
         type: choice
@@ -20,4 +20,4 @@ jobs:
   deploy:
     uses: ./.github/workflows/reusable-deploy-app.yml
     with:
-      module-path: ${{ inputs.module-path }}
+      module_path: ${{ inputs.module_path }}
