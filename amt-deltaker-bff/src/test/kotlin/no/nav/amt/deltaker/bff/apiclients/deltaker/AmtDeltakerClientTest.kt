@@ -602,7 +602,6 @@ class AmtDeltakerClientTest {
             val amtDeltakerClient = createDeltakerClient(
                 expectedUrl = expectedUrl,
                 responseBody = objectMapper.writePolymorphicListAsString(historikk),
-                isPolymorphicBody = true,
             )
 
             runTest {
@@ -657,7 +656,6 @@ class AmtDeltakerClientTest {
             expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
-            isPolymorphicBody: Boolean = false,
         ) = AmtDeltakerClient(
             baseUrl = DELTAKER_BASE_URL,
             scope = "scope",
@@ -665,7 +663,6 @@ class AmtDeltakerClientTest {
                 expectedUrl = expectedUrl,
                 responseBody = responseBody,
                 statusCode = statusCode,
-                isPolymorphicBody = isPolymorphicBody,
             ),
             azureAdTokenClient = mockAzureAdClient(),
         )

@@ -36,7 +36,6 @@ fun <T> createMockHttpClient(
     expectedUrl: String,
     responseBody: T?,
     statusCode: HttpStatusCode = HttpStatusCode.OK,
-    isPolymorphicBody: Boolean = false,
     requiresAuthHeader: Boolean = true,
 ) = HttpClient(MockEngine) {
     install(ContentNegotiation) { jackson { applicationConfig() } }
@@ -62,19 +61,11 @@ fun <T> createMockHttpClient(
                 }
 
                 is String -> {
-                    if (isPolymorphicBody) {
-                        respond(
-                            content = ByteReadChannel(responseBody.toByteArray()),
-                            status = statusCode,
-                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                        )
-                    } else {
-                        respond(
-                            content = ByteReadChannel(objectMapper.writeValueAsBytes(responseBody)),
-                            status = statusCode,
-                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                        )
-                    }
+                    respond(
+                        content = ByteReadChannel(responseBody.toByteArray()),
+                        status = statusCode,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
                 }
 
                 else -> {
