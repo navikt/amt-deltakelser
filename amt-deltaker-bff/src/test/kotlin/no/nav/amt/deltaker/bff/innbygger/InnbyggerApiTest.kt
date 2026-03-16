@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.innbygger
 
-import io.getunleash.Unleash
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.bearerAuth
