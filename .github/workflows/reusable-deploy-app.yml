@@ -11,6 +11,7 @@ env:
   PRINT_PAYLOAD: true
 
 permissions:
+  contents: write
   id-token: write
 
 jobs:
