@@ -9,6 +9,7 @@ on:
       - "amt-deltaker/**"
       - "amt-distribusjon/**"
       - "amt-tiltaksarrangor-bff/**"
+      - "gradle/libs.versions.toml"
 
 permissions:
   id-token: write
