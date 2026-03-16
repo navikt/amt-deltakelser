@@ -1,10 +1,33 @@
 name: CodeQL
 
 on:
+  merge_group:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+    paths:
+      - "amt-deltaker/**"
+      - "amt-deltaker-bff/**"
+      - "amt-distribusjon/**"
+      - "amt-felles/**"
+      - "amt-lib/**"
+      - "amt-tiltaksarrangor-bff/**"
+      - "buildSrc/**"
+      - "gradle/**"
+
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+    paths:
+      - "amt-deltaker/**"
+      - "amt-deltaker-bff/**"
+      - "amt-distribusjon/**"
+      - "amt-felles/**"
+      - "amt-lib/**"
+      - "amt-tiltaksarrangor-bff/**"
+      - "buildSrc/**"
+      - "gradle/**"
+
   schedule:
     - cron: '28 9 * * 2'  # Ukentlig full scan, tirsdager kl 09:28
 
