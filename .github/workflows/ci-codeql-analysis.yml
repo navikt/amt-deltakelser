@@ -28,6 +28,8 @@ jobs:
               - amt-deltaker-bff/**
               - amt-felles/**
               - amt-lib/**
+              - buildSrc/**
+              - gradle/**
             amt-deltaker: amt-deltaker/**
             amt-distribusjon: amt-distribusjon/**
             amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
@@ -74,4 +76,4 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/module:${{ matrix.module }}/language:${{ matrix.language }}"
+          category: "/language:${{ matrix.language }}"
