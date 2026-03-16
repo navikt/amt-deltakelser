@@ -62,7 +62,7 @@ fun <T> createMockHttpClient(
 
                 is String -> {
                     respond(
-                        content = ByteReadChannel(responseBody.toByteArray()),
+                        content = ByteReadChannel(responseBody),
                         status = statusCode,
                         headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                     )
