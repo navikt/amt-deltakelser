@@ -39,7 +39,7 @@ jobs:
           ./gradlew check \
             $GRADLE_ARGS \
             --no-daemon \
-            --no-configuration-cache \
-            --info \
-            --console=plain \
-            --warning-mode=all
+            --no-configuration-cache
+            # --info \
+            # --console=plain \
+            # --warning-mode=all
