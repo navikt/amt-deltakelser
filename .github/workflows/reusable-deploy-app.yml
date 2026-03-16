@@ -3,7 +3,7 @@ name: Reusable Deploy Application
 on:
   workflow_call:
     inputs:
-      module-path:
+      module_path:
         required: true
         type: string
 
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   test-build-and-push:
-    name: Test, build and push
+    name: Test, build and push ${{ inputs.module_path }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,35 +37,36 @@ jobs:
         run: |
           GRADLE_ARGS=""
           
-          if [ "${{ inputs.module-path }}" != "amt-tiltaksarrangor-bff" ]; then
+          if [ "${{ inputs.module_path }}" != "amt-tiltaksarrangor-bff" ]; then
             GRADLE_ARGS="installDist"
           fi
 
           ./gradlew build \
             $GRADLE_ARGS \
-            -p ${{ inputs.module-path }} \
+            -p ${{ inputs.module_path }} \
             --no-daemon \
-            --no-configuration-cache \
-            --info \
-            --console=plain \
-            --warning-mode=all
+            --no-configuration-cache
+# Kommenter inn ved behov
+#            --info \
+#            --console=plain \
+#            --warning-mode=all
 
       - name: docker-build-push
         uses: nais/docker-build-push@v0
         id: docker-build-push
         with:
           team: amt
-          image_suffix: ${{ inputs.module-path }}
+          image_suffix: ${{ inputs.module_path }}
           tag: ${{ github.sha }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-          docker_context: ${{ inputs.module-path }}
-          dockerfile: ${{ inputs.module-path }}/Dockerfile
+          docker_context: ${{ inputs.module_path }}
+          dockerfile: ${{ inputs.module_path }}/Dockerfile
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
 
   deploy-dev:
-    name: Deploy application to dev
+    name: Deploy ${{ inputs.module_path }} to dev
     needs: test-build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -76,12 +77,12 @@ jobs:
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: dev-gcp
-          RESOURCE: ${{ inputs.module-path }}/.nais/nais-dev.yaml
+          RESOURCE: ${{ inputs.module_path }}/.nais/nais-dev.yaml
           VAR: image=${{ needs.test-build-and-push.outputs.image }}
-          VARS: ${{ inputs.module-path }}/.nais/vars-dev.yaml
+          VARS: ${{ inputs.module_path }}/.nais/vars-dev.yaml
 
   deploy-prod:
-    name: Deploy application to prod
+    name: Deploy ${{ inputs.module_path }} to prod
     needs: [ test-build-and-push, deploy-dev ]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -93,6 +94,6 @@ jobs:
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
-          RESOURCE: ${{ inputs.module-path }}/.nais/nais-prod.yaml
+          RESOURCE: ${{ inputs.module_path }}/.nais/nais-prod.yaml
           VAR: image=${{ needs.test-build-and-push.outputs.image }}
-          VARS: ${{ inputs.module-path }}/.nais/vars-prod.yaml
+          VARS: ${{ inputs.module_path }}/.nais/vars-prod.yaml

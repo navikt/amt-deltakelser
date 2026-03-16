@@ -3,7 +3,7 @@ name: Reusable Deploy Unleash API Token
 on:
   workflow_call:
     inputs:
-      module-path:
+      module_path:
         required: true
         type: string
 
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   deploy-dev:
-    name: Deploy to dev
+    name: Deploy ${{ inputs.module_path }} Unleash to dev
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,11 +22,11 @@ jobs:
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: dev-gcp
-          RESOURCE: ${{ inputs.module-path }}/.nais/unleash-apitoken-dev.yaml
+          RESOURCE: ${{ inputs.module_path }}/.nais/unleash-apitoken-dev.yaml
           PRINT_PAYLOAD: true
 
   deploy-prod:
-    name: Deploy to prod
+    name: Deploy ${{ inputs.module_path }} Unleash to prod
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -37,4 +37,4 @@ jobs:
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
-          RESOURCE: ${{ inputs.module-path }}/.nais/unleash-apitoken-prod.yaml
+          RESOURCE: ${{ inputs.module_path }}/.nais/unleash-apitoken-prod.yaml

@@ -3,7 +3,7 @@ name: Reusable Run Tests
 on:
   workflow_call:
     inputs:
-      module-path:
+      module_path:
         required: true
         type: string
 
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   test:
-    name: Run tests
+    name: Run ${{ inputs.module_path }} tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,14 +32,15 @@ jobs:
         run: |
           GRADLE_ARGS=""
           
-          if [ "${{ inputs.module-path }}" != "all" ]; then
-            GRADLE_ARGS="-p ${{ inputs.module-path }}"
+          if [ "${{ inputs.module_path }}" != "all" ]; then
+            GRADLE_ARGS="-p ${{ inputs.module_path }}"
           fi
           
           ./gradlew check \
             $GRADLE_ARGS \
             --no-daemon \
             --no-configuration-cache
-            # --info \
-            # --console=plain \
-            # --warning-mode=all
+# Kommenter inn ved behov
+#             --info \
+#             --console=plain \
+#             --warning-mode=all
