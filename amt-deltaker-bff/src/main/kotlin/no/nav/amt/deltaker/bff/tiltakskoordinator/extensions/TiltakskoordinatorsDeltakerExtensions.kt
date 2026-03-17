@@ -5,10 +5,11 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerDetaljerR
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.VurderingResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.model.UlestHendelse
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.utils.GenericCache
 
 fun TiltakskoordinatorsDeltaker.toResponse(
     harTilgangTilBruker: Boolean,
@@ -16,10 +17,19 @@ fun TiltakskoordinatorsDeltaker.toResponse(
 ): DeltakerDetaljerResponse {
     val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(harTilgangTilBruker)
     val personIdent = if (harTilgangTilBruker) navBruker.personident else null
+
     val aktiveForslag = forslag
-        .filter { forslag ->
-            forslag.status == Forslag.Status.VenterPaSvar
-        }.map { forslag -> forslag.toResponse(arrangornavn = deltakerliste.arrangor.getArrangorNavn()) }
+        .filter { forslag -> forslag.status == Forslag.Status.VenterPaSvar }
+        .map { forslag ->
+            ForslagResponse.fromForslag(
+                forslag = forslag,
+                arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
+                // i og med at det filtreres på Forslag.Status.VenterPaSvar, så skal det ikke være noen
+                // avviste forslag i denne listen, og dermed skal disse providerne ikke brukes
+                ansatte = GenericCache("emptyAnsatte", emptyMap()),
+                enheter = GenericCache("emptyEnheter", emptyMap()),
+            )
+        }
 
     return DeltakerDetaljerResponse(
         id = id,

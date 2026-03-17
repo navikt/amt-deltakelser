@@ -57,6 +57,8 @@ import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -81,8 +83,15 @@ fun Routing.registerVeilederApi(
     // duplikat i PameldiongApi
     suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
         deltaker = deltaker,
-        ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
+        ansatte = GenericCache(
+            cacheName = "navAnsatte",
+            itemMap = navAnsattService.hentAnsatteForDeltaker(deltaker),
+        ),
+        enheter = GenericCache(
+            cacheName = "navEnheter",
+            items = listOfNotNull(deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) }),
+            idSelector = NavEnhet::id,
+        ),
         digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
         forslag = forslagRepository.getForDeltaker(deltaker.id),
     )
@@ -160,12 +169,17 @@ fun Routing.registerVeilederApi(
                 navIdent = call.getNavIdent(),
                 deltakerPersonIdent = deltaker.navBruker.personident,
             )
+
             val deltakerResponse =
                 if (unleashToggle.prioriterSynkronKommunikasjon()) {
                     amtDeltakerClient
                         .getDeltaker(deltakerId)
-                        .let { ModelMapper.toDeltaker(it) }
-                        .let { DeltakerResponse.fromDeltakerModel(it) }
+                        .let {
+                            DeltakerResponse.fromDeltakerModel(
+                                deltaker = ModelMapper.toDeltaker(it),
+                                endringsforslagFraArrangor = it.endringsforslagFraArrangor,
+                            )
+                        }
                 } else {
                     komplettDeltakerResponse(deltaker)
                 }
@@ -191,8 +205,14 @@ fun Routing.registerVeilederApi(
                 }
 
             val historikkResponse = historikk.toResponse(
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                ansatte = GenericCache(
+                    cacheName = "navAnsatte",
+                    itemMap = navAnsattService.hentAnsatteForHistorikk(historikk),
+                ),
+                enheter = GenericCache(
+                    cacheName = "navEnheter",
+                    itemMap = navEnhetService.hentEnheterForHistorikk(historikk),
+                ),
                 arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                 oppstartstype = deltaker.deltakerliste.oppstart,
             )

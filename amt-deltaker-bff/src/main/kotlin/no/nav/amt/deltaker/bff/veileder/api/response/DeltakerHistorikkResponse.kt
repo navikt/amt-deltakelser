@@ -16,6 +16,7 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.utils.GenericCache
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -93,15 +94,21 @@ data class InnsokPaaFellesOppstartResponse(
 ) : DeltakerHistorikkResponse
 
 fun List<DeltakerHistorikk>.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
     arrangornavn: String,
-    enheter: Map<UUID, NavEnhet>,
     oppstartstype: Oppstartstype?,
+    ansatte: GenericCache<NavAnsatt>,
+    enheter: GenericCache<NavEnhet>,
 ): List<DeltakerHistorikkResponse> = this.map {
     when (it) {
         is DeltakerHistorikk.Endring -> it.endring.toResponse(ansatte, enheter, arrangornavn, oppstartstype)
         is DeltakerHistorikk.Vedtak -> it.vedtak.toResponse(ansatte, enheter)
-        is DeltakerHistorikk.Forslag -> it.forslag.toResponse(arrangornavn, ansatte, enheter)
+        is DeltakerHistorikk.Forslag -> ForslagResponse.fromForslag(
+            forslag = it.forslag,
+            arrangornavn = arrangornavn,
+            ansatte = ansatte,
+            enheter = enheter,
+        )
+
         is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.toResponse(arrangornavn)
         is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.toResponse()
         is DeltakerHistorikk.VurderingFraArrangor -> it.data.toResponse(arrangornavn)
@@ -111,21 +118,28 @@ fun List<DeltakerHistorikk>.toResponse(
 }
 
 fun DeltakerEndring.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
+    ansatte: GenericCache<NavAnsatt>,
+    enheter: GenericCache<NavEnhet>,
     arrangornavn: String,
     oppstartstype: Oppstartstype?,
 ) = DeltakerEndringResponse(
     endring = DeltakerEndringEndringResponse.fromEndring(endring, oppstartstype),
-    endretAv = ansatte[endretAv]!!.navn,
-    endretAvEnhet = enheter[endretAvEnhet]!!.navn,
+    endretAv = ansatte.getOrThrow(endretAv).navn,
+    endretAvEnhet = enheter.getOrThrow(endretAvEnhet).navn,
     endret = endret,
-    forslag = forslag?.toResponse(arrangornavn),
+    forslag = forslag?.let {
+        ForslagResponse.fromForslag(
+            forslag = it,
+            arrangornavn = arrangornavn,
+            ansatte = ansatte,
+            enheter = enheter,
+        )
+    },
 )
 
 fun Vedtak.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
+    ansatte: GenericCache<NavAnsatt>,
+    enheter: GenericCache<NavEnhet>,
 ) = VedtakResponse(
     fattet = fattet,
     bakgrunnsinformasjon = deltakerVedVedtak.bakgrunnsinformasjon,
@@ -133,8 +147,8 @@ fun Vedtak.toResponse(
     dagerPerUke = deltakerVedVedtak.dagerPerUke,
     deltakelsesprosent = deltakerVedVedtak.deltakelsesprosent,
     fattetAvNav = fattetAvNav,
-    opprettetAv = ansatte[opprettetAv]!!.navn,
-    opprettetAvEnhet = enheter[opprettetAvEnhet]!!.navn,
+    opprettetAv = ansatte.getOrThrow(opprettetAv).navn,
+    opprettetAvEnhet = enheter.getOrThrow(opprettetAvEnhet).navn,
     opprettet = opprettet,
 )
 
@@ -162,23 +176,23 @@ fun VurderingFraArrangorData.toResponse(arrangornavn: String) = VurderingFraArra
 )
 
 fun EndringFraTiltakskoordinator.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
+    ansatte: GenericCache<NavAnsatt>,
+    enheter: GenericCache<NavEnhet>,
 ) = EndringFraTiltakskoordinatorResponse(
-    endring,
-    ansatte[endretAv]!!.navn,
-    enheter[endretAvEnhet]!!.navn,
-    endret,
+    endring = endring,
+    endretAv = ansatte.getOrThrow(endretAv).navn,
+    endretAvEnhet = enheter.getOrThrow(endretAvEnhet).navn,
+    endret = endret,
 )
 
 fun InnsokPaaFellesOppstart.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
+    ansatte: GenericCache<NavAnsatt>,
+    enheter: GenericCache<NavEnhet>,
 ) = InnsokPaaFellesOppstartResponse(
-    innsokt,
-    ansatte[innsoktAv]!!.navn,
-    enheter[innsoktAvEnhet]!!.navn,
-    deltakelsesinnholdVedInnsok,
-    utkastDelt,
-    utkastGodkjentAvNav,
+    innsokt = innsokt,
+    innsoktAv = ansatte.getOrThrow(innsoktAv).navn,
+    innsoktAvEnhet = enheter.getOrThrow(innsoktAvEnhet).navn,
+    deltakelsesinnholdVedInnsok = deltakelsesinnholdVedInnsok,
+    utkastDelt = utkastDelt,
+    utkastGodkjentAvNav = utkastGodkjentAvNav,
 )

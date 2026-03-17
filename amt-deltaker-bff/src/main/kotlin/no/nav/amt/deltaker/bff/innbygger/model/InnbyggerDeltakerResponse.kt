@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.bff.innbygger.model
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.ImportertFraArenaDto
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -14,6 +13,7 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -76,8 +76,8 @@ data class InnbyggerDeltakerResponse(
 }
 
 fun Deltaker.toInnbyggerDeltakerResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    vedtakSistEndretAvEnhet: NavEnhet?,
+    ansatte: GenericCache<NavAnsatt>,
+    enheter: GenericCache<NavEnhet>,
     forslag: List<Forslag>,
 ): InnbyggerDeltakerResponse = InnbyggerDeltakerResponse(
     deltakerId = id,
@@ -104,9 +104,19 @@ fun Deltaker.toInnbyggerDeltakerResponse(
         ledetekst = deltakelsesinnhold?.ledetekst,
         innhold = deltakelsesinnhold?.innhold ?: emptyList(),
     ),
-    vedtaksinformasjon = vedtaksinformasjon?.toDto(ansatte, vedtakSistEndretAvEnhet),
+    vedtaksinformasjon = vedtaksinformasjon?.toDto(
+        ansatte = ansatte,
+        enheter = enheter,
+    ),
     adresseDelesMedArrangor = adresseDelesMedArrangor(),
-    forslag = forslag.map { it.toResponse(deltakerliste.arrangor.getArrangorNavn()) },
+    forslag = forslag.map {
+        ForslagResponse.fromForslag(
+            forslag = it,
+            arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
+            ansatte = ansatte,
+            enheter = enheter,
+        )
+    },
     importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
     deltakelsesmengder = InnbyggerDeltakerResponse.DeltakelsesmengderDto(
         nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.toDto(),
@@ -116,16 +126,16 @@ fun Deltaker.toInnbyggerDeltakerResponse(
 )
 
 private fun Vedtak.toDto(
-    ansatte: Map<UUID, NavAnsatt>,
-    vedtakSistEndretEnhet: NavEnhet?,
+    ansatte: GenericCache<NavAnsatt>,
+    enheter: GenericCache<NavEnhet>,
 ) = InnbyggerDeltakerResponse.VedtaksinformasjonDto(
     fattet = fattet,
     fattetAvNav = fattetAvNav,
     opprettet = opprettet,
-    opprettetAv = ansatte[opprettetAv]?.navn ?: opprettetAv.toString(),
+    opprettetAv = ansatte.getOrThrow(opprettetAv).navn,
     sistEndret = sistEndret,
-    sistEndretAv = ansatte[sistEndretAv]?.navn ?: sistEndretAv.toString(),
-    sistEndretAvEnhet = vedtakSistEndretEnhet?.navn ?: sistEndretAvEnhet.toString(),
+    sistEndretAv = ansatte.getOrThrow(sistEndretAv).navn,
+    sistEndretAvEnhet = enheter.getOrThrow(sistEndretAvEnhet).navn,
 )
 
 private fun Deltakelsesmengde.toDto() = InnbyggerDeltakerResponse.DeltakelsesmengdeDto(

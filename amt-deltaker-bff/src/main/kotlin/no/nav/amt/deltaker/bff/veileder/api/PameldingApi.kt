@@ -29,6 +29,8 @@ import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 
 fun Routing.registerPameldingApi(
     tilgangskontrollService: TilgangskontrollService,
@@ -42,8 +44,15 @@ fun Routing.registerPameldingApi(
     // duplikat i DeltakerApi
     suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
         deltaker = deltaker,
-        ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
+        ansatte = GenericCache(
+            cacheName = "navAnsatte",
+            itemMap = navAnsattService.hentAnsatteForDeltaker(deltaker),
+        ),
+        enheter = GenericCache(
+            cacheName = "navEnheter",
+            items = listOfNotNull(deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) }),
+            idSelector = NavEnhet::id,
+        ),
         digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
         forslag = forslageRepository.getForDeltaker(deltaker.id),
     )

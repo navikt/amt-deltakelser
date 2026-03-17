@@ -40,6 +40,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.utils.GenericCache
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
@@ -95,10 +96,10 @@ class KladdApiTest {
 
             val expected = DeltakerResponse.fromDeltaker(
                 deltaker = deltaker,
-                ansatte = ansatte,
-                vedtakSistEndretAvEnhet = navEnhet,
                 digitalBruker = true,
                 forslag = emptyList(),
+                ansatte = GenericCache("ansatte", ansatte),
+                enheter = GenericCache("enheter", mapOf(navEnhet.id to navEnhet)),
             )
 
             bodyAsText() shouldBe objectMapper.writeValueAsString(expected)

@@ -15,10 +15,12 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
-import java.util.UUID
+import no.nav.amt.lib.utils.GenericCache
 
 class ResponseBuilder(
     private val arrangorService: ArrangorService,
@@ -29,54 +31,63 @@ class ResponseBuilder(
     private val forslagRepository: ForslagRepository,
     private val deltakerLaaseService: DeltakerLaaseService,
 ) {
-    data class GenericCache<T>(
-        private val cacheName: String,
-        private val itemMap: Map<UUID, T>,
-    ) {
-        constructor(
-            cacheName: String,
-            items: List<T>,
-            idSelector: (T) -> UUID,
-        ) : this(
-            cacheName = cacheName,
-            itemMap = items.associateBy(idSelector),
-        )
-
-        fun getOrThrow(id: UUID): T = itemMap[id]
-            ?: throw NoSuchElementException("Fant ikke entry med id $id i cache $cacheName")
-    }
-
     suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
-        val navAnsattCache = GenericCache(
+        // hent endringsforslag
+        val endringsforslag = forslagRepository.getForDeltaker(deltaker.id)
+
+        // hent alle entries som behøver navn på Nav-ansatt eller -enhet
+        val avvistAvNavAnsatte = endringsforslag
+            .map { it.status }
+            .filterIsInstance<Forslag.Status.Avvist>()
+            .map { it.avvistAv }
+
+        // hent alle Nav-ansatte i kontekst
+        val navAnsatte = GenericCache(
             cacheName = "navAnsattCache",
             items = navAnsattRepository.getManyById(
                 ider = setOfNotNull(
                     deltaker.navBruker.navVeilederId,
                     deltaker.vedtaksinformasjon?.opprettetAv,
                     deltaker.vedtaksinformasjon?.sistEndretAv,
-                ),
+                ).plus(avvistAvNavAnsatte.map { it.id }),
             ),
             idSelector = NavAnsatt::id,
         )
 
-        val navEnhetCache = GenericCache(
+        // hent alle Nav-enheter i kontekst
+        val navEnheter = GenericCache(
             cacheName = "navEnhetCache",
             items = navEnhetRepository.getMany(
                 setOfNotNull(
                     deltaker.navBruker.navEnhetId,
                     deltaker.vedtaksinformasjon?.opprettetAvEnhet,
                     deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
-                ),
+                ).plus(avvistAvNavAnsatte.map { it.enhetId }),
             ),
             idSelector = NavEnhet::id,
         )
+
+        // pakk inn endringsforslag i dekorert format
+        val dekorerteEndringsforslag = endringsforslag.map {
+            when (val status = it.status) {
+                is Forslag.Status.Avvist -> {
+                    ForslagDecorator.AvvistStatusDecorator(
+                        forslag = it,
+                        avvistAvAnsattNavn = navAnsatte.getOrThrow(status.avvistAv.id).navn,
+                        avvistAvEnhetNavn = navEnheter.getOrThrow(status.avvistAv.enhetId).navn,
+                    )
+                }
+
+                else -> ForslagDecorator.DefaultDecorator(it)
+            }
+        }
 
         return DeltakerResponse(
             id = deltaker.id,
             navBruker = buildNavBrukerResponseFromNavBruker(
                 navBruker = deltaker.navBruker,
-                navAnsattCache = navAnsattCache,
-                navEnhetCache = navEnhetCache,
+                navAnsatte = navAnsatte,
+                navEnheter = navEnheter,
             ),
             gjennomforing = buildGjennomforingResponse(deltaker.deltakerliste),
             startdato = deltaker.startdato,
@@ -89,8 +100,8 @@ class ResponseBuilder(
             vedtaksinformasjon = deltaker.vedtaksinformasjon?.let {
                 buildVedtaksinformasjonResponse(
                     vedtaksinformasjon = it,
-                    navAnsattCache = navAnsattCache,
-                    navEnhetCache = navEnhetCache,
+                    navAnsattCache = navAnsatte,
+                    navEnhetCache = navEnheter,
                 )
             },
             sistEndret = deltaker.sistEndret,
@@ -99,7 +110,7 @@ class ResponseBuilder(
             opprettet = deltaker.opprettet,
             historikk = deltakerHistorikkService.getForDeltaker(deltaker.id),
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
-            endringsforslagFraArrangor = forslagRepository.getForDeltaker(deltaker.id),
+            endringsforslagFraArrangor = dekorerteEndringsforslag,
         )
     }
 
@@ -137,8 +148,8 @@ class ResponseBuilder(
 
     internal suspend fun buildNavBrukerResponseFromNavBruker(
         navBruker: NavBruker,
-        navAnsattCache: GenericCache<NavAnsatt>,
-        navEnhetCache: GenericCache<NavEnhet>,
+        navAnsatte: GenericCache<NavAnsatt>,
+        navEnheter: GenericCache<NavEnhet>,
     ) = NavBrukerResponse(
         personident = navBruker.personident,
         fornavn = navBruker.fornavn,
@@ -152,7 +163,7 @@ class ResponseBuilder(
         oppfolgingsperioder = navBruker.oppfolgingsperioder,
         innsatsgruppe = navBruker.innsatsgruppe,
         erDigital = amtDistribusjonClient.digitalBruker(navBruker.personident),
-        navVeileder = navBruker.navVeilederId?.let { navAnsattCache.getOrThrow(it).navn },
-        navEnhet = navBruker.navEnhetId?.let { navEnhetCache.getOrThrow(it).navn },
+        navVeileder = navBruker.navVeilederId?.let { navAnsatte.getOrThrow(it).navn },
+        navEnhet = navBruker.navEnhetId?.let { navEnheter.getOrThrow(it).navn },
     )
 }

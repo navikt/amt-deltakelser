@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.deltaker.api.deltaker
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -25,6 +24,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -32,8 +32,8 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.utils.GenericCache
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -62,28 +62,6 @@ class ResponseBuilderTest {
     @BeforeEach
     fun setup() = clearAllMocks()
 
-    @Nested
-    inner class CacheTests {
-        val idInTest: UUID = UUID.randomUUID()
-        val cache = ResponseBuilder.GenericCache(
-            cacheName = "fooCache",
-            items = listOf("foo"),
-            idSelector = { idInTest },
-        )
-
-        @Test
-        fun `getOrThrow - skal returnere cachet verdi`() {
-            cache.getOrThrow(idInTest) shouldBe "foo"
-        }
-
-        @Test
-        fun `getOrThrow - skal kaste feil hvis nokkel ikke finnes i cache`() {
-            shouldThrow<NoSuchElementException> {
-                cache.getOrThrow(UUID.randomUUID())
-            }
-        }
-    }
-
     @Test
     fun `buildNavBrukerResponseFromNavBruker - skal mappe innbygger korrekt`() = runTest {
         // Arrange
@@ -94,8 +72,8 @@ class ResponseBuilderTest {
             adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
         )
 
-        val navAnsattCache: ResponseBuilder.GenericCache<NavAnsatt> = mockk()
-        val navEnhetCache: ResponseBuilder.GenericCache<NavEnhet> = mockk()
+        val navAnsattCache: GenericCache<NavAnsatt> = mockk()
+        val navEnhetCache: GenericCache<NavEnhet> = mockk()
 
         coEvery { amtDistribusjonClient.digitalBruker(navBruker.personident) } returns true
 
@@ -110,8 +88,8 @@ class ResponseBuilderTest {
         // Act
         val navBrukerResponse = responseBuilder.buildNavBrukerResponseFromNavBruker(
             navBruker = navBruker,
-            navAnsattCache = navAnsattCache,
-            navEnhetCache = navEnhetCache,
+            navAnsatte = navAnsattCache,
+            navEnheter = navEnhetCache,
         )
 
         // Assert
@@ -182,8 +160,8 @@ class ResponseBuilderTest {
             sistEndretAv = lagNavAnsatt(),
         ).tilVedtaksInformasjon()
 
-        val navAnsattCache: ResponseBuilder.GenericCache<NavAnsatt> = mockk()
-        val navEnhetCache: ResponseBuilder.GenericCache<NavEnhet> = mockk()
+        val navAnsattCache: GenericCache<NavAnsatt> = mockk()
+        val navEnhetCache: GenericCache<NavEnhet> = mockk()
 
         every { navAnsattCache.getOrThrow(vedtaksinformasjon.opprettetAv) } returns mockk {
             every { navn } returns "Nav-ansatt 1"
@@ -280,7 +258,7 @@ class ResponseBuilderTest {
 
             historikk shouldBe emptyList()
             erLaastForEndringer shouldBe true
-            endringsforslagFraArrangor shouldBe expectedForslag
+            endringsforslagFraArrangor shouldBe expectedForslag.map { ForslagDecorator.DefaultDecorator(it) }
         }
     }
 }

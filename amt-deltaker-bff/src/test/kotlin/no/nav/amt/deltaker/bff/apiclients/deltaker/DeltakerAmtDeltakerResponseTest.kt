@@ -37,7 +37,7 @@ class DeltakerAmtDeltakerResponseTest {
             vedtaksinformasjon shouldBe ModelMapper.toVedtaksinformasjon(response.vedtaksinformasjon!!)
 
             response.endringsforslagFraArrangor.shouldNotBeEmpty()
-            endringsforslagFraArrangor shouldBe response.endringsforslagFraArrangor
+            endringsforslagFraArrangor shouldBe response.endringsforslagFraArrangor.map { it.forslag }
         }
     }
 }

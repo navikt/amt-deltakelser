@@ -26,6 +26,8 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -44,8 +46,15 @@ fun Routing.registerInnbyggerApi(
     val scope = CoroutineScope(Dispatchers.IO)
 
     fun komplettInnbyggerDeltakerResponse(deltaker: Deltaker): InnbyggerDeltakerResponse = deltaker.toInnbyggerDeltakerResponse(
-        ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
+        ansatte = GenericCache(
+            cacheName = "navAnsatte",
+            itemMap = navAnsattService.hentAnsatteForDeltaker(deltaker),
+        ),
+        enheter = GenericCache(
+            cacheName = "navEnheter",
+            items = listOfNotNull(deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) }),
+            idSelector = NavEnhet::id,
+        ),
         forslag = forslageRepository.getForDeltaker(deltaker.id),
     )
 
@@ -103,8 +112,14 @@ fun Routing.registerInnbyggerApi(
                 }
 
             val historikkResponse = historikk.toResponse(
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                ansatte = GenericCache(
+                    cacheName = "navAnsatte",
+                    itemMap = navAnsattService.hentAnsatteForHistorikk(historikk),
+                ),
+                enheter = GenericCache(
+                    cacheName = "navEnheter",
+                    itemMap = navEnhetService.hentEnheterForHistorikk(historikk),
+                ),
                 arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                 oppstartstype = deltaker.deltakerliste.oppstart,
             )

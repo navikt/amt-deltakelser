@@ -41,6 +41,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -116,9 +117,15 @@ class InnbyggerApiTest {
         res.status shouldBe HttpStatusCode.OK
         res.bodyAsText() shouldBe objectMapper.writeValueAsString(
             deltaker.toInnbyggerDeltakerResponse(
-                ansatte,
-                enhet,
-                listOf(forslag),
+                ansatte = GenericCache(
+                    cacheName = "navAnsatte",
+                    itemMap = ansatte,
+                ),
+                enheter = GenericCache(
+                    cacheName = "navEnhet",
+                    itemMap = enhet?.let { mapOf(it.id to it) } ?: emptyMap(),
+                ),
+                forslag = listOf(forslag),
             ),
         )
     }
@@ -164,9 +171,15 @@ class InnbyggerApiTest {
         res.status shouldBe HttpStatusCode.OK
         res.bodyAsText() shouldBe objectMapper.writeValueAsString(
             deltakerMedFattetVedak.toInnbyggerDeltakerResponse(
-                ansatte,
-                enhet,
-                emptyList(),
+                ansatte = GenericCache(
+                    cacheName = "navAnsatte",
+                    itemMap = ansatte,
+                ),
+                enheter = GenericCache(
+                    cacheName = "navEnhet",
+                    itemMap = enhet?.let { mapOf(it.id to it) } ?: emptyMap(),
+                ),
+                forslag = emptyList(),
             ),
         )
     }
@@ -190,10 +203,16 @@ class InnbyggerApiTest {
             status shouldBe HttpStatusCode.OK
             bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
                 historikk.toResponse(
-                    ansatte,
-                    deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    enheter,
-                    deltaker.deltakerliste.oppstart,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    ansatte = GenericCache(
+                        cacheName = "navAnsatte",
+                        itemMap = ansatte,
+                    ),
+                    enheter = GenericCache(
+                        cacheName = "navEnhet",
+                        itemMap = enheter,
+                    ),
                 ),
             )
         }

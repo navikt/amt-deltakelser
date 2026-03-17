@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -20,6 +21,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -62,17 +64,17 @@ data class DeltakerResponse(
         companion object {
             fun fromVedtak(
                 vedtak: Vedtak,
-                ansatte: Map<UUID, NavAnsatt>,
-                vedtakSistEndretEnhet: NavEnhet?,
+                ansatte: GenericCache<NavAnsatt>,
+                enheter: GenericCache<NavEnhet>,
             ) = with(vedtak) {
                 VedtaksinformasjonDto(
                     fattet = fattet,
                     fattetAvNav = fattetAvNav,
                     opprettet = opprettet,
-                    opprettetAv = ansatte[opprettetAv]?.navn ?: opprettetAv.toString(),
+                    opprettetAv = ansatte.getOrThrow(opprettetAv).navn,
                     sistEndret = sistEndret,
-                    sistEndretAv = ansatte[sistEndretAv]?.navn ?: sistEndretAv.toString(),
-                    sistEndretAvEnhet = vedtakSistEndretEnhet?.navn ?: sistEndretAvEnhet.toString(),
+                    sistEndretAv = ansatte.getOrThrow(sistEndretAv).navn,
+                    sistEndretAvEnhet = enheter.getOrThrow(sistEndretAvEnhet).navn,
                 )
             }
 
@@ -164,23 +166,21 @@ data class DeltakerResponse(
         val gyldigFra: LocalDate,
     ) {
         companion object {
-            fun fromDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde) = with(deltakelsesmengde) {
-                DeltakelsesmengdeDto(
-                    deltakelsesprosent = deltakelsesprosent,
-                    dagerPerUke = dagerPerUke,
-                    gyldigFra = gyldigFra,
-                )
-            }
+            fun fromDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde) = DeltakelsesmengdeDto(
+                deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
+                dagerPerUke = deltakelsesmengde.dagerPerUke,
+                gyldigFra = deltakelsesmengde.gyldigFra,
+            )
         }
     }
 
     companion object {
         fun fromDeltaker(
             deltaker: Deltaker,
-            ansatte: Map<UUID, NavAnsatt>,
-            vedtakSistEndretAvEnhet: NavEnhet?,
             digitalBruker: Boolean,
             forslag: List<Forslag>,
+            ansatte: GenericCache<NavAnsatt>,
+            enheter: GenericCache<NavEnhet>,
         ) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
@@ -220,13 +220,26 @@ data class DeltakerResponse(
                         ),
                     )
                 },
-                vedtaksinformasjon = vedtaksinformasjon?.let { VedtaksinformasjonDto.fromVedtak(it, ansatte, vedtakSistEndretAvEnhet) },
+                vedtaksinformasjon = vedtaksinformasjon?.let {
+                    VedtaksinformasjonDto.fromVedtak(
+                        vedtak = it,
+                        ansatte = ansatte,
+                        enheter = enheter,
+                    )
+                },
                 adresseDelesMedArrangor = adresseDelesMedArrangor(),
                 kanEndres = kanEndres,
                 digitalBruker = digitalBruker,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = forslag.map { it.toResponse(deltakerliste.arrangor.getArrangorNavn()) },
+                forslag = forslag.map {
+                    ForslagResponse.fromForslag(
+                        forslag = it,
+                        arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
+                        ansatte = ansatte,
+                        enheter = enheter,
+                    )
+                },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 deltakelsesmengder = DeltakelsesmengderDto(
@@ -238,7 +251,10 @@ data class DeltakerResponse(
             )
         }
 
-        fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
+        fun fromDeltakerModel(
+            deltaker: DeltakerModel,
+            endringsforslagFraArrangor: List<ForslagDecorator>,
+        ) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
                 fornavn = navBruker.fornavn,
@@ -255,8 +271,8 @@ data class DeltakerResponse(
                     sluttdato = gjennomforing.sluttDato,
                     status = gjennomforing.status,
                     tilgjengeligInnhold = TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
-                        gjennomforing.tiltak.innhold,
-                        gjennomforing.tiltak.tiltakskode,
+                        innhold = gjennomforing.tiltak.innhold,
+                        tiltakstype = gjennomforing.tiltak.tiltakskode,
                     ),
                     erEnkeltplassUtenRammeavtale = gjennomforing.tiltak.erEnkeltplass(),
                     oppmoteSted = gjennomforing.oppmoteSted,
@@ -270,40 +286,32 @@ data class DeltakerResponse(
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold?.let {
                     DeltakelsesinnholdDto.fromDeltakelsesinnhold(
-                        it,
-                        getInnholdselementer(
-                            gjennomforing.tiltak.innhold
-                                ?.innholdselementer,
-                            gjennomforing.tiltak.tiltakskode,
+                        deltakelsesinnhold = it,
+                        tiltaksInnhold = getInnholdselementer(
+                            innholdselementer = gjennomforing.tiltak.innhold?.innholdselementer,
+                            tiltakstype = gjennomforing.tiltak.tiltakskode,
                         ),
                     )
                 },
-                vedtaksinformasjon = vedtaksinformasjon?.let {
-                    VedtaksinformasjonDto.fromVedtak(it)
-                },
+                vedtaksinformasjon = vedtaksinformasjon?.let { VedtaksinformasjonDto.fromVedtak(it) },
                 adresseDelesMedArrangor = adresseDelesMedArrangor,
                 kanEndres = erLaastForEndringer,
                 digitalBruker = navBruker.erDigital,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = endringsforslagFraArrangor.map { it.toResponse(gjennomforing.arrangor.navn) },
+                forslag = endringsforslagFraArrangor.map {
+                    ForslagResponse.fromForslagDecorator(
+                        decorator = it,
+                        arrangorNavn = gjennomforing.arrangor.navn,
+                    )
+                },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger
                 // Kan dette utledes i amt-deltaker?
                 deltakelsesmengder = DeltakelsesmengderDto(
-                    nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let {
-                        DeltakelsesmengdeDto
-                            .fromDeltakelsesmengde(
-                                it,
-                            )
-                    },
-                    sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let {
-                        DeltakelsesmengdeDto
-                            .fromDeltakelsesmengde(
-                                it,
-                            )
-                    },
+                    nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let { DeltakelsesmengdeDto.fromDeltakelsesmengde(it) },
+                    sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let { DeltakelsesmengdeDto.fromDeltakelsesmengde(it) },
                 ),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,

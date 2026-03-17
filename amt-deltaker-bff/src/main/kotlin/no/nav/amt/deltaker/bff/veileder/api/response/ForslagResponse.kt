@@ -1,9 +1,10 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -14,63 +15,66 @@ data class ForslagResponse(
     val arrangorNavn: String,
     val endring: Forslag.Endring,
     val status: ForslagResponseStatus,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    companion object {
+        /** Extension som mapper Forslag.Status til ForslagResponseStatus */
+        private fun Forslag.Status.toResponseStatus(
+            decorator: ForslagDecorator,
+            avvistAvNavnProvider: (UUID) -> String,
+            avvistAvEnhetNavnProvider: (UUID) -> String,
+        ): ForslagResponseStatus = when (this) {
+            is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
+            is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(godkjent)
+            is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(tilbakekalt)
+            is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(erstattet)
+            is Forslag.Status.Avvist -> {
+                // Hent avvist-info fra decorator hvis det er AvvistStatusDecorator
+                val (avvistAvNavn, avvistAvEnhet) = (decorator as? ForslagDecorator.AvvistStatusDecorator)
+                    ?.let { it.avvistAvAnsattNavn to it.avvistAvEnhetNavn }
+                    ?: (avvistAvNavnProvider(avvistAv.id) to avvistAvEnhetNavnProvider(avvistAv.enhetId))
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-sealed interface ForslagResponseStatus {
-    data object VenterPaSvar : ForslagResponseStatus
+                ForslagResponseStatus.Avvist(
+                    avvistAv = avvistAvNavn,
+                    avvistAvEnhet = avvistAvEnhet,
+                    avvist = avvist,
+                    begrunnelseFraNav = begrunnelseFraNav,
+                )
+            }
+        }
 
-    data class Godkjent(
-        val godkjent: LocalDateTime,
-    ) : ForslagResponseStatus
+        /** Lager en ForslagResponse fra et ForslagDecorator */
+        fun fromForslagDecorator(
+            decorator: ForslagDecorator,
+            arrangorNavn: String,
+            avvistAvNavnProvider: (UUID) -> String = { it.toString() },
+            avvistAvEnhetNavnProvider: (UUID) -> String = { it.toString() },
+        ): ForslagResponse {
+            val forslag = decorator.forslag
+            return ForslagResponse(
+                id = forslag.id,
+                opprettet = forslag.opprettet,
+                begrunnelse = forslag.begrunnelse,
+                arrangorNavn = arrangorNavn,
+                endring = forslag.endring,
+                status = forslag.status.toResponseStatus(
+                    decorator = decorator,
+                    avvistAvNavnProvider = avvistAvNavnProvider,
+                    avvistAvEnhetNavnProvider = avvistAvEnhetNavnProvider,
+                ),
+            )
+        }
 
-    data class Avvist(
-        val avvistAv: String,
-        val avvistAvEnhet: String,
-        val avvist: LocalDateTime,
-        val begrunnelseFraNav: String,
-    ) : ForslagResponseStatus
-
-    data class Tilbakekalt(
-        val tilbakekalt: LocalDateTime,
-    ) : ForslagResponseStatus
-
-    data class Erstattet(
-        val erstattet: LocalDateTime,
-    ) : ForslagResponseStatus
-}
-
-fun Forslag.toResponse(arrangornavn: String) = this.toResponse(arrangornavn, emptyMap(), emptyMap())
-
-fun Forslag.toResponse(
-    arrangornavn: String,
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-): ForslagResponse = ForslagResponse(
-    id = id,
-    opprettet = opprettet,
-    begrunnelse = begrunnelse,
-    arrangorNavn = arrangornavn,
-    endring = endring,
-    status = getForslagResponseStatus(ansatte, enheter),
-)
-
-private fun Forslag.getForslagResponseStatus(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-): ForslagResponseStatus = when (val status = status) {
-    is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
-    is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
-    is Forslag.Status.Avvist -> {
-        val avvist = status
-        ForslagResponseStatus.Avvist(
-            avvistAv = ansatte[avvist.avvistAv.id]!!.navn,
-            avvistAvEnhet = enheter[avvist.avvistAv.enhetId]!!.navn,
-            avvist = avvist.avvist,
-            begrunnelseFraNav = avvist.begrunnelseFraNav,
+        /** Lager en ForslagResponse direkte fra et Forslag */
+        fun fromForslag(
+            forslag: Forslag,
+            arrangornavn: String,
+            ansatte: GenericCache<NavAnsatt>,
+            enheter: GenericCache<NavEnhet>,
+        ): ForslagResponse = fromForslagDecorator(
+            decorator = ForslagDecorator.DefaultDecorator(forslag),
+            arrangorNavn = arrangornavn,
+            avvistAvNavnProvider = { ansatte.getOrThrow(it).navn },
+            avvistAvEnhetNavnProvider = { enheter.getOrThrow(it).navn },
         )
     }
-
-    is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
-    is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
 }

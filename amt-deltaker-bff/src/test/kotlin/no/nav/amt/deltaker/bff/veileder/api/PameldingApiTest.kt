@@ -41,6 +41,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
@@ -127,10 +128,10 @@ class PameldingApiTest {
 
                 val expected = DeltakerResponse.fromDeltaker(
                     deltaker = deltaker,
-                    ansatte = ansatte,
-                    vedtakSistEndretAvEnhet = enhet,
                     digitalBruker = true,
                     forslag = emptyList(),
+                    ansatte = GenericCache("ansatte", ansatte),
+                    enheter = GenericCache("enheter", enhet?.let { mapOf(it.id to it) } ?: emptyMap()),
                 )
 
                 bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
@@ -167,10 +168,10 @@ class PameldingApiTest {
 
                 val expected = DeltakerResponse.fromDeltaker(
                     deltaker = deltaker,
-                    ansatte = ansatte,
-                    vedtakSistEndretAvEnhet = enhet,
                     digitalBruker = true,
                     forslag = emptyList(),
+                    ansatte = GenericCache("ansatte", ansatte),
+                    enheter = GenericCache("enheter", enhet?.let { mapOf(it.id to it) } ?: emptyMap()),
                 )
 
                 bodyAsText() shouldBe objectMapper.writeValueAsString(expected)

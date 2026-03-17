@@ -67,6 +67,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -467,10 +468,10 @@ class TiltakskoordinatorDeltakerApiTest {
             val res = bodyAsText()
             val json = objectMapper.writePolymorphicListAsString(
                 historikk.toResponse(
-                    ansatte,
                     deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    enheter,
                     deltaker.deltakerliste.oppstart,
+                    GenericCache("ansatte", ansatte),
+                    GenericCache("enheter", enheter),
                 ),
             )
             res shouldBe json
@@ -922,12 +923,14 @@ class TiltakskoordinatorDeltakerApiTest {
         private fun deltakerResponseInTest(
             deltaker: Deltaker,
             mocks: Pair<Map<UUID, NavAnsatt>, NavEnhet?>,
+            ansatte: GenericCache<NavAnsatt> = GenericCache("ansatte", mocks.first),
+            enheter: GenericCache<NavEnhet> = GenericCache("enheter", mocks.second?.let { mapOf(it.id to it) } ?: emptyMap()),
         ) = DeltakerResponse.fromDeltaker(
             deltaker = deltaker,
-            ansatte = mocks.first,
-            vedtakSistEndretAvEnhet = mocks.second,
             digitalBruker = true,
             forslag = emptyList(),
+            ansatte = ansatte,
+            enheter = enheter,
         )
     }
 }

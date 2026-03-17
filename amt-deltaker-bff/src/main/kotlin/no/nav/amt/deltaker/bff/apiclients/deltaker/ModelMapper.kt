@@ -31,7 +31,7 @@ class ModelMapper {
                 historikk = historikk,
                 vedtaksinformasjon = vedtaksinformasjon?.let { toVedtaksinformasjon(it) },
                 erLaastForEndringer = erLaastForEndringer,
-                endringsforslagFraArrangor = endringsforslagFraArrangor,
+                endringsforslagFraArrangor = endringsforslagFraArrangor.map { it.forslag },
             )
         }
 
