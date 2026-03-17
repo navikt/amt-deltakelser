@@ -35,6 +35,9 @@ permissions:
   contents: read
   security-events: write
 
+env:
+  ALL_MODULES: '["amt-deltaker-bff","amt-deltaker","amt-distribusjon","amt-tiltaksarrangor-bff"]'
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -46,15 +49,15 @@ jobs:
         id: filter
         with:
           filters: |
-            # vi bruker amt-deltaker-bff for endringer i felles-libs
-            amt-deltaker-bff: 
-              - amt-deltaker-bff/**
+            amt-deltaker-bff: amt-deltaker-bff/**
+            amt-deltaker: amt-deltaker/**
+            # vi bruker amt-distribusjon for endringer i felles-libs
+            amt-distribusjon: 
+              - amt-distribusjon/**
               - amt-felles/**
               - amt-lib/**
               - buildSrc/**
-              - gradle/**
-            amt-deltaker: amt-deltaker/**
-            amt-distribusjon: amt-distribusjon/**
+              - gradle/**            
             amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
 
       - name: Debug changed modules
@@ -69,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: ${{ github.event_name == 'schedule' && fromJSON('["amt-deltaker-bff"]') || fromJSON(needs.changes.outputs.modules) }}
+        module: ${{ github.event_name == 'schedule' && fromJSON(env.ALL_MODULES) || fromJSON(needs.changes.outputs.modules) }}
         language: [java-kotlin]
 
     steps:
