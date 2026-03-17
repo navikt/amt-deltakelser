@@ -454,7 +454,6 @@ class DeltakerRepository {
             }
         }
 
-        // TODO: Fikse left joint på arrangør
         private fun buildDeltakerSql(
             methodName: String,
             whereClause: String,
@@ -531,8 +530,8 @@ class DeltakerRepository {
                 AND ds.gyldig_til IS NULL 
                 AND ds.gyldig_fra <= CURRENT_TIMESTAMP                
             JOIN deltakerliste dl ON d.deltakerliste_id = dl.id
-            JOIN arrangor a ON a.id = dl.arrangor_id
             JOIN tiltakstype t ON t.id = dl.tiltakstype_id
+            LEFT JOIN arrangor a ON a.id = dl.arrangor_id
             LEFT JOIN vedtak v ON 
                 d.id = v.deltaker_id 
                 AND v.gyldig_til IS NULL

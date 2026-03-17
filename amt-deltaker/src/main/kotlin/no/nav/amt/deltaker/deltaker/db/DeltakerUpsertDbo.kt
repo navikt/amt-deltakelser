@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltaker.db
 
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -18,7 +17,6 @@ data class DeltakerUpsertDbo(
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
     val deltakelsesinnhold: Deltakelsesinnhold?,
-    val status: DeltakerStatus,
     val vedtaksinformasjon: Vedtaksinformasjon?,
     val sistEndret: LocalDateTime,
     val kilde: Kilde,

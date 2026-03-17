@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerUpsertDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -36,7 +37,7 @@ class KladdService(
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
         personident: String,
-    ): UUID {
+    ): Deltaker {
         val navBruker = navBrukerService.get(personident).getOrThrow()
         val tiltak = Tiltakskode.valueOf(tiltakskode.name).let {
             tiltakRepository.get(tiltakskode).getOrThrow()
@@ -45,16 +46,15 @@ class KladdService(
             id = UUID.randomUUID(),
             type = GjennomforingType.Enkeltplass,
             tiltakId = tiltak.id,
-            navn = tiltak.navn, // TODO: Skal vi sette et navn som passer for omgivelsene?
+            navn = tiltak.navn,
             status = GjennomforingStatusType.KLADD,
             // Antagelig ubetydelig, men kan ha noe å si for hva som skjer når vi evt leser gjennomføringen igjen fra valp
             oppstart = Oppstartstype.LOPENDE,
             apentForPamelding = true,
-            // arrangor = null, // TODO: Denne er ikke nullable i databasen
             pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
-        val kladd = lagEnkeltplassKladd(
+        val kladd = lagEnkeltplassKladdUpsertDbo(
             navBruker.personId,
             gjennomforing.id,
             tiltak,
@@ -63,8 +63,10 @@ class KladdService(
         Database.transaction {
             deltakerListeRepository.upsert(gjennomforing)
             deltakerRepository.upsert(kladd)
+            DeltakerStatusRepository.lagreStatus(kladd.id, nyDeltakerStatus(DeltakerStatus.Type.KLADD))
         }
-        return kladd.id
+
+        return deltakerRepository.get(kladd.id).getOrThrow()
     }
 
     suspend fun opprettKladd(
@@ -128,7 +130,7 @@ class KladdService(
             opprettet = LocalDateTime.now(),
         )
 
-        private fun lagEnkeltplassKladd(
+        private fun lagEnkeltplassKladdUpsertDbo(
             navBrukerId: UUID,
             deltakerlisteId: UUID,
             tiltakstype: Tiltakstype,
@@ -142,7 +144,6 @@ class KladdService(
             deltakelsesprosent = null,
             bakgrunnsinformasjon = null,
             deltakelsesinnhold = Deltakelsesinnhold(tiltakstype.innhold?.ledetekst, emptyList()),
-            status = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
             vedtaksinformasjon = null,
             sistEndret = LocalDateTime.now(),
             kilde = Kilde.KOMET,

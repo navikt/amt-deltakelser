@@ -203,12 +203,14 @@ class DeltakerlisteRepository {
             apentForPamelding = row.boolean(col("apent_for_pamelding")),
             oppmoteSted = row.stringOrNull(col("oppmote_sted")),
             pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
-            arrangor = Arrangor(
-                id = row.uuid("a.id"),
-                navn = row.string("a.navn"),
-                organisasjonsnummer = row.string("a.organisasjonsnummer"),
-                overordnetArrangorId = row.uuidOrNull("a.overordnet_arrangor_id"),
-            ),
+            arrangor = row.uuidOrNull("a.id")?.let { arrangorId ->
+                Arrangor(
+                    id = arrangorId,
+                    navn = row.string("a.navn"),
+                    organisasjonsnummer = row.string("a.organisasjonsnummer"),
+                    overordnetArrangorId = row.uuidOrNull("a.overordnet_arrangor_id"),
+                )
+            },
         )
     }
 }

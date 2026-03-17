@@ -30,10 +30,10 @@ fun Routing.registerKladdApi(kladdService: KladdService) {
         post("/opprett-enkeltplass-kladd") {
             val opprettKladdRequest = call.receive<OpprettKladdEnkeltplassRequest>()
 
-            val deltakerId = kladdService
+            val deltaker = kladdService
                 .opprettKladd(opprettKladdRequest.tiltakskode, opprettKladdRequest.personident)
 
-            call.respond(DeltakerIdResponse(deltakerId = deltakerId))
+            call.respond(DeltakerIdResponse(deltakerId = deltaker.id))
         }
 
         delete("/kladd/{deltakerId}") {

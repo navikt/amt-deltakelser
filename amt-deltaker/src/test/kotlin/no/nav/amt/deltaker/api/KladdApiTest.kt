@@ -111,7 +111,7 @@ class KladdApiTest : RouteTestBase() {
             val deltaker = TestData.lagDeltaker()
 
             coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
-            coEvery { kladdService.opprettKladd(any<Tiltakskode>(), any()) } returns deltaker.id
+            coEvery { kladdService.opprettKladd(any<Tiltakskode>(), any()) } returns deltaker
 
             withTestApplicationContext { client ->
                 val response = client.post("/opprett-enkeltplass-kladd") {

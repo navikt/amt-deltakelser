@@ -69,7 +69,11 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -99,6 +103,63 @@ class PameldingServiceTest {
 
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
+    }
+
+    @Nested
+    inner class EnkeltplassTests {
+        @Test
+        fun `opprettKladd - returnerer ny deltakerId`() = runTest {
+            val navBruker = lagNavBruker(
+                navVeilederId = sistEndretAvNavAnsatt.id,
+                navEnhetId = sistEndretAvNavEnhet.id,
+            )
+
+            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
+
+            val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
+            TiltakstypeRepository().upsert(tiltak)
+
+            val deltaker = kladdService.opprettKladd(
+                tiltak.tiltakskode,
+                navBruker.personident,
+            )
+            val nyDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+
+            deltaker shouldNotBe null
+            nyDeltaker shouldNotBe null
+
+            assertSoftly(nyDeltaker) {
+                id shouldBe deltaker.id
+                startdato shouldBe null
+                sluttdato shouldBe null
+                dagerPerUke shouldBe null
+                deltakelsesprosent shouldBe null
+                bakgrunnsinformasjon shouldBe null
+                vedtaksinformasjon shouldBe null
+                sistEndret shouldBeCloseTo LocalDateTime.now()
+                kilde shouldBe Kilde.KOMET
+                erManueltDeltMedArrangor shouldBe false
+                opprettet shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(deltaker.status) {
+                type shouldBe DeltakerStatus.Type.KLADD
+            }
+
+            assertSoftly(nyDeltaker.deltakerliste) {
+                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
+                tiltakstype shouldBe tiltak
+                navn shouldBe tiltak.navn
+                startDato shouldBe null
+                sluttDato shouldBe null
+                oppstart shouldBe Oppstartstype.LOPENDE
+                apentForPamelding shouldBe true
+                oppmoteSted shouldBe null
+                arrangor shouldBe null
+                pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
+                status shouldBe GjennomforingStatusType.KLADD
+            }
+        }
     }
 
     @Nested
