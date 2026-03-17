@@ -81,7 +81,7 @@ data class DeltakerResponse(
                     startdato = deltakerliste.startDato,
                     sluttdato = deltakerliste.sluttDato,
                     status = deltakerliste.status,
-                    tilgjengeligInnhold = TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
+                    tilgjengeligInnholdResponse = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
                         deltakerliste.tiltak.innhold,
                         deltakerliste.tiltak.tiltakskode,
                     ),
@@ -140,12 +140,12 @@ data class DeltakerResponse(
                     deltakerlisteNavn = gjennomforing.navn,
                     tiltakskode = gjennomforing.tiltak.tiltakskode,
                     // Nå er det amtdeltaker som sender med navnet som er riktig for visningen
-                    arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør", // TODO: Hva skal stå
+                    arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
                     oppstartstype = gjennomforing.oppstart,
                     startdato = gjennomforing.startDato,
                     sluttdato = gjennomforing.sluttDato,
                     status = gjennomforing.status,
-                    tilgjengeligInnhold = TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
+                    tilgjengeligInnholdResponse = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
                         gjennomforing.tiltak.innhold,
                         gjennomforing.tiltak.tiltakskode,
                     ),
