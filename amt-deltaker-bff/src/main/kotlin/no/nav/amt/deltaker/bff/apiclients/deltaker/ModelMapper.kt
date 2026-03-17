@@ -25,7 +25,6 @@ class ModelMapper {
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold,
                 status = status,
-                kanEndres = !erLaastForEndringer,
                 sistEndret = sistEndret,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
                 historikk = historikk,

@@ -282,7 +282,7 @@ data class DeltakerResponse(
                     VedtaksinformasjonDto.fromVedtak(it)
                 },
                 adresseDelesMedArrangor = adresseDelesMedArrangor,
-                kanEndres = erLaastForEndringer,
+                kanEndres = !erLaastForEndringer,
                 digitalBruker = navBruker.erDigital,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
