@@ -29,7 +29,6 @@ data class DeltakerModel(
     val deltakelsesinnhold: Deltakelsesinnhold?,
     val vedtaksinformasjon: VedtaksinformasjonModel?,
     val status: DeltakerStatus,
-    val kanEndres: Boolean,
     val sistEndret: LocalDateTime,
     val erManueltDeltMedArrangor: Boolean,
     val historikk: List<DeltakerHistorikk>,
