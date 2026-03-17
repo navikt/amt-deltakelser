@@ -19,7 +19,7 @@ class NavEnhetService(
         additionalIds: Set<UUID> = emptySet(),
     ): Map<UUID, NavEnhet> {
         val navEnhetIder = setOfNotNull(
-            deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
+            deltaker.vedtaksinformasjon?.opprettetAvEnhet,
             deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
         ).plus(additionalIds)
 
