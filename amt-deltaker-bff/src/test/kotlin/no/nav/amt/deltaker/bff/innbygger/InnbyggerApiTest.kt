@@ -229,7 +229,6 @@ class InnbyggerApiTest {
                 deltakerService = deltakerService,
                 pameldingService = pameldingService,
                 navAnsattService = navAnsattService,
-                navEnhetService = navEnhetService,
                 innbyggerService = innbyggerService,
                 forslagRepository = forslagRepository,
                 forslagService = forslagService,
@@ -245,6 +244,7 @@ class InnbyggerApiTest {
                 tiltakskoordinatorTilgangRepository = mockk(),
                 ulestHendelseService = mockk(),
                 testdataService = mockk(),
+                ansatteOgEnheterForDeltakerProvider = mockk(),
             )
         }
     }

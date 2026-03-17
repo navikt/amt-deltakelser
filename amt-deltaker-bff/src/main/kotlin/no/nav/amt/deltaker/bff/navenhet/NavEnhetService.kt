@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.navenhet
 
+import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.person.NavEnhet
@@ -12,6 +13,18 @@ class NavEnhetService(
     private val amtPersonServiceClient: AmtPersonServiceClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    fun hentNavEnheterForDeltaker(
+        deltaker: Deltaker,
+        additionalIds: Set<UUID> = emptySet(),
+    ): Map<UUID, NavEnhet> {
+        val navEnhetIder = setOfNotNull(
+            deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
+            deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
+        ).plus(additionalIds)
+
+        return hentEnheter(navEnhetIder.toList())
+    }
 
     suspend fun hentOpprettEllerOppdaterNavEnhet(enhetsnummer: String): NavEnhet {
         repository
@@ -52,7 +65,8 @@ class NavEnhetService(
         return manglendeEnheter.map { hentEllerOpprettEnhet(it) }
     }
 
-    fun hentEnheter(enhetIder: List<UUID>) = repository.getMany(enhetIder).map { it.toNavEnhet() }.associateBy { it.id }
+    fun hentEnheter(enhetIder: List<UUID>): Map<UUID, NavEnhet> =
+        repository.getMany(enhetIder).map { it.toNavEnhet() }.associateBy { it.id }
 
     fun upsert(enhet: NavEnhet) = repository.upsert(enhet).toNavEnhet()
 }

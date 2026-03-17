@@ -12,6 +12,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.amt.deltaker.bff.AnsatteOgEnheterForDeltakerProvider
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -27,7 +28,6 @@ import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.innbygger.registerInnbyggerApi
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.deltaker.bff.testdata.registerTestdataApi
@@ -53,7 +53,6 @@ fun Application.configureRouting(
     deltakerService: DeltakerService,
     pameldingService: PameldingService,
     navAnsattService: NavAnsattService,
-    navEnhetService: NavEnhetService,
     innbyggerService: InnbyggerService,
     forslagRepository: ForslagRepository,
     forslagService: ForslagService,
@@ -68,6 +67,7 @@ fun Application.configureRouting(
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     ulestHendelseService: UlestHendelseService,
+    ansatteOgEnheterForDeltakerProvider: AnsatteOgEnheterForDeltakerProvider,
     testdataService: TestdataService,
 ) {
     install(StatusPages) {
@@ -103,13 +103,12 @@ fun Application.configureRouting(
             tilgangskontrollService = tilgangskontrollService,
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
             forslagRepository = forslagRepository,
             forslagService = forslagService,
             amtDistribusjonClient = amtDistribusjonClient,
             amtDeltakerClient = amtDeltakerClient,
             sporbarhetsloggService = sporbarhetsloggService,
+            ansatteOgEnheterForDeltakerProvider = ansatteOgEnheterForDeltakerProvider,
             unleashToggle = commonUnleashToggle,
         )
 
@@ -117,20 +116,18 @@ fun Application.configureRouting(
             tilgangskontrollService = tilgangskontrollService,
             deltakerRepository = deltakerRepository,
             pameldingService = pameldingService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            forslageRepository = forslagRepository,
+            forslagRepository = forslagRepository,
             amtDistribusjonClient = amtDistribusjonClient,
+            ansatteOgEnheterForDeltakerProvider = ansatteOgEnheterForDeltakerProvider,
         )
 
         registerKladdApi(
             tilgangskontrollService = tilgangskontrollService,
             deltakerRepository = deltakerRepository,
             pameldingService = pameldingService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            forslageRepository = forslagRepository,
+            forslagRepository = forslagRepository,
             amtDistribusjonClient = amtDistribusjonClient,
+            ansatteOgEnheterForDeltakerProvider = ansatteOgEnheterForDeltakerProvider,
         )
 
         registerInnbyggerApi(
@@ -138,10 +135,9 @@ fun Application.configureRouting(
             deltakerService = deltakerService,
             amtDeltakerClient = amtDeltakerClient,
             tilgangskontrollService = tilgangskontrollService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
             innbyggerService = innbyggerService,
-            forslageRepository = forslagRepository,
+            forslagRepository = forslagRepository,
+            ansatteOgEnheterForDeltakerProvider = ansatteOgEnheterForDeltakerProvider,
             unleashToggle = commonUnleashToggle,
         )
 
@@ -152,9 +148,8 @@ fun Application.configureRouting(
             tiltakskoordinatorService = tiltakskoordinatorService,
             deltakerRepository = deltakerRepository,
             amtDeltakerClient = amtDeltakerClient,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
             ulesteHendelserService = ulestHendelseService,
+            ansatteOgEnheterForDeltakerProvider = ansatteOgEnheterForDeltakerProvider,
             unleashToggle = commonUnleashToggle,
         )
 

@@ -17,6 +17,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.amt.deltaker.bff.AnsatteOgEnheterForDeltakerProvider
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -551,6 +552,7 @@ class TiltakskoordinatorDeltakerApiTest {
     @Test
     fun `avslutt - har tilgang, har deltatt - returnerer oppdatert deltaker`() = testApplication {
         setUpTestApplication()
+
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val oppdatertDeltaker = deltaker.copy(
             status = TestData.lagDeltakerStatus(
@@ -823,7 +825,6 @@ class TiltakskoordinatorDeltakerApiTest {
                 deltakerService = deltakerService,
                 pameldingService = pameldingService,
                 navAnsattService = navAnsattService,
-                navEnhetService = navEnhetService,
                 innbyggerService = mockk(),
                 forslagRepository = forslagRepository,
                 forslagService = forslagService,
@@ -838,6 +839,10 @@ class TiltakskoordinatorDeltakerApiTest {
                 tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
                 ulestHendelseService = mockk(),
+                ansatteOgEnheterForDeltakerProvider = AnsatteOgEnheterForDeltakerProvider(
+                    navAnsattService = navAnsattService,
+                    navEnhetService = navEnhetService,
+                ),
                 testdataService = mockk(),
             )
         }

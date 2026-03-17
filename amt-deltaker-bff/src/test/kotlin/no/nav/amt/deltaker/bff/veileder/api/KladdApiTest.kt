@@ -220,7 +220,6 @@ class KladdApiTest {
                 deltakerService = deltakerService,
                 pameldingService = pameldingService,
                 navAnsattService = navAnsattService,
-                navEnhetService = navEnhetService,
                 innbyggerService = mockk(),
                 forslagRepository = forslagRepository,
                 forslagService = forslagService,
@@ -234,6 +233,7 @@ class KladdApiTest {
                 tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
                 ulestHendelseService = mockk(),
+                ansatteOgEnheterForDeltakerProvider = mockk(),
                 testdataService = mockk(),
             )
         }

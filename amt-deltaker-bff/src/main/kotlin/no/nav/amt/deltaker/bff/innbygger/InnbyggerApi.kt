@@ -10,6 +10,7 @@ import io.ktor.server.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import no.nav.amt.deltaker.bff.AnsatteOgEnheterForDeltakerProvider
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
@@ -22,12 +23,8 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.innbygger.model.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.innbygger.model.toInnbyggerDeltakerResponse
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.utils.GenericCache
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -37,26 +34,27 @@ fun Routing.registerInnbyggerApi(
     deltakerService: DeltakerService,
     amtDeltakerClient: AmtDeltakerClient,
     tilgangskontrollService: TilgangskontrollService,
-    navAnsattService: NavAnsattService,
-    navEnhetService: NavEnhetService,
     innbyggerService: InnbyggerService,
-    forslageRepository: ForslagRepository,
+    forslagRepository: ForslagRepository,
+    ansatteOgEnheterForDeltakerProvider: AnsatteOgEnheterForDeltakerProvider,
     unleashToggle: CommonUnleashToggle,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
-    fun komplettInnbyggerDeltakerResponse(deltaker: Deltaker): InnbyggerDeltakerResponse = deltaker.toInnbyggerDeltakerResponse(
-        ansatte = GenericCache(
-            cacheName = "navAnsatte",
-            itemMap = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        ),
-        enheter = GenericCache(
-            cacheName = "navEnheter",
-            items = listOfNotNull(deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) }),
-            idSelector = NavEnhet::id,
-        ),
-        forslag = forslageRepository.getForDeltaker(deltaker.id),
-    )
+    fun komplettInnbyggerDeltakerResponse(deltaker: Deltaker): InnbyggerDeltakerResponse {
+        val forslagForDeltaker = forslagRepository.getForDeltaker(deltaker.id)
+
+        val (ansatte, enheter) = ansatteOgEnheterForDeltakerProvider.getAnsatteOgEnheterForDeltaker(
+            deltaker = deltaker,
+            forslagForDeltaker = forslagForDeltaker,
+        )
+
+        return deltaker.toInnbyggerDeltakerResponse(
+            ansatte = ansatte,
+            enheter = enheter,
+            forslag = forslagForDeltaker,
+        )
+    }
 
     authenticate(AuthLevel.INNBYGGER.name) {
         // kaller amtDeltakerClient.sistBesokt
@@ -111,15 +109,13 @@ fun Routing.registerInnbyggerApi(
                     deltaker.getDeltakerHistorikkForVisning()
                 }
 
+            val (ansatte, enheter) = ansatteOgEnheterForDeltakerProvider.getAnsatteOgEnheterForDeltakerHistorikk(
+                historikk = historikk,
+            )
+
             val historikkResponse = historikk.toResponse(
-                ansatte = GenericCache(
-                    cacheName = "navAnsatte",
-                    itemMap = navAnsattService.hentAnsatteForHistorikk(historikk),
-                ),
-                enheter = GenericCache(
-                    cacheName = "navEnheter",
-                    itemMap = navEnhetService.hentEnheterForHistorikk(historikk),
-                ),
+                ansatte = ansatte,
+                enheter = enheter,
                 arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                 oppstartstype = deltaker.deltakerliste.oppstart,
             )

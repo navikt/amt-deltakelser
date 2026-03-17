@@ -7,6 +7,7 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
 import io.mockk.mockk
+import no.nav.amt.deltaker.bff.AnsatteOgEnheterForDeltakerProvider
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -53,6 +54,7 @@ abstract class RouteTestBase {
     protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk(relaxed = true)
     protected val tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository = mockk(relaxed = true)
     protected val ulestHendelseService: UlestHendelseService = mockk(relaxed = true)
+    protected val ansatteOgEnheterForDeltakerProvider: AnsatteOgEnheterForDeltakerProvider = mockk(relaxed = true)
     protected val testdataService: TestdataService = mockk(relaxed = true)
 
     @BeforeEach
@@ -73,7 +75,6 @@ abstract class RouteTestBase {
                     deltakerService,
                     pameldingService,
                     navAnsattService,
-                    navEnhetService,
                     innbyggerService,
                     forslagRepository,
                     forslagService,
@@ -88,6 +89,7 @@ abstract class RouteTestBase {
                     tiltakskoordinatorService,
                     tiltakskoordinatorTilgangRepository,
                     ulestHendelseService,
+                    ansatteOgEnheterForDeltakerProvider,
                     testdataService,
                 )
             }

@@ -201,6 +201,7 @@ fun Application.module() {
     val navEnhetRepository = NavEnhetRepository()
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
+    val ansatteOgEnheterForDeltakerProvider = AnsatteOgEnheterForDeltakerProvider(navAnsattService, navEnhetService)
 
     val navBrukerRepository = NavBrukerRepository()
     val navBrukerService = NavBrukerService(
@@ -327,7 +328,6 @@ fun Application.module() {
         deltakerService = deltakerService,
         pameldingService = pameldingService,
         navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
         innbyggerService = innbyggerService,
         forslagRepository = forslagRepository,
         forslagService = forslagService,
@@ -343,6 +343,7 @@ fun Application.module() {
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
         ulestHendelseService = ulestHendelseService,
         testdataService = testdataService,
+        ansatteOgEnheterForDeltakerProvider = ansatteOgEnheterForDeltakerProvider,
     )
     configureMonitoring()
 

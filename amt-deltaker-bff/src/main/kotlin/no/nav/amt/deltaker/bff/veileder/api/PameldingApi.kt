@@ -8,6 +8,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.bff.AnsatteOgEnheterForDeltakerProvider
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
@@ -21,41 +22,38 @@ import no.nav.amt.deltaker.bff.deltaker.model.Pamelding
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.utils.GenericCache
 
 fun Routing.registerPameldingApi(
     tilgangskontrollService: TilgangskontrollService,
     deltakerRepository: DeltakerRepository,
     pameldingService: PameldingService,
-    navAnsattService: NavAnsattService,
-    navEnhetService: NavEnhetService,
-    forslageRepository: ForslagRepository,
+    forslagRepository: ForslagRepository,
     amtDistribusjonClient: AmtDistribusjonClient,
+    ansatteOgEnheterForDeltakerProvider: AnsatteOgEnheterForDeltakerProvider,
 ) {
     // duplikat i DeltakerApi
-    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
-        deltaker = deltaker,
-        ansatte = GenericCache(
-            cacheName = "navAnsatte",
-            itemMap = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        ),
-        enheter = GenericCache(
-            cacheName = "navEnheter",
-            items = listOfNotNull(deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) }),
-            idSelector = NavEnhet::id,
-        ),
-        digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslageRepository.getForDeltaker(deltaker.id),
-    )
+    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
+        val forslag = forslagRepository.getForDeltaker(deltaker.id)
+
+        val (ansatte, enheter) = ansatteOgEnheterForDeltakerProvider.getAnsatteOgEnheterForDeltaker(
+            deltaker = deltaker,
+            forslagForDeltaker = forslag,
+        )
+
+        return DeltakerResponse.fromDeltaker(
+            deltaker = deltaker,
+            ansatte = ansatte,
+            enheter = enheter,
+            digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
+            forslag = forslag,
+        )
+    }
 
     authenticate("VEILEDER") {
         post("/pamelding/{deltakerId}") {

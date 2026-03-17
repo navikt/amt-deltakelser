@@ -11,6 +11,7 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import jakarta.ws.rs.ForbiddenException
+import no.nav.amt.deltaker.bff.AnsatteOgEnheterForDeltakerProvider
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.ModelMapper
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -26,8 +27,6 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getForslagId
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.veileder.api.request.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.AvvisForslagRequest
@@ -57,8 +56,6 @@ import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.utils.GenericCache
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -69,32 +66,33 @@ fun Routing.registerVeilederApi(
     tilgangskontrollService: TilgangskontrollService,
     deltakerRepository: DeltakerRepository,
     deltakerService: DeltakerService,
-    navAnsattService: NavAnsattService,
-    navEnhetService: NavEnhetService,
     forslagRepository: ForslagRepository,
     forslagService: ForslagService,
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
+    ansatteOgEnheterForDeltakerProvider: AnsatteOgEnheterForDeltakerProvider,
     unleashToggle: CommonUnleashToggle,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
     // duplikat i PameldiongApi
-    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
-        deltaker = deltaker,
-        ansatte = GenericCache(
-            cacheName = "navAnsatte",
-            itemMap = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        ),
-        enheter = GenericCache(
-            cacheName = "navEnheter",
-            items = listOfNotNull(deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) }),
-            idSelector = NavEnhet::id,
-        ),
-        digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslagRepository.getForDeltaker(deltaker.id),
-    )
+    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
+        val forslag = forslagRepository.getForDeltaker(deltaker.id)
+
+        val (ansatte, enheter) = ansatteOgEnheterForDeltakerProvider.getAnsatteOgEnheterForDeltaker(
+            deltaker = deltaker,
+            forslagForDeltaker = forslag,
+        )
+
+        return DeltakerResponse.fromDeltaker(
+            deltaker = deltaker,
+            ansatte = ansatte,
+            enheter = enheter,
+            digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
+            forslag = forslag,
+        )
+    }
 
     fun illegalUpdateGuard(
         deltaker: Deltaker,
@@ -204,15 +202,13 @@ fun Routing.registerVeilederApi(
                     deltaker.getDeltakerHistorikkForVisning()
                 }
 
+            val (ansatte, enheter) = ansatteOgEnheterForDeltakerProvider.getAnsatteOgEnheterForDeltakerHistorikk(
+                historikk = historikk,
+            )
+
             val historikkResponse = historikk.toResponse(
-                ansatte = GenericCache(
-                    cacheName = "navAnsatte",
-                    itemMap = navAnsattService.hentAnsatteForHistorikk(historikk),
-                ),
-                enheter = GenericCache(
-                    cacheName = "navEnheter",
-                    itemMap = navEnhetService.hentEnheterForHistorikk(historikk),
-                ),
+                ansatte = ansatte,
+                enheter = enheter,
                 arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                 oppstartstype = deltaker.deltakerliste.oppstart,
             )

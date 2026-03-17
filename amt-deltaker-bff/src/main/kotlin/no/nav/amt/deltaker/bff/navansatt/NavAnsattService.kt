@@ -39,13 +39,16 @@ class NavAnsattService(
     }
 
     // Flyttes til amt-deltaker
-    fun hentAnsatteForDeltaker(deltaker: Deltaker): Map<UUID, NavAnsatt> {
-        val veilederIder = listOfNotNull(
+    fun hentAnsatteForDeltaker(
+        deltaker: Deltaker,
+        additionalIds: Set<UUID> = emptySet(),
+    ): Map<UUID, NavAnsatt> {
+        val veilederIder = setOfNotNull(
             deltaker.vedtaksinformasjon?.opprettetAv,
             deltaker.vedtaksinformasjon?.sistEndretAv,
-        ).distinct()
+        ).plus(additionalIds)
 
-        return hentAnsatte(veilederIder)
+        return hentAnsatte(veilederIder.toList())
     }
 
     fun hentAnsatteForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavAnsatt> {
