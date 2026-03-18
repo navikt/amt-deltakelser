@@ -64,7 +64,7 @@ class NavEnhetServiceTest {
     }
 
     @Test
-    fun `hentEnheterForHistorikk - historikk endret av flere ansatte - returnerer alle enheter`() {
+    fun `hentEnheterForHistorikk - historikk endret av flere ansatte - returnerer alle enheter`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
@@ -92,7 +92,7 @@ class NavEnhetServiceTest {
         enheter.forEach { navEnhetRepository.upsert(it) }
         TestRepository.insert(deltaker)
 
-        val faktiskeEnheter = runBlocking { navEnhetService.hentEnheterForHistorikk(historikk) }
+        val faktiskeEnheter = navEnhetService.hentNavEnheterForHistorikk(historikk)
         faktiskeEnheter.size shouldBe enheter.size
 
         faktiskeEnheter.toList().map { it.second }.containsAll(enheter) shouldBe true
@@ -110,7 +110,7 @@ class NavEnhetServiceTest {
         TestRepository.insert(deltaker)
         MockResponseHandler.addNavEnhetGetResponse(TestData.lagNavEnhet(id = endring.endretAvEnhet))
 
-        val faktiskeEnheter = runBlocking { navEnhetService.hentEnheterForHistorikk(historikk) }
+        val faktiskeEnheter = runBlocking { navEnhetService.hentNavEnheterForHistorikk(historikk) }
         faktiskeEnheter.size shouldBe 1
 
         faktiskeEnheter[endring.endretAvEnhet] shouldNotBe null

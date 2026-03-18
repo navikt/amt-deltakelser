@@ -85,7 +85,7 @@ data class Deltaker(
             ikkeFattetVedtak
         }
 
-    fun getDeltakerHistorikkForVisning() = historikk
+    fun getDeltakerHistorikkForVisning(): List<DeltakerHistorikk> = historikk
         .filterNot {
             deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING &&
                 it is DeltakerHistorikk.Vedtak

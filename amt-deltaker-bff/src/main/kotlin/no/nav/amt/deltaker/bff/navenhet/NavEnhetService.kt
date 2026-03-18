@@ -46,7 +46,7 @@ class NavEnhetService(
 
     fun hentEnhet(id: UUID) = repository.get(id)?.toNavEnhet()
 
-    suspend fun hentEnheterForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavEnhet> {
+    suspend fun hentNavEnheterForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavEnhet> {
         val ider = historikk.flatMap { it.navEnheter() }.distinct()
         val enheterFraDb = hentEnheter(ider)
 

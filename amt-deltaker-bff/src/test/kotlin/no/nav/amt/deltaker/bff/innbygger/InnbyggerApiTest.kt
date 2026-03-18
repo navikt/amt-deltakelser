@@ -12,6 +12,7 @@ import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.amt.deltaker.bff.AnsatteOgEnheterForDeltakerProvider
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -34,6 +35,8 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.bff.utils.data.TestData
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForHistorikk
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnheterForHistorikk
 import no.nav.amt.deltaker.bff.utils.tokenXToken
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -192,13 +195,17 @@ class InnbyggerApiTest {
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         val historikk = deltaker.getDeltakerHistorikkForVisning()
-        val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
-        val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
+
+        val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
+        val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
         every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
+        every { navEnhetService.hentNavEnheterForDeltaker(any(), any()) } returns enheter
+        coEvery { navEnhetService.hentNavEnheterForHistorikk(historikk) } returns enheter
+
         every { unleashToggle.prioriterSynkronKommunikasjon() } returns true
         coEvery { amtDeltakerClient.getDeltakerHistorikk(deltaker.id) } returns historikk
-        coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
+
         client.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
             status shouldBe HttpStatusCode.OK
             bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
@@ -244,7 +251,10 @@ class InnbyggerApiTest {
                 tiltakskoordinatorTilgangRepository = mockk(),
                 ulestHendelseService = mockk(),
                 testdataService = mockk(),
-                ansatteOgEnheterForDeltakerProvider = mockk(),
+                ansatteOgEnheterForDeltakerProvider = AnsatteOgEnheterForDeltakerProvider(
+                    navAnsattService = navAnsattService,
+                    navEnhetService = navEnhetService,
+                ),
             )
         }
     }
@@ -268,11 +278,13 @@ class InnbyggerApiTest {
     private fun mockAnsatteOgEnhetForDeltaker(deltaker: Deltaker): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
         val ansatte = TestData.lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
         val enhet = deltaker.vedtaksinformasjon?.let { TestData.lagNavEnhet(id = it.sistEndretAvEnhet) }
-        val enheter = TestData.lagNavEnheterForHistorikk(deltaker.historikk).associateBy { it.id }
+        val enheter = lagNavEnheterForHistorikk(deltaker.historikk)
+            .associateBy { it.id }
 
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
-        enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
-        coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns enheter
+        every { navAnsattService.hentAnsatteForDeltaker(deltaker, any()) } returns ansatte
+
+        coEvery { navEnhetService.hentNavEnheterForDeltaker(deltaker, any()) } returns enheter
+        coEvery { navEnhetService.hentNavEnheterForHistorikk(any()) } returns enheter
 
         return Pair(ansatte, enhet)
     }

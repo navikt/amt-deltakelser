@@ -8,7 +8,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
@@ -102,7 +102,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
         }
 
         @Test
-        fun `skal returnere liste med DeltakerHistorikk`(): Unit = runBlocking {
+        fun `skal returnere liste med DeltakerHistorikk`(): Unit = runTest {
             val historikk = deltaker.getDeltakerHistorikkForVisning()
 
             val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
@@ -128,13 +128,12 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
             } returns true
 
             every { navAnsattService.hentAnsatteForHistorikk(any()) } returns navAnsattMap
-            coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns navEnhetMap
+            coEvery { navEnhetService.hentNavEnheterForHistorikk(any()) } returns navEnhetMap
 
             val responseBody = withTestApplicationContext { httpClient ->
                 httpClient
-                    .get(urlString) {
-                        bearerAuth(bearerTokenInTest)
-                    }.bodyAsText()
+                    .get(urlString) { bearerAuth(bearerTokenInTest) }
+                    .bodyAsText()
             }
 
             responseBody shouldBe expectedResponse

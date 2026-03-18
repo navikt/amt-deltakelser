@@ -23,7 +23,7 @@ class AnsatteOgEnheterForDeltakerProvider(
 
         val enheter = GenericCache(
             cacheName = "navEnheter",
-            itemMap = navEnhetService.hentEnheterForHistorikk(historikk),
+            itemMap = navEnhetService.hentNavEnheterForHistorikk(historikk),
         )
 
         return ansatte to enheter

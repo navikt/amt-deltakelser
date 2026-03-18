@@ -379,7 +379,7 @@ object TestData {
         begrunnelse = begrunnelse,
     )
 
-    private fun lagArenaDeltakerHistorikk(
+    fun lagArenaDeltakerHistorikk(
         deltaker: Deltaker,
         innsoktDatoFraArena: LocalDate,
     ): List<DeltakerHistorikk> {
@@ -637,10 +637,10 @@ object TestData {
         else -> Oppstartstype.LOPENDE
     }
 
-    fun lagNavAnsatteForDeltaker(deltaker: Deltaker) = listOfNotNull(
+    fun lagNavAnsatteForDeltaker(deltaker: Deltaker) = setOfNotNull(
         deltaker.vedtaksinformasjon?.sistEndretAv,
         deltaker.vedtaksinformasjon?.opprettetAv,
-    ).distinct().map { lagNavAnsatt(id = it) }
+    ).map { lagNavAnsatt(id = it) }
 
     fun lagNavAnsatteForHistorikk(historikk: List<DeltakerHistorikk>) = historikk
         .flatMap { it.navAnsatte() }
