@@ -59,6 +59,22 @@ class DeltakerRepository {
         ) ?: 0
     }
 
+    fun getPersonidentForDeltaker(deltakerId: UUID): String = Database.query { session ->
+        val sql =
+            """
+            select nb.personident as personident
+            from deltaker d
+            join nav_bruker nb on d.person_id = nb.person_id
+            where d.id = :deltaker_id
+            """.trimIndent()
+        session.run(
+            queryOf(
+                sql,
+                mapOf("deltaker_id" to deltakerId),
+            ).map { it.stringOrNull("personident") }.asSingle,
+        ) ?: throw NoSuchElementException("Ingen deltaker med id $deltakerId")
+    }
+
     // TODO: Fjerne denne til fordel for upsert(deltaker: DeltakerUpsertDbo)
     fun upsert(deltaker: Deltaker) {
         val sql =
