@@ -7,4 +7,5 @@ enum class GjennomforingStatusType(
     AVSLUTTET("Avsluttet"),
     AVBRUTT("Avbrutt"),
     AVLYST("Avlyst"),
+    KLADD("Kladd"), // Denne brukes bare for lokal lagring, finnes ikke hos valp
 }

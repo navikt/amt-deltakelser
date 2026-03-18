@@ -113,10 +113,12 @@ class ResponseBuilder(
         oppstart = deltakerliste.oppstart,
         apentForPamelding = deltakerliste.apentForPamelding,
         oppmoteSted = deltakerliste.oppmoteSted,
-        arrangor = ArrangorResponse(
-            navn = arrangorService.getArrangorNavn(deltakerliste.arrangor),
-            deltakerliste.arrangor.organisasjonsnummer,
-        ),
+        arrangor = deltakerliste.arrangor?.let {
+            ArrangorResponse(
+                navn = arrangorService.getArrangorNavn(deltakerliste.arrangor),
+                deltakerliste.arrangor.organisasjonsnummer,
+            )
+        },
         pameldingstype = deltakerliste.pameldingstype,
     )
 

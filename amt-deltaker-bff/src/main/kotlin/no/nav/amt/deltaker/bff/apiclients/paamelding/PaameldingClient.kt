@@ -5,13 +5,16 @@ import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.utkastRequestFromUtkast
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
+import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.internapi.paamelding.response.UtkastResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.util.UUID
 
 class PaameldingClient(
@@ -25,6 +28,14 @@ class PaameldingClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
+    suspend fun opprettKladdEnkeltplass(
+        tiltakskode: Tiltakskode,
+        personident: String,
+    ): DeltakerIdResponse = performPost(
+        "/opprett-enkeltplass-kladd",
+        OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
+    ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
+
     suspend fun opprettKladd(
         deltakerlisteId: UUID,
         personIdent: String,

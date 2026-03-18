@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.collections.emptyList
 
 class ResponseBuilderTest {
     private val arrangorService: ArrangorService = mockk(relaxed = true)
@@ -153,7 +152,7 @@ class ResponseBuilderTest {
         // Assert
         val expectedArrangor = ArrangorResponse(
             navn = "~arrangor-navn~",
-            deltakerliste.arrangor.organisasjonsnummer,
+            deltakerliste.arrangor!!.organisasjonsnummer,
         )
 
         assertSoftly(gjennomforingResponse) {

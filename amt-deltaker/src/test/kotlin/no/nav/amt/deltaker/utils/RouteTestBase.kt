@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
@@ -44,6 +45,7 @@ abstract class RouteTestBase {
     protected open val deltakelserResponseMapper: DeltakelserResponseMapper = mockk(relaxed = true)
 
     protected val pameldingService: PameldingService = mockk(relaxed = true)
+    protected val kladdService: KladdService = mockk(relaxed = true)
     protected val deltakerService: DeltakerService = mockk(relaxed = true)
     protected val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
     protected val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
@@ -85,6 +87,7 @@ abstract class RouteTestBase {
                 )
                 configureRouting(
                     pameldingService,
+                    kladdService,
                     deltakerService,
                     deltakerRepository,
                     deltakerHistorikkService,

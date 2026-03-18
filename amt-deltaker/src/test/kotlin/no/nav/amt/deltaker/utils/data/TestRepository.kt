@@ -56,7 +56,7 @@ object TestRepository {
     ) {
         TiltakstypeRepository().upsert(deltakerliste.tiltakstype)
         overordnetArrangor?.let { ArrangorRepository().upsert(it) }
-        ArrangorRepository().upsert(deltakerliste.arrangor)
+        ArrangorRepository().upsert(deltakerliste.arrangor!!)
         DeltakerlisteRepository().upsert(deltakerliste)
     }
 

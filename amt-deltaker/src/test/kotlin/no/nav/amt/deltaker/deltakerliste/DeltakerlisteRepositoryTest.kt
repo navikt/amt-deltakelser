@@ -6,6 +6,9 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -62,6 +65,40 @@ class DeltakerlisteRepositoryTest {
         }
 
         @Test
+        fun `ny deltakerliste kladd - inserter`() {
+            val arrangor = lagArrangor()
+            val tiltakstype = lagTiltakstype()
+            val deltakerliste = lagDeltakerliste(
+                arrangor = null,
+                tiltakstype = tiltakstype,
+                status = GjennomforingStatusType.KLADD,
+                oppstart = Oppstartstype.LOPENDE,
+                gjennomforingstype = GjennomforingType.Enkeltplass,
+                startDato = null,
+                sluttDato = null,
+                oppmoteSted = null,
+            )
+
+            val gjennomforingdbo = GjennomforingInsertDbo(
+                id = deltakerliste.id,
+                type = deltakerliste.gjennomforingstype,
+                tiltakId = tiltakstype.id,
+                navn = deltakerliste.navn,
+                status = deltakerliste.status,
+                oppstart = deltakerliste.oppstart,
+                apentForPamelding = deltakerliste.apentForPamelding,
+                pameldingstype = deltakerliste.pameldingstype,
+            )
+
+            arrangorRepository.upsert(arrangor)
+            tiltakstypeRepository.upsert(tiltakstype)
+
+            deltakerlisteRepository.upsert(gjennomforingdbo)
+
+            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+        }
+
+        @Test
         fun `deltakerliste ny sluttdato - oppdaterer`() {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
@@ -107,6 +144,6 @@ class DeltakerlisteRepositoryTest {
         val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
 
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
-        deltakerlisteMedArrangor.arrangor.navn shouldBe arrangor.navn
+        deltakerlisteMedArrangor.arrangor!!.navn shouldBe arrangor.navn
     }
 }
