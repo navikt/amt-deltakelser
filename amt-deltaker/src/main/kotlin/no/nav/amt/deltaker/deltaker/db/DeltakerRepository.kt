@@ -71,7 +71,7 @@ class DeltakerRepository {
             queryOf(
                 sql,
                 mapOf("deltaker_id" to deltakerId),
-            ).map { it.stringOrNull("personident") }.asSingle,
+            ).map { it.string("personident") }.asSingle,
         ) ?: throw NoSuchElementException("Ingen deltaker med id $deltakerId")
     }
 
