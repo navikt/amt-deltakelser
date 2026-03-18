@@ -16,7 +16,7 @@ data class DeltakerlisteResponse(
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val status: GjennomforingStatusType?,
-    val tilgjengeligInnholdResponse: TilgjengeligInnholdResponse?,
+    val tilgjengeligInnhold: TilgjengeligInnholdResponse?,
     val erEnkeltplassUtenRammeavtale: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,

@@ -81,7 +81,7 @@ data class DeltakerResponse(
                     startdato = deltakerliste.startDato,
                     sluttdato = deltakerliste.sluttDato,
                     status = deltakerliste.status,
-                    tilgjengeligInnholdResponse = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
+                    tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
                         deltakerliste.tiltak.innhold,
                         deltakerliste.tiltak.tiltakskode,
                     ),
@@ -145,7 +145,7 @@ data class DeltakerResponse(
                     startdato = gjennomforing.startDato,
                     sluttdato = gjennomforing.sluttDato,
                     status = gjennomforing.status,
-                    tilgjengeligInnholdResponse = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
+                    tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
                         gjennomforing.tiltak.innhold,
                         gjennomforing.tiltak.tiltakskode,
                     ),
