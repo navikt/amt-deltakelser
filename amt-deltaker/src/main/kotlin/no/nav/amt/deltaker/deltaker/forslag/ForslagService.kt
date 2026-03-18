@@ -29,7 +29,7 @@ class ForslagService(
             is Forslag.Status.Tilbakekalt,
             -> {
                 val deltaker = deltakerRepository.get(forslag.deltakerId).getOrThrow()
-                deltakerProducerService.produce(deltaker, publiserTilDeltakerV1 = false)
+                deltakerProducerService.produce(deltaker, publiserTilDeltakerV1 = false, publiserTilDeltakerEksternV1 = false)
             }
         }
         log.info("Lagret forslag ${forslag.id}")
