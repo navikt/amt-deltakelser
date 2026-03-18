@@ -1,13 +1,13 @@
 package no.nav.amt.deltaker.bff.apiclients.paamelding
 
-import OpprettKladdEnkeltplassRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.api.DeltakerIdResponse
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.utkastRequestFromUtkast
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
+import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.internapi.paamelding.response.UtkastResponse

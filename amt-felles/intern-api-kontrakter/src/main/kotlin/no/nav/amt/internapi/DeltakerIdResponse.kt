@@ -1,4 +1,4 @@
-package no.nav.amt.api
+package no.nav.amt.internapi
 
 import java.util.UUID
 

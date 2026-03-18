@@ -167,12 +167,12 @@ object TestData {
 
     fun lagDeltakerliste(
         id: UUID = UUID.randomUUID(),
-        arrangor: Arrangor = lagArrangor(),
+        arrangor: Arrangor? = lagArrangor(),
         tiltakstype: Tiltakstype = lagTiltakstype(),
         navn: String = "Test Deltakerliste ${tiltakstype.tiltakskode}",
         gjennomforingstype: GjennomforingType = GjennomforingType.Gruppe,
         status: GjennomforingStatusType = GjennomforingStatusType.GJENNOMFORES,
-        startDato: LocalDate = LocalDate.now().minusMonths(1),
+        startDato: LocalDate? = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
         oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
         oppmoteSted: String? = "~oppmoteSted~",

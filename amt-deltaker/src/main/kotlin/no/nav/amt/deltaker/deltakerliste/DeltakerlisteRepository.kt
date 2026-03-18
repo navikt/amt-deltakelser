@@ -67,7 +67,7 @@ class DeltakerlisteRepository {
             "navn" to deltakerliste.navn,
             "gjennomforingstype" to deltakerliste.gjennomforingstype.name,
             "status" to deltakerliste.status?.name,
-            "arrangor_id" to deltakerliste.arrangor!!.id,
+            "arrangor_id" to deltakerliste.arrangor?.id,
             "tiltakstype_id" to deltakerliste.tiltakstype.id,
             "start_dato" to deltakerliste.startDato,
             "slutt_dato" to deltakerliste.sluttDato,
@@ -89,10 +89,7 @@ class DeltakerlisteRepository {
                 navn, 
                 gjennomforingstype,
                 status, 
-                arrangor_id,  
                 tiltakstype_id, 
-                start_dato, 
-                slutt_dato, 
                 oppstart,
                 apent_for_pamelding,
                 oppmote_sted,
@@ -103,10 +100,7 @@ class DeltakerlisteRepository {
                 :navn,
                 :gjennomforingstype,
                 :status,
-                :arrangor_id,
                 :tiltakstype_id,
-                :start_dato,
-                :slutt_dato,
                 :oppstart,
                 :apent_for_pamelding,
                 :oppmote_sted,
@@ -173,7 +167,7 @@ class DeltakerlisteRepository {
                t.innhold AS "t.innhold"
             FROM 
                 deltakerliste dl
-                JOIN arrangor a ON a.id = dl.arrangor_id
+                LEFT JOIN arrangor a ON a.id = dl.arrangor_id
                 JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             WHERE dl.id = :id
             """.trimIndent()
