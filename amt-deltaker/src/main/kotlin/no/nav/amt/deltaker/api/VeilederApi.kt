@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDe
 import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.extensions.getDeltakerId
+import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -27,6 +28,13 @@ fun Routing.registerVeilederApi(
     responseBuilder: ResponseBuilder,
 ) {
     authenticate("SYSTEM") {
+        get("/personident/{deltakerId}") {
+            val personident = deltakerRepository
+                .getPersonidentForDeltaker(call.getDeltakerId())
+
+            call.respond(PersonIdentResponse(personident))
+        }
+
         get("/deltaker/{deltakerId}") {
             val deltakerResponse = deltakerRepository
                 .get(call.getDeltakerId())

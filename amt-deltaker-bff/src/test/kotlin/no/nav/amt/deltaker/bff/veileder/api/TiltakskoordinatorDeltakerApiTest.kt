@@ -60,6 +60,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
+import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -113,16 +114,17 @@ class TiltakskoordinatorDeltakerApiTest {
 
     @Test
     fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() = testApplication {
+        val deltaker = TestData.lagDeltaker(navBruker = TestData.lagNavBruker(personident = "1234"))
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
         every {
             deltakerRepository.get(any())
-        } returns Result.success(TestData.lagDeltaker(navBruker = TestData.lagNavBruker(personident = "1234")))
+        } returns Result.success(deltaker)
         every { forslagRepository.get(any()) } returns Result.success(TestData.lagForslag())
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
-
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns PersonIdentResponse(deltaker.navBruker.personident)
         setUpTestApplication()
         client
             .post(
@@ -894,6 +896,7 @@ class TiltakskoordinatorDeltakerApiTest {
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns PersonIdentResponse(deltaker.navBruker.personident)
 
         return if (oppdatertDeltaker != null) {
             coEvery {

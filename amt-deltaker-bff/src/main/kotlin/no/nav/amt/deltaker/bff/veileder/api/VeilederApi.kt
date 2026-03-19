@@ -143,23 +143,24 @@ fun Routing.registerVeilederApi(
         post("/deltaker/{deltakerId}") {
             val request = call.receive<DeltakerRequest>()
             val deltakerId = call.getDeltakerId()
-            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
 
-            if (request.personident != deltaker.navBruker.personident) {
-                log.warn("${deltaker.id} ble forsøkt lest med annen Nav-bruker i kontekst.")
+            if (request.personident != personident) {
+                log.warn("$deltakerId ble forsøkt lest med annen Nav-bruker i kontekst.")
                 call.respond(HttpStatusCode.BadRequest)
                 return@post
             }
 
             tilgangskontrollService.verifiserLesetilgang(
                 navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
+                norskIdent = personident,
             )
 
             sporbarhetsloggService.sendAuditLog(
                 navIdent = call.getNavIdent(),
-                deltakerPersonIdent = deltaker.navBruker.personident,
+                deltakerPersonIdent = personident,
             )
+
             val deltakerResponse =
                 if (unleashToggle.prioriterSynkronKommunikasjon()) {
                     amtDeltakerClient
@@ -167,6 +168,7 @@ fun Routing.registerVeilederApi(
                         .let { ModelMapper.toDeltaker(it) }
                         .let { DeltakerResponse.fromDeltakerModel(it) }
                 } else {
+                    val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
                     komplettDeltakerResponse(deltaker)
                 }
 
