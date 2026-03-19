@@ -11,6 +11,7 @@ import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.amt.deltaker.bff.AnsatteOgEnheterForDeltakerProvider
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -233,7 +234,10 @@ class KladdApiTest {
                 tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
                 ulestHendelseService = mockk(),
-                ansatteOgEnheterForDeltakerProvider = mockk(),
+                ansatteOgEnheterForDeltakerProvider = AnsatteOgEnheterForDeltakerProvider(
+                    navAnsattService = navAnsattService,
+                    navEnhetService = navEnhetService,
+                ),
                 testdataService = mockk(),
             )
         }

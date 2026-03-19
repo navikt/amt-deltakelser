@@ -54,7 +54,10 @@ abstract class RouteTestBase {
     protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk(relaxed = true)
     protected val tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository = mockk(relaxed = true)
     protected val ulestHendelseService: UlestHendelseService = mockk(relaxed = true)
-    protected val ansatteOgEnheterForDeltakerProvider: AnsatteOgEnheterForDeltakerProvider = mockk(relaxed = true)
+    protected val ansatteOgEnheterForDeltakerProvider = AnsatteOgEnheterForDeltakerProvider(
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+    )
     protected val testdataService: TestdataService = mockk(relaxed = true)
 
     @BeforeEach

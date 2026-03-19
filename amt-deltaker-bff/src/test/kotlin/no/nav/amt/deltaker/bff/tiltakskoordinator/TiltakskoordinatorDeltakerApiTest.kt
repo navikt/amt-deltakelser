@@ -110,10 +110,10 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
 
             val expectedResponse = objectMapper.writePolymorphicListAsString(
                 historikk.toResponse(
-                    ansatte = GenericCache("navAnsatte", navAnsattMap),
-                    enheter = GenericCache("navEnheter", navEnhetMap),
                     arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                     oppstartstype = deltaker.deltakerliste.oppstart,
+                    ansatte = GenericCache("navAnsatte", navAnsattMap),
+                    enheter = GenericCache("navEnheter", navEnhetMap),
                 ),
             )
 

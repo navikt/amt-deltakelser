@@ -82,10 +82,10 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
             )
 
             val historikkResponse = historikk.toResponse(
-                ansatte = ansatte,
-                enheter = enheter,
                 arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                 oppstartstype = deltaker.deltakerliste.oppstart,
+                ansatte = ansatte,
+                enheter = enheter,
             )
 
             val historikkResponseAsJson = objectMapper.writePolymorphicListAsString(historikkResponse)
