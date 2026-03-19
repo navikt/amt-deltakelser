@@ -176,7 +176,7 @@ class AnsattRepository(
         jitter = 250,
     )
     @Transactional
-    fun insertOrUpdateAnsatt(ansattDbo: AnsattDbo) {
+    fun insertOrUpdateAnsatt(ansattDbo: AnsattDbo) = runCatching {
         val sql =
             """
             INSERT INTO ansatt(id, personident, fornavn, mellomnavn, etternavn)

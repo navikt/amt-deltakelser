@@ -33,7 +33,10 @@ class AnsattService(
             }
         log.info("Hentet ansatt med id ${ansatt.id} fra amt-arrangør")
 
-        ansattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
+        ansattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo()).onFailure {
+            throw IllegalStateException("Kunne ikke lagre ansatt med id ${ansatt.id} i databasen", it)
+        }
+
         log.info("Lagret eller oppdatert ansatt med id ${ansatt.id}")
         ansattRepository.updateSistInnlogget(ansatt.id)
 
