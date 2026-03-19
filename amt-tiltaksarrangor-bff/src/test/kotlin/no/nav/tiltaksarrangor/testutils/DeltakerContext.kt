@@ -2,12 +2,12 @@ package no.nav.tiltaksarrangor.testutils
 
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
 import no.nav.tiltaksarrangor.repositories.NavAnsattRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.ArrangorDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
@@ -49,7 +49,7 @@ open class DeltakerContext(
 
     val deltakerRepository = getOrCreateBean { template -> DeltakerRepository(template) }
     private val deltakerlisteRepository = getOrCreateBean { template -> DeltakerlisteRepository(template, deltakerRepository) }
-    private val ansattRepository = getOrCreateBean { template -> AnsattRepository(template) }
+    private val tiltaksarrangorAnsattRepository = getOrCreateBean { template -> TiltaksarrangorAnsattRepository(template) }
     private val arrangorRepository = getOrCreateBean { template -> ArrangorRepository(template) }
     private val endringsmeldingRepository = getOrCreateBean { template -> EndringsmeldingRepository(template) }
     private val navAnsattRepository = getOrCreateBean { template -> NavAnsattRepository(template) }
@@ -57,14 +57,14 @@ open class DeltakerContext(
     init {
         arrangorRepository.insertOrUpdateArrangor(arrangor)
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-        ansattRepository.insertOrUpdateAnsatt(koordinator)
-        ansattRepository.insertOrUpdateAnsatt(veileder)
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(koordinator)
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(veileder)
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
         navAnsattRepository.upsert(navVeileder)
     }
 
     fun setKoordinatorDeltakerliste(id: UUID) {
-        ansattRepository.insertOrUpdateAnsatt(koordinator.copy(deltakerlister = listOf(KoordinatorDeltakerlisteDbo(id))))
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(koordinator.copy(deltakerlister = listOf(KoordinatorDeltakerlisteDbo(id))))
     }
 
     fun setDeltakerAdressebeskyttet() {

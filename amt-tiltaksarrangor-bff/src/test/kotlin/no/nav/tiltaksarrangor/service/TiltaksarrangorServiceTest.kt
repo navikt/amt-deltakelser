@@ -34,11 +34,11 @@ import no.nav.tiltaksarrangor.model.Veiledertype
 import no.nav.tiltaksarrangor.model.exceptions.SkjultDeltakerException
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import no.nav.tiltaksarrangor.model.exceptions.ValidationException
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.UlestEndringRepository
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.AnsattRolleDbo
@@ -59,7 +59,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class TiltaksarrangorServiceTest(
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val arrangorRepository: ArrangorRepository,
@@ -87,7 +87,7 @@ class TiltaksarrangorServiceTest(
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val deltakerId = UUID.randomUUID()
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId, deltakerliste.id))
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -118,7 +118,7 @@ class TiltaksarrangorServiceTest(
         val deltaker =
             getDeltaker(deltakerId, deltakerliste.id).copy(skjultDato = LocalDateTime.now(), skjultAvAnsattId = UUID.randomUUID())
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -169,7 +169,7 @@ class TiltaksarrangorServiceTest(
                     ),
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -235,7 +235,7 @@ class TiltaksarrangorServiceTest(
                     ),
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -275,7 +275,7 @@ class TiltaksarrangorServiceTest(
             ),
         )
         val veilederId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = veilederId,
                 personIdent = UUID.randomUUID().toString(),
@@ -290,7 +290,7 @@ class TiltaksarrangorServiceTest(
                 veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.VEILEDER)),
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -346,7 +346,7 @@ class TiltaksarrangorServiceTest(
             ),
         )
         val veilederId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = veilederId,
                 personIdent = UUID.randomUUID().toString(),
@@ -361,7 +361,7 @@ class TiltaksarrangorServiceTest(
                 veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.VEILEDER)),
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -404,7 +404,7 @@ class TiltaksarrangorServiceTest(
         val deltakerId = UUID.randomUUID()
         val deltakerDbo = getDeltaker(deltakerId, deltakerliste.id)
         deltakerRepository.insertOrUpdateDeltaker(deltakerDbo)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -479,7 +479,7 @@ class TiltaksarrangorServiceTest(
                 ),
         )
         deltakerRepository.insertOrUpdateDeltaker(deltakerDbo)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -550,7 +550,7 @@ class TiltaksarrangorServiceTest(
                 ),
         )
         deltakerRepository.insertOrUpdateDeltaker(deltakerDbo)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -600,7 +600,7 @@ class TiltaksarrangorServiceTest(
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val deltakerId = UUID.randomUUID()
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId, deltakerliste.id))
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -631,7 +631,7 @@ class TiltaksarrangorServiceTest(
         val deltaker = getDeltaker(deltakerId, deltakerliste.id).copy(status = DeltakerStatus.Type.IKKE_AKTUELL)
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -664,7 +664,7 @@ class TiltaksarrangorServiceTest(
         val deltaker = getDeltaker(deltakerId, deltakerliste.id).copy(status = DeltakerStatus.Type.VENTER_PA_OPPSTART)
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -699,7 +699,7 @@ class TiltaksarrangorServiceTest(
             deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
             val deltakerId = UUID.randomUUID()
             deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId, deltakerliste.id).copy(status = DeltakerStatus.Type.VURDERES))
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
                     personIdent = personIdent,
@@ -747,7 +747,7 @@ class TiltaksarrangorServiceTest(
                     vurderingerFraArrangor = listOf(forsteVurdering),
                 )
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = ansattId,
                     personIdent = personIdent,
@@ -788,7 +788,7 @@ class TiltaksarrangorServiceTest(
             ).copy(status = DeltakerStatus.Type.VENTER_PA_OPPSTART, vurderingerFraArrangor = null)
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             val ansattId = UUID.randomUUID()
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = ansattId,
                     personIdent = personIdent,
@@ -827,7 +827,7 @@ class TiltaksarrangorServiceTest(
                 getDeltaker(deltakerId, deltakerliste.id).copy(status = DeltakerStatus.Type.VURDERES, vurderingerFraArrangor = null)
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             val ansattId = UUID.randomUUID()
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = ansattId,
                     personIdent = personIdent,
@@ -878,7 +878,7 @@ class TiltaksarrangorServiceTest(
                     vurderingerFraArrangor = listOf(forsteVurdering),
                 )
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = ansattId,
                     personIdent = personIdent,
@@ -929,7 +929,7 @@ class TiltaksarrangorServiceTest(
                     vurderingerFraArrangor = listOf(forsteVurdering),
                 )
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = ansattId,
                     personIdent = personIdent,

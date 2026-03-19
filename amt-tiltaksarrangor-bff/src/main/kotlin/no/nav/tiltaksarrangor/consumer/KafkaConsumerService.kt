@@ -26,11 +26,11 @@ import no.nav.tiltaksarrangor.consumer.model.toEndringsmeldingDbo
 import no.nav.tiltaksarrangor.melding.forslag.ForslagService
 import no.nav.tiltaksarrangor.model.DeltakerStatusAarsakJsonDboDto
 import no.nav.tiltaksarrangor.model.Oppdatering
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
 import no.nav.tiltaksarrangor.repositories.NavAnsattRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.UlestEndringRepository
 import no.nav.tiltaksarrangor.repositories.model.DAGER_AVSLUTTET_DELTAKER_VISES
 import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
@@ -48,7 +48,7 @@ import java.util.UUID
 @Component
 class KafkaConsumerService(
     private val arrangorRepository: ArrangorRepository,
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val forslagService: ForslagService,
@@ -78,10 +78,10 @@ class KafkaConsumerService(
         ansatt: AnsattDto?,
     ) {
         if (ansatt == null) {
-            ansattRepository.deleteAnsatt(ansattId)
+            tiltaksarrangorAnsattRepository.deleteAnsatt(ansattId)
             log.info("Slettet ansatt med id $ansattId")
         } else {
-            ansattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
             log.info("Lagret ansatt med id $ansattId")
         }
     }

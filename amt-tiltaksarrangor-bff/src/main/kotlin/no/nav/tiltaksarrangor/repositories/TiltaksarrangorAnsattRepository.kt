@@ -11,7 +11,6 @@ import no.nav.tiltaksarrangor.repositories.model.KoordinatorDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.VeilederDeltakerDbo
 import no.nav.tiltaksarrangor.repositories.model.VeilederForDeltakerDbo
 import no.nav.tiltaksarrangor.utils.sqlParameters
-import org.springframework.dao.DataAccessException
 import org.springframework.dao.PessimisticLockingFailureException
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -21,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Component
-class AnsattRepository(
+class TiltaksarrangorAnsattRepository(
     private val template: NamedParameterJdbcTemplate,
 ) {
     private val ansattPersonaliaRowMapper =

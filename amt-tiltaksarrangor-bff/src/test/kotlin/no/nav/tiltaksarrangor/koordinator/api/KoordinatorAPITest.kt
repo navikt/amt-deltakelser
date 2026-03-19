@@ -15,10 +15,10 @@ import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.koordinator.model.LeggTilVeiledereRequest
 import no.nav.tiltaksarrangor.koordinator.model.VeilederRequest
 import no.nav.tiltaksarrangor.model.Veiledertype
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.AnsattRolleDbo
 import no.nav.tiltaksarrangor.repositories.model.ArrangorDbo
@@ -39,7 +39,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class KoordinatorAPITest(
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val arrangorRepository: ArrangorRepository,
@@ -93,7 +93,7 @@ class KoordinatorAPITest(
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId3))
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId4))
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId5))
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -161,7 +161,7 @@ class KoordinatorAPITest(
                 pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -173,7 +173,7 @@ class KoordinatorAPITest(
                 veilederDeltakere = emptyList(),
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.fromString("29bf6799-bb56-4a86-857b-99b529b3dfc4"),
                 personIdent = UUID.randomUUID().toString(),
@@ -185,7 +185,7 @@ class KoordinatorAPITest(
                 veilederDeltakere = emptyList(),
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.fromString("e824dbfe-5317-491b-82ed-03b870eed963"),
                 personIdent = UUID.randomUUID().toString(),
@@ -262,7 +262,7 @@ class KoordinatorAPITest(
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val deltakerId = UUID.fromString("da4c9568-cea2-42e3-95a3-42f6b809ad08")
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId, deltakerliste.id))
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -275,7 +275,7 @@ class KoordinatorAPITest(
             ),
         )
         val veileder1Id = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = veileder1Id,
                 personIdent = UUID.randomUUID().toString(),
@@ -288,7 +288,7 @@ class KoordinatorAPITest(
             ),
         )
         val veileder2Id = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = veileder2Id,
                 personIdent = UUID.randomUUID().toString(),
@@ -326,11 +326,11 @@ class KoordinatorAPITest(
 
         response.code shouldBe 200
 
-        val veileder1 = ansattRepository.getAnsatt(veileder1Id)
+        val veileder1 = tiltaksarrangorAnsattRepository.getAnsatt(veileder1Id)
         veileder1?.veilederDeltakere?.size shouldBe 1
         veileder1?.veilederDeltakere?.find { it.deltakerId == deltakerId && it.veilederType == Veiledertype.VEILEDER } shouldNotBe null
 
-        val veileder2 = ansattRepository.getAnsatt(veileder2Id)
+        val veileder2 = tiltaksarrangorAnsattRepository.getAnsatt(veileder2Id)
         veileder2?.veilederDeltakere?.size shouldBe 1
         veileder2?.veilederDeltakere?.find { it.deltakerId == deltakerId && it.veilederType == Veiledertype.MEDVEILEDER } shouldNotBe null
     }
@@ -376,7 +376,7 @@ class KoordinatorAPITest(
                 pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -388,7 +388,7 @@ class KoordinatorAPITest(
                 veilederDeltakere = emptyList(),
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = UUID.randomUUID().toString(),
