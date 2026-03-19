@@ -11,6 +11,7 @@ import no.nav.tiltaksarrangor.repositories.model.KoordinatorDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.VeilederDeltakerDbo
 import no.nav.tiltaksarrangor.repositories.model.VeilederForDeltakerDbo
 import no.nav.tiltaksarrangor.utils.sqlParameters
+import org.springframework.dao.DataAccessException
 import org.springframework.dao.PessimisticLockingFailureException
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -192,16 +193,20 @@ class AnsattRepository(
             		etternavn			= :etternavn
             """.trimIndent()
 
-        template.update(
-            sql,
-            sqlParameters(
-                "id" to ansattDbo.id,
-                "personident" to ansattDbo.personIdent,
-                "fornavn" to ansattDbo.fornavn,
-                "mellomnavn" to ansattDbo.mellomnavn,
-                "etternavn" to ansattDbo.etternavn,
-            ),
-        )
+        runCatching {
+            template.update(
+                sql,
+                sqlParameters(
+                    "id" to ansattDbo.id,
+                    "personident" to ansattDbo.personIdent,
+                    "fornavn" to ansattDbo.fornavn,
+                    "mellomnavn" to ansattDbo.mellomnavn,
+                    "etternavn" to ansattDbo.etternavn,
+                ),
+            )
+        }.getOrElse {
+            throw RuntimeException("Kunne ikke lagre ansatt med id ${ansattDbo.id}")
+        }
 
         insertOrUpdateAnsattRolle(ansattDbo.id, ansattDbo.roller)
         insertOrUpdateKoordinatorDeltakerliste(ansattDbo.id, ansattDbo.deltakerlister)
