@@ -5,4 +5,6 @@ data class Innhold(
     val innholdskode: String,
     val valgt: Boolean,
     val beskrivelse: String?,
-)
+) {
+    val erFritekstInnholdsElement = innholdskode == "annet"
+}
