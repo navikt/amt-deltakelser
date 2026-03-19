@@ -81,9 +81,7 @@ class KafkaConsumerService(
             ansattRepository.deleteAnsatt(ansattId)
             log.info("Slettet ansatt med id $ansattId")
         } else {
-            ansattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo()).onFailure {
-                throw IllegalStateException("Kunne ikke lagre ansatt med id $ansattId", it)
-            }
+            ansattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
             log.info("Lagret ansatt med id $ansattId")
         }
     }
