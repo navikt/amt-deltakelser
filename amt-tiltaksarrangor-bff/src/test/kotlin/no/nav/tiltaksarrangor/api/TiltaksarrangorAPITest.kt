@@ -16,12 +16,12 @@ import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.model.DeltakerStatusAarsakJsonDboDto
 import no.nav.tiltaksarrangor.model.Endringsmelding
 import no.nav.tiltaksarrangor.model.Veiledertype
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
 import no.nav.tiltaksarrangor.repositories.NavAnsattRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.AnsattRolleDbo
 import no.nav.tiltaksarrangor.repositories.model.ArrangorDbo
@@ -41,7 +41,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class TiltaksarrangorAPITest(
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val endringsmeldingRepository: EndringsmeldingRepository,
@@ -109,7 +109,7 @@ class TiltaksarrangorAPITest(
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val deltakerId = UUID.randomUUID()
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId, deltakerliste.id))
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -186,7 +186,7 @@ class TiltaksarrangorAPITest(
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
         val endringsmeldinger = getEndringsmeldinger(deltakerId)
         endringsmeldinger.forEach { endringsmeldingRepository.insertOrUpdateEndringsmelding(it) }
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.fromString("2d5fc2f7-a9e6-4830-a987-4ff135a70c10"),
                 personIdent = personIdent,
@@ -201,7 +201,7 @@ class TiltaksarrangorAPITest(
                 veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.VEILEDER)),
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.fromString("7c43b43b-43be-4d4b-8057-d907c5f1e5c5"),
                 personIdent = UUID.randomUUID().toString(),
@@ -226,7 +226,7 @@ class TiltaksarrangorAPITest(
 
         val expectedJson =
             """
-            {"id":"977350f2-d6a5-49bb-a3a0-773f25f863d9","deltakerliste":{"id":"9987432c-e336-4b3b-b73e-b7c781a0823a","startDato":"2023-02-01","sluttDato":null,"oppstartstype":"LOPENDE","tiltakskode":"ARBEIDSFORBEREDENDE_TRENING","pameldingstype":"TRENGER_GODKJENNING"},"fornavn":"Fornavn","mellomnavn":null,"etternavn":"Etternavn","fodselsnummer":"10987654321","telefonnummer":"90909090","epost":"mail@test.no","status":{"type":"DELTAR","endretDato":"2023-02-01T00:00:00","aarsak":null},"startDato":"2023-02-01","sluttDato":null,"deltakelseProsent":null,"dagerPerUke":2.5,"soktInnPa":"Gjennomføring 1","soktInnDato":"2023-01-15T00:00:00","tiltakskode":"ARBEIDSFORBEREDENDE_TRENING","bestillingTekst":"Tror deltakeren vil ha nytte av dette","innhold":{"ledetekst":"Innholdsledetekst...","innhold":[{"tekst":"tekst","innholdskode":"kode","valgt":true,"beskrivelse":"beskrivelse"}]},"fjernesDato":null,"navInformasjon":{"navkontor":"Nav Oslo","navVeileder":{"navn":"Veileder Veiledersen","epost":"epost@nav.no","telefon":"56565656"}},"veiledere":[{"ansattId":"2d5fc2f7-a9e6-4830-a987-4ff135a70c10","deltakerId":"977350f2-d6a5-49bb-a3a0-773f25f863d9","veiledertype":"VEILEDER","fornavn":"Fornavn","mellomnavn":null,"etternavn":"Etternavn"},{"ansattId":"7c43b43b-43be-4d4b-8057-d907c5f1e5c5","deltakerId":"977350f2-d6a5-49bb-a3a0-773f25f863d9","veiledertype":"MEDVEILEDER","fornavn":"Per","mellomnavn":null,"etternavn":"Person"}],"aktiveForslag":[],"aktiveEndringsmeldinger":[],"historiskeEndringsmeldinger":[],"adresse":{"adressetype":"KONTAKTADRESSE","postnummer":"1234","poststed":"MOSS","tilleggsnavn":null,"adressenavn":"Gate 1"},"gjeldendeVurderingFraArrangor":{"vurderingstype":"OPPFYLLER_IKKE_KRAVENE","begrunnelse":"Mangler førerkort","gyldigFra":${
+            {"id":"977350f2-d6a5-49bb-a3a0-773f25f863d9","deltakerliste":{"id":"9987432c-e336-4b3b-b73e-b7c781a0823a","startDato":"2023-02-01","sluttDato":null,"oppstartstype":"LOPENDE","tiltakskode":"ARBEIDSFORBEREDENDE_TRENING","pameldingstype":"TRENGER_GODKJENNING"},"fornavn":"Fornavn","mellomnavn":null,"etternavn":"Etternavn","fodselsnummer":"10987654321","telefonnummer":"90909090","epost":"mail@test.no","status":{"type":"DELTAR","endretDato":"2023-02-01T00:00:00","aarsak":null},"startDato":"2023-02-01","sluttDato":null,"deltakelseProsent":null,"dagerPerUke":2.5,"soktInnPa":"Gjennomføring 1","soktInnDato":"2023-01-15T00:00:00","tiltakskode":"ARBEIDSFORBEREDENDE_TRENING","bestillingTekst":"Tror deltakeren vil ha nytte av dette","innhold":{"ledetekst":"Innholdsledetekst...","innhold":[{"tekst":"tekst","innholdskode":"kode","valgt":true,"beskrivelse":"beskrivelse","erFritekstInnholdsElement":false}]},"fjernesDato":null,"navInformasjon":{"navkontor":"Nav Oslo","navVeileder":{"navn":"Veileder Veiledersen","epost":"epost@nav.no","telefon":"56565656"}},"veiledere":[{"ansattId":"2d5fc2f7-a9e6-4830-a987-4ff135a70c10","deltakerId":"977350f2-d6a5-49bb-a3a0-773f25f863d9","veiledertype":"VEILEDER","fornavn":"Fornavn","mellomnavn":null,"etternavn":"Etternavn"},{"ansattId":"7c43b43b-43be-4d4b-8057-d907c5f1e5c5","deltakerId":"977350f2-d6a5-49bb-a3a0-773f25f863d9","veiledertype":"MEDVEILEDER","fornavn":"Per","mellomnavn":null,"etternavn":"Person"}],"aktiveForslag":[],"aktiveEndringsmeldinger":[],"historiskeEndringsmeldinger":[],"adresse":{"adressetype":"KONTAKTADRESSE","postnummer":"1234","poststed":"MOSS","tilleggsnavn":null,"adressenavn":"Gate 1"},"gjeldendeVurderingFraArrangor":{"vurderingstype":"OPPFYLLER_IKKE_KRAVENE","begrunnelse":"Mangler førerkort","gyldigFra":${
                 objectMapper.writeValueAsString(
                     gyldigFra,
                 )
@@ -288,7 +288,7 @@ class TiltaksarrangorAPITest(
             )
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
 
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.fromString("2d5fc2f7-a9e6-4830-a987-4ff135a70c10"),
                 personIdent = personIdent,
@@ -371,7 +371,7 @@ class TiltaksarrangorAPITest(
             )
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
 
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -462,7 +462,7 @@ class TiltaksarrangorAPITest(
                 ).copy(vurderingerFraArrangor = listOf(opprinneligVurdering))
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -529,7 +529,7 @@ class TiltaksarrangorAPITest(
             )
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,

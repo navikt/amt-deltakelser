@@ -20,10 +20,10 @@ import no.nav.tiltaksarrangor.model.AktivEndring
 import no.nav.tiltaksarrangor.model.Oppdatering
 import no.nav.tiltaksarrangor.model.Veiledertype
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.UlestEndringRepository
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.AnsattRolleDbo
@@ -44,7 +44,7 @@ import java.util.UUID
 
 class VeilederServiceTest(
     private val veilederService: VeilederService,
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val deltakerRepository: DeltakerRepository,
     private val endringsmeldingRepository: EndringsmeldingRepository,
@@ -68,7 +68,7 @@ class VeilederServiceTest(
         @Test
         fun `getMineDeltakere - ansatt har ikke veileder-rolle - returnerer unauthorized`() {
             val personIdent = "12345678910"
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
                     personIdent = personIdent,
@@ -120,7 +120,7 @@ class VeilederServiceTest(
                 )
             endringsmeldingRepository.insertOrUpdateEndringsmelding(endringsmelding)
             endringsmeldingRepository.insertOrUpdateEndringsmelding(endringsmelding2)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = ansattId,
                     personIdent = personIdent,
@@ -196,7 +196,7 @@ class VeilederServiceTest(
                 )
             endringsmeldingRepository.insertOrUpdateEndringsmelding(endringsmelding)
             endringsmeldingRepository.insertOrUpdateEndringsmelding(endringsmelding2)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = ansattId,
                     personIdent = personIdent,
@@ -243,7 +243,7 @@ class VeilederServiceTest(
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             deltakerRepository.insertOrUpdateDeltaker(deltaker2)
             deltakerRepository.insertOrUpdateDeltaker(deltaker3)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
                     personIdent = personIdent,
@@ -277,7 +277,7 @@ class VeilederServiceTest(
             deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
             val deltaker = getDeltaker(UUID.randomUUID(), deltakerliste.id, adressebeskyttet = true).copy(personident = "12345")
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
                     personIdent = personIdent,
@@ -314,7 +314,7 @@ class VeilederServiceTest(
             val deltaker2 = deltaker.copy(id = UUID.randomUUID(), personident = "23456", skjultDato = LocalDateTime.now())
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             deltakerRepository.insertOrUpdateDeltaker(deltaker2)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
                     personIdent = personIdent,
@@ -348,7 +348,7 @@ class VeilederServiceTest(
             val deltaker2 = deltaker.copy(id = UUID.randomUUID(), personident = "23456", sluttdato = LocalDate.now().minusDays(41))
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             deltakerRepository.insertOrUpdateDeltaker(deltaker2.copy())
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
                     personIdent = personIdent,
@@ -384,7 +384,7 @@ class VeilederServiceTest(
             val deltaker2 = getDeltaker(UUID.randomUUID(), deltakerliste2.id).copy(personident = "34567")
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             deltakerRepository.insertOrUpdateDeltaker(deltaker2)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
                     personIdent = personIdent,
@@ -418,7 +418,7 @@ class VeilederServiceTest(
             val deltaker2 = getDeltaker(UUID.randomUUID(), deltakerliste.id).copy(personident = "12345")
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             deltakerRepository.insertOrUpdateDeltaker(deltaker2)
-            ansattRepository.insertOrUpdateAnsatt(
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
                     personIdent = personIdent,

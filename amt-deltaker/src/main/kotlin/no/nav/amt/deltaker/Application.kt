@@ -33,6 +33,7 @@ import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
@@ -328,13 +329,19 @@ fun Application.module() {
     val pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        deltakerListeRepository = deltakerlisteRepository,
-        navBrukerService = navBrukerService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         vedtakService = vedtakService,
         hendelseService = hendelseService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+    )
+
+    val kladdService = KladdService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        navBrukerService = navBrukerService,
+        deltakerListeRepository = deltakerlisteRepository,
+        tiltakRepository = tiltakstypeRepository,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(
@@ -410,6 +417,7 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         vedtakRepository = vedtakRepository,
         responseBuilder = responseBuilder,
+        kladdService = kladdService,
     )
     configureMonitoring()
 

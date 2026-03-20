@@ -224,7 +224,6 @@ class EnkeltplassDeltakerConsumerTest {
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
-
         tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
         TestRepository.insert(deltaker.navBruker)
 

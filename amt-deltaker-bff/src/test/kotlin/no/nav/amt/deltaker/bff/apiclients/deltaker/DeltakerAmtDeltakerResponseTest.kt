@@ -25,7 +25,6 @@ class DeltakerAmtDeltakerResponseTest {
             bakgrunnsinformasjon shouldBe response.bakgrunnsinformasjon.shouldNotBeNull()
             deltakelsesinnhold shouldBe response.deltakelsesinnhold.shouldNotBeNull()
             status shouldBe response.status
-            kanEndres shouldBe !response.erLaastForEndringer
             sistEndret shouldBe response.sistEndret
             erManueltDeltMedArrangor shouldBe response.erManueltDeltMedArrangor
             erLaastForEndringer shouldBe response.erLaastForEndringer

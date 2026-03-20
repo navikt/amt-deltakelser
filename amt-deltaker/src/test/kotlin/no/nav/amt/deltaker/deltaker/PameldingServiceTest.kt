@@ -34,6 +34,7 @@ import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
@@ -68,7 +69,11 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -101,6 +106,63 @@ class PameldingServiceTest {
     }
 
     @Nested
+    inner class EnkeltplassTests {
+        @Test
+        fun `opprettKladd - returnerer ny deltakerId`() = runTest {
+            val navBruker = lagNavBruker(
+                navVeilederId = sistEndretAvNavAnsatt.id,
+                navEnhetId = sistEndretAvNavEnhet.id,
+            )
+
+            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
+
+            val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
+            TiltakstypeRepository().upsert(tiltak)
+
+            val deltaker = kladdService.opprettKladd(
+                tiltak.tiltakskode,
+                navBruker.personident,
+            )
+            val nyDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+
+            deltaker shouldNotBe null
+            nyDeltaker shouldNotBe null
+
+            assertSoftly(nyDeltaker) {
+                id shouldBe deltaker.id
+                startdato shouldBe null
+                sluttdato shouldBe null
+                dagerPerUke shouldBe null
+                deltakelsesprosent shouldBe null
+                bakgrunnsinformasjon shouldBe null
+                vedtaksinformasjon shouldBe null
+                sistEndret shouldBeCloseTo LocalDateTime.now()
+                kilde shouldBe Kilde.KOMET
+                erManueltDeltMedArrangor shouldBe false
+                opprettet shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(deltaker.status) {
+                type shouldBe DeltakerStatus.Type.KLADD
+            }
+
+            assertSoftly(nyDeltaker.deltakerliste) {
+                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
+                tiltakstype shouldBe tiltak
+                navn shouldBe tiltak.navn
+                startDato shouldBe null
+                sluttDato shouldBe null
+                oppstart shouldBe Oppstartstype.LOPENDE
+                apentForPamelding shouldBe true
+                oppmoteSted shouldBe null
+                arrangor shouldBe null
+                pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
+                status shouldBe GjennomforingStatusType.KLADD
+            }
+        }
+    }
+
+    @Nested
     inner class OpprettDeltakerTests {
         @Test
         fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`() = runTest {
@@ -110,7 +172,7 @@ class PameldingServiceTest {
             )
             TestRepository.insert(expectedDeltaker)
 
-            val actualDeltaker = pameldingService.opprettDeltaker(
+            val actualDeltaker = kladdService.opprettKladd(
                 expectedDeltaker.deltakerliste.id,
                 expectedDeltaker.navBruker.personident,
             )
@@ -130,7 +192,7 @@ class PameldingServiceTest {
             mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
             TestRepository.insert(deltakerListe)
 
-            val deltaker = pameldingService.opprettDeltaker(
+            val deltaker = kladdService.opprettKladd(
                 deltakerListeId = deltakerListe.id,
                 personIdent = navBruker.personident,
             )
@@ -177,7 +239,7 @@ class PameldingServiceTest {
             )
             TestRepository.insert(deltakerListe)
 
-            val deltaker = pameldingService.opprettDeltaker(
+            val deltaker = kladdService.opprettKladd(
                 deltakerListeId = deltakerListe.id,
                 personIdent = navBruker.personident,
             )
@@ -201,7 +263,7 @@ class PameldingServiceTest {
             val personIdent = TestData.randomIdent()
 
             assertFailsWith<NoSuchElementException> {
-                pameldingService.opprettDeltaker(UUID.randomUUID(), personIdent)
+                kladdService.opprettKladd(UUID.randomUUID(), personIdent)
             }
         }
 
@@ -214,7 +276,7 @@ class PameldingServiceTest {
             TestRepository.insert(deltaker)
 
             val nyDeltaker =
-                pameldingService.opprettDeltaker(
+                kladdService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
                 )
@@ -533,6 +595,7 @@ class PameldingServiceTest {
     private val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
     private val endringFraTiltaksKoordinatorRepository = EndringFraTiltakskoordinatorRepository()
     private val vurderingRepository = VurderingRepository()
+    private val tiltakRepository = TiltakstypeRepository()
 
     private val deltakerHistorikkService =
         DeltakerHistorikkService(
@@ -600,6 +663,15 @@ class PameldingServiceTest {
     private val pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+    )
+    private val kladdService = KladdService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         deltakerListeRepository = DeltakerlisteRepository(),
         navBrukerService = NavBrukerService(
             NavBrukerRepository(),
@@ -607,11 +679,7 @@ class PameldingServiceTest {
             navEnhetService,
             navAnsattService,
         ),
-        navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
-        vedtakService = vedtakService,
-        hendelseService = hendelseService,
-        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        tiltakRepository = tiltakRepository,
     )
 
     companion object {

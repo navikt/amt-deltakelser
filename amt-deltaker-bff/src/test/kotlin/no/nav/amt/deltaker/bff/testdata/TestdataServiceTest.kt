@@ -54,6 +54,7 @@ class TestdataServiceTest {
         navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
         navEnhetService = navEnhetService,
         paameldingClient = mockPaameldingClient(),
+        amtDeltakerClient = mockAmtDeltakerClient(),
     )
     private val arrangorMeldingProducer = mockk<ArrangorMeldingProducer>(relaxed = true)
     private val testdataService = TestdataService(

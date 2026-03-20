@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
+import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
@@ -27,6 +28,10 @@ class AmtDeltakerClient(
         azureAdTokenClient = azureAdTokenClient,
     ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    suspend fun getPersonidentForDeltaker(deltakerId: UUID): PersonIdentResponse = performGet("personident/$deltakerId")
+        .failIfNotSuccess("Fant ikke personident for deltaker $deltakerId i amt-deltaker.")
+        .body()
 
     suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse = performGet("deltaker/$deltakerId")
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")

@@ -2,28 +2,16 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
-import no.nav.amt.deltaker.bff.deltaker.model.VedtaksinformasjonModel
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
-import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Innhold
-import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 data class DeltakerResponse(
@@ -31,130 +19,27 @@ data class DeltakerResponse(
     val fornavn: String,
     val mellomnavn: String?,
     val etternavn: String,
-    val deltakerliste: DeltakerlisteDto,
+    val deltakerliste: DeltakerlisteResponse,
     val status: DeltakerStatus,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val deltakelsesinnhold: DeltakelsesinnholdDto?,
+    val deltakelsesinnhold: DeltakelsesinnholdResponse?,
     val adresseDelesMedArrangor: Boolean,
     val kanEndres: Boolean,
     val digitalBruker: Boolean,
     val maxVarighet: Long?,
     val softMaxVarighet: Long?,
     val forslag: List<ForslagResponse>,
-    val vedtaksinformasjon: VedtaksinformasjonDto?,
+    val vedtaksinformasjon: VedtaksinformasjonResponse?,
     val importertFraArena: ImportertFraArenaDto?,
     val harAdresse: Boolean,
     val deltakelsesmengder: DeltakelsesmengderDto,
     val erUnderOppfolging: Boolean,
     val erManueltDeltMedArrangor: Boolean,
 ) {
-    data class VedtaksinformasjonDto(
-        val fattet: LocalDateTime?,
-        val fattetAvNav: Boolean,
-        val opprettet: LocalDateTime,
-        val opprettetAv: String,
-        val sistEndret: LocalDateTime,
-        val sistEndretAv: String?,
-        val sistEndretAvEnhet: String?,
-    ) {
-        companion object {
-            fun fromVedtak(
-                vedtak: Vedtak,
-                ansatte: GenericCache<NavAnsatt>,
-                enheter: GenericCache<NavEnhet>,
-            ) = with(vedtak) {
-                VedtaksinformasjonDto(
-                    fattet = fattet,
-                    fattetAvNav = fattetAvNav,
-                    opprettet = opprettet,
-                    opprettetAv = ansatte.getOrThrow(opprettetAv).navn,
-                    sistEndret = sistEndret,
-                    sistEndretAv = ansatte.getOrThrow(sistEndretAv).navn,
-                    sistEndretAvEnhet = enheter.getOrThrow(sistEndretAvEnhet).navn,
-                )
-            }
-
-            fun fromVedtak(vedtak: VedtaksinformasjonModel) = with(vedtak) {
-                VedtaksinformasjonDto(
-                    fattet = fattet,
-                    fattetAvNav = fattetAvNav,
-                    opprettet = opprettet,
-                    opprettetAv = vedtak.opprettetAv,
-                    sistEndret = sistEndret,
-                    sistEndretAv = vedtak.sistEndretAv,
-                    sistEndretAvEnhet = vedtak.sistEndretAvEnhet,
-                )
-            }
-        }
-    }
-
-    data class DeltakelsesinnholdDto(
-        val ledetekst: String?,
-        val innhold: List<Innhold>,
-    ) {
-        companion object {
-            fun fromDeltakelsesinnhold(
-                deltakelsesinnhold: Deltakelsesinnhold,
-                tiltaksInnhold: List<Innholdselement>?,
-            ) = DeltakelsesinnholdDto(
-                ledetekst = deltakelsesinnhold.ledetekst,
-                innhold = fulltInnhold(deltakelsesinnhold.innhold, tiltaksInnhold ?: emptyList()),
-            )
-
-            fun fulltInnhold(
-                valgtInnhold: List<Innhold>,
-                innholdselementer: List<Innholdselement>,
-            ): List<Innhold> = innholdselementer
-                .asSequence()
-                .filterNot { it.innholdskode in valgtInnhold.map { vi -> vi.innholdskode } }
-                .map { it.toInnhold() }
-                .plus(valgtInnhold)
-                .sortedWith(sortertAlfabetiskMedAnnetSist())
-                .toList()
-
-            private fun sortertAlfabetiskMedAnnetSist() = compareBy<Innhold> {
-                it.tekst == annetInnholdselement.tekst
-            }.thenBy {
-                it.tekst
-            }
-        }
-    }
-
-    data class DeltakerlisteDto(
-        val deltakerlisteId: UUID,
-        val deltakerlisteNavn: String,
-        val tiltakskode: Tiltakskode,
-        val arrangorNavn: String,
-        val oppstartstype: Oppstartstype?,
-        val startdato: LocalDate?,
-        val sluttdato: LocalDate?,
-        val status: GjennomforingStatusType?,
-        val tilgjengeligInnhold: TilgjengeligInnhold,
-        val erEnkeltplassUtenRammeavtale: Boolean,
-        val oppmoteSted: String?,
-        val pameldingstype: GjennomforingPameldingType,
-    )
-
-    data class TilgjengeligInnhold(
-        val ledetekst: String?,
-        val innhold: List<Innholdselement>,
-    ) {
-        companion object {
-            // litt spesiell konstruksjon med nullable innhold, undersøk nærmere
-            fun fromDeltakerRegistreringInnhold(
-                innhold: DeltakerRegistreringInnhold?,
-                tiltakstype: Tiltakskode,
-            ) = TilgjengeligInnhold(
-                ledetekst = innhold?.ledetekst,
-                innhold = getInnholdselementer(innhold?.innholdselementer, tiltakstype),
-            )
-        }
-    }
-
     data class DeltakelsesmengderDto(
         val nesteDeltakelsesmengde: DeltakelsesmengdeDto?,
         val sisteDeltakelsesmengde: DeltakelsesmengdeDto?,
@@ -187,7 +72,7 @@ data class DeltakerResponse(
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste = DeltakerlisteDto(
+                deltakerliste = DeltakerlisteResponse(
                     deltakerlisteId = deltakerliste.id,
                     deltakerlisteNavn = deltakerliste.navn,
                     tiltakskode = deltakerliste.tiltak.tiltakskode,
@@ -196,7 +81,7 @@ data class DeltakerResponse(
                     startdato = deltakerliste.startDato,
                     sluttdato = deltakerliste.sluttDato,
                     status = deltakerliste.status,
-                    tilgjengeligInnhold = TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
+                    tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
                         deltakerliste.tiltak.innhold,
                         deltakerliste.tiltak.tiltakskode,
                     ),
@@ -212,7 +97,7 @@ data class DeltakerResponse(
                 deltakelsesprosent = deltakelsesprosent,
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold?.let {
-                    DeltakelsesinnholdDto.fromDeltakelsesinnhold(
+                    DeltakelsesinnholdResponse.fromDeltakelsesinnhold(
                         deltakelsesinnhold = it,
                         tiltaksInnhold = getInnholdselementer(
                             innholdselementer = deltakerliste.tiltak.innhold?.innholdselementer,
@@ -221,7 +106,7 @@ data class DeltakerResponse(
                     )
                 },
                 vedtaksinformasjon = vedtaksinformasjon?.let {
-                    VedtaksinformasjonDto.fromVedtak(
+                    VedtaksinformasjonResponse.fromVedtak(
                         vedtak = it,
                         ansatte = ansatte,
                         enheter = enheter,
@@ -260,17 +145,17 @@ data class DeltakerResponse(
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste = DeltakerlisteDto(
+                deltakerliste = DeltakerlisteResponse(
                     deltakerlisteId = gjennomforing.id,
                     deltakerlisteNavn = gjennomforing.navn,
                     tiltakskode = gjennomforing.tiltak.tiltakskode,
                     // Nå er det amtdeltaker som sender med navnet som er riktig for visningen
-                    arrangorNavn = gjennomforing.arrangor.navn,
+                    arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
                     oppstartstype = gjennomforing.oppstart,
                     startdato = gjennomforing.startDato,
                     sluttdato = gjennomforing.sluttDato,
                     status = gjennomforing.status,
-                    tilgjengeligInnhold = TilgjengeligInnhold.fromDeltakerRegistreringInnhold(
+                    tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
                         innhold = gjennomforing.tiltak.innhold,
                         tiltakstype = gjennomforing.tiltak.tiltakskode,
                     ),
@@ -285,24 +170,25 @@ data class DeltakerResponse(
                 deltakelsesprosent = deltakelsesprosent,
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold?.let {
-                    DeltakelsesinnholdDto.fromDeltakelsesinnhold(
-                        deltakelsesinnhold = it,
-                        tiltaksInnhold = getInnholdselementer(
-                            innholdselementer = gjennomforing.tiltak.innhold?.innholdselementer,
-                            tiltakstype = gjennomforing.tiltak.tiltakskode,
+                    DeltakelsesinnholdResponse.fromDeltakelsesinnhold(
+                        it,
+                        getInnholdselementer(
+                            gjennomforing.tiltak.innhold
+                                ?.innholdselementer,
+                            gjennomforing.tiltak.tiltakskode,
                         ),
                     )
                 },
-                vedtaksinformasjon = vedtaksinformasjon?.let { VedtaksinformasjonDto.fromVedtak(it) },
+                vedtaksinformasjon = vedtaksinformasjon?.let { VedtaksinformasjonResponse.fromVedtak(it) },
                 adresseDelesMedArrangor = adresseDelesMedArrangor,
-                kanEndres = erLaastForEndringer,
+                kanEndres = !erLaastForEndringer,
                 digitalBruker = navBruker.erDigital,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
                 forslag = endringsforslagFraArrangor.map {
                     ForslagResponse.fromForslagDecorator(
                         decorator = it,
-                        arrangorNavn = gjennomforing.arrangor.navn,
+                        arrangorNavn = gjennomforing.arrangor!!.navn,
                     )
                 },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),

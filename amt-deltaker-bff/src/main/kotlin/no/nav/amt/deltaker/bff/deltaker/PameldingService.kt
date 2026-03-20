@@ -1,15 +1,19 @@
 package no.nav.amt.deltaker.bff.deltaker
 
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakerOppdatering
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.deltaker.ModelMapper
 import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.deltaker.model.Kladd
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -21,8 +25,17 @@ class PameldingService(
     private val navBrukerService: NavBrukerService,
     private val paameldingClient: PaameldingClient,
     private val navEnhetService: NavEnhetService,
+    private val amtDeltakerClient: AmtDeltakerClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    suspend fun opprettKladdForEnkeltplass(
+        tiltakskode: Tiltakskode,
+        personident: String,
+    ): DeltakerModel = paameldingClient
+        .opprettKladdEnkeltplass(tiltakskode, personident)
+        .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
+        .let { ModelMapper.toDeltaker(it) }
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,

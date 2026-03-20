@@ -25,7 +25,6 @@ class ModelMapper {
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold,
                 status = status,
-                kanEndres = !erLaastForEndringer,
                 sistEndret = sistEndret,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
                 historikk = historikk,
@@ -65,7 +64,7 @@ class ModelMapper {
                 oppstart = oppstart,
                 apentForPamelding = apentForPamelding,
                 oppmoteSted = oppmoteSted,
-                arrangor = toArrangor(arrangor),
+                arrangor = arrangor?.let { toArrangor(it) },
                 pameldingstype = pameldingstype,
             )
         }

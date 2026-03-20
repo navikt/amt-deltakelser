@@ -29,7 +29,6 @@ data class DeltakerModel(
     val deltakelsesinnhold: Deltakelsesinnhold?,
     val vedtaksinformasjon: VedtaksinformasjonModel?,
     val status: DeltakerStatus,
-    val kanEndres: Boolean,
     val sistEndret: LocalDateTime,
     val erManueltDeltMedArrangor: Boolean,
     val historikk: List<DeltakerHistorikk>,
@@ -126,6 +125,8 @@ data class DeltakerModel(
             Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
             Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
             Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
             -> years(4)
 
             Tiltakskode.FAG_OG_YRKESOPPLAERING,
@@ -144,8 +145,6 @@ data class DeltakerModel(
 
             Tiltakskode.JOBBKLUBB,
             Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
             -> null
         }
 }

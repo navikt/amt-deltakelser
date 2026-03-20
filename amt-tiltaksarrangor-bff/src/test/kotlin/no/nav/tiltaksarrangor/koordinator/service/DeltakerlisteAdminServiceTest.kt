@@ -17,9 +17,9 @@ import no.nav.tiltaksarrangor.IntegrationTest
 import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.AnsattRolleDbo
 import no.nav.tiltaksarrangor.repositories.model.ArrangorDbo
@@ -33,7 +33,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 class DeltakerlisteAdminServiceTest(
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteAdminService: DeltakerlisteAdminService,
@@ -57,7 +57,7 @@ class DeltakerlisteAdminServiceTest(
                 overordnetArrangorId = null,
             ),
         )
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -139,7 +139,7 @@ class DeltakerlisteAdminServiceTest(
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste1)
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste2)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -215,7 +215,7 @@ class DeltakerlisteAdminServiceTest(
                 pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -237,7 +237,7 @@ class DeltakerlisteAdminServiceTest(
     fun `leggTilDeltakerliste - ansatt er ikke koordinator hos arrangor - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -293,7 +293,7 @@ class DeltakerlisteAdminServiceTest(
                 pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -335,7 +335,7 @@ class DeltakerlisteAdminServiceTest(
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -350,7 +350,7 @@ class DeltakerlisteAdminServiceTest(
 
         deltakerlisteAdminService.leggTilDeltakerliste(deltakerliste.id, personIdent)
 
-        val ansattFraDb = ansattRepository.getAnsatt(ansattId)
+        val ansattFraDb = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
         ansattFraDb?.deltakerlister?.size shouldBe 2
         ansattFraDb?.deltakerlister?.find { it.deltakerlisteId == deltakerliste.id } shouldNotBe null
 
@@ -381,7 +381,7 @@ class DeltakerlisteAdminServiceTest(
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -403,7 +403,7 @@ class DeltakerlisteAdminServiceTest(
     fun `fjernDeltakerliste - ansatt er ikke koordinator hos arrangor - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -459,7 +459,7 @@ class DeltakerlisteAdminServiceTest(
                 pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -501,7 +501,7 @@ class DeltakerlisteAdminServiceTest(
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -516,7 +516,7 @@ class DeltakerlisteAdminServiceTest(
 
         deltakerlisteAdminService.fjernDeltakerliste(deltakerliste.id, personIdent)
 
-        val ansattFraDb = ansattRepository.getAnsatt(ansattId)
+        val ansattFraDb = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
         ansattFraDb?.deltakerlister?.size shouldBe 1
         ansattFraDb?.deltakerlister?.find { it.deltakerlisteId == deltakerliste.id } shouldBe null
 

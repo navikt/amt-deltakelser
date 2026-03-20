@@ -36,11 +36,11 @@ import no.nav.tiltaksarrangor.consumer.model.toDeltakerDbo
 import no.nav.tiltaksarrangor.consumer.model.toEndringsmeldingDbo
 import no.nav.tiltaksarrangor.model.Endringsmelding
 import no.nav.tiltaksarrangor.model.Veiledertype
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
@@ -57,7 +57,7 @@ import java.util.concurrent.TimeUnit
 
 class KafkaConsumerTest(
     private val arrangorRepository: ArrangorRepository,
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val endringsmeldingRepository: EndringsmeldingRepository,
@@ -251,10 +251,10 @@ class KafkaConsumerTest(
             ).get()
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            ansattRepository.getAnsatt(ansattId) != null &&
-                ansattRepository.getAnsattRolleListe(ansattId).size == 2 &&
-                ansattRepository.getKoordinatorDeltakerlisteDboListe(ansattId).size == 1 &&
-                ansattRepository.getVeilederDeltakerDboListe(ansattId).size == 1
+            tiltaksarrangorAnsattRepository.getAnsatt(ansattId) != null &&
+                tiltaksarrangorAnsattRepository.getAnsattRolleListe(ansattId).size == 2 &&
+                tiltaksarrangorAnsattRepository.getKoordinatorDeltakerlisteDboListe(ansattId).size == 1 &&
+                tiltaksarrangorAnsattRepository.getVeilederDeltakerDboListe(ansattId).size == 1
         }
     }
 
@@ -286,7 +286,7 @@ class KafkaConsumerTest(
                         ),
                     ),
             )
-        ansattRepository.insertOrUpdateAnsatt(ansattDto.toAnsattDbo())
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansattDto.toAnsattDbo())
         testKafkaProducer
             .send(
                 ProducerRecord(
@@ -298,10 +298,10 @@ class KafkaConsumerTest(
             ).get()
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            ansattRepository.getAnsattRolleListe(ansattId).isEmpty() &&
-                ansattRepository.getKoordinatorDeltakerlisteDboListe(ansattId).isEmpty() &&
-                ansattRepository.getVeilederDeltakerDboListe(ansattId).isEmpty() &&
-                ansattRepository.getAnsatt(ansattId) == null
+            tiltaksarrangorAnsattRepository.getAnsattRolleListe(ansattId).isEmpty() &&
+                tiltaksarrangorAnsattRepository.getKoordinatorDeltakerlisteDboListe(ansattId).isEmpty() &&
+                tiltaksarrangorAnsattRepository.getVeilederDeltakerDboListe(ansattId).isEmpty() &&
+                tiltaksarrangorAnsattRepository.getAnsatt(ansattId) == null
         }
     }
 

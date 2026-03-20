@@ -40,12 +40,12 @@ import no.nav.tiltaksarrangor.melding.forslag.ForslagService
 import no.nav.tiltaksarrangor.melding.forslag.forlengDeltakelseForslag
 import no.nav.tiltaksarrangor.model.Endringsmelding
 import no.nav.tiltaksarrangor.model.Oppdatering
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
 import no.nav.tiltaksarrangor.repositories.NavAnsattRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.UlestEndringRepository
 import no.nav.tiltaksarrangor.service.NavAnsattService
 import no.nav.tiltaksarrangor.service.NavEnhetService
@@ -64,7 +64,7 @@ import java.util.UUID
 
 class KafkaConsumerServiceTest {
     private val arrangorRepository = mockk<ArrangorRepository>()
-    private val ansattRepository = mockk<AnsattRepository>()
+    private val tiltaksarrangorAnsattRepository = mockk<TiltaksarrangorAnsattRepository>()
     private val navAnsattRepository = mockk<NavAnsattRepository>()
     private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
     private val deltakerRepository = mockk<DeltakerRepository>()
@@ -78,7 +78,7 @@ class KafkaConsumerServiceTest {
     private val kafkaConsumerService =
         KafkaConsumerService(
             arrangorRepository,
-            ansattRepository,
+            tiltaksarrangorAnsattRepository,
             deltakerRepository,
             endringsmeldingRepository,
             forslagService,

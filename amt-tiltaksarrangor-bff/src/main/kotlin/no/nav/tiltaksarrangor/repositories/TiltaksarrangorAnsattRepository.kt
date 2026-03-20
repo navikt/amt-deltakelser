@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Component
-class AnsattRepository(
+class TiltaksarrangorAnsattRepository(
     private val template: NamedParameterJdbcTemplate,
 ) {
     private val ansattPersonaliaRowMapper =
@@ -192,16 +192,20 @@ class AnsattRepository(
             		etternavn			= :etternavn
             """.trimIndent()
 
-        template.update(
-            sql,
-            sqlParameters(
-                "id" to ansattDbo.id,
-                "personident" to ansattDbo.personIdent,
-                "fornavn" to ansattDbo.fornavn,
-                "mellomnavn" to ansattDbo.mellomnavn,
-                "etternavn" to ansattDbo.etternavn,
-            ),
-        )
+        runCatching {
+            template.update(
+                sql,
+                sqlParameters(
+                    "id" to ansattDbo.id,
+                    "personident" to ansattDbo.personIdent,
+                    "fornavn" to ansattDbo.fornavn,
+                    "mellomnavn" to ansattDbo.mellomnavn,
+                    "etternavn" to ansattDbo.etternavn,
+                ),
+            )
+        }.getOrElse {
+            throw RuntimeException("Kunne ikke lagre ansatt med id ${ansattDbo.id}")
+        }
 
         insertOrUpdateAnsattRolle(ansattDbo.id, ansattDbo.roller)
         insertOrUpdateKoordinatorDeltakerliste(ansattDbo.id, ansattDbo.deltakerlister)

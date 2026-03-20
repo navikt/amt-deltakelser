@@ -67,7 +67,7 @@ class DeltakerlisteRepository {
             "navn" to deltakerliste.navn,
             "gjennomforingstype" to deltakerliste.gjennomforingstype.name,
             "status" to deltakerliste.status?.name,
-            "arrangor_id" to deltakerliste.arrangor.id,
+            "arrangor_id" to deltakerliste.arrangor?.id,
             "tiltakstype_id" to deltakerliste.tiltakstype.id,
             "start_dato" to deltakerliste.startDato,
             "slutt_dato" to deltakerliste.sluttDato,
@@ -79,6 +79,57 @@ class DeltakerlisteRepository {
 
         Database.query { session -> session.update(queryOf(sql, params)) }
         log.info("Upsertet deltakerliste med id ${deltakerliste.id}")
+    }
+
+    fun upsert(gjennomforing: GjennomforingInsertDbo) {
+        val sql =
+            """
+            INSERT INTO deltakerliste(
+                id, 
+                navn, 
+                gjennomforingstype,
+                status, 
+                tiltakstype_id, 
+                oppstart,
+                apent_for_pamelding,
+                oppmote_sted,
+                pameldingstype
+            )
+            VALUES (
+                :id,
+                :navn,
+                :gjennomforingstype,
+                :status,
+                :tiltakstype_id,
+                :oppstart,
+                :apent_for_pamelding,
+                :oppmote_sted,
+                :pameldingstype
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                navn     				= :navn,
+                gjennomforingstype      = :gjennomforingstype,
+                status					= :status,
+                tiltakstype_id			= :tiltakstype_id,
+                oppstart                = :oppstart,
+                apent_for_pamelding     = :apent_for_pamelding,
+                pameldingstype          = :pameldingstype,
+                modified_at             = CURRENT_TIMESTAMP
+            """.trimIndent()
+
+        val params = mapOf(
+            "id" to gjennomforing.id,
+            "navn" to gjennomforing.navn,
+            "gjennomforingstype" to gjennomforing.type.name,
+            "status" to gjennomforing.status?.name,
+            "tiltakstype_id" to gjennomforing.tiltakId,
+            "oppstart" to gjennomforing.oppstart?.name,
+            "apent_for_pamelding" to gjennomforing.apentForPamelding,
+            "pameldingstype" to gjennomforing.pameldingstype?.name,
+        )
+
+        Database.query { session -> session.update(queryOf(sql, params)) }
+        log.info("Upsertet gjennomføring med id ${gjennomforing.id}")
     }
 
     fun delete(id: UUID) = Database.query {
@@ -116,7 +167,7 @@ class DeltakerlisteRepository {
                t.innhold AS "t.innhold"
             FROM 
                 deltakerliste dl
-                JOIN arrangor a ON a.id = dl.arrangor_id
+                LEFT JOIN arrangor a ON a.id = dl.arrangor_id
                 JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             WHERE dl.id = :id
             """.trimIndent()
@@ -146,12 +197,14 @@ class DeltakerlisteRepository {
             apentForPamelding = row.boolean(col("apent_for_pamelding")),
             oppmoteSted = row.stringOrNull(col("oppmote_sted")),
             pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
-            arrangor = Arrangor(
-                id = row.uuid("a.id"),
-                navn = row.string("a.navn"),
-                organisasjonsnummer = row.string("a.organisasjonsnummer"),
-                overordnetArrangorId = row.uuidOrNull("a.overordnet_arrangor_id"),
-            ),
+            arrangor = row.uuidOrNull("a.id")?.let { arrangorId ->
+                Arrangor(
+                    id = arrangorId,
+                    navn = row.string("a.navn"),
+                    organisasjonsnummer = row.string("a.organisasjonsnummer"),
+                    overordnetArrangorId = row.uuidOrNull("a.overordnet_arrangor_id"),
+                )
+            },
         )
     }
 }

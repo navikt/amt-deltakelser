@@ -7,7 +7,7 @@ import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.consumer.model.toAnsattDbo
 import no.nav.tiltaksarrangor.model.Veileder
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.AnsattPersonaliaDbo
 import no.nav.tiltaksarrangor.repositories.model.AnsattRolleDbo
@@ -22,7 +22,7 @@ import java.util.UUID
 @Component
 class AnsattService(
     private val amtArrangorClient: AmtArrangorClient,
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -33,9 +33,9 @@ class AnsattService(
             }
         log.info("Hentet ansatt med id ${ansatt.id} fra amt-arrangør")
 
-        ansattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
         log.info("Lagret eller oppdatert ansatt med id ${ansatt.id}")
-        ansattRepository.updateSistInnlogget(ansatt.id)
+        tiltaksarrangorAnsattRepository.updateSistInnlogget(ansatt.id)
 
         return ansatt.arrangorer
             .flatMap { it.roller }
@@ -43,7 +43,7 @@ class AnsattService(
             .distinct()
     }
 
-    fun getAnsatt(personIdent: String): AnsattDbo? = ansattRepository.getAnsatt(personIdent)
+    fun getAnsatt(personIdent: String): AnsattDbo? = tiltaksarrangorAnsattRepository.getAnsatt(personIdent)
 
     fun getAnsattMedRoller(personIdent: String): AnsattDbo {
         val ansatt = getAnsatt(personIdent) ?: throw UnauthorizedException("Ansatt finnes ikke")
@@ -54,13 +54,13 @@ class AnsattService(
     }
 
     fun getVeiledereForDeltaker(deltakerId: UUID): List<Veileder> =
-        ansattRepository.getVeiledereForDeltaker(deltakerId).map { it.toVeileder() }
+        tiltaksarrangorAnsattRepository.getVeiledereForDeltaker(deltakerId).map { it.toVeileder() }
 
     fun getVeiledereForDeltakere(deltakerIder: List<UUID>): List<Veileder> {
         if (deltakerIder.isEmpty()) {
             return emptyList()
         }
-        return ansattRepository.getVeiledereForDeltakere(deltakerIder).map { it.toVeileder() }
+        return tiltaksarrangorAnsattRepository.getVeiledereForDeltakere(deltakerIder).map { it.toVeileder() }
     }
 
     @Transactional
@@ -69,7 +69,10 @@ class AnsattService(
         deltakerlisteId: UUID,
         arrangorId: UUID,
     ) {
-        ansattRepository.insertKoordinatorDeltakerliste(ansattId = ansattId, deltakerliste = KoordinatorDeltakerlisteDbo(deltakerlisteId))
+        tiltaksarrangorAnsattRepository.insertKoordinatorDeltakerliste(
+            ansattId = ansattId,
+            deltakerliste = KoordinatorDeltakerlisteDbo(deltakerlisteId),
+        )
         amtArrangorClient.leggTilDeltakerlisteForKoordinator(
             ansattId = ansattId,
             deltakerlisteId = deltakerlisteId,
@@ -83,7 +86,10 @@ class AnsattService(
         deltakerlisteId: UUID,
         arrangorId: UUID,
     ) {
-        ansattRepository.deleteKoordinatorDeltakerliste(ansattId = ansattId, deltakerliste = KoordinatorDeltakerlisteDbo(deltakerlisteId))
+        tiltaksarrangorAnsattRepository.deleteKoordinatorDeltakerliste(
+            ansattId = ansattId,
+            deltakerliste = KoordinatorDeltakerlisteDbo(deltakerlisteId),
+        )
         amtArrangorClient.fjernDeltakerlisteForKoordinator(ansattId = ansattId, deltakerlisteId = deltakerlisteId, arrangorId = arrangorId)
     }
 
@@ -93,8 +99,8 @@ class AnsattService(
         arrangorId: UUID,
         veiledereForDeltaker: List<VeilederForDeltakerDbo>,
     ) {
-        val gamleVeiledereForDeltaker = ansattRepository.getVeiledereForDeltaker(deltakerId)
-        ansattRepository.updateVeiledereForDeltaker(deltakerId = deltakerId, veiledere = veiledereForDeltaker)
+        val gamleVeiledereForDeltaker = tiltaksarrangorAnsattRepository.getVeiledereForDeltaker(deltakerId)
+        tiltaksarrangorAnsattRepository.updateVeiledereForDeltaker(deltakerId = deltakerId, veiledere = veiledereForDeltaker)
         amtArrangorClient.oppdaterVeilederForDeltaker(
             deltakerId = deltakerId,
             oppdaterVeiledereForDeltakerRequest =
@@ -113,9 +119,10 @@ class AnsattService(
         deltakerlisteId: UUID,
         arrangorId: UUID,
     ): List<AnsattPersonaliaDbo> =
-        ansattRepository.getKoordinatorerForDeltakerliste(deltakerlisteId = deltakerlisteId, arrangorId = arrangorId)
+        tiltaksarrangorAnsattRepository.getKoordinatorerForDeltakerliste(deltakerlisteId = deltakerlisteId, arrangorId = arrangorId)
 
-    fun getVeiledereForArrangor(arrangorId: UUID): List<AnsattPersonaliaDbo> = ansattRepository.getVeiledereForArrangor(arrangorId)
+    fun getVeiledereForArrangor(arrangorId: UUID): List<AnsattPersonaliaDbo> =
+        tiltaksarrangorAnsattRepository.getVeiledereForArrangor(arrangorId)
 
     fun erAlleAnsatteVeiledereHosArrangor(
         ansattIder: List<UUID>,
@@ -124,7 +131,7 @@ class AnsattService(
         if (ansattIder.isEmpty()) {
             return true
         }
-        val roller = ansattRepository.getAnsattRolleLister(ansattIder).filter { it.ansattRolleDbo.arrangorId == arrangorId }
+        val roller = tiltaksarrangorAnsattRepository.getAnsattRolleLister(ansattIder).filter { it.ansattRolleDbo.arrangorId == arrangorId }
         ansattIder.forEach { ansattId ->
             val erVeilederHosArrangor =
                 harRolleHosArrangor(arrangorId, AnsattRolle.VEILEDER, roller.filter { it.ansattId == ansattId }.map { it.ansattRolleDbo })

@@ -16,8 +16,8 @@ import no.nav.tiltaksarrangor.consumer.model.VeilederDto
 import no.nav.tiltaksarrangor.consumer.model.toAnsattDbo
 import no.nav.tiltaksarrangor.model.Veiledertype
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.testutils.DbTestDataUtils.shouldBeCloseTo
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.utils.sqlParameters
@@ -28,7 +28,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class AnsattServiceTest(
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val ansattService: AnsattService,
     @MockkBean private val amtArrangorClient: AmtArrangorClient,
@@ -54,7 +54,7 @@ class AnsattServiceTest(
         roller.find { it == AnsattRolle.VEILEDER.name } shouldNotBe null
         roller.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
 
-        val ansatt = ansattRepository.getAnsatt(ansattId)
+        val ansatt = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
         ansatt!!.personIdent shouldBe personIdent
         ansatt.roller.size shouldBe 4
         ansatt.deltakerlister.size shouldBe 2
@@ -74,7 +74,7 @@ class AnsattServiceTest(
         val ansattId = UUID.randomUUID()
         val personIdent = "12345678910"
         val ansatt = getAnsatt(ansattId, personIdent, deltakerId, deltakerId2)
-        ansattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
 
         getSistInnlogget(ansattId) shouldBe null
 
@@ -96,7 +96,7 @@ class AnsattServiceTest(
         roller.size shouldBe 1
         roller.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
 
-        val oppdatertAnsatt = ansattRepository.getAnsatt(ansattId)
+        val oppdatertAnsatt = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
         oppdatertAnsatt!!.personIdent shouldBe personIdent
         oppdatertAnsatt.roller.size shouldBe 1
         oppdatertAnsatt.deltakerlister.size shouldBe 1

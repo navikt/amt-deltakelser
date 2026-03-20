@@ -21,6 +21,7 @@ sealed interface HendelseType {
 
     sealed interface HendelseSystemKanOpprette : HendelseType
 
+    // Hendelser initiert av tiltakskoordinator/tiltaksansvarlig
     data object SettPaaVenteliste : HendelseType
 
     data object TildelPlass : HendelseType

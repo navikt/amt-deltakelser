@@ -22,7 +22,9 @@ import no.nav.amt.deltaker.bff.deltaker.model.Pamelding
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.OpprettNyKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -58,7 +60,7 @@ fun Routing.registerKladdApi(
 
     authenticate(AuthLevel.VEILEDER.name) {
         post("/kladd") {
-            val request = call.receive<OpprettNyKladdRequest>()
+            val request = call.receive<OpprettKladdRequest>()
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
@@ -68,6 +70,25 @@ fun Routing.registerKladdApi(
             )
 
             call.respond(komplettDeltakerResponse(deltaker))
+        }
+
+        post("/opprett-enkeltplass-kladd") {
+            val request = call.receive<OpprettEnkeltplassKladdRequest>()
+
+            tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
+
+            val response = pameldingService
+                .opprettKladdForEnkeltplass(
+                    personident = request.personident,
+                    tiltakskode = request.tiltakskode,
+                ).let { DeltakerResponse.fromDeltakerModel(it) }
+
+            call.respond(response)
+        }
+
+        post("/oppdater-enkeltplass-kladd/{deltakerId}") {
+            val request = call.receive<OppdaterEnkeltplassKladdRequest>()
+            throw NotImplementedError("Må implementeres for å endre på kladd")
         }
 
         // Dette endepunktet kommuniserer ikke med amt-deltaker

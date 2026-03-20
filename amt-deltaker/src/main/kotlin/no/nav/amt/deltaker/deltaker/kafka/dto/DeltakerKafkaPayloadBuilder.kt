@@ -214,7 +214,7 @@ class DeltakerKafkaPayloadBuilder(
         ledetekst = ledetekst,
         valgtInnhold = innhold.filter { it.valgt }.map {
             DeltakerEksternV1Dto.InnholdDto(
-                tekst = it.tekst,
+                tekst = if (it.erFritekstInnholdsElement) it.beskrivelse!! else it.tekst,
                 innholdskode = it.innholdskode,
             )
         },

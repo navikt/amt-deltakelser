@@ -71,7 +71,7 @@ class ArrangorMeldingConsumer(
         Database.transaction {
             vurderingRepository.upsert(vurdering.toVurdering())
             val deltaker = deltakerRepository.get(vurdering.deltakerId).getOrThrow()
-            deltakerProducerService.produce(deltaker)
+            deltakerProducerService.produce(deltaker, publiserTilDeltakerV1 = false, publiserTilDeltakerEksternV1 = false)
         }
     }
 

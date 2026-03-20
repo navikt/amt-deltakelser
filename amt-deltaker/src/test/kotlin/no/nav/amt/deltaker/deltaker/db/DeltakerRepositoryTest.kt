@@ -332,6 +332,13 @@ class DeltakerRepositoryTest {
         deltakere.any { it.id == deltaker2.id } shouldBe true
     }
 
+    @Test
+    fun `getPersonidentForDeltaker - returnerer personident`() {
+        val deltaker = lagDeltaker()
+        TestRepository.insertAll(deltaker)
+        deltakerRepository.getPersonidentForDeltaker(deltaker.id) shouldBe deltaker.navBruker.personident
+    }
+
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()

@@ -9,9 +9,9 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.tiltaksarrangor.IntegrationTest
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
-import no.nav.tiltaksarrangor.repositories.AnsattRepository
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
+import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.AnsattRolleDbo
 import no.nav.tiltaksarrangor.repositories.model.ArrangorDbo
@@ -23,7 +23,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 class DeltakerlisteAdminAPITest(
-    private val ansattRepository: AnsattRepository,
+    private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
 ) : IntegrationTest() {
@@ -84,7 +84,7 @@ class DeltakerlisteAdminAPITest(
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste1)
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste2)
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = UUID.randomUUID(),
                 personIdent = personIdent,
@@ -147,7 +147,7 @@ class DeltakerlisteAdminAPITest(
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -171,7 +171,7 @@ class DeltakerlisteAdminAPITest(
 
         response.code shouldBe 200
 
-        val ansattFraDb = ansattRepository.getAnsatt(ansattId)
+        val ansattFraDb = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
         ansattFraDb?.deltakerlister?.size shouldBe 1
         ansattFraDb?.deltakerlister?.find { it.deltakerlisteId == deltakerlisteId } shouldNotBe null
     }
@@ -210,7 +210,7 @@ class DeltakerlisteAdminAPITest(
             )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val ansattId = UUID.randomUUID()
-        ansattRepository.insertOrUpdateAnsatt(
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
             AnsattDbo(
                 id = ansattId,
                 personIdent = personIdent,
@@ -233,7 +233,7 @@ class DeltakerlisteAdminAPITest(
 
         response.code shouldBe 200
 
-        val ansattFraDb = ansattRepository.getAnsatt(ansattId)
+        val ansattFraDb = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
         ansattFraDb?.deltakerlister?.size shouldBe 0
     }
 }
