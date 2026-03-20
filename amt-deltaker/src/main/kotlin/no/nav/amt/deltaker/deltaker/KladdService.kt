@@ -1,17 +1,20 @@
 package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.db.DeltakerInsertDbo
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerUpsertDbo
+import no.nav.amt.deltaker.deltaker.db.DeltakerUpdateDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.GjennomforingInsertDbo
+import no.nav.amt.deltaker.deltakerliste.GjennomforingKladdUpdateDbo
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -22,6 +25,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -54,7 +58,7 @@ class KladdService(
             pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
-        val kladd = lagEnkeltplassKladdUpsertDbo(
+        val kladd = lagEnkeltplassKladdInsertDbo(
             navBruker.personId,
             gjennomforing.id,
             tiltak,
@@ -67,6 +71,33 @@ class KladdService(
         }
 
         return deltakerRepository.get(kladd.id).getOrThrow()
+    }
+
+    suspend fun oppdaterKladd(
+        deltakerId: UUID,
+        startdato: LocalDate?,
+        sluttdato: LocalDate?,
+        beskrivelse: String?,
+        prisinformasjon: String?,
+    ) {
+        // Trenger egentlig bare deltakeren for tiltakstypen sånn at ledeteksten
+        // kan puttes i jsonobjektet i innhold
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val gjennomforingUpdateDbo = GjennomforingKladdUpdateDbo(
+            id = deltaker.deltakerliste.id,
+            prisinformasjon = prisinformasjon,
+        )
+        val kladdUpdateDbo = lagEnkeltplassKladdUpdateDbo(
+            deltakerId = deltakerId,
+            tiltakstype = deltaker.deltakerliste.tiltakstype,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            beskrivelse = beskrivelse,
+        )
+        Database.transaction {
+            deltakerListeRepository.upsert(gjennomforingUpdateDbo)
+            deltakerRepository.update(kladdUpdateDbo)
+        }
     }
 
     suspend fun opprettKladd(
@@ -130,11 +161,11 @@ class KladdService(
             opprettet = LocalDateTime.now(),
         )
 
-        private fun lagEnkeltplassKladdUpsertDbo(
+        private fun lagEnkeltplassKladdInsertDbo(
             navBrukerId: UUID,
             deltakerlisteId: UUID,
             tiltakstype: Tiltakstype,
-        ) = DeltakerUpsertDbo(
+        ) = DeltakerInsertDbo(
             id = UUID.randomUUID(),
             navBrukerId = navBrukerId,
             deltakerlisteId = deltakerlisteId,
@@ -148,6 +179,31 @@ class KladdService(
             sistEndret = LocalDateTime.now(),
             kilde = Kilde.KOMET,
             erManueltDeltMedArrangor = false,
+        )
+
+        private fun lagEnkeltplassKladdUpdateDbo(
+            deltakerId: UUID,
+            tiltakstype: Tiltakstype,
+            startdato: LocalDate?,
+            sluttdato: LocalDate?,
+            beskrivelse: String?,
+        ) = DeltakerUpdateDbo(
+            id = deltakerId,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = tiltakstype.innhold?.ledetekst,
+                innhold = beskrivelse?.let {
+                    listOf(
+                        Innhold(
+                            tekst = it,
+                            beskrivelse = beskrivelse,
+                            innholdskode = "annet",
+                            valgt = true,
+                        ),
+                    )
+                } ?: emptyList(),
+            ),
         )
     }
 }

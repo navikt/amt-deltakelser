@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class DeltakerUpsertDbo(
+data class DeltakerInsertDbo(
     val id: UUID,
     val navBrukerId: UUID,
     val deltakerlisteId: UUID,

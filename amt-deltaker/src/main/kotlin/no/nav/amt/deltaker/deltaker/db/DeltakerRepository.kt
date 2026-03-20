@@ -139,7 +139,7 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
     }
 
-    fun upsert(deltaker: DeltakerUpsertDbo) {
+    fun upsert(deltaker: DeltakerInsertDbo) {
         val sql =
             """
             INSERT INTO deltaker (
@@ -197,6 +197,40 @@ class DeltakerRepository {
 
         Database.query { session -> session.update(queryOf(sql, parameters)) }
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
+    }
+
+    fun update(deltaker: DeltakerUpdateDbo) {
+        val sql =
+            """
+            INSERT INTO deltaker (
+                id, 
+                startdato, 
+                sluttdato,  
+                innhold, 
+                prisinformasjon
+            )
+            VALUES (
+                :id, 
+                :startdato,
+                :sluttdato,
+                :innhold,
+            )
+            ON CONFLICT (id) DO UPDATE SET 
+                startdato            = :startdato,
+                sluttdato            = :sluttdato,
+                innhold              = :innhold,
+                modified_at          = CURRENT_TIMESTAMP,
+            """.trimIndent()
+
+        val parameters = mapOf(
+            "id" to deltaker.id,
+            "startdato" to deltaker.startdato,
+            "sluttdato" to deltaker.sluttdato,
+            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
+        )
+
+        Database.query { session -> session.update(queryOf(sql, parameters)) }
+        log.info("Oppdaterte kladd deltaker med id ${deltaker.id}")
     }
 
     fun get(id: UUID): Result<Deltaker> = runCatching {

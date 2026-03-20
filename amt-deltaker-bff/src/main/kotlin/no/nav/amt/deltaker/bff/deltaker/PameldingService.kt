@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.bff.deltaker.model.Kladd
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
+import no.nav.amt.deltaker.bff.veileder.api.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
@@ -35,6 +36,15 @@ class PameldingService(
     ): DeltakerModel = paameldingClient
         .opprettKladdEnkeltplass(tiltakskode, personident)
         .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
+        .let { ModelMapper.toDeltaker(it) }
+
+    suspend fun oppdaterKladdForEnkeltplass(enkeltplassKladdRequest: OppdaterEnkeltplassKladdRequest): DeltakerModel = paameldingClient
+        .oppdaterKladdEnkeltplass(
+            startdato = enkeltplassKladdRequest.startdato,
+            sluttdato = enkeltplassKladdRequest.sluttdato,
+            prisinformasjon = enkeltplassKladdRequest.prisinformasjon,
+            beskrivelse = enkeltplassKladdRequest.beskrivelse,
+        ).let { amtDeltakerClient.getDeltaker(it.deltakerId) }
         .let { ModelMapper.toDeltaker(it) }
 
     suspend fun opprettKladd(

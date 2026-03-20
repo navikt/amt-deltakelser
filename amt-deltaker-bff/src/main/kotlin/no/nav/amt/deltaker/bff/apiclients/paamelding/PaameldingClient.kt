@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
@@ -15,6 +16,7 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import java.time.LocalDate
 import java.util.UUID
 
 class PaameldingClient(
@@ -35,6 +37,21 @@ class PaameldingClient(
         "/opprett-enkeltplass-kladd",
         OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
+
+    suspend fun oppdaterKladdEnkeltplass(
+        startdato: LocalDate?,
+        sluttdato: LocalDate?,
+        prisinformasjon: String?,
+        beskrivelse: String?,
+    ): DeltakerIdResponse = performPost(
+        "/oppdater-enkeltplass-kladd",
+        OppdaterEnkeltplassKladdRequest(
+            startdato = startdato,
+            sluttdato = sluttdato,
+            prisinformasjon = prisinformasjon,
+            beskrivelse = beskrivelse,
+        ),
+    ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.").body()
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,

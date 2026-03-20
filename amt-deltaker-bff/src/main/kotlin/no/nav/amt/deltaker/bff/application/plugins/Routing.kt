@@ -131,6 +131,7 @@ fun Application.configureRouting(
             navEnhetService = navEnhetService,
             forslageRepository = forslagRepository,
             amtDistribusjonClient = amtDistribusjonClient,
+            amtDeltakerClient = amtDeltakerClient,
         )
 
         registerInnbyggerApi(

@@ -7,6 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
@@ -40,6 +41,7 @@ fun Routing.registerKladdApi(
     navEnhetService: NavEnhetService,
     forslageRepository: ForslagRepository,
     amtDistribusjonClient: AmtDistribusjonClient,
+    amtDeltakerClient: AmtDeltakerClient,
 ) {
     val log = LoggerFactory.getLogger(javaClass)
 
@@ -83,8 +85,16 @@ fun Routing.registerKladdApi(
         }
 
         post("/oppdater-enkeltplass-kladd/{deltakerId}") {
+            val deltakerId = call.getDeltakerId()
             val request = call.receive<OppdaterEnkeltplassKladdRequest>()
-            throw NotImplementedError("Må implementeres for å endre på kladd")
+            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+            tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), personident)
+
+            val response = pameldingService
+                .oppdaterKladdForEnkeltplass(request)
+                .let { DeltakerResponse.fromDeltakerModel(it) }
+
+            call.respond(response)
         }
 
         // Dette endepunktet kommuniserer ikke med amt-deltaker

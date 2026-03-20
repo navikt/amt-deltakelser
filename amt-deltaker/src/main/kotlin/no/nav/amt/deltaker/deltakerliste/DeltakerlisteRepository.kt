@@ -132,6 +132,31 @@ class DeltakerlisteRepository {
         log.info("Upsertet gjennomføring med id ${gjennomforing.id}")
     }
 
+    fun upsert(gjennomforing: GjennomforingKladdUpdateDbo) {
+        val sql =
+            """
+            INSERT INTO deltakerliste(
+                id, 
+                prisinformasjon
+            )
+            VALUES (
+                :id,
+                :prisinformasjon
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                prisinformasjon  		= :prisinformasjon,
+                modified_at             = CURRENT_TIMESTAMP
+            """.trimIndent()
+
+        val params = mapOf(
+            "id" to gjennomforing.id,
+            "prisinformasjon" to gjennomforing.prisinformasjon,
+        )
+
+        Database.query { session -> session.update(queryOf(sql, params)) }
+        log.info("Upsertet gjennomføring kladd med id ${gjennomforing.id}")
+    }
+
     fun delete(id: UUID) = Database.query {
         it.update(
             queryOf(
