@@ -36,14 +36,11 @@ publishing {
     }
 
     repositories {
-        val ghToken = System.getenv("GITHUB_TOKEN")
-        if (!ghToken.isNullOrBlank()) {
-            maven {
-                url = URI("https://maven.pkg.github.com/navikt/amt-deltakelser")
-                credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = ghToken
-                }
+        maven {
+            url = URI("https://maven.pkg.github.com/navikt/amt-deltakelser")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
