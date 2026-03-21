@@ -1,17 +1,7 @@
 version: 2
-
-registries:
-  github-maven-navikt:
-    type: maven-repository
-    url: https://maven.pkg.github.com/navikt
-    username: x-access-token
-    password: ${{secrets.GITHUB_TOKEN}}
-
 updates:
   - package-ecosystem: "gradle"
     directory: "/"
-    registries:
-      - github-maven-navikt
     schedule:
       interval: weekly
       day: tuesday
