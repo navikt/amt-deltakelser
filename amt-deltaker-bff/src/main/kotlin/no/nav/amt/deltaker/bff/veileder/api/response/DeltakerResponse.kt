@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
-import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -65,7 +65,7 @@ data class DeltakerResponse(
             ansatte: Map<UUID, NavAnsatt>,
             vedtakSistEndretAvEnhet: NavEnhet?,
             digitalBruker: Boolean,
-            forslag: List<Forslag>,
+            forslag: List<ForslagDecorator>,
         ) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
@@ -82,8 +82,8 @@ data class DeltakerResponse(
                     sluttdato = deltakerliste.sluttDato,
                     status = deltakerliste.status,
                     tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
-                        deltakerliste.tiltak.innhold,
-                        deltakerliste.tiltak.tiltakskode,
+                        innhold = deltakerliste.tiltak.innhold,
+                        tiltakstype = deltakerliste.tiltak.tiltakskode,
                     ),
                     // midlertidig løsning inntil vi vet ner om det foreligger rammeavtale eller ikke
                     erEnkeltplassUtenRammeavtale = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
@@ -117,7 +117,14 @@ data class DeltakerResponse(
                 digitalBruker = digitalBruker,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = forslag.map { it.toResponse(deltakerliste.arrangor.getArrangorNavn()) },
+                forslag = forslag.map {
+                    ForslagResponse.fromForslag(
+                        forslag = it.forslag,
+                        arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
+                        enheter = vedtakSistEndretAvEnhet?.let { mapOf(it.id to it) } ?: emptyMap(),
+                        ansatte = ansatte,
+                    )
+                },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 deltakelsesmengder = DeltakelsesmengderDto(
@@ -177,7 +184,14 @@ data class DeltakerResponse(
                 digitalBruker = navBruker.erDigital,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = endringsforslagFraArrangor.map { it.toResponse(gjennomforing.arrangor!!.navn) },
+                forslag = endringsforslagFraArrangor.map {
+                    ForslagResponse.fromForslag(
+                        forslag = it.forslag,
+                        arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
+                        enheter = emptyMap(), // enhetsnavn og ansattnavn finnes i dekorator
+                        ansatte = emptyMap(),
+                    )
+                },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger

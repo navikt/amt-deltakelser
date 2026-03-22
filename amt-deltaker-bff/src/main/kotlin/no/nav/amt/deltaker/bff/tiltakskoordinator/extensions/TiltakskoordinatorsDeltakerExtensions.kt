@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerDetaljerR
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.VurderingResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.model.UlestHendelse
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -17,9 +17,15 @@ fun TiltakskoordinatorsDeltaker.toResponse(
     val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(harTilgangTilBruker)
     val personIdent = if (harTilgangTilBruker) navBruker.personident else null
     val aktiveForslag = forslag
-        .filter { forslag ->
-            forslag.status == Forslag.Status.VenterPaSvar
-        }.map { forslag -> forslag.toResponse(arrangornavn = deltakerliste.arrangor.getArrangorNavn()) }
+        .filter { forslag -> forslag.status == Forslag.Status.VenterPaSvar }
+        .map {
+            ForslagResponse.fromForslag(
+                forslag = it,
+                arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
+                ansatte = emptyMap(), // trenger ikke ansatte eller enheter
+                enheter = emptyMap(),
+            )
+        }
 
     return DeltakerDetaljerResponse(
         id = id,

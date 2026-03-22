@@ -93,15 +93,21 @@ data class InnsokPaaFellesOppstartResponse(
 ) : DeltakerHistorikkResponse
 
 fun List<DeltakerHistorikk>.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
     arrangornavn: String,
-    enheter: Map<UUID, NavEnhet>,
     oppstartstype: Oppstartstype?,
+    enheter: Map<UUID, NavEnhet>,
+    ansatte: Map<UUID, NavAnsatt>,
 ): List<DeltakerHistorikkResponse> = this.map {
     when (it) {
         is DeltakerHistorikk.Endring -> it.endring.toResponse(ansatte, enheter, arrangornavn, oppstartstype)
         is DeltakerHistorikk.Vedtak -> it.vedtak.toResponse(ansatte, enheter)
-        is DeltakerHistorikk.Forslag -> it.forslag.toResponse(arrangornavn, ansatte, enheter)
+        is DeltakerHistorikk.Forslag -> ForslagResponse.fromForslag(
+            forslag = it.forslag,
+            arrangornavn = arrangornavn,
+            enheter = enheter,
+            ansatte = ansatte,
+        )
+
         is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.toResponse(arrangornavn)
         is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.toResponse()
         is DeltakerHistorikk.VurderingFraArrangor -> it.data.toResponse(arrangornavn)
@@ -120,7 +126,14 @@ fun DeltakerEndring.toResponse(
     endretAv = ansatte[endretAv]!!.navn,
     endretAvEnhet = enheter[endretAvEnhet]!!.navn,
     endret = endret,
-    forslag = forslag?.toResponse(arrangornavn),
+    forslag = forslag?.let {
+        ForslagResponse.fromForslag(
+            forslag = it,
+            arrangornavn = arrangornavn,
+            enheter = enheter,
+            ansatte = ansatte,
+        )
+    },
 )
 
 fun Vedtak.toResponse(
