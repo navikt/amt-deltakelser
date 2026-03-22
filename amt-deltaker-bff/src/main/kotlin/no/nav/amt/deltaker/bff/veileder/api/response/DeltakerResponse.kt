@@ -118,10 +118,11 @@ data class DeltakerResponse(
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
                 forslag = forslag.map {
-                    ForslagResponse.fromForslagDecorator(
-                        dekorertForslag = it,
+                    ForslagResponse.fromForslag(
+                        forslag = it.forslag,
                         arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
-                        // TODO: Hent ut ansatt og enhet for avvist
+                        ansatte = ansatte,
+                        enheter = vedtakSistEndretAvEnhet?.let { enhet -> mapOf(enhet.id to enhet) } ?: emptyMap(),
                     )
                 },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
