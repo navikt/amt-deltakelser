@@ -73,7 +73,7 @@ class NavEnhetServiceTest {
     }
 
     @Nested
-    inner class HentNavAnsatteForDeltakerTests {
+    inner class HentNavEnheterForDeltakerTests {
         val mockPersonServiceClient = mockk<AmtPersonServiceClient>(relaxed = true)
 
         val navEnhetService = NavEnhetService(
