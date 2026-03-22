@@ -109,7 +109,8 @@ fun Deltaker.toInnbyggerDeltakerResponse(
         ForslagResponse.fromForslag(
             forslag = it,
             arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
-            enheter = vedtakSistEndretAvEnhet?.let { mapOf(it.id to it) } ?: emptyMap(),
+            // TODO: Ansatt og enhet for avvist forslag
+            enheter = vedtakSistEndretAvEnhet?.let { enhet -> mapOf(enhet.id to enhet) } ?: emptyMap(),
             ansatte = ansatte,
         )
     },

@@ -135,10 +135,7 @@ data class DeltakerResponse(
             )
         }
 
-        fun fromDeltakerModel(
-            deltaker: DeltakerModel,
-            dekorerteForslag: List<ForslagDecorator>? = null,
-        ) = with(deltaker) {
+        fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
                 fornavn = navBruker.fornavn,
@@ -186,17 +183,11 @@ data class DeltakerResponse(
                 digitalBruker = navBruker.erDigital,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = dekorerteForslag?.map {
+                forslag = endringsforslagFraArrangor.map {
+                    // merk at denne forventer at data kommer fra nytt endepunkt i amt-deltaker
                     ForslagResponse.fromForslagDecorator(
                         dekorertForslag = it,
                         arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
-                    )
-                } ?: endringsforslagFraArrangor.map {
-                    ForslagResponse.fromForslag(
-                        forslag = it.forslag,
-                        arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
-                        enheter = emptyMap(), // TODO: Hent ut ansatt og enhet for avvist forslag
-                        ansatte = emptyMap(),
                     )
                 },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),

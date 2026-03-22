@@ -171,7 +171,6 @@ fun Routing.registerVeilederApi(
                         .let {
                             DeltakerResponse.fromDeltakerModel(
                                 deltaker = ModelMapper.toDeltaker(it),
-                                dekorerteForslag = it.endringsforslagFraArrangor,
                             )
                         }
                 } else {
