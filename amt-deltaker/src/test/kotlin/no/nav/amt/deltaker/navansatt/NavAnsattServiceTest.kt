@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.navansatt
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -9,7 +10,6 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
@@ -65,10 +65,10 @@ class NavAnsattServiceTest {
 
     @Test
     fun `hentEllerOpprettNavAnsatt - navansatt finnes ikke i db - henter fra personservice og lagrer`() = runTest {
-        val navAnsattResponse = lagNavAnsatt()
+        val navAnsattResponse = lagNavAnsatt(navEnhetId = navEnhet.id)
 
-        MockResponseHandler.addNavAnsattPostResponse(navAnsattResponse)
-        MockResponseHandler.addNavEnhetGetResponse(lagNavEnhet(navAnsattResponse.navEnhetId!!))
+        coEvery { mockPersonServiceClient.hentNavEnhet(navAnsattResponse.navEnhetId.shouldNotBeNull()) } returns navEnhet
+        coEvery { mockPersonServiceClient.hentNavAnsatt(navAnsattResponse.navIdent) } returns navAnsattResponse
 
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattResponse.navIdent)
 
