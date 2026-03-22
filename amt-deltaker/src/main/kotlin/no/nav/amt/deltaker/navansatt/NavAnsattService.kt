@@ -1,8 +1,10 @@
 package no.nav.amt.deltaker.navansatt
 
+import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.utils.GenericCache
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -32,5 +34,25 @@ class NavAnsattService(
     suspend fun oppdaterNavAnsatt(navAnsatt: NavAnsatt): NavAnsatt {
         navAnsatt.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
         return repository.upsert(navAnsatt)
+    }
+
+    suspend fun hentNavAnsatteForDeltaker(deltaker: Deltaker): GenericCache<NavAnsatt> {
+        val navAnsattIdSet = setOfNotNull(
+            deltaker.navBruker.navVeilederId,
+            deltaker.vedtaksinformasjon?.opprettetAv,
+            deltaker.vedtaksinformasjon?.sistEndretAv,
+        )
+
+        // hent Nav-asatte fra db
+        val navAnsatteFraDb = repository.getManyById(navAnsattIdSet).associateBy { it.id }
+
+        // hent Nav-ansatte som mangler i db fra amt-person-service
+        val manglendeNavAnsatte = (navAnsattIdSet - navAnsatteFraDb.keys)
+            .map {
+                val navAnsatt = amtPersonServiceClient.hentNavAnsatt(it)
+                oppdaterNavAnsatt(navAnsatt)
+            }.associateBy { it.id }
+
+        return GenericCache("navAnsatte", navAnsatteFraDb + manglendeNavAnsatte)
     }
 }

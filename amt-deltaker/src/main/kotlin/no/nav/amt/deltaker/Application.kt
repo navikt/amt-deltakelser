@@ -351,8 +351,8 @@ fun Application.module() {
 
     val responseBuilder = ResponseBuilder(
         arrangorService = arrangorService,
-        navAnsattRepository = navAnsattRepository,
-        navEnhetRepository = navEnhetRepository,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
         amtDistribusjonClient = amtDistribusjonClient,
         deltakerHistorikkService = deltakerHistorikkService,
         forslagRepository = forslagRepository,

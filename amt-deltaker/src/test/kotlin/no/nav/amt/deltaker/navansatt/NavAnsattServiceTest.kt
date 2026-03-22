@@ -1,24 +1,45 @@
 package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.MockResponseHandler
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
+import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.util.UUID
 
 class NavAnsattServiceTest {
     private val navEnhetRepository = NavEnhetRepository()
     private val navAnsattRepository = NavAnsattRepository()
 
-    private val navEnhetService = NavEnhetService(navEnhetRepository, mockPersonServiceClient())
-    private val navAnsattService = NavAnsattService(navAnsattRepository, mockPersonServiceClient(), navEnhetService)
+    val mockPersonServiceClient = mockk<AmtPersonServiceClient>(relaxed = true)
+
+    val navEnhetService = NavEnhetService(
+        repository = navEnhetRepository,
+        amtPersonServiceClient = mockPersonServiceClient,
+    )
+
+    private val navAnsattService = NavAnsattService(
+        repository = navAnsattRepository,
+        amtPersonServiceClient = mockPersonServiceClient,
+        navEnhetService = navEnhetService,
+    )
 
     private val navEnhet = lagNavEnhet()
     private val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
@@ -30,6 +51,7 @@ class NavAnsattServiceTest {
 
     @BeforeEach
     fun setup() {
+        clearAllMocks()
         navEnhetRepository.upsert(navEnhet)
         navAnsattRepository.upsert(navAnsatt)
     }
@@ -61,5 +83,49 @@ class NavAnsattServiceTest {
         navAnsattService.oppdaterNavAnsatt(oppdatertNavAnsatt)
 
         navAnsattRepository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
+    }
+
+    @Nested
+    inner class HentNavAnsatteForDeltakerTests {
+        @Test
+        fun `1 Nav-ansatt finnes i db, 2 ansatte finnes ikke i db, returnerer Nav-ansatte`() = runTest {
+            // Arrange
+            val vedtakOpprettetAv = lagNavAnsatt(navEnhetId = navEnhet.id)
+            val vedtakSistEndretAv = lagNavAnsatt(navEnhetId = navEnhet.id)
+
+            val tempDeltakerInTest = lagDeltaker(
+                navBruker = lagNavBruker(
+                    navVeilederId = navAnsatt.id,
+                    navEnhetId = navEnhet.id,
+                ),
+            )
+
+            val vedtak = lagVedtak(
+                deltakerId = tempDeltakerInTest.id,
+                deltakerVedVedtak = tempDeltakerInTest,
+                opprettetAv = vedtakOpprettetAv,
+                sistEndretAv = vedtakSistEndretAv,
+                opprettetAvEnhet = navEnhet,
+                fattet = null,
+            )
+
+            val deltakerInTest = tempDeltakerInTest.copy(
+                vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
+            )
+            TestRepository.insert(deltakerInTest)
+
+            coEvery { mockPersonServiceClient.hentNavAnsatt(vedtakOpprettetAv.id) } returns vedtakOpprettetAv
+            coEvery { mockPersonServiceClient.hentNavAnsatt(vedtakSistEndretAv.id) } returns vedtakSistEndretAv
+
+            // Act
+            val ansatte = navAnsattService.hentNavAnsatteForDeltaker(deltakerInTest)
+
+            // Assert
+            ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsattRepository.get(navAnsatt.id)
+            ansatte.getOrThrow(vedtakOpprettetAv.id) shouldBe vedtakOpprettetAv
+            ansatte.getOrThrow(vedtakSistEndretAv.id) shouldBe vedtakSistEndretAv
+
+            coVerify(exactly = 2) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
+        }
     }
 }

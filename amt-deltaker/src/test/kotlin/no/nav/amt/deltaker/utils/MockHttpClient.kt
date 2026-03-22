@@ -72,7 +72,7 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
         val api = Pair(it.url.toString(), it.method)
         if (defaultResponse != null) MockResponseHandler.addResponse(it.url.toString(), it.method, defaultResponse)
         val response = MockResponseHandler.responses[api] ?: run {
-            log.error("Reponse for ${api.second} ${api.first} mangler")
+            log.error("Response for ${api.second} ${api.first} mangler")
             throw NoSuchElementException("Response not mocked")
         }
 

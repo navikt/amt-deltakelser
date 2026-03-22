@@ -1,9 +1,12 @@
 package no.nav.amt.deltaker.navenhet
 
+import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.utils.GenericCache
 import org.slf4j.LoggerFactory
 import java.util.UUID
+import kotlin.collections.plus
 
 class NavEnhetService(
     private val repository: NavEnhetRepository,
@@ -28,4 +31,23 @@ class NavEnhetService(
     }
 
     fun getEnheter(ider: Set<UUID>) = repository.getMany(ider).associateBy { it.id }
+
+    suspend fun hentNavEnheterForDeltaker(deltaker: Deltaker): GenericCache<NavEnhet> {
+        val navEnhetIdSet = setOfNotNull(
+            deltaker.navBruker.navEnhetId,
+            deltaker.vedtaksinformasjon?.opprettetAvEnhet,
+            deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
+        )
+
+        val enheterFraDb = repository.getMany(navEnhetIdSet).associateBy { it.id }
+
+        // hent Nav-enheter som mangler i db fra amt-person-service
+        val manglendeNavEnheter = (navEnhetIdSet - enheterFraDb.keys)
+            .map {
+                val navEnhet = amtPersonServiceClient.hentNavEnhet(it)
+                repository.upsert(navEnhet)
+            }.associateBy { it.id }
+
+        return GenericCache("navEnheter", enheterFraDb + manglendeNavEnheter)
+    }
 }

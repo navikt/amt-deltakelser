@@ -15,8 +15,8 @@ import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
@@ -32,6 +32,7 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.utils.GenericCache
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -41,8 +42,8 @@ import java.util.UUID
 
 class ResponseBuilderTest {
     private val arrangorService: ArrangorService = mockk(relaxed = true)
-    private val navAnsattRepository: NavAnsattRepository = mockk(relaxed = true)
-    private val navEnhetRepository: NavEnhetRepository = mockk(relaxed = true)
+    private val navAnsattService: NavAnsattService = mockk(relaxed = true)
+    private val navEnhetService: NavEnhetService = mockk(relaxed = true)
     private val amtDistribusjonClient: AmtDistribusjonClient = mockk()
     private val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
     private val forslagRepository: ForslagRepository = mockk(relaxed = true)
@@ -50,8 +51,8 @@ class ResponseBuilderTest {
 
     private val responseBuilder = ResponseBuilder(
         arrangorService = arrangorService,
-        navAnsattRepository = navAnsattRepository,
-        navEnhetRepository = navEnhetRepository,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
         amtDistribusjonClient = amtDistribusjonClient,
         deltakerHistorikkService = deltakerHistorikkService,
         forslagRepository = forslagRepository,
@@ -64,7 +65,7 @@ class ResponseBuilderTest {
     @Nested
     inner class CacheTests {
         val idInTest: UUID = UUID.randomUUID()
-        val cache = ResponseBuilder.GenericCache(
+        val cache = GenericCache(
             cacheName = "fooCache",
             items = listOf("foo"),
             idSelector = { idInTest },
@@ -93,8 +94,8 @@ class ResponseBuilderTest {
             adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
         )
 
-        val navAnsattCache: ResponseBuilder.GenericCache<NavAnsatt> = mockk()
-        val navEnhetCache: ResponseBuilder.GenericCache<NavEnhet> = mockk()
+        val navAnsattCache: GenericCache<NavAnsatt> = mockk()
+        val navEnhetCache: GenericCache<NavEnhet> = mockk()
 
         coEvery { amtDistribusjonClient.digitalBruker(navBruker.personident) } returns true
 
@@ -109,8 +110,8 @@ class ResponseBuilderTest {
         // Act
         val navBrukerResponse = responseBuilder.buildNavBrukerResponseFromNavBruker(
             navBruker = navBruker,
-            navAnsattCache = navAnsattCache,
-            navEnhetCache = navEnhetCache,
+            navAnsatte = navAnsattCache,
+            navEnheter = navEnhetCache,
         )
 
         // Assert
@@ -181,8 +182,8 @@ class ResponseBuilderTest {
             sistEndretAv = lagNavAnsatt(),
         ).tilVedtaksInformasjon()
 
-        val navAnsattCache: ResponseBuilder.GenericCache<NavAnsatt> = mockk()
-        val navEnhetCache: ResponseBuilder.GenericCache<NavEnhet> = mockk()
+        val navAnsattCache: GenericCache<NavAnsatt> = mockk()
+        val navEnhetCache: GenericCache<NavEnhet> = mockk()
 
         every { navAnsattCache.getOrThrow(vedtaksinformasjon.opprettetAv) } returns mockk {
             every { navn } returns "Nav-ansatt 1"
@@ -203,8 +204,8 @@ class ResponseBuilderTest {
         // Act
         val vedtaksinformasjonResponse = responseBuilder.buildVedtaksinformasjonResponse(
             vedtaksinformasjon = vedtaksinformasjon,
-            navAnsattCache = navAnsattCache,
-            navEnhetCache = navEnhetCache,
+            navAnsatte = navAnsattCache,
+            navEnheter = navEnhetCache,
         )
 
         // Assert
@@ -254,8 +255,18 @@ class ResponseBuilderTest {
             ),
         )
 
-        every { navAnsattRepository.getManyById(any()) } returns listOf(navAnsatt)
-        every { navEnhetRepository.getMany(any()) } returns listOf(navEnhet)
+        coEvery { navAnsattService.hentNavAnsatteForDeltaker(deltaker) } returns GenericCache(
+            cacheName = "navAnsatte",
+            items = listOf(navAnsatt),
+            idSelector = { it.id },
+        )
+
+        coEvery { navEnhetService.hentNavEnheterForDeltaker(deltaker) } returns GenericCache(
+            cacheName = "navEnheter",
+            items = listOf(navEnhet),
+            idSelector = { it.id },
+        )
+
         every { forslagRepository.getForDeltaker(any()) } returns expectedForslag
 
         // Act
