@@ -43,7 +43,7 @@ class NavAnsattService(
             deltaker.vedtaksinformasjon?.sistEndretAv,
         )
 
-        // hent Nav-asatte fra db
+        // hent Nav-ansatte fra db
         val navAnsatteFraDb = repository.getManyById(navAnsattIdSet).associateBy { it.id }
 
         // hent Nav-ansatte som mangler i db fra amt-person-service
