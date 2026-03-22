@@ -512,13 +512,14 @@ object TestData {
         navn: String = "Veileder Veiledersen",
         epost: String = "veileder.veiledersen@nav.no",
         telefon: String = "12345678",
+        navEnhetId: UUID? = null,
     ) = NavAnsatt(
         id = id,
         navIdent = navIdent,
         navn = navn,
         epost = epost,
         telefon = telefon,
-        navEnhetId = null,
+        navEnhetId = navEnhetId,
     )
 
     private val navEnhetCache = mutableMapOf<String, NavEnhet>()
