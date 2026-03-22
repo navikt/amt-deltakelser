@@ -53,21 +53,6 @@ class ForslagResponseTest {
     inner class FromForslagTests {
         @Test
         fun `skal mappe Forslag til ForslagResponse`() {
-            // Arrange
-            val navEnhet = lagNavEnhet()
-            val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
-
-            val forslag = lagForslag(
-                status = Forslag.Status.Avvist(
-                    avvistAv = Forslag.NavAnsatt(
-                        id = navAnsatt.id,
-                        enhetId = navEnhet.id,
-                    ),
-                    avvist = LocalDateTime.now(),
-                    begrunnelseFraNav = "Begrunnelse fra Nav",
-                ),
-            )
-
             // Act
             val response = ForslagResponse.fromForslag(
                 forslag = forslag,
