@@ -6,7 +6,6 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
 import org.slf4j.LoggerFactory
 import java.util.UUID
-import kotlin.collections.plus
 
 class NavEnhetService(
     private val repository: NavEnhetRepository,
