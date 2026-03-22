@@ -87,6 +87,7 @@ class NavEnhetServiceTest {
             val navEnhetIdInTest = UUID.randomUUID()
             val vedtakOpprettetAvEnhet = lagNavEnhet()
             val vedtakSistEndretAvEnhet = lagNavEnhet()
+            val extraNavEnhetId = UUID.randomUUID()
 
             val tempDeltakerInTest = lagDeltaker(
                 navBruker = lagNavBruker(navEnhetId = navEnhetIdInTest),
@@ -108,14 +109,17 @@ class NavEnhetServiceTest {
             coEvery { mockPersonServiceClient.hentNavEnhet(vedtakSistEndretAvEnhet.id) } returns vedtakSistEndretAvEnhet
 
             // Act
-            val navEnheter = navEnhetService.hentNavEnheterForDeltaker(deltakerInTest)
+            val navEnheter = navEnhetService.hentNavEnheterForDeltaker(
+                deltaker = deltakerInTest,
+                additionalIds = setOf(extraNavEnhetId),
+            )
 
             // Assert
             navEnheter.getOrThrow(navEnhetIdInTest) shouldBe navEnhetRepository.get(navEnhetIdInTest)
             navEnheter.getOrThrow(vedtakOpprettetAvEnhet.id) shouldBe vedtakOpprettetAvEnhet
             navEnheter.getOrThrow(vedtakSistEndretAvEnhet.id) shouldBe vedtakSistEndretAvEnhet
 
-            coVerify(exactly = 2) { mockPersonServiceClient.hentNavEnhet(any<UUID>()) }
+            coVerify(exactly = 3) { mockPersonServiceClient.hentNavEnhet(any<UUID>()) }
         }
     }
 }
