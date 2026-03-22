@@ -43,12 +43,12 @@ data class ForslagResponse(
 
         /** Lager en ForslagResponse fra et ForslagDecorator */
         fun fromForslagDecorator(
-            dekorerteForslag: ForslagDecorator,
+            dekorertForslag: ForslagDecorator,
             arrangornavn: String,
             avvistAvNavnProvider: (UUID) -> String = { it.toString() },
             avvistAvEnhetNavnProvider: (UUID) -> String = { it.toString() },
         ): ForslagResponse {
-            val forslag = dekorerteForslag.forslag
+            val forslag = dekorertForslag.forslag
             return ForslagResponse(
                 id = forslag.id,
                 opprettet = forslag.opprettet,
@@ -56,7 +56,7 @@ data class ForslagResponse(
                 arrangorNavn = arrangornavn,
                 endring = forslag.endring,
                 status = forslag.status.toResponseStatus(
-                    decorator = dekorerteForslag,
+                    decorator = dekorertForslag,
                     avvistAvNavnProvider = avvistAvNavnProvider,
                     avvistAvEnhetNavnProvider = avvistAvEnhetNavnProvider,
                 ),
@@ -70,7 +70,7 @@ data class ForslagResponse(
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
         ): ForslagResponse = fromForslagDecorator(
-            dekorerteForslag = ForslagDecorator.DefaultDecorator(forslag),
+            dekorertForslag = ForslagDecorator.DefaultDecorator(forslag),
             arrangornavn = arrangornavn,
             // NOTE: Fallback til UUID-string hvis ikke funnet i ansatte
             avvistAvNavnProvider = { ansatte[it]?.navn ?: it.toString() },

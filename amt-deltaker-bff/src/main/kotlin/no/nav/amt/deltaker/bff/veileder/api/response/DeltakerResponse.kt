@@ -119,7 +119,7 @@ data class DeltakerResponse(
                 softMaxVarighet = softMaxVarighet?.toMillis(),
                 forslag = forslag.map {
                     ForslagResponse.fromForslagDecorator(
-                        dekorerteForslag = it,
+                        dekorertForslag = it,
                         arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
                         // TODO: Hent ut ansatt og enhet for avvist
                     )
@@ -188,7 +188,7 @@ data class DeltakerResponse(
                 softMaxVarighet = softMaxVarighet?.toMillis(),
                 forslag = dekorerteForslag?.map {
                     ForslagResponse.fromForslagDecorator(
-                        dekorerteForslag = it,
+                        dekorertForslag = it,
                         arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
                     )
                 } ?: endringsforslagFraArrangor.map {
