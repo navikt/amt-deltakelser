@@ -62,10 +62,10 @@ data class DeltakerResponse(
     companion object {
         fun fromDeltaker(
             deltaker: Deltaker,
-            ansatte: Map<UUID, NavAnsatt>,
-            vedtakSistEndretAvEnhet: NavEnhet?,
             digitalBruker: Boolean,
             forslag: List<ForslagDecorator>,
+            vedtakSistEndretAvEnhet: NavEnhet?,
+            ansatte: Map<UUID, NavAnsatt>,
         ) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
@@ -107,9 +107,9 @@ data class DeltakerResponse(
                 },
                 vedtaksinformasjon = vedtaksinformasjon?.let {
                     VedtaksinformasjonResponse.fromVedtak(
-                        it,
-                        ansatte,
-                        vedtakSistEndretAvEnhet,
+                        vedtak = it,
+                        ansatte = ansatte,
+                        vedtakSistEndretEnhet = vedtakSistEndretAvEnhet,
                     )
                 },
                 adresseDelesMedArrangor = adresseDelesMedArrangor(),
@@ -118,11 +118,10 @@ data class DeltakerResponse(
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
                 forslag = forslag.map {
-                    ForslagResponse.fromForslag(
-                        forslag = it.forslag,
+                    ForslagResponse.fromForslagDecorator(
+                        dekorerteForslag = it,
                         arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
-                        enheter = vedtakSistEndretAvEnhet?.let { mapOf(it.id to it) } ?: emptyMap(),
-                        ansatte = ansatte,
+                        // TODO: Hent ut ansatt og enhet for avvist
                     )
                 },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
@@ -136,7 +135,10 @@ data class DeltakerResponse(
             )
         }
 
-        fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
+        fun fromDeltakerModel(
+            deltaker: DeltakerModel,
+            dekorerteForslag: List<ForslagDecorator>? = null,
+        ) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
                 fornavn = navBruker.fornavn,
@@ -168,11 +170,11 @@ data class DeltakerResponse(
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold?.let {
                     DeltakelsesinnholdResponse.fromDeltakelsesinnhold(
-                        it,
-                        getInnholdselementer(
-                            gjennomforing.tiltak.innhold
+                        deltakelsesinnhold = it,
+                        tiltaksInnhold = getInnholdselementer(
+                            innholdselementer = gjennomforing.tiltak.innhold
                                 ?.innholdselementer,
-                            gjennomforing.tiltak.tiltakskode,
+                            tiltakstype = gjennomforing.tiltak.tiltakskode,
                         ),
                     )
                 },
@@ -184,11 +186,16 @@ data class DeltakerResponse(
                 digitalBruker = navBruker.erDigital,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = endringsforslagFraArrangor.map {
+                forslag = dekorerteForslag?.map {
+                    ForslagResponse.fromForslagDecorator(
+                        dekorerteForslag = it,
+                        arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
+                    )
+                } ?: endringsforslagFraArrangor.map {
                     ForslagResponse.fromForslag(
                         forslag = it.forslag,
                         arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
-                        enheter = emptyMap(), // enhetsnavn og ansattnavn finnes i dekorator
+                        enheter = emptyMap(), // TODO: Hent ut ansatt og enhet for avvist forslag
                         ansatte = emptyMap(),
                     )
                 },

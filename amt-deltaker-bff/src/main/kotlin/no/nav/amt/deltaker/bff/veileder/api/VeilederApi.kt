@@ -168,8 +168,12 @@ fun Routing.registerVeilederApi(
                 if (unleashToggle.prioriterSynkronKommunikasjon()) {
                     amtDeltakerClient
                         .getDeltaker(deltakerId)
-                        .let { ModelMapper.toDeltaker(it) }
-                        .let { DeltakerResponse.fromDeltakerModel(it) }
+                        .let {
+                            DeltakerResponse.fromDeltakerModel(
+                                deltaker = ModelMapper.toDeltaker(it),
+                                dekorerteForslag = it.endringsforslagFraArrangor,
+                            )
+                        }
                 } else {
                     val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
                     komplettDeltakerResponse(deltaker)
