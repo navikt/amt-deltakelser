@@ -45,8 +45,8 @@ import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
@@ -192,12 +192,15 @@ fun Routing.registerVeilederApi(
                     deltaker.getDeltakerHistorikkForVisning()
                 }
 
-            val historikkResponse = historikk.toResponse(
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-            )
+            val historikkResponse = historikk.map {
+                DeltakerHistorikkResponse.fromModel(
+                    model = it,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                )
+            }
 
             call.respondText(
                 objectMapper.writePolymorphicListAsString(historikkResponse),
