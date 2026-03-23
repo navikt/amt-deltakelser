@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
-import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -62,10 +62,10 @@ data class DeltakerResponse(
     companion object {
         fun fromDeltaker(
             deltaker: Deltaker,
-            ansatte: Map<UUID, NavAnsatt>,
-            vedtakSistEndretAvEnhet: NavEnhet?,
             digitalBruker: Boolean,
-            forslag: List<Forslag>,
+            forslag: List<ForslagDecorator>,
+            vedtakSistEndretAvEnhet: NavEnhet?,
+            ansatte: Map<UUID, NavAnsatt>,
         ) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
@@ -82,8 +82,8 @@ data class DeltakerResponse(
                     sluttdato = deltakerliste.sluttDato,
                     status = deltakerliste.status,
                     tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
-                        deltakerliste.tiltak.innhold,
-                        deltakerliste.tiltak.tiltakskode,
+                        innhold = deltakerliste.tiltak.innhold,
+                        tiltakstype = deltakerliste.tiltak.tiltakskode,
                     ),
                     // midlertidig løsning inntil vi vet ner om det foreligger rammeavtale eller ikke
                     erEnkeltplassUtenRammeavtale = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
@@ -107,9 +107,9 @@ data class DeltakerResponse(
                 },
                 vedtaksinformasjon = vedtaksinformasjon?.let {
                     VedtaksinformasjonResponse.fromVedtak(
-                        it,
-                        ansatte,
-                        vedtakSistEndretAvEnhet,
+                        vedtak = it,
+                        ansatte = ansatte,
+                        vedtakSistEndretEnhet = vedtakSistEndretAvEnhet,
                     )
                 },
                 adresseDelesMedArrangor = adresseDelesMedArrangor(),
@@ -117,7 +117,14 @@ data class DeltakerResponse(
                 digitalBruker = digitalBruker,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = forslag.map { it.toResponse(deltakerliste.arrangor.getArrangorNavn()) },
+                forslag = forslag.map {
+                    ForslagResponse.fromForslag(
+                        forslag = it.forslag,
+                        arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
+                        ansatte = ansatte,
+                        enheter = vedtakSistEndretAvEnhet?.let { enhet -> mapOf(enhet.id to enhet) } ?: emptyMap(),
+                    )
+                },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 deltakelsesmengder = DeltakelsesmengderDto(
@@ -161,11 +168,11 @@ data class DeltakerResponse(
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold?.let {
                     DeltakelsesinnholdResponse.fromDeltakelsesinnhold(
-                        it,
-                        getInnholdselementer(
-                            gjennomforing.tiltak.innhold
+                        deltakelsesinnhold = it,
+                        tiltaksInnhold = getInnholdselementer(
+                            innholdselementer = gjennomforing.tiltak.innhold
                                 ?.innholdselementer,
-                            gjennomforing.tiltak.tiltakskode,
+                            tiltakstype = gjennomforing.tiltak.tiltakskode,
                         ),
                     )
                 },
@@ -177,7 +184,13 @@ data class DeltakerResponse(
                 digitalBruker = navBruker.erDigital,
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
-                forslag = endringsforslagFraArrangor.map { it.toResponse(gjennomforing.arrangor!!.navn) },
+                forslag = endringsforslagFraArrangor.map {
+                    // merk at denne forventer at data kommer fra nytt endepunkt i amt-deltaker
+                    ForslagResponse.fromForslagDecorator(
+                        dekorertForslag = it,
+                        arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
+                    )
+                },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger
