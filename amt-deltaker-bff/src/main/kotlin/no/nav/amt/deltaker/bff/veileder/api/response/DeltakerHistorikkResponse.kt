@@ -26,7 +26,7 @@ import java.util.UUID
     JsonSubTypes.Type(value = VedtakResponse::class, name = "Vedtak"),
     JsonSubTypes.Type(value = ForslagResponse::class, name = "Forslag"),
     JsonSubTypes.Type(value = EndringFraArrangorResponse::class, name = "EndringFraArrangor"),
-    JsonSubTypes.Type(value = ImportertFraArenaDto::class, name = "ImportertFraArena"),
+    JsonSubTypes.Type(value = ImportertFraArenaResponse::class, name = "ImportertFraArena"),
     JsonSubTypes.Type(value = VurderingFraArrangorResponse::class, name = "VurderingFraArrangor"),
     JsonSubTypes.Type(value = EndringFraTiltakskoordinatorResponse::class, name = "EndringFraTiltakskoordinator"),
     JsonSubTypes.Type(value = InnsokPaaFellesOppstartResponse::class, name = "InnsokPaaFellesOppstart"),
