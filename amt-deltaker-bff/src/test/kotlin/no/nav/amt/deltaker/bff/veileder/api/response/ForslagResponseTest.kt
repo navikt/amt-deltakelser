@@ -64,6 +64,25 @@ class ForslagResponseTest {
             // Assert
             assertForslagResponse(response, forslag)
         }
+
+        @Test
+        fun `skal mappe Forslag til ForslagResponse med UUID for Nav-enhet og Nav-ansatt`() {
+            // Act
+            val response = ForslagResponse.fromForslag(
+                forslag = forslag,
+                arrangornavn = "Arrangør AS",
+                enheter = emptyMap(),
+                ansatte = emptyMap(),
+            )
+
+            // Assert
+            response.status.shouldBeInstanceOf<ForslagResponseStatus.Avvist>()
+
+            assertSoftly(response.status) {
+                avvistAv shouldBe navAnsatt.id.toString()
+                avvistAvEnhet shouldBe navEnhet.id.toString()
+            }
+        }
     }
 
     private fun assertForslagResponse(
