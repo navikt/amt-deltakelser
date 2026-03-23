@@ -202,24 +202,12 @@ class DeltakerRepository {
     fun update(deltaker: DeltakerUpdateDbo) {
         val sql =
             """
-            INSERT INTO deltaker (
-                id, 
-                startdato, 
-                sluttdato,  
-                innhold, 
-                prisinformasjon
-            )
-            VALUES (
-                :id, 
-                :startdato,
-                :sluttdato,
-                :innhold,
-            )
-            ON CONFLICT (id) DO UPDATE SET 
-                startdato            = :startdato,
+            UPDATE deltaker
+            SET startdato            = :startdato,
                 sluttdato            = :sluttdato,
                 innhold              = :innhold,
-                modified_at          = CURRENT_TIMESTAMP,
+                modified_at          = CURRENT_TIMESTAMP
+            WHERE id = :id
             """.trimIndent()
 
         val parameters = mapOf(
@@ -555,6 +543,7 @@ class DeltakerRepository {
             dl.apent_for_pamelding AS "dl.apent_for_pamelding",
             dl.oppmote_sted AS "dl.oppmote_sted",
             dl.pameldingstype AS "dl.pameldingstype",
+            dl.prisinformasjon AS "dl.prisinformasjon",
             a.navn AS "a.navn",
             a.id AS "a.id",
             a.organisasjonsnummer AS "a.organisasjonsnummer",

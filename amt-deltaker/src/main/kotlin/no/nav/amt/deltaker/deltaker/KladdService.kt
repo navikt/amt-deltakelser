@@ -79,7 +79,7 @@ class KladdService(
         sluttdato: LocalDate?,
         beskrivelse: String?,
         prisinformasjon: String?,
-    ) {
+    ): Deltaker {
         // Trenger egentlig bare deltakeren for tiltakstypen sånn at ledeteksten
         // kan puttes i jsonobjektet i innhold
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
@@ -95,9 +95,10 @@ class KladdService(
             beskrivelse = beskrivelse,
         )
         Database.transaction {
-            deltakerListeRepository.upsert(gjennomforingUpdateDbo)
+            deltakerListeRepository.update(gjennomforingUpdateDbo)
             deltakerRepository.update(kladdUpdateDbo)
         }
+        return deltakerRepository.get(deltakerId).getOrThrow()
     }
 
     suspend fun opprettKladd(
@@ -161,7 +162,7 @@ class KladdService(
             opprettet = LocalDateTime.now(),
         )
 
-        private fun lagEnkeltplassKladdInsertDbo(
+        fun lagEnkeltplassKladdInsertDbo(
             navBrukerId: UUID,
             deltakerlisteId: UUID,
             tiltakstype: Tiltakstype,
@@ -181,7 +182,7 @@ class KladdService(
             erManueltDeltMedArrangor = false,
         )
 
-        private fun lagEnkeltplassKladdUpdateDbo(
+        fun lagEnkeltplassKladdUpdateDbo(
             deltakerId: UUID,
             tiltakstype: Tiltakstype,
             startdato: LocalDate?,
@@ -194,14 +195,7 @@ class KladdService(
             deltakelsesinnhold = Deltakelsesinnhold(
                 ledetekst = tiltakstype.innhold?.ledetekst,
                 innhold = beskrivelse?.let {
-                    listOf(
-                        Innhold(
-                            tekst = it,
-                            beskrivelse = beskrivelse,
-                            innholdskode = "annet",
-                            valgt = true,
-                        ),
-                    )
+                    listOf(Innhold.createFritekstInnhold(beskrivelse))
                 } ?: emptyList(),
             ),
         )

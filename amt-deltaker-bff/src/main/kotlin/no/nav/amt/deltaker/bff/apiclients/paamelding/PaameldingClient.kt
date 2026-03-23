@@ -16,7 +16,6 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import java.time.LocalDate
 import java.util.UUID
 
 class PaameldingClient(
@@ -39,19 +38,12 @@ class PaameldingClient(
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
 
     suspend fun oppdaterKladdEnkeltplass(
-        startdato: LocalDate?,
-        sluttdato: LocalDate?,
-        prisinformasjon: String?,
-        beskrivelse: String?,
-    ): DeltakerIdResponse = performPost(
-        "/oppdater-enkeltplass-kladd",
-        OppdaterEnkeltplassKladdRequest(
-            startdato = startdato,
-            sluttdato = sluttdato,
-            prisinformasjon = prisinformasjon,
-            beskrivelse = beskrivelse,
-        ),
-    ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.").body()
+        deltakerId: UUID,
+        request: OppdaterEnkeltplassKladdRequest,
+    ) = performPost(
+        "/oppdater-enkeltplass-kladd/$deltakerId",
+        request,
+    ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.")
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,

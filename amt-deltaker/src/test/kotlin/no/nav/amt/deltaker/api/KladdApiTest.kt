@@ -126,6 +126,22 @@ class KladdApiTest : RouteTestBase() {
                 )
             }
         }
+
+        @Test
+        fun `oppdater enkeltplass kladd - har tilgang - returnerer deltakerId`() {
+            val deltaker = TestData.lagDeltaker()
+
+            coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
+            coEvery { kladdService.opprettKladd(any<Tiltakskode>(), any()) } returns deltaker
+
+            withTestApplicationContext { client ->
+                val response = client.post("/oppdater-enkeltplass-kladd/${deltaker.id}") {
+                    postRequest(opprettEnkeltplassKladdRequest)
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+            }
+        }
     }
 
     companion object {
