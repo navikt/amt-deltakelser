@@ -28,7 +28,6 @@ import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdReque
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import org.slf4j.LoggerFactory
 
@@ -49,11 +48,8 @@ fun Routing.registerKladdApi(
         ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
         vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
         digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslageRepository
-            .getForDeltaker(deltaker.id)
-            .map { ForslagDecorator.DefaultDecorator(it) },
+        forslag = forslageRepository.getForDeltaker(deltaker.id),
     )
-
     authenticate(AuthLevel.VEILEDER.name) {
         post("/kladd") {
             val request = call.receive<OpprettKladdRequest>()

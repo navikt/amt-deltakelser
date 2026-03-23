@@ -469,10 +469,10 @@ class TiltakskoordinatorDeltakerApiTest {
             val res = bodyAsText()
             val json = objectMapper.writePolymorphicListAsString(
                 historikk.toResponse(
-                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    oppstartstype = deltaker.deltakerliste.oppstart,
-                    enheter = enheter,
-                    ansatte = ansatte,
+                    ansatte,
+                    deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    enheter,
+                    deltaker.deltakerliste.oppstart,
                 ),
             )
             res shouldBe json
