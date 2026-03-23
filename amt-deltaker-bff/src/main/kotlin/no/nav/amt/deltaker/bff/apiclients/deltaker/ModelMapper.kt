@@ -56,6 +56,7 @@ class ModelMapper {
         internal fun toGjennomforing(gjennomforingResponse: GjennomforingResponse) = with(gjennomforingResponse) {
             GjennomforingModel(
                 id = id,
+                type = type,
                 tiltak = tiltakstype,
                 navn = navn,
                 status = status,

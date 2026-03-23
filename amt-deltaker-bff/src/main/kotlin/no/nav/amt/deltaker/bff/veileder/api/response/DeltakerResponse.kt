@@ -87,6 +87,7 @@ data class DeltakerResponse(
                     ),
                     // midlertidig løsning inntil vi vet ner om det foreligger rammeavtale eller ikke
                     erEnkeltplassUtenRammeavtale = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
+                    erEnkeltplass = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
                     oppmoteSted = deltakerliste.oppmoteSted,
                     pameldingstype = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
                 ),
@@ -156,7 +157,8 @@ data class DeltakerResponse(
                         gjennomforing.tiltak.innhold,
                         gjennomforing.tiltak.tiltakskode,
                     ),
-                    erEnkeltplassUtenRammeavtale = gjennomforing.tiltak.erEnkeltplass(),
+                    erEnkeltplassUtenRammeavtale = gjennomforing.erEnkeltplass, // TODO: Denne skal fjernes når frontend er klar
+                    erEnkeltplass = gjennomforing.erEnkeltplass,
                     oppmoteSted = gjennomforing.oppmoteSted,
                     pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
                 ),
