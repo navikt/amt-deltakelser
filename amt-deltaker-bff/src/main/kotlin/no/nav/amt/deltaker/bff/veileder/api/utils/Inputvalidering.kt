@@ -182,7 +182,7 @@ fun validerKladdInnhold(
 
             if (it.innholdskode != annetInnholdselement.innholdskode) {
                 require(it.beskrivelse == null) {
-                    "Innhold med innholdskode: ${it.innholdskode} kan ikke ha en beskrivelse"
+                    "Kun innhold med innholdskode: ${it.innholdskode} kan ha en beskrivelse"
                 }
             }
         }

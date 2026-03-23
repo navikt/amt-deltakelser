@@ -114,7 +114,7 @@ class KladdApiTest {
         )
         every { deltakerRepository.get(any()) } returns Result.success(
             TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             ),
         )
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true

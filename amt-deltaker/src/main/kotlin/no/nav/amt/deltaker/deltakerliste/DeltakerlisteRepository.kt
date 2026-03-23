@@ -148,7 +148,7 @@ class DeltakerlisteRepository {
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
-        log.info("Upsertet gjennomføring kladd med id ${gjennomforing.id}")
+        log.info("Oppdaterte gjennomføring kladd med id ${gjennomforing.id}")
     }
 
     fun delete(id: UUID) = Database.query {

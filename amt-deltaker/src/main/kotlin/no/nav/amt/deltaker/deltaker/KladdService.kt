@@ -83,6 +83,11 @@ class KladdService(
         // Trenger egentlig bare deltakeren for tiltakstypen sånn at ledeteksten
         // kan puttes i jsonobjektet i innhold
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+
+        require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
+            "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id $deltakerId har status ${deltaker.status.type}"
+        }
+
         val gjennomforingUpdateDbo = GjennomforingKladdUpdateDbo(
             id = deltaker.deltakerliste.id,
             prisinformasjon = prisinformasjon,
