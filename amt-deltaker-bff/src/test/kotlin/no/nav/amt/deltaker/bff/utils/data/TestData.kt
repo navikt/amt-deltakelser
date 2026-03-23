@@ -15,7 +15,6 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Arrangor
@@ -343,7 +342,7 @@ object TestData {
         opprettet = LocalDateTime.now(),
         historikk = historikk,
         erLaastForEndringer = false,
-        endringsforslagFraArrangor = endringsforslagFraArrangor.map { ForslagDecorator.DefaultDecorator(it) },
+        endringsforslagFraArrangor = endringsforslagFraArrangor,
     )
 
     fun lagTiltakskoordinatorDeltaker(
@@ -512,14 +511,13 @@ object TestData {
         navn: String = "Veileder Veiledersen",
         epost: String = "veileder.veiledersen@nav.no",
         telefon: String = "12345678",
-        navEnhetId: UUID? = null,
     ) = NavAnsatt(
         id = id,
         navIdent = navIdent,
         navn = navn,
         epost = epost,
         telefon = telefon,
-        navEnhetId = navEnhetId,
+        navEnhetId = null,
     )
 
     private val navEnhetCache = mutableMapOf<String, NavEnhet>()
