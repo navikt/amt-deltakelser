@@ -36,15 +36,12 @@ class NavAnsattService(
         return repository.upsert(navAnsatt)
     }
 
-    suspend fun hentNavAnsatteForDeltaker(
-        deltaker: Deltaker,
-        additionalIds: Set<UUID> = emptySet(),
-    ): GenericCache<NavAnsatt> {
+    suspend fun hentNavAnsatteForDeltaker(deltaker: Deltaker): GenericCache<NavAnsatt> {
         val navAnsattIdSet = setOfNotNull(
             deltaker.navBruker.navVeilederId,
             deltaker.vedtaksinformasjon?.opprettetAv,
             deltaker.vedtaksinformasjon?.sistEndretAv,
-        ).plus(additionalIds)
+        )
 
         // hent Nav-ansatte fra db
         val navAnsatteFraDb = repository.getManyById(navAnsattIdSet).associateBy { it.id }
