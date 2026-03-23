@@ -15,6 +15,8 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -30,15 +32,44 @@ class ResponseBuilder(
     private val deltakerLaaseService: DeltakerLaaseService,
 ) {
     suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
-        val navAnsatte = navAnsattService.hentNavAnsatteForDeltaker(deltaker)
-        val navEnheter = navEnhetService.hentNavEnheterForDeltaker(deltaker)
+        // hent alle entries som behøver navn på Nav-ansatt eller -enhet
+        val endringsforslagForDeltaker = forslagRepository.getForDeltaker(deltaker.id)
+        val avvistAvNavAnsatte = endringsforslagForDeltaker
+            .map { it.status }
+            .filterIsInstance<Forslag.Status.Avvist>()
+            .map { it.avvistAv }
+
+        val navAnsatte = navAnsattService.hentNavAnsatteForDeltaker(
+            deltaker = deltaker,
+            additionalIds = avvistAvNavAnsatte.map { it.id }.toSet(),
+        )
+
+        val navEnheter = navEnhetService.hentNavEnheterForDeltaker(
+            deltaker,
+            additionalIds = avvistAvNavAnsatte.map { it.enhetId }.toSet(),
+        )
+
+        // pakk inn endringsforslag i dekorert format
+        val dekorerteEndringsforslag = endringsforslagForDeltaker.map {
+            when (val status = it.status) {
+                is Forslag.Status.Avvist -> {
+                    ForslagDecorator.AvvistStatusDecorator(
+                        forslag = it,
+                        avvistAvEnhetNavn = navEnheter.getOrThrow(status.avvistAv.enhetId).navn,
+                        avvistAvAnsattNavn = navAnsatte.getOrThrow(status.avvistAv.id).navn,
+                    )
+                }
+
+                else -> ForslagDecorator.DefaultDecorator(it)
+            }
+        }
 
         return DeltakerResponse(
             id = deltaker.id,
             navBruker = buildNavBrukerResponseFromNavBruker(
                 navBruker = deltaker.navBruker,
-                navAnsatte = navAnsatte,
                 navEnheter = navEnheter,
+                navAnsatte = navAnsatte,
             ),
             gjennomforing = buildGjennomforingResponse(deltaker.deltakerliste),
             startdato = deltaker.startdato,
@@ -51,8 +82,8 @@ class ResponseBuilder(
             vedtaksinformasjon = deltaker.vedtaksinformasjon?.let {
                 buildVedtaksinformasjonResponse(
                     vedtaksinformasjon = it,
-                    navAnsatte = navAnsatte,
                     navEnheter = navEnheter,
+                    navAnsatte = navAnsatte,
                 )
             },
             sistEndret = deltaker.sistEndret,
@@ -61,7 +92,7 @@ class ResponseBuilder(
             opprettet = deltaker.opprettet,
             historikk = deltakerHistorikkService.getForDeltaker(deltaker.id),
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
-            endringsforslagFraArrangor = forslagRepository.getForDeltaker(deltaker.id),
+            endringsforslagFraArrangor = dekorerteEndringsforslag,
         )
     }
 
@@ -86,8 +117,8 @@ class ResponseBuilder(
 
     internal fun buildVedtaksinformasjonResponse(
         vedtaksinformasjon: Vedtaksinformasjon,
-        navAnsatte: GenericCache<NavAnsatt>,
         navEnheter: GenericCache<NavEnhet>,
+        navAnsatte: GenericCache<NavAnsatt>,
     ) = VedtaksinformasjonResponse(
         fattet = vedtaksinformasjon.fattet,
         fattetAvNav = vedtaksinformasjon.fattetAvNav,

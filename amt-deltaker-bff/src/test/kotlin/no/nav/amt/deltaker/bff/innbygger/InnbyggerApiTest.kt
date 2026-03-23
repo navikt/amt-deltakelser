@@ -190,10 +190,10 @@ class InnbyggerApiTest {
             status shouldBe HttpStatusCode.OK
             bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
                 historikk.toResponse(
-                    ansatte,
-                    deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    enheter,
-                    deltaker.deltakerliste.oppstart,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = enheter,
+                    ansatte = ansatte,
                 ),
             )
         }
