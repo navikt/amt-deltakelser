@@ -5,9 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "amt-deltaker-bff/**"
+      - "buildSrc/**"
       - "amt-deltaker/**"
+      - "amt-deltaker-bff/**"
       - "amt-distribusjon/**"
+      - "amt-felles/**"
+      - "amt-lib/**"
       - "amt-tiltaksarrangor-bff/**"
       - "gradle/libs.versions.toml"
 
@@ -31,19 +34,31 @@ jobs:
           filters: |
             amt-deltaker-bff:
               - amt-deltaker-bff/**
+              - amt-felles/**
+              - amt-lib/**
               - gradle/libs.versions.toml
+              - buildSrc/**
 
             amt-deltaker:
               - amt-deltaker/**
+              - amt-felles/**
+              - amt-lib/**
               - gradle/libs.versions.toml
+              - buildSrc/**
 
             amt-distribusjon:
               - amt-distribusjon/**
+              - amt-felles/**
+              - amt-lib/**
               - gradle/libs.versions.toml
-
+              - buildSrc/**
+    
             amt-tiltaksarrangor-bff:
               - amt-tiltaksarrangor-bff/**
+              - amt-felles/**
+              - amt-lib/**
               - gradle/libs.versions.toml
+              - buildSrc/**
 
       - name: Debug changed modules
         run: echo '${{ steps.filter.outputs.changes }}'
