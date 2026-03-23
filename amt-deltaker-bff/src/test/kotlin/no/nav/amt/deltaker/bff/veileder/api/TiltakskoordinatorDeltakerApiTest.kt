@@ -468,15 +468,13 @@ class TiltakskoordinatorDeltakerApiTest {
             status shouldBe HttpStatusCode.OK
             val res = bodyAsText()
             val json = objectMapper.writePolymorphicListAsString(
-                historikk.map {
-                    DeltakerHistorikkResponse.fromModel(
-                        model = it,
-                        arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                        oppstartstype = deltaker.deltakerliste.oppstart,
-                        enheter = enheter,
-                        ansatte = ansatte,
-                    )
-                },
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = enheter,
+                    ansatte = ansatte,
+                ),
             )
 
             res shouldBe json

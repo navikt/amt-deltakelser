@@ -79,15 +79,13 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     deltaker.getDeltakerHistorikkForVisning()
                 }
 
-            val historikkResponse = historikk.map {
-                DeltakerHistorikkResponse.fromModel(
-                    model = it,
-                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    oppstartstype = deltaker.deltakerliste.oppstart,
-                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-                )
-            }
+            val historikkResponse = DeltakerHistorikkResponse.fromModels(
+                models = historikk,
+                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                oppstartstype = deltaker.deltakerliste.oppstart,
+                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+            )
 
             val historikkResponseAsJson = objectMapper.writePolymorphicListAsString(historikkResponse)
 

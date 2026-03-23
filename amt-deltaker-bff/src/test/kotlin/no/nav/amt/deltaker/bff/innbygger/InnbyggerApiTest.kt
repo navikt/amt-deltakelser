@@ -189,15 +189,13 @@ class InnbyggerApiTest {
         client.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
             status shouldBe HttpStatusCode.OK
             bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
-                historikk.map {
-                    DeltakerHistorikkResponse.fromModel(
-                        model = it,
-                        arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                        oppstartstype = deltaker.deltakerliste.oppstart,
-                        enheter = enheter,
-                        ansatte = ansatte,
-                    )
-                },
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = enheter,
+                    ansatte = ansatte,
+                ),
             )
         }
     }

@@ -108,15 +108,13 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
             val navEnhetMap = mapOf(navEnhet.id to navEnhet)
 
             val expectedResponse = objectMapper.writePolymorphicListAsString(
-                historikk.map {
-                    DeltakerHistorikkResponse.fromModel(
-                        model = it,
-                        arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                        oppstartstype = deltaker.deltakerliste.oppstart,
-                        enheter = navEnhetMap,
-                        ansatte = navAnsattMap,
-                    )
-                },
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = navEnhetMap,
+                    ansatte = navAnsattMap,
+                ),
             )
 
             every { deltakerRepository.get(any()) } returns Result.success(deltaker)

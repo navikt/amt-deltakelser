@@ -33,6 +33,22 @@ import java.util.UUID
 )
 sealed interface DeltakerHistorikkResponse {
     companion object {
+        fun fromModels(
+            models: List<DeltakerHistorikk>,
+            arrangornavn: String,
+            oppstartstype: Oppstartstype?,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ) = models.map {
+            fromModel(
+                model = it,
+                arrangornavn = arrangornavn,
+                oppstartstype = oppstartstype,
+                enheter = enheter,
+                ansatte = ansatte,
+            )
+        }
+
         fun fromModel(
             model: DeltakerHistorikk,
             arrangornavn: String,
