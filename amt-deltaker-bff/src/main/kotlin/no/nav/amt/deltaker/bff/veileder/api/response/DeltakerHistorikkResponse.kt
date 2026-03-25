@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
+import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -70,7 +72,14 @@ sealed interface DeltakerHistorikkResponse {
                 ansatte = ansatte,
             )
 
-            is DeltakerHistorikk.Forslag -> model.forslag.toResponse(arrangornavn, ansatte, enheter)
+            is DeltakerHistorikk.Forslag -> model.forslag.let {
+                ForslagResponse.fromForslag(
+                    forslag = it,
+                    arrangornavn = arrangornavn,
+                    enheter = enheter,
+                    ansatte = ansatte,
+                )
+            }
             is DeltakerHistorikk.EndringFraArrangor -> EndringFraArrangorResponse.fromModel(
                 model = model.endringFraArrangor,
                 arrangornavn = arrangornavn,
@@ -116,7 +125,7 @@ data class DeltakerEndringResponse(
             ansatte: Map<UUID, NavAnsatt>,
         ) = DeltakerEndringResponse(
             endring = DeltakerEndringEndringResponse.fromEndring(model.endring, oppstartstype),
-            forslag = model.forslag?.toResponse(arrangornavn),
+            forslag = model.forslag?.let { ForslagResponse.fromForslag(it, arrangornavn, enheter, ansatte) },
             endret = model.endret,
             endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
             endretAv = ansatte[model.endretAv]!!.navn,
@@ -252,6 +261,79 @@ data class InnsokPaaFellesOppstartResponse(
             deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok,
             utkastDelt = model.utkastDelt,
             utkastGodkjentAvNav = model.utkastGodkjentAvNav,
+        )
+    }
+}
+
+data class ForslagResponse(
+    val id: UUID,
+    val opprettet: LocalDateTime,
+    val begrunnelse: String?,
+    val arrangorNavn: String,
+    val endring: Forslag.Endring,
+    val status: ForslagResponseStatus,
+) : DeltakerHistorikkResponse {
+    companion object {
+        /** Extension som mapper Forslag.Status til ForslagResponseStatus */
+        private fun Forslag.Status.toResponseStatus(
+            decorator: ForslagDecorator,
+            avvistAvNavnProvider: (UUID) -> String,
+            avvistAvEnhetNavnProvider: (UUID) -> String,
+        ): ForslagResponseStatus = when (this) {
+            is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
+            is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(godkjent)
+            is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(tilbakekalt)
+            is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(erstattet)
+            is Forslag.Status.Avvist -> {
+                // Hent avvist-info fra decorator hvis det er AvvistStatusDecorator
+                val (avvistAvNavn, avvistAvEnhet) = (decorator as? ForslagDecorator.AvvistStatusDecorator)
+                    ?.let { it.avvistAvAnsattNavn to it.avvistAvEnhetNavn }
+                    ?: (avvistAvNavnProvider(avvistAv.id) to avvistAvEnhetNavnProvider(avvistAv.enhetId))
+
+                ForslagResponseStatus.Avvist(
+                    avvistAv = avvistAvNavn,
+                    avvistAvEnhet = avvistAvEnhet,
+                    avvist = avvist,
+                    begrunnelseFraNav = begrunnelseFraNav,
+                )
+            }
+        }
+
+        /** Lager en ForslagResponse fra et ForslagDecorator */
+        fun fromForslagDecorator(
+            dekorertForslag: ForslagDecorator,
+            arrangornavn: String,
+            avvistAvNavnProvider: (UUID) -> String = { it.toString() },
+            avvistAvEnhetNavnProvider: (UUID) -> String = { it.toString() },
+        ): ForslagResponse {
+            val forslag = dekorertForslag.forslag
+            return ForslagResponse(
+                id = forslag.id,
+                opprettet = forslag.opprettet,
+                begrunnelse = forslag.begrunnelse,
+                arrangorNavn = arrangornavn,
+                endring = forslag.endring,
+                status = forslag.status.toResponseStatus(
+                    decorator = dekorertForslag,
+                    avvistAvNavnProvider = avvistAvNavnProvider,
+                    avvistAvEnhetNavnProvider = avvistAvEnhetNavnProvider,
+                ),
+            )
+        }
+
+        /** Lager en ForslagResponse direkte fra et Forslag */
+        fun fromForslag(
+            forslag: Forslag,
+            arrangornavn: String,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ): ForslagResponse = fromForslagDecorator(
+            dekorertForslag = ForslagDecorator.DefaultDecorator(forslag),
+            arrangornavn = arrangornavn,
+            // NOTE: Fallback til UUID-string hvis ikke funnet i ansatte
+            avvistAvNavnProvider = { ansatte[it]?.navn ?: it.toString() },
+            // NOTE: Fallback til UUID-string hvis ikke funnet i enheter
+            avvistAvEnhetNavnProvider = { enheter[it]?.navn ?: it.toString() },
         )
     }
 }

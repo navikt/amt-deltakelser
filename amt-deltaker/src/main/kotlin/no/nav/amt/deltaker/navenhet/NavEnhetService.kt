@@ -31,12 +31,15 @@ class NavEnhetService(
 
     fun getEnheter(ider: Set<UUID>) = repository.getMany(ider).associateBy { it.id }
 
-    suspend fun hentNavEnheterForDeltaker(deltaker: Deltaker): GenericCache<NavEnhet> {
+    suspend fun hentNavEnheterForDeltaker(
+        deltaker: Deltaker,
+        additionalIds: Set<UUID> = emptySet(),
+    ): GenericCache<NavEnhet> {
         val navEnhetIdSet = setOfNotNull(
             deltaker.navBruker.navEnhetId,
             deltaker.vedtaksinformasjon?.opprettetAvEnhet,
             deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
-        )
+        ).plus(additionalIds)
 
         val enheterFraDb = repository.getMany(navEnhetIdSet).associateBy { it.id }
 

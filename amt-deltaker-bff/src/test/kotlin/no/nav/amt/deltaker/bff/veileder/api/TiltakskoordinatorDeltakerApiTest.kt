@@ -476,7 +476,6 @@ class TiltakskoordinatorDeltakerApiTest {
                     ansatte = ansatte,
                 ),
             )
-
             res shouldBe json
         }
     }

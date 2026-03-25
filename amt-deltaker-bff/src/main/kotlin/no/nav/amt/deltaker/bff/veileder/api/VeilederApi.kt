@@ -55,6 +55,7 @@ import no.nav.amt.internapi.deltaker.request.InnholdRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
@@ -84,7 +85,9 @@ fun Routing.registerVeilederApi(
         ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
         vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
         digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslagRepository.getForDeltaker(deltaker.id),
+        forslag = forslagRepository
+            .getForDeltaker(deltaker.id)
+            .map { ForslagDecorator.DefaultDecorator(it) },
     )
 
     fun illegalUpdateGuard(
@@ -165,8 +168,11 @@ fun Routing.registerVeilederApi(
                 if (unleashToggle.prioriterSynkronKommunikasjon()) {
                     amtDeltakerClient
                         .getDeltaker(deltakerId)
-                        .let { ModelMapper.toDeltaker(it) }
-                        .let { DeltakerResponse.fromDeltakerModel(it) }
+                        .let {
+                            DeltakerResponse.fromDeltakerModel(
+                                deltaker = ModelMapper.toDeltaker(it),
+                            )
+                        }
                 } else {
                     val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
                     komplettDeltakerResponse(deltaker)

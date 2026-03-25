@@ -1,6 +1,6 @@
 package no.nav.amt.internapi.deltaker.response
 
-import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -33,5 +33,5 @@ data class DeltakerResponse(
      */
     val historikk: List<DeltakerHistorikk>,
     val erLaastForEndringer: Boolean,
-    val endringsforslagFraArrangor: List<Forslag>,
+    val endringsforslagFraArrangor: List<ForslagDecorator>,
 )
