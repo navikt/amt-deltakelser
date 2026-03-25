@@ -10,7 +10,6 @@ import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
-import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
@@ -18,7 +17,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.SporbarhetOgTilgangskontrollSv
 import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
@@ -80,11 +79,12 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     deltaker.getDeltakerHistorikkForVisning()
                 }
 
-            val historikkResponse = historikk.toResponse(
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+            val historikkResponse = DeltakerHistorikkResponse.fromModels(
+                models = historikk,
                 arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                 oppstartstype = deltaker.deltakerliste.oppstart,
+                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
             )
 
             val historikkResponseAsJson = objectMapper.writePolymorphicListAsString(historikkResponse)
