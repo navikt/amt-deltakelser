@@ -26,12 +26,79 @@ import java.util.UUID
     JsonSubTypes.Type(value = VedtakResponse::class, name = "Vedtak"),
     JsonSubTypes.Type(value = ForslagResponse::class, name = "Forslag"),
     JsonSubTypes.Type(value = EndringFraArrangorResponse::class, name = "EndringFraArrangor"),
-    JsonSubTypes.Type(value = ImportertFraArenaDto::class, name = "ImportertFraArena"),
+    JsonSubTypes.Type(value = ImportertFraArenaResponse::class, name = "ImportertFraArena"),
     JsonSubTypes.Type(value = VurderingFraArrangorResponse::class, name = "VurderingFraArrangor"),
     JsonSubTypes.Type(value = EndringFraTiltakskoordinatorResponse::class, name = "EndringFraTiltakskoordinator"),
     JsonSubTypes.Type(value = InnsokPaaFellesOppstartResponse::class, name = "InnsokPaaFellesOppstart"),
 )
-sealed interface DeltakerHistorikkResponse
+sealed interface DeltakerHistorikkResponse {
+    companion object {
+        fun fromModels(
+            models: List<DeltakerHistorikk>,
+            arrangornavn: String,
+            oppstartstype: Oppstartstype?,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ) = models.map {
+            fromModel(
+                model = it,
+                arrangornavn = arrangornavn,
+                oppstartstype = oppstartstype,
+                enheter = enheter,
+                ansatte = ansatte,
+            )
+        }
+
+        fun fromModel(
+            model: DeltakerHistorikk,
+            arrangornavn: String,
+            oppstartstype: Oppstartstype?,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ) = when (model) {
+            is DeltakerHistorikk.Endring -> DeltakerEndringResponse.fromModel(
+                model = model.endring,
+                arrangornavn = arrangornavn,
+                oppstartstype = oppstartstype,
+                enheter = enheter,
+                ansatte = ansatte,
+            )
+
+            is DeltakerHistorikk.Vedtak -> VedtakResponse.fromModel(
+                model = model.vedtak,
+                enheter = enheter,
+                ansatte = ansatte,
+            )
+
+            is DeltakerHistorikk.Forslag -> model.forslag.toResponse(arrangornavn, ansatte, enheter)
+            is DeltakerHistorikk.EndringFraArrangor -> EndringFraArrangorResponse.fromModel(
+                model = model.endringFraArrangor,
+                arrangornavn = arrangornavn,
+            )
+
+            is DeltakerHistorikk.ImportertFraArena -> ImportertFraArenaResponse.fromModel(
+                model.importertFraArena,
+            )
+
+            is DeltakerHistorikk.VurderingFraArrangor -> VurderingFraArrangorResponse.fromModel(
+                model = model.data,
+                arrangornavn = arrangornavn,
+            )
+
+            is DeltakerHistorikk.EndringFraTiltakskoordinator -> EndringFraTiltakskoordinatorResponse.fromModel(
+                model = model.endringFraTiltakskoordinator,
+                enheter = enheter,
+                ansatte = ansatte,
+            )
+
+            is DeltakerHistorikk.InnsokPaaFellesOppstart -> InnsokPaaFellesOppstartResponse.fromModel(
+                model = model.data,
+                enheter = enheter,
+                ansatte = ansatte,
+            )
+        }
+    }
+}
 
 data class DeltakerEndringResponse(
     val endring: DeltakerEndringEndringResponse,
@@ -39,7 +106,23 @@ data class DeltakerEndringResponse(
     val endretAvEnhet: String,
     val endret: LocalDateTime,
     val forslag: ForslagResponse?,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    companion object {
+        fun fromModel(
+            model: DeltakerEndring,
+            arrangornavn: String,
+            oppstartstype: Oppstartstype?,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ) = DeltakerEndringResponse(
+            endring = DeltakerEndringEndringResponse.fromEndring(model.endring, oppstartstype),
+            forslag = model.forslag?.toResponse(arrangornavn),
+            endret = model.endret,
+            endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
+            endretAv = ansatte[model.endretAv]!!.navn,
+        )
+    }
+}
 
 data class VedtakResponse(
     val fattet: LocalDateTime?,
@@ -51,14 +134,44 @@ data class VedtakResponse(
     val opprettetAv: String,
     val opprettetAvEnhet: String,
     val opprettet: LocalDateTime,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    companion object {
+        fun fromModel(
+            model: Vedtak,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ) = VedtakResponse(
+            fattet = model.fattet,
+            bakgrunnsinformasjon = model.deltakerVedVedtak.bakgrunnsinformasjon,
+            deltakelsesinnhold = model.deltakerVedVedtak.deltakelsesinnhold,
+            dagerPerUke = model.deltakerVedVedtak.dagerPerUke,
+            deltakelsesprosent = model.deltakerVedVedtak.deltakelsesprosent,
+            fattetAvNav = model.fattetAvNav,
+            opprettet = model.opprettet,
+            opprettetAvEnhet = enheter[model.opprettetAvEnhet]!!.navn,
+            opprettetAv = ansatte[model.opprettetAv]!!.navn,
+        )
+    }
+}
 
 data class EndringFraArrangorResponse(
     val id: UUID,
     val opprettet: LocalDateTime,
     val arrangorNavn: String,
     val endring: EndringFraArrangor.Endring,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    companion object {
+        fun fromModel(
+            model: EndringFraArrangor,
+            arrangornavn: String,
+        ) = EndringFraArrangorResponse(
+            id = model.id,
+            opprettet = model.opprettet,
+            arrangorNavn = arrangornavn,
+            endring = model.endring,
+        )
+    }
+}
 
 data class ImportertFraArenaResponse(
     val importertDato: LocalDateTime,
@@ -67,21 +180,57 @@ data class ImportertFraArenaResponse(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val status: DeltakerStatus,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    companion object {
+        fun fromModel(model: ImportertFraArena) = ImportertFraArenaResponse(
+            importertDato = model.importertDato,
+            startdato = model.deltakerVedImport.startdato,
+            sluttdato = model.deltakerVedImport.sluttdato,
+            dagerPerUke = model.deltakerVedImport.dagerPerUke,
+            deltakelsesprosent = model.deltakerVedImport.deltakelsesprosent,
+            status = model.deltakerVedImport.status,
+        )
+    }
+}
 
 data class VurderingFraArrangorResponse(
     val vurderingstype: Vurderingstype,
     val begrunnelse: String?,
     val opprettetDato: LocalDateTime,
     val endretAv: String,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    companion object {
+        fun fromModel(
+            model: VurderingFraArrangorData,
+            arrangornavn: String,
+        ) = VurderingFraArrangorResponse(
+            vurderingstype = model.vurderingstype,
+            begrunnelse = model.begrunnelse,
+            opprettetDato = model.opprettet,
+            endretAv = arrangornavn,
+        )
+    }
+}
 
 data class EndringFraTiltakskoordinatorResponse(
     val endring: EndringFraTiltakskoordinator.Endring,
     val endretAv: String,
     val endretAvEnhet: String,
     val endret: LocalDateTime,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    companion object {
+        fun fromModel(
+            model: EndringFraTiltakskoordinator,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ) = EndringFraTiltakskoordinatorResponse(
+            endring = model.endring,
+            endret = model.endret,
+            endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
+            endretAv = ansatte[model.endretAv]!!.navn,
+        )
+    }
+}
 
 data class InnsokPaaFellesOppstartResponse(
     val innsokt: LocalDateTime,
@@ -90,95 +239,19 @@ data class InnsokPaaFellesOppstartResponse(
     val deltakelsesinnholdVedInnsok: Deltakelsesinnhold?,
     val utkastDelt: LocalDateTime?,
     val utkastGodkjentAvNav: Boolean,
-) : DeltakerHistorikkResponse
-
-fun List<DeltakerHistorikk>.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    arrangornavn: String,
-    enheter: Map<UUID, NavEnhet>,
-    oppstartstype: Oppstartstype?,
-): List<DeltakerHistorikkResponse> = this.map {
-    when (it) {
-        is DeltakerHistorikk.Endring -> it.endring.toResponse(ansatte, enheter, arrangornavn, oppstartstype)
-        is DeltakerHistorikk.Vedtak -> it.vedtak.toResponse(ansatte, enheter)
-        is DeltakerHistorikk.Forslag -> it.forslag.toResponse(arrangornavn, ansatte, enheter)
-        is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.toResponse(arrangornavn)
-        is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.toResponse()
-        is DeltakerHistorikk.VurderingFraArrangor -> it.data.toResponse(arrangornavn)
-        is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.toResponse(ansatte, enheter)
-        is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.toResponse(ansatte, enheter)
+) : DeltakerHistorikkResponse {
+    companion object {
+        fun fromModel(
+            model: InnsokPaaFellesOppstart,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ) = InnsokPaaFellesOppstartResponse(
+            innsokt = model.innsokt,
+            innsoktAv = ansatte[model.innsoktAv]!!.navn,
+            innsoktAvEnhet = enheter[model.innsoktAvEnhet]!!.navn,
+            deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok,
+            utkastDelt = model.utkastDelt,
+            utkastGodkjentAvNav = model.utkastGodkjentAvNav,
+        )
     }
 }
-
-fun DeltakerEndring.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-    arrangornavn: String,
-    oppstartstype: Oppstartstype?,
-) = DeltakerEndringResponse(
-    endring = DeltakerEndringEndringResponse.fromEndring(endring, oppstartstype),
-    endretAv = ansatte[endretAv]!!.navn,
-    endretAvEnhet = enheter[endretAvEnhet]!!.navn,
-    endret = endret,
-    forslag = forslag?.toResponse(arrangornavn),
-)
-
-fun Vedtak.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-) = VedtakResponse(
-    fattet = fattet,
-    bakgrunnsinformasjon = deltakerVedVedtak.bakgrunnsinformasjon,
-    deltakelsesinnhold = deltakerVedVedtak.deltakelsesinnhold,
-    dagerPerUke = deltakerVedVedtak.dagerPerUke,
-    deltakelsesprosent = deltakerVedVedtak.deltakelsesprosent,
-    fattetAvNav = fattetAvNav,
-    opprettetAv = ansatte[opprettetAv]!!.navn,
-    opprettetAvEnhet = enheter[opprettetAvEnhet]!!.navn,
-    opprettet = opprettet,
-)
-
-fun EndringFraArrangor.toResponse(arrangornavn: String) = EndringFraArrangorResponse(
-    id = id,
-    opprettet = opprettet,
-    arrangorNavn = arrangornavn,
-    endring = endring,
-)
-
-fun ImportertFraArena.toResponse() = ImportertFraArenaResponse(
-    importertDato = importertDato,
-    startdato = deltakerVedImport.startdato,
-    sluttdato = deltakerVedImport.sluttdato,
-    dagerPerUke = deltakerVedImport.dagerPerUke,
-    deltakelsesprosent = deltakerVedImport.deltakelsesprosent,
-    status = deltakerVedImport.status,
-)
-
-fun VurderingFraArrangorData.toResponse(arrangornavn: String) = VurderingFraArrangorResponse(
-    vurderingstype = vurderingstype,
-    begrunnelse = begrunnelse,
-    opprettetDato = opprettet,
-    endretAv = arrangornavn,
-)
-
-fun EndringFraTiltakskoordinator.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-) = EndringFraTiltakskoordinatorResponse(
-    endring,
-    ansatte[endretAv]!!.navn,
-    enheter[endretAvEnhet]!!.navn,
-    endret,
-)
-
-fun InnsokPaaFellesOppstart.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-) = InnsokPaaFellesOppstartResponse(
-    innsokt,
-    ansatte[innsoktAv]!!.navn,
-    enheter[innsoktAvEnhet]!!.navn,
-    deltakelsesinnholdVedInnsok,
-    utkastDelt,
-    utkastGodkjentAvNav,
-)

@@ -24,7 +24,7 @@ import no.nav.amt.deltaker.bff.innbygger.model.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.innbygger.model.toInnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
@@ -102,11 +102,12 @@ fun Routing.registerInnbyggerApi(
                     deltaker.getDeltakerHistorikkForVisning()
                 }
 
-            val historikkResponse = historikk.toResponse(
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+            val historikkResponse = DeltakerHistorikkResponse.fromModels(
+                models = historikk,
                 arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                 oppstartstype = deltaker.deltakerliste.oppstart,
+                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
             )
 
             call.respondText(

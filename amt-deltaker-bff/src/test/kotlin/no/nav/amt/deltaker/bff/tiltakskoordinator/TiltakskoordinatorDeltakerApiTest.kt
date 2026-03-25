@@ -17,7 +17,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.generateJWT
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Nested
@@ -108,11 +108,12 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
             val navEnhetMap = mapOf(navEnhet.id to navEnhet)
 
             val expectedResponse = objectMapper.writePolymorphicListAsString(
-                historikk.toResponse(
-                    ansatte = navAnsattMap,
-                    enheter = navEnhetMap,
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
                     arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                     oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = navEnhetMap,
+                    ansatte = navAnsattMap,
                 ),
             )
 

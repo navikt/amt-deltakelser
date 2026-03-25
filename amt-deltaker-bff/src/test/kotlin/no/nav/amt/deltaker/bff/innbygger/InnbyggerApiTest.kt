@@ -35,7 +35,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.tokenXToken
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -189,11 +189,12 @@ class InnbyggerApiTest {
         client.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
             status shouldBe HttpStatusCode.OK
             bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
-                historikk.toResponse(
-                    ansatte,
-                    deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    enheter,
-                    deltaker.deltakerliste.oppstart,
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = enheter,
+                    ansatte = ansatte,
                 ),
             )
         }

@@ -57,8 +57,8 @@ import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -468,13 +468,15 @@ class TiltakskoordinatorDeltakerApiTest {
             status shouldBe HttpStatusCode.OK
             val res = bodyAsText()
             val json = objectMapper.writePolymorphicListAsString(
-                historikk.toResponse(
-                    ansatte,
-                    deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    enheter,
-                    deltaker.deltakerliste.oppstart,
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = enheter,
+                    ansatte = ansatte,
                 ),
             )
+
             res shouldBe json
         }
     }
