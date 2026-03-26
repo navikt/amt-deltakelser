@@ -15,8 +15,20 @@ fun Routing.registerUtkastApi() {
             Status: Kladd/utkast -> Utkast
             @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
          */
-        post("/utkast-enkeltplass/{deltakerId}") {
+        post("/enkeltplass-utkast/{deltakerId}") {
             // val request = call.receive<EnkeltplassUtkastRequest>()
+            throw NotImplementedError("Dette er ikke implementert.")
+        }
+
+        /*
+           Direktepåmelding av enkeltplass  deltaker uten at utkast/deltakelsen er delt med innbygger
+           Handling: "Meld på uten å dele utkast"
+           Status Kladd/Utkast -> Venter på oppstart/søkt inn
+           @Returns no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+         */
+        post("/enkeltplass-utkast/{deltakerId}/meld-paa-direkte") {
+            // val request = call.receive<EnkeltplassUtkastRequest>()
+
             throw NotImplementedError("Dette er ikke implementert.")
         }
 
@@ -42,7 +54,7 @@ fun Routing.registerUtkastApi() {
          */
         post("/utkast/{deltakerId}/meld-paa-direkte") {
             // Erstatter post("/pamelding/{deltakerId}/utenGodkjenning")
-
+            // henter data fra amt-deltaker
             val request = call.receive<PameldingUtenGodkjenningRequest>()
 
             throw NotImplementedError("Dette er ikke implementert.")
@@ -55,6 +67,7 @@ fun Routing.registerUtkastApi() {
          */
         post("/utkast/{deltakerId}/avbryt") {
             // Erstatter post("/pamelding/{deltakerId}/avbryt")
+            // henter data fra amt-deltaker
             throw NotImplementedError("Dette er ikke implementert.")
         }
     }
