@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
-import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -63,7 +63,7 @@ data class DeltakerResponse(
         fun fromDeltaker(
             deltaker: Deltaker,
             digitalBruker: Boolean,
-            forslag: List<ForslagDecorator>,
+            forslag: List<Forslag>,
             vedtakSistEndretAvEnhet: NavEnhet?,
             ansatte: Map<UUID, NavAnsatt>,
         ) = with(deltaker) {
@@ -120,10 +120,10 @@ data class DeltakerResponse(
                 softMaxVarighet = softMaxVarighet?.toMillis(),
                 forslag = forslag.map {
                     ForslagResponse.fromForslag(
-                        forslag = it.forslag,
+                        forslag = it,
                         arrangornavn = deltakerliste.arrangor.getArrangorNavn(),
-                        ansatte = ansatte,
                         enheter = vedtakSistEndretAvEnhet?.let { enhet -> mapOf(enhet.id to enhet) } ?: emptyMap(),
+                        ansatte = ansatte,
                     )
                 },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
@@ -187,10 +187,11 @@ data class DeltakerResponse(
                 maxVarighet = maxVarighet?.toMillis(),
                 softMaxVarighet = softMaxVarighet?.toMillis(),
                 forslag = endringsforslagFraArrangor.map {
-                    // merk at denne forventer at data kommer fra nytt endepunkt i amt-deltaker
-                    ForslagResponse.fromForslagDecorator(
-                        dekorertForslag = it,
+                    ForslagResponse.fromForslag(
+                        forslag = it,
                         arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
+                        enheter = emptyMap(),
+                        ansatte = emptyMap(),
                     )
                 },
                 importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
