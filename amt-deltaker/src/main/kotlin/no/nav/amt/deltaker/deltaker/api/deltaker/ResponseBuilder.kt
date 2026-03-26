@@ -113,6 +113,7 @@ class ResponseBuilder(
             )
         },
         pameldingstype = deltakerliste.pameldingstype,
+        type = deltakerliste.gjennomforingstype,
     )
 
     internal fun buildVedtaksinformasjonResponse(

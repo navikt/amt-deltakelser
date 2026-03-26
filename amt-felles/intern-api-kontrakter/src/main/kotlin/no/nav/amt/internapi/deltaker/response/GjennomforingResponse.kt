@@ -2,6 +2,7 @@ package no.nav.amt.internapi.deltaker.response
 
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
@@ -9,6 +10,7 @@ import java.util.UUID
 
 data class GjennomforingResponse(
     val id: UUID,
+    val type: GjennomforingType,
     val tiltakstype: Tiltakstype,
     val navn: String,
     val status: GjennomforingStatusType?,

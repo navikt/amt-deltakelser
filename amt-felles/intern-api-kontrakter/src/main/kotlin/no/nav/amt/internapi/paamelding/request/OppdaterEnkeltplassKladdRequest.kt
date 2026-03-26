@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.veileder.api.request
+package no.nav.amt.internapi.paamelding.request
 
 import java.time.LocalDate
 

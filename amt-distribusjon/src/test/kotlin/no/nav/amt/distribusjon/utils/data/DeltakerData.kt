@@ -9,6 +9,7 @@ import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
@@ -56,6 +57,7 @@ object DeltakerData {
         apentForPamelding = true,
         oppmoteSted = "Vet olle",
         pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        type = GjennomforingType.Gruppe,
     )
 
     fun lagTiltakstype() = Tiltakstype(

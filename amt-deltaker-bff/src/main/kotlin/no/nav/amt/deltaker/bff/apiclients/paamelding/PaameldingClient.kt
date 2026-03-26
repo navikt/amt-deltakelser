@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
@@ -35,6 +36,14 @@ class PaameldingClient(
         "/opprett-enkeltplass-kladd",
         OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
+
+    suspend fun oppdaterKladdEnkeltplass(
+        deltakerId: UUID,
+        request: OppdaterEnkeltplassKladdRequest,
+    ) = performPost(
+        "/oppdater-enkeltplass-kladd/$deltakerId",
+        request,
+    ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.")
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,

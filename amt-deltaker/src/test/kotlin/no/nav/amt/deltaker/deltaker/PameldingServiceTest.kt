@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDto
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdUpdateDbo
 import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -123,12 +124,8 @@ class PameldingServiceTest {
                 tiltak.tiltakskode,
                 navBruker.personident,
             )
-            val nyDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
-            deltaker shouldNotBe null
-            nyDeltaker shouldNotBe null
-
-            assertSoftly(nyDeltaker) {
+            assertSoftly(deltaker) {
                 id shouldBe deltaker.id
                 startdato shouldBe null
                 sluttdato shouldBe null
@@ -146,7 +143,7 @@ class PameldingServiceTest {
                 type shouldBe DeltakerStatus.Type.KLADD
             }
 
-            assertSoftly(nyDeltaker.deltakerliste) {
+            assertSoftly(deltaker.deltakerliste) {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltak
                 navn shouldBe tiltak.navn
@@ -158,6 +155,69 @@ class PameldingServiceTest {
                 arrangor shouldBe null
                 pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
                 status shouldBe GjennomforingStatusType.KLADD
+            }
+        }
+
+        @Test
+        fun `oppdaterKladd - returnerer ny deltakerId`() = runTest {
+            val navBruker = lagNavBruker(
+                navVeilederId = sistEndretAvNavAnsatt.id,
+                navEnhetId = sistEndretAvNavEnhet.id,
+            )
+
+            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
+
+            val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
+            TiltakstypeRepository().upsert(tiltak)
+
+            val deltakerInserted = kladdService.opprettKladd(
+                tiltak.tiltakskode,
+                navBruker.personident,
+            )
+            val deltakerExpected = lagEnkeltplassKladdUpdateDbo(
+                deltakerId = deltakerInserted.id,
+                tiltakstype = deltakerInserted.deltakerliste.tiltakstype,
+                startdato = LocalDate.now().plusDays(1),
+                sluttdato = LocalDate.now().plusDays(2),
+                beskrivelse = "Beskrivelse",
+            )
+            val prisinfoExpected = "Prisinfo"
+            val oppdatertDeltaker = kladdService.oppdaterKladd(
+                deltakerId = deltakerExpected.id,
+                startdato = deltakerExpected.startdato,
+                sluttdato = deltakerExpected.sluttdato,
+                beskrivelse = deltakerExpected.deltakelsesinnhold
+                    ?.innhold
+                    ?.first()
+                    ?.beskrivelse,
+                prisinformasjon = prisinfoExpected,
+            )
+
+            oppdatertDeltaker shouldNotBe null
+
+            assertSoftly(oppdatertDeltaker) {
+                id shouldBe deltakerExpected.id
+                startdato shouldBe deltakerExpected.startdato
+                sluttdato shouldBe deltakerExpected.sluttdato
+                dagerPerUke shouldBe null
+                deltakelsesprosent shouldBe null
+                bakgrunnsinformasjon shouldBe null
+                vedtaksinformasjon shouldBe null
+                sistEndret shouldBeCloseTo LocalDateTime.now()
+                kilde shouldBe Kilde.KOMET
+                erManueltDeltMedArrangor shouldBe false
+                opprettet shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(oppdatertDeltaker.status) {
+                type shouldBe DeltakerStatus.Type.KLADD
+            }
+
+            assertSoftly(oppdatertDeltaker.deltakerliste) {
+                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
+                tiltakstype shouldBe tiltak
+                navn shouldBe tiltak.navn
+                prisinformasjon shouldBe prisinfoExpected
             }
         }
     }
@@ -634,7 +694,13 @@ class PameldingServiceTest {
         DeltakerEksternV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
 
     private val deltakerProducerService =
-        DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, deltakerEksternV1Producer, unleashToggle)
+        DeltakerProducerService(
+            deltakerKafkaPayloadBuilder,
+            deltakerProducer,
+            deltakerV1Producer,
+            deltakerEksternV1Producer,
+            unleashToggle,
+        )
 
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,

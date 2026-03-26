@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DELTAKELSESPROSENT
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DAGER_PER_UKE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DELTAKELSESPROSENT
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerKladdInnhold
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 data class KladdRequest(
     val innhold: List<InnholdRequest>,
@@ -30,8 +31,10 @@ data class KladdRequest(
         dagerPerUke = dagerPerUke?.clamp(MIN_DAGER_PER_UKE, MAX_DAGER_PER_UKE),
     )
 
-    fun valider(deltaker: Deltaker) =
+    fun valider(deltaker: Deltaker) {
         validerKladdInnhold(this.innhold, deltaker.deltakerliste.tiltak.innhold, deltaker.deltakerliste.tiltak.tiltakskode)
+        require(deltaker.status.type == DeltakerStatus.Type.KLADD) { "Kladd kan kun oppdateres for deltakere med status KLADD" }
+    }
 }
 
 private fun String.sanitize(): String {

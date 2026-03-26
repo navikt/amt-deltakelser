@@ -132,6 +132,25 @@ class DeltakerlisteRepository {
         log.info("Upsertet gjennomføring med id ${gjennomforing.id}")
     }
 
+    fun update(gjennomforing: GjennomforingKladdUpdateDbo) {
+        val sql =
+            """
+            UPDATE deltakerliste
+            SET 
+            prisinformasjon  		= :prisinformasjon,
+            modified_at             = CURRENT_TIMESTAMP
+            WHERE id = :id
+            """.trimIndent()
+
+        val params = mapOf(
+            "id" to gjennomforing.id,
+            "prisinformasjon" to gjennomforing.prisinformasjon,
+        )
+
+        Database.query { session -> session.update(queryOf(sql, params)) }
+        log.info("Oppdaterte gjennomføring kladd med id ${gjennomforing.id}")
+    }
+
     fun delete(id: UUID) = Database.query {
         it.update(
             queryOf(
@@ -156,6 +175,7 @@ class DeltakerlisteRepository {
                dl.apent_for_pamelding AS "dl.apent_for_pamelding",
                dl.oppmote_sted AS "dl.oppmote_sted",
                dl.pameldingstype AS "dl.pameldingstype",
+               dl.prisinformasjon as "dl.prisinformasjon",
                a.id AS "a.id",
                a.navn AS "a.navn",
                a.organisasjonsnummer AS "a.organisasjonsnummer",
@@ -197,6 +217,7 @@ class DeltakerlisteRepository {
             apentForPamelding = row.boolean(col("apent_for_pamelding")),
             oppmoteSted = row.stringOrNull(col("oppmote_sted")),
             pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
+            prisinformasjon = row.stringOrNull(col("prisinformasjon")),
             arrangor = row.uuidOrNull("a.id")?.let { arrangorId ->
                 Arrangor(
                     id = arrangorId,

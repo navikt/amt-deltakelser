@@ -7,4 +7,13 @@ data class Innhold(
     val beskrivelse: String?,
 ) {
     val erFritekstInnholdsElement = innholdskode == "annet"
+
+    companion object {
+        fun createFritekstInnhold(beskrivelse: String) = Innhold(
+            tekst = "Annet",
+            innholdskode = "annet",
+            valgt = true,
+            beskrivelse = beskrivelse,
+        )
+    }
 }

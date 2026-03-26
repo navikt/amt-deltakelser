@@ -178,6 +178,7 @@ object TestData {
         oppmoteSted: String? = "~oppmoteSted~",
         apentForPamelding: Boolean = true,
         pameldingType: GjennomforingPameldingType? = GjennomforingPameldingType.TRENGER_GODKJENNING,
+        prisinformasjon: String? = null,
     ) = Deltakerliste(
         id = id,
         tiltakstype = tiltakstype,
@@ -191,6 +192,7 @@ object TestData {
         oppmoteSted = oppmoteSted,
         arrangor = arrangor,
         pameldingstype = pameldingType,
+        prisinformasjon = prisinformasjon,
     )
 
     fun lagDeltakerlisteMedDirekteVedtak(

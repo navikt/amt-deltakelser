@@ -9,7 +9,7 @@ import java.util.UUID
 
 data class DeltakerlisteResponse(
     val deltakerlisteId: UUID,
-    val deltakerlisteNavn: String, // Arbeidsmarkedsopplæring (enkeltplass), tiltakstypenavn
+    val deltakerlisteNavn: String,
     val tiltakskode: Tiltakskode,
     val arrangorNavn: String,
     val oppstartstype: Oppstartstype?,
@@ -18,6 +18,7 @@ data class DeltakerlisteResponse(
     val status: GjennomforingStatusType?,
     val tilgjengeligInnhold: TilgjengeligInnholdResponse?,
     val erEnkeltplassUtenRammeavtale: Boolean,
+    val erEnkeltplass: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
 )
