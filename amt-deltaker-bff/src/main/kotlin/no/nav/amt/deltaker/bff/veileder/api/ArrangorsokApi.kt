@@ -9,7 +9,7 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 
-private val ORGNUMMER_REGEX = Regex("[8|9]\\d{8}")
+private val ORGNUMMER_REGEX = Regex("^[89]\\d{8}$")
 private const val TERMS__PARAM = "term"
 private const val ORGANISASJONSNUMMER_PARAM = "orgnummer"
 
@@ -35,7 +35,7 @@ fun Routing.registerArrangorsokApi(arrangorsokClient: ArrangorsokClient) {
         }
 
         authenticate(AuthLevel.VEILEDER.name) {
-            get("hovedenhet/{orgnummer}/underenheter") {
+            get("/hovedenhet/{orgnummer}/underenheter") {
                 val orgnummer = call.requireValidOrgnummer()
                 val enheter = arrangorsokClient.hentUnderenheter(orgnummer)
                 call.respond(enheter)

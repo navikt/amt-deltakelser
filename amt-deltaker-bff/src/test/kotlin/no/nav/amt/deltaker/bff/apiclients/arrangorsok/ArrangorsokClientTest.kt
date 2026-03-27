@@ -73,7 +73,7 @@ class ArrangorsokClientTest {
         }
 
         @Test
-        fun `skal returnere hovedenheter`() {
+        fun `skal returnere underenheter`() {
             runHappyPathTest(
                 expectedUrl = EXPECTED_UNDERENHET_URL,
                 expectedResponse = listOf(

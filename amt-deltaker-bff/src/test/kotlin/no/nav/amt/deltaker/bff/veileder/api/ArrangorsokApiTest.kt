@@ -23,7 +23,7 @@ class ArrangorsokApiTest : RouteTestBase() {
         fun `skal returnere Unauthorized nar tilgang mangler`() {
             // Act
             val response = withTestApplicationContext { client ->
-                client.get("/arrangor//hovedenhet/sok/firma")
+                client.get("/arrangor/hovedenhet/sok/firma")
             }
 
             // Assert
