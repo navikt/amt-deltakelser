@@ -15,8 +15,8 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 /**
  * Kladd må støtte autolagring, dvs. at vi kan ikke feile selv om påmeldingsskjemaet er uferdig eller inneholder
- * feil. Så vi tillater mer innhold i fritekstfelt enn normalt og avkorter innholdet etter et hvis punkt,
- * og setteer deltakelsemengde til nærmeste gyldige verdi.
+ * feil. Så vi tillater mer innhold i fritekstfelt enn normalt og avkorter innholdet etter et visst punkt,
+ * og setter deltakelsesmengde til nærmeste gyldige verdi.
  *
  * Disse reglene gjelder kun for kladd.
  */
