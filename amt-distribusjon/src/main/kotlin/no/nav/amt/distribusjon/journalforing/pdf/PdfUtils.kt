@@ -325,19 +325,19 @@ private fun InnholdDto.toInnhold() = Innhold(
 fun List<Innhold>.toInnholdPdfDto(ledetekst: String?): InnholdPdfDto? {
     if (this.isEmpty() && ledetekst == null) return null
 
-    val fritekstbeskrivelse = this.firstOrNull { it.innholdskode == "annet" }?.beskrivelse
-    val innholdselementer =
-        if (this.none { it.innholdskode != "annet" }) {
-            emptyList() // hvis det bare er annet innholdselement så skal den ikke vises
-        } else {
-            this.toVisingstekster()
-        }
-
-    return InnholdPdfDto(
-        valgteInnholdselementer = innholdselementer,
-        fritekstBeskrivelse = fritekstbeskrivelse,
-        ledetekst = ledetekst,
-    )
+    return if (this.none { it.innholdskode != "annet" }) {
+        InnholdPdfDto(
+            valgteInnholdselementer = emptyList(),
+            fritekstBeskrivelse = this.firstOrNull { it.innholdskode == "annet" }?.beskrivelse,
+            ledetekst = ledetekst,
+        )
+    } else {
+        InnholdPdfDto(
+            valgteInnholdselementer = this.toVisingstekster(),
+            fritekstBeskrivelse = null,
+            ledetekst = ledetekst,
+        )
+    }
 }
 
 private fun adresseDelesMedArrangor(
