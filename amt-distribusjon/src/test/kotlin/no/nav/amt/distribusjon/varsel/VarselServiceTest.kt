@@ -122,7 +122,7 @@ class VarselServiceTest {
                 .shouldBeSuccess()
                 .revarsles shouldBe null
 
-            val revarsel = app.varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
+            val revarsel = app.varselRepository.getAktivBeskjed(skalRevarsles.deltakerId).shouldBeSuccess()
             assertSoftly(revarsel) {
                 erRevarsel shouldBe true
                 kanRevarsles shouldBe false
@@ -162,7 +162,7 @@ class VarselServiceTest {
 
                 app.assertProducedInaktiver(oppdatertVarsel.id)
 
-                val revarsel = app.varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
+                val revarsel = app.varselRepository.getAktivBeskjed(skalRevarsles.deltakerId).shouldBeSuccess()
                 assertSoftly(revarsel) {
                     erRevarsel shouldBe true
                     kanRevarsles shouldBe false

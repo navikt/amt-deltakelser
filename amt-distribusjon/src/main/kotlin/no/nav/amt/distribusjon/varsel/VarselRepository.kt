@@ -122,14 +122,14 @@ class VarselRepository {
         }
     }
 
-    fun getAktivt(deltakerId: UUID): Result<Varsel> = runCatching {
+    fun getAktivBeskjed(deltakerId: UUID): Result<Varsel> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
-                    "SELECT * FROM varsel WHERE deltaker_id = :deltaker_id AND status = 'AKTIV'",
+                    "SELECT * FROM varsel WHERE deltaker_id = :deltaker_id AND status = 'AKTIV' AND type = 'BESKJED'",
                     mapOf("deltaker_id" to deltakerId),
                 ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke varsel for deltakerId: $deltakerId")
+            ) ?: throw NoSuchElementException("Fant ikke aktiv varsel av type BESKJED for deltakerId: $deltakerId")
         }
     }
 

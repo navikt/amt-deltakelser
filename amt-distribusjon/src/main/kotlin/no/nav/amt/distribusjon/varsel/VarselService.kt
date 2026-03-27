@@ -128,16 +128,11 @@ class VarselService(
         }
     }
 
-    private fun inaktiverTidligereBeskjed(deltakerId: UUID) {
-        val varsel = varselRepository.getAktivt(deltakerId).getOrNull()
-        require(varsel?.type != Varsel.Type.OPPGAVE) {
-            "deltaker-id $deltakerId: Kan ikke inaktivere oppgave ${varsel?.id} som om den var en beskjed"
-        }
-
-        if (varsel?.erAktiv == true) {
+    private fun inaktiverTidligereBeskjed(deltakerId: UUID) = varselRepository
+        .getAktivBeskjed(deltakerId)
+        .onSuccess { varsel ->
             ferdigstillSendtVarsel(varsel, Varsel.Status.INAKTIVERT)
         }
-    }
 
     private fun inaktiverOppgave(deltaker: HendelseDeltaker) {
         varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE).onSuccess { varsel ->
