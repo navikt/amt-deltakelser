@@ -75,8 +75,6 @@ class DeltakerRepository {
         ) ?: throw NoSuchElementException("Ingen deltaker med id $deltakerId")
     }
 
-    // TODO: Fjerne denne til fordel for upsert(deltaker: DeltakerUpsertDbo)
-    // Denne kan evt kalle upsert(deltaker: DeltakerUpsertDbo)
     fun upsert(deltaker: Deltaker) {
         val sql =
             """
@@ -140,15 +138,13 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
     }
 
-    fun upsert(deltaker: DeltakerUpsertDbo) {
+    fun upsertKladd(deltaker: DeltakerKladdUpsertDbo) {
         val sql =
             """
             INSERT INTO deltaker (
                 id, 
                 person_id, 
                 deltakerliste_id, 
-                startdato, 
-                sluttdato, 
                 dager_per_uke, 
                 deltakelsesprosent, 
                 bakgrunnsinformasjon, 
@@ -159,10 +155,8 @@ class DeltakerRepository {
             VALUES (
                 :id, 
                 :person_id, 
-                :deltakerlisteId, 
-                :startdato, 
-                :sluttdato, 
-                :dagerPerUke, 
+                :deltakerlisteId,
+                :dager_per_uke, 
                 :deltakelsesprosent, 
                 :bakgrunnsinformasjon, 
                 :innhold, 
@@ -170,10 +164,7 @@ class DeltakerRepository {
                 :er_manuelt_delt_med_arrangor
             )
             ON CONFLICT (id) DO UPDATE SET 
-                person_id            = :person_id,
-                startdato            = :startdato,
-                sluttdato            = :sluttdato,
-                dager_per_uke        = :dagerPerUke,
+                dager_per_uke        = :dager_per_uke,
                 deltakelsesprosent   = :deltakelsesprosent,
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
@@ -186,9 +177,7 @@ class DeltakerRepository {
             "id" to deltaker.id,
             "person_id" to deltaker.navBrukerId,
             "deltakerlisteId" to deltaker.deltakerlisteId,
-            "startdato" to deltaker.startdato,
-            "sluttdato" to deltaker.sluttdato,
-            "dagerPerUke" to deltaker.dagerPerUke,
+            "dager_per_uke" to deltaker.dagerPerUke,
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
@@ -197,10 +186,10 @@ class DeltakerRepository {
         )
 
         Database.query { session -> session.update(queryOf(sql, parameters)) }
-        log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
+        log.info("Opprettet/oppdaterte deltaker kladd med id ${deltaker.id}")
     }
 
-    fun update(deltaker: EnkeltplassKladdUpdateDbo) {
+    fun updateEnkeltplassKladd(deltaker: EnkeltplassKladdUpdateDbo) {
         val sql =
             """
             UPDATE deltaker

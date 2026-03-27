@@ -7,12 +7,15 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdUpdateDbo
+import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -26,6 +29,98 @@ import java.time.LocalDate
 
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
+
+    @Nested
+    inner class KladdTests {
+        val deltakerliste = lagDeltakerliste()
+
+        @Test
+        fun `getKladdForDeltakerliste - skal returnere failure hvis ingen kladd`() {
+            TestRepository.insert(deltakerliste)
+
+            val kladdResult = deltakerRepository.getKladdForDeltakerliste(
+                deltakerlisteId = deltakerliste.id,
+                personident = "~personident~",
+            )
+
+            kladdResult.shouldBeFailure()
+        }
+
+        @Test
+        fun `getKladdForDeltakerliste - skal returnere success hvis kladd finnes`() {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                deltakerliste = deltakerliste,
+            )
+            TestRepository.insert(deltaker)
+
+            val kladdResult = deltakerRepository.getKladdForDeltakerliste(
+                deltakerlisteId = deltakerliste.id,
+                personident = deltaker.navBruker.personident,
+            )
+
+            kladdResult.shouldBeSuccess()
+        }
+
+        @Test
+        fun `upsertKladd - skal oppdatere eksisterende kladd`() {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                deltakerliste = deltakerliste,
+            )
+            TestRepository.insert(deltaker)
+
+            val oppdatertDeltaker = lagKladdUpsertDbo(
+                deltaker = deltaker,
+                innhold = listOf(Innhold("", "", true, "")),
+                bakgrunnsinformasjon = "Tralala",
+                deltakelsesprosent = 5,
+                dagerPerUke = 3,
+            )
+
+            deltakerRepository.upsertKladd(oppdatertDeltaker)
+
+            val kladdResult = deltakerRepository
+                .get(deltaker.id)
+                .getOrThrow()
+
+            assertSoftly(kladdResult) {
+                id shouldBe deltaker.id
+                bakgrunnsinformasjon shouldBe oppdatertDeltaker.bakgrunnsinformasjon
+                deltakelsesprosent shouldBe oppdatertDeltaker.deltakelsesprosent
+                dagerPerUke shouldBe oppdatertDeltaker.dagerPerUke
+                deltakelsesinnhold shouldBe oppdatertDeltaker.deltakelsesinnhold
+            }
+        }
+
+        @Test
+        fun `updateEnkeltplassKladd - skal opprette kladd`() {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                deltakerliste = deltakerliste,
+            )
+
+            TestRepository.insert(deltaker)
+            val oppdatertDeltaker = lagEnkeltplassKladdUpdateDbo(
+                deltakerId = deltaker.id,
+                tiltakstype = deltaker.deltakerliste.tiltakstype,
+                startdato = deltaker.startdato,
+                sluttdato = deltaker.sluttdato,
+                beskrivelse = "Dette er beskrivelsen",
+            )
+            deltakerRepository.updateEnkeltplassKladd(oppdatertDeltaker)
+            val kladdResult = deltakerRepository
+                .get(deltaker.id)
+                .getOrThrow()
+
+            assertSoftly(kladdResult) {
+                id shouldBe deltaker.id
+                startdato shouldBe oppdatertDeltaker.startdato
+                sluttdato shouldBe oppdatertDeltaker.sluttdato
+                deltakelsesinnhold shouldBe oppdatertDeltaker.deltakelsesinnhold
+            }
+        }
+    }
 
     @Nested
     inner class GetDeltakereForDeltakerlisteTests {

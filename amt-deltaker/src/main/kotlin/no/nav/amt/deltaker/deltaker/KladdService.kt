@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.db.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerUpsertDbo
 import no.nav.amt.deltaker.deltaker.db.EnkeltplassKladdUpdateDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -58,7 +58,7 @@ class KladdService(
             pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
-        val kladd = lagEnkeltplassKladdUpsertDbo(
+        val kladd = lagEnkeltplassKladdInsertDbo(
             navBruker.personId,
             gjennomforing.id,
             tiltak,
@@ -66,7 +66,7 @@ class KladdService(
 
         Database.transaction {
             deltakerListeRepository.upsert(gjennomforing)
-            deltakerRepository.upsert(kladd)
+            deltakerRepository.upsertKladd(kladd)
             DeltakerStatusRepository.lagreStatus(kladd.id, nyDeltakerStatus(DeltakerStatus.Type.KLADD))
         }
 
@@ -101,7 +101,7 @@ class KladdService(
         )
         Database.transaction {
             deltakerListeRepository.update(gjennomforingUpdateDbo)
-            deltakerRepository.update(kladdUpdateDbo)
+            deltakerRepository.updateEnkeltplassKladd(kladdUpdateDbo)
         }
         return deltakerRepository.get(deltakerId).getOrThrow()
     }
@@ -146,7 +146,7 @@ class KladdService(
             dagerPerUke = dagerPerUke,
         )
 
-        deltakerRepository.upsert(kladdUpsertDbo)
+        deltakerRepository.upsertKladd(kladdUpsertDbo)
 
         return deltakerRepository.get(deltaker.id).getOrThrow()
     }
@@ -187,21 +187,16 @@ class KladdService(
             opprettet = LocalDateTime.now(),
         )
 
-        fun lagEnkeltplassKladdUpsertDbo(
+        fun lagEnkeltplassKladdInsertDbo(
             navBrukerId: UUID,
             deltakerlisteId: UUID,
             tiltakstype: Tiltakstype,
-        ) = DeltakerUpsertDbo(
+        ) = DeltakerKladdUpsertDbo(
             id = UUID.randomUUID(),
             navBrukerId = navBrukerId,
             deltakerlisteId = deltakerlisteId,
-            startdato = null,
-            sluttdato = null,
-            dagerPerUke = null,
-            deltakelsesprosent = null,
             bakgrunnsinformasjon = null,
             deltakelsesinnhold = Deltakelsesinnhold(tiltakstype.innhold?.ledetekst, emptyList()),
-            vedtaksinformasjon = null,
             kilde = Kilde.KOMET,
             erManueltDeltMedArrangor = false,
         )
@@ -230,7 +225,7 @@ class KladdService(
             bakgrunnsinformasjon: String?,
             deltakelsesprosent: Int?,
             dagerPerUke: Int?,
-        ) = DeltakerUpsertDbo(
+        ) = DeltakerKladdUpsertDbo(
             id = deltaker.id,
             navBrukerId = deltaker.navBruker.personId,
             deltakerlisteId = deltaker.deltakerliste.id,
