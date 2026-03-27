@@ -27,7 +27,6 @@ import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequ
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
@@ -46,9 +45,7 @@ fun Routing.registerPameldingApi(
         ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
         vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
         digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslageRepository
-            .getForDeltaker(deltaker.id)
-            .map { ForslagDecorator.DefaultDecorator(it) },
+        forslag = forslageRepository.getForDeltaker(deltaker.id),
     )
 
     authenticate("VEILEDER") {

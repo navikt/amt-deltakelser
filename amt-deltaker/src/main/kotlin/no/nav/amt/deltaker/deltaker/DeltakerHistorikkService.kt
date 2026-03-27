@@ -32,7 +32,10 @@ class DeltakerHistorikkService(
             ?.let { listOf(DeltakerHistorikk.Vedtak(it)) }
             ?: emptyList()
 
-        val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
+        val forslag = forslagRepository
+            .getForDeltaker(id)
+            .filter { it.skalInkluderesIHistorikk() }
+            .map { DeltakerHistorikk.Forslag(it) }
 
         val vurderinger = vurderingRepository
             .getForDeltaker(id)
