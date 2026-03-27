@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.bff.utils.FERIETILLEGG
 import no.nav.amt.deltaker.bff.utils.months
 import no.nav.amt.deltaker.bff.utils.weeks
 import no.nav.amt.deltaker.bff.utils.years
-import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -33,7 +33,7 @@ data class DeltakerModel(
     val erManueltDeltMedArrangor: Boolean,
     val historikk: List<DeltakerHistorikk>,
     val erLaastForEndringer: Boolean,
-    val endringsforslagFraArrangor: List<ForslagDecorator>,
+    val endringsforslagFraArrangor: List<Forslag>,
 ) {
     val deltakelsesmengder: Deltakelsesmengder
         get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()
