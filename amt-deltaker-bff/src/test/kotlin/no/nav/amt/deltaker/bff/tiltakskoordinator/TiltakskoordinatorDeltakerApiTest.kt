@@ -16,7 +16,6 @@ import no.nav.amt.deltaker.bff.utils.RouteTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
-import no.nav.amt.deltaker.bff.utils.generateJWT
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -156,12 +155,5 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
                 forslag = emptyList(),
                 ulesteHendelser = emptyList(),
             )
-
-        private val bearerTokenInTest = generateJWT(
-            consumerClientId = "frontend-clientid",
-            navAnsattAzureId = UUID.randomUUID().toString(),
-            audience = "deltaker-bff",
-            groups = listOf(UUID(0L, 0L).toString()),
-        )
     }
 }

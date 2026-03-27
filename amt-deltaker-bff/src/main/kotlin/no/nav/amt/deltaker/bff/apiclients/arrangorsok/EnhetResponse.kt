@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.arrangorsok
+package no.nav.amt.deltaker.bff.apiclients.arrangorsok
 
 data class EnhetResponse(
     val organisasjonsnummer: String,

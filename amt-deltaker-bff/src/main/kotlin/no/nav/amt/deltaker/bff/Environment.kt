@@ -37,6 +37,8 @@ data class Environment(
             emptyList<PreAuthorizedApp>(),
         ),
     ).let { objectMapper.readValue(it) },
+    val mulighetsrommetApiUrl: String = getEnvVar(MULIGHETSROMMET_API_URL_KEY),
+    val mulighetsrommetApiScope: String = getEnvVar(MULIGHETSROMMET_API_SCOPE_KEY),
 ) {
     companion object {
         const val KAFKA_CONSUMER_GROUP_ID = "amt-deltaker-bff-consumer"
@@ -64,6 +66,9 @@ data class Environment(
 
         const val AMT_DISTRIBUSJON_URL_KEY = "AMT_DISTRIBUSJON_URL"
         const val AMT_DISTRIBUSJON_SCOPE_KEY = "AMT_DISTRIBUSJON_SCOPE"
+
+        const val MULIGHETSROMMET_API_URL_KEY = "MULIGHETSROMMET_API_URL"
+        const val MULIGHETSROMMET_API_SCOPE_KEY = "MULIGHETSROMMET_API_SCOPE"
 
         const val AZURE_AD_TOKEN_URL_KEY = "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"
         const val AZURE_APP_CLIENT_SECRET_KEY = "AZURE_APP_CLIENT_SECRET"

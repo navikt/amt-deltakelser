@@ -831,6 +831,7 @@ class TiltakskoordinatorDeltakerApiTest {
                 forslagService = forslagService,
                 amtDistribusjonClient = amtDistribusjonClient,
                 amtDeltakerClient = amtDeltakerClient,
+                arrangorsokClient = mockk(),
                 sporbarhetsloggService = sporbarhetsloggService,
                 deltakerRepository = deltakerRepository,
                 deltakerlisteService = mockk(),

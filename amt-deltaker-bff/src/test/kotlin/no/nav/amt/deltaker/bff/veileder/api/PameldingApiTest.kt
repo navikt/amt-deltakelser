@@ -220,6 +220,7 @@ class PameldingApiTest {
                 forslagService = forslagService,
                 amtDistribusjonClient = amtDistribusjonClient,
                 amtDeltakerClient = amtDeltakerClient,
+                arrangorsokClient = mockk(),
                 sporbarhetsloggService = mockk(),
                 deltakerlisteService = deltakerlisteService,
                 unleash = mockk(),

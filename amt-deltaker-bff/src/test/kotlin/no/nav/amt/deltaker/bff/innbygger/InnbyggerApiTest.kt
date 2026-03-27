@@ -217,6 +217,7 @@ class InnbyggerApiTest {
                 forslagService = forslagService,
                 amtDistribusjonClient = amtDistribusjonClient,
                 amtDeltakerClient = amtDeltakerClient,
+                arrangorsokClient = mockk(),
                 sporbarhetsloggService = mockk(),
                 deltakerRepository = deltakerRepository,
                 deltakerlisteService = mockk(),
