@@ -35,7 +35,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.DeltakerRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreAvslutningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreBakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequestFromFrontend
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttarsakRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreStartdatoRequest
@@ -43,7 +43,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndringRequestFromFrontend
 import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequestFromFrontend
+import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -221,7 +221,7 @@ fun Routing.registerVeilederApi(
         }
 
         post("/deltaker/{deltakerId}/innhold") {
-            val request = call.receive<EndreInnholdRequestFromFrontend>()
+            val request = call.receive<EndreInnholdRequest>()
             call.handleEndring(request) { deltaker, endretAv, endretAvEnhet ->
                 EndretInnholdRequest(
                     endretAv = endretAv,
@@ -304,7 +304,7 @@ fun Routing.registerVeilederApi(
         }
 
         post("/deltaker/{deltakerId}/reaktiver") {
-            val request = call.receive<ReaktiverDeltakelseRequestFromFrontend>()
+            val request = call.receive<ReaktiverDeltakelseRequest>()
             call.handleEndring(request) { _, endretAv, endretAvEnhet ->
                 no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest(
                     endretAv = endretAv,

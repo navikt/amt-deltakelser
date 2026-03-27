@@ -34,14 +34,14 @@ import no.nav.amt.deltaker.bff.veileder.api.request.DeltakerRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreAvslutningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreBakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequestFromFrontend
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttarsakRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreStartdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequestFromFrontend
+import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -196,7 +196,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
             httpClient
                 .post("/deltaker/${deltaker.id}/innhold") {
                     createPostRequest(
-                        EndreInnholdRequestFromFrontend(
+                        EndreInnholdRequest(
                             listOf(
                                 InnholdsElementRequest(
                                     deltaker.deltakelsesinnhold!!.innhold[0].innholdskode,
@@ -786,7 +786,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
 
     private val deltakerRequest = DeltakerRequest("1234")
     private val bakgrunnsinformasjonRequest = EndreBakgrunnsinformasjonRequest("Oppdatert bakgrunnsinformasjon")
-    private val innholdRequest = EndreInnholdRequestFromFrontend(listOf(InnholdsElementRequest("annet", "beskrivelse")))
+    private val innholdRequest = EndreInnholdRequest(listOf(InnholdsElementRequest("annet", "beskrivelse")))
     private val deltakelsesmengdeRequest = EndreDeltakelsesmengdeRequest(
         deltakelsesprosent = 50,
         dagerPerUke = 3,
@@ -797,7 +797,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     private val startdatoRequest =
         EndreStartdatoRequest(LocalDate.now().plusWeeks(1), sluttdato = LocalDate.now().plusMonths(2), "begrunnelse", null)
     private val ikkeAktuellRequest = IkkeAktuellRequest(DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB), "begrunnelse", null)
-    private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequestFromFrontend("begrunnelse")
+    private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest("begrunnelse")
     private val forlengDeltakelseRequest = ForlengDeltakelseRequest(LocalDate.now().plusWeeks(3), "begrunnelse", null)
     private val avsluttDeltakelseRequest =
         AvsluttDeltakelseRequest(
@@ -878,7 +878,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
             bakgrunnsinformasjon = "Oppdatert bakgrunnsinformasjon",
         )
 
-        private val innholdRequest = EndreInnholdRequestFromFrontend(
+        private val innholdRequest = EndreInnholdRequest(
             listOf(
                 InnholdsElementRequest(
                     innholdskode = "annet",
@@ -906,7 +906,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
             forslagId = null,
         )
 
-        private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequestFromFrontend("begrunnelse")
+        private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest("begrunnelse")
         private val forlengDeltakelseRequest = ForlengDeltakelseRequest(LocalDate.now().plusWeeks(3), "begrunnelse", null)
 
         private val avsluttDeltakelseRequest = AvsluttDeltakelseRequest(

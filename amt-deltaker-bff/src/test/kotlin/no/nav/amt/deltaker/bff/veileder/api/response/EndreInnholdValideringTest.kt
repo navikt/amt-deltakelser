@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequestFromFrontend
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -28,7 +28,7 @@ class EndreInnholdValideringTest {
                 ),
                 innhold = listOf(Innhold("Type", "type", true, null)),
             )
-            val request = EndreInnholdRequestFromFrontend(
+            val request = EndreInnholdRequest(
                 innhold = listOf(InnholdsElementRequest("type", null)),
             )
 
@@ -54,7 +54,7 @@ class EndreInnholdValideringTest {
                 ),
                 innhold = listOf(Innhold("Type", "type", true, null)),
             )
-            val request = EndreInnholdRequestFromFrontend(
+            val request = EndreInnholdRequest(
                 innhold = listOf(
                     InnholdsElementRequest("type", null),
                     InnholdsElementRequest("type2", null),
@@ -82,7 +82,7 @@ class EndreInnholdValideringTest {
                 ),
                 innhold = listOf(Innhold(annetInnholdselement.tekst, annetInnholdselement.innholdskode, true, "Gammel tekst")),
             )
-            val request = EndreInnholdRequestFromFrontend(
+            val request = EndreInnholdRequest(
                 innhold = listOf(
                     InnholdsElementRequest(annetInnholdselement.innholdskode, "Ny tekst"),
                 ),

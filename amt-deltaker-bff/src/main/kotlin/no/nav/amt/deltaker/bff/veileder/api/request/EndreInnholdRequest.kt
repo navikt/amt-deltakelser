@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 
-data class EndreInnholdRequestFromFrontend(
+data class EndreInnholdRequest(
     val innhold: List<InnholdsElementRequest>,
 ) : EndringRequestFromFrontend {
     override fun valider(deltaker: Deltaker) {

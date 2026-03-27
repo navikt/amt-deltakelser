@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequestFromFrontend
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
@@ -42,7 +42,7 @@ class InnholdDtoTest {
 
     @Test
     fun `finnValgtInnhold - annet - annet skal bli valgt`() {
-        val innholdRequest = objectMapper.readValue<EndreInnholdRequestFromFrontend>(
+        val innholdRequest = objectMapper.readValue<EndreInnholdRequest>(
             """    	
             {
               "innhold": [

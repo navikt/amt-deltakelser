@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanReaktiveres
 
-data class ReaktiverDeltakelseRequestFromFrontend(
+data class ReaktiverDeltakelseRequest(
     val begrunnelse: String,
 ) : EndringRequestFromFrontend {
     override fun valider(deltaker: Deltaker) {

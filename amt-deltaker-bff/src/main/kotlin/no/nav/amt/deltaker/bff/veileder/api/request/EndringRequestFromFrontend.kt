@@ -9,10 +9,10 @@ sealed interface EndringRequestFromFrontend {
     fun tillattEndringUtenAktivOppfolgingsperiode() = when (this) {
         is EndreBakgrunnsinformasjonRequest,
         is EndreDeltakelsesmengdeRequest,
-        is EndreInnholdRequestFromFrontend,
+        is EndreInnholdRequest,
         is EndreStartdatoRequest,
         is ForlengDeltakelseRequest,
-        is ReaktiverDeltakelseRequestFromFrontend,
+        is ReaktiverDeltakelseRequest,
         is FjernOppstartsdatoRequest,
         -> false
 
