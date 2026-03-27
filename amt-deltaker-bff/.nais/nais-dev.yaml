@@ -65,6 +65,8 @@ spec:
         - application: amt-distribusjon
         - application: poao-tilgang
           namespace: poao
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
       external:
         - host: amt-unleash-api.nav.cloud.nais.io
   env:
