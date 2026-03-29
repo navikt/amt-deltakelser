@@ -1,12 +1,35 @@
 name: CodeQL
 
 on:
+  merge_group:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - "amt-deltaker/**"
+      - "amt-deltaker-bff/**"
+      - "amt-distribusjon/**"
+      - "amt-felles/**"
+      - "amt-lib/**"
+      - "amt-tiltaksarrangor-bff/**"
+      - "buildSrc/**"
+      - "gradle/**"
+
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - "amt-deltaker/**"
+      - "amt-deltaker-bff/**"
+      - "amt-distribusjon/**"
+      - "amt-felles/**"
+      - "amt-lib/**"
+      - "amt-tiltaksarrangor-bff/**"
+      - "buildSrc/**"
+      - "gradle/**"
+
   schedule:
-    - cron: "28 9 * * 2"
+    - cron: '28 9 * * 2'  # Ukentlig full scan, tirsdager kl 09:28
 
 permissions:
   contents: read
@@ -17,10 +40,6 @@ jobs:
     name: Analyze Kotlin
     runs-on: ubuntu-latest
     timeout-minutes: 120
-
-    env:
-      GRADLE_OPTS: "-Xmx6g"
-      KOTLIN_COMPILER_EXECUTION_STRATEGY: "in-process"
 
     steps:
       - name: Checkout
@@ -44,13 +63,12 @@ jobs:
 
       - name: Build project
         run: |
-          ./gradlew assemble \
+          ./gradlew build \
             -x test \
             --no-daemon \
             --no-parallel \
             --no-build-cache \
-            --no-configuration-cache \
-            -Dkotlin.compiler.execution.strategy=in-process
+            --no-configuration-cache
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
