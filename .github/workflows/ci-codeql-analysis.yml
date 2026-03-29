@@ -63,7 +63,7 @@ jobs:
 
       - name: Build project
         run: |
-          ./gradlew build \
+          ./gradlew assemble \
             -x test \
             --no-daemon \
             --no-parallel \
