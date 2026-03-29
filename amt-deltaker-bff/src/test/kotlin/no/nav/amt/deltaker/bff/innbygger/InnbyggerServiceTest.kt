@@ -7,6 +7,8 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.sammenlignVedtak
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.deltakerMedIkkeFattetVedtak
+import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.fattVedtak
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils.sammenlignDeltakere

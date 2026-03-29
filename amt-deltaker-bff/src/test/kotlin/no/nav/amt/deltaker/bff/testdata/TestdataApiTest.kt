@@ -5,70 +5,59 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
-import io.mockk.mockk
-import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
-import no.nav.amt.deltaker.bff.application.plugins.configureRouting
-import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
-import no.nav.amt.deltaker.bff.utils.configureEnvForAuthentication
-import no.nav.amt.deltaker.bff.utils.data.TestData
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.bff.utils.data.TestData.randomIdent
 import no.nav.amt.deltaker.bff.veileder.api.utils.systemPostRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class TestdataApiTest {
-    private val testdataService = mockk<TestdataService>()
-
-    @BeforeEach
-    fun setup() {
-        configureEnvForAuthentication()
+class TestdataApiTest : RouteTestBase() {
+    @Test
+    fun `opprett testdata - mangler token - returnerer 401`() = runTest {
+        withTestApplicationContext { client ->
+            client.post("/testdata/opprett") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        }
     }
 
     @Test
-    fun `opprett testdata - mangler token - returnerer 401`() = testApplication {
-        setUpTestApplication()
-        client.post("/testdata/opprett") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-    }
-
-    @Test
-    fun `opprett testdata - har tilgang, ugyldig request - returnerer BadRequest`() = testApplication {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+    fun `opprett testdata - har tilgang, ugyldig request - returnerer BadRequest`() = runTest {
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         val startdato = LocalDate.now().minusDays(1)
         val opprettTestDeltakelseRequest = OpprettTestDeltakelseRequest(
-            personident = TestData.randomIdent(),
+            personident = randomIdent(),
             deltakerlisteId = deltakerliste.id,
             startdato = startdato,
             deltakelsesprosent = 100,
             dagerPerUke = 7,
         )
 
-        setUpTestApplication()
-
-        client.post("/testdata/opprett") { systemPostRequest(opprettTestDeltakelseRequest) }.apply {
-            status shouldBe HttpStatusCode.BadRequest
+        withTestApplicationContext { client ->
+            client.post("/testdata/opprett") { systemPostRequest(opprettTestDeltakelseRequest) }.status shouldBe HttpStatusCode.BadRequest
         }
     }
 
     @Test
-    fun `opprett testdata - har tilgang, gyldig request - returnerer deltaker`() = testApplication {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+    fun `opprett testdata - har tilgang, gyldig request - returnerer deltaker`() = runTest {
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         val startdato = LocalDate.now().minusDays(1)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = startdato,
             sluttdato = startdato.plusMonths(3),
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             deltakelsesprosent = 50F,
             dagerPerUke = 3F,
         )
@@ -82,40 +71,11 @@ class TestdataApiTest {
 
         coEvery { testdataService.opprettDeltakelse(any()) } returns deltaker
 
-        setUpTestApplication()
-
-        client.post("/testdata/opprett") { systemPostRequest(opprettTestDeltakelseRequest) }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker)
-        }
-    }
-
-    private fun ApplicationTestBuilder.setUpTestApplication() {
-        application {
-            configureSerialization()
-            configureAuthentication(Environment())
-            configureRouting(
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                testdataService,
-            )
+        withTestApplicationContext { client ->
+            client.post("/testdata/opprett") { systemPostRequest(opprettTestDeltakelseRequest) }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker)
+            }
         }
     }
 }

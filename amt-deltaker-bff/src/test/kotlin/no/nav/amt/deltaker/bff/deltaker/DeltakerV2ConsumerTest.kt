@@ -65,11 +65,6 @@ class DeltakerV2ConsumerTest {
         unleashToggle,
     )
 
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-    }
-
     @BeforeEach
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING) } returns true
@@ -286,62 +281,67 @@ class DeltakerV2ConsumerTest {
 
         deltakerRepository.get(deltaker.id).getOrNull() shouldBe null
     }
-}
 
-private fun Deltaker.toKafkaPayload(
-    kilde: Kilde,
-    vurderinger: List<Vurdering> = emptyList(),
-    deltakerliste: no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste,
-) = DeltakerKafkaPayload(
-    id = id,
-    deltakerlisteId = deltakerliste.id,
-    personalia = Personalia(
-        navBruker.personId,
-        personident = navBruker.personident,
-        navn = Navn(navBruker.fornavn, navBruker.mellomnavn, navBruker.etternavn),
-        kontaktinformasjon = Kontaktinformasjon(epost = navBruker.epost, telefonnummer = navBruker.telefon),
-        skjermet = navBruker.erSkjermet,
-        adresse = navBruker.adresse,
-        adressebeskyttelse = navBruker.adressebeskyttelse,
-    ),
-    status = DeltakerStatusDto(
-        id = status.id,
-        type = status.type,
-        aarsak = status.aarsak?.type,
-        aarsaksbeskrivelse = status.aarsak?.beskrivelse,
-        gyldigFra = status.gyldigFra,
-        opprettetDato = status.opprettet,
-    ),
-    dagerPerUke = dagerPerUke,
-    prosentStilling = deltakelsesprosent?.toDouble(),
-    oppstartsdato = startdato,
-    sluttdato = sluttdato,
-    bestillingTekst = bakgrunnsinformasjon,
-    kilde = kilde,
-    innhold = deltakelsesinnhold,
-    historikk = historikk,
-    vurderingerFraArrangor = vurderinger,
-    sistEndret = sistEndret,
-    deltakerliste = Deltakerliste(
-        id = deltakerliste.id,
-        navn = deltakerliste.navn,
-        tiltak = Tiltak(
-            navn = "trallas",
-            tiltakskode = deltakerliste.tiltak.tiltakskode,
-        ),
-        startdato = deltakerliste.startDato,
-        sluttdato = deltakerliste.sluttDato,
-        oppstartstype = deltakerliste.oppstart,
-    ),
-    innsoktDato = LocalDate.now(),
-    forsteVedtakFattet = LocalDate.now(),
-    erManueltDeltMedArrangor = false,
-    sisteEndring = null,
-    navKontor = null,
-    navVeileder = null,
-    deltarPaKurs = false,
-    oppfolgingsperioder = emptyList(),
-    sistEndretAv = null,
-    sistEndretAvEnhet = null,
-    forcedUpdate = null,
-)
+    companion object {
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+
+        private fun Deltaker.toKafkaPayload(
+            kilde: Kilde,
+            vurderinger: List<Vurdering> = emptyList(),
+            deltakerliste: no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste,
+        ) = DeltakerKafkaPayload(
+            id = id,
+            deltakerlisteId = deltakerliste.id,
+            personalia = Personalia(
+                navBruker.personId,
+                personident = navBruker.personident,
+                navn = Navn(navBruker.fornavn, navBruker.mellomnavn, navBruker.etternavn),
+                kontaktinformasjon = Kontaktinformasjon(epost = navBruker.epost, telefonnummer = navBruker.telefon),
+                skjermet = navBruker.erSkjermet,
+                adresse = navBruker.adresse,
+                adressebeskyttelse = navBruker.adressebeskyttelse,
+            ),
+            status = DeltakerStatusDto(
+                id = status.id,
+                type = status.type,
+                aarsak = status.aarsak?.type,
+                aarsaksbeskrivelse = status.aarsak?.beskrivelse,
+                gyldigFra = status.gyldigFra,
+                opprettetDato = status.opprettet,
+            ),
+            dagerPerUke = dagerPerUke,
+            prosentStilling = deltakelsesprosent?.toDouble(),
+            oppstartsdato = startdato,
+            sluttdato = sluttdato,
+            bestillingTekst = bakgrunnsinformasjon,
+            kilde = kilde,
+            innhold = deltakelsesinnhold,
+            historikk = historikk,
+            vurderingerFraArrangor = vurderinger,
+            sistEndret = sistEndret,
+            deltakerliste = Deltakerliste(
+                id = deltakerliste.id,
+                navn = deltakerliste.navn,
+                tiltak = Tiltak(
+                    navn = "trallas",
+                    tiltakskode = deltakerliste.tiltak.tiltakskode,
+                ),
+                startdato = deltakerliste.startDato,
+                sluttdato = deltakerliste.sluttDato,
+                oppstartstype = deltakerliste.oppstart,
+            ),
+            innsoktDato = LocalDate.now(),
+            forsteVedtakFattet = LocalDate.now(),
+            erManueltDeltMedArrangor = false,
+            sisteEndring = null,
+            navKontor = null,
+            navVeileder = null,
+            deltarPaKurs = false,
+            oppfolgingsperioder = emptyList(),
+            sistEndretAv = null,
+            sistEndretAvEnhet = null,
+            forcedUpdate = null,
+        )
+    }
+}

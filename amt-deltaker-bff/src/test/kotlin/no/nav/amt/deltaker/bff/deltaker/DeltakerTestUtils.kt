@@ -1,11 +1,18 @@
 package no.nav.amt.deltaker.bff.deltaker
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.testing.shouldBeCloseTo
 
 object DeltakerTestUtils {
+    fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(
+        type = DeltakerStatus.Aarsak.Type.valueOf(type.name),
+        beskrivelse = beskrivelse,
+    )
+
     fun sammenlignDeltakereVedVedtak(
         a: DeltakerVedVedtak,
         b: DeltakerVedVedtak,
