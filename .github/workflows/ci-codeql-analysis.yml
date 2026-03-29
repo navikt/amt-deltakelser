@@ -61,13 +61,13 @@ jobs:
           languages: java-kotlin
           queries: security-and-quality
 
+          # --no-parallel \
+          # --no-build-cache \
       - name: Build project
         run: |
           ./gradlew assemble \
             -x test \
             --no-daemon \
-            --no-parallel \
-            --no-build-cache \
             --no-configuration-cache
 
       - name: Perform CodeQL Analysis
