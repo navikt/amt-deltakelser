@@ -73,7 +73,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:java"
+          category: "/language:kotlin"
           output: sarif-results
           upload: none
 
