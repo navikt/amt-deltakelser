@@ -40,7 +40,7 @@ object DtoMappers {
     }
 
     // benyttes i PaameldingService og TiltakskoordinatorService
-    fun UtkastResponse.toDeltakerOppdatering() = Deltakeroppdatering(
+    fun UtkastResponse.toDeltakeroppdatering() = Deltakeroppdatering(
         id = id,
         startdato = startdato,
         sluttdato = sluttdato,
