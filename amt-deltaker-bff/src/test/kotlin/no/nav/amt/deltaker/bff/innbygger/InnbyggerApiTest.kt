@@ -38,7 +38,7 @@ import java.util.UUID
 
 class InnbyggerApiTest : RouteTestBase() {
     @Test
-    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() = runTest {
+    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
             null,
             Decision.Deny("Ikke tilgang", ""),
@@ -53,7 +53,7 @@ class InnbyggerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `skal teste tilgangskontroll - mangler token - returnerer 401`() = runTest {
+    fun `skal teste tilgangskontroll - mangler token - returnerer 401`() {
         every { deltakerRepository.get(any()) } returns Result.success(lagDeltaker())
 
         withTestApplicationContext { httpClient ->
@@ -84,7 +84,7 @@ class InnbyggerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `get id - deltaker finnes ikke - returnerer 404`() = runTest {
+    fun `get id - deltaker finnes ikke - returnerer 404`() {
         every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
 
         withTestApplicationContext { httpClient ->
@@ -93,7 +93,7 @@ class InnbyggerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `godkjenn-utkast - deltaker har feil status - feiler`() = runTest {
+    fun `godkjenn-utkast - deltaker har feil status - feiler`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         setupMocks(deltaker)
 
@@ -103,7 +103,7 @@ class InnbyggerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `godkjenn-utkast - deltaker finnes ikke - returnerer 404`() = runTest {
+    fun `godkjenn-utkast - deltaker finnes ikke - returnerer 404`() {
         every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
 
         withTestApplicationContext { httpClient ->
@@ -112,7 +112,7 @@ class InnbyggerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `godkjenn-utkast - deltaker har tilgang - fatter vedtak`() = runTest {
+    fun `godkjenn-utkast - deltaker har tilgang - fatter vedtak`() {
         val deltaker = InnbyggerTestUtils.deltakerMedIkkeFattetVedtak()
         val deltakerMedFattetVedtak = deltaker.fattVedtak()
 
@@ -134,7 +134,7 @@ class InnbyggerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `getHistorikk - deltaker finnes, har tilgang - returnerer historikk`() = runTest {
+    fun `getHistorikk - deltaker finnes, har tilgang - returnerer historikk`() {
         val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)

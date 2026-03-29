@@ -8,7 +8,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.RouteTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
@@ -32,7 +31,7 @@ import java.util.UUID
 
 class KladdApiTest : RouteTestBase() {
     @Test
-    fun `post kladd - har tilgang - returnerer deltaker`() = runTest {
+    fun `post kladd - har tilgang - returnerer deltaker`() {
         val deltaker = lagDeltaker()
         val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
         val navEnhet = lagNavEnhet(id = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet)
@@ -61,7 +60,7 @@ class KladdApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post - har ikke tilgang - returnerer 403`() = runTest {
+    fun `post - har ikke tilgang - returnerer 403`() {
         val deltaker = lagDeltaker()
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
             null,
@@ -89,7 +88,7 @@ class KladdApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post kladd - har tilgang - returnerer 200`() = runTest {
+    fun `post kladd - har tilgang - returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
@@ -105,7 +104,7 @@ class KladdApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post kladd - feil deltakerstatus - returnerer 400`() = runTest {
+    fun `post kladd - feil deltakerstatus - returnerer 400`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
@@ -121,7 +120,7 @@ class KladdApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `slett kladd - deltaker har ikke status KLADD - returnerer 400`() = runTest {
+    fun `slett kladd - deltaker har ikke status KLADD - returnerer 400`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
@@ -137,7 +136,7 @@ class KladdApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `slett kladd - deltaker er KLADD - sletter deltaker og returnerer 200`() = runTest {
+    fun `slett kladd - deltaker er KLADD - sletter deltaker og returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
@@ -153,7 +152,7 @@ class KladdApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post - mangler token - returnerer 401`() = runTest {
+    fun `post - mangler token - returnerer 401`() {
         withTestApplicationContext { httpClient ->
             httpClient.post("/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             httpClient.post("/kladd/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
@@ -163,7 +162,7 @@ class KladdApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post kladd - deltakerliste finnes ikke - returnerer 404`() = runTest {
+    fun `post kladd - deltakerliste finnes ikke - returnerer 404`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         coEvery {

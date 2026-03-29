@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.deltaker.forslag
 
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.forslag.kafka.ArrangorMeldingConsumer
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
@@ -22,7 +22,7 @@ class ArrangorMeldingConsumerTest {
     }
 
     @Test
-    fun `consume - forslag VenterPaSvar - lagrer`(): Unit = runBlocking {
+    fun `consume - forslag VenterPaSvar - lagrer`() = runTest {
         val consumer = ArrangorMeldingConsumer(forslagRepository)
         val deltaker = TestData.lagDeltaker()
         TestRepository.insert(deltaker)
@@ -39,7 +39,7 @@ class ArrangorMeldingConsumerTest {
     }
 
     @Test
-    fun `consume - forslag tilbakekalt - sletter`(): Unit = runBlocking {
+    fun `consume - forslag tilbakekalt - sletter`() = runTest {
         val consumer = ArrangorMeldingConsumer(forslagRepository)
         val deltaker = TestData.lagDeltaker()
         TestRepository.insert(deltaker)

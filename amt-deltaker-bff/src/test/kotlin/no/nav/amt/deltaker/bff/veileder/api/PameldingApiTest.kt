@@ -7,7 +7,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.RouteTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
@@ -32,7 +31,7 @@ import java.util.UUID
 
 class PameldingApiTest : RouteTestBase() {
     @Test
-    fun `get - har ikke tilgang - returnerer 403`() = runTest {
+    fun `get - har ikke tilgang - returnerer 403`() {
         val deltaker = lagDeltaker()
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
             null,
@@ -60,7 +59,7 @@ class PameldingApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `skal teste autentisering - mangler token - returnerer 401`() = runTest {
+    fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { httpClient ->
             httpClient.post("/pamelding/${UUID.randomUUID()}/utenGodkjenning") { setBody("foo") }.status shouldBe
                 HttpStatusCode.Unauthorized
@@ -69,7 +68,7 @@ class PameldingApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post utkast - har tilgang - oppretter utkast og returnerer deltaker`() = runTest {
+    fun `post utkast - har tilgang - oppretter utkast og returnerer deltaker`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
@@ -100,7 +99,7 @@ class PameldingApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post utkast - deltaker finnes ikke - returnerer 404`() = runTest {
+    fun `post utkast - deltaker finnes ikke - returnerer 404`() {
         every { deltakerRepository.get(any()) } throws NoSuchElementException()
 
         withTestApplicationContext { httpClient ->
@@ -111,7 +110,7 @@ class PameldingApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post utkast uten godkjenning - har tilgang - oppretter og returnerer ferdig godkjent deltaker`() = runTest {
+    fun `post utkast uten godkjenning - har tilgang - oppretter og returnerer ferdig godkjent deltaker`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
 
@@ -144,7 +143,7 @@ class PameldingApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `post utkast uten godkjenning - deltaker finnes ikke - returnerer 404`() = runTest {
+    fun `post utkast uten godkjenning - deltaker finnes ikke - returnerer 404`() {
         every { deltakerRepository.get(any()) } throws NoSuchElementException()
 
         withTestApplicationContext { httpClient ->
@@ -157,7 +156,7 @@ class PameldingApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `avbryt utkast - har tilgang  - avbryter utkast og returnerer 200`() = runTest {
+    fun `avbryt utkast - har tilgang  - avbryter utkast og returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),

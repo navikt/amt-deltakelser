@@ -6,7 +6,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.RouteTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
@@ -22,14 +21,14 @@ import java.time.LocalDate
 
 class TestdataApiTest : RouteTestBase() {
     @Test
-    fun `opprett testdata - mangler token - returnerer 401`() = runTest {
+    fun `opprett testdata - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("/testdata/opprett") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
     @Test
-    fun `opprett testdata - har tilgang, ugyldig request - returnerer BadRequest`() = runTest {
+    fun `opprett testdata - har tilgang, ugyldig request - returnerer BadRequest`() {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
@@ -48,7 +47,7 @@ class TestdataApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `opprett testdata - har tilgang, gyldig request - returnerer deltaker`() = runTest {
+    fun `opprett testdata - har tilgang, gyldig request - returnerer deltaker`() {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )

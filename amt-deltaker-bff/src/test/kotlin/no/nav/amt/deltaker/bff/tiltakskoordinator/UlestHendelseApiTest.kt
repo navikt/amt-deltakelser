@@ -37,7 +37,7 @@ class UlestHendelseApiTest : RouteTestBase() {
     }
 
     companion object {
-        val bearerTokenInTest = generateJWT(
+        private val bearerTokenInTest = generateJWT(
             consumerClientId = "frontend-clientid",
             navAnsattAzureId = UUID.randomUUID().toString(),
             audience = "deltaker-bff",

@@ -14,7 +14,6 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.verify
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.RouteTestBase
@@ -67,7 +66,7 @@ import java.util.UUID
 
 class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     @Test
-    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() = runTest {
+    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() {
         val deltaker = lagDeltaker(navBruker = lagNavBruker(personident = "1234"))
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
             null,
@@ -105,7 +104,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `skal teste autentisering - mangler token - returnerer 401`() = runTest {
+    fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { httpClient ->
             val id = UUID.randomUUID()
 
@@ -139,7 +138,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `oppdater bakgrunnsinformasjon - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `oppdater bakgrunnsinformasjon - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
 
         val oppdatertDeltaker = deltaker.copy(
@@ -163,7 +162,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `oppdater bakgrunnsinformasjon - deltaker har sluttet - returnerer bad request`() = runTest {
+    fun `oppdater bakgrunnsinformasjon - deltaker har sluttet - returnerer bad request`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
@@ -184,7 +183,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `oppdater innhold - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `oppdater innhold - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(statusType = DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val oppdatertDeltaker = deltaker.copy(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -214,7 +213,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `oppdater deltakelsesmengde - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `oppdater deltakelsesmengde - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(
             sluttdato = LocalDate.now().plusMonths(3),
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -236,7 +235,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `oppdater deltakelsesmengde - ingen endring - returnerer BadRequest`() = runTest {
+    fun `oppdater deltakelsesmengde - ingen endring - returnerer BadRequest`() {
         val deltaker = lagDeltaker(
             sluttdato = LocalDate.now().plusMonths(3),
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -262,7 +261,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `oppdater startdato - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `oppdater startdato - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val oppdatertDeltaker = deltaker.copy(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -281,7 +280,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `endre sluttdato - har tilgang, deltaker har status HAR SLUTTET - returnerer oppdatert deltaker`() = runTest {
+    fun `endre sluttdato - har tilgang, deltaker har status HAR SLUTTET - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             sluttdato = LocalDate.now().minusDays(3),
@@ -301,7 +300,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `endre sluttdato - har tilgang, deltaker har status IKKE AKTUELL - feiler`() = runTest {
+    fun `endre sluttdato - har tilgang, deltaker har status IKKE AKTUELL - feiler`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             sluttdato = LocalDate.now().minusDays(3),
@@ -316,7 +315,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `ikke aktuell - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `ikke aktuell - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val oppdatertDeltaker = deltaker.copy(
             status = lagDeltakerStatus(
@@ -336,7 +335,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `endre sluttarsak - har tilgang, deltaker har status HAR SLUTTET - returnerer oppdatert deltaker`() = runTest {
+    fun `endre sluttarsak - har tilgang, deltaker har status HAR SLUTTET - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         )
@@ -358,7 +357,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `getDeltaker - har tilgang, deltaker finnes - returnerer deltaker`() = runTest {
+    fun `getDeltaker - har tilgang, deltaker finnes - returnerer deltaker`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             navBruker = lagNavBruker(personident = "1234"),
@@ -376,7 +375,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `getDeltaker - har annen navBruker i kontekst, deltaker finnes - returnerer badRequest`() = runTest {
+    fun `getDeltaker - har annen navBruker i kontekst, deltaker finnes - returnerer badRequest`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             navBruker = lagNavBruker(personident = "4321"),
@@ -391,7 +390,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `getDeltaker - deltaker er importert fra arena - returnerer importertFraArenaDto`() = runTest {
+    fun `getDeltaker - deltaker er importert fra arena - returnerer importertFraArenaDto`() {
         val innsoktDatoFraArena = LocalDate.now().minusDays(5)
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -413,7 +412,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `getDeltakerHistorikk - har tilgang, deltaker finnes - returnerer historikk`() = runTest {
+    fun `getDeltakerHistorikk - har tilgang, deltaker finnes - returnerer historikk`() {
         val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
@@ -446,7 +445,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `forleng - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `forleng - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             sluttdato = forlengDeltakelseRequest.sluttdato.minusDays(3),
@@ -467,7 +466,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `forleng - har tilgang, ny dato tidligere enn forrige dato - feiler`() = runTest {
+    fun `forleng - har tilgang, ny dato tidligere enn forrige dato - feiler`() {
         val deltaker = lagDeltaker(sluttdato = forlengDeltakelseRequest.sluttdato.plusDays(5))
         setupMocks(deltaker, null)
 
@@ -479,7 +478,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `forleng - har tilgang, har sluttet for mer enn to mnd siden - feiler`() = runTest {
+    fun `forleng - har tilgang, har sluttet for mer enn to mnd siden - feiler`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
@@ -497,7 +496,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `forleng - har tilgang, ikke under oppfolging - feiler`() = runTest {
+    fun `forleng - har tilgang, ikke under oppfolging - feiler`() {
         val deltaker = lagDeltaker(
             navBruker = lagNavBruker(
                 oppfolgingsperioder = listOf(
@@ -520,7 +519,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `avslutt - har tilgang, har deltatt - returnerer oppdatert deltaker`() = runTest {
+    fun `avslutt - har tilgang, har deltatt - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val oppdatertDeltaker = deltaker.copy(
             status = lagDeltakerStatus(
@@ -541,7 +540,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `avslutt - har tilgang, har deltatt, mangler sluttdato - feiler`() = runTest {
+    fun `avslutt - har tilgang, har deltatt, mangler sluttdato - feiler`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val oppdatertDeltaker = deltaker.copy(
             status = lagDeltakerStatus(
@@ -567,7 +566,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `avslutt - har tilgang, har ikke deltatt - returnerer oppdatert deltaker`() = runTest {
+    fun `avslutt - har tilgang, har ikke deltatt - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val oppdatertDeltaker = deltaker.copy(
             status = lagDeltakerStatus(
@@ -596,7 +595,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `avslutt - har tilgang, har ikke deltatt, mer enn 15 dager siden - feiler ikke`() = runTest {
+    fun `avslutt - har tilgang, har ikke deltatt, mer enn 15 dager siden - feiler ikke`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.DELTAR,
@@ -630,7 +629,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `avslutt - har tilgang, status VENTER PA OPPSTART - feiler`() = runTest {
+    fun `avslutt - har tilgang, status VENTER PA OPPSTART - feiler`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         setupMocks(deltaker, null)
 
@@ -642,7 +641,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `endre-avslutning til avbrutt- har tilgang, har fullfort- returnerer oppdatert deltaker`() = runTest {
+    fun `endre-avslutning til avbrutt- har tilgang, har fullfort- returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.FULLFORT))
         val oppdatertDeltaker = deltaker.copy(
             status = lagDeltakerStatus(
@@ -670,7 +669,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `endre-avslutning til fullfort- har tilgang, har avbrutt- returnerer oppdatert deltaker`() = runTest {
+    fun `endre-avslutning til fullfort- har tilgang, har avbrutt- returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 DeltakerStatus.Type.AVBRUTT,
@@ -703,7 +702,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `reaktiver - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `reaktiver - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker =
             lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
         val oppdatertDeltaker = deltaker.copy(
@@ -725,7 +724,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `reaktiver - deltaker har sluttet - returnerer bad request`() = runTest {
+    fun `reaktiver - deltaker har sluttet - returnerer bad request`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
@@ -745,7 +744,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `fjern oppstartsdato - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `fjern oppstartsdato - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusWeeks(1),
@@ -768,7 +767,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `avvis forslag - har tilgang - returnerer oppdatert deltaker`() = runTest {
+    fun `avvis forslag - har tilgang - returnerer oppdatert deltaker`() {
         val deltaker = lagDeltaker()
         val forslag = lagForslag(deltakerId = deltaker.id)
         every { forslagRepository.get(forslag.id) } returns Result.success(forslag)

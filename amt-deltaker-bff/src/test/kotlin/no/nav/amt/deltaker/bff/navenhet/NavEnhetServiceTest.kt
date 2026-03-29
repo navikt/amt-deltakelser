@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.navenhet
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
@@ -64,7 +63,7 @@ class NavEnhetServiceTest {
     }
 
     @Test
-    fun `hentEnheterForHistorikk - historikk endret av flere ansatte - returnerer alle enheter`() {
+    fun `hentEnheterForHistorikk - historikk endret av flere ansatte - returnerer alle enheter`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
@@ -92,14 +91,14 @@ class NavEnhetServiceTest {
         enheter.forEach { navEnhetRepository.upsert(it) }
         TestRepository.insert(deltaker)
 
-        val faktiskeEnheter = runBlocking { navEnhetService.hentEnheterForHistorikk(historikk) }
+        val faktiskeEnheter = navEnhetService.hentEnheterForHistorikk(historikk)
         faktiskeEnheter.size shouldBe enheter.size
 
         faktiskeEnheter.toList().map { it.second }.containsAll(enheter) shouldBe true
     }
 
     @Test
-    fun `hentEnheterForHistorikk - enhet finnes ikke i database - henter og returnerer enhet`() {
+    fun `hentEnheterForHistorikk - enhet finnes ikke i database - henter og returnerer enhet`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val endring = TestData.lagEndringFraTiltakskoordinator()
 
@@ -110,7 +109,7 @@ class NavEnhetServiceTest {
         TestRepository.insert(deltaker)
         MockResponseHandler.addNavEnhetGetResponse(TestData.lagNavEnhet(id = endring.endretAvEnhet))
 
-        val faktiskeEnheter = runBlocking { navEnhetService.hentEnheterForHistorikk(historikk) }
+        val faktiskeEnheter = navEnhetService.hentEnheterForHistorikk(historikk)
         faktiskeEnheter.size shouldBe 1
 
         faktiskeEnheter[endring.endretAvEnhet] shouldNotBe null
