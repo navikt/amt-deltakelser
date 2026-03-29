@@ -2,10 +2,10 @@ package no.nav.amt.distribusjon.journalforing
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.runBlocking
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.application.plugins.objectMapper
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
@@ -20,7 +20,6 @@ import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.utils.produceStringString
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -190,10 +189,8 @@ class JournalforingServiceTest {
 
         MockResponseHandler.addNavBrukerResponse(hendelse.deltaker.personident, navBruker)
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                app.journalforingService.handleHendelse(hendelse.toModel(Distribusjonskanal.DITT_NAV, false))
-            }
+        shouldThrow<IllegalArgumentException> {
+            app.journalforingService.handleHendelse(hendelse.toModel(Distribusjonskanal.DITT_NAV, false))
         }
     }
 
@@ -340,14 +337,12 @@ class JournalforingServiceTest {
         val journalforingstatusForleng = Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
         app.journalforingstatusRepository.upsert(journalforingstatusForleng)
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                app.journalforingService.journalforOgDistribuerEndringsvedtak(
-                    listOf(
-                        HendelseMedJournalforingstatus(hendelseForleng, journalforingstatusForleng),
-                    ),
-                )
-            }
+        shouldThrow<IllegalArgumentException> {
+            app.journalforingService.journalforOgDistribuerEndringsvedtak(
+                listOf(
+                    HendelseMedJournalforingstatus(hendelseForleng, journalforingstatusForleng),
+                ),
+            )
         }
     }
 
@@ -359,27 +354,25 @@ class JournalforingServiceTest {
         )
         val hendelseForleng = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now())
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                app.journalforingService.journalforOgDistribuerEndringsvedtak(
-                    listOf(
-                        HendelseMedJournalforingstatus(
-                            hendelse = hendelseForleng,
-                            journalforingstatus = Journalforingstatus(hendelseForleng.id, null, null, null, null),
-                        ),
-                        HendelseMedJournalforingstatus(
-                            hendelse = hendelseDeltakelsesmengde,
-                            journalforingstatus = Journalforingstatus(
-                                hendelseDeltakelsesmengde.id,
-                                null,
-                                null,
-                                null,
-                                null,
-                            ),
+        shouldThrow<IllegalArgumentException> {
+            app.journalforingService.journalforOgDistribuerEndringsvedtak(
+                listOf(
+                    HendelseMedJournalforingstatus(
+                        hendelse = hendelseForleng,
+                        journalforingstatus = Journalforingstatus(hendelseForleng.id, null, null, null, null),
+                    ),
+                    HendelseMedJournalforingstatus(
+                        hendelse = hendelseDeltakelsesmengde,
+                        journalforingstatus = Journalforingstatus(
+                            hendelseId = hendelseDeltakelsesmengde.id,
+                            journalpostId = null,
+                            bestillingsId = null,
+                            kanIkkeDistribueres = null,
+                            kanIkkeJournalfores = null,
                         ),
                     ),
-                )
-            }
+                ),
+            )
         }
     }
 }

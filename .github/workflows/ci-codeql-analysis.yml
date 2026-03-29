@@ -36,67 +36,64 @@ permissions:
   security-events: write
 
 jobs:
-  changes:
+  analyze:
+    name: Analyze Kotlin
     runs-on: ubuntu-latest
-    outputs:
-      modules: ${{ steps.filter.outputs.changes }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@v4
-        id: filter
-        with:
-          filters: |
-            # vi bruker amt-deltaker-bff for endringer i felles-libs
-            amt-deltaker-bff: 
-              - amt-deltaker-bff/**
-              - amt-felles/**
-              - amt-lib/**
-              - buildSrc/**
-              - gradle/**
-            amt-deltaker: amt-deltaker/**
-            amt-distribusjon: amt-distribusjon/**
-            amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
-
-      - name: Debug changed modules
-        run: |
-          echo "Changed modules raw output:"
-          echo '${{ steps.filter.outputs.changes }}'
-
-  codeql:
-    needs: changes
-    if: ${{ github.event_name == 'schedule' || needs.changes.outputs.modules != '[]' }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        module: ${{ github.event_name == 'schedule' && fromJSON('["amt-deltaker-bff"]') || fromJSON(needs.changes.outputs.modules) }}
-        language: [java-kotlin]
+    timeout-minutes: 120
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v6
 
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: "25"
           cache: gradle
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
-          languages: ${{ matrix.language }}
-          build-mode: manual
+          languages: java-kotlin
+          queries: security-and-quality
 
-      - name: Build module(s) for CodeQL
-        shell: bash
-        run: ./gradlew :${{ matrix.module }}:assemble -x test --no-daemon --no-configuration-cache
+          # --no-parallel \
+          # --no-build-cache \
+      - name: Build project
+        run: |
+          ./gradlew assemble \
+            -x test \
+            --no-daemon \
+            --no-configuration-cache
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/language:java"
+          output: sarif-results
+          upload: failure-only
+
+      - name: Filter out false positives
+        uses: advanced-security/filter-sarif@v1
+        with:
+          patterns: |
+            -.gradle/**
+            -buildSrc/**
+          input: sarif-results/java.sarif
+          output: sarif-results/java.sarif
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: sarif-results/java.sarif
+
+      - name: Upload results
+        uses: actions/upload-artifact@v7
+        with:
+          name: sarif-results
+          path: sarif-results
+          retention-days: 1

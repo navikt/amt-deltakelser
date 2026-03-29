@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
 import no.nav.amt.distribusjon.utils.ClientTestBase
 import no.nav.amt.distribusjon.utils.createMockHttpClient
@@ -15,30 +15,26 @@ import java.util.UUID
 
 class AmtDeltakerClientTest : ClientTestBase() {
     @Test
-    fun `skal returnere deltakerliste nar getDeltaker kalles med gyldig respons`() {
+    fun `skal returnere deltakerliste nar getDeltaker kalles med gyldig respons`() = runTest {
         val expectedDeltaker = lagDeltakerResponse()
 
         val sut = createAmtDeltakerClient(
             responseBody = expectedDeltaker,
         )
 
-        val actualDeltaker = runBlocking {
-            sut.getDeltaker(deltakerId)
-        }
+        val actualDeltaker = sut.getDeltaker(deltakerId)
 
         actualDeltaker.gjennomforing shouldBe expectedDeltaker.gjennomforing
     }
 
     @Test
-    fun `skal kaste feil nar getDeltaker returnerer feilkode`() {
+    fun `skal kaste feil nar getDeltaker returnerer feilkode`() = runTest {
         val sut = createAmtDeltakerClient(
             HttpStatusCode.BadRequest,
         )
 
-        val thrown = runBlocking {
-            shouldThrow<IllegalStateException> {
-                sut.getDeltaker(deltakerId)
-            }
+        val thrown = shouldThrow<IllegalStateException> {
+            sut.getDeltaker(deltakerId)
         }
 
         thrown.message shouldStartWith "Kunne ikke hente deltaker fra amt-deltaker."

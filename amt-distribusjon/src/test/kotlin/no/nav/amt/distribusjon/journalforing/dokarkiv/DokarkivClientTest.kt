@@ -5,7 +5,7 @@ import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
 import no.nav.amt.distribusjon.utils.ClientTestBase
 import no.nav.amt.distribusjon.utils.createMockHttpClient
@@ -17,7 +17,7 @@ import java.util.UUID
 
 class DokarkivClientTest : ClientTestBase() {
     @Test
-    fun `skal returnere journalpostId nar opprettJournalpost kalles med gyldig respons`() {
+    fun `skal returnere journalpostId nar opprettJournalpost kalles med gyldig respons`() = runTest {
         val sut = createDokarkivClient(
             responseBody = expectedResponse,
         )
@@ -44,7 +44,7 @@ class DokarkivClientTest : ClientTestBase() {
     }
 
     @Test
-    fun `skal kaste feil nar opprettJournalpost returnerer feilkode`() {
+    fun `skal kaste feil nar opprettJournalpost returnerer feilkode`() = runTest {
         val sut = createDokarkivClient(
             HttpStatusCode.BadRequest,
         )
@@ -73,15 +73,13 @@ class DokarkivClientTest : ClientTestBase() {
         private val expectedHendelseId: UUID = UUID.randomUUID()
         private val expectedResponse = OpprettJournalpostResponse("~journalpostId~")
 
-        private fun DokarkivClient.runOpprettJournalpostWithTestParams(): String = runBlocking {
-            opprettJournalpost(
-                hendelseId = expectedHendelseId,
-                fnr = "~fnr~",
-                sak = Sak(oppfolgingsperiodeId, sakId = 42, fagsaksystem = "~fagsaksystem~"),
-                pdf = "Hello World".toByteArray(),
-                journalforendeEnhet = "~journalforendeEnhet~",
-                journalpostNavn = "~journalpostNavn~",
-            )
-        }
+        private suspend fun DokarkivClient.runOpprettJournalpostWithTestParams(): String = opprettJournalpost(
+            hendelseId = expectedHendelseId,
+            fnr = "~fnr~",
+            sak = Sak(oppfolgingsperiodeId, sakId = 42, fagsaksystem = "~fagsaksystem~"),
+            pdf = "Hello World".toByteArray(),
+            journalforendeEnhet = "~journalforendeEnhet~",
+            journalpostNavn = "~journalpostNavn~",
+        )
     }
 }
