@@ -6,31 +6,13 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.mockk
-import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
-import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
-import no.nav.amt.deltaker.bff.application.plugins.configureRouting
-import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
-import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorsDeltakerlisteProducer
-import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.utils.configureEnvForAuthentication
-import no.nav.amt.deltaker.bff.utils.data.TestData
+import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
@@ -42,212 +24,183 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
-import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class KladdApiTest {
-    private val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
-    private val deltakerRepository = mockk<DeltakerRepository>()
-    private val deltakerService = mockk<DeltakerService>()
-    private val pameldingService = mockk<PameldingService>()
-    private val navAnsattService = mockk<NavAnsattService>()
-    private val navEnhetService = mockk<NavEnhetService>()
-    private val forslagRepository = mockk<ForslagRepository>()
-    private val forslagService = mockk<ForslagService>()
-    private val amtDistribusjonClient = mockk<AmtDistribusjonClient>()
-    private val amtDeltakerClient = mockk<AmtDeltakerClient>()
-    private val tiltakskoordinatorTilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
-    private val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
-    private val tilgangskontrollService = TilgangskontrollService(
-        poaoTilgangCachedClient,
-        navAnsattService,
-        tiltakskoordinatorTilgangRepository,
-        tiltakskoordinatorsDeltakerlisteProducer,
-        mockk<TiltakskoordinatorService>(),
-        mockk<DeltakerlisteService>(),
-    )
-    private val deltakerlisteService = mockk<DeltakerlisteService>()
-
-    @BeforeEach
-    fun setup() = configureEnvForAuthentication()
-
+class KladdApiTest : RouteTestBase() {
     @Test
-    fun `post kladd - har tilgang - returnerer deltaker`() = testApplication {
-        val deltaker = TestData.lagDeltaker()
-        val ansatte = TestData.lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
-        val navEnhet = TestData.lagNavEnhet(id = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet)
+    fun `post kladd - har tilgang - returnerer deltaker`() {
+        val deltaker = lagDeltaker()
+        val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
+        val navEnhet = lagNavEnhet(id = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet)
 
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         coEvery { pameldingService.opprettKladd(any(), any()) } returns deltaker
         every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
         every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
-        setUpTestApplication()
+        withTestApplicationContext { httpClient ->
+            httpClient.post("/kladd") { createPostRequest(opprettKladdRequest) }.apply {
+                assertEquals(HttpStatusCode.OK, status)
 
-        client.post("/kladd") { createPostRequest(opprettKladdRequest) }.apply {
-            assertEquals(HttpStatusCode.OK, status)
+                val expected = DeltakerResponse.fromDeltaker(
+                    deltaker = deltaker,
+                    ansatte = ansatte,
+                    vedtakSistEndretAvEnhet = navEnhet,
+                    digitalBruker = true,
+                    forslag = emptyList(),
+                )
 
-            val expected = DeltakerResponse.fromDeltaker(
-                deltaker = deltaker,
-                ansatte = ansatte,
-                vedtakSistEndretAvEnhet = navEnhet,
-                digitalBruker = true,
-                forslag = emptyList(),
-            )
-
-            bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+                bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+            }
         }
     }
 
     @Test
-    fun `post - har ikke tilgang - returnerer 403`() = testApplication {
-        val deltaker = TestData.lagDeltaker()
+    fun `post - har ikke tilgang - returnerer 403`() {
+        val deltaker = lagDeltaker()
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
         every { deltakerRepository.get(any()) } returns Result.success(
-            TestData.lagDeltaker(
-                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             ),
         )
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
-        setUpTestApplication()
+        withTestApplicationContext { httpClient ->
+            httpClient.post("/kladd") { createPostRequest(opprettKladdRequest) }.status shouldBe HttpStatusCode.Forbidden
 
-        client.post("/kladd") { createPostRequest(opprettKladdRequest) }.status shouldBe HttpStatusCode.Forbidden
-        client
-            .post("/kladd/${UUID.randomUUID()}") {
-                createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
-            }.status shouldBe HttpStatusCode.Forbidden
-        client.post("/kladd/${UUID.randomUUID()}") { createPostRequest(kladdRequest) }.status shouldBe HttpStatusCode.Forbidden
-        client.delete("/kladd/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
+            httpClient
+                .post("/kladd/${UUID.randomUUID()}") {
+                    createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
+                }.status shouldBe HttpStatusCode.Forbidden
+
+            httpClient.post("/kladd/${UUID.randomUUID()}") { createPostRequest(kladdRequest) }.status shouldBe HttpStatusCode.Forbidden
+
+            httpClient.delete("/kladd/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
+        }
     }
 
     @Test
-    fun `post kladd - har tilgang - returnerer 200`() = testApplication {
+    fun `post kladd - har tilgang - returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         coEvery { pameldingService.upsertKladd(any()) } returns deltaker
 
-        setUpTestApplication()
-        client.post("/kladd/${deltaker.id}") { createPostRequest(kladdRequest) }.apply {
-            status shouldBe HttpStatusCode.OK
+        withTestApplicationContext { httpClient ->
+            httpClient.post("/kladd/${deltaker.id}") { createPostRequest(kladdRequest) }.apply {
+                status shouldBe HttpStatusCode.OK
+            }
         }
     }
 
     @Test
-    fun `post kladd - feil deltakerstatus - returnerer 400`() = testApplication {
+    fun `post kladd - feil deltakerstatus - returnerer 400`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         coEvery { pameldingService.upsertKladd(any()) } throws IllegalArgumentException()
 
-        setUpTestApplication()
-        client.post("/kladd/${deltaker.id}") { createPostRequest(kladdRequest) }.apply {
-            status shouldBe HttpStatusCode.BadRequest
+        withTestApplicationContext { httpClient ->
+            httpClient.post("/kladd/${deltaker.id}") { createPostRequest(kladdRequest) }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+            }
         }
     }
 
     @Test
-    fun `slett kladd - deltaker har ikke status KLADD - returnerer 400`() = testApplication {
+    fun `slett kladd - deltaker har ikke status KLADD - returnerer 400`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker =
-            TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+
         coEvery { pameldingService.slettKladd(deltaker) } returns false
 
-        setUpTestApplication()
-        client.delete("/kladd/${deltaker.id}") { noBodyRequest() }.apply {
-            status shouldBe HttpStatusCode.BadRequest
+        withTestApplicationContext { httpClient ->
+            httpClient.delete("/kladd/${deltaker.id}") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+            }
         }
     }
 
     @Test
-    fun `slett kladd - deltaker er KLADD - sletter deltaker og returnerer 200`() = testApplication {
+    fun `slett kladd - deltaker er KLADD - sletter deltaker og returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+
         coEvery { pameldingService.slettKladd(deltaker) } returns true
 
-        setUpTestApplication()
-        client.delete("/kladd/${deltaker.id}") { noBodyRequest() }.apply {
-            status shouldBe HttpStatusCode.OK
+        withTestApplicationContext { httpClient ->
+            httpClient.delete("/kladd/${deltaker.id}") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.OK
+            }
         }
     }
 
     @Test
-    fun `post - mangler token - returnerer 401`() = testApplication {
-        setUpTestApplication()
-        client.post("/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post("/kladd/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post("/kladd/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.delete("/kladd/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+    fun `post - mangler token - returnerer 401`() {
+        withTestApplicationContext { httpClient ->
+            httpClient.post("/kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            httpClient.post("/kladd/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            httpClient.post("/kladd/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            httpClient.delete("/kladd/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+        }
     }
 
     @Test
-    fun `post kladd - deltakerliste finnes ikke - returnerer 404`() = testApplication {
+    fun `post kladd - deltakerliste finnes ikke - returnerer 404`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         coEvery {
             pameldingService.opprettKladd(any(), any())
         } throws NoSuchElementException("Deltaker ikke funnet")
 
-        setUpTestApplication()
-
-        val response = client.post("/kladd") { createPostRequest(opprettKladdRequest) }
+        val response = withTestApplicationContext { httpClient ->
+            httpClient.post("/kladd") { createPostRequest(opprettKladdRequest) }
+        }
 
         response.status shouldBe HttpStatusCode.NotFound
     }
 
-    fun ApplicationTestBuilder.setUpTestApplication() {
-        application {
-            configureSerialization()
-            configureAuthentication(Environment())
-            configureRouting(
-                tilgangskontrollService = tilgangskontrollService,
-                deltakerRepository = deltakerRepository,
-                deltakerService = deltakerService,
-                pameldingService = pameldingService,
-                navAnsattService = navAnsattService,
-                navEnhetService = navEnhetService,
-                innbyggerService = mockk(),
-                forslagRepository = forslagRepository,
-                forslagService = forslagService,
-                amtDistribusjonClient = amtDistribusjonClient,
-                amtDeltakerClient = amtDeltakerClient,
-                arrangorsokClient = mockk(),
-                sporbarhetsloggService = mockk(),
-                deltakerlisteService = deltakerlisteService,
-                unleash = mockk(),
-                commonUnleashToggle = mockk(),
-                sporbarhetOgTilgangskontrollSvc = mockk(),
-                tiltakskoordinatorService = mockk(),
-                tiltakskoordinatorTilgangRepository = mockk(),
-                ulestHendelseService = mockk(),
-                testdataService = mockk(),
+    companion object {
+        private fun utkastRequest(innhold: List<InnholdRequest> = emptyList()) = UtkastRequest(
+            innhold = innhold,
+            bakgrunnsinformasjon = "Bakgrunnen for...",
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+        )
+
+        private val kladdRequest = KladdRequest(
+            innhold = emptyList(),
+            bakgrunnsinformasjon = "Bakgrunnen for...",
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+        )
+
+        private val opprettKladdRequest = OpprettKladdRequest(
+            deltakerlisteId = UUID.randomUUID(),
+            personident = "1234",
+        )
+
+        private fun List<Innhold>.toInnholdDto() = this.map {
+            InnholdRequest(
+                it.innholdskode,
+                it.beskrivelse,
             )
         }
     }
-
-    private fun utkastRequest(innhold: List<InnholdRequest> = emptyList()) = UtkastRequest(innhold, "Bakgrunnen for...", null, null)
-
-    private val kladdRequest = KladdRequest(emptyList(), "Bakgrunnen for...", null, null)
-    private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
-}
-
-private fun List<Innhold>.toInnholdDto() = this.map {
-    InnholdRequest(
-        it.innholdskode,
-        it.beskrivelse,
-    )
 }

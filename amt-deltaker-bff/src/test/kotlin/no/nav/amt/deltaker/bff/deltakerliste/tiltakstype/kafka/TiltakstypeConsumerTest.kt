@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.kafka
 
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.toV2
@@ -31,7 +31,7 @@ class TiltakstypeConsumerTest {
         )
         val consumer = TiltakstypeConsumer(tiltakstypeRepository)
 
-        runBlocking {
+        runTest {
             consumer.consume(
                 tiltakstype.id,
                 objectMapper.writeValueAsString(tiltakstypeDto),
