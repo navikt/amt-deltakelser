@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.auth
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.kafka.utils.assertProduced
 import no.nav.amt.deltaker.bff.kafka.utils.assertProducedTombstone
@@ -90,7 +90,7 @@ class TilgangskontrollServiceTest {
     @Nested
     inner class LeggTilTiltakskoordinatorTilgang {
         @Test
-        fun `har ikke tilgang fra for - returnerer success`(): Unit = runBlocking {
+        fun `har ikke tilgang fra for - returnerer success`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
 
@@ -102,7 +102,7 @@ class TilgangskontrollServiceTest {
         }
 
         @Test
-        fun `med inaktiv tilgang fra for - returnerer success`(): Unit = runBlocking {
+        fun `med inaktiv tilgang fra for - returnerer success`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medInaktivTilgang()
 
@@ -115,7 +115,7 @@ class TilgangskontrollServiceTest {
         }
 
         @Test
-        fun `har tilgang fra for - returnerer failure`(): Unit = runBlocking {
+        fun `har tilgang fra for - returnerer failure`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
@@ -127,7 +127,7 @@ class TilgangskontrollServiceTest {
     @Nested
     inner class FjernTiltakskoordinatorTilgang {
         @Test
-        fun `har tilgang fra for - returnerer success`(): Unit = runBlocking {
+        fun `har tilgang fra for - returnerer success`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
@@ -139,7 +139,7 @@ class TilgangskontrollServiceTest {
         }
 
         @Test
-        fun `har ikke tilgang fra for - returnerer failure`(): Unit = runBlocking {
+        fun `har ikke tilgang fra for - returnerer failure`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(
                     navIdent = navAnsatt.navIdent,
@@ -150,7 +150,7 @@ class TilgangskontrollServiceTest {
         }
 
         @Test
-        fun `med inaktiv tilgang fra for - returnerer failure`(): Unit = runBlocking {
+        fun `med inaktiv tilgang fra for - returnerer failure`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medInaktivTilgang()
                 val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(
@@ -163,7 +163,7 @@ class TilgangskontrollServiceTest {
     }
 
     @Test
-    fun `verifiserTiltakskoordinatorTilgang - har tilgang - kaster ikke exception`(): Unit = runBlocking {
+    fun `verifiserTiltakskoordinatorTilgang - har tilgang - kaster ikke exception`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
             tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
@@ -171,7 +171,7 @@ class TilgangskontrollServiceTest {
     }
 
     @Test
-    fun `verifiserTiltakskoordinatorTilgang - har ingen tilgang - kaster exception`(): Unit = runBlocking {
+    fun `verifiserTiltakskoordinatorTilgang - har ingen tilgang - kaster exception`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             assertThrows<AuthorizationException> {
                 tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
@@ -180,7 +180,7 @@ class TilgangskontrollServiceTest {
     }
 
     @Test
-    fun `verifiserTiltakskoordinatorTilgang - har inaktiv tilgang - kaster exception`(): Unit = runBlocking {
+    fun `verifiserTiltakskoordinatorTilgang - har inaktiv tilgang - kaster exception`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medInaktivTilgang()
             assertThrows<AuthorizationException> {
@@ -263,7 +263,7 @@ class TilgangskontrollServiceTest {
             medAktivTilgang()
             val stengtTilgang = tilgangskontrollService.stengTiltakskoordinatorTilgang(tilgang.id)
 
-            runBlocking {
+            runTest {
                 assertThrows<AuthorizationException> {
                     tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
                 }

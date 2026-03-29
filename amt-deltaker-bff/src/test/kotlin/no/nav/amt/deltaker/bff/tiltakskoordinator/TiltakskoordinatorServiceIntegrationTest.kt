@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.deltakerOppdateringResponseFromDeltaker
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -65,7 +65,7 @@ class TiltakskoordinatorServiceIntegrationTest {
     }
 
     @Test
-    fun `tildelPlass - returnerer og lagrer deltaker med ny status`(): Unit = runBlocking {
+    fun `tildelPlass - returnerer og lagrer deltaker med ny status`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val navEnhet = TestData.lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
         val navAnsatt = TestData.lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
@@ -106,7 +106,7 @@ class TiltakskoordinatorServiceIntegrationTest {
     }
 
     @Test
-    fun `settPaaVenteliste - returnerer og lagrer deltaker med ny status`(): Unit = runBlocking {
+    fun `settPaaVenteliste - returnerer og lagrer deltaker med ny status`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val navEnhet = TestData.lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
         val navAnsatt = TestData.lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
@@ -147,7 +147,7 @@ class TiltakskoordinatorServiceIntegrationTest {
     }
 
     @Test
-    fun `settPaaVenteliste - en deltaker feiler i amt-deltaker - returnerer deltaker med feilkode`(): Unit = runBlocking {
+    fun `settPaaVenteliste - en deltaker feiler i amt-deltaker - returnerer deltaker med feilkode`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val navEnhet = TestData.lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
         val navAnsatt = TestData.lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)

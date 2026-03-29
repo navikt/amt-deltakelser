@@ -6,6 +6,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
+import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
@@ -15,6 +16,7 @@ import no.nav.amt.deltaker.bff.application.plugins.configureRouting
 import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
+import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorsDeltakerlisteProducer
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
@@ -31,10 +33,12 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
+import no.nav.poao_tilgang.client.Decision
+import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
+import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
 
 abstract class RouteTestBase {
-    protected val tilgangskontrollService: TilgangskontrollService = mockk(relaxed = true)
     protected val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
     protected val deltakerService: DeltakerService = mockk(relaxed = true)
     protected val pameldingService: PameldingService = mockk(relaxed = true)
@@ -54,11 +58,22 @@ abstract class RouteTestBase {
     protected val tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository = mockk(relaxed = true)
     protected val ulestHendelseService: UlestHendelseService = mockk(relaxed = true)
     protected val testdataService: TestdataService = mockk(relaxed = true)
+    protected val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
+    protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
+    protected open val tilgangskontrollService = TilgangskontrollService(
+        poaoTilgangCachedClient = poaoTilgangCachedClient,
+        navAnsattService = navAnsattService,
+        tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
+        tiltakskoordinatorsDeltakerlisteProducer = tiltakskoordinatorsDeltakerlisteProducer,
+        tiltakskoordinatorService = tiltakskoordinatorService,
+        deltakerlisteService = deltakerlisteService,
+    )
 
     @BeforeEach
     protected fun init() {
         clearAllMocks()
         configureEnvForAuthentication()
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
     }
 
     protected fun <T : Any> withTestApplicationContext(block: suspend (HttpClient) -> T): T {
