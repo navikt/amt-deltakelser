@@ -36,8 +36,7 @@ class PameldingApiTest : RouteTestBase() {
 
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() {
-        val deltaker =
-            TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
 
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
@@ -93,13 +92,13 @@ class PameldingApiTest : RouteTestBase() {
         private val avbrytUtkastRequest = AvbrytUtkastRequest("Z123456", "0101")
 
         private val utkastRequest = UtkastRequest(
-            Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
-            "bakgrunn og sånn",
-            50F,
-            3F,
-            "Z123456",
-            "0101",
-            false,
+            deltakelsesinnhold = Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
+            bakgrunnsinformasjon = "bakgrunn og sånn",
+            deltakelsesprosent = 50F,
+            dagerPerUke = 3F,
+            endretAv = "Z123456",
+            endretAvEnhet = "0101",
+            godkjentAvNav = false,
         )
     }
 }
