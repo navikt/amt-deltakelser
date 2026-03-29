@@ -60,7 +60,7 @@ abstract class RouteTestBase {
     protected val testdataService: TestdataService = mockk(relaxed = true)
     protected val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
-    protected val tilgangskontrollService = TilgangskontrollService(
+    protected open val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient = poaoTilgangCachedClient,
         navAnsattService = navAnsattService,
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
