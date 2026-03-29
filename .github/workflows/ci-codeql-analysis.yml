@@ -74,3 +74,26 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:java"
+          output: sarif-results
+          upload: none
+
+      - name: Filter out false positives
+        uses: advanced-security/filter-sarif@v1
+        with:
+          patterns: |
+            -.gradle/**
+            -buildSrc/**
+          input: sarif-results/java.sarif
+          output: sarif-results/java.sarif
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: sarif-results/java.sarif
+
+      - name: Upload results
+        uses: actions/upload-artifact@v7
+        with:
+          name: sarif-results
+          path: sarif-results
+          retention-days: 1
