@@ -114,17 +114,17 @@ class InnbyggerApiTest : RouteTestBase() {
     @Test
     fun `godkjenn-utkast - deltaker har ti'lgang - fatter vedtak`() = runTest {
         val deltaker = InnbyggerTestUtils.deltakerMedIkkeFattetVedtak()
-        val deltakerMedFattetVedak = deltaker.fattVedtak()
+        val deltakerMedFattetVedtak = deltaker.fattVedtak()
 
-        coEvery { innbyggerService.godkjennUtkast(deltaker) } returns deltakerMedFattetVedak
-        val (ansatte, enhet) = setupMocks(deltaker, deltakerMedFattetVedak)
+        coEvery { innbyggerService.godkjennUtkast(deltaker) } returns deltakerMedFattetVedtak
+        val (ansatte, enhet) = setupMocks(deltaker, deltakerMedFattetVedtak)
 
         withTestApplicationContext { httpClient ->
             val httpResponse = httpClient.post("/innbygger/${deltaker.id}/godkjenn-utkast") { noBodyRequest() }
 
             httpResponse.status shouldBe HttpStatusCode.OK
             httpResponse.bodyAsText() shouldBe objectMapper.writeValueAsString(
-                deltakerMedFattetVedak.toInnbyggerDeltakerResponse(
+                deltakerMedFattetVedtak.toInnbyggerDeltakerResponse(
                     ansatte = ansatte,
                     vedtakSistEndretAvEnhet = enhet,
                     forslag = emptyList(),
