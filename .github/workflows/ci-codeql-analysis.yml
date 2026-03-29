@@ -94,7 +94,9 @@ jobs:
 
       - name: Build module(s) for CodeQL
         shell: bash
-        run: ./gradlew :${{ matrix.module }}:assemble -x test --no-daemon --no-configuration-cache
+        run: ./gradlew :${{ matrix.module }}:assemble -x test --no-daemon
+        env:
+          JAVA_TOOL_OPTIONS: "-Dkotlin.daemon.jvmargs=-Xmx4g"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
