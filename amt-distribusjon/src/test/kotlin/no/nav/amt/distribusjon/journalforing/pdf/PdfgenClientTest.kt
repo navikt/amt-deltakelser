@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
 import no.nav.amt.distribusjon.utils.ClientTestBase
 import no.nav.amt.distribusjon.utils.createMockHttpClient
@@ -21,150 +21,130 @@ import java.util.UUID
 
 class PdfgenClientTest : ClientTestBase() {
     @Test
-    fun `skal returnere ByteArray nar genererHovedvedtak kalles med gyldig respons`() {
+    fun `skal returnere ByteArray nar genererHovedvedtak kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_HOVEDVEDTAK_INDIVIDUELL_OPPFOLGING_URL,
             responseBody = expectedResponse,
         )
 
-        val actualResponse = runBlocking {
+        val actualResponse = sut.genererHovedvedtakForIndividuellOppfolging(hovedVedtakPdfDto)
+
+        actualResponse shouldBe expectedResponse
+    }
+
+    @Test
+    fun `skal kaste feil nar genererHovedvedtak returnerer feilkode`() = runTest {
+        val sut = createPdfgenClient(
+            expectedUrl = GENERER_HOVEDVEDTAK_INDIVIDUELL_OPPFOLGING_URL,
+            statusCode = HttpStatusCode.BadGateway,
+        )
+
+        val thrown = shouldThrow<IllegalStateException> {
             sut.genererHovedvedtakForIndividuellOppfolging(hovedVedtakPdfDto)
         }
 
-        actualResponse shouldBe expectedResponse
-    }
-
-    @Test
-    fun `skal kaste feil nar genererHovedvedtak returnerer feilkode`() {
-        val sut = createPdfgenClient(
-            expectedUrl = GENERER_HOVEDVEDTAK_INDIVIDUELL_OPPFOLGING_URL,
-            statusCode = HttpStatusCode.BadGateway,
-        )
-
-        val thrown = runBlocking {
-            shouldThrow<IllegalStateException> {
-                sut.genererHovedvedtakForIndividuellOppfolging(hovedVedtakPdfDto)
-            }
-        }
-
         thrown.message shouldStartWith "Kunne ikke hente opprette hovedvedtak-pdf i amt-pdfgen."
     }
 
     @Test
-    fun `skal returnere ByteArray nar genererHovedvedtakFellesOppstart kalles med gyldig respons`() {
+    fun `skal returnere ByteArray nar genererHovedvedtakFellesOppstart kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_HOVEDVEDTAK_TILDEL_LOEPENDE_OPPSTART_URL,
             responseBody = expectedResponse,
         )
 
-        val actualResponse = runBlocking {
+        val actualResponse = sut.genererHovedvedtakTildeltPlassLoependeOppstart(hovedopptakFellesOppstart)
+
+        actualResponse shouldBe expectedResponse
+    }
+
+    @Test
+    fun `skal kaste feil nar genererHovedvedtakFellesOppstart returnerer feilkode`() = runTest {
+        val sut = createPdfgenClient(
+            expectedUrl = GENERER_HOVEDVEDTAK_TILDEL_LOEPENDE_OPPSTART_URL,
+            statusCode = HttpStatusCode.BadGateway,
+        )
+
+        val thrown = shouldThrow<IllegalStateException> {
             sut.genererHovedvedtakTildeltPlassLoependeOppstart(hovedopptakFellesOppstart)
         }
 
-        actualResponse shouldBe expectedResponse
-    }
-
-    @Test
-    fun `skal kaste feil nar genererHovedvedtakFellesOppstart returnerer feilkode`() {
-        val sut = createPdfgenClient(
-            expectedUrl = GENERER_HOVEDVEDTAK_TILDEL_LOEPENDE_OPPSTART_URL,
-            statusCode = HttpStatusCode.BadGateway,
-        )
-
-        val thrown = runBlocking {
-            shouldThrow<IllegalStateException> {
-                sut.genererHovedvedtakTildeltPlassLoependeOppstart(hovedopptakFellesOppstart)
-            }
-        }
-
         thrown.message shouldStartWith "Kunne ikke hente opprette hovedvedtak-pdf i amt-pdfgen."
     }
 
     @Test
-    fun `skal returnere ByteArray nar genererInnsokingsbrevPDF kalles med gyldig respons`() {
+    fun `skal returnere ByteArray nar genererInnsokingsbrevPDF kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_INNSOKINGSBREV_PDF_URL,
             responseBody = expectedResponse,
         )
 
-        val actualResponse = runBlocking {
-            sut.genererInnsokingsbrevPDF(innsokingsbrevPdfDto)
-        }
+        val actualResponse = sut.genererInnsokingsbrevPDF(innsokingsbrevPdfDto)
 
         actualResponse shouldBe expectedResponse
     }
 
     @Test
-    fun `skal kaste feil nar genererInnsokingsbrevPDF returnerer feilkode`() {
+    fun `skal kaste feil nar genererInnsokingsbrevPDF returnerer feilkode`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_INNSOKINGSBREV_PDF_URL,
             statusCode = HttpStatusCode.BadGateway,
         )
 
-        val thrown = runBlocking {
-            shouldThrow<IllegalStateException> {
-                sut.genererInnsokingsbrevPDF(innsokingsbrevPdfDto)
-            }
+        val thrown = shouldThrow<IllegalStateException> {
+            sut.genererInnsokingsbrevPDF(innsokingsbrevPdfDto)
         }
 
         thrown.message shouldStartWith "Kunne ikke hente opprette kurs-innsoking-pdf i amt-pdfgen."
     }
 
     @Test
-    fun `skal returnere ByteArray nar genererVentelistebrevPDF kalles med gyldig respons`() {
+    fun `skal returnere ByteArray nar genererVentelistebrevPDF kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_VENTELISTEBREV_PDF_URL,
             responseBody = expectedResponse,
         )
 
-        val actualResponse = runBlocking {
-            sut.genererVentelistebrevPDF(ventelistebrevPdfDto)
-        }
+        val actualResponse = sut.genererVentelistebrevPDF(ventelistebrevPdfDto)
 
         actualResponse shouldBe expectedResponse
     }
 
     @Test
-    fun `skal kaste feil nar genererVentelistebrevPDF returnerer feilkode`() {
+    fun `skal kaste feil nar genererVentelistebrevPDF returnerer feilkode`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_VENTELISTEBREV_PDF_URL,
             statusCode = HttpStatusCode.BadGateway,
         )
 
-        val thrown = runBlocking {
-            shouldThrow<IllegalStateException> {
-                sut.genererVentelistebrevPDF(ventelistebrevPdfDto)
-            }
+        val thrown = shouldThrow<IllegalStateException> {
+            sut.genererVentelistebrevPDF(ventelistebrevPdfDto)
         }
 
         thrown.message shouldStartWith "Kunne ikke hente opprette venteliste-pdf i amt-pdfgen."
     }
 
     @Test
-    fun `skal returnere ByteArray nar endringsvedtak kalles med gyldig respons`() {
+    fun `skal returnere ByteArray nar endringsvedtak kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = ENDRINGSVEDTAK_URL,
             responseBody = expectedResponse,
         )
 
-        val actualResponse = runBlocking {
-            sut.endringsvedtak(endringsvedtakPdfDto)
-        }
+        val actualResponse = sut.endringsvedtak(endringsvedtakPdfDto)
 
         actualResponse shouldBe expectedResponse
     }
 
     @Test
-    fun `skal kaste feil nar endringsvedtak returnerer feilkode`() {
+    fun `skal kaste feil nar endringsvedtak returnerer feilkode`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = ENDRINGSVEDTAK_URL,
             statusCode = HttpStatusCode.BadGateway,
         )
 
-        val thrown = runBlocking {
-            shouldThrow<IllegalStateException> {
-                sut.endringsvedtak(endringsvedtakPdfDto)
-            }
+        val thrown = shouldThrow<IllegalStateException> {
+            sut.endringsvedtak(endringsvedtakPdfDto)
         }
 
         thrown.message shouldStartWith "Kunne ikke hente opprette endringsvedtak-pdf i amt-pdfgen."
@@ -187,9 +167,9 @@ class PdfgenClientTest : ClientTestBase() {
     companion object {
         private val expectedResponse = "Hello World!".toByteArray()
 
-        private const val GENERER_HOVEDVEDTAK_URL = "http://localhost/api/v1/genpdf/amt/hovedvedtak"
         private const val GENERER_HOVEDVEDTAK_INDIVIDUELL_OPPFOLGING_URL =
             "http://localhost/api/v1/genpdf/amt/hovedvedtak-individuell-oppfolging"
+
         private const val GENERER_HOVEDVEDTAK_TILDEL_LOEPENDE_OPPSTART_URL =
             "http://localhost/api/v1/genpdf/amt/hovedvedtak-tildelt-plass-loepende-oppstart"
 
