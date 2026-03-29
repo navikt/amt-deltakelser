@@ -112,7 +112,7 @@ class InnbyggerApiTest : RouteTestBase() {
     }
 
     @Test
-    fun `godkjenn-utkast - deltaker har ti'lgang - fatter vedtak`() = runTest {
+    fun `godkjenn-utkast - deltaker har tilgang - fatter vedtak`() = runTest {
         val deltaker = InnbyggerTestUtils.deltakerMedIkkeFattetVedtak()
         val deltakerMedFattetVedtak = deltaker.fattVedtak()
 
