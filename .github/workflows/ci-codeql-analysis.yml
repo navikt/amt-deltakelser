@@ -1,86 +1,36 @@
 name: CodeQL
 
 on:
-  merge_group:
   push:
-    branches:
-      - main
-    paths:
-      - "amt-deltaker/**"
-      - "amt-deltaker-bff/**"
-      - "amt-distribusjon/**"
-      - "amt-felles/**"
-      - "amt-lib/**"
-      - "amt-tiltaksarrangor-bff/**"
-      - "buildSrc/**"
-      - "gradle/**"
-
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
-    paths:
-      - "amt-deltaker/**"
-      - "amt-deltaker-bff/**"
-      - "amt-distribusjon/**"
-      - "amt-felles/**"
-      - "amt-lib/**"
-      - "amt-tiltaksarrangor-bff/**"
-      - "buildSrc/**"
-      - "gradle/**"
-
+    branches: [ main ]
   schedule:
-    - cron: '28 9 * * 2'  # Ukentlig full scan, tirsdager kl 09:28
+    - cron: "28 9 * * 2"
 
 permissions:
   contents: read
   security-events: write
 
 jobs:
-  changes:
+  analyze:
+    name: Analyze Kotlin
     runs-on: ubuntu-latest
-    outputs:
-      modules: ${{ steps.filter.outputs.changes }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@v4
-        id: filter
-        with:
-          filters: |
-            # vi bruker amt-deltaker-bff for endringer i felles-libs
-            amt-deltaker-bff: 
-              - amt-deltaker-bff/**
-              - amt-felles/**
-              - amt-lib/**
-              - buildSrc/**
-              - gradle/**
-            amt-deltaker: amt-deltaker/**
-            amt-distribusjon: amt-distribusjon/**
-            amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
+    timeout-minutes: 120
 
-      - name: Debug changed modules
-        run: |
-          echo "Changed modules raw output:"
-          echo '${{ steps.filter.outputs.changes }}'
-
-  codeql:
-    needs: changes
-    if: ${{ github.event_name == 'schedule' || needs.changes.outputs.modules != '[]' }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        module: ${{ github.event_name == 'schedule' && fromJSON('["amt-deltaker-bff"]') || fromJSON(needs.changes.outputs.modules) }}
-        language: [java-kotlin]
+    env:
+      GRADLE_OPTS: "-Xmx6g"
+      KOTLIN_COMPILER_EXECUTION_STRATEGY: "in-process"
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v6
 
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: "25"
           cache: gradle
 
       - name: Setup Gradle
@@ -89,16 +39,20 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
-          languages: ${{ matrix.language }}
-          build-mode: manual
+          languages: java-kotlin
+          queries: security-and-quality
 
-      - name: Build module(s) for CodeQL
-        shell: bash
-        run: ./gradlew :${{ matrix.module }}:assemble -x test --no-daemon
-        env:
-          JAVA_TOOL_OPTIONS: "-Dkotlin.daemon.jvmargs=-Xmx4g"
+      - name: Build project
+        run: |
+          ./gradlew assemble \
+            -x test \
+            --no-daemon \
+            --no-parallel \
+            --no-build-cache \
+            --no-configuration-cache \
+            -Dkotlin.compiler.execution.strategy=in-process
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/language:java"
