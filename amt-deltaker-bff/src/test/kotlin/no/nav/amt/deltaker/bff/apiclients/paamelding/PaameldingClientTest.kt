@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
@@ -163,7 +163,7 @@ class PaameldingClientTest {
             block: suspend (PaameldingClient) -> Any,
         ) {
             val thrown = Assertions.assertThrows(exceptionType.java) {
-                runBlocking {
+                runTest {
                     block(createPaameldingClient(expectedUrl, statusCode))
                 }
             }
@@ -174,7 +174,7 @@ class PaameldingClientTest {
             expectedUrl: String,
             expectedResponse: T,
             block: suspend (PaameldingClient) -> T,
-        ) = runBlocking {
+        ) = runTest {
             val deltakerClient = createPaameldingClient(expectedUrl, HttpStatusCode.OK, expectedResponse)
 
             if (expectedResponse == null) {

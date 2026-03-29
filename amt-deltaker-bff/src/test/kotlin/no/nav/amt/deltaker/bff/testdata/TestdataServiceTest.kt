@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.testdata
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
@@ -117,7 +117,7 @@ class TestdataServiceTest {
         MockResponseHandler.addOpprettKladdResponse(kladd)
         MockResponseHandler.addUtkastResponse(godkjentUtkast)
 
-        runBlocking {
+        runTest {
             val deltaker = testdataService.opprettDeltakelse(opprettTestDeltakelseRequest)
 
             val deltakerFraDb = deltakerRepository.getMany(navBruker.personident, deltakerliste.id).first()

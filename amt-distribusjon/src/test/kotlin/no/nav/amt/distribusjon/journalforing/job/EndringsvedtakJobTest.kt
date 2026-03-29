@@ -5,7 +5,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.journalforing.JournalforingService
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
@@ -21,39 +21,40 @@ import java.util.UUID
 
 class EndringsvedtakJobTest {
     @Test
-    fun `journalforEndringsvedtak - journalforer og distribuerer endringsvedtak naar nyeste hendelse er eldre enn graceperiode`() {
-        val deltakerIdA = UUID.randomUUID()
-        val deltakerIdB = UUID.randomUUID()
+    fun `journalforEndringsvedtak - journalforer og distribuerer endringsvedtak naar nyeste hendelse er eldre enn graceperiode`() =
+        runTest {
+            val deltakerIdA = UUID.randomUUID()
+            val deltakerIdB = UUID.randomUUID()
 
-        val hendelser = listOf(
-            // Deltaker A: to endringsvedtak, begge eldre enn graceperiode => skal behandles samlet
-            hendelseMedStatus(deltakerId = deltakerIdA, opprettet = LocalDateTime.now().minusMinutes(60)),
-            hendelseMedStatus(deltakerId = deltakerIdA, opprettet = LocalDateTime.now().minusMinutes(40)),
-            // Deltaker B: endringsvedtak men nyeste er innenfor graceperiode => skal ikke behandles
-            hendelseMedStatus(deltakerId = deltakerIdB, opprettet = LocalDateTime.now().minusMinutes(10)),
-            // Ikke-endringsvedtak (utkast) skal filtreres bort
-            hendelseMedStatus(
-                deltakerId = deltakerIdA,
-                opprettet = LocalDateTime.now().minusMinutes(70),
-                payload = HendelseTypeData.opprettUtkast(),
-            ),
-        )
-
-        val test = testSetup(hendelser)
-
-        runBlocking { test.job.journalforEndringsvedtak() }
-
-        coVerify(exactly = 1) {
-            test.journalforingService.journalforOgDistribuerEndringsvedtak(
-                match { liste ->
-                    liste.size == 2 && liste.all { it.hendelse.deltaker.id == deltakerIdA }
-                },
+            val hendelser = listOf(
+                // Deltaker A: to endringsvedtak, begge eldre enn graceperiode => skal behandles samlet
+                hendelseMedStatus(deltakerId = deltakerIdA, opprettet = LocalDateTime.now().minusMinutes(60)),
+                hendelseMedStatus(deltakerId = deltakerIdA, opprettet = LocalDateTime.now().minusMinutes(40)),
+                // Deltaker B: endringsvedtak men nyeste er innenfor graceperiode => skal ikke behandles
+                hendelseMedStatus(deltakerId = deltakerIdB, opprettet = LocalDateTime.now().minusMinutes(10)),
+                // Ikke-endringsvedtak (utkast) skal filtreres bort
+                hendelseMedStatus(
+                    deltakerId = deltakerIdA,
+                    opprettet = LocalDateTime.now().minusMinutes(70),
+                    payload = HendelseTypeData.opprettUtkast(),
+                ),
             )
+
+            val test = testSetup(hendelser)
+
+            test.job.journalforEndringsvedtak()
+
+            coVerify(exactly = 1) {
+                test.journalforingService.journalforOgDistribuerEndringsvedtak(
+                    match { liste ->
+                        liste.size == 2 && liste.all { it.hendelse.deltaker.id == deltakerIdA }
+                    },
+                )
+            }
         }
-    }
 
     @Test
-    fun `journalforEndringsvedtak - behandler ikke hendelser innenfor graceperiode`() {
+    fun `journalforEndringsvedtak - behandler ikke hendelser innenfor graceperiode`() = runTest {
         val deltakerId = UUID.randomUUID()
 
         val hendelser = listOf(
@@ -62,13 +63,13 @@ class EndringsvedtakJobTest {
 
         val test = testSetup(hendelser)
 
-        runBlocking { test.job.journalforEndringsvedtak() }
+        test.job.journalforEndringsvedtak()
 
         coVerify(exactly = 0) { test.journalforingService.journalforOgDistribuerEndringsvedtak(any()) }
     }
 
     @Test
-    fun `journalforEndringsvedtak - fortsetter med neste deltaker hvis journalforing feiler for en deltaker`() {
+    fun `journalforEndringsvedtak - fortsetter med neste deltaker hvis journalforing feiler for en deltaker`() = runTest {
         val deltakerIdA = UUID.randomUUID()
         val deltakerIdB = UUID.randomUUID()
 
@@ -98,7 +99,7 @@ class EndringsvedtakJobTest {
             )
         } returns Unit
 
-        runBlocking { test.job.journalforEndringsvedtak() }
+        test.job.journalforEndringsvedtak()
 
         // Verifiserer at begge deltakere faktisk blir forsøkt
         coVerify(exactly = 1) {

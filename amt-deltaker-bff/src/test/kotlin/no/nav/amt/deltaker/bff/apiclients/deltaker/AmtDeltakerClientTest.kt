@@ -5,7 +5,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.data.TestData
@@ -627,7 +626,7 @@ class AmtDeltakerClientTest {
             block: suspend (AmtDeltakerClient) -> Any,
         ) {
             val thrown = Assertions.assertThrows(exceptionType.java) {
-                runBlocking {
+                runTest {
                     block(createDeltakerClient(expectedUrl, statusCode))
                 }
             }
@@ -638,7 +637,7 @@ class AmtDeltakerClientTest {
             expectedUrl: String,
             expectedResponse: T,
             block: suspend (AmtDeltakerClient) -> T,
-        ) = runBlocking {
+        ) = runTest {
             val deltakerClient = createDeltakerClient(
                 expectedUrl = expectedUrl,
                 statusCode = HttpStatusCode.OK,

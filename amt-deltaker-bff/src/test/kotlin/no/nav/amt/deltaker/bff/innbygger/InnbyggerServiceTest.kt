@@ -2,11 +2,12 @@ package no.nav.amt.deltaker.bff.innbygger
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.sammenlignVedtak
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.deltakerMedIkkeFattetVedtak
+import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.fattVedtak
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils.sammenlignDeltakere
@@ -37,7 +38,7 @@ class InnbyggerServiceTest {
     fun `godkjennUtkast - har feil status - feiler`() {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
+            runTest {
                 innbyggerService.godkjennUtkast(deltaker)
             }
         }

@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.CountingCache
@@ -31,21 +31,21 @@ class AmtDistribusjonClientTest {
     }
 
     @Test
-    fun `digitalBruker skal returnere true`(): Unit = runBlocking {
+    fun `digitalBruker skal returnere true`() = runTest {
         val distribusjonClient = createAmtDistribusjonClient(responseBody = DigitalBrukerResponse(erDigital = true))
         val erDigitalBruker = distribusjonClient.digitalBruker("~personident~")
         erDigitalBruker shouldBe true
     }
 
     @Test
-    fun `digitalBruker skal returnere false`(): Unit = runBlocking {
+    fun `digitalBruker skal returnere false`() = runTest {
         val distribusjonClient = createAmtDistribusjonClient(responseBody = DigitalBrukerResponse(erDigital = false))
         val erDigitalBruker = distribusjonClient.digitalBruker("~personident~")
         erDigitalBruker shouldBe false
     }
 
     @Test
-    fun `skal bruke cache ved andre kall til digitalBruker`(): Unit = runBlocking {
+    fun `skal bruke cache ved andre kall til digitalBruker`() = runTest {
         val countingCache = CountingCache<String, Boolean>()
 
         val distribusjonClient = createAmtDistribusjonClient(
@@ -66,7 +66,7 @@ class AmtDistribusjonClientTest {
             block: suspend (AmtDistribusjonClient) -> Any,
         ) {
             val thrown = Assertions.assertThrows(exceptionType.java) {
-                runBlocking {
+                runTest {
                     block(createAmtDistribusjonClient(statusCode))
                 }
             }

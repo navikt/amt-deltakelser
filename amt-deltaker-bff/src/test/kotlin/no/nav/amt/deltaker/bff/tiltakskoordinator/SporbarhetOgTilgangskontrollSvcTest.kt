@@ -8,7 +8,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
@@ -37,15 +37,13 @@ class SporbarhetOgTilgangskontrollSvcTest {
     }
 
     @Test
-    fun `skal kalle riktige tjenester og returnere resultat`() {
-        val harTilgang = runBlocking {
-            sut.kontrollerTilgangTilBruker(
-                NAV_IDENT,
-                navAnsattAzureId,
-                navBruker,
-                deltakerlisteId,
-            )
-        }
+    fun `skal kalle riktige tjenester og returnere resultat`() = runTest {
+        val harTilgang = sut.kontrollerTilgangTilBruker(
+            NAV_IDENT,
+            navAnsattAzureId,
+            navBruker,
+            deltakerlisteId,
+        )
 
         harTilgang shouldBe true
 

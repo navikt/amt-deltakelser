@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.arrangor
 
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.utils.objectMapper
@@ -21,7 +21,7 @@ class ArrangorConsumerTest {
         val arrangor = lagArrangor()
         val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
-        runBlocking {
+        runTest {
             arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
         }
 
@@ -37,7 +37,7 @@ class ArrangorConsumerTest {
 
         val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
-        runBlocking {
+        runTest {
             arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
         }
 
@@ -51,7 +51,7 @@ class ArrangorConsumerTest {
 
         val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
-        runBlocking {
+        runTest {
             arrangorConsumer.consume(arrangor.id, null)
         }
 

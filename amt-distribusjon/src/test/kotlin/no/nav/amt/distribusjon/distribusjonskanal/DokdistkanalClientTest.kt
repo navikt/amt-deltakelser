@@ -5,7 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
 import no.nav.amt.distribusjon.utils.ClientTestBase
 import no.nav.amt.distribusjon.utils.CountingCache
@@ -15,20 +15,18 @@ import java.util.UUID
 
 class DokdistkanalClientTest : ClientTestBase() {
     @Test
-    fun `skal returnere DITT_NAV nar bestemDistribusjonskanal kalles med `() {
+    fun `skal returnere DITT_NAV nar bestemDistribusjonskanal kalles med `() = runTest {
         val sut = createDokdistkanalClient(
             responseBody = expectedResponse,
         )
 
-        val actualResponse = runBlocking {
-            sut.bestemDistribusjonskanal(PERSON_IDENT, deltakerId)
-        }
+        val actualResponse = sut.bestemDistribusjonskanal(PERSON_IDENT, deltakerId)
 
         actualResponse shouldBe expectedResponse.distribusjonskanal
     }
 
     @Test
-    fun `skal bruke cache ved andre kall til bestemDistribusjonskanal`() {
+    fun `skal bruke cache ved andre kall til bestemDistribusjonskanal`() = runTest {
         val countingCache = CountingCache<String, Distribusjonskanal>()
 
         val sut = createDokdistkanalClient(
@@ -36,35 +34,29 @@ class DokdistkanalClientTest : ClientTestBase() {
             cache = countingCache,
         )
 
-        runBlocking {
-            sut.bestemDistribusjonskanal(PERSON_IDENT, null)
-            sut.bestemDistribusjonskanal(PERSON_IDENT, null)
-        }
+        sut.bestemDistribusjonskanal(PERSON_IDENT, null)
+        sut.bestemDistribusjonskanal(PERSON_IDENT, null)
 
         countingCache.putCount shouldBe 1
     }
 
     @Test
-    fun `skal kaste feil nar bestemDistribusjonskanal returnerer feilkode, deltakerId != null`() {
+    fun `skal kaste feil nar bestemDistribusjonskanal returnerer feilkode, deltakerId != null`() = runTest {
         val sut = createDokdistkanalClient(statusCode = HttpStatusCode.BadGateway)
 
-        val thrown = runBlocking {
-            shouldThrow<IllegalStateException> {
-                sut.bestemDistribusjonskanal(PERSON_IDENT, deltakerId)
-            }
+        val thrown = shouldThrow<IllegalStateException> {
+            sut.bestemDistribusjonskanal(PERSON_IDENT, deltakerId)
         }
 
         thrown.message shouldStartWith "Kunne ikke hente distribusjonskanal for deltaker"
     }
 
     @Test
-    fun `skal kaste feil nar bestemDistribusjonskanal returnerer feilkode, deltakerId = null`() {
+    fun `skal kaste feil nar bestemDistribusjonskanal returnerer feilkode, deltakerId = null`() = runTest {
         val sut = createDokdistkanalClient(statusCode = HttpStatusCode.BadGateway)
 
-        val thrown = runBlocking {
-            shouldThrow<IllegalStateException> {
-                sut.bestemDistribusjonskanal(PERSON_IDENT, null)
-            }
+        val thrown = shouldThrow<IllegalStateException> {
+            sut.bestemDistribusjonskanal(PERSON_IDENT, null)
         }
 
         thrown.message shouldStartWith "Kunne ikke hente distribusjonskanal, status"

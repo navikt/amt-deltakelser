@@ -7,6 +7,8 @@ import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.mockk
+import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerlisteResponse
@@ -28,6 +30,8 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
+    override val tilgangskontrollService: TilgangskontrollService = mockk()
+
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->

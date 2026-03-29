@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
@@ -94,7 +94,7 @@ class TiltaksKoordinatorClientTest {
             block: suspend (TiltaksKoordinatorClient) -> Any,
         ) {
             val thrown = Assertions.assertThrows(exceptionType.java) {
-                runBlocking {
+                runTest {
                     block(createTiltaksKoordinatorClient(expectedUrl, statusCode))
                 }
             }
@@ -105,7 +105,7 @@ class TiltaksKoordinatorClientTest {
             expectedUrl: String,
             expectedResponse: T,
             block: suspend (TiltaksKoordinatorClient) -> T,
-        ) = runBlocking {
+        ) = runTest {
             val deltakerClient = createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.OK, expectedResponse)
 
             if (expectedResponse == null) {

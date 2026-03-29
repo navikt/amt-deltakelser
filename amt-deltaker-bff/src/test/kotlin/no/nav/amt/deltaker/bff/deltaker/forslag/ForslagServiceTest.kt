@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.deltaker.forslag
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.bff.kafka.utils.assertProduced
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
@@ -36,7 +36,7 @@ class ForslagServiceTest {
     }
 
     @Test
-    fun `avvisForslag - produserer avvist forslag og sletter i db`(): Unit = runBlocking {
+    fun `avvisForslag - produserer avvist forslag og sletter i db`() = runTest {
         val deltaker = TestData.lagDeltaker()
         TestRepository.insert(deltaker)
         val navAnsatt = TestData.lagNavAnsatt()

@@ -5,7 +5,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
 import no.nav.amt.distribusjon.utils.ClientTestBase
 import no.nav.amt.distribusjon.utils.createMockHttpClient
@@ -15,7 +15,7 @@ import java.util.UUID
 
 class DokdistfordelingClientTest : ClientTestBase() {
     @Test
-    fun `skal returnere bestillingsId nar distribuerJournalpost kalles med gyldig respons`() {
+    fun `skal returnere bestillingsId nar distribuerJournalpost kalles med gyldig respons`() = runTest {
         val sut = createDokdistfordelingClient(
             responseBody = expectedResponse,
         )
@@ -60,7 +60,7 @@ class DokdistfordelingClientTest : ClientTestBase() {
     }
 
     @Test
-    fun `skal kaste feil nar distribuerJournalpost kalles med response som returnerer feilkode forskjellig fra 409 og 410`() {
+    fun `skal kaste feil nar distribuerJournalpost kalles med response som returnerer feilkode forskjellig fra 409 og 410`() = runTest {
         val sut = createDokdistfordelingClient(
             HttpStatusCode.BadGateway,
         )
@@ -90,12 +90,10 @@ class DokdistfordelingClientTest : ClientTestBase() {
         private val bestillingsId: UUID = UUID.randomUUID()
         private val expectedResponse = DistribuerJournalpostResponse(bestillingsId)
 
-        private fun DokdistfordelingClient.runDistribuerJournalpostWithTestParams(): UUID? = runBlocking {
-            distribuerJournalpost(
-                journalpostId = JOURNAL_POST_ID,
-                distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
-                tvingSentralPrint = true,
-            )
-        }
+        private suspend fun DokdistfordelingClient.runDistribuerJournalpostWithTestParams(): UUID? = distribuerJournalpost(
+            journalpostId = JOURNAL_POST_ID,
+            distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
+            tvingSentralPrint = true,
+        )
     }
 }

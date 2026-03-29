@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.bff.navansatt
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -26,7 +26,7 @@ class NavAnsattConsumerTest {
         val navAnsatt = TestData.lagNavAnsatt()
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
 
-        runBlocking {
+        runTest {
             navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(navAnsatt.toDto()))
         }
 
@@ -40,7 +40,7 @@ class NavAnsattConsumerTest {
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
 
-        runBlocking {
+        runTest {
             navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(oppdatertNavAnsatt.toDto()))
         }
 
@@ -53,7 +53,7 @@ class NavAnsattConsumerTest {
         navAnsattRepository.upsert(navAnsatt)
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
 
-        runBlocking {
+        runTest {
             navAnsattConsumer.consume(navAnsatt.id, null)
         }
 
