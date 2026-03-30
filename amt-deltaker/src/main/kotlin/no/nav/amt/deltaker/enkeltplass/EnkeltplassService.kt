@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.enkeltplass
 
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
@@ -33,18 +34,14 @@ class EnkeltplassService(
 
         // TODO: Har vi noe annet vi kan sjekke her?
         if (gjennomforing.status != GjennomforingStatusType.KLADD) {
-            log.info("Kan ikke opprette gjennomforing hos Mulighetsrommet for deltaker med id $deltakerId som ikke er i kladd")
+            log.info("Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd")
             return
         }
 
-        val oppdatertDeltaker = deltaker.copy(
-            status = deltaker.status.copy(type = DeltakerStatus.Type.SOKT_INN),
-        )
-
         Database.transaction {
             deltakerService.lagreDeltakerStatus(
-                deltakerId = oppdatertDeltaker.id,
-                nyDeltakerStatus = oppdatertDeltaker.status,
+                deltakerId = deltaker.id,
+                nyDeltakerStatus = nyDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
                 erDeltakerSluttdatoEndret = false,
             )
 

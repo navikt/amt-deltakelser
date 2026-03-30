@@ -57,7 +57,7 @@ class EnkeltplassServiceTest {
         every {
             deltakerService.lagreDeltakerStatus(
                 deltakerId = deltakerInTest.id,
-                nyDeltakerStatus = deltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
+                nyDeltakerStatus = match { it.type == DeltakerStatus.Type.SOKT_INN },
                 erDeltakerSluttdatoEndret = false,
             )
         } just runs
