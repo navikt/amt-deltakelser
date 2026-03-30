@@ -14,8 +14,6 @@ data class PameldingUtenGodkjenningRequest(
     val deltakelsesprosent: Int?,
     val dagerPerUke: Int?,
 ) {
-    private val kanMeldePaDirekteStatuser = listOf(DeltakerStatus.Type.KLADD, DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
-
     fun valider(deltaker: Deltaker) {
         require(deltaker.status.type in kanMeldePaDirekteStatuser) {
             "Kan ikke melde på direkte for deltaker med status ${deltaker.status.type}"
@@ -27,6 +25,13 @@ data class PameldingUtenGodkjenningRequest(
             innhold,
             deltaker.deltakerliste.tiltak.innhold,
             deltaker.deltakerliste.tiltak.tiltakskode,
+        )
+    }
+
+    companion object {
+        private val kanMeldePaDirekteStatuser = listOf(
+            DeltakerStatus.Type.KLADD,
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
         )
     }
 }

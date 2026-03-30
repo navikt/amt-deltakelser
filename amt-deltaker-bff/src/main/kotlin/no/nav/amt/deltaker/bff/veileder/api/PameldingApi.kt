@@ -2,8 +2,6 @@ package no.nav.amt.deltaker.bff.veileder.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
-import io.ktor.server.request.ApplicationRequest
-import io.ktor.server.request.header
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
@@ -153,10 +151,4 @@ fun Routing.registerPameldingApi(
             call.respond(HttpStatusCode.OK)
         }
     }
-}
-
-fun ApplicationRequest.headerNotNull(navn: String): String {
-    val header = call.request.header(navn)
-    require(header != null) { "Påkrevd header: $navn er null" }
-    return header
 }

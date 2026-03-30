@@ -64,6 +64,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseProducer
@@ -349,6 +350,11 @@ fun Application.module() {
         tiltakRepository = tiltakstypeRepository,
     )
 
+    val enkeltplassService = EnkeltplassService(
+        deltakerRepository = deltakerRepository,
+        gjennomforingRequestProducer = gjennomforingRequestProducer,
+    )
+
     val deltakerLaaseService = DeltakerLaaseService(
         deltakerRepository = deltakerRepository,
         importertFraArenaRepository = importertFraArenaRepository,
@@ -423,6 +429,7 @@ fun Application.module() {
         vedtakRepository = vedtakRepository,
         responseBuilder = responseBuilder,
         kladdService = kladdService,
+        enkeltplassService = enkeltplassService,
     )
     configureMonitoring()
 

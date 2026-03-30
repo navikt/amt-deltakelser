@@ -31,6 +31,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -46,6 +47,7 @@ abstract class RouteTestBase {
 
     protected val pameldingService: PameldingService = mockk(relaxed = true)
     protected val kladdService: KladdService = mockk(relaxed = true)
+    protected val enkeltplassService: EnkeltplassService = mockk(relaxed = true)
     protected val deltakerService: DeltakerService = mockk(relaxed = true)
     protected val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
     protected val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
@@ -86,24 +88,25 @@ abstract class RouteTestBase {
                     opprettKladdRequestValidator = opprettKladdRequestValidator,
                 )
                 configureRouting(
-                    pameldingService,
-                    kladdService,
-                    deltakerService,
-                    deltakerRepository,
-                    deltakerHistorikkService,
-                    tilgangskontrollService,
-                    deltakelserResponseMapper,
-                    deltakerProducerService,
-                    vedtakService,
-                    unleashToggle,
-                    innsokPaaFellesOppstartRepository,
-                    vurderingRepository,
-                    hendelseService,
-                    endringFraTiltakskoordinatorRepository,
-                    navEnhetService,
-                    vedtakRepository,
-                    navAnsattService,
-                    responseBuilder,
+                    pameldingService = pameldingService,
+                    kladdService = kladdService,
+                    enkeltplassService = enkeltplassService,
+                    deltakerService = deltakerService,
+                    deltakerRepository = deltakerRepository,
+                    deltakerHistorikkService = deltakerHistorikkService,
+                    tilgangskontrollService = tilgangskontrollService,
+                    deltakelserResponseMapper = deltakelserResponseMapper,
+                    deltakerProducerService = deltakerProducerService,
+                    vedtakService = vedtakService,
+                    unleashToggle = unleashToggle,
+                    innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+                    vurderingRepository = vurderingRepository,
+                    hendelseService = hendelseService,
+                    endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+                    navEnhetService = navEnhetService,
+                    vedtakRepository = vedtakRepository,
+                    navAnsattService = navAnsattService,
+                    responseBuilder = responseBuilder,
                 )
                 setUpTestRoute()
             }
