@@ -9,6 +9,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
@@ -37,6 +38,7 @@ import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
+import java.util.UUID
 
 abstract class RouteTestBase {
     protected val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
@@ -47,8 +49,11 @@ abstract class RouteTestBase {
     protected val innbyggerService: InnbyggerService = mockk(relaxed = true)
     protected val forslagRepository: ForslagRepository = mockk(relaxed = true)
     protected val forslagService: ForslagService = mockk(relaxed = true)
+
     protected val amtDistribusjonClient: AmtDistribusjonClient = mockk(relaxed = true)
     protected val amtDeltakerClient = mockk<AmtDeltakerClient>(relaxed = true)
+    protected val arrangorsokClient = mockk<ArrangorsokClient>(relaxed = true)
+
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk(relaxed = true)
     protected val deltakerlisteService: DeltakerlisteService = mockk(relaxed = true)
     protected val unleash: Unleash = mockk(relaxed = true)
@@ -76,6 +81,13 @@ abstract class RouteTestBase {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
     }
 
+    val bearerTokenInTest = generateJWT(
+        consumerClientId = "frontend-clientid",
+        navAnsattAzureId = UUID.randomUUID().toString(),
+        audience = "deltaker-bff",
+        groups = listOf(UUID(0L, 0L).toString()),
+    )
+
     protected fun <T : Any> withTestApplicationContext(block: suspend (HttpClient) -> T): T {
         lateinit var result: T
 
@@ -84,26 +96,27 @@ abstract class RouteTestBase {
                 configureSerialization()
                 configureAuthentication(Environment())
                 configureRouting(
-                    tilgangskontrollService,
-                    deltakerService,
-                    pameldingService,
-                    navAnsattService,
-                    navEnhetService,
-                    innbyggerService,
-                    forslagRepository,
-                    forslagService,
-                    amtDistribusjonClient,
-                    amtDeltakerClient,
-                    sporbarhetsloggService,
-                    deltakerRepository,
-                    deltakerlisteService,
-                    unleash,
-                    commonUnleashToggle,
-                    sporbarhetOgTilgangskontrollSvc,
-                    tiltakskoordinatorService,
-                    tiltakskoordinatorTilgangRepository,
-                    ulestHendelseService,
-                    testdataService,
+                    tilgangskontrollService = tilgangskontrollService,
+                    deltakerService = deltakerService,
+                    pameldingService = pameldingService,
+                    navAnsattService = navAnsattService,
+                    navEnhetService = navEnhetService,
+                    innbyggerService = innbyggerService,
+                    forslagRepository = forslagRepository,
+                    forslagService = forslagService,
+                    amtDistribusjonClient = amtDistribusjonClient,
+                    amtDeltakerClient = amtDeltakerClient,
+                    arrangorsokClient = arrangorsokClient,
+                    sporbarhetsloggService = sporbarhetsloggService,
+                    deltakerRepository = deltakerRepository,
+                    deltakerlisteService = deltakerlisteService,
+                    unleash = unleash,
+                    commonUnleashToggle = commonUnleashToggle,
+                    sporbarhetOgTilgangskontrollSvc = sporbarhetOgTilgangskontrollSvc,
+                    tiltakskoordinatorService = tiltakskoordinatorService,
+                    tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
+                    ulestHendelseService = ulestHendelseService,
+                    testdataService = testdataService,
                 )
             }
 

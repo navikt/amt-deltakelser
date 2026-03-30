@@ -68,6 +68,8 @@ spec:
           namespace: team-mulighetsrommet
         - application: poao-tilgang
           namespace: poao
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
       external:
         - host: amt-unleash-api.nav.cloud.nais.io
   env:
@@ -95,6 +97,10 @@ spec:
       value: http://amt-distribusjon
     - name: AD_ROLLE_TILTAKSKOORDINATOR
       value: {{ad_rolle_tiltak_koordinator}}
+    - name: MULIGHETSROMMET_API_SCOPE
+      value: api://prod-gcp.team-mulighetsrommet.mulighetsrommet-api/.default
+    - name: MULIGHETSROMMET_API_URL
+      value: http://mulighetsrommet-api.team-mulighetsrommet.svc.cluster.local
 
   gcp:
     sqlInstances:

@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
+import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
@@ -165,6 +166,13 @@ fun Application.module() {
     val amtDistribusjonClient = AmtDistribusjonClient(
         baseUrl = environment.amtDistribusjonUrl,
         scope = environment.amtDistribusjonScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
+
+    val arrangorsokClient = ArrangorsokClient(
+        baseUrl = environment.mulighetsrommetApiUrl,
+        scope = environment.mulighetsrommetApiScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
@@ -334,6 +342,7 @@ fun Application.module() {
         forslagService = forslagService,
         amtDistribusjonClient = amtDistribusjonClient,
         amtDeltakerClient = amtDeltakerClient,
+        arrangorsokClient = arrangorsokClient,
         sporbarhetsloggService = sporbarhetsloggService,
         deltakerRepository = deltakerRepository,
         deltakerlisteService = deltakerlisteService,

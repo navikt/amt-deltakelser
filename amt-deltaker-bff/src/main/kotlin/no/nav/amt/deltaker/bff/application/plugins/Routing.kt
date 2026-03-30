@@ -13,6 +13,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
@@ -38,6 +39,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.api.registerTiltakskoordinator
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.registerUlestHendelseApi
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.unleash.registerUnleashApi
+import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
 import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi
 import no.nav.amt.deltaker.bff.veileder.api.registerVeilederApi
@@ -59,6 +61,7 @@ fun Application.configureRouting(
     forslagService: ForslagService,
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
+    arrangorsokClient: ArrangorsokClient,
     sporbarhetsloggService: SporbarhetsloggService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteService: DeltakerlisteService,
@@ -168,6 +171,8 @@ fun Application.configureRouting(
         )
 
         registerUlestHendelseApi(ulestHendelseService)
+
+        registerArrangorsokApi(arrangorsokClient = arrangorsokClient)
 
         if (!Environment.isProd()) {
             registerTestdataApi(testdataService)
