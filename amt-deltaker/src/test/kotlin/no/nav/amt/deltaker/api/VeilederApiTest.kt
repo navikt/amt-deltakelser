@@ -22,11 +22,11 @@ import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
-import no.nav.amt.internapi.deltaker.request.InnholdRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
@@ -73,7 +73,7 @@ class VeilederApiTest : RouteTestBase() {
 
     @Test
     fun `post innhold - har tilgang - returnerer 200`() {
-        val innholdRequest = InnholdRequest(
+        val innholdRequest = EndretInnholdRequest(
             endretAv = TestData.randomIdent(),
             endretAvEnhet = TestData.randomEnhetsnummer(),
             deltakelsesinnhold = Deltakelsesinnhold(

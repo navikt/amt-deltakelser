@@ -4,7 +4,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import java.time.LocalDate
 import java.util.UUID
 
-data class DeltakerUpdateDbo(
+data class EnkeltplassKladdUpdateDbo(
     val id: UUID,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,

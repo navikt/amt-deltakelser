@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
+import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode

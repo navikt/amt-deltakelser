@@ -2,12 +2,12 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequestFromFrontend
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
+import no.nav.amt.internapi.deltaker.annetInnholdselement
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
@@ -31,8 +31,8 @@ class InnholdDtoTest {
         val annetBeskrivelse = "annet må ha en beskrivelse"
 
         val valgtInnhold = listOf(
-            InnholdRequest(innholdselement.innholdskode, null),
-            InnholdRequest(annetInnholdselement.innholdskode, annetBeskrivelse),
+            InnholdsElementRequest(innholdselement.innholdskode, null),
+            InnholdsElementRequest(annetInnholdselement.innholdskode, annetBeskrivelse),
         ).toInnholdModel(deltaker = deltaker)
         valgtInnhold shouldBe listOf(
             innholdselement.toInnhold(true),
@@ -42,7 +42,7 @@ class InnholdDtoTest {
 
     @Test
     fun `finnValgtInnhold - annet - annet skal bli valgt`() {
-        val innholdRequest = objectMapper.readValue<EndreInnholdRequest>(
+        val innholdRequest = objectMapper.readValue<EndreInnholdRequestFromFrontend>(
             """    	
             {
               "innhold": [

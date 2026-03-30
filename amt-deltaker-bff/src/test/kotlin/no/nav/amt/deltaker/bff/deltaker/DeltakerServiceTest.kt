@@ -30,10 +30,10 @@ import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
 import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
-import no.nav.amt.internapi.deltaker.request.InnholdRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
@@ -212,7 +212,7 @@ class DeltakerServiceTest {
                     endretAvEnhet = navEnhet.enhetsnummer,
                     bakgrunnsinformasjon = "foo",
                 ),
-                InnholdRequest(
+                EndretInnholdRequest(
                     endretAv = "~endretAv~",
                     endretAvEnhet = navEnhet.enhetsnummer,
                     deltakelsesinnhold = Deltakelsesinnhold(
@@ -326,7 +326,7 @@ class DeltakerServiceTest {
                     is BakgrunnsinformasjonRequest ->
                         oppdatertDeltaker.bakgrunnsinformasjon shouldBe endringRequest.bakgrunnsinformasjon
 
-                    is InnholdRequest -> {
+                    is EndretInnholdRequest -> {
                         oppdatertDeltaker.deltakelsesinnhold.shouldNotBeNull().innhold shouldBe endringRequest.deltakelsesinnhold.innhold
                         oppdatertDeltaker.deltakelsesinnhold.ledetekst shouldBe endringRequest.deltakelsesinnhold.ledetekst
                     }

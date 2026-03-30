@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequestFromFrontend
+import no.nav.amt.internapi.deltaker.annetInnholdselement
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import org.junit.jupiter.api.Test
@@ -28,8 +28,8 @@ class EndreInnholdValideringTest {
                 ),
                 innhold = listOf(Innhold("Type", "type", true, null)),
             )
-            val request = EndreInnholdRequest(
-                innhold = listOf(InnholdRequest("type", null)),
+            val request = EndreInnholdRequestFromFrontend(
+                innhold = listOf(InnholdsElementRequest("type", null)),
             )
 
             request.valider(deltaker)
@@ -54,10 +54,10 @@ class EndreInnholdValideringTest {
                 ),
                 innhold = listOf(Innhold("Type", "type", true, null)),
             )
-            val request = EndreInnholdRequest(
+            val request = EndreInnholdRequestFromFrontend(
                 innhold = listOf(
-                    InnholdRequest("type", null),
-                    InnholdRequest("type2", null),
+                    InnholdsElementRequest("type", null),
+                    InnholdsElementRequest("type2", null),
                 ),
             )
 
@@ -82,9 +82,9 @@ class EndreInnholdValideringTest {
                 ),
                 innhold = listOf(Innhold(annetInnholdselement.tekst, annetInnholdselement.innholdskode, true, "Gammel tekst")),
             )
-            val request = EndreInnholdRequest(
+            val request = EndreInnholdRequestFromFrontend(
                 innhold = listOf(
-                    InnholdRequest(annetInnholdselement.innholdskode, "Ny tekst"),
+                    InnholdsElementRequest(annetInnholdselement.innholdskode, "Ny tekst"),
                 ),
             )
 

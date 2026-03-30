@@ -17,7 +17,7 @@ data class EndreAvslutningRequest(
     val begrunnelse: String?,
     val sluttdato: LocalDate? = null,
     override val forslagId: UUID?,
-) : EndringsforslagRequest {
+) : EndringMedForslagRequest {
     private val kanEndreAvslutning =
         listOf(DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT, DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.DELTAR)
 

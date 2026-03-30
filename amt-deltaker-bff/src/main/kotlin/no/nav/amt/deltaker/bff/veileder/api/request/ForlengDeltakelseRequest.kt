@@ -13,7 +13,7 @@ data class ForlengDeltakelseRequest(
     val sluttdato: LocalDate,
     val begrunnelse: String?,
     override val forslagId: UUID?,
-) : EndringsforslagRequest {
+) : EndringMedForslagRequest {
     override fun valider(deltaker: Deltaker) {
         require(!nySluttdatoErTidligereEnnForrigeSluttdato(deltaker)) {
             "Ny sluttdato må være etter opprinnelig sluttdato ved forlengelse"

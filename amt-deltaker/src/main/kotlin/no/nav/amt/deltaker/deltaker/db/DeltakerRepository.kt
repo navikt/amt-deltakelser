@@ -76,6 +76,7 @@ class DeltakerRepository {
     }
 
     // TODO: Fjerne denne til fordel for upsert(deltaker: DeltakerUpsertDbo)
+    // Denne kan evt kalle upsert(deltaker: DeltakerUpsertDbo)
     fun upsert(deltaker: Deltaker) {
         val sql =
             """
@@ -139,7 +140,7 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
     }
 
-    fun upsert(deltaker: DeltakerInsertDbo) {
+    fun upsert(deltaker: DeltakerUpsertDbo) {
         val sql =
             """
             INSERT INTO deltaker (
@@ -199,7 +200,7 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
     }
 
-    fun update(deltaker: DeltakerUpdateDbo) {
+    fun update(deltaker: EnkeltplassKladdUpdateDbo) {
         val sql =
             """
             UPDATE deltaker

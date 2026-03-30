@@ -12,7 +12,7 @@ data class EndreSluttdatoRequest(
     val sluttdato: LocalDate,
     val begrunnelse: String?,
     override val forslagId: UUID?,
-) : EndringsforslagRequest {
+) : EndringMedForslagRequest {
     private val kanEndreSluttdato = listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT)
 
     override fun valider(deltaker: Deltaker) {

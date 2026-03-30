@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.bff.veileder.api.utils
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.input
-import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
+import no.nav.amt.internapi.deltaker.annetInnholdselement
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
@@ -102,11 +102,11 @@ class InputvalideringTest {
         val tiltakstype = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
 
         shouldThrow<IllegalArgumentException> {
-            validerDeltakelsesinnhold(listOf(InnholdRequest("type", null)), null, tiltakstype)
+            validerDeltakelsesinnhold(listOf(InnholdsElementRequest("type", null)), null, tiltakstype)
         }
         shouldThrow<IllegalArgumentException> {
             validerDeltakelsesinnhold(
-                listOf(InnholdRequest("type", null)),
+                listOf(InnholdsElementRequest("type", null)),
                 TestData.lagDeltakerRegistreringInnhold(innholdselementer = emptyList()),
                 tiltakstype,
             )
@@ -118,34 +118,34 @@ class InputvalideringTest {
             validerDeltakelsesinnhold(emptyList(), null, tiltakstype)
         }
         shouldThrow<IllegalArgumentException> {
-            validerDeltakelsesinnhold(listOf(InnholdRequest("foo", null)), tiltaksinnhold, tiltakstype)
+            validerDeltakelsesinnhold(listOf(InnholdsElementRequest("foo", null)), tiltaksinnhold, tiltakstype)
         }
         shouldThrow<IllegalArgumentException> {
-            validerDeltakelsesinnhold(listOf(InnholdRequest(annetInnholdselement.innholdskode, null)), tiltaksinnhold, tiltakstype)
+            validerDeltakelsesinnhold(listOf(InnholdsElementRequest(annetInnholdselement.innholdskode, null)), tiltaksinnhold, tiltakstype)
         }
         shouldThrow<IllegalArgumentException> {
-            validerDeltakelsesinnhold(listOf(InnholdRequest(annetInnholdselement.innholdskode, "")), tiltaksinnhold, tiltakstype)
+            validerDeltakelsesinnhold(listOf(InnholdsElementRequest(annetInnholdselement.innholdskode, "")), tiltaksinnhold, tiltakstype)
         }
         shouldNotThrow<IllegalArgumentException> {
             validerDeltakelsesinnhold(
-                listOf(InnholdRequest(annetInnholdselement.innholdskode, "annet innhold må ha beskrivelse")),
+                listOf(InnholdsElementRequest(annetInnholdselement.innholdskode, "annet innhold må ha beskrivelse")),
                 tiltaksinnhold,
                 tiltakstype,
             )
         }
         shouldNotThrow<IllegalArgumentException> {
-            validerDeltakelsesinnhold(listOf(InnholdRequest("type", null)), tiltaksinnhold, tiltakstype)
+            validerDeltakelsesinnhold(listOf(InnholdsElementRequest("type", null)), tiltaksinnhold, tiltakstype)
         }
         shouldThrow<IllegalArgumentException> {
             validerDeltakelsesinnhold(
-                listOf(InnholdRequest("type", "andre typer enn annet skal ikke ha beskrivelse")),
+                listOf(InnholdsElementRequest("type", "andre typer enn annet skal ikke ha beskrivelse")),
                 tiltaksinnhold,
                 tiltakstype,
             )
         }
         shouldNotThrow<IllegalArgumentException> {
             validerDeltakelsesinnhold(
-                listOf(InnholdRequest(annetInnholdselement.innholdskode, "annet er tillatt for VTA")),
+                listOf(InnholdsElementRequest(annetInnholdselement.innholdskode, "annet er tillatt for VTA")),
                 DeltakerRegistreringInnhold(emptyList(), "Ledetekst"),
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
             )
@@ -177,11 +177,11 @@ class InputvalideringTest {
         val tiltakstype = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
 
         shouldThrow<IllegalArgumentException> {
-            validerKladdInnhold(listOf(InnholdRequest("type", null)), null, tiltakstype)
+            validerKladdInnhold(listOf(InnholdsElementRequest("type", null)), null, tiltakstype)
         }
         shouldThrow<IllegalArgumentException> {
             validerKladdInnhold(
-                listOf(InnholdRequest("type", null)),
+                listOf(InnholdsElementRequest("type", null)),
                 TestData.lagDeltakerRegistreringInnhold(innholdselementer = emptyList()),
                 tiltakstype,
             )
@@ -193,34 +193,34 @@ class InputvalideringTest {
             validerKladdInnhold(emptyList(), null, tiltakstype)
         }
         shouldThrow<IllegalArgumentException> {
-            validerKladdInnhold(listOf(InnholdRequest("foo", null)), tiltaksinnhold, tiltakstype)
+            validerKladdInnhold(listOf(InnholdsElementRequest("foo", null)), tiltaksinnhold, tiltakstype)
         }
         shouldNotThrow<IllegalArgumentException> {
-            validerKladdInnhold(listOf(InnholdRequest(annetInnholdselement.innholdskode, null)), tiltaksinnhold, tiltakstype)
+            validerKladdInnhold(listOf(InnholdsElementRequest(annetInnholdselement.innholdskode, null)), tiltaksinnhold, tiltakstype)
         }
         shouldNotThrow<IllegalArgumentException> {
-            validerKladdInnhold(listOf(InnholdRequest(annetInnholdselement.innholdskode, "")), tiltaksinnhold, tiltakstype)
+            validerKladdInnhold(listOf(InnholdsElementRequest(annetInnholdselement.innholdskode, "")), tiltaksinnhold, tiltakstype)
         }
         shouldNotThrow<IllegalArgumentException> {
             validerKladdInnhold(
-                listOf(InnholdRequest(annetInnholdselement.innholdskode, "annet innhold må ha beskrivelse")),
+                listOf(InnholdsElementRequest(annetInnholdselement.innholdskode, "annet innhold må ha beskrivelse")),
                 tiltaksinnhold,
                 tiltakstype,
             )
         }
         shouldNotThrow<IllegalArgumentException> {
-            validerKladdInnhold(listOf(InnholdRequest("type", null)), tiltaksinnhold, tiltakstype)
+            validerKladdInnhold(listOf(InnholdsElementRequest("type", null)), tiltaksinnhold, tiltakstype)
         }
         shouldThrow<IllegalArgumentException> {
             validerKladdInnhold(
-                listOf(InnholdRequest("type", "andre typer enn annet skal ikke ha beskrivelse")),
+                listOf(InnholdsElementRequest("type", "andre typer enn annet skal ikke ha beskrivelse")),
                 tiltaksinnhold,
                 tiltakstype,
             )
         }
         shouldNotThrow<IllegalArgumentException> {
             validerDeltakelsesinnhold(
-                listOf(InnholdRequest(annetInnholdselement.innholdskode, "annet er tillatt for VTA")),
+                listOf(InnholdsElementRequest(annetInnholdselement.innholdskode, "annet er tillatt for VTA")),
                 DeltakerRegistreringInnhold(emptyList(), "Ledetekst"),
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
             )

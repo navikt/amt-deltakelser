@@ -49,7 +49,12 @@ fun Routing.registerPameldingApi(
     )
 
     authenticate("VEILEDER") {
+        // opprett("Del utkast") utkast og Endre-utkast
+        // Kladd/utkast -> Utkast
         post("/pamelding/{deltakerId}") {
+            // post /utkast/{deltakerId}
+            // inngang: require status utkast/kladd
+            // utgang require status utkast
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
             val digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident)
 
@@ -102,6 +107,8 @@ fun Routing.registerPameldingApi(
             call.respond(HttpStatusCode.OK)
         }
 
+        // Direktepåmelding "Meld på uten å dele utkast"
+        // KLADD/UTKAST -> Venter på oppstart/søkt inn
         post("/pamelding/{deltakerId}/utenGodkjenning") {
             val request = call.receive<PameldingUtenGodkjenningRequest>()
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()

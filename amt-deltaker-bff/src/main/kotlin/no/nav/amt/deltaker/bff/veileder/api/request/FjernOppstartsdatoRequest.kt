@@ -9,7 +9,7 @@ import java.util.UUID
 data class FjernOppstartsdatoRequest(
     val begrunnelse: String?,
     override val forslagId: UUID?,
-) : EndringsforslagRequest {
+) : EndringMedForslagRequest {
     override fun valider(deltaker: Deltaker) {
         require(deltaker.status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART) {
             "Kan ikke fjerne oppstartsdato for deltaker som ikke venter på oppstart"

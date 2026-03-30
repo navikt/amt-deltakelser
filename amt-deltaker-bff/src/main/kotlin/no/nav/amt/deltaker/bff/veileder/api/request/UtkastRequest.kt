@@ -5,10 +5,11 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.validerBakgrunnsinformasjon
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDagerPerUke
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesProsent
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesinnhold
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 data class UtkastRequest(
-    val innhold: List<InnholdRequest>,
+    val innhold: List<InnholdsElementRequest>,
     val bakgrunnsinformasjon: String?,
     val deltakelsesprosent: Int?,
     val dagerPerUke: Int?,
