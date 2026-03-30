@@ -64,6 +64,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -267,6 +268,10 @@ fun Application.module() {
     val deltakerEksternV1Producer = DeltakerEksternV1Producer(
         outboxService = outboxService,
         producer = kafkaProducer,
+    )
+
+    val gjennomforingRequestProducer = GjennomforingRequestProducer(
+        outboxService = outboxService,
     )
 
     val deltakerProducerService =
