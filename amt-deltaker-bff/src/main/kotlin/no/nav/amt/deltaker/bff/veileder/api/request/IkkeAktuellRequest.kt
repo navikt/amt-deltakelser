@@ -14,7 +14,7 @@ data class IkkeAktuellRequest(
     val aarsak: DeltakerEndring.Aarsak,
     val begrunnelse: String?,
     override val forslagId: UUID?,
-) : EndringsforslagRequest {
+) : EndringMedForslagRequest {
     private val kanBliIkkeAktuell = listOf(
         DeltakerStatus.Type.VENTER_PA_OPPSTART,
         DeltakerStatus.Type.DELTAR,

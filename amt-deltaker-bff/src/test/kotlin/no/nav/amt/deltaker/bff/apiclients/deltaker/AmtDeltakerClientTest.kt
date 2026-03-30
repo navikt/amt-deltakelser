@@ -15,11 +15,11 @@ import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
+import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
-import no.nav.amt.internapi.deltaker.request.InnholdRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
@@ -109,7 +109,7 @@ class AmtDeltakerClientTest {
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
-                    requestBody = InnholdRequest(
+                    requestBody = EndretInnholdRequest(
                         endretAv = "~endretAv~",
                         endretAvEnhet = "~endretAvEnhet~",
                         deltakelsesinnhold = innhold,
@@ -125,7 +125,7 @@ class AmtDeltakerClientTest {
                 exceptionType = expectedExceptionType,
                 statusCode = statusCode,
                 expectedUrl = expectedEndreDeltakerUrl,
-                expectedErrorMessage = createExpectedErrorMessage<InnholdRequest>(),
+                expectedErrorMessage = createExpectedErrorMessage<EndretInnholdRequest>(),
                 block = endreInnholdLambda,
             )
         }

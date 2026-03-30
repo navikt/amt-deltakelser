@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
+import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde

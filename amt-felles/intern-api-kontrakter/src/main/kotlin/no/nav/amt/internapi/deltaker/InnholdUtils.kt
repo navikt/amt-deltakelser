@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.deltakerliste.tiltakstype
+package no.nav.amt.internapi.deltaker
 
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement

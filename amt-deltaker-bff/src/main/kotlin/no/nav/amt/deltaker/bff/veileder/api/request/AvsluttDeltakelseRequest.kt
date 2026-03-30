@@ -18,7 +18,7 @@ data class AvsluttDeltakelseRequest(
     val harFullfort: Boolean? = null,
     val begrunnelse: String?,
     override val forslagId: UUID?,
-) : EndringsforslagRequest {
+) : EndringMedForslagRequest {
     fun harDeltatt(): Boolean = harDeltatt ?: true
 
     fun harFullfort(): Boolean = harFullfort ?: true

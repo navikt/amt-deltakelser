@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.bff.veileder.api.utils
 
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.getInnholdselementer
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.skalKunHaAnnetBeskrivelse
-import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
+import no.nav.amt.internapi.deltaker.annetInnholdselement
+import no.nav.amt.internapi.deltaker.getInnholdselementer
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.deltaker.skalKunHaAnnetBeskrivelse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
@@ -139,7 +139,7 @@ fun validerSluttdatoForDeltaker(
 }
 
 fun validerDeltakelsesinnhold(
-    valgteInnholdselementer: List<InnholdRequest>,
+    valgteInnholdselementer: List<InnholdsElementRequest>,
     tiltaksinnhold: DeltakerRegistreringInnhold?,
     tiltakstype: Tiltakskode,
 ) {
@@ -172,7 +172,7 @@ private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aar
 )
 
 fun validerKladdInnhold(
-    innhold: List<InnholdRequest>,
+    innhold: List<InnholdsElementRequest>,
     tiltaksinnhold: DeltakerRegistreringInnhold?,
     tiltakstype: Tiltakskode,
 ) {
@@ -209,7 +209,7 @@ private fun validerVarighet(
 
 private fun validerInnhold(
     tiltakstype: Tiltakskode,
-    valgteInnholdselementer: List<InnholdRequest>,
+    valgteInnholdselementer: List<InnholdsElementRequest>,
     tiltaksinnhold: DeltakerRegistreringInnhold?,
     valider: (innholdskoder: List<String>) -> Unit,
 ) {

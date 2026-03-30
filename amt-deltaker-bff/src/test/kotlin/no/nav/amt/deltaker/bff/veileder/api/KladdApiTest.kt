@@ -13,13 +13,13 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
-import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.utils.objectMapper
@@ -177,15 +177,15 @@ class KladdApiTest : RouteTestBase() {
     }
 
     companion object {
-        private fun utkastRequest(innhold: List<InnholdRequest> = emptyList()) = UtkastRequest(
-            innhold = innhold,
+        private val kladdRequest = KladdRequest(
+            innhold = emptyList(),
             bakgrunnsinformasjon = "Bakgrunnen for...",
             deltakelsesprosent = null,
             dagerPerUke = null,
         )
 
-        private val kladdRequest = KladdRequest(
-            innhold = emptyList(),
+        private fun utkastRequest(innhold: List<InnholdsElementRequest> = emptyList()) = UtkastRequest(
+            innhold = innhold,
             bakgrunnsinformasjon = "Bakgrunnen for...",
             deltakelsesprosent = null,
             dagerPerUke = null,
@@ -197,7 +197,7 @@ class KladdApiTest : RouteTestBase() {
         )
 
         private fun List<Innhold>.toInnholdDto() = this.map {
-            InnholdRequest(
+            InnholdsElementRequest(
                 it.innholdskode,
                 it.beskrivelse,
             )

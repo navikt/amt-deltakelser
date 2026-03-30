@@ -6,7 +6,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
 
 data class EndreBakgrunnsinformasjonRequest(
     val bakgrunnsinformasjon: String?,
-) : Endringsrequest {
+) : EndringRequestFromFrontend {
     override fun valider(deltaker: Deltaker) {
         validerBakgrunnsinformasjon(bakgrunnsinformasjon)
         validerDeltakerKanEndres(deltaker)

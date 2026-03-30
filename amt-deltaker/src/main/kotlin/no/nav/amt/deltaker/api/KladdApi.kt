@@ -9,13 +9,19 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.internapi.DeltakerIdResponse
+import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
-fun Routing.registerKladdApi(kladdService: KladdService) {
+fun Routing.registerKladdApi(
+    kladdService: KladdService,
+    deltakerRepository: DeltakerRepository,
+) {
     authenticate("SYSTEM") {
         post("/kladd") {
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
@@ -48,6 +54,24 @@ fun Routing.registerKladdApi(kladdService: KladdService) {
                     prisinformasjon = oppdaterKladdRequest.prisinformasjon,
                     beskrivelse = oppdaterKladdRequest.beskrivelse,
                 )
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/oppdater-kladd/{deltakerId}") {
+            val kladdRequest = call.receive<KladdRequest>()
+            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+
+            require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
+                "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id ${deltaker.id} har status ${deltaker.status.type}"
+            }
+            kladdService.oppdaterKladd(
+                deltaker = deltaker,
+                innhold = kladdRequest.innhold.toInnholdModel(deltaker),
+                bakgrunnsinformasjon = kladdRequest.bakgrunnsinformasjon,
+                deltakelsesprosent = kladdRequest.deltakelsesprosent,
+                dagerPerUke = kladdRequest.dagerPerUke,
+            )
 
             call.respond(HttpStatusCode.OK)
         }

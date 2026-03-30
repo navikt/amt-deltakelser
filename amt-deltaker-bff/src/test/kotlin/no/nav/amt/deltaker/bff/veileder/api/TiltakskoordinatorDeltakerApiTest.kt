@@ -41,13 +41,13 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndreStartdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.internapi.PersonIdentResponse
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -198,7 +198,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
                     createPostRequest(
                         EndreInnholdRequest(
                             listOf(
-                                InnholdRequest(
+                                InnholdsElementRequest(
                                     deltaker.deltakelsesinnhold!!.innhold[0].innholdskode,
                                     null,
                                 ),
@@ -784,6 +784,45 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
         }
     }
 
+    private val deltakerRequest = DeltakerRequest("1234")
+    private val bakgrunnsinformasjonRequest = EndreBakgrunnsinformasjonRequest("Oppdatert bakgrunnsinformasjon")
+    private val innholdRequest = EndreInnholdRequest(listOf(InnholdsElementRequest("annet", "beskrivelse")))
+    private val deltakelsesmengdeRequest = EndreDeltakelsesmengdeRequest(
+        deltakelsesprosent = 50,
+        dagerPerUke = 3,
+        begrunnelse = "begrunnelse",
+        gyldigFra = LocalDate.now(),
+        forslagId = null,
+    )
+    private val startdatoRequest =
+        EndreStartdatoRequest(LocalDate.now().plusWeeks(1), sluttdato = LocalDate.now().plusMonths(2), "begrunnelse", null)
+    private val ikkeAktuellRequest = IkkeAktuellRequest(DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB), "begrunnelse", null)
+    private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest("begrunnelse")
+    private val forlengDeltakelseRequest = ForlengDeltakelseRequest(LocalDate.now().plusWeeks(3), "begrunnelse", null)
+    private val avsluttDeltakelseRequest =
+        AvsluttDeltakelseRequest(
+            DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB),
+            LocalDate.now(),
+            harDeltatt = true,
+            harFullfort = null,
+            "begrunnelse",
+            null,
+        )
+    private val endreAvslutningRequest =
+        EndreAvslutningRequest(
+            DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB),
+            harDeltatt = true,
+            harFullfort = null,
+            "begrunnelse",
+            sluttdato = null,
+            null,
+        )
+    private val sluttdatoRequest = EndreSluttdatoRequest(LocalDate.now().minusDays(1), "begrunnelse", null)
+    private val sluttarsakRequest =
+        EndreSluttarsakRequest(DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT), "begrunnelse", null)
+    private val avvisForslagRequest = AvvisForslagRequest("Avvist fordi..")
+    private val fjernOppstartsdatoRequest = FjernOppstartsdatoRequest("begrunnelse", null)
+
     private fun setupMocks(
         deltaker: Deltaker,
         oppdatertDeltaker: Deltaker?,
@@ -841,7 +880,7 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
 
         private val innholdRequest = EndreInnholdRequest(
             listOf(
-                InnholdRequest(
+                InnholdsElementRequest(
                     innholdskode = "annet",
                     beskrivelse = "beskrivelse",
                 ),

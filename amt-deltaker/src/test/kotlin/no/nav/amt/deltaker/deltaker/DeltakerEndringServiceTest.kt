@@ -42,10 +42,10 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
+import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
 import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
-import no.nav.amt.internapi.deltaker.request.InnholdRequest
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -163,7 +163,7 @@ class DeltakerEndringServiceTest {
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
 
-        val endringsrequest = InnholdRequest(
+        val endringsrequest = EndretInnholdRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             deltakelsesinnhold = Deltakelsesinnhold("tekst", listOf(Innhold("Tekst", "kode", true, null))),

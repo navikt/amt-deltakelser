@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
-import no.nav.amt.deltaker.deltaker.db.DeltakerInsertDbo
+import no.nav.amt.deltaker.deltaker.db.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerUpdateDbo
+import no.nav.amt.deltaker.deltaker.db.EnkeltplassKladdUpdateDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -66,7 +66,7 @@ class KladdService(
 
         Database.transaction {
             deltakerListeRepository.upsert(gjennomforing)
-            deltakerRepository.upsert(kladd)
+            deltakerRepository.upsertKladd(kladd)
             DeltakerStatusRepository.lagreStatus(kladd.id, nyDeltakerStatus(DeltakerStatus.Type.KLADD))
         }
 
@@ -101,7 +101,7 @@ class KladdService(
         )
         Database.transaction {
             deltakerListeRepository.update(gjennomforingUpdateDbo)
-            deltakerRepository.update(kladdUpdateDbo)
+            deltakerRepository.updateEnkeltplassKladd(kladdUpdateDbo)
         }
         return deltakerRepository.get(deltakerId).getOrThrow()
     }
@@ -129,6 +129,26 @@ class KladdService(
             ).also { deltaker ->
                 log.info("Lagret kladd for deltaker med id ${deltaker.id}")
             }
+    }
+
+    fun oppdaterKladd(
+        deltaker: Deltaker,
+        innhold: List<Innhold>,
+        bakgrunnsinformasjon: String?,
+        deltakelsesprosent: Int?,
+        dagerPerUke: Int?,
+    ): Deltaker {
+        val kladdUpsertDbo = lagKladdUpsertDbo(
+            deltaker = deltaker,
+            innhold = innhold,
+            bakgrunnsinformasjon = bakgrunnsinformasjon,
+            deltakelsesprosent = deltakelsesprosent,
+            dagerPerUke = dagerPerUke,
+        )
+
+        deltakerRepository.upsertKladd(kladdUpsertDbo)
+
+        return deltakerRepository.get(deltaker.id).getOrThrow()
     }
 
     suspend fun slettKladd(deltakerId: UUID) {
@@ -171,18 +191,12 @@ class KladdService(
             navBrukerId: UUID,
             deltakerlisteId: UUID,
             tiltakstype: Tiltakstype,
-        ) = DeltakerInsertDbo(
+        ) = DeltakerKladdUpsertDbo(
             id = UUID.randomUUID(),
             navBrukerId = navBrukerId,
             deltakerlisteId = deltakerlisteId,
-            startdato = null,
-            sluttdato = null,
-            dagerPerUke = null,
-            deltakelsesprosent = null,
             bakgrunnsinformasjon = null,
             deltakelsesinnhold = Deltakelsesinnhold(tiltakstype.innhold?.ledetekst, emptyList()),
-            vedtaksinformasjon = null,
-            sistEndret = LocalDateTime.now(),
             kilde = Kilde.KOMET,
             erManueltDeltMedArrangor = false,
         )
@@ -193,7 +207,7 @@ class KladdService(
             startdato: LocalDate?,
             sluttdato: LocalDate?,
             beskrivelse: String?,
-        ) = DeltakerUpdateDbo(
+        ) = EnkeltplassKladdUpdateDbo(
             id = deltakerId,
             startdato = startdato,
             sluttdato = sluttdato,
@@ -203,6 +217,28 @@ class KladdService(
                     listOf(Innhold.createFritekstInnhold(beskrivelse))
                 } ?: emptyList(),
             ),
+        )
+
+        fun lagKladdUpsertDbo(
+            deltaker: Deltaker,
+            innhold: List<Innhold>,
+            bakgrunnsinformasjon: String?,
+            deltakelsesprosent: Int?,
+            dagerPerUke: Int?,
+        ) = DeltakerKladdUpsertDbo(
+            id = deltaker.id,
+            navBrukerId = deltaker.navBruker.personId,
+            deltakerlisteId = deltaker.deltakerliste.id,
+            bakgrunnsinformasjon = bakgrunnsinformasjon,
+            deltakelsesprosent = deltakelsesprosent?.toFloat(),
+            dagerPerUke = dagerPerUke?.toFloat(),
+            deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = deltaker.deltakerliste.tiltakstype.innhold
+                    ?.ledetekst,
+                innhold = innhold,
+            ),
+            kilde = deltaker.kilde,
+            erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
         )
     }
 }

@@ -39,7 +39,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttarsakRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreStartdatoRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.Endringsrequest
+import no.nav.amt.deltaker.bff.veileder.api.request.EndringRequestFromFrontend
 import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
@@ -50,8 +50,8 @@ import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
+import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
-import no.nav.amt.internapi.deltaker.request.InnholdRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
@@ -111,7 +111,7 @@ fun Routing.registerVeilederApi(
     }
 
     suspend fun ApplicationCall.handleEndring(
-        request: Endringsrequest,
+        request: EndringRequestFromFrontend,
         produceEndringRequest: (deltaker: Deltaker, endretAv: String, endretAvEnhet: String) -> EndringRequest,
     ) {
         val deltaker = deltakerRepository.get(this.getDeltakerId()).getOrThrow()
@@ -223,7 +223,7 @@ fun Routing.registerVeilederApi(
         post("/deltaker/{deltakerId}/innhold") {
             val request = call.receive<EndreInnholdRequest>()
             call.handleEndring(request) { deltaker, endretAv, endretAvEnhet ->
-                InnholdRequest(
+                EndretInnholdRequest(
                     endretAv = endretAv,
                     endretAvEnhet = endretAvEnhet,
                     deltakelsesinnhold = Deltakelsesinnhold(

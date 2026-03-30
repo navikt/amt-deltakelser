@@ -3,7 +3,7 @@ package no.nav.amt.internapi.deltaker.request
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 
-data class InnholdRequest(
+data class EndretInnholdRequest(
     override val endretAv: String,
     override val endretAvEnhet: String,
     val deltakelsesinnhold: Deltakelsesinnhold,

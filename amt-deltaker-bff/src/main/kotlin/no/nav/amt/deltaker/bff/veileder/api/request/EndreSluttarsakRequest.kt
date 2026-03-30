@@ -13,7 +13,7 @@ data class EndreSluttarsakRequest(
     val aarsak: DeltakerEndring.Aarsak,
     val begrunnelse: String?,
     override val forslagId: UUID?,
-) : EndringsforslagRequest {
+) : EndringMedForslagRequest {
     private val kanEndreSluttarsak = listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.IKKE_AKTUELL, DeltakerStatus.Type.AVBRUTT)
 
     override fun valider(deltaker: Deltaker) {

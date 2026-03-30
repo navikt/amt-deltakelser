@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold
+import no.nav.amt.internapi.deltaker.annetInnholdselement
+import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement

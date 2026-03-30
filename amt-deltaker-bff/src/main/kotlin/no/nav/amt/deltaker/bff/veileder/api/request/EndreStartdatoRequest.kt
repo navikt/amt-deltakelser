@@ -13,7 +13,7 @@ data class EndreStartdatoRequest(
     val sluttdato: LocalDate? = null,
     val begrunnelse: String?,
     override val forslagId: UUID?,
-) : EndringsforslagRequest {
+) : EndringMedForslagRequest {
     private val kanEndreStartdato =
         listOf(
             DeltakerStatus.Type.VENTER_PA_OPPSTART,

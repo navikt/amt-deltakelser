@@ -1,16 +1,18 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
 import no.nav.amt.deltaker.bff.utils.data.TestData.input
-import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.KladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.sanitize
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_ANNET_INNHOLD_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_BAKGRUNNSINFORMASJON_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DAGER_PER_UKE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DELTAKELSESPROSENT
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DAGER_PER_UKE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DELTAKELSESPROSENT
+import no.nav.amt.internapi.deltaker.annetInnholdselement
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.paamelding.request.KladdRequest
 import org.junit.jupiter.api.Test
 
 class KladdRequestTest {
@@ -30,7 +32,7 @@ class KladdRequestTest {
     fun `sanitize - annet beskrivelse er lengre enn max - avkorter teksten`() {
         val request = KladdRequest(
             innhold = listOf(
-                InnholdRequest(
+                InnholdsElementRequest(
                     innholdskode = annetInnholdselement.innholdskode,
                     beskrivelse = input(MAX_ANNET_INNHOLD_LENGDE * 2 + 1),
                 ),
@@ -43,7 +45,8 @@ class KladdRequestTest {
         request
             .sanitize()
             .innhold[0]
-            .beskrivelse!!
+            .beskrivelse
+            .shouldNotBeNull()
             .length shouldBe MAX_ANNET_INNHOLD_LENGDE * 2
     }
 

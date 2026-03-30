@@ -9,7 +9,7 @@ import no.nav.amt.deltaker.bff.deltaker.model.Pamelding
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.toInnhold
+import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode

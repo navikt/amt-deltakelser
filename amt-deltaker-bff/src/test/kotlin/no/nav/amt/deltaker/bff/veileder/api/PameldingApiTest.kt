@@ -13,12 +13,12 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
-import no.nav.amt.deltaker.bff.veileder.api.request.InnholdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -171,6 +171,15 @@ class PameldingApiTest : RouteTestBase() {
         }
     }
 
+    private fun utkastRequest(innhold: List<InnholdsElementRequest> = emptyList()) = UtkastRequest(innhold, "Bakgrunnen for...", null, null)
+
+    private fun pameldingUtenGodkjenningRequest(innhold: List<InnholdsElementRequest> = emptyList()) = PameldingUtenGodkjenningRequest(
+        innhold,
+        "Bakgrunnen for...",
+        null,
+        null,
+    )
+
     private fun mockAnsatteOgEnhetForDeltaker(deltaker: Deltaker): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
         val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
         val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
@@ -182,22 +191,8 @@ class PameldingApiTest : RouteTestBase() {
     }
 
     companion object {
-        private fun utkastRequest(innhold: List<InnholdRequest> = emptyList()) = UtkastRequest(
-            innhold = innhold,
-            bakgrunnsinformasjon = "Bakgrunnen for...",
-            deltakelsesprosent = null,
-            dagerPerUke = null,
-        )
-
-        private fun pameldingUtenGodkjenningRequest(innhold: List<InnholdRequest> = emptyList()) = PameldingUtenGodkjenningRequest(
-            innhold = innhold,
-            bakgrunnsinformasjon = "Bakgrunnen for...",
-            deltakelsesprosent = null,
-            dagerPerUke = null,
-        )
-
         private fun List<Innhold>.toInnholdDto() = this.map {
-            InnholdRequest(
+            InnholdsElementRequest(
                 it.innholdskode,
                 it.beskrivelse,
             )

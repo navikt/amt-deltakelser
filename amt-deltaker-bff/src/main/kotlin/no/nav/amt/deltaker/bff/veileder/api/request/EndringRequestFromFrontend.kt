@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.veileder.api.request
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import java.util.UUID
 
-sealed interface Endringsrequest {
+sealed interface EndringRequestFromFrontend {
     fun valider(deltaker: Deltaker)
 
     fun tillattEndringUtenAktivOppfolgingsperiode() = when (this) {
@@ -25,6 +25,6 @@ sealed interface Endringsrequest {
     }
 }
 
-sealed interface EndringsforslagRequest : Endringsrequest {
+sealed interface EndringMedForslagRequest : EndringRequestFromFrontend {
     val forslagId: UUID?
 }

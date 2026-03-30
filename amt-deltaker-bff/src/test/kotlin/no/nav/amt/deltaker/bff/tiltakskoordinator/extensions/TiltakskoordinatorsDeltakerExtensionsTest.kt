@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.tiltakskoordinator.extensions
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.annetInnholdselement
+import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
