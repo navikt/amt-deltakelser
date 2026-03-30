@@ -111,6 +111,7 @@ class AuthenticationTest {
                 tiltakskoordinatorTilgangRepository = mockk(),
                 ulestHendelseService = mockk(),
                 testdataService = mockk(),
+                paameldingClient = mockk(),
             )
             setUpTestRoute()
         }
