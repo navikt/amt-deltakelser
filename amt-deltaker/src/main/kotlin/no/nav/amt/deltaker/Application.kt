@@ -352,6 +352,7 @@ fun Application.module() {
 
     val enkeltplassService = EnkeltplassService(
         deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
     )
 

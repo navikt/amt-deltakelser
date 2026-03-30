@@ -13,7 +13,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import no.nav.amt.deltaker.api.registerEkeltplassApi
+import no.nav.amt.deltaker.api.registerEnkeltplassApi
 import no.nav.amt.deltaker.api.registerExternalApi
 import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
@@ -114,7 +114,7 @@ fun Application.configureRouting(
             deltakerRepository = deltakerRepository,
         )
         registerVeilederApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
-        registerEkeltplassApi(enkeltplassService = enkeltplassService)
+        registerEnkeltplassApi(enkeltplassService = enkeltplassService)
         registerInternalApi(
             deltakerRepository,
             deltakerService,

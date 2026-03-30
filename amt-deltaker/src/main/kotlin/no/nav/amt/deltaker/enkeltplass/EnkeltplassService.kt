@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.enkeltplass
 
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -14,15 +14,14 @@ import java.util.UUID
 class EnkeltplassService(
     private val gjennomforingRequestProducer: GjennomforingRequestProducer,
     private val deltakerRepository: DeltakerRepository,
+    private val deltakerService: DeltakerService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun opprettGjennomforingRemote(deltakerId: UUID) {
-        val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow().let {
-            it.copy(status = it.status.copy(type = DeltakerStatus.Type.SOKT_INN))
-        }
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
-        val gjennomforing = oppdatertDeltaker.deltakerliste
+        val gjennomforing = deltaker.deltakerliste
 
         if (gjennomforing.gjennomforingstype != GjennomforingType.Enkeltplass) {
             log.warn(
@@ -38,10 +37,15 @@ class EnkeltplassService(
             return
         }
 
+        val oppdatertDeltaker = deltaker.copy(
+            status = deltaker.status.copy(type = DeltakerStatus.Type.SOKT_INN),
+        )
+
         Database.transaction {
-            DeltakerStatusRepository.lagreStatus(
+            deltakerService.lagreDeltakerStatus(
                 deltakerId = oppdatertDeltaker.id,
-                deltakerStatus = oppdatertDeltaker.status,
+                nyDeltakerStatus = oppdatertDeltaker.status,
+                erDeltakerSluttdatoEndret = false,
             )
 
             gjennomforingRequestProducer.produce(

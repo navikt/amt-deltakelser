@@ -1,17 +1,17 @@
 package no.nav.amt.deltaker.enkeltplass
 
-import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -29,10 +29,12 @@ import org.junit.jupiter.api.Test
 
 class EnkeltplassServiceTest {
     private val deltakerRepository = mockk<DeltakerRepository>()
+    private val deltakerService: DeltakerService = mockk(relaxed = true)
     private val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>(relaxUnitFun = true)
 
     private val sut = EnkeltplassService(
         deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
     )
 
@@ -52,24 +54,23 @@ class EnkeltplassServiceTest {
         clearAllMocks()
 
         every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
+        every {
+            deltakerService.lagreDeltakerStatus(
+                deltakerId = deltakerInTest.id,
+                nyDeltakerStatus = deltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
+                erDeltakerSluttdatoEndret = false,
+            )
+        } just runs
 
         mockkObject(Database)
         coEvery { transaction<Any>(any()) } answers {
             val block = firstArg<() -> Any>()
             block()
         }
-
-        mockkObject(DeltakerStatusRepository)
-        every {
-            DeltakerStatusRepository.lagreStatus(
-                deltakerId = deltakerInTest.id,
-                deltakerStatus = deltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
-            )
-        } just Runs
     }
 
     @AfterEach
-    fun cleanup() = unmockkObject(Database, DeltakerStatusRepository)
+    fun cleanup() = unmockkObject(Database)
 
     @Nested
     inner class OpprettGjennomforingRemoteTests {

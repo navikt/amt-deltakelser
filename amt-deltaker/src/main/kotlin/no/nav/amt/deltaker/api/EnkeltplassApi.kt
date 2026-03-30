@@ -8,7 +8,7 @@ import io.ktor.server.routing.post
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.extensions.getDeltakerId
 
-fun Routing.registerEkeltplassApi(enkeltplassService: EnkeltplassService) {
+fun Routing.registerEnkeltplassApi(enkeltplassService: EnkeltplassService) {
     authenticate("SYSTEM") {
         post("/enkeltplass-utkast/{deltakerId}/meld-paa-direkte") {
             enkeltplassService.opprettGjennomforingRemote(call.getDeltakerId())

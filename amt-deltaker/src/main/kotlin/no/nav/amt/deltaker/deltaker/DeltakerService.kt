@@ -172,7 +172,7 @@ class DeltakerService(
             val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
 
             deltakerRepository.upsert(deltakerToUpsert)
-            internalLagreStatus(
+            lagreDeltakerStatus(
                 deltakerId = deltakerToUpsert.id,
                 nyDeltakerStatus = deltakerToUpsert.status,
                 erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
@@ -186,7 +186,7 @@ class DeltakerService(
         }
     }
 
-    private fun internalLagreStatus(
+    fun lagreDeltakerStatus(
         deltakerId: UUID,
         nyDeltakerStatus: DeltakerStatus,
         erDeltakerSluttdatoEndret: Boolean,
