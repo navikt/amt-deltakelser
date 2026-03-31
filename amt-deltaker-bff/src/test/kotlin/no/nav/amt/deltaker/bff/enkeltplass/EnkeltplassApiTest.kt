@@ -13,8 +13,9 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.utils.RouteTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
+import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.internapi.PersonIdentResponse
+import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -32,7 +33,7 @@ class EnkeltplassApiTest : RouteTestBase() {
         every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
 
         val mockHttpResponse = mockk<HttpResponse>()
-        coEvery { enkeltplassClient.meldPaaDirekte(deltakerInTest.id) } returns mockHttpResponse
+        coEvery { enkeltplassClient.meldPaaDirekte(deltakerInTest.id, any()) } returns mockHttpResponse
     }
 
     @Nested
@@ -58,7 +59,7 @@ class EnkeltplassApiTest : RouteTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    noBodyRequest()
+                    createPostRequest(requestInTest)
                 }
             }
 
@@ -71,12 +72,19 @@ class EnkeltplassApiTest : RouteTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    noBodyRequest()
+                    createPostRequest(requestInTest)
                 }
             }
 
             // Assert
             response.status shouldBe HttpStatusCode.OK
         }
+    }
+
+    companion object {
+        private val requestInTest = MeldPaaDirekteEnkeltplassRequest(
+            beskrivelse = "Testbeskrivelse",
+            prisinformasjon = "Test prisinformasjon",
+        )
     }
 }

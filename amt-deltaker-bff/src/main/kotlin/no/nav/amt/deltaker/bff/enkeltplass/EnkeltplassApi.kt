@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.enkeltplass
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
@@ -10,6 +11,7 @@ import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
+import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
 
 fun Routing.registerEnkeltplassApi(
     amtDeltakerClient: AmtDeltakerClient,
@@ -46,7 +48,12 @@ fun Routing.registerEnkeltplassApi(
                 norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident,
             )
 
-            enkeltplassClient.meldPaaDirekte(deltakerId)
+            val request: MeldPaaDirekteEnkeltplassRequest = call.receive()
+
+            enkeltplassClient.meldPaaDirekte(
+                deltakerId = deltakerId,
+                request = request,
+            )
 
             call.respond(HttpStatusCode.OK)
         }

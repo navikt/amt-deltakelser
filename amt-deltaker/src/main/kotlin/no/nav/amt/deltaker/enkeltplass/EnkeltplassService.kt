@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -19,7 +20,10 @@ class EnkeltplassService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun opprettGjennomforingRemote(deltakerId: UUID) {
+    suspend fun opprettGjennomforingRemote(
+        deltakerId: UUID,
+        request: MeldPaaDirekteEnkeltplassRequest, // TODO
+    ) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
         val gjennomforing = deltaker.deltakerliste
@@ -37,6 +41,10 @@ class EnkeltplassService(
             log.info("Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd")
             return
         }
+
+        // oppdater deltaker
+
+        // oppdater gjennomforing
 
         Database.transaction {
             deltakerService.lagreDeltakerStatus(

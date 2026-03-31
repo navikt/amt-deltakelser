@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -39,6 +40,11 @@ class EnkeltplassServiceTest {
     )
 
     companion object {
+        private val request = MeldPaaDirekteEnkeltplassRequest(
+            beskrivelse = "Testbeskrivelse",
+            prisinformasjon = "Test prisinformasjon",
+        )
+
         private val deltakerInTest = lagDeltaker(
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
             deltakerliste = lagDeltakerliste(
@@ -77,7 +83,7 @@ class EnkeltplassServiceTest {
         @Test
         fun `skal opprette emkeltplass hos Mulighetsrommet for deltaker i kladd med enkeltplass`() = runTest {
             // Act
-            sut.opprettGjennomforingRemote(deltakerId = deltakerInTest.id)
+            sut.opprettGjennomforingRemote(deltakerId = deltakerInTest.id, request = request)
 
             // Assert
             verify { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
@@ -96,7 +102,7 @@ class EnkeltplassServiceTest {
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             // Act
-            sut.opprettGjennomforingRemote(deltakerId = deltaker.id)
+            sut.opprettGjennomforingRemote(deltakerId = deltaker.id, request = request)
 
             // Assert
             verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
@@ -112,7 +118,7 @@ class EnkeltplassServiceTest {
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             // Act
-            sut.opprettGjennomforingRemote(deltakerId = deltaker.id)
+            sut.opprettGjennomforingRemote(deltakerId = deltaker.id, request = request)
 
             // Assert
             verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
