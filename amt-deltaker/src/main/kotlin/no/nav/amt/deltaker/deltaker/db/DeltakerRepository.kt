@@ -50,6 +50,29 @@ class DeltakerRepository {
         }
     }
 
+    fun getKladd(
+        personident: String,
+        tiltakskode: Tiltakskode,
+    ): Result<Deltaker> = runCatching {
+        val sql = buildDeltakerSql(
+            "getEnkeltplassKladd",
+            """
+            nb.personident = :personident
+            AND t.tiltakskode = :tiltakskode
+            AND ds.type = 'KLADD'
+            """.trimIndent(),
+        )
+
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("personident" to personident, "tiltakskode" to tiltakskode.name),
+                ).map(::deltakerRowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Ingen kladd deltaker med på tiltakskode $tiltakskode")
+        }
+    }
+
     fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
         session.run(
             queryOf(
