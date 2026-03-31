@@ -123,8 +123,6 @@ class PameldingServiceTest {
 
         @Test
         fun `opprettKladd - returnerer ny deltakerId`() = runTest {
-            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-
             val deltaker = kladdService.opprettKladd(
                 tiltak.tiltakskode,
                 navBruker.personident,
