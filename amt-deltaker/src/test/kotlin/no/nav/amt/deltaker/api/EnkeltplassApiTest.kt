@@ -17,7 +17,6 @@ import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -35,7 +34,6 @@ class EnkeltplassApiTest : RouteTestBase() {
             }
         }
 
-        @Disabled("fix")
         @Test
         fun `skal returnere 200 OK`() {
             val deltakerId = UUID.randomUUID()
@@ -43,6 +41,8 @@ class EnkeltplassApiTest : RouteTestBase() {
             val request = MeldPaaDirekteEnkeltplassRequest(
                 beskrivelse = "Testbeskrivelse",
                 prisinformasjon = "Test prisinformasjon",
+                startdato = LocalDate.now(),
+                sluttdato = LocalDate.now(),
             )
 
             withTestApplicationContext { client ->
