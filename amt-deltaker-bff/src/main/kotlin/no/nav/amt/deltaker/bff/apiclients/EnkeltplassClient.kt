@@ -22,6 +22,6 @@ class EnkeltplassClient(
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
         request: MeldPaaDirekteEnkeltplassRequest,
-    ): HttpResponse = performPost("enkeltplass-utkast/$deltakerId/meld-paa-direkte", request)
+    ): HttpResponse = performPost("enkeltplass/utkast/$deltakerId/meld-paa-direkte", request)
         .failIfNotSuccess("Kunne ikke opprette enkeltplass i amt-deltaker for deltaker $deltakerId")
 }
