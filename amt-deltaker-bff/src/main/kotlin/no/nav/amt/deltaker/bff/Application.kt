@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
+import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -55,6 +56,7 @@ import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
+import no.nav.amt.deltaker.bff.enkeltplass.EnkeltplassManager
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
@@ -177,6 +179,13 @@ fun Application.module() {
         azureAdTokenClient = azureAdTokenClient,
     )
 
+    val enkeltplassClient = EnkeltplassClient(
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
+
     val unleash = DefaultUnleash(
         UnleashConfig
             .builder()
@@ -243,6 +252,12 @@ fun Application.module() {
     val forslagService = ForslagService(forslagRepository, navAnsattService, navEnhetService, arrangorMeldingProducer)
 
     val vurderingRepository = VurderingRepository()
+
+    val enkeltplassManager = EnkeltplassManager(
+        deltakerRepository = deltakerRepository,
+        enkeltplassClient = enkeltplassClient,
+    )
+
     val vurderingService = VurderingService(vurderingRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -344,6 +359,7 @@ fun Application.module() {
         amtDistribusjonClient = amtDistribusjonClient,
         amtDeltakerClient = amtDeltakerClient,
         arrangorsokClient = arrangorsokClient,
+        enkeltplassManager = enkeltplassManager,
         sporbarhetsloggService = sporbarhetsloggService,
         deltakerRepository = deltakerRepository,
         deltakerlisteService = deltakerlisteService,

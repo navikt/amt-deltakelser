@@ -1,0 +1,81 @@
+package no.nav.amt.deltaker.bff.enkeltplass
+
+import io.kotest.matchers.shouldBe
+import io.ktor.client.request.post
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
+import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import java.util.UUID
+
+class EnkeltplassApiTest : RouteTestBase() {
+    override val tilgangskontrollService: TilgangskontrollService = mockk(relaxed = true)
+
+    val deltakerInTest = lagDeltaker()
+
+    @BeforeEach
+    fun setup() {
+        every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
+        every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
+
+        val mockHttpResponse = mockk<HttpResponse>()
+        coEvery { enkeltplassClient.meldPaaDirekte(deltakerInTest.id) } returns mockHttpResponse
+    }
+
+    @Nested
+    inner class HovedenhetSokTests {
+        val url = "/enkeltplass-utkast/${deltakerInTest.id}/meld-paa-direkte"
+
+        @Test
+        fun `skal returnere Unauthorized nar tilgang mangler`() {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(url)
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Unauthorized
+        }
+
+        @Test
+        fun `skal returnere Unauthorized nar veileder ikke har tilgant til bruker`() {
+            // Arrange
+            every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
+
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(url) {
+                    noBodyRequest()
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `skal returnere OK nar enkeltplass er opprettet`() = runTest {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(url) {
+                    noBodyRequest()
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.OK
+        }
+    }
+}

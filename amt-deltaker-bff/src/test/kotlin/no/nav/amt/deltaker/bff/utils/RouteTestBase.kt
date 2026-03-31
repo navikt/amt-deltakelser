@@ -9,6 +9,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -25,6 +26,7 @@ import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
+import no.nav.amt.deltaker.bff.enkeltplass.EnkeltplassManager
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
@@ -55,6 +57,12 @@ abstract class RouteTestBase {
     protected val amtDistribusjonClient: AmtDistribusjonClient = mockk(relaxed = true)
     protected val amtDeltakerClient = mockk<AmtDeltakerClient>(relaxed = true)
     protected val arrangorsokClient = mockk<ArrangorsokClient>(relaxed = true)
+
+    protected val enkeltplassClient = mockk<EnkeltplassClient>()
+    protected val enkeltplassManager = EnkeltplassManager(
+        deltakerRepository = deltakerRepository,
+        enkeltplassClient = enkeltplassClient,
+    )
 
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk(relaxed = true)
     protected val deltakerlisteService: DeltakerlisteService = mockk(relaxed = true)
@@ -109,6 +117,7 @@ abstract class RouteTestBase {
                     amtDistribusjonClient = amtDistribusjonClient,
                     amtDeltakerClient = amtDeltakerClient,
                     arrangorsokClient = arrangorsokClient,
+                    enkeltplassManager = enkeltplassManager,
                     sporbarhetsloggService = sporbarhetsloggService,
                     deltakerRepository = deltakerRepository,
                     deltakerlisteService = deltakerlisteService,

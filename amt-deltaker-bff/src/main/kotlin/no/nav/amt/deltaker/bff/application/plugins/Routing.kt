@@ -26,6 +26,8 @@ import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
+import no.nav.amt.deltaker.bff.enkeltplass.EnkeltplassManager
+import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.innbygger.registerInnbyggerApi
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
@@ -64,6 +66,7 @@ fun Application.configureRouting(
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     arrangorsokClient: ArrangorsokClient,
+    enkeltplassManager: EnkeltplassManager,
     sporbarhetsloggService: SporbarhetsloggService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteService: DeltakerlisteService,
@@ -101,8 +104,15 @@ fun Application.configureRouting(
             call.respondText(text = "500: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
     }
+
     routing {
         registerHealthApi()
+
+        registerEnkeltplassApi(
+            deltakerRepository = deltakerRepository,
+            tilgangskontrollService = tilgangskontrollService,
+            enkeltplassManager = enkeltplassManager,
+        )
 
         registerVeilederApi(
             tilgangskontrollService = tilgangskontrollService,
