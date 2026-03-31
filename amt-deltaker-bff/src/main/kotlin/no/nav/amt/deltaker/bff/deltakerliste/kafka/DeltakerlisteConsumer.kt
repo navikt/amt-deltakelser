@@ -76,7 +76,7 @@ class DeltakerlisteConsumer(
         if (deltakerliste.status == GjennomforingStatusType.AVLYST || deltakerliste.status == GjennomforingStatusType.AVBRUTT) {
             val kladderSomSkalSlettes = deltakerRepository.getKladderForDeltakerliste(deltakerliste.id)
             kladderSomSkalSlettes.forEach {
-                pameldingService.slettKladd(it)
+                pameldingService.slettKladd(it.id)
             }
             log.info("Slettet ${kladderSomSkalSlettes.size} for deltakerliste ${deltakerliste.id} med status ${deltakerliste.status.name}")
 

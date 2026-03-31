@@ -39,7 +39,7 @@ class SlettUtdatertKladdJob(
                     log.info("Kjører jobb for å slette utdaterte kladder")
                     val kladderSomSkalSlettes = deltakerRepository.getUtdaterteKladder(sistEndretGrense)
                     kladderSomSkalSlettes.forEach {
-                        pameldingService.slettKladd(it)
+                        pameldingService.slettKladd(it.id)
                     }
                     log.info("Ferdig med å slette ${kladderSomSkalSlettes.size} kladder")
                 } catch (e: Exception) {

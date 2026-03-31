@@ -126,7 +126,7 @@ class KladdApiTest : RouteTestBase() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
-        coEvery { pameldingService.slettKladd(deltaker) } returns false
+        coEvery { pameldingService.slettKladd(deltaker.id) } returns false
 
         withTestApplicationContext { httpClient ->
             httpClient.delete("/kladd/${deltaker.id}") { noBodyRequest() }.apply {
@@ -142,7 +142,7 @@ class KladdApiTest : RouteTestBase() {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
-        coEvery { pameldingService.slettKladd(deltaker) } returns true
+        coEvery { pameldingService.slettKladd(deltaker.id) } returns true
 
         withTestApplicationContext { httpClient ->
             httpClient.delete("/kladd/${deltaker.id}") { noBodyRequest() }.apply {

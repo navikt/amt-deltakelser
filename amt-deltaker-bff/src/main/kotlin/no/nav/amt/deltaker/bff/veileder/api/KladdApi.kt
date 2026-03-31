@@ -138,14 +138,14 @@ fun Routing.registerKladdApi(
 
         delete("/kladd/{deltakerId}") {
             val deltakerId = call.getDeltakerId()
-            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
 
             tilgangskontrollService.verifiserSkrivetilgang(
                 navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
+                norskIdent = personident,
             )
 
-            if (!pameldingService.slettKladd(deltaker)) {
+            if (!pameldingService.slettKladd(deltakerId)) {
                 call.respond(HttpStatusCode.BadRequest, "Kan ikke slette deltaker")
             }
 
