@@ -335,6 +335,7 @@ fun Application.module() {
         tilgangskontrollService = tilgangskontrollService,
         deltakerService = deltakerService,
         pameldingService = pameldingService,
+        paameldingClient = paameldingClient,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         innbyggerService = innbyggerService,

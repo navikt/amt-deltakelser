@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
 import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
@@ -44,6 +45,7 @@ abstract class RouteTestBase {
     protected val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
     protected val deltakerService: DeltakerService = mockk(relaxed = true)
     protected val pameldingService: PameldingService = mockk(relaxed = true)
+    protected val paameldingClient: PaameldingClient = mockk(relaxed = true)
     protected val navAnsattService: NavAnsattService = mockk(relaxed = true)
     protected val navEnhetService: NavEnhetService = mockk(relaxed = true)
     protected val innbyggerService: InnbyggerService = mockk(relaxed = true)
@@ -117,6 +119,7 @@ abstract class RouteTestBase {
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
                     ulestHendelseService = ulestHendelseService,
                     testdataService = testdataService,
+                    paameldingClient = paameldingClient,
                 )
             }
 

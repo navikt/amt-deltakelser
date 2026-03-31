@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
@@ -51,6 +52,14 @@ class PaameldingClient(
     ): OpprettKladdResponse = performPost("kladd", OpprettKladdRequest(deltakerlisteId, personIdent))
         .failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.")
         .body()
+
+    suspend fun oppdaterKladd(
+        deltakerId: UUID,
+        request: KladdRequest,
+    ) = performPost(
+        "oppdater-kladd/$deltakerId",
+        request,
+    ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.")
 
     suspend fun slettKladd(deltakerId: UUID) {
         performDelete("kladd/$deltakerId")

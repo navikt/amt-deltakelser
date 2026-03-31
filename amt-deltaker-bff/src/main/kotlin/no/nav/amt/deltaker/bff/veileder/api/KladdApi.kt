@@ -9,6 +9,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
@@ -43,6 +44,7 @@ fun Routing.registerKladdApi(
     forslageRepository: ForslagRepository,
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
+    paameldingClient: PaameldingClient,
 ) {
     val log = LoggerFactory.getLogger(javaClass)
 
@@ -99,8 +101,8 @@ fun Routing.registerKladdApi(
         // Dette endepunktet kommuniserer ikke med amt-deltaker
         post("/kladd/{deltakerId}") {
             val request = call.receive<KladdRequest>().sanitize()
-
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val deltakerId = call.getDeltakerId()
+            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
             request.valider(deltaker)
 
             tilgangskontrollService.verifiserSkrivetilgang(
@@ -108,6 +110,10 @@ fun Routing.registerKladdApi(
                 norskIdent = deltaker.navBruker.personident,
             )
 
+            paameldingClient
+                .oppdaterKladd(deltakerId, request)
+
+            // Denne koden skal slettes og det er deltakeren fra amt-deltaker som skal returneres
             val nyKladd = pameldingService.upsertKladd(
                 kladd = Kladd(
                     opprinneligDeltaker = deltaker,
