@@ -161,12 +161,15 @@ class KladdService(
                 )
             }
 
+            if (opprinneligDeltaker.erEnkeltplass) {
+                require(!opprinneligDeltaker.deltakerliste.erDeltMedValp) {
+                    "Kan ikke slette Enkeltplass gjennomføring $gjennomforingId som er delt med valp"
+                }
+            }
+
             Database.transaction {
                 deltakerService.deleteDeltaker(deltakerId)
                 if (opprinneligDeltaker.erEnkeltplass) {
-                    require(!opprinneligDeltaker.deltakerliste.erDeltMedValp) {
-                        "Kan ikke slette Enkeltplass gjennomføring $gjennomforingId som er delt med valp"
-                    }
                     log.info("Sletter deltakerliste med id $gjennomforingId for kladd deltaker med id $deltakerId")
                     deltakerListeRepository.delete(gjennomforingId)
                 }
