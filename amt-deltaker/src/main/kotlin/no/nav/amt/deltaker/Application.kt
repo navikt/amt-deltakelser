@@ -347,13 +347,15 @@ fun Application.module() {
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
         deltakerListeRepository = deltakerlisteRepository,
-        tiltakRepository = tiltakstypeRepository,
     )
 
     val enkeltplassService = EnkeltplassService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
+        deltakerlisteRepository = deltakerlisteRepository,
+        navBrukerService = navBrukerService,
+        tiltakRepository = tiltakstypeRepository,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(

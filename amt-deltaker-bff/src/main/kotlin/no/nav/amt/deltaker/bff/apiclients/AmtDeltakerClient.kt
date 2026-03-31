@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.deltaker
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.deltaker
+package no.nav.amt.deltaker.bff.apiclients
 
 import no.nav.amt.deltaker.bff.deltaker.model.ArrangorModel
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel

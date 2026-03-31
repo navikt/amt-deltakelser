@@ -1,8 +1,7 @@
-package no.nav.amt.deltaker.bff.apiclients.paamelding
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.deltaker.bff.apiclients.DtoMappers.utkastRequestFromUtkast
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.internapi.DeltakerIdResponse
@@ -34,7 +33,7 @@ class PaameldingClient(
         tiltakskode: Tiltakskode,
         personident: String,
     ): DeltakerIdResponse = performPost(
-        "/opprett-enkeltplass-kladd",
+        "/enkeltplass/opprett-kladd",
         OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
 
@@ -42,7 +41,7 @@ class PaameldingClient(
         deltakerId: UUID,
         request: OppdaterEnkeltplassKladdRequest,
     ) = performPost(
-        "/oppdater-enkeltplass-kladd/$deltakerId",
+        "enkeltplass/oppdater-kladd/$deltakerId",
         request,
     ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.")
 
@@ -66,8 +65,10 @@ class PaameldingClient(
             .failIfNotSuccess("Kunne ikke slette kladd i amt-deltaker.")
     }
 
-    suspend fun utkast(utkast: Utkast): UtkastResponse = performPost("pamelding/${utkast.deltakerId}", utkastRequestFromUtkast(utkast))
-        .failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker.")
+    suspend fun utkast(utkast: Utkast): UtkastResponse = performPost(
+        "pamelding/${utkast.deltakerId}",
+        DtoMappers.utkastRequestFromUtkast(utkast),
+    ).failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker.")
         .body()
 
     suspend fun avbrytUtkast(

@@ -12,8 +12,11 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -32,11 +35,17 @@ class EnkeltplassServiceTest {
     private val deltakerRepository = mockk<DeltakerRepository>()
     private val deltakerService: DeltakerService = mockk(relaxed = true)
     private val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>(relaxUnitFun = true)
+    private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
+    private val navBrukerService = mockk<NavBrukerService>()
+    private val tiltakRepository = mockk<TiltakstypeRepository>()
 
     private val sut = EnkeltplassService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
+        deltakerlisteRepository = deltakerlisteRepository,
+        navBrukerService = navBrukerService,
+        tiltakRepository = tiltakRepository,
     )
 
     companion object {

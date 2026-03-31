@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
@@ -8,7 +8,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdateringResponse
@@ -83,7 +83,7 @@ class TiltaksKoordinatorClientTest {
 
     companion object {
         private const val CLIENT_BASE_URL = "http://amt-tiltakskoordinator"
-        private val deltakerInTest = lagDeltaker()
+        private val deltakerInTest = TestData.lagDeltaker()
         private val deltakerOppdateringInTest = deltakerInTest.toDeltakeroppdatering()
 
         private fun runFailureTest(
@@ -106,7 +106,8 @@ class TiltaksKoordinatorClientTest {
             expectedResponse: T,
             block: suspend (TiltaksKoordinatorClient) -> T,
         ) = runTest {
-            val deltakerClient = createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.OK, expectedResponse)
+            val deltakerClient =
+                createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.Companion.OK, expectedResponse)
 
             if (expectedResponse == null) {
                 shouldNotThrowAny { block(deltakerClient) }
@@ -117,7 +118,7 @@ class TiltaksKoordinatorClientTest {
 
         private fun createTiltaksKoordinatorClient(
             expectedUrl: String,
-            statusCode: HttpStatusCode = HttpStatusCode.OK,
+            statusCode: HttpStatusCode = HttpStatusCode.Companion.OK,
             responseBody: Any? = null,
         ) = TiltaksKoordinatorClient(
             baseUrl = CLIENT_BASE_URL,

@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.deltaker
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagArrangorResponse

@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
@@ -15,7 +14,6 @@ import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDto
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdUpdateDbo
 import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -71,11 +69,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -107,154 +101,6 @@ class PameldingServiceTest {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
         TiltakstypeRepository().upsert(tiltak)
-    }
-
-    @Nested
-    inner class EnkeltplassTests {
-        val navBruker = lagNavBruker(
-            navVeilederId = sistEndretAvNavAnsatt.id,
-            navEnhetId = sistEndretAvNavEnhet.id,
-        )
-
-        @BeforeEach
-        fun beforeEach() {
-            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-        }
-
-        @Test
-        fun `opprettKladd - returnerer ny deltakerId`() = runTest {
-            val deltaker = kladdService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-
-            assertSoftly(deltaker) {
-                id shouldBe deltaker.id
-                startdato shouldBe null
-                sluttdato shouldBe null
-                dagerPerUke shouldBe null
-                deltakelsesprosent shouldBe null
-                bakgrunnsinformasjon shouldBe null
-                vedtaksinformasjon shouldBe null
-                sistEndret shouldBeCloseTo LocalDateTime.now()
-                kilde shouldBe Kilde.KOMET
-                erManueltDeltMedArrangor shouldBe false
-                opprettet shouldBeCloseTo LocalDateTime.now()
-            }
-
-            assertSoftly(deltaker.status) {
-                type shouldBe DeltakerStatus.Type.KLADD
-            }
-
-            assertSoftly(deltaker.deltakerliste) {
-                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
-                tiltakstype shouldBe tiltak
-                navn shouldBe tiltak.navn
-                startDato shouldBe null
-                sluttDato shouldBe null
-                oppstart shouldBe Oppstartstype.LOPENDE
-                apentForPamelding shouldBe true
-                oppmoteSted shouldBe null
-                arrangor shouldBe null
-                pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
-                status shouldBe GjennomforingStatusType.KLADD
-            }
-        }
-
-        @Test
-        fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer ny deltakerId`() = runTest {
-            val deltaker = kladdService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-
-            val deltaker2 = kladdService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-            deltaker2.id shouldBe deltaker.id
-        }
-
-        @Test
-        fun `oppdaterKladd - returnerer ny deltakerId`() = runTest {
-            val deltakerInserted = kladdService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-            val deltakerExpected = lagEnkeltplassKladdUpdateDbo(
-                deltakerId = deltakerInserted.id,
-                tiltakstype = deltakerInserted.deltakerliste.tiltakstype,
-                startdato = LocalDate.now().plusDays(1),
-                sluttdato = LocalDate.now().plusDays(2),
-                beskrivelse = "Beskrivelse",
-            )
-            val prisinfoExpected = "Prisinfo"
-            val oppdatertDeltaker = kladdService.oppdaterKladd(
-                deltakerId = deltakerExpected.id,
-                startdato = deltakerExpected.startdato,
-                sluttdato = deltakerExpected.sluttdato,
-                beskrivelse = deltakerExpected.deltakelsesinnhold
-                    ?.innhold
-                    ?.first()
-                    ?.beskrivelse,
-                prisinformasjon = prisinfoExpected,
-            )
-
-            oppdatertDeltaker shouldNotBe null
-
-            assertSoftly(oppdatertDeltaker) {
-                id shouldBe deltakerExpected.id
-                startdato shouldBe deltakerExpected.startdato
-                sluttdato shouldBe deltakerExpected.sluttdato
-                dagerPerUke shouldBe null
-                deltakelsesprosent shouldBe null
-                bakgrunnsinformasjon shouldBe null
-                vedtaksinformasjon shouldBe null
-                sistEndret shouldBeCloseTo LocalDateTime.now()
-                kilde shouldBe Kilde.KOMET
-                erManueltDeltMedArrangor shouldBe false
-                opprettet shouldBeCloseTo LocalDateTime.now()
-            }
-
-            assertSoftly(oppdatertDeltaker.status) {
-                type shouldBe DeltakerStatus.Type.KLADD
-            }
-
-            assertSoftly(oppdatertDeltaker.deltakerliste) {
-                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
-                tiltakstype shouldBe tiltak
-                navn shouldBe tiltak.navn
-                prisinformasjon shouldBe prisinfoExpected
-            }
-        }
-
-        @Test
-        fun `slettKladd - deltaker er KLADD - sletter deltaker og gjennomføring`() = runTest {
-            val deltakerInserted = kladdService.opprettKladd(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                navBruker.personident,
-            )
-
-            kladdService.slettKladd(deltakerInserted.id)
-
-            deltakerRepository.get(deltakerInserted.id).shouldBeFailure()
-            deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeFailure()
-        }
-
-        @Test
-        fun `slettKladd - deltaker er KLADD men deltakerliste er syncet med valp - sletter ikke`() = runTest {
-            val deltakerInserted = kladdService.opprettKladd(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                navBruker.personident,
-            )
-            deltakerlisteRepository.upsert(deltakerInserted.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES))
-
-            shouldThrowAny {
-                kladdService.slettKladd(deltakerInserted.id)
-            }
-            deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
-            deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
-        }
     }
 
     @Nested
@@ -690,7 +536,6 @@ class PameldingServiceTest {
     private val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
     private val endringFraTiltaksKoordinatorRepository = EndringFraTiltakskoordinatorRepository()
     private val vurderingRepository = VurderingRepository()
-    private val tiltakRepository = TiltakstypeRepository()
 
     private val deltakerHistorikkService =
         DeltakerHistorikkService(
@@ -781,7 +626,6 @@ class PameldingServiceTest {
             navEnhetService,
             navAnsattService,
         ),
-        tiltakRepository = tiltakRepository,
     )
 
     companion object {

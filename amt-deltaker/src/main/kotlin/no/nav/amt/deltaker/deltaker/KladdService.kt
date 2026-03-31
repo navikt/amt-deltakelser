@@ -3,24 +3,15 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.db.EnkeltplassKladdUpdateDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.GjennomforingInsertDbo
-import no.nav.amt.deltaker.deltakerliste.GjennomforingKladdUpdateDbo
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.utils.database.Database
@@ -34,83 +25,8 @@ class KladdService(
     private val deltakerService: DeltakerService,
     private val deltakerListeRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
-    private val tiltakRepository: TiltakstypeRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    suspend fun opprettKladd(
-        tiltakskode: Tiltakskode,
-        personident: String,
-    ): Deltaker {
-        deltakerRepository
-            .getKladd(personident, tiltakskode)
-            .getOrNull()
-            ?.takeIf { it.erEnkeltplass }
-            ?.let { return it }
-
-        val navBruker = navBrukerService.get(personident).getOrThrow()
-        val tiltak = Tiltakskode.valueOf(tiltakskode.name).let {
-            tiltakRepository.get(tiltakskode).getOrThrow()
-        }
-        val gjennomforing = GjennomforingInsertDbo(
-            id = UUID.randomUUID(),
-            type = GjennomforingType.Enkeltplass,
-            tiltakId = tiltak.id,
-            navn = tiltak.navn,
-            status = GjennomforingStatusType.KLADD,
-            // Antagelig ubetydelig, men kan ha noe å si for hva som skjer når vi evt leser gjennomføringen igjen fra valp
-            oppstart = Oppstartstype.LOPENDE,
-            apentForPamelding = true,
-            pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
-        )
-
-        val kladd = lagEnkeltplassKladdInsertDbo(
-            navBruker.personId,
-            gjennomforing.id,
-            tiltak,
-        )
-
-        Database.transaction {
-            deltakerListeRepository.upsert(gjennomforing)
-            deltakerRepository.upsertKladd(kladd)
-            DeltakerStatusRepository.lagreStatus(kladd.id, nyDeltakerStatus(DeltakerStatus.Type.KLADD))
-        }
-
-        return deltakerRepository.get(kladd.id).getOrThrow()
-    }
-
-    suspend fun oppdaterKladd(
-        deltakerId: UUID,
-        startdato: LocalDate?,
-        sluttdato: LocalDate?,
-        beskrivelse: String?,
-        prisinformasjon: String?,
-    ): Deltaker {
-        // Trenger egentlig bare deltakeren for tiltakstypen sånn at ledeteksten
-        // kan puttes i jsonobjektet i innhold
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-
-        require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
-            "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id $deltakerId har status ${deltaker.status.type}"
-        }
-
-        val gjennomforingUpdateDbo = GjennomforingKladdUpdateDbo(
-            id = deltaker.deltakerliste.id,
-            prisinformasjon = prisinformasjon,
-        )
-        val kladdUpdateDbo = lagEnkeltplassKladdUpdateDbo(
-            deltakerId = deltakerId,
-            tiltakstype = deltaker.deltakerliste.tiltakstype,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            beskrivelse = beskrivelse,
-        )
-        Database.transaction {
-            deltakerListeRepository.update(gjennomforingUpdateDbo)
-            deltakerRepository.updateEnkeltplassKladd(kladdUpdateDbo)
-        }
-        return deltakerRepository.get(deltakerId).getOrThrow()
-    }
 
     suspend fun opprettKladd(
         deltakerListeId: UUID,

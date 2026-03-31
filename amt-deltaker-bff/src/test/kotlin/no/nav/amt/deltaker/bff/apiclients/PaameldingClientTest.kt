@@ -1,14 +1,13 @@
-package no.nav.amt.deltaker.bff.apiclients.paamelding
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.apiclients.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
-import no.nav.amt.deltaker.bff.testdata.TestdataService.Companion.lagUtkast
+import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
@@ -44,7 +43,7 @@ class PaameldingClientTest {
         fun `skal returnere KladdResponse`() {
             runHappyPathTest(
                 expectedUrl,
-                opprettKladdResponseFromDeltaker(deltakerInTest),
+                DtoMappers.opprettKladdResponseFromDeltaker(deltakerInTest),
                 opprettKladdLambda,
             )
         }
@@ -66,7 +65,7 @@ class PaameldingClientTest {
             dagerPerUke = 3,
         )
 
-        val utkast = lagUtkast(deltakerInTest.id, deltakerListe, opprettTestDeltakelseRequest)
+        val utkast = TestdataService.Companion.lagUtkast(deltakerInTest.id, deltakerListe, opprettTestDeltakelseRequest)
 
         val utkastLambda: suspend (PaameldingClient) -> UtkastResponse =
             { client -> client.utkast(utkast) }
@@ -175,7 +174,7 @@ class PaameldingClientTest {
             expectedResponse: T,
             block: suspend (PaameldingClient) -> T,
         ) = runTest {
-            val deltakerClient = createPaameldingClient(expectedUrl, HttpStatusCode.OK, expectedResponse)
+            val deltakerClient = createPaameldingClient(expectedUrl, HttpStatusCode.Companion.OK, expectedResponse)
 
             if (expectedResponse == null) {
                 shouldNotThrowAny { block(deltakerClient) }
@@ -186,7 +185,7 @@ class PaameldingClientTest {
 
         private fun createPaameldingClient(
             expectedUrl: String,
-            statusCode: HttpStatusCode = HttpStatusCode.OK,
+            statusCode: HttpStatusCode = HttpStatusCode.Companion.OK,
             responseBody: Any? = null,
         ) = PaameldingClient(
             baseUrl = DELTAKER_BASE_URL,

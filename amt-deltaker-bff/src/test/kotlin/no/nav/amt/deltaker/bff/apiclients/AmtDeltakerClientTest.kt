@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.deltaker
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -553,7 +553,7 @@ class AmtDeltakerClientTest {
         fun `skal logge warning ved feil`() {
             val deltakerClient = createDeltakerClient(expectedUrl, HttpStatusCode.Unauthorized)
 
-            withLogCapture("no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient") { logEvents ->
+            withLogCapture("no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient") { logEvents ->
                 deltakerClient.sistBesokt(deltakerInTest.id, ZonedDateTime.now())
 
                 val logEntry = logEvents.find { it.level.levelStr == "WARN" }

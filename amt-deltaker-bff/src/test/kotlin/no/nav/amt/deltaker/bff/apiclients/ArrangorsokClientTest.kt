@@ -1,10 +1,12 @@
-package no.nav.amt.deltaker.bff.apiclients.arrangorsok
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
+import no.nav.amt.deltaker.bff.apiclients.arrangorsok.EnhetResponse
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import org.junit.jupiter.api.Assertions
@@ -117,7 +119,7 @@ class ArrangorsokClientTest {
         ) = runBlocking {
             val arrangorsokClient = createArrangorsokClient(
                 expectedUrl = expectedUrl,
-                statusCode = HttpStatusCode.OK,
+                statusCode = HttpStatusCode.Companion.OK,
                 responseBody = expectedResponse,
             )
 
@@ -130,7 +132,7 @@ class ArrangorsokClientTest {
 
         private fun createArrangorsokClient(
             expectedUrl: String,
-            statusCode: HttpStatusCode = HttpStatusCode.OK,
+            statusCode: HttpStatusCode = HttpStatusCode.Companion.OK,
             responseBody: Any? = null,
         ) = ArrangorsokClient(
             baseUrl = ARRANGORSOK_BASE_URL,

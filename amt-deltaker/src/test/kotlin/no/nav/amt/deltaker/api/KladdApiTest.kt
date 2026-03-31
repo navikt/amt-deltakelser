@@ -16,15 +16,9 @@ import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.internapi.DeltakerIdResponse
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 class KladdApiTest : RouteTestBase() {
@@ -99,66 +93,7 @@ class KladdApiTest : RouteTestBase() {
         }
     }
 
-    @Nested
-    inner class Enkeltplass {
-        @Test
-        fun `post kladd - mangler token - returnerer 401`() {
-            withTestApplicationContext { client ->
-                client.post("/opprett-enkeltplass-kladd") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            }
-        }
-
-        @Test
-        fun `opprett enkeltplass kladd - har tilgang - returnerer deltakerId`() {
-            val deltaker = TestData.lagDeltaker()
-
-            coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
-            coEvery { kladdService.opprettKladd(any<Tiltakskode>(), any()) } returns deltaker
-
-            withTestApplicationContext { client ->
-                val response = client.post("/opprett-enkeltplass-kladd") {
-                    postRequest(opprettEnkeltplassKladdRequest)
-                }
-
-                response.status shouldBe HttpStatusCode.OK
-                response.bodyAsText() shouldBe objectMapper.writeValueAsString(
-                    DeltakerIdResponse(
-                        deltaker.id,
-                    ),
-                )
-            }
-        }
-
-        @Test
-        fun `oppdater enkeltplass kladd - har tilgang - returnerer deltakerId`() {
-            val deltaker = TestData.lagDeltaker()
-
-            coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
-            coEvery { kladdService.opprettKladd(any<Tiltakskode>(), any()) } returns deltaker
-
-            withTestApplicationContext { client ->
-                val response = client.post("/oppdater-enkeltplass-kladd/${deltaker.id}") {
-                    postRequest(oppdaterEnkeltplassKladdRequest)
-                }
-
-                response.status shouldBe HttpStatusCode.OK
-            }
-        }
-
-        @Test
-        fun `oppdater enkeltplass kladd - mangler token - returnerer 401`() {
-            withTestApplicationContext { client ->
-                client
-                    .post("/oppdater-enkeltplass-kladd/${UUID.randomUUID()}") { setBody("foo") }
-                    .status shouldBe HttpStatusCode.Unauthorized
-            }
-        }
-    }
-
     companion object {
         private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
-        private val opprettEnkeltplassKladdRequest = OpprettKladdEnkeltplassRequest(Tiltakskode.ARBEIDSMARKEDSOPPLAERING, "1234")
-        private val oppdaterEnkeltplassKladdRequest =
-            OppdaterEnkeltplassKladdRequest(LocalDate.now(), LocalDate.now(), "prisinfo", "beskrivelse")
     }
 }
