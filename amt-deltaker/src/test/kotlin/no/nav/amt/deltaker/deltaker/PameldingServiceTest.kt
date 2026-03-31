@@ -162,6 +162,20 @@ class PameldingServiceTest {
         }
 
         @Test
+        fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer ny deltakerId`() = runTest {
+            val deltaker = kladdService.opprettKladd(
+                tiltak.tiltakskode,
+                navBruker.personident,
+            )
+
+            val deltaker2 = kladdService.opprettKladd(
+                tiltak.tiltakskode,
+                navBruker.personident,
+            )
+            deltaker2.id shouldBe deltaker.id
+        }
+
+        @Test
         fun `oppdaterKladd - returnerer ny deltakerId`() = runTest {
             val deltakerInserted = kladdService.opprettKladd(
                 tiltak.tiltakskode,

@@ -42,6 +42,12 @@ class KladdService(
         tiltakskode: Tiltakskode,
         personident: String,
     ): Deltaker {
+        deltakerRepository
+            .getKladd(personident, tiltakskode)
+            .getOrNull()
+            ?.takeIf { it.erEnkeltplass }
+            ?.let { return it }
+
         val navBruker = navBrukerService.get(personident).getOrThrow()
         val tiltak = Tiltakskode.valueOf(tiltakskode.name).let {
             tiltakRepository.get(tiltakskode).getOrThrow()
