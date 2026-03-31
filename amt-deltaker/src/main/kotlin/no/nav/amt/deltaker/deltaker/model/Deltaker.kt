@@ -8,6 +8,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.person.NavBruker
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -35,6 +36,7 @@ data class Deltaker(
     fun deltarPaKurs(): Boolean = deltakerliste.erFellesOppstart
 
     val deltarPaOpplaeringstiltak get(): Boolean = deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()
+    val erEnkeltplass get(): Boolean = deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass
 
     fun toDeltakerVedVedtak(): DeltakerVedVedtak = DeltakerVedVedtak(
         id = id,
