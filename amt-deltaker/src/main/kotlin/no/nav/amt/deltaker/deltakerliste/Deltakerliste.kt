@@ -35,5 +35,5 @@ data class Deltakerliste(
     val avslutningstype get() = if (erFellesOppstart || tiltakstype.erOpplaeringstiltak) Avslutningstype.FELLES else Avslutningstype.LOPENDE
 
     val harFellesAvslutning = avslutningstype == Avslutningstype.FELLES
-    val erDeltMedValp get() = status !== GjennomforingStatusType.KLADD
+    val erDeltMedValp get() = status != GjennomforingStatusType.KLADD
 }
