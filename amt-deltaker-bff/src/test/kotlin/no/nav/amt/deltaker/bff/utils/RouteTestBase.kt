@@ -26,7 +26,6 @@ import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
-import no.nav.amt.deltaker.bff.enkeltplass.EnkeltplassManager
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
@@ -59,10 +58,6 @@ abstract class RouteTestBase {
     protected val arrangorsokClient = mockk<ArrangorsokClient>(relaxed = true)
 
     protected val enkeltplassClient = mockk<EnkeltplassClient>()
-    protected val enkeltplassManager = EnkeltplassManager(
-        deltakerRepository = deltakerRepository,
-        enkeltplassClient = enkeltplassClient,
-    )
 
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk(relaxed = true)
     protected val deltakerlisteService: DeltakerlisteService = mockk(relaxed = true)
@@ -117,7 +112,7 @@ abstract class RouteTestBase {
                     amtDistribusjonClient = amtDistribusjonClient,
                     amtDeltakerClient = amtDeltakerClient,
                     arrangorsokClient = arrangorsokClient,
-                    enkeltplassManager = enkeltplassManager,
+                    enkeltplassClient = enkeltplassClient,
                     sporbarhetsloggService = sporbarhetsloggService,
                     deltakerRepository = deltakerRepository,
                     deltakerlisteService = deltakerlisteService,

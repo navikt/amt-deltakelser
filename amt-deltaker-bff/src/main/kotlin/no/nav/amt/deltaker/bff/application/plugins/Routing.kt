@@ -13,6 +13,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
@@ -26,7 +27,6 @@ import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
-import no.nav.amt.deltaker.bff.enkeltplass.EnkeltplassManager
 import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.innbygger.registerInnbyggerApi
@@ -66,7 +66,7 @@ fun Application.configureRouting(
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     arrangorsokClient: ArrangorsokClient,
-    enkeltplassManager: EnkeltplassManager,
+    enkeltplassClient: EnkeltplassClient,
     sporbarhetsloggService: SporbarhetsloggService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteService: DeltakerlisteService,
@@ -109,9 +109,9 @@ fun Application.configureRouting(
         registerHealthApi()
 
         registerEnkeltplassApi(
-            deltakerRepository = deltakerRepository,
+            amtDeltakerClient = amtDeltakerClient,
             tilgangskontrollService = tilgangskontrollService,
-            enkeltplassManager = enkeltplassManager,
+            enkeltplassClient = enkeltplassClient,
         )
 
         registerVeilederApi(

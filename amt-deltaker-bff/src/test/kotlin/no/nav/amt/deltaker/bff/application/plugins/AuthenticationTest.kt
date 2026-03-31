@@ -101,7 +101,7 @@ class AuthenticationTest {
                 amtDistribusjonClient = mockk(),
                 amtDeltakerClient = mockk(),
                 arrangorsokClient = mockk(),
-                enkeltplassManager = mockk(),
+                enkeltplassClient = mockk(),
                 sporbarhetsloggService = mockk(),
                 deltakerRepository = mockk(),
                 deltakerlisteService = mockk(),

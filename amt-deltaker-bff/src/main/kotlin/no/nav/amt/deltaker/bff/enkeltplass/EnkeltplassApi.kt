@@ -5,15 +5,16 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 
 fun Routing.registerEnkeltplassApi(
-    deltakerRepository: DeltakerRepository,
+    amtDeltakerClient: AmtDeltakerClient,
+    enkeltplassClient: EnkeltplassClient,
     tilgangskontrollService: TilgangskontrollService,
-    enkeltplassManager: EnkeltplassManager,
 ) {
     authenticate("VEILEDER") {
         /*
@@ -38,14 +39,14 @@ fun Routing.registerEnkeltplassApi(
             // val request = call.receive<EnkeltplassUtkastRequest>()
             // Requeste gjennomføring hos valp(via amt-deltaker)
 
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val deltakerId = call.getDeltakerId()
 
             tilgangskontrollService.verifiserSkrivetilgang(
                 navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
+                norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident,
             )
 
-            enkeltplassManager.meldPaaDirekte(deltaker)
+            enkeltplassClient.meldPaaDirekte(deltakerId)
 
             call.respond(HttpStatusCode.OK)
         }

@@ -56,7 +56,6 @@ import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
-import no.nav.amt.deltaker.bff.enkeltplass.EnkeltplassManager
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
@@ -253,11 +252,6 @@ fun Application.module() {
 
     val vurderingRepository = VurderingRepository()
 
-    val enkeltplassManager = EnkeltplassManager(
-        deltakerRepository = deltakerRepository,
-        enkeltplassClient = enkeltplassClient,
-    )
-
     val vurderingService = VurderingService(vurderingRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -359,7 +353,7 @@ fun Application.module() {
         amtDistribusjonClient = amtDistribusjonClient,
         amtDeltakerClient = amtDeltakerClient,
         arrangorsokClient = arrangorsokClient,
-        enkeltplassManager = enkeltplassManager,
+        enkeltplassClient = enkeltplassClient,
         sporbarhetsloggService = sporbarhetsloggService,
         deltakerRepository = deltakerRepository,
         deltakerlisteService = deltakerlisteService,

@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.utils.RouteTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
+import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -27,7 +28,7 @@ class EnkeltplassApiTest : RouteTestBase() {
 
     @BeforeEach
     fun setup() {
-        every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns PersonIdentResponse("1234")
         every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
 
         val mockHttpResponse = mockk<HttpResponse>()
@@ -35,7 +36,7 @@ class EnkeltplassApiTest : RouteTestBase() {
     }
 
     @Nested
-    inner class HovedenhetSokTests {
+    inner class OpprettEnkeltplassTests {
         val url = "/enkeltplass-utkast/${deltakerInTest.id}/meld-paa-direkte"
 
         @Test
