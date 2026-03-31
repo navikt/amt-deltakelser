@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
@@ -96,6 +97,7 @@ import kotlin.test.assertFailsWith
 class PameldingServiceTest {
     val sistEndretAvNavEnhet = lagNavEnhet()
     val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
+    val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
 
     @BeforeEach
     fun setup() {
@@ -104,22 +106,23 @@ class PameldingServiceTest {
 
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
+        TiltakstypeRepository().upsert(tiltak)
     }
 
     @Nested
     inner class EnkeltplassTests {
+        val navBruker = lagNavBruker(
+            navVeilederId = sistEndretAvNavAnsatt.id,
+            navEnhetId = sistEndretAvNavEnhet.id,
+        )
+
+        @BeforeEach
+        fun beforeEach() {
+            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
+        }
+
         @Test
         fun `opprettKladd - returnerer ny deltakerId`() = runTest {
-            val navBruker = lagNavBruker(
-                navVeilederId = sistEndretAvNavAnsatt.id,
-                navEnhetId = sistEndretAvNavEnhet.id,
-            )
-
-            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-
-            val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
-            TiltakstypeRepository().upsert(tiltak)
-
             val deltaker = kladdService.opprettKladd(
                 tiltak.tiltakskode,
                 navBruker.personident,
@@ -160,16 +163,6 @@ class PameldingServiceTest {
 
         @Test
         fun `oppdaterKladd - returnerer ny deltakerId`() = runTest {
-            val navBruker = lagNavBruker(
-                navVeilederId = sistEndretAvNavAnsatt.id,
-                navEnhetId = sistEndretAvNavEnhet.id,
-            )
-
-            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-
-            val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
-            TiltakstypeRepository().upsert(tiltak)
-
             val deltakerInserted = kladdService.opprettKladd(
                 tiltak.tiltakskode,
                 navBruker.personident,
@@ -219,6 +212,34 @@ class PameldingServiceTest {
                 navn shouldBe tiltak.navn
                 prisinformasjon shouldBe prisinfoExpected
             }
+        }
+
+        @Test
+        fun `slettKladd - deltaker er KLADD - sletter deltaker og gjennomføring`() = runTest {
+            val deltakerInserted = kladdService.opprettKladd(
+                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                navBruker.personident,
+            )
+
+            kladdService.slettKladd(deltakerInserted.id)
+
+            deltakerRepository.get(deltakerInserted.id).shouldBeFailure()
+            deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeFailure()
+        }
+
+        @Test
+        fun `slettKladd - deltaker er KLADD men deltakerliste er syncet med valp - sletter ikke`() = runTest {
+            val deltakerInserted = kladdService.opprettKladd(
+                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                navBruker.personident,
+            )
+            deltakerlisteRepository.upsert(deltakerInserted.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES))
+
+            shouldThrowAny {
+                kladdService.slettKladd(deltakerInserted.id)
+            }
+            deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
+            deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
         }
     }
 
@@ -735,10 +756,11 @@ class PameldingServiceTest {
         hendelseService = hendelseService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
+    private val deltakerlisteRepository = DeltakerlisteRepository()
     private val kladdService = KladdService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        deltakerListeRepository = DeltakerlisteRepository(),
+        deltakerListeRepository = deltakerlisteRepository,
         navBrukerService = NavBrukerService(
             NavBrukerRepository(),
             mockPersonServiceClient(),

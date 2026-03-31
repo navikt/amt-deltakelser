@@ -34,7 +34,7 @@ class NavBrukerConsumer(
         if (navBruker.innsatsgruppe == null) {
             val kladder = pameldingService.getKladder(navBruker.personident)
             kladder.forEach {
-                pameldingService.slettKladd(it)
+                pameldingService.slettKladd(it.id)
                 log.info("Slettet kladd med id ${it.id} fordi bruker ikke er under oppfølging")
             }
         }

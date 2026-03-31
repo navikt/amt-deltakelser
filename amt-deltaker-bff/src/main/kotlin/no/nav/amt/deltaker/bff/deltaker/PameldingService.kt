@@ -118,14 +118,17 @@ class PameldingService(
         return deltakerRepository.get(utkast.deltakerId).getOrThrow()
     }
 
-    suspend fun slettKladd(deltaker: Deltaker): Boolean {
-        if (deltaker.status.type != DeltakerStatus.Type.KLADD) {
+    suspend fun slettKladd(deltakerId: UUID): Boolean {
+        // deltaker kan være null hvis det er en enkelplass eller det er usync mellom databaser
+        val deltaker = deltakerRepository.get(deltakerId).getOrNull()
+
+        if (deltaker !== null && deltaker.status.type != DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke slette deltaker med id ${deltaker.id} som har status ${deltaker.status.type}")
             return false
         }
-        paameldingClient.slettKladd(deltaker.id)
+        paameldingClient.slettKladd(deltakerId)
         Database.transaction {
-            deltakerService.deleteDeltaker(deltaker.id)
+            deltakerService.deleteDeltaker(deltakerId)
         }
         return true
     }
