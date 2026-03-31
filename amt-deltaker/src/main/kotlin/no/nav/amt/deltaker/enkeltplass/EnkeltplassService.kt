@@ -46,7 +46,7 @@ class EnkeltplassService(
             )
 
             gjennomforingRequestProducer.produce(
-                GjennomforingRequestPayload.OpprettGjennomforing(
+                GjennomforingRequestPayload.OpprettEnkeltplass(
                     gjennomforingId = gjennomforing.id,
                     tiltakskode = gjennomforing.tiltakstype.tiltakskode,
                     prisinformasjon = gjennomforing.prisinformasjon ?: throw IllegalStateException("Prisinformasjon mangler"),

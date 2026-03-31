@@ -75,16 +75,16 @@ class EnkeltplassServiceTest {
     @Nested
     inner class OpprettGjennomforingRemoteTests {
         @Test
-        fun `skal opprette gjennomforing hos Mulighetsrommet for deltaker i kladd med enkeltplass`() = runTest {
+        fun `skal opprette emkeltplass hos Mulighetsrommet for deltaker i kladd med enkeltplass`() = runTest {
             // Act
             sut.opprettGjennomforingRemote(deltakerId = deltakerInTest.id)
 
             // Assert
-            verify { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettGjennomforing>()) }
+            verify { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
         }
 
         @Test
-        fun `skal ikke opprette gjennomforing hos Mulighetsrommet for gjennomforing som ikke er enkeltplass`() = runTest {
+        fun `skal ikke opprette emkeltplass hos Mulighetsrommet for gjennomforing som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = deltakerInTest.copy(
                 status = deltakerInTest.status.copy(type = DeltakerStatus.Type.KLADD),
@@ -99,11 +99,11 @@ class EnkeltplassServiceTest {
             sut.opprettGjennomforingRemote(deltakerId = deltaker.id)
 
             // Assert
-            verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettGjennomforing>()) }
+            verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
         }
 
         @Test
-        fun `skal ikke opprette gjennomforing hos Mulighetsrommet for deltaker som ikke er kladd`() = runTest {
+        fun `skal ikke opprette emkeltplass hos Mulighetsrommet for deltaker som ikke er kladd`() = runTest {
             // Arrange
             val deltaker = deltakerInTest.copy(
                 status = deltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
@@ -115,7 +115,7 @@ class EnkeltplassServiceTest {
             sut.opprettGjennomforingRemote(deltakerId = deltaker.id)
 
             // Assert
-            verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettGjennomforing>()) }
+            verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
         }
     }
 }
