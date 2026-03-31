@@ -50,7 +50,7 @@ class EnkeltplassClientTest {
         private const val ENKELTPLASS_BASE_URL = "http://amt-deltaker"
 
         private val expectedOpprettEnkeltplassUrl =
-            "$ENKELTPLASS_BASE_URL/enkeltplass-utkast/$deltakerIdInTest/meld-paa-direkte"
+            "$ENKELTPLASS_BASE_URL/enkeltplass/utkast/$deltakerIdInTest/meld-paa-direkte"
 
         private val request = MeldPaaDirekteEnkeltplassRequest(
             beskrivelse = "Testbeskrivelse",
