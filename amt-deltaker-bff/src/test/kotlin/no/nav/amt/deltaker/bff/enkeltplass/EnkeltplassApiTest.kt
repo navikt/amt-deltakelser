@@ -52,7 +52,7 @@ class EnkeltplassApiTest : RouteTestBase() {
         }
 
         @Test
-        fun `skal returnere Unauthorized nar veileder ikke har tilgant til bruker`() {
+        fun `skal returnere Forbidden nar veileder ikke har tilgant til bruker`() {
             // Arrange
             every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 
@@ -65,6 +65,19 @@ class EnkeltplassApiTest : RouteTestBase() {
 
             // Assert
             response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `skal returnere BadRequest hvis request er ugyldig`() {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(url) {
+                    createPostRequest(requestInTest.copy(arrangorOrgnummer = "abc"))
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.BadRequest
         }
 
         @Test
