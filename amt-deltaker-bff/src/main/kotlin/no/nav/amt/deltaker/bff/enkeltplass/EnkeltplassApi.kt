@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
-import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 
 fun Routing.registerEnkeltplassApi(
     amtDeltakerClient: AmtDeltakerClient,
@@ -48,7 +48,7 @@ fun Routing.registerEnkeltplassApi(
                 norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident,
             )
 
-            val request: MeldPaaDirekteEnkeltplassRequest = call.receive()
+            val request: EnkeltplassPameldingRequest = call.receive()
 
             enkeltplassClient.meldPaaDirekte(
                 deltakerId = deltakerId,

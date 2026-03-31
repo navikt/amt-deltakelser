@@ -13,7 +13,7 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.navbruker.NavBrukerService
-import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -21,7 +21,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.UUID
 
@@ -33,8 +32,6 @@ class EnkeltplassService(
     private val navBrukerService: NavBrukerService,
     private val tiltakRepository: TiltakstypeRepository,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
         personident: String,
@@ -111,7 +108,7 @@ class EnkeltplassService(
 
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
-        request: MeldPaaDirekteEnkeltplassRequest, // TODO
+        request: EnkeltplassPameldingRequest,
     ) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 

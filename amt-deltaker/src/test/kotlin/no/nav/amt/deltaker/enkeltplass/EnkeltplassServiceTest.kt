@@ -21,7 +21,7 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -50,9 +50,10 @@ class EnkeltplassServiceTest {
     )
 
     companion object {
-        private val request = MeldPaaDirekteEnkeltplassRequest(
+        private val request = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
+            arrangorOrgnummer = "987654321",
         )
 
         private val deltakerInTest = lagDeltaker(

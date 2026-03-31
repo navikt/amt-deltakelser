@@ -48,7 +48,7 @@ import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
 import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi
 import no.nav.amt.deltaker.bff.veileder.api.registerVeilederApi
-import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.routing.registerHealthApi
@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory
 
 fun Application.configureRequestValidation() {
     install(RequestValidation) {
-        validate<MeldPaaDirekteEnkeltplassRequest> { request -> request.validate() }
+        validate<EnkeltplassPameldingRequest> { request -> request.validate() }
     }
 }
 

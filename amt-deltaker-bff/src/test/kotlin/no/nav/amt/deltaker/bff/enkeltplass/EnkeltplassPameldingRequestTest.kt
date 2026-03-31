@@ -3,13 +3,13 @@ package no.nav.amt.deltaker.bff.enkeltplass
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.plugins.requestvalidation.ValidationResult
-import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import org.junit.jupiter.api.Test
 
-class MeldPaaDirekteEnkeltplassRequestTest {
+class EnkeltplassPameldingRequestTest {
     @Test
     fun `validate - skal returnere feil hvis beskrivelse er tom`() {
-        val request = MeldPaaDirekteEnkeltplassRequest(
+        val request = EnkeltplassPameldingRequest(
             beskrivelse = "",
             prisinformasjon = "",
             arrangorOrgnummer = "",
@@ -20,7 +20,7 @@ class MeldPaaDirekteEnkeltplassRequestTest {
 
     @Test
     fun `validate - skal returnere feil hvis prisinformasjon er tom`() {
-        val request = MeldPaaDirekteEnkeltplassRequest(
+        val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "",
             arrangorOrgnummer = "",
@@ -31,7 +31,7 @@ class MeldPaaDirekteEnkeltplassRequestTest {
 
     @Test
     fun `validate - skal returnere feil hvis arrangorOrgnummer er tom`() {
-        val request = MeldPaaDirekteEnkeltplassRequest(
+        val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
             arrangorOrgnummer = "",
@@ -42,7 +42,7 @@ class MeldPaaDirekteEnkeltplassRequestTest {
 
     @Test
     fun `validate - skal returnere feil hvis ugyldig arrangorOrgnummer`() {
-        val request = MeldPaaDirekteEnkeltplassRequest(
+        val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
             arrangorOrgnummer = "abc",
@@ -53,7 +53,7 @@ class MeldPaaDirekteEnkeltplassRequestTest {
 
     @Test
     fun `validate - skal returnere gyldig resultat hvis alle felt er fylt ut`() {
-        val request = MeldPaaDirekteEnkeltplassRequest(
+        val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
             arrangorOrgnummer = "987654321",

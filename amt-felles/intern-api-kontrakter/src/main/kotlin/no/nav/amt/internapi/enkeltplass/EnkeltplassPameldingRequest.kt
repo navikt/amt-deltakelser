@@ -2,7 +2,7 @@ package no.nav.amt.internapi.enkeltplass
 
 import java.time.LocalDate
 
-data class MeldPaaDirekteEnkeltplassRequest(
+data class EnkeltplassPameldingRequest(
     val beskrivelse: String,
     val prisinformasjon: String,
     val arrangorOrgnummer: String,

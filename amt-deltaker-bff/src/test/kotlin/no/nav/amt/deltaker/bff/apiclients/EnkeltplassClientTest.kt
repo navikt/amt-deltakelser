@@ -7,7 +7,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
-import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -52,7 +52,7 @@ class EnkeltplassClientTest {
         private val expectedOpprettEnkeltplassUrl =
             "$ENKELTPLASS_BASE_URL/enkeltplass/utkast/$deltakerIdInTest/meld-paa-direkte"
 
-        private val request = MeldPaaDirekteEnkeltplassRequest(
+        private val request = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
             arrangorOrgnummer = "987654321",

@@ -12,7 +12,7 @@ import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.DeltakerIdResponse
-import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -38,9 +38,10 @@ class EnkeltplassApiTest : RouteTestBase() {
         fun `skal returnere 200 OK`() {
             val deltakerId = UUID.randomUUID()
 
-            val request = MeldPaaDirekteEnkeltplassRequest(
+            val request = EnkeltplassPameldingRequest(
                 beskrivelse = "Testbeskrivelse",
                 prisinformasjon = "Test prisinformasjon",
+                arrangorOrgnummer = "987654321",
                 startdato = LocalDate.now(),
                 sluttdato = LocalDate.now(),
             )

@@ -10,7 +10,7 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.internapi.DeltakerIdResponse
-import no.nav.amt.internapi.enkeltplass.MeldPaaDirekteEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 
@@ -42,7 +42,7 @@ fun Routing.registerEnkeltplassApi(enkeltplassService: EnkeltplassService) {
             }
 
             post("/utkast/{deltakerId}/meld-paa-direkte") {
-                val request: MeldPaaDirekteEnkeltplassRequest = call.receive()
+                val request: EnkeltplassPameldingRequest = call.receive()
 
                 enkeltplassService.meldPaaDirekte(
                     deltakerId = call.getDeltakerId(),
