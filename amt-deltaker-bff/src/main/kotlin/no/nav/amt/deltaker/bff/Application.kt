@@ -27,6 +27,7 @@ import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureMonitoring
+import no.nav.amt.deltaker.bff.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
 import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
 import no.nav.amt.deltaker.bff.arrangor.ArrangorConsumer
@@ -340,6 +341,7 @@ fun Application.module() {
     consumers.forEach { it.start() }
 
     configureAuthentication(environment)
+    configureRequestValidation()
     configureRouting(
         tilgangskontrollService = tilgangskontrollService,
         deltakerService = deltakerService,

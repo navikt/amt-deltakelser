@@ -85,6 +85,7 @@ class EnkeltplassApiTest : RouteTestBase() {
         private val requestInTest = MeldPaaDirekteEnkeltplassRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
+            arrangorOrgnummer = "987654321",
         )
     }
 }

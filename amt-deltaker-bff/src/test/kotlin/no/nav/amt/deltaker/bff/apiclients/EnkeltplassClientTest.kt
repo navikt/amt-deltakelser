@@ -55,6 +55,7 @@ class EnkeltplassClientTest {
         private val request = MeldPaaDirekteEnkeltplassRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
+            arrangorOrgnummer = "987654321",
         )
 
         private fun runFailureTest(

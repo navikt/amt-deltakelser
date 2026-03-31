@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
+import no.nav.amt.deltaker.bff.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
 import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
@@ -100,6 +101,7 @@ abstract class RouteTestBase {
             application {
                 configureSerialization()
                 configureAuthentication(Environment())
+                configureRequestValidation()
                 configureRouting(
                     tilgangskontrollService = tilgangskontrollService,
                     deltakerService = deltakerService,
