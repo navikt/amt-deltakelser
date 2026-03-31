@@ -3,13 +3,12 @@ package no.nav.amt.deltaker.enkeltplass
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdInsertDbo
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdUpdateDbo
+import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.GjennomforingInsertDbo
-import no.nav.amt.deltaker.deltakerliste.GjennomforingKladdUpdateDbo
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
@@ -92,11 +91,11 @@ class EnkeltplassService(
             "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id $deltakerId har status ${deltaker.status.type}"
         }
 
-        val gjennomforingUpdateDbo = GjennomforingKladdUpdateDbo(
+        val gjennomforingUpdateDbo = EnkeltplassGjennomforingUpdateDbo(
             id = deltaker.deltakerliste.id,
             prisinformasjon = prisinformasjon,
         )
-        val kladdUpdateDbo = lagEnkeltplassKladdUpdateDbo(
+        val kladdUpdateDbo = lagEnkeltplassUpdateDbo(
             deltakerId = deltakerId,
             tiltakstype = deltaker.deltakerliste.tiltakstype,
             startdato = startdato,
@@ -110,7 +109,7 @@ class EnkeltplassService(
         return deltakerRepository.get(deltakerId).getOrThrow()
     }
 
-    suspend fun opprettGjennomforingRemote(
+    suspend fun meldPaaDirekte(
         deltakerId: UUID,
         request: MeldPaaDirekteEnkeltplassRequest, // TODO
     ) {
@@ -118,23 +117,28 @@ class EnkeltplassService(
 
         val gjennomforing = deltaker.deltakerliste
 
-        if (gjennomforing.gjennomforingstype != GjennomforingType.Enkeltplass) {
-            log.warn(
-                "Kan ikke opprette gjennomforing hos Mulighetsrommet for " +
-                    "gjennomforingstype ${gjennomforing.gjennomforingstype} for deltaker $deltakerId",
-            )
-            return
+        require(gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
+            "Kan ikke opprette gjennomforing hos Mulighetsrommet for " +
+                "gjennomforingstype ${gjennomforing.gjennomforingstype} for deltaker $deltakerId"
         }
 
         // TODO: Har vi noe annet vi kan sjekke her?
-        if (gjennomforing.status != GjennomforingStatusType.KLADD) {
-            log.info("Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd")
-            return
+        require(gjennomforing.status == GjennomforingStatusType.KLADD) {
+            "Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd"
         }
 
-        // oppdater deltaker
+        val gjennomforingUpdateDbo = EnkeltplassGjennomforingUpdateDbo(
+            id = deltaker.deltakerliste.id,
+            prisinformasjon = request.prisinformasjon,
+        )
 
-        // oppdater gjennomforing
+        val utkastUpdateDbo = lagEnkeltplassUpdateDbo(
+            deltakerId = deltakerId,
+            tiltakstype = deltaker.deltakerliste.tiltakstype,
+            startdato = request.startdato,
+            sluttdato = request.sluttdato,
+            beskrivelse = request.beskrivelse,
+        )
 
         Database.transaction {
             deltakerService.lagreDeltakerStatus(
@@ -142,6 +146,8 @@ class EnkeltplassService(
                 nyDeltakerStatus = nyDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
                 erDeltakerSluttdatoEndret = false,
             )
+            deltakerlisteRepository.update(gjennomforingUpdateDbo)
+            deltakerRepository.updateEnkeltplassKladd(utkastUpdateDbo)
 
             gjennomforingRequestProducer.produce(
                 GjennomforingRequestPayload.OpprettEnkeltplass(

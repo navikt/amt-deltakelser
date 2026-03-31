@@ -52,7 +52,7 @@ class EnkeltplassApiTest : RouteTestBase() {
                     }.status shouldBe HttpStatusCode.OK
             }
 
-            coVerify { enkeltplassService.opprettGjennomforingRemote(deltakerId, request) }
+            coVerify { enkeltplassService.meldPaaDirekte(deltakerId, request) }
         }
     }
 

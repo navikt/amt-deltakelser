@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdUpdateDbo
+import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -126,7 +126,7 @@ class EnkeltplassServiceIntegrationTest {
                 tiltak.tiltakskode,
                 navBruker.personident,
             )
-            val deltakerExpected = lagEnkeltplassKladdUpdateDbo(
+            val deltakerExpected = lagEnkeltplassUpdateDbo(
                 deltakerId = deltakerInserted.id,
                 tiltakstype = deltakerInserted.deltakerliste.tiltakstype,
                 startdato = LocalDate.now().plusDays(1),

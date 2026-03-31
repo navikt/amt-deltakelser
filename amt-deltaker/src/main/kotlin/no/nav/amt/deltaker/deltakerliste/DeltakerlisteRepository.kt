@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltakerliste
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassGjennomforingUpdateDbo
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -132,7 +133,7 @@ class DeltakerlisteRepository {
         log.info("Upsertet gjennomføring med id ${gjennomforing.id}")
     }
 
-    fun update(gjennomforing: GjennomforingKladdUpdateDbo) {
+    fun update(gjennomforing: EnkeltplassGjennomforingUpdateDbo) {
         val sql =
             """
             UPDATE deltakerliste

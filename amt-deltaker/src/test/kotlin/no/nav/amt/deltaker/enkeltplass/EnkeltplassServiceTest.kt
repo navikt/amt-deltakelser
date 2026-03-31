@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.enkeltplass
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -32,10 +33,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class EnkeltplassServiceTest {
-    private val deltakerRepository = mockk<DeltakerRepository>()
+    private val deltakerRepository = mockk<DeltakerRepository>(relaxed = true)
     private val deltakerService: DeltakerService = mockk(relaxed = true)
     private val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>(relaxUnitFun = true)
-    private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
+    private val deltakerlisteRepository = mockk<DeltakerlisteRepository>(relaxed = true)
     private val navBrukerService = mockk<NavBrukerService>()
     private val tiltakRepository = mockk<TiltakstypeRepository>()
 
@@ -90,16 +91,16 @@ class EnkeltplassServiceTest {
     @Nested
     inner class OpprettGjennomforingRemoteTests {
         @Test
-        fun `skal opprette emkeltplass hos Mulighetsrommet for deltaker i kladd med enkeltplass`() = runTest {
+        fun `skal opprette enkeltplass hos Mulighetsrommet for deltaker i kladd med enkeltplass`() = runTest {
             // Act
-            sut.opprettGjennomforingRemote(deltakerId = deltakerInTest.id, request = request)
+            sut.meldPaaDirekte(deltakerId = deltakerInTest.id, request = request)
 
             // Assert
             verify { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
         }
 
         @Test
-        fun `skal ikke opprette emkeltplass hos Mulighetsrommet for gjennomforing som ikke er enkeltplass`() = runTest {
+        fun `skal ikke opprette enkeltplass hos Mulighetsrommet for gjennomforing som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = deltakerInTest.copy(
                 status = deltakerInTest.status.copy(type = DeltakerStatus.Type.KLADD),
@@ -111,14 +112,15 @@ class EnkeltplassServiceTest {
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             // Act
-            sut.opprettGjennomforingRemote(deltakerId = deltaker.id, request = request)
-
+            shouldThrow<IllegalArgumentException> {
+                sut.meldPaaDirekte(deltakerId = deltaker.id, request = request)
+            }
             // Assert
             verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
         }
 
         @Test
-        fun `skal ikke opprette emkeltplass hos Mulighetsrommet for deltaker som ikke er kladd`() = runTest {
+        fun `skal ikke opprette enkeltplass hos Mulighetsrommet for deltaker som ikke er kladd`() = runTest {
             // Arrange
             val deltaker = deltakerInTest.copy(
                 status = deltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
@@ -127,7 +129,9 @@ class EnkeltplassServiceTest {
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             // Act
-            sut.opprettGjennomforingRemote(deltakerId = deltaker.id, request = request)
+            shouldThrow<IllegalArgumentException> {
+                sut.meldPaaDirekte(deltakerId = deltaker.id, request = request)
+            }
 
             // Assert
             verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }

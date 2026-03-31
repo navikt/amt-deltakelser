@@ -3,10 +3,10 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.EnkeltplassKladdUpdateDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -135,13 +135,13 @@ class KladdService(
             erManueltDeltMedArrangor = false,
         )
 
-        fun lagEnkeltplassKladdUpdateDbo(
+        fun lagEnkeltplassUpdateDbo(
             deltakerId: UUID,
             tiltakstype: Tiltakstype,
             startdato: LocalDate?,
             sluttdato: LocalDate?,
             beskrivelse: String?,
-        ) = EnkeltplassKladdUpdateDbo(
+        ) = EnkeltplassDeltakerUpdateDbo(
             id = deltakerId,
             startdato = startdato,
             sluttdato = sluttdato,

@@ -1,10 +1,10 @@
-package no.nav.amt.deltaker.deltaker.db
+package no.nav.amt.deltaker.enkeltplass
 
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import java.time.LocalDate
 import java.util.UUID
 
-data class EnkeltplassKladdUpdateDbo(
+data class EnkeltplassDeltakerUpdateDbo(
     val id: UUID,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,

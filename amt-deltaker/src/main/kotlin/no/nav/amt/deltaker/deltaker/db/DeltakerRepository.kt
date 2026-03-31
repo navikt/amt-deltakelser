@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
@@ -212,7 +213,7 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker kladd med id ${deltaker.id}")
     }
 
-    fun updateEnkeltplassKladd(deltaker: EnkeltplassKladdUpdateDbo) {
+    fun updateEnkeltplassKladd(deltaker: EnkeltplassDeltakerUpdateDbo) {
         val sql =
             """
             UPDATE deltaker

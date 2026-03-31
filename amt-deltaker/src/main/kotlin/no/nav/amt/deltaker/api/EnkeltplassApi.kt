@@ -44,7 +44,7 @@ fun Routing.registerEnkeltplassApi(enkeltplassService: EnkeltplassService) {
             post("/utkast/{deltakerId}/meld-paa-direkte") {
                 val request: MeldPaaDirekteEnkeltplassRequest = call.receive()
 
-                enkeltplassService.opprettGjennomforingRemote(
+                enkeltplassService.meldPaaDirekte(
                     deltakerId = call.getDeltakerId(),
                     request = request,
                 )

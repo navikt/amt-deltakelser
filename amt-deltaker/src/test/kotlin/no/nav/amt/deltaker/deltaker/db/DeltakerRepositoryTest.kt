@@ -7,7 +7,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdUpdateDbo
+import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
 import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -101,7 +101,7 @@ class DeltakerRepositoryTest {
             )
 
             TestRepository.insert(deltaker)
-            val oppdatertDeltaker = lagEnkeltplassKladdUpdateDbo(
+            val oppdatertDeltaker = lagEnkeltplassUpdateDbo(
                 deltakerId = deltaker.id,
                 tiltakstype = deltaker.deltakerliste.tiltakstype,
                 startdato = deltaker.startdato,
