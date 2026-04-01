@@ -114,9 +114,6 @@ class EnkeltplassService(
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
     ) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-        val navEnhetForKostnadssted = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
-
         val gjennomforing = deltaker.deltakerliste
 
         require(gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
@@ -140,6 +137,9 @@ class EnkeltplassService(
             sluttdato = decoratedRequest.wrappedRequest.sluttdato,
             beskrivelse = decoratedRequest.wrappedRequest.beskrivelse,
         )
+
+        val navEnhetForKostnadssted = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
 
         Database.transaction {
             deltakerService.lagreDeltakerStatus(
