@@ -261,7 +261,7 @@ class DeltakerRepository {
                     ),
                     mapOf("deltakerliste_id" to deltakerlisteId),
                 ).map(::deltakerRowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Ingen deltaker med for deltakerliste $deltakerlisteId")
+            ) ?: throw NoSuchElementException("Ingen enkeltplassdeltaker for deltakerliste $deltakerlisteId")
         }
     }
 
