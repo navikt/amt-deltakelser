@@ -24,10 +24,8 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
@@ -97,11 +95,11 @@ class EnkeltplassServiceIntegrationTest {
                 navn shouldBe tiltak.navn
                 startDato shouldBe null
                 sluttDato shouldBe null
-                oppstart shouldBe Oppstartstype.LOPENDE
-                apentForPamelding shouldBe true
+                oppstart shouldBe null
+                apentForPamelding shouldBe false
                 oppmoteSted shouldBe null
                 arrangor shouldBe null
-                pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
+                pameldingstype shouldBe null
                 status shouldBe GjennomforingStatusType.KLADD
             }
         }

@@ -15,10 +15,8 @@ import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
@@ -52,10 +50,9 @@ class EnkeltplassService(
             tiltakId = tiltak.id,
             navn = tiltak.navn,
             status = GjennomforingStatusType.KLADD,
-            // Antagelig ubetydelig, men kan ha noe å si for hva som skjer når vi evt leser gjennomføringen igjen fra valp
-            oppstart = Oppstartstype.LOPENDE,
-            apentForPamelding = true,
-            pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
+            apentForPamelding = false,
+            oppstart = null,
+            pameldingstype = null,
         )
 
         val kladd = lagEnkeltplassKladdInsertDbo(
