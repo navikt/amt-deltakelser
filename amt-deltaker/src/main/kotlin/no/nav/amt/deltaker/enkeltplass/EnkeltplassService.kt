@@ -150,8 +150,8 @@ class EnkeltplassService(
                 GjennomforingRequestPayload.OpprettEnkeltplass(
                     gjennomforingId = gjennomforing.id,
                     tiltakskode = gjennomforing.tiltakstype.tiltakskode,
-                    prisinformasjon = gjennomforing.prisinformasjon ?: throw IllegalStateException("Prisinformasjon mangler"),
-                    organisasjonsnummer = gjennomforing.arrangor?.organisasjonsnummer ?: throw IllegalStateException("Arrangør mangler"),
+                    prisinformasjon = request.prisinformasjon,
+                    organisasjonsnummer = request.arrangorOrgnummer,
                 ),
             )
         }
