@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Nested
@@ -20,7 +21,7 @@ class EnkeltplassClientTest {
     @Nested
     inner class OpprettEnkeltplassTests {
         val opprettEnkeltplassLambda: suspend (EnkeltplassClient) -> Unit =
-            { client -> client.meldPaaDirekte(deltakerIdInTest, request) }
+            { client -> client.meldPaaDirekte(deltakerIdInTest, decoratedRequest) }
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
@@ -56,6 +57,12 @@ class EnkeltplassClientTest {
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
             arrangorOrgnummer = "987654321",
+        )
+
+        private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+            wrappedRequest = request,
+            endretAvEnhet = "1234",
+            endretAv = "12345",
         )
 
         private fun runFailureTest(

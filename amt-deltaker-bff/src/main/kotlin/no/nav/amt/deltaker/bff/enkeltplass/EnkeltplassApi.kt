@@ -9,8 +9,11 @@ import io.ktor.server.routing.post
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
+import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
+import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 
 fun Routing.registerEnkeltplassApi(
@@ -52,7 +55,11 @@ fun Routing.registerEnkeltplassApi(
 
             enkeltplassClient.meldPaaDirekte(
                 deltakerId = deltakerId,
-                request = request,
+                EnkeltplassPameldingDecoratedRequest(
+                    wrappedRequest = request,
+                    endretAvEnhet = call.getEnhetsnummer(),
+                    endretAv = call.getNavIdent(),
+                ),
             )
 
             call.respond(HttpStatusCode.OK)

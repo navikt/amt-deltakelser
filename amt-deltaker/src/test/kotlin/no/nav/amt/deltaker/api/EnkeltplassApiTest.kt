@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.DeltakerIdResponse
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
@@ -46,14 +47,20 @@ class EnkeltplassApiTest : RouteTestBase() {
                 sluttdato = LocalDate.now(),
             )
 
+            val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                wrappedRequest = request,
+                endretAvEnhet = "1234",
+                endretAv = "123456789",
+            )
+
             withTestApplicationContext { client ->
                 client
                     .post("/enkeltplass/utkast/$deltakerId/meld-paa-direkte") {
-                        postRequest(request)
+                        postRequest(decoratedRequest)
                     }.status shouldBe HttpStatusCode.OK
             }
 
-            coVerify { enkeltplassService.meldPaaDirekte(deltakerId, request) }
+            coVerify { enkeltplassService.meldPaaDirekte(deltakerId, decoratedRequest) }
         }
     }
 

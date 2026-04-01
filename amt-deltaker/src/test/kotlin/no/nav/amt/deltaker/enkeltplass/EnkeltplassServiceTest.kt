@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -28,6 +27,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -69,6 +69,12 @@ class EnkeltplassServiceTest {
             arrangorOrgnummer = "987654321",
         )
 
+        private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+            wrappedRequest = request,
+            endretAvEnhet = "1234",
+            endretAv = "123456789",
+        )
+
         private val navEnhetInTest = lagNavEnhet()
         private val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
 
@@ -100,11 +106,11 @@ class EnkeltplassServiceTest {
         } just runs
 
         coEvery {
-            navEnhetservice.hentEllerOpprettNavEnhet(deltakerInTest.navBruker.navEnhetId.shouldNotBeNull())
+            navEnhetservice.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
         } returns navEnhetInTest
 
         coEvery {
-            navAnsattService.hentEllerOpprettNavAnsatt(deltakerInTest.navBruker.navVeilederId.shouldNotBeNull())
+            navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
         } returns navAnsattInTest
 
         mockkObject(Database)
@@ -124,7 +130,7 @@ class EnkeltplassServiceTest {
             // Arrange
 
             // Act
-            sut.meldPaaDirekte(deltakerId = deltakerInTest.id, request = request)
+            sut.meldPaaDirekte(deltakerId = deltakerInTest.id, decoratedRequest = decoratedRequest)
 
             // Assert
             verify { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
@@ -144,7 +150,7 @@ class EnkeltplassServiceTest {
 
             // Act
             shouldThrow<IllegalArgumentException> {
-                sut.meldPaaDirekte(deltakerId = deltaker.id, request = request)
+                sut.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
             }
             // Assert
             verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
@@ -161,7 +167,7 @@ class EnkeltplassServiceTest {
 
             // Act
             shouldThrow<IllegalArgumentException> {
-                sut.meldPaaDirekte(deltakerId = deltaker.id, request = request)
+                sut.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
             }
 
             // Assert

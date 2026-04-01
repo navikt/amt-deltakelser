@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.bff.apiclients
 
 import io.ktor.client.HttpClient
 import io.ktor.client.statement.HttpResponse
-import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
@@ -21,7 +21,7 @@ class EnkeltplassClient(
     ) {
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
-        request: EnkeltplassPameldingRequest,
-    ): HttpResponse = performPost("enkeltplass/utkast/$deltakerId/meld-paa-direkte", request)
+        enkeltplassPamelding: EnkeltplassPameldingDecoratedRequest,
+    ): HttpResponse = performPost("enkeltplass/utkast/$deltakerId/meld-paa-direkte", enkeltplassPamelding)
         .failIfNotSuccess("Kunne ikke opprette enkeltplass i amt-deltaker for deltaker $deltakerId")
 }

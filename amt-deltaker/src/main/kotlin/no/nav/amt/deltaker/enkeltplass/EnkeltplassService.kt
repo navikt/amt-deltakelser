@@ -16,7 +16,7 @@ import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -111,24 +111,11 @@ class EnkeltplassService(
 
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
-        request: EnkeltplassPameldingRequest,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
     ) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-        require(deltaker.navBruker.navEnhetId != null) {
-            "Deltaker med id $deltakerId har ingen tilknyttet Nav-enhet, og kan derfor ikke meldes på direkte"
-        }
-
-        val navEnhetId = deltaker.navBruker.navEnhetId
-            ?: throw IllegalArgumentException(
-                "Deltaker med id $deltakerId har ingen tilknyttet Nav-enhet, og kan derfor ikke meldes på direkte",
-            )
-        val navEnhetForKostnadssted = navEnhetService.hentEllerOpprettNavEnhet(navEnhetId)
-
-        val navAnsattId = deltaker.navBruker.navVeilederId
-            ?: throw IllegalArgumentException(
-                "Deltaker med id $deltakerId har ingen tilknyttet Nav-veileder, og kan derfor ikke meldes på direkte",
-            )
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattId)
+        val navEnhetForKostnadssted = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
 
         val gjennomforing = deltaker.deltakerliste
 
@@ -143,15 +130,15 @@ class EnkeltplassService(
 
         val gjennomforingUpdateDbo = EnkeltplassGjennomforingUpdateDbo(
             id = deltaker.deltakerliste.id,
-            prisinformasjon = request.prisinformasjon,
+            prisinformasjon = decoratedRequest.wrappedRequest.prisinformasjon,
         )
 
         val utkastUpdateDbo = lagEnkeltplassUpdateDbo(
             deltakerId = deltakerId,
             tiltakstype = deltaker.deltakerliste.tiltakstype,
-            startdato = request.startdato,
-            sluttdato = request.sluttdato,
-            beskrivelse = request.beskrivelse,
+            startdato = decoratedRequest.wrappedRequest.startdato,
+            sluttdato = decoratedRequest.wrappedRequest.sluttdato,
+            beskrivelse = decoratedRequest.wrappedRequest.beskrivelse,
         )
 
         Database.transaction {
@@ -176,8 +163,8 @@ class EnkeltplassService(
                 GjennomforingRequestPayload.OpprettEnkeltplass(
                     gjennomforingId = gjennomforing.id,
                     tiltakskode = gjennomforing.tiltakstype.tiltakskode,
-                    prisinformasjon = request.prisinformasjon,
-                    organisasjonsnummer = request.arrangorOrgnummer,
+                    prisinformasjon = decoratedRequest.wrappedRequest.prisinformasjon,
+                    organisasjonsnummer = decoratedRequest.wrappedRequest.arrangorOrgnummer,
                     kostnadssted = navEnhetForKostnadssted.enhetsnummer,
                 ),
             )
