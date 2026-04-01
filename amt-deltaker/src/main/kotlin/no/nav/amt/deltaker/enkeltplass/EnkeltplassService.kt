@@ -145,7 +145,7 @@ class EnkeltplassService(
             deltakerService.lagreDeltakerStatus(
                 deltakerId = deltaker.id,
                 nyDeltakerStatus = nyDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
-                erDeltakerSluttdatoEndret = deltaker.sluttdato !== decoratedRequest.wrappedRequest.sluttdato,
+                erDeltakerSluttdatoEndret = false,
             )
 
             deltakerlisteRepository.update(gjennomforingUpdateDbo)
