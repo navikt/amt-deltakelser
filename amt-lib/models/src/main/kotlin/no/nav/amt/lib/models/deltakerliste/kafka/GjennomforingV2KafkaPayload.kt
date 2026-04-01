@@ -30,6 +30,7 @@ sealed interface GjennomforingV2KafkaPayload {
     val tiltakskode: Tiltakskode
     val arrangor: Arrangor
     val pameldingType: GjennomforingPameldingType?
+    val status: GjennomforingStatusType
 
     @get:JsonIgnore
     val gjennomforingType: GjennomforingType
@@ -88,17 +89,17 @@ sealed interface GjennomforingV2KafkaPayload {
         override val tiltakskode: Tiltakskode,
         override val arrangor: Arrangor,
         override val pameldingType: GjennomforingPameldingType? = null,
+        override val status: GjennomforingStatusType,
+        override val gjennomforingType: GjennomforingType = GjennomforingType.Gruppe,
         val navn: String,
         val startDato: LocalDate,
         val sluttDato: LocalDate?,
-        val status: GjennomforingStatusType,
         val oppstart: Oppstartstype,
         val tilgjengeligForArrangorFraOgMedDato: LocalDate?,
         val apentForPamelding: Boolean,
         val antallPlasser: Int,
         val deltidsprosent: Double,
         val oppmoteSted: String?,
-        override val gjennomforingType: GjennomforingType = GjennomforingType.Gruppe,
     ) : GjennomforingV2KafkaPayload
 
     data class Enkeltplass(
@@ -109,6 +110,7 @@ sealed interface GjennomforingV2KafkaPayload {
         override val arrangor: Arrangor,
         override val pameldingType: GjennomforingPameldingType? = null,
         override val gjennomforingType: GjennomforingType = GjennomforingType.Enkeltplass,
+        override val status: GjennomforingStatusType = GjennomforingStatusType.KLADD,
     ) : GjennomforingV2KafkaPayload
 
     fun <T : Any> toModel(
