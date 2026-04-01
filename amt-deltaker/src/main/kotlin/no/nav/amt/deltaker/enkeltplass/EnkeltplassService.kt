@@ -155,6 +155,7 @@ class EnkeltplassService(
                 fattetAvNav = true,
                 endretAv = navAnsatt,
                 endretAvEnhet = navEnhetForKostnadssted,
+                // TODO: Skal deltaker med ny status benyttes her?
                 deltaker = deltaker.toDeltakerVedVedtak(),
                 fattetDato = null, // fattes når økonomi er godkjent
             )
