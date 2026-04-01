@@ -79,7 +79,9 @@ class DeltakerlisteConsumer(
                     .getEnkeltplassdeltaker(eksisterendeDeltakerliste.id)
                     .getOrThrow()
 
-                deltakerProducerService.produce(enkeltplassDeltaker)
+                if (deltakerliste.id != UUID.fromString("e8a8faf4-5c44-4485-a641-bd78944dc01e")) {
+                    deltakerProducerService.produce(enkeltplassDeltaker)
+                }
             }
 
             // deltakerliste med deltakere kan ikke endre pameldingstype eller oppstartstype
