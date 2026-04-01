@@ -155,8 +155,7 @@ class EnkeltplassService(
                 fattetAvNav = true,
                 endretAv = navAnsatt,
                 endretAvEnhet = navEnhetForKostnadssted,
-                // TODO: Legg til metode for å hente ut DeltakerVedVedtak direkte i repository
-                deltaker = deltakerRepository.get(deltakerId).getOrThrow().toDeltakerVedVedtak(),
+                deltaker = deltaker.toDeltakerVedVedtak(),
                 fattetDato = null, // fattes når økonomi er godkjent
             )
 
