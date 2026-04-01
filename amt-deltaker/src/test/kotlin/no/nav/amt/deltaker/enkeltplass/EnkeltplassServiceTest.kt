@@ -13,16 +13,19 @@ import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
@@ -44,6 +47,8 @@ class EnkeltplassServiceTest {
     private val navBrukerService = mockk<NavBrukerService>()
     private val tiltakRepository = mockk<TiltakstypeRepository>()
     private val navEnhetservice = mockk<NavEnhetService>()
+    private val navAnsattService = mockk<NavAnsattService>()
+    private val vedtakService = mockk<VedtakService>(relaxed = true)
 
     private val sut = EnkeltplassService(
         deltakerRepository = deltakerRepository,
@@ -53,6 +58,8 @@ class EnkeltplassServiceTest {
         navBrukerService = navBrukerService,
         tiltakRepository = tiltakRepository,
         navEnhetService = navEnhetservice,
+        navAnsattService = navAnsattService,
+        vedtakService = vedtakService,
     )
 
     companion object {
@@ -63,9 +70,13 @@ class EnkeltplassServiceTest {
         )
 
         private val navEnhetInTest = lagNavEnhet()
+        private val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
 
         private val deltakerInTest = lagDeltaker(
-            navBruker = lagNavBruker(navEnhetId = navEnhetInTest.id),
+            navBruker = lagNavBruker(
+                navEnhetId = navEnhetInTest.id,
+                navVeilederId = navAnsattInTest.id,
+            ),
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
             deltakerliste = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
@@ -91,6 +102,10 @@ class EnkeltplassServiceTest {
         coEvery {
             navEnhetservice.hentEllerOpprettNavEnhet(deltakerInTest.navBruker.navEnhetId.shouldNotBeNull())
         } returns navEnhetInTest
+
+        coEvery {
+            navAnsattService.hentEllerOpprettNavAnsatt(deltakerInTest.navBruker.navVeilederId.shouldNotBeNull())
+        } returns navAnsattInTest
 
         mockkObject(Database)
         coEvery { transaction<Any>(any()) } answers {

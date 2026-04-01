@@ -207,6 +207,7 @@ fun Application.module() {
 
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService)
+
     val navBrukerService = NavBrukerService(
         navBrukerRepository,
         amtPersonServiceClient,
@@ -278,6 +279,8 @@ fun Application.module() {
     val deltakerProducerService =
         DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, deltakerEksternV1Producer, unleashToggle)
 
+    val vedtakService = VedtakService(vedtakRepository)
+
     val forslagService =
         ForslagService(
             forslagRepository = forslagRepository,
@@ -297,8 +300,6 @@ fun Application.module() {
         )
 
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-
-    val vedtakService = VedtakService(vedtakRepository)
 
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -357,6 +358,8 @@ fun Application.module() {
         navBrukerService = navBrukerService,
         tiltakRepository = tiltakstypeRepository,
         navEnhetService = navEnhetService,
+        navAnsattService = navAnsattService,
+        vedtakService = vedtakService,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(

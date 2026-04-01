@@ -241,6 +241,8 @@ class EnkeltplassServiceIntegrationTest {
         deltakerlisteRepository = deltakerlisteRepository,
         tiltakRepository = tiltakRepository,
         navEnhetService = navEnhetService,
+        navAnsattService = navAnsattService,
+        vedtakService = mockk(relaxed = true),
     )
 
     companion object {

@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdInsertDbo
 import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -12,6 +13,7 @@ import no.nav.amt.deltaker.deltakerliste.GjennomforingInsertDbo
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
@@ -31,6 +33,8 @@ class EnkeltplassService(
     private val navBrukerService: NavBrukerService,
     private val tiltakRepository: TiltakstypeRepository,
     private val navEnhetService: NavEnhetService,
+    private val navAnsattService: NavAnsattService,
+    private val vedtakService: VedtakService,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
@@ -120,6 +124,12 @@ class EnkeltplassService(
             )
         val navEnhetForKostnadssted = navEnhetService.hentEllerOpprettNavEnhet(navEnhetId)
 
+        val navAnsattId = deltaker.navBruker.navVeilederId
+            ?: throw IllegalArgumentException(
+                "Deltaker med id $deltakerId har ingen tilknyttet Nav-veileder, og kan derfor ikke meldes på direkte",
+            )
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattId)
+
         val gjennomforing = deltaker.deltakerliste
 
         require(gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
@@ -150,8 +160,17 @@ class EnkeltplassService(
                 nyDeltakerStatus = nyDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
                 erDeltakerSluttdatoEndret = false,
             )
+
             deltakerlisteRepository.update(gjennomforingUpdateDbo)
             deltakerRepository.updateEnkeltplassKladd(utkastUpdateDbo)
+
+            vedtakService.opprettEllerOppdaterVedtak(
+                fattetAvNav = true,
+                endretAv = navAnsatt,
+                endretAvEnhet = navEnhetForKostnadssted,
+                deltaker = deltaker.toDeltakerVedVedtak(),
+                fattetDato = null, // fattes når økonomi er godkjent
+            )
 
             gjennomforingRequestProducer.produce(
                 GjennomforingRequestPayload.OpprettEnkeltplass(
