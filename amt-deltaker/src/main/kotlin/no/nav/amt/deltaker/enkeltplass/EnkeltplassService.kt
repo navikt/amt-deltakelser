@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -29,6 +30,7 @@ class EnkeltplassService(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
     private val tiltakRepository: TiltakstypeRepository,
+    private val navEnhetService: NavEnhetService,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
@@ -108,6 +110,15 @@ class EnkeltplassService(
         request: EnkeltplassPameldingRequest,
     ) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        require(deltaker.navBruker.navEnhetId != null) {
+            "Deltaker med id $deltakerId har ingen tilknyttet Nav-enhet, og kan derfor ikke meldes på direkte"
+        }
+
+        val navEnhetId = deltaker.navBruker.navEnhetId
+            ?: throw IllegalArgumentException(
+                "Deltaker med id $deltakerId har ingen tilknyttet Nav-enhet, og kan derfor ikke meldes på direkte",
+            )
+        val navEnhetForKostnadssted = navEnhetService.hentEllerOpprettNavEnhet(navEnhetId)
 
         val gjennomforing = deltaker.deltakerliste
 
@@ -116,7 +127,6 @@ class EnkeltplassService(
                 "gjennomforingstype ${gjennomforing.gjennomforingstype} for deltaker $deltakerId"
         }
 
-        // TODO: Har vi noe annet vi kan sjekke her?
         require(gjennomforing.status == GjennomforingStatusType.KLADD) {
             "Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd"
         }
@@ -149,6 +159,7 @@ class EnkeltplassService(
                     tiltakskode = gjennomforing.tiltakstype.tiltakskode,
                     prisinformasjon = request.prisinformasjon,
                     organisasjonsnummer = request.arrangorOrgnummer,
+                    kostnadssted = navEnhetForKostnadssted.enhetsnummer,
                 ),
             )
         }

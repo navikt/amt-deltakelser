@@ -5,12 +5,14 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.toModel
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
@@ -24,6 +26,7 @@ class DeltakerlisteConsumer(
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
+    private val deltakerProducerService: DeltakerProducerService,
     private val unleashToggle: CommonUnleashToggle,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
@@ -68,6 +71,17 @@ class DeltakerlisteConsumer(
                 return
             }
 
+            // hvis deltakerliste er for enkeltplass, publiser deltaker
+            if (eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
+                deltakerliste.status != GjennomforingStatusType.KLADD
+            ) {
+                val enkeltplassDeltaker = deltakerRepository
+                    .getEnkeltplassdeltaker(eksisterendeDeltakerliste.id)
+                    .getOrThrow()
+
+                deltakerProducerService.produce(enkeltplassDeltaker)
+            }
+
             // deltakerliste med deltakere kan ikke endre pameldingstype eller oppstartstype
             deltakerlistePayload.assertValidChanges(
                 antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(eksisterendeDeltakerliste.id),
@@ -75,7 +89,10 @@ class DeltakerlisteConsumer(
                 eksisterendeOppstartstype = eksisterendeDeltakerliste.oppstart,
             )
 
-            handterDeltakere(deltakerliste, eksisterendeDeltakerliste)
+            handterDeltakere(
+                deltakerlisteFromPayload = deltakerliste,
+                eksisterendeDeltakerliste = eksisterendeDeltakerliste,
+            )
         }
 
         deltakerlisteRepository.upsert(deltakerliste)

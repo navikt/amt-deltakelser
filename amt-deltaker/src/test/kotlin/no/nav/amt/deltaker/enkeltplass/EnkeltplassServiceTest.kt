@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -18,9 +19,12 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -39,6 +43,7 @@ class EnkeltplassServiceTest {
     private val deltakerlisteRepository = mockk<DeltakerlisteRepository>(relaxed = true)
     private val navBrukerService = mockk<NavBrukerService>()
     private val tiltakRepository = mockk<TiltakstypeRepository>()
+    private val navEnhetservice = mockk<NavEnhetService>()
 
     private val sut = EnkeltplassService(
         deltakerRepository = deltakerRepository,
@@ -47,6 +52,7 @@ class EnkeltplassServiceTest {
         deltakerlisteRepository = deltakerlisteRepository,
         navBrukerService = navBrukerService,
         tiltakRepository = tiltakRepository,
+        navEnhetService = navEnhetservice,
     )
 
     companion object {
@@ -56,7 +62,10 @@ class EnkeltplassServiceTest {
             arrangorOrgnummer = "987654321",
         )
 
+        private val navEnhetInTest = lagNavEnhet()
+
         private val deltakerInTest = lagDeltaker(
+            navBruker = lagNavBruker(navEnhetId = navEnhetInTest.id),
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
             deltakerliste = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
@@ -79,6 +88,10 @@ class EnkeltplassServiceTest {
             )
         } just runs
 
+        coEvery {
+            navEnhetservice.hentEllerOpprettNavEnhet(deltakerInTest.navBruker.navEnhetId.shouldNotBeNull())
+        } returns navEnhetInTest
+
         mockkObject(Database)
         coEvery { transaction<Any>(any()) } answers {
             val block = firstArg<() -> Any>()
@@ -90,9 +103,11 @@ class EnkeltplassServiceTest {
     fun cleanup() = unmockkObject(Database)
 
     @Nested
-    inner class OpprettGjennomforingRemoteTests {
+    inner class MeldPaaDirekteTests {
         @Test
         fun `skal opprette enkeltplass hos Mulighetsrommet for deltaker i kladd med enkeltplass`() = runTest {
+            // Arrange
+
             // Act
             sut.meldPaaDirekte(deltakerId = deltakerInTest.id, request = request)
 

@@ -250,6 +250,21 @@ class DeltakerRepository {
         }
     }
 
+    fun getEnkeltplassdeltaker(deltakerlisteId: UUID): Result<Deltaker> = runCatching {
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    buildDeltakerSql(
+                        methodName = "getEnkeltplassdeltaker",
+                        whereClause = "d.deltakerliste_id = :deltakerliste_id",
+                        limit = null,
+                    ),
+                    mapOf("deltakerliste_id" to deltakerlisteId),
+                ).map(::deltakerRowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Ingen deltaker med for deltakerliste $deltakerlisteId")
+        }
+    }
+
     fun getMany(deltakerIder: Set<UUID>): List<Deltaker> {
         if (deltakerIder.isEmpty()) return emptyList()
 

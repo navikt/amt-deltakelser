@@ -232,14 +232,15 @@ class EnkeltplassServiceIntegrationTest {
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navBrukerService = NavBrukerService(
-            NavBrukerRepository(),
-            mockPersonServiceClient(),
-            navEnhetService,
-            navAnsattService,
+            repository = NavBrukerRepository(),
+            personServiceClient = mockPersonServiceClient(),
+            enhetService = navEnhetService,
+            ansattService = navAnsattService,
         ),
         gjennomforingRequestProducer = mockk(),
         deltakerlisteRepository = deltakerlisteRepository,
         tiltakRepository = tiltakRepository,
+        navEnhetService = navEnhetService,
     )
 
     companion object {

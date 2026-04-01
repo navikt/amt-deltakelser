@@ -26,9 +26,41 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
+import java.util.UUID
 
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
+
+    @Nested
+    inner class GetEnkeltplassdeltakerTests {
+        @Test
+        fun `skal returnere failure hvis ingen deltaker`() {
+            // Act
+            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
+                deltakerlisteId = UUID.randomUUID(),
+            )
+
+            // Assert
+            deltaker.shouldBeFailure()
+        }
+
+        @Test
+        fun `skal returnere deltaker`() {
+            // Arrange
+            val deltakerInTest = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+            TestRepository.insert(deltakerInTest)
+
+            // Act
+            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
+                deltakerlisteId = deltakerInTest.deltakerliste.id,
+            )
+
+            // Assert
+            deltaker.shouldBeSuccess()
+        }
+    }
 
     @Nested
     inner class KladdTests {

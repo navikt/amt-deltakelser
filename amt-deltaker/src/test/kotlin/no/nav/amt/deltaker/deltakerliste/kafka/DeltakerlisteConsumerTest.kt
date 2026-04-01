@@ -11,6 +11,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
@@ -43,6 +44,7 @@ class DeltakerlisteConsumerTest {
     private val deltakerService: DeltakerService = mockk(relaxed = true)
     private val arrangorRepository = ArrangorRepository()
     private val arrangorService = ArrangorService(arrangorRepository, mockAmtArrangorClient(arrangorInTest))
+    private val deltakerProducerService: DeltakerProducerService = mockk(relaxed = true)
     private val unleashToggle: CommonUnleashToggle = mockk()
 
     private val consumer =
@@ -52,6 +54,7 @@ class DeltakerlisteConsumerTest {
             tiltakstypeRepository = tiltakstypeRepository,
             arrangorService = arrangorService,
             deltakerService = deltakerService,
+            deltakerProducerService = deltakerProducerService,
             unleashToggle = unleashToggle,
         )
 

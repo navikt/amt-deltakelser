@@ -356,6 +356,7 @@ fun Application.module() {
         deltakerlisteRepository = deltakerlisteRepository,
         navBrukerService = navBrukerService,
         tiltakRepository = tiltakstypeRepository,
+        navEnhetService = navEnhetService,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(
@@ -384,6 +385,7 @@ fun Application.module() {
             tiltakstypeRepository = tiltakstypeRepository,
             arrangorService = arrangorService,
             deltakerService = deltakerService,
+            deltakerProducerService = deltakerProducerService,
             unleashToggle = unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(
