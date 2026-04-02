@@ -1,24 +1,27 @@
 package no.nav.amt.lib.outbox
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.amt.lib.testing.TestPostgresContainer
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.extension.RegisterExtension
 import kotlin.test.Test
 
 class OutboxRepositoryTest {
     companion object {
-        @BeforeAll
-        @JvmStatic
-        fun setupAll() = TestPostgresContainer.bootstrap()
+        @RegisterExtension
+        private val dbExtension = DatabaseTestExtension()
+
+        private val outboxRepository = OutboxRepository()
     }
 
     @Test
     fun `insertNewRecord returns record with non-null id`() {
-        val repo = OutboxRepository()
+        // Arrange
         val record = NewOutboxRecord(
             key = "test-key",
             valueType = "test-value-type",
@@ -26,76 +29,92 @@ class OutboxRepositoryTest {
             value = objectMapper.createObjectNode().put("key", "value"),
         )
 
-        val recordWithId = repo.insertNewRecord(record)
+        // Act
+        val insertedRecord = outboxRepository.insertNewRecord(record)
 
-        recordWithId.id shouldNotBe null
-        recordWithId.key shouldBe record.key
-        recordWithId.valueType shouldBe record.valueType
-        recordWithId.topic shouldBe record.topic
-        recordWithId.value shouldBe record.value
+        // Assert
+        assertSoftly(insertedRecord) {
+            id shouldNotBe null
+            key shouldBe record.key
+            valueType shouldBe record.valueType
+            topic shouldBe record.topic
+            value shouldBe record.value
+        }
     }
 
     @Test
     fun `findUnprocessedRecords returns pending and failed records`() {
-        val repo = OutboxRepository()
-
+        // Arrange
         val pendingRecord = NewOutboxRecord(
             key = "key-1",
             valueType = "type-1",
             topic = "topic-1",
             value = objectMapper.createObjectNode().put("key", "pending"),
         )
-        repo.insertNewRecord(pendingRecord)
+        outboxRepository.insertNewRecord(pendingRecord)
 
         val failedRecord = pendingRecord.copy(
             key = "key-2",
             value = objectMapper.createObjectNode().put("key", "failed"),
         )
-        repo.insertNewRecord(failedRecord).also {
-            repo.markAsFailed(it.id, "Some error")
+        outboxRepository.insertNewRecord(failedRecord).also {
+            outboxRepository.markAsFailed(it.id, "Some error")
         }
 
         val processedRecord = pendingRecord.copy(
             key = "key-3",
             value = objectMapper.createObjectNode().put("key", "processed"),
         )
-        repo.insertNewRecord(processedRecord).also { repo.deleteOutboxRecord(it.id) }
+        outboxRepository.insertNewRecord(processedRecord).also { outboxRepository.deleteOutboxRecord(it.id) }
 
-        val result = repo.findUnprocessedRecords(10)
+        // Act
+        val result = outboxRepository.findUnprocessedRecords(10)
 
+        // Assert
         result.map { it.key }.toSet() shouldContainAll setOf("key-1", "key-2")
     }
 
     @Test
     fun `deleteOutboxRecord deletes record`() {
-        val repo = OutboxRepository()
+        // Arrange
         val record = NewOutboxRecord(
             key = "key-4",
             valueType = "type-2",
             topic = "topic-2",
             value = objectMapper.createObjectNode().put("key", "to-process"),
         )
-        val inserted = repo.insertNewRecord(record)
-        repo.deleteOutboxRecord(inserted.id)
+        val inserted = outboxRepository.insertNewRecord(record)
 
-        repo.get(inserted.id).shouldBeNull()
+        // Act
+        outboxRepository.deleteOutboxRecord(inserted.id)
+
+        // Assert
+        outboxRepository.get(inserted.id).shouldBeNull()
     }
 
     @Test
     fun `markAsFailed updates record status, error message, and retry count`() {
-        val repo = OutboxRepository()
+        // Arrange
         val record = NewOutboxRecord(
             key = "key-5",
             valueType = "type-3",
             topic = "topic-3",
             value = objectMapper.createObjectNode().put("key", "to-fail"),
         )
-        val inserted = repo.insertNewRecord(record)
+        val inserted = outboxRepository.insertNewRecord(record)
         val errorMsg = "Something went wrong"
-        repo.markAsFailed(inserted.id, errorMsg)
-        val failed = repo.get(inserted.id)
-        failed?.status shouldBe OutboxRecordStatus.FAILED
-        failed?.errorMessage shouldBe errorMsg
-        failed?.retryCount shouldBe 1
+
+        // Act
+        outboxRepository.markAsFailed(
+            recordId = inserted.id,
+            errorMessage = errorMsg,
+        )
+
+        // Assert
+        assertSoftly(outboxRepository.get(inserted.id).shouldNotBeNull()) {
+            status shouldBe OutboxRecordStatus.FAILED
+            errorMessage shouldBe errorMsg
+            retryCount shouldBe 1
+        }
     }
 }
