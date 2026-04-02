@@ -18,9 +18,6 @@ dependencies {
 
     implementation(project(":amt-lib:utils"))
 
-//    implementation(libs.ktor.client.core)
-//    implementation(libs.ktor.server.core)
-
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.mock)
     implementation(libs.ktor.serialization.jackson)
