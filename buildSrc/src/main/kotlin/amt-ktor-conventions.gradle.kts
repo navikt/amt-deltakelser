@@ -12,8 +12,14 @@ plugins {
 }
 
 dependencies {
+    // netty-codec-http2
     // --- Ktor ---
     implementation(platform(libsWrapper.getLibrary("ktor.bom")))
+    constraints {
+        implementation(libsWrapper.getLibrary("netty.codec.http2")) {
+            because("CVE-2026-33870")
+        }
+    }
     libsWrapper.getBundle("ktor.server").forEach { implementation(it) }
     libsWrapper.getBundle("ktor.client").forEach { implementation(it) }
 
