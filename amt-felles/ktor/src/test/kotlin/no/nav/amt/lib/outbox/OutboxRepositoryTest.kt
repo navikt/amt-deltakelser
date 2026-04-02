@@ -17,7 +17,7 @@ class OutboxRepositoryTest {
     }
 
     @Test
-    fun `test outbox repository`() {
+    fun `insertNewRecord returns record with non-null id`() {
         val repo = OutboxRepository()
         val record = NewOutboxRecord(
             key = "test-key",
@@ -29,6 +29,10 @@ class OutboxRepositoryTest {
         val recordWithId = repo.insertNewRecord(record)
 
         recordWithId.id shouldNotBe null
+        recordWithId.key shouldBe record.key
+        recordWithId.valueType shouldBe record.valueType
+        recordWithId.topic shouldBe record.topic
+        recordWithId.value shouldBe record.value
     }
 
     @Test
@@ -63,7 +67,7 @@ class OutboxRepositoryTest {
     }
 
     @Test
-    fun `markAsProcessed deletes record`() {
+    fun `deleteOutboxRecord deletes record`() {
         val repo = OutboxRepository()
         val record = NewOutboxRecord(
             key = "key-4",
