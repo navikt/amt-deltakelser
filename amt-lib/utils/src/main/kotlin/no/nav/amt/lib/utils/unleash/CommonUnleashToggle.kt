@@ -2,8 +2,6 @@ package no.nav.amt.lib.utils.unleash
 
 import io.getunleash.Unleash
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import java.util.Collections.emptySet
-import kotlin.collections.any
 
 class CommonUnleashToggle(
     private val unleashClient: Unleash,

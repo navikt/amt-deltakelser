@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.tiltakskoordinator
 
-import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakerOppdatering
+import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator.TiltaksKoordinatorClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
@@ -67,7 +67,7 @@ class TiltakskoordinatorService(
             EndringFraTiltakskoordinator.TildelPlass -> tiltaksKoordinatorClient.tildelPlass(deltakerIder, endretAv)
             is EndringFraTiltakskoordinator.Avslag -> throw NotImplementedError("Batch håndtering for avslag er ikke støttet")
         }
-        val deltakerOppdateringer = oppdaterteDeltakereResponses.map { it.toDeltakerOppdatering() }
+        val deltakerOppdateringer = oppdaterteDeltakereResponses.map { it.toDeltakeroppdatering() }
         deltakerService.oppdaterDeltakere(deltakerOppdateringer)
 
         return oppdaterteDeltakereResponses.toTiltakskoordinatorsDeltakere()
