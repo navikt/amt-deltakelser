@@ -31,13 +31,13 @@ object ClientTestUtils {
         expectedUrl: String,
         responseBody: T?,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        requiresAuthHeader: Boolean = true,
+        expectAuthHeader: Boolean = true,
     ) = HttpClient(MockEngine) {
         install(ContentNegotiation) { jackson { applicationConfig() } }
         engine {
             addHandler { request ->
                 request.url.toString() shouldBe expectedUrl
-                if (requiresAuthHeader) request.headers[HttpHeaders.Authorization] shouldBe "Bearer XYZ"
+                if (expectAuthHeader) request.headers[HttpHeaders.Authorization] shouldBe "Bearer XYZ"
 
                 when (responseBody) {
                     null -> respond(
@@ -82,7 +82,7 @@ object ClientTestUtils {
                 "expires_in": 3599
             }
             """.trimIndent(),
-            requiresAuthHeader = false,
+            expectAuthHeader = false,
         ),
     )
 }

@@ -3,7 +3,6 @@ package no.nav.amt.lib.ktor.clients
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -15,6 +14,7 @@ import no.nav.amt.lib.testing.testdata.person.PersonDtoTestsData.enhetDtoInTest
 import no.nav.amt.lib.testing.testdata.person.PersonModelsTestData.ansattInTest
 import no.nav.amt.lib.testing.testdata.person.PersonModelsTestData.enhetInTest
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -241,7 +241,7 @@ class AmtPersonServiceClientTest {
             baseUrl = PERSON_SVC_BASE_URL,
             scope = "scope",
             httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
-            azureAdTokenClient = mockk(relaxed = true),
+            azureAdTokenClient = mockAzureAdClient(),
         )
     }
 }

@@ -159,7 +159,7 @@ class PdfgenClientTest : ClientTestBase() {
             expectedUrl = expectedUrl,
             responseBody = responseBody,
             statusCode = statusCode,
-            requiresAuthHeader = false,
+            expectAuthHeader = false,
         ),
         environment = testEnvironment,
     )

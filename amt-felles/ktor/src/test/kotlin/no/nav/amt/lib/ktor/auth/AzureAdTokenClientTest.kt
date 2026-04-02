@@ -119,14 +119,24 @@ class AzureAdTokenClientTest {
                 azureAdTokenUrl = AZURE_AD_TOKEN_URL,
                 clientId = "fake-client-id",
                 clientSecret = "fake-client-secret",
-                httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
+                httpClient = createMockHttpClient(
+                    expectedUrl = AZURE_AD_TOKEN_URL,
+                    responseBody = responseBodyInTest,
+                    statusCode = statusCode,
+                    expectAuthHeader = false,
+                ),
             )
         } else {
             AzureAdTokenClient(
                 azureAdTokenUrl = AZURE_AD_TOKEN_URL,
                 clientId = "fake-client-id",
                 clientSecret = "fake-client-secret",
-                httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
+                httpClient = createMockHttpClient(
+                    expectedUrl = AZURE_AD_TOKEN_URL,
+                    responseBody = responseBodyInTest,
+                    statusCode = statusCode,
+                    expectAuthHeader = false,
+                ),
                 tokenCache = cache,
             )
         }
