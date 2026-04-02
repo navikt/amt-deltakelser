@@ -29,7 +29,7 @@ jupiter-version = "6.0.3"
 testcontainers-version = "2.0.4"
 
 # spring-boot specifikt
-spring-boot-version = "4.0.4"
+spring-boot-version = "4.0.5"
 spring-dependency-management-version = "1.1.7"
 tools-jackson-module-kotlin-version = "3.1.0"
 token-support-version = "6.0.1"
