@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.distribusjon
+package no.nav.amt.lib.ktor.clients.distribusjon
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -24,20 +24,12 @@ class AmtDistribusjonClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun digitalBruker(personIdent: String): Boolean {
-        digitalBrukerCache.getIfPresent(personIdent)?.let {
-            return it
-        }
-
-        val digitalBrukerResponse = performPost(
+    suspend fun digitalBruker(personIdent: String): Boolean = digitalBrukerCache.getIfPresent(personIdent)
+        ?: performPost(
             urlSubPath = "digital",
             requestBody = DigitalBrukerRequest(personIdent),
         ).failIfNotSuccess("Kunne ikke hente om bruker er digital fra amt-distribusjon.")
             .body<DigitalBrukerResponse>()
-
-        val erDigitalBruker = digitalBrukerResponse.erDigital
-        digitalBrukerCache.put(personIdent, erDigitalBruker)
-
-        return erDigitalBruker
-    }
+            .erDigital
+            .also { digitalBrukerCache.put(personIdent, it) }
 }
