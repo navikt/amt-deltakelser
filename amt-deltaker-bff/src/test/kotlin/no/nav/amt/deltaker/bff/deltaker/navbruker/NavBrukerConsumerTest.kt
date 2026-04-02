@@ -11,14 +11,13 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.toDto
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -59,11 +58,6 @@ class NavBrukerConsumerTest {
         amtDeltakerClient = mockk(relaxed = true),
     )
 
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-    }
-
     @Test
     fun `consumeNavBruker - ny navBruker - upserter`() = runTest {
         val navBruker = TestData.lagNavBruker()
@@ -102,7 +96,6 @@ class NavBrukerConsumerTest {
         val kladd = TestData.lagDeltakerKladd(navBruker = navBruker)
         navEnhetRepository.upsert(navEnhet)
         TestRepository.insert(kladd)
-        MockResponseHandler.addSlettKladdResponse(kladd.id)
 
         val oppdatertNavBruker = navBruker.copy(
             innsatsgruppe = null,
@@ -121,23 +114,34 @@ class NavBrukerConsumerTest {
         navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
         deltakerRepository.get(kladd.id).getOrNull() shouldBe null
     }
+
+    companion object {
+        @RegisterExtension
+        private val dbExtension = DatabaseTestExtension()
+
+        private fun NavEnhet.toDto() = NavEnhetDto(
+            id,
+            enhetsnummer,
+            navn,
+        )
+
+        private fun NavBruker.toDto(navEnhet: NavEnhet) = NavBrukerDto(
+            personId = personId,
+            personident = personident,
+            fornavn = fornavn,
+            mellomnavn = mellomnavn,
+            etternavn = etternavn,
+            navVeilederId = navVeilederId,
+            navEnhet = navEnhet.toDto(),
+            erSkjermet = erSkjermet,
+            adresse = adresse,
+            adressebeskyttelse = adressebeskyttelse,
+            oppfolgingsperioder = oppfolgingsperioder,
+            innsatsgruppe = innsatsgruppe,
+            telefon = null,
+            epost = null,
+        )
+
+        private fun NavBrukerDto.toJSON(): String = objectMapper.writeValueAsString(this)
+    }
 }
-
-fun NavBruker.toDto(navEnhet: NavEnhet) = NavBrukerDto(
-    personId = personId,
-    personident = personident,
-    fornavn = fornavn,
-    mellomnavn = mellomnavn,
-    etternavn = etternavn,
-    navVeilederId = navVeilederId,
-    navEnhet = navEnhet.toDto(),
-    erSkjermet = erSkjermet,
-    adresse = adresse,
-    adressebeskyttelse = adressebeskyttelse,
-    oppfolgingsperioder = oppfolgingsperioder,
-    innsatsgruppe = innsatsgruppe,
-    telefon = null,
-    epost = null,
-)
-
-fun NavBrukerDto.toJSON(): String = objectMapper.writeValueAsString(this)

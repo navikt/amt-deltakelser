@@ -20,7 +20,6 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerKladd
@@ -133,7 +132,6 @@ class PameldingServiceTest {
             val deltakerListeInTest = lagDeltakerliste(arrangor = arrangorInTest, overordnetArrangor = overordnetArrangorInTest)
 
             val kladdInTest = lagDeltakerKladd(deltakerliste = deltakerListeInTest)
-            val navEnhetInTest = lagNavEnhet(id = kladdInTest.navBruker.navEnhetId!!)
 
             TestRepository.insert(kladdInTest)
             TestRepository.insert(deltakerListeInTest, overordnetArrangorInTest)
@@ -150,8 +148,6 @@ class PameldingServiceTest {
                 deltakelsesinnhold = kladdInTest.deltakelsesinnhold!!,
                 status = kladdInTest.status,
             )
-
-            MockResponseHandler.addNavEnhetGetResponse(navEnhetInTest)
 
             val deltaker = pameldingService.opprettKladd(
                 deltakerlisteId = deltakerListeInTest.id,
@@ -275,9 +271,6 @@ class PameldingServiceTest {
             deltakerService.oppdaterDeltaker(nyDeltakerOppdaterUtkast)
             deltakerRepository.get(gammelDeltaker.id).getOrThrow().kanEndres shouldBe false
 
-            MockResponseHandler.addNavEnhetPostResponse(navEnhet)
-            MockResponseHandler.avbrytUtkastResponse(nyDeltaker)
-
             pameldingService.avbrytUtkast(nyDeltaker, navEnhet.enhetsnummer, "test")
 
             val gammelDeltakerFraDb = deltakerRepository.get(gammelDeltaker.id).getOrThrow()
@@ -316,8 +309,6 @@ class PameldingServiceTest {
 
             deltakerService.oppdaterDeltaker(nyDeltakerOppdaterUtkast)
             deltakerRepository.get(gammelDeltaker.id).getOrThrow().kanEndres shouldBe false
-
-            MockResponseHandler.avbrytUtkastResponse(nyDeltaker)
 
             pameldingService.avbrytUtkast(nyDeltaker, navEnhet.enhetsnummer, "test")
 

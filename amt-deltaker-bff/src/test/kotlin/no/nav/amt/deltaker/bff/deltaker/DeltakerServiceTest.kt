@@ -4,9 +4,11 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
@@ -14,7 +16,6 @@ import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils.sammenlignDeltakere
-import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerEndring
@@ -22,7 +23,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerKladd
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
 import no.nav.amt.deltaker.bff.utils.data.endre
-import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
+import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
@@ -60,11 +61,12 @@ class DeltakerServiceTest {
     private val forslagRepository = mockk<ForslagRepository>(relaxed = true)
     private val deltakerRepository = DeltakerRepository()
 
+    private val amtDeltakerClient: AmtDeltakerClient = mockk(relaxed = true) {}
     private val deltakerService = DeltakerService(
-        deltakerRepository,
-        mockAmtDeltakerClient(),
-        navEnhetService,
-        forslagRepository,
+        deltakerRepository = deltakerRepository,
+        amtDeltakerClient = amtDeltakerClient,
+        navEnhetService = navEnhetService,
+        forslagRepository = forslagRepository,
     )
 
     companion object {
@@ -310,14 +312,15 @@ class DeltakerServiceTest {
             )
 
             endringRequests.forEach { endringRequest ->
-                MockResponseHandler.addEndringsresponse(
-                    deltaker.endre(
+                coEvery {
+                    amtDeltakerClient.postEndreDeltaker(deltaker.id, endringRequest)
+                } returns deltaker
+                    .endre(
                         lagDeltakerEndring(
                             deltakerId = deltaker.id,
                             endring = endringRequest.toEndring(),
                         ),
-                    ),
-                )
+                    ).toDeltakerEndringResponse()
 
                 val oppdatertDeltaker = deltakerService.oppdaterDeltaker(
                     deltaker = deltaker,
@@ -408,11 +411,16 @@ class DeltakerServiceTest {
                 begrunnelse = "begrunnelse",
             )
 
-            MockResponseHandler.addEndringsresponse(
-                deltaker.endre(lagDeltakerEndring(deltakerId = deltaker.id, endring = endringRequest.toEndring())),
-            )
+            coEvery {
+                amtDeltakerClient.postEndreDeltaker(deltaker.id, endringRequest)
+            } returns deltaker
+                .endre(
+                    lagDeltakerEndring(
+                        deltakerId = deltaker.id,
+                        endring = endringRequest.toEndring(),
+                    ),
+                ).toDeltakerEndringResponse()
 
-            MockResponseHandler.addSlettKladdResponse(deltakerKladd.id)
             every { forslagRepository.deleteForDeltaker(deltakerKladd.id) } returns Unit
 
             deltakerRepository.get(deltakerKladd.id).shouldBeSuccess()

@@ -23,7 +23,6 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagArrangorClientResponse
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
@@ -277,8 +276,6 @@ class DeltakerlisteConsumerTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
         TestRepository.insert(deltaker)
-
-        MockResponseHandler.addSlettKladdResponse(kladd.id)
 
         val mutatedDeltakerliste = deltakerlisteInTest.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
 
