@@ -13,10 +13,10 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAzureAdClient
 import no.nav.amt.deltaker.utils.mockHttpClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested

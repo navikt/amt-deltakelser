@@ -29,7 +29,6 @@ import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseRepository
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
 import no.nav.amt.distribusjon.utils.mockAmtDeltakerClient
 import no.nav.amt.distribusjon.utils.mockAmtPersonClient
-import no.nav.amt.distribusjon.utils.mockAzureAdClient
 import no.nav.amt.distribusjon.utils.mockDokarkivClient
 import no.nav.amt.distribusjon.utils.mockDokdistfordelingClient
 import no.nav.amt.distribusjon.utils.mockDokdistkanalClient
@@ -47,6 +46,7 @@ import no.nav.amt.lib.outbox.OutboxRecord
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.TestPostgresContainer
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import java.util.UUID
 
 class TestApp {

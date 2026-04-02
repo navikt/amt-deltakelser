@@ -5,7 +5,7 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.lib.ktor.clients.ClientTestUtils.createMockHttpClient
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -14,6 +14,7 @@ import no.nav.amt.lib.testing.testdata.person.PersonDtoTestsData.brukerDtoInTest
 import no.nav.amt.lib.testing.testdata.person.PersonDtoTestsData.enhetDtoInTest
 import no.nav.amt.lib.testing.testdata.person.PersonModelsTestData.ansattInTest
 import no.nav.amt.lib.testing.testdata.person.PersonModelsTestData.enhetInTest
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -31,7 +32,7 @@ class AmtPersonServiceClientTest {
             { client -> client.hentNavAnsatt(ansattInTest.navIdent) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -44,7 +45,7 @@ class AmtPersonServiceClientTest {
         }
 
         @Test
-        fun `skal returnere NavAnsatt`() {
+        fun `skal returnere NavAnsatt`() = runTest {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
                 expectedResponse = ansattInTest,
@@ -61,7 +62,7 @@ class AmtPersonServiceClientTest {
             { client -> client.hentNavAnsatt(ansattInTest.id) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -74,7 +75,7 @@ class AmtPersonServiceClientTest {
         }
 
         @Test
-        fun `skal returnere NavAnsatt`() {
+        fun `skal returnere NavAnsatt`() = runTest {
             runHappyPathTest(expectedUrl = expectedUrl, expectedResponse = ansattInTest, block = hentNavAnsattLambda)
         }
     }
@@ -87,7 +88,7 @@ class AmtPersonServiceClientTest {
             { client -> client.hentNavEnhet(enhetInTest.enhetsnummer) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -100,7 +101,7 @@ class AmtPersonServiceClientTest {
         }
 
         @Test
-        fun `skal returnere NavEnhet`() {
+        fun `skal returnere NavEnhet`() = runTest {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
                 expectedResponse = enhetDtoInTest.toModel(),
@@ -118,7 +119,7 @@ class AmtPersonServiceClientTest {
             { client -> client.hentNavEnhet(enhetDtoInTest.id) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -131,7 +132,7 @@ class AmtPersonServiceClientTest {
         }
 
         @Test
-        fun `skal returnere NavEnhet`() {
+        fun `skal returnere NavEnhet`() = runTest {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
                 expectedResponse = enhetDtoInTest.toModel(),
@@ -149,7 +150,7 @@ class AmtPersonServiceClientTest {
             { client -> client.hentNavBruker(brukerDtoInTest.personident) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -162,7 +163,7 @@ class AmtPersonServiceClientTest {
         }
 
         @Test
-        fun `skal returnere NavBruker`() {
+        fun `skal returnere NavBruker`() = runTest {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
                 expectedResponse = brukerDtoInTest.toModel(),
@@ -180,7 +181,7 @@ class AmtPersonServiceClientTest {
             { client -> client.hentNavBrukerFodselsar(brukerDtoInTest.personident) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -193,7 +194,7 @@ class AmtPersonServiceClientTest {
         }
 
         @Test
-        fun `skal returnere fodselsar`() {
+        fun `skal returnere fodselsar`() = runTest {
             val brukerFodselsarDto = NavBrukerFodselsarDto(Year.now().value - 20)
             runHappyPathTest(
                 expectedUrl = expectedUrl,
@@ -222,12 +223,12 @@ class AmtPersonServiceClientTest {
             thrown.message shouldStartWith expectedError
         }
 
-        private fun <T : Any> runHappyPathTest(
+        private suspend fun <T : Any> runHappyPathTest(
             expectedUrl: String,
             expectedResponse: T,
             responseBody: Any = expectedResponse,
             block: suspend (AmtPersonServiceClient) -> T,
-        ) = runBlocking {
+        ) {
             val personServiceClient = createPersonServiceClient(expectedUrl, HttpStatusCode.OK, responseBody)
             block(personServiceClient) shouldBe expectedResponse
         }

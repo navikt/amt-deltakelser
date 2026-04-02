@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.lib.ktor.clients.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.CountingCache
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

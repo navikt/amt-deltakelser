@@ -9,7 +9,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
 import no.nav.amt.distribusjon.utils.ClientTestBase
 import no.nav.amt.distribusjon.utils.CountingCache
-import no.nav.amt.distribusjon.utils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID

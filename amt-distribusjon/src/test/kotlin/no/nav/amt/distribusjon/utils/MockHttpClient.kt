@@ -1,6 +1,5 @@
 package no.nav.amt.distribusjon.utils
 
-import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -43,42 +42,6 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import java.util.UUID
 
-fun <T> createMockHttpClient(
-    expectedUrl: String,
-    responseBody: T?,
-    statusCode: HttpStatusCode = HttpStatusCode.OK,
-    requiresAuthHeader: Boolean = true,
-) = HttpClient(MockEngine) {
-    install(ContentNegotiation) {
-        jackson { applicationConfig() }
-    }
-    engine {
-        addHandler { request ->
-            request.url.toString() shouldBe expectedUrl
-            if (requiresAuthHeader) request.headers[HttpHeaders.Authorization] shouldBe "Bearer XYZ"
-
-            when (responseBody) {
-                null -> respond(
-                    content = "",
-                    status = statusCode,
-                )
-
-                is ByteArray -> respond(
-                    content = responseBody,
-                    status = statusCode,
-                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
-                )
-
-                else -> respond(
-                    content = objectMapper.writeValueAsString(responseBody),
-                    status = statusCode,
-                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                )
-            }
-        }
-    }
-}
-
 fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     val mockEngine =
         MockEngine {
@@ -120,22 +83,6 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
         }
     }
 }
-
-fun mockAzureAdClient() = AzureAdTokenClient(
-    azureAdTokenUrl = "http://azure",
-    clientId = "clientId",
-    clientSecret = "secret",
-    httpClient =
-        mockHttpClient(
-            """
-            {
-                "token_type":"Bearer",
-                "access_token":"XYZ",
-                "expires_in": 3599
-            }
-            """.trimIndent(),
-        ),
-)
 
 fun mockPdfgenClient(environment: Environment) = PdfgenClient(
     mockHttpClient("%PDF-".toByteArray()),

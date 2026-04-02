@@ -8,10 +8,10 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
 import no.nav.amt.distribusjon.utils.ClientTestBase
-import no.nav.amt.distribusjon.utils.createMockHttpClient
 import no.nav.amt.distribusjon.utils.withLogCapture
 import no.nav.amt.distribusjon.veilarboppfolging.Sak
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClientTest.Companion.oppfolgingsperiodeId
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

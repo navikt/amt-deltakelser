@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.utils
 
-import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -16,7 +15,6 @@ import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
-import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
@@ -24,6 +22,7 @@ import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.objectMapper
@@ -31,54 +30,6 @@ import java.util.UUID
 
 const val AMT_DELTAKER_URL = "http://amt-deltaker"
 const val AMT_PERSON_SERVICE_URL = "http://amt-person-service"
-
-fun <T> createMockHttpClient(
-    expectedUrl: String,
-    responseBody: T?,
-    statusCode: HttpStatusCode = HttpStatusCode.OK,
-    requiresAuthHeader: Boolean = true,
-) = HttpClient(MockEngine) {
-    install(ContentNegotiation) { jackson { applicationConfig() } }
-    engine {
-        addHandler { request ->
-            request.url.toString() shouldBe expectedUrl
-            if (requiresAuthHeader) request.headers[HttpHeaders.Authorization] shouldBe "Bearer XYZ"
-
-            when (responseBody) {
-                null -> {
-                    respond(
-                        content = "",
-                        status = statusCode,
-                    )
-                }
-
-                is ByteArray -> {
-                    respond(
-                        content = responseBody,
-                        status = statusCode,
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
-                    )
-                }
-
-                is String -> {
-                    respond(
-                        content = ByteReadChannel(responseBody),
-                        status = statusCode,
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                    )
-                }
-
-                else -> {
-                    respond(
-                        content = ByteReadChannel(objectMapper.writeValueAsBytes(responseBody)),
-                        status = statusCode,
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                    )
-                }
-            }
-        }
-    }
-}
 
 fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     val mockEngine = MockEngine {
@@ -131,21 +82,6 @@ fun mockAmtPersonServiceClient(): AmtPersonServiceClient = AmtPersonServiceClien
     scope = "amt.personservice.scope",
     httpClient = mockHttpClient(),
     azureAdTokenClient = mockAzureAdClient(),
-)
-
-fun mockAzureAdClient() = AzureAdTokenClient(
-    azureAdTokenUrl = "http://azure",
-    clientId = "clientId",
-    clientSecret = "secret",
-    httpClient = mockHttpClient(
-        """
-        {
-            "token_type":"Bearer",
-            "access_token":"XYZ",
-            "expires_in": 3599
-        }
-        """.trimIndent(),
-    ),
 )
 
 object MockResponseHandler {

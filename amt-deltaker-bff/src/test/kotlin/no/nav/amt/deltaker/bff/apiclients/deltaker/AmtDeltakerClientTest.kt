@@ -6,10 +6,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.utils.createMockHttpClient
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
@@ -28,6 +26,8 @@ import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.withLogCapture
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -49,7 +49,7 @@ class AmtDeltakerClientTest {
             { client -> client.getDeltaker(deltakerInTest.id) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, getDeltakerLambda)
@@ -80,7 +80,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -118,7 +118,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -159,7 +159,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -199,7 +199,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -238,7 +238,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -280,7 +280,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -319,7 +319,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -361,7 +361,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -398,7 +398,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -442,7 +442,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -485,7 +485,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -523,7 +523,7 @@ class AmtDeltakerClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -580,7 +580,7 @@ class AmtDeltakerClientTest {
         val historikk = TestData.leggTilHistorikk(deltakerInTest, 2, 2, 1).historikk
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             val thrown = Assertions.assertThrows(expectedExceptionType.java) {
