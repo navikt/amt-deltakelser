@@ -15,9 +15,9 @@ class OutboxRepositoryTest {
     companion object {
         @RegisterExtension
         private val dbExtension = DatabaseTestExtension()
-
-        private val outboxRepository = OutboxRepository()
     }
+
+    private val outboxRepository = OutboxRepository()
 
     @Test
     fun `insertNewRecord returns record with non-null id`() {
@@ -71,7 +71,10 @@ class OutboxRepositoryTest {
         val result = outboxRepository.findUnprocessedRecords(10)
 
         // Assert
-        result.map { it.key }.toSet() shouldContainAll setOf("key-1", "key-2")
+        val resultKeys = result.map { it.key }.toSet()
+        resultKeys.size shouldBe 2
+        resultKeys shouldContainAll setOf("key-1", "key-2")
+        resultKeys.contains("key-3") shouldBe false
     }
 
     @Test
