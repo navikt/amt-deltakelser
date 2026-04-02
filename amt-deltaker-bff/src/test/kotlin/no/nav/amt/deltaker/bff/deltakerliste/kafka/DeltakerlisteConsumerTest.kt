@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -24,16 +25,16 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagArrangorClientResponse
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagGruppeDeltakerlistePayload
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
-import no.nav.amt.deltaker.bff.utils.mockPaameldingClient
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
+import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
+import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -51,18 +52,32 @@ import java.time.LocalDate
 
 class DeltakerlisteConsumerTest {
     private val arrangorInTest = lagArrangor()
+    private val arrangorResponseInTest: ArrangorResponse = lagArrangorClientResponse(arrangorInTest)
 
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangorInTest))
+    private val arrangorClient: AmtArrangorClient = mockk(relaxed = true)
+    private val arrangorService = ArrangorService(
+        repository = ArrangorRepository(),
+        amtArrangorClient = arrangorClient,
+    )
+
+    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+
     private val deltakerlisteRepository = DeltakerlisteRepository()
     private val tiltakstypeRepository = TiltakstypeRepository()
     private val tilgangskontrollService: TilgangskontrollService = mockk(relaxed = true)
     private val unleashToggle: CommonUnleashToggle = mockk()
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClient())
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClient())
+    private val navAnsattService = NavAnsattService(
+        repository = NavAnsattRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
+    private val navEnhetService = NavEnhetService(
+        repository = NavEnhetRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
     private val deltakerRepository = DeltakerRepository()
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
-        amtDeltakerClient = mockAmtDeltakerClient(),
+        amtDeltakerClient = mockk(relaxed = true),
         navEnhetService = navEnhetService,
         forslagRepository = mockk(relaxed = true),
     )
@@ -70,22 +85,26 @@ class DeltakerlisteConsumerTest {
     private val pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
+        navBrukerService = NavBrukerService(
+            amtPersonServiceClient = amtPersonServiceClient,
+            repository = NavBrukerRepository(),
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+        ),
         navEnhetService = navEnhetService,
-        paameldingClient = mockPaameldingClient(),
-        amtDeltakerClient = mockAmtDeltakerClient(),
+        paameldingClient = mockk(relaxed = true),
+        amtDeltakerClient = mockk(relaxed = true),
     )
 
-    private val consumer =
-        DeltakerlisteConsumer(
-            deltakerRepository = deltakerRepository,
-            deltakerlisteRepository = deltakerlisteRepository,
-            arrangorService = arrangorService,
-            tiltakstypeRepository = tiltakstypeRepository,
-            pameldingService = pameldingService,
-            tilgangskontrollService = tilgangskontrollService,
-            unleashToggle = unleashToggle,
-        )
+    private val consumer = DeltakerlisteConsumer(
+        deltakerRepository = deltakerRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
+        arrangorService = arrangorService,
+        tiltakstypeRepository = tiltakstypeRepository,
+        pameldingService = pameldingService,
+        tilgangskontrollService = tilgangskontrollService,
+        unleashToggle = unleashToggle,
+    )
 
     companion object {
         @RegisterExtension
@@ -96,6 +115,8 @@ class DeltakerlisteConsumerTest {
     fun setup() {
         clearAllMocks()
         every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns true
+        coEvery { arrangorClient.hentArrangor(arrangorResponseInTest.organisasjonsnummer) } returns arrangorResponseInTest
+        coEvery { arrangorClient.hentArrangor(arrangorResponseInTest.id) } returns arrangorResponseInTest
     }
 
     @Test
@@ -163,8 +184,8 @@ class DeltakerlisteConsumerTest {
         )
 
         consumer.consume(
-            deltakerlistePayload.id,
-            objectMapper.writeValueAsString(deltakerlistePayload),
+            key = deltakerlistePayload.id,
+            value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
 
         deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow() shouldBe expectedDeltakerliste

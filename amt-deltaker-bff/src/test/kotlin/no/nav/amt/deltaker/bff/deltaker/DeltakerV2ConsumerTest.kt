@@ -18,8 +18,7 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -42,15 +41,28 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakerV2ConsumerTest {
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClient())
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClient())
-    private val navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService)
+    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+
+    private val navAnsattService = NavAnsattService(
+        repository = NavAnsattRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
+    private val navEnhetService = NavEnhetService(
+        repository = NavEnhetRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
+    private val navBrukerService = NavBrukerService(
+        amtPersonServiceClient = mockk(relaxed = true),
+        repository = NavBrukerRepository(),
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+    )
     private val deltakerRepository = DeltakerRepository()
     private val deltakerService = DeltakerService(
-        deltakerRepository,
-        mockAmtDeltakerClient(),
-        navEnhetService,
-        mockk(relaxed = true),
+        deltakerRepository = deltakerRepository,
+        amtDeltakerClient = mockk(relaxed = true),
+        navEnhetService = navEnhetService,
+        forslagRepository = mockk(relaxed = true),
     )
     private val deltakerlisteRepository = DeltakerlisteRepository()
     private val vurdersRepository = VurderingRepository()

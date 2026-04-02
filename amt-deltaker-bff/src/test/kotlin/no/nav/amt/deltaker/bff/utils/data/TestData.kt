@@ -70,6 +70,17 @@ object TestData {
 
     fun input(n: Int) = (1..n).map { ('a'..'z').random() }.joinToString("")
 
+    fun lagArrangorClientResponse(arrangorInTest: Arrangor = lagArrangor()): no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse {
+        val overordnetArrangorInTest = arrangorInTest.overordnetArrangorId?.let { lagArrangor(id = it) }
+
+        return no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse(
+            id = arrangorInTest.id,
+            navn = arrangorInTest.navn,
+            organisasjonsnummer = arrangorInTest.organisasjonsnummer,
+            overordnetArrangor = overordnetArrangorInTest,
+        )
+    }
+
     fun Deltaker.toDeltakerVedVedtak() = DeltakerVedVedtak(
         id,
         startdato,

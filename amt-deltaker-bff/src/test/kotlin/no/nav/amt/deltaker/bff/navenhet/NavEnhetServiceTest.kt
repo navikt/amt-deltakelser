@@ -2,11 +2,12 @@ package no.nav.amt.deltaker.bff.navenhet
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.coEvery
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.testing.DatabaseTestExtension
@@ -17,8 +18,11 @@ import java.util.UUID
 
 class NavEnhetServiceTest {
     private val navEnhetRepository = NavEnhetRepository()
-    private val amtPersonServiceClient = mockAmtPersonServiceClient()
-    private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
+    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+    private val navEnhetService = NavEnhetService(
+        repository = navEnhetRepository,
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
 
     companion object {
         @RegisterExtension
@@ -37,7 +41,7 @@ class NavEnhetServiceTest {
     @Test
     fun `hentOpprettEllerOppdaterNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() = runTest {
         val navEnhetResponse = TestData.lagNavEnhet()
-        MockResponseHandler.addNavEnhetPostResponse(navEnhetResponse)
+        coEvery { amtPersonServiceClient.hentNavEnhet(navEnhetResponse.enhetsnummer) } returns navEnhetResponse
 
         val navEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhetResponse.enhetsnummer)
 
@@ -54,7 +58,7 @@ class NavEnhetServiceTest {
         )
 
         val navEnhetResponse = opprinneligNavEnhet.copy(navn = "Oppdater navn")
-        MockResponseHandler.addNavEnhetPostResponse(navEnhetResponse)
+        coEvery { amtPersonServiceClient.hentNavEnhet(navEnhetResponse.enhetsnummer) } returns navEnhetResponse
 
         val navEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhetResponse.enhetsnummer)
 
@@ -107,7 +111,9 @@ class NavEnhetServiceTest {
         )
 
         TestRepository.insert(deltaker)
-        MockResponseHandler.addNavEnhetGetResponse(TestData.lagNavEnhet(id = endring.endretAvEnhet))
+        coEvery {
+            amtPersonServiceClient.hentNavEnhet(endring.endretAvEnhet)
+        } returns TestData.lagNavEnhet(id = endring.endretAvEnhet)
 
         val faktiskeEnheter = navEnhetService.hentEnheterForHistorikk(historikk)
         faktiskeEnheter.size shouldBe 1

@@ -1,9 +1,11 @@
 package no.nav.amt.deltaker.bff.testdata
 
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
@@ -16,13 +18,12 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
-import no.nav.amt.deltaker.bff.utils.mockPaameldingClient
+import no.nav.amt.deltaker.bff.utils.toUtkastResponse
 import no.nav.amt.internapi.deltaker.toInnhold
+import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -35,26 +36,41 @@ import java.time.LocalDate
 
 class TestdataServiceTest {
     private val navAnsattRepository = NavAnsattRepository()
-    private val navAnsattService = NavAnsattService(navAnsattRepository, mockAmtPersonServiceClient())
+    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+    private val navAnsattService = NavAnsattService(
+        repository = navAnsattRepository,
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
 
     private val navEnhetRepository = NavEnhetRepository()
-    private val navEnhetService = NavEnhetService(navEnhetRepository, mockAmtPersonServiceClient())
+    private val navEnhetService = NavEnhetService(
+        repository = navEnhetRepository,
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
 
     private val deltakerRepository = DeltakerRepository()
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
-        amtDeltakerClient = mockAmtDeltakerClient(),
+        amtDeltakerClient = mockk(relaxed = true),
         navEnhetService = navEnhetService,
         forslagRepository = mockk(),
     )
     private val deltakerlisteService = DeltakerlisteService(DeltakerlisteRepository())
+
+    private val paameldingClient: PaameldingClient = mockk(relaxed = true)
+
     private var pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
+        navBrukerService = NavBrukerService(
+            amtPersonServiceClient = amtPersonServiceClient,
+            repository = NavBrukerRepository(),
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+        ),
         navEnhetService = navEnhetService,
-        paameldingClient = mockPaameldingClient(),
-        amtDeltakerClient = mockAmtDeltakerClient(),
+        paameldingClient = paameldingClient,
+        amtDeltakerClient = mockk(relaxed = true),
     )
     private val arrangorMeldingProducer = mockk<ArrangorMeldingProducer>(relaxed = true)
     private val testdataService = TestdataService(
@@ -114,8 +130,21 @@ class TestdataServiceTest {
         )
 
         TestRepository.insert(deltakerliste)
-        MockResponseHandler.addOpprettKladdResponse(kladd)
-        MockResponseHandler.addUtkastResponse(godkjentUtkast)
+
+        coEvery { paameldingClient.opprettKladd(any(), any()) } returns OpprettKladdResponse(
+            id = kladd.id,
+            navBruker = kladd.navBruker,
+            deltakerlisteId = kladd.deltakerliste.id,
+            startdato = kladd.startdato,
+            sluttdato = kladd.sluttdato,
+            dagerPerUke = kladd.dagerPerUke,
+            deltakelsesprosent = kladd.deltakelsesprosent,
+            bakgrunnsinformasjon = kladd.bakgrunnsinformasjon,
+            deltakelsesinnhold = kladd.deltakelsesinnhold!!,
+            status = kladd.status,
+        )
+
+        coEvery { paameldingClient.utkast(any()) } returns godkjentUtkast.toUtkastResponse()
 
         runTest {
             val deltaker = testdataService.opprettDeltakelse(opprettTestDeltakelseRequest)

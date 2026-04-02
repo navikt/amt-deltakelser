@@ -23,7 +23,6 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
 import no.nav.amt.deltaker.bff.utils.data.endre
 import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
@@ -54,7 +53,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerServiceTest {
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClient())
+    private val navEnhetService = NavEnhetService(
+        repository = NavEnhetRepository(),
+        amtPersonServiceClient = mockk(relaxed = true),
+    )
     private val forslagRepository = mockk<ForslagRepository>(relaxed = true)
     private val deltakerRepository = DeltakerRepository()
 

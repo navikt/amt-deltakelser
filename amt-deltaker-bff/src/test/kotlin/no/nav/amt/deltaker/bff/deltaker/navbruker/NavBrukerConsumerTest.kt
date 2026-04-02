@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.deltaker.navbruker
 
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
@@ -13,10 +14,8 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
-import no.nav.amt.deltaker.bff.utils.mockPaameldingClient
 import no.nav.amt.deltaker.bff.utils.toDto
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
@@ -27,26 +26,37 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
 
 class NavBrukerConsumerTest {
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClient())
+    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+    private val navAnsattService = NavAnsattService(
+        repository = NavAnsattRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
     private val navEnhetRepository = NavEnhetRepository()
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClient())
+    private val navEnhetService = NavEnhetService(
+        repository = NavEnhetRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
     private val deltakerRepository = DeltakerRepository()
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
-        amtDeltakerClient = mockAmtDeltakerClient(),
+        amtDeltakerClient = mockk(relaxed = true),
         navEnhetService = navEnhetService,
         forslagRepository = mockk(relaxed = true),
     )
-    private val navBrukerService: NavBrukerService =
-        NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService)
+    private val navBrukerService = NavBrukerService(
+        amtPersonServiceClient = amtPersonServiceClient,
+        repository = NavBrukerRepository(),
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+    )
 
     private var pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
         navEnhetService = navEnhetService,
-        paameldingClient = mockPaameldingClient(),
-        amtDeltakerClient = mockAmtDeltakerClient(),
+        paameldingClient = mockk(relaxed = true),
+        amtDeltakerClient = mockk(relaxed = true),
     )
 
     companion object {
@@ -61,8 +71,8 @@ class NavBrukerConsumerTest {
         val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
         val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
 
-        MockResponseHandler.addNavAnsattResponse(navVeileder)
-        MockResponseHandler.addNavEnhetGetResponse(navEnhet)
+        coEvery { amtPersonServiceClient.hentNavAnsatt(navVeileder.id) } returns navVeileder
+        coEvery { amtPersonServiceClient.hentNavEnhet(navEnhet.id) } returns navEnhet
 
         navBrukerConsumer.consume(navBruker.personId, navBruker.toDto(navEnhet).toJSON())
 

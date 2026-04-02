@@ -12,18 +12,10 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import io.ktor.utils.io.ByteReadChannel
 import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
-import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
-import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
-import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
-import no.nav.amt.lib.models.deltaker.Arrangor
-import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
-import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
@@ -32,10 +24,19 @@ const val AMT_DELTAKER_URL = "http://amt-deltaker"
 const val AMT_PERSON_SERVICE_URL = "http://amt-person-service"
 
 fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
-    val mockEngine = MockEngine {
-        val api = Pair(it.url.toString(), it.method)
-        if (defaultResponse != null) MockResponseHandler.addResponse(it.url.toString(), it.method, defaultResponse)
-        val response = MockResponseHandler.responses[api] ?: throw NoSuchElementException("Ingen response mocket for api $api")
+    val mockEngine = MockEngine { httpRequestData ->
+        val api = Pair(httpRequestData.url.toString(), httpRequestData.method)
+
+        if (defaultResponse != null) {
+            MockResponseHandler.addResponse(
+                url = httpRequestData.url.toString(),
+                method = httpRequestData.method,
+                responseBody = defaultResponse,
+            )
+        }
+
+        val response = MockResponseHandler.responses[api]
+            ?: throw NoSuchElementException("Ingen response mocket for api $api")
 
         respond(
             content = ByteReadChannel(response.content),
@@ -51,35 +52,9 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     }
 }
 
-fun mockAmtArrangorClient(arrangor: Arrangor = lagArrangor()): AmtArrangorClient {
-    val overordnetArrangor = arrangor.overordnetArrangorId?.let { lagArrangor(id = it) }
-
-    val response = ArrangorResponse(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
-    return AmtArrangorClient(
-        baseUrl = "https://amt-arrangor",
-        scope = "amt.arrangor.scope",
-        httpClient = mockHttpClient(objectMapper.writeValueAsString(response)),
-        azureAdTokenClient = mockAzureAdClient(),
-    )
-}
-
 fun mockAmtDeltakerClient() = AmtDeltakerClient(
     baseUrl = AMT_DELTAKER_URL,
     scope = "amt.deltaker.scope",
-    httpClient = mockHttpClient(),
-    azureAdTokenClient = mockAzureAdClient(),
-)
-
-fun mockPaameldingClient() = PaameldingClient(
-    baseUrl = AMT_DELTAKER_URL,
-    scope = "amt.deltaker.scope",
-    httpClient = mockHttpClient(),
-    azureAdTokenClient = mockAzureAdClient(),
-)
-
-fun mockAmtPersonServiceClient(): AmtPersonServiceClient = AmtPersonServiceClient(
-    baseUrl = AMT_PERSON_SERVICE_URL,
-    scope = "amt.personservice.scope",
     httpClient = mockHttpClient(),
     azureAdTokenClient = mockAzureAdClient(),
 )
@@ -103,39 +78,6 @@ object MockResponseHandler {
         responses[api] = Response(
             responseBody as? String ?: objectMapper.writeValueAsString(responseBody),
             responseCode,
-        )
-    }
-
-    fun addOpprettKladdResponse(deltaker: Deltaker?) {
-        val url = "$AMT_DELTAKER_URL/kladd"
-        if (deltaker == null) {
-            addResponse(url, HttpMethod.Post, "Noe gikk galt", HttpStatusCode.InternalServerError)
-        } else {
-            addResponse(
-                url = url,
-                method = HttpMethod.Post,
-                responseBody = OpprettKladdResponse(
-                    id = deltaker.id,
-                    navBruker = deltaker.navBruker,
-                    deltakerlisteId = deltaker.deltakerliste.id,
-                    startdato = deltaker.startdato,
-                    sluttdato = deltaker.sluttdato,
-                    dagerPerUke = deltaker.dagerPerUke,
-                    deltakelsesprosent = deltaker.deltakelsesprosent,
-                    bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
-                    deltakelsesinnhold = deltaker.deltakelsesinnhold!!,
-                    status = deltaker.status,
-                ),
-            )
-        }
-    }
-
-    fun addUtkastResponse(deltaker: Deltaker) {
-        val url = "$AMT_DELTAKER_URL/pamelding/${deltaker.id}"
-        addResponse(
-            url = url,
-            method = HttpMethod.Post,
-            responseBody = deltaker.toDeltakeroppdatering(),
         )
     }
 
@@ -168,22 +110,6 @@ object MockResponseHandler {
             responseBody = deltaker.toDeltakeroppdatering(),
             responseCode = status,
         )
-    }
-
-    fun addInnbyggerGodkjennUtkastResponse(
-        deltaker: Deltaker,
-        status: HttpStatusCode = HttpStatusCode.OK,
-    ) {
-        val url = "$AMT_DELTAKER_URL/pamelding/${deltaker.id}/innbygger/godkjenn-utkast"
-        addResponse(url, HttpMethod.Post, deltaker.toDeltakeroppdatering(), status)
-    }
-
-    fun addNavAnsattResponse(
-        navAnsatt: NavAnsatt,
-        status: HttpStatusCode = HttpStatusCode.OK,
-    ) {
-        val url = "$AMT_PERSON_SERVICE_URL/api/nav-ansatt/${navAnsatt.id}"
-        addResponse(url, HttpMethod.Get, navAnsatt, status)
     }
 
     fun addNavEnhetGetResponse(
