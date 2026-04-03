@@ -64,13 +64,12 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -1621,7 +1620,7 @@ class DeltakerServiceTest {
         }
     }
 
-    private val amtPersonClientMock = mockPersonServiceClient()
+    private val amtPersonClientMock: AmtPersonServiceClient = mockk(relaxed = true)
 
     private val navEnhetRepository = NavEnhetRepository()
     private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClientMock)
@@ -1634,7 +1633,10 @@ class DeltakerServiceTest {
     private val vedtakRepository = VedtakRepository()
     private val forslagRepository = ForslagRepository()
     private val endringFraArrangorRepository = EndringFraArrangorRepository()
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val arrangorService = ArrangorService(
+        arrangorRepository = ArrangorRepository(),
+        amtArrangorClient = mockk(relaxed = true),
+    )
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val vurderingRepository = VurderingRepository()
     private val vurderingService = VurderingService(vurderingRepository)

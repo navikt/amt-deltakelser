@@ -7,17 +7,13 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
-import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockHttpClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.testing.DatabaseTestExtension
-import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
-import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -26,19 +22,7 @@ import java.util.UUID
 
 class NavEnhetServiceTest {
     private val navEnhetRepository = NavEnhetRepository()
-
     private val navEnhetResponse = lagNavEnhet()
-
-    private val httpClient = mockHttpClient(
-        defaultResponse = objectMapper.writeValueAsString(TestData.lagNavEnhetDto(navEnhetResponse)),
-    )
-
-    private val amtPersonServiceClient = AmtPersonServiceClient(
-        baseUrl = "http://amt-person-service",
-        scope = "scope",
-        httpClient = httpClient,
-        azureAdTokenClient = mockAzureAdClient(),
-    )
 
     companion object {
         @RegisterExtension
@@ -61,15 +45,19 @@ class NavEnhetServiceTest {
     }
 
     @Test
-    fun `hentEllerOpprettNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() {
+    fun `hentEllerOpprettNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() = runTest {
+        // Arrange
+        val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
         val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
 
-        runTest {
-            val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(navEnhetResponse.enhetsnummer)
+        coEvery { amtPersonServiceClient.hentNavEnhet(navEnhetResponse.enhetsnummer) } returns navEnhetResponse
 
-            navEnhet shouldBe navEnhetResponse
-            navEnhetRepository.get(navEnhetResponse.enhetsnummer) shouldBe navEnhetResponse
-        }
+        // Act
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(navEnhetResponse.enhetsnummer)
+
+        // Assert
+        navEnhet shouldBe navEnhetResponse
+        navEnhetRepository.get(navEnhetResponse.enhetsnummer) shouldBe navEnhetResponse
     }
 
     @Nested

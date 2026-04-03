@@ -42,8 +42,6 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -63,10 +61,17 @@ class DeltakerStatusOppdateringTest {
     private val deltakerRepository: DeltakerRepository = DeltakerRepository()
 
     private val navEnhetRepository = NavEnhetRepository()
-    private val navEnhetService = NavEnhetService(navEnhetRepository, mockPersonServiceClient())
+    private val navEnhetService = NavEnhetService(
+        repository = navEnhetRepository,
+        amtPersonServiceClient = mockk(relaxed = true),
+    )
 
     private val navAnsattRepository = NavAnsattRepository()
-    private val navAnsattService = NavAnsattService(navAnsattRepository, mockPersonServiceClient(), navEnhetService)
+    private val navAnsattService = NavAnsattService(
+        repository = navAnsattRepository,
+        amtPersonServiceClient = mockk(relaxed = true),
+        navEnhetService = navEnhetService,
+    )
 
     private val deltakerEndringRepository = DeltakerEndringRepository()
     private val vedtakRepository = VedtakRepository()
@@ -103,7 +108,10 @@ class DeltakerStatusOppdateringTest {
             deltakerEksternV1Producer,
             unleashToggle,
         )
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val arrangorService = ArrangorService(
+        arrangorRepository = ArrangorRepository(),
+        amtArrangorClient = mockk(relaxed = true),
+    )
     private val vurderingService = VurderingService(vurderingRepository)
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),

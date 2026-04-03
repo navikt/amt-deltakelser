@@ -39,13 +39,12 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
 import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -66,12 +65,15 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerEndringServiceTest {
-    private val amtPersonClient = mockPersonServiceClient()
+    private val amtPersonClient: AmtPersonServiceClient = mockk(relaxed = true)
     private val navEnhetRepository = NavEnhetRepository()
     private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClient)
     private val navAnsattRepository = NavAnsattRepository()
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient, navEnhetService)
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val arrangorService = ArrangorService(
+        arrangorRepository = ArrangorRepository(),
+        amtArrangorClient = mockk(relaxed = true),
+    )
     private val forslagRepository = ForslagRepository()
     private val deltakerEndringRepository = DeltakerEndringRepository()
     private val vurderingRepository = VurderingRepository()

@@ -102,7 +102,7 @@ class IsOppfolgingstilfelleClientTest {
 
         private suspend fun runHappyPathTest(
             responseBody: OppfolgingstilfellePersonResponse,
-            expectedResult: Boolean? = null,
+            expectedResult: Boolean,
         ) {
             createIsOppfolgingstilfelleClient(
                 expectedUrl = EXPECTED_URL,

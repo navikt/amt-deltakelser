@@ -14,7 +14,6 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhetDto
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
@@ -70,9 +69,12 @@ class NavBrukerConsumerTest {
     fun `consumeNavBruker - ny navBruker - upserter`() = runTest {
         val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
+            repository = navBrukerRepository,
+            navEnhetService = NavEnhetService(
+                repository = navEnhetRepository,
+                amtPersonServiceClient = mockk(relaxed = true),
+            ),
+            deltakerService = deltakerService,
         )
 
         navBrukerConsumer.consume(
@@ -92,9 +94,12 @@ class NavBrukerConsumerTest {
         val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker", personident = TestData.randomIdent())
 
         val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
+            repository = navBrukerRepository,
+            navEnhetService = NavEnhetService(
+                repository = navEnhetRepository,
+                amtPersonServiceClient = mockk(relaxed = true),
+            ),
+            deltakerService = deltakerService,
         )
 
         navBrukerConsumer.consume(
@@ -114,9 +119,12 @@ class NavBrukerConsumerTest {
         val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
 
         val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
+            repository = navBrukerRepository,
+            navEnhetService = NavEnhetService(
+                repository = navEnhetRepository,
+                amtPersonServiceClient = mockk(relaxed = true),
+            ),
+            deltakerService = deltakerService,
         )
 
         navBrukerConsumer.consume(
@@ -139,9 +147,12 @@ class NavBrukerConsumerTest {
     fun `consumeNavBruker - ny navBruker, enhet mangler - henter enhet og lagrer`() = runTest {
         val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
+            repository = navBrukerRepository,
+            navEnhetService = NavEnhetService(
+                repository = navEnhetRepository,
+                amtPersonServiceClient = mockk(relaxed = true),
+            ),
+            deltakerService = deltakerService,
         )
 
         navBrukerConsumer.consume(
@@ -159,9 +170,12 @@ class NavBrukerConsumerTest {
         navBrukerRepository.upsert(navBruker)
 
         val navBrukerConsumer = NavBrukerConsumer(
-            navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
-            deltakerService,
+            repository = navBrukerRepository,
+            navEnhetService = NavEnhetService(
+                repository = navEnhetRepository,
+                amtPersonServiceClient = mockk(relaxed = true),
+            ),
+            deltakerService = deltakerService,
         )
 
         navBrukerConsumer.consume(

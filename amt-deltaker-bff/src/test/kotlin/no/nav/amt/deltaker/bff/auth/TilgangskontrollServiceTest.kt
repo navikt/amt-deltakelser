@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.auth
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -28,7 +29,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID
-import kotlin.test.assertFailsWith
 
 class TilgangskontrollServiceTest {
     private val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
@@ -66,7 +66,7 @@ class TilgangskontrollServiceTest {
     fun `verifiserSkrivetilgang - har ikke tilgang - kaster AuthorizationException`() {
         mockPoaoTilgangDeny()
 
-        assertFailsWith<AuthorizationException> {
+        shouldThrow<AuthorizationException> {
             tilgangskontrollService.verifiserSkrivetilgang(UUID.randomUUID(), "12345")
         }
     }
@@ -82,7 +82,7 @@ class TilgangskontrollServiceTest {
     fun `verifiserLesetilgang - har ikke tilgang - kaster AuthorizationException`() {
         mockPoaoTilgangDeny()
 
-        assertFailsWith<AuthorizationException> {
+        shouldThrow<AuthorizationException> {
             tilgangskontrollService.verifiserLesetilgang(UUID.randomUUID(), "12345")
         }
     }

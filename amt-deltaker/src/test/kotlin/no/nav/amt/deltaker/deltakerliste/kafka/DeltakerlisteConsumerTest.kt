@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltakerliste.kafka
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -14,13 +15,14 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
+import no.nav.amt.deltaker.utils.data.TestData.lagArrangorResponse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtArrangorClient
+import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -42,7 +44,11 @@ class DeltakerlisteConsumerTest {
     private val tiltakstypeRepository = TiltakstypeRepository()
     private val deltakerService: DeltakerService = mockk(relaxed = true)
     private val arrangorRepository = ArrangorRepository()
-    private val arrangorService = ArrangorService(arrangorRepository, mockAmtArrangorClient(arrangorInTest))
+    private val arrangorClient: AmtArrangorClient = mockk(relaxed = true)
+    private val arrangorService = ArrangorService(
+        arrangorRepository = arrangorRepository,
+        amtArrangorClient = arrangorClient,
+    )
     private val unleashToggle: CommonUnleashToggle = mockk()
 
     private val consumer =
@@ -118,7 +124,8 @@ class DeltakerlisteConsumerTest {
     }
 
     @Test
-    fun `ny liste v2 gruppe - lagrer deltakerliste`() {
+    fun `ny liste v2 gruppe - lagrer deltakerliste`() = runTest {
+        // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
         tiltakstypeRepository.upsert(tiltakstype)
 
@@ -132,20 +139,23 @@ class DeltakerlisteConsumerTest {
             arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
         )
 
-        runTest {
-            consumer.consume(
-                deltakerlistePayload.id,
-                objectMapper.writeValueAsString(deltakerlistePayload),
-            )
+        coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
-        }
+        // Act
+        consumer.consume(
+            deltakerlistePayload.id,
+            objectMapper.writeValueAsString(deltakerlistePayload),
+        )
+
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
 
         coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
     }
 
     @Test
-    fun `ny liste v2 enkeltplass - lagrer deltakerliste`() {
+    fun `ny liste v2 enkeltplass - lagrer deltakerliste`() = runTest {
+        // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
         tiltakstypeRepository.upsert(tiltakstype)
 
@@ -160,27 +170,30 @@ class DeltakerlisteConsumerTest {
             arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
         )
 
-        runTest {
-            consumer.consume(
-                deltakerlistePayload.id,
-                objectMapper.writeValueAsString(deltakerlistePayload),
-            )
+        coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
-                navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
-                status = null,
-                startDato = null,
-                sluttDato = null,
-                oppstart = null,
-                oppmoteSted = null,
-            )
-        }
+        // Act
+        consumer.consume(
+            deltakerlistePayload.id,
+            objectMapper.writeValueAsString(deltakerlistePayload),
+        )
+
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
+            navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
+            status = null,
+            startDato = null,
+            sluttDato = null,
+            oppstart = null,
+            oppmoteSted = null,
+        )
 
         coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
     }
 
     @Test
-    fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() {
+    fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() = runTest {
+        // Arrange
         val tiltakstype = lagTiltakstype()
         tiltakstypeRepository.upsert(tiltakstype)
 
@@ -190,14 +203,16 @@ class DeltakerlisteConsumerTest {
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
 
-        runTest {
-            consumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, deltakerliste)),
-            )
+        coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
-        }
+        // Act
+        consumer.consume(
+            deltakerliste.id,
+            objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, deltakerliste)),
+        )
+
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
 
         coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
     }

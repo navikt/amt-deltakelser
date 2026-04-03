@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -48,6 +49,18 @@ object TestData {
     fun randomEnhetsnummer() = (1000..9999999999).random().toString()
 
     fun randomOrgnr() = (900_000_000..999_999_998).random().toString()
+
+    fun lagArrangorResponse(arrangor: Arrangor = lagArrangor()): ArrangorResponse {
+        val overordnetArrangor = arrangor.overordnetArrangorId?.let {
+            lagArrangor(id = it)
+        }
+        return ArrangorResponse(
+            id = arrangor.id,
+            navn = arrangor.navn,
+            organisasjonsnummer = arrangor.organisasjonsnummer,
+            overordnetArrangor = overordnetArrangor,
+        )
+    }
 
     fun lagArrangor(
         id: UUID = UUID.randomUUID(),
