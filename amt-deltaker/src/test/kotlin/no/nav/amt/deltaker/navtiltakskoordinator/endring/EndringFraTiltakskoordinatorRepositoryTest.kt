@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -15,6 +14,9 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
@@ -70,8 +72,8 @@ fun sammenlignEndringFraTiltakskoordinator(
 }
 
 data class EndringFraTiltakskoordinatorCtx(
-    val navAnsatt: NavAnsatt = TestData.lagNavAnsatt(),
-    val navEnhet: NavEnhet = TestData.lagNavEnhet(navAnsatt.navEnhetId!!),
+    val navEnhet: NavEnhet = lagNavEnhet(),
+    val navAnsatt: NavAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id),
     val deltakerliste: Deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
     val navBruker: NavBruker = lagNavBruker(),
     var deltaker: Deltaker = TestData.lagDeltaker(

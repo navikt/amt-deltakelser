@@ -19,6 +19,10 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagOppfolgingsperiode
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -60,9 +64,9 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - ny navBruker - upserter`() = runTest {
-        val navBruker = TestData.lagNavBruker()
-        val navVeileder = TestData.lagNavAnsatt(navBruker.navVeilederId!!)
-        val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
+        val navBruker = lagNavBruker()
+        val navVeileder = lagNavAnsatt(navBruker.navVeilederId!!)
+        val navEnhet = lagNavEnhet(navBruker.navEnhetId!!)
         val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
 
         coEvery { amtPersonServiceClient.hentNavAnsatt(navVeileder.id) } returns navVeileder
@@ -75,8 +79,8 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - oppdatert navBruker - upserter`() = runTest {
-        val navBruker = TestData.lagNavBruker()
-        val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
+        val navBruker = lagNavBruker()
+        val navEnhet = lagNavEnhet(navBruker.navEnhetId!!)
         navEnhetRepository.upsert(navEnhet)
         TestRepository.insert(navBruker)
 
@@ -91,8 +95,8 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - avsluttet oppfolging - sletter kladd`() = runTest {
-        val navBruker = TestData.lagNavBruker()
-        val navEnhet = TestData.lagNavEnhet(navBruker.navEnhetId!!)
+        val navBruker = lagNavBruker()
+        val navEnhet = lagNavEnhet(navBruker.navEnhetId!!)
         val kladd = TestData.lagDeltakerKladd(navBruker = navBruker)
         navEnhetRepository.upsert(navEnhet)
         TestRepository.insert(kladd)
@@ -100,7 +104,7 @@ class NavBrukerConsumerTest {
         val oppdatertNavBruker = navBruker.copy(
             innsatsgruppe = null,
             oppfolgingsperioder = listOf(
-                TestData.lagOppfolgingsperiode(
+                lagOppfolgingsperiode(
                     startdato = LocalDateTime.now().minusYears(1),
                     sluttdato = LocalDateTime.now().minusDays(2),
                 ),

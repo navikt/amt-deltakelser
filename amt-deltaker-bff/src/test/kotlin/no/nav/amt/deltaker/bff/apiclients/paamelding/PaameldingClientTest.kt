@@ -16,6 +16,7 @@ import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.internapi.paamelding.response.UtkastResponse
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -55,7 +56,7 @@ class PaameldingClientTest {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}"
         val expectedErrorMessage = "Kunne ikke oppdatere utkast i amt-deltaker."
 
-        val navBruker = TestData.lagNavBruker(deltakerInTest.id, navEnhetId = UUID.randomUUID())
+        val navBruker = lagNavBruker(deltakerInTest.id, navEnhetId = UUID.randomUUID())
         val deltakerListe = TestData.lagDeltakerliste()
 
         val opprettTestDeltakelseRequest = OpprettTestDeltakelseRequest(

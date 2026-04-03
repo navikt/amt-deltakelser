@@ -13,9 +13,9 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Nested

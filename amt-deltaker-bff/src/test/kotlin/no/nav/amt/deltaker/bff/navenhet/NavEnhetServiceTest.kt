@@ -11,6 +11,7 @@ import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
@@ -31,7 +32,7 @@ class NavEnhetServiceTest {
 
     @Test
     fun `hentOpprettEllerOppdaterNavEnhet - navenhet finnes i db - henter fra db`() = runTest {
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
         val navEnhetFraDb = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhet.enhetsnummer)
@@ -40,7 +41,7 @@ class NavEnhetServiceTest {
 
     @Test
     fun `hentOpprettEllerOppdaterNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() = runTest {
-        val navEnhetResponse = TestData.lagNavEnhet()
+        val navEnhetResponse = lagNavEnhet()
         coEvery { amtPersonServiceClient.hentNavEnhet(navEnhetResponse.enhetsnummer) } returns navEnhetResponse
 
         val navEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhetResponse.enhetsnummer)
@@ -51,7 +52,7 @@ class NavEnhetServiceTest {
 
     @Test
     fun `hentOpprettEllerOppdaterNavEnhet - utdatert navenhet finnes i db - henter fra personservice og oppdaterer`() = runTest {
-        val opprinneligNavEnhet = TestData.lagNavEnhet()
+        val opprinneligNavEnhet = lagNavEnhet()
         TestRepository.insert(
             navEnhet = opprinneligNavEnhet,
             sistEndret = LocalDateTime.now().minusMonths(2),
@@ -113,7 +114,7 @@ class NavEnhetServiceTest {
         TestRepository.insert(deltaker)
         coEvery {
             amtPersonServiceClient.hentNavEnhet(endring.endretAvEnhet)
-        } returns TestData.lagNavEnhet(id = endring.endretAvEnhet)
+        } returns lagNavEnhet(id = endring.endretAvEnhet)
 
         val faktiskeEnheter = navEnhetService.hentEnheterForHistorikk(historikk)
         faktiskeEnheter.size shouldBe 1

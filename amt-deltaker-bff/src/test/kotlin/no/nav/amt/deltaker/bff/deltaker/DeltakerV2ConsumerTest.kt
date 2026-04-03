@@ -32,6 +32,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
@@ -120,7 +121,7 @@ class DeltakerV2ConsumerTest {
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         TestRepository.insert(deltakerliste)
-        val navbruker = TestData.lagNavBruker()
+        val navbruker = lagNavBruker()
         val sistEndret = LocalDateTime.now().minusDays(1)
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val deltaker = TestData.lagDeltaker(
@@ -150,7 +151,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val navbruker = TestData.lagNavBruker()
+        val navbruker = lagNavBruker()
         val tidligereDeltakelse = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
@@ -184,7 +185,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val navbruker = TestData.lagNavBruker()
+        val navbruker = lagNavBruker()
         val statusdato = LocalDateTime.now().minusMonths(2)
         val tidligereDeltakelse = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
@@ -226,7 +227,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val navbruker = TestData.lagNavBruker()
+        val navbruker = lagNavBruker()
         val eldsteDeltakelse = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
             navBruker = navbruker,

@@ -20,12 +20,10 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerKladd
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
 import no.nav.amt.deltaker.bff.utils.toUtkastResponse
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
@@ -35,6 +33,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -181,7 +182,7 @@ class PameldingServiceTest {
 
         @Test
         fun `kall til amt-deltaker feiler - kaster exception`() = runTest {
-            val personIdent = TestData.randomIdent()
+            val personIdent = randomIdent()
 
             coEvery { paameldingClient.opprettKladd(any(), any()) } throws
                 IllegalStateException("Kunne ikke opprette kladd i amt-deltaker. Status=500 error=Noe gikk galt")
@@ -245,7 +246,7 @@ class PameldingServiceTest {
 
             val gammelDeltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id),
+                navBruker = lagNavBruker(navEnhetId = navEnhet.id),
             )
             TestRepository.insert(gammelDeltaker)
 
@@ -284,7 +285,7 @@ class PameldingServiceTest {
 
             val gammelDeltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
-                navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id),
+                navBruker = lagNavBruker(navEnhetId = navEnhet.id),
             )
             TestRepository.insert(gammelDeltaker)
 

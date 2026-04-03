@@ -3,11 +3,18 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
-import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 class DeltakerUtilsTest {
+    companion object {
+        @RegisterExtension
+        private val dbExtension = DatabaseTestExtension()
+    }
+
     @Test
     fun `sjekkEndringUtfall - del med arrangør - oppdaterer attributt`() = runTest {
         with(EndringFraTiltakskoordinatorCtx()) {
@@ -39,7 +46,7 @@ class DeltakerUtilsTest {
     fun `sjekkEndringUtfall - mangler oppfolgingsperiode - returnerer failure`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
-                navBruker = TestData.lagNavBruker().copy(oppfolgingsperioder = emptyList()),
+                navBruker = lagNavBruker().copy(oppfolgingsperioder = emptyList()),
             ),
         ) {
             val resultat = DeltakerUtils.sjekkEndringUtfall(

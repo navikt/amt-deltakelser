@@ -13,6 +13,7 @@ import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -33,7 +34,7 @@ class NavAnsattServiceTest {
     inner class HentNavAnsatt {
         @Test
         fun `skal returnere Nav-ansatt nar den finnes i db`() {
-            val navAnsatt = TestData.lagNavAnsatt()
+            val navAnsatt = lagNavAnsatt()
             navAnsattRepository.upsert(navAnsatt)
 
             val navAnsattFraDb = navAnsattService.hentNavAnsatt(navAnsatt.navIdent)
@@ -52,7 +53,7 @@ class NavAnsattServiceTest {
     inner class HentEllerOpprettNavAnsatt {
         @Test
         fun `Nav-ansatt finnes i db - henter fra db`() = runTest {
-            val navAnsatt = TestData.lagNavAnsatt()
+            val navAnsatt = lagNavAnsatt()
             navAnsattRepository.upsert(navAnsatt)
 
             val navAnsattFraDb = navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent)
@@ -61,7 +62,7 @@ class NavAnsattServiceTest {
 
         @Test
         fun `Nav-ansatt finnes ikke i db - henter fra personservice og lagrer`() = runTest {
-            val navAnsattResponse = TestData.lagNavAnsatt()
+            val navAnsattResponse = lagNavAnsatt()
             coEvery { amtPersonServiceClient.hentNavAnsatt(navAnsattResponse.navIdent) } returns navAnsattResponse
 
             val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
@@ -75,7 +76,7 @@ class NavAnsattServiceTest {
 
     @Test
     fun `oppdaterNavAnsatt - Nav-ansatt finnes - blir oppdatert`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         navAnsattRepository.upsert(navAnsatt)
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
 
@@ -86,7 +87,7 @@ class NavAnsattServiceTest {
 
     @Test
     fun `slettNavAnsatt - Nav-ansatt blir slettet`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         navAnsattRepository.upsert(navAnsatt)
 
         navAnsattService.slettNavAnsatt(navAnsatt.id)

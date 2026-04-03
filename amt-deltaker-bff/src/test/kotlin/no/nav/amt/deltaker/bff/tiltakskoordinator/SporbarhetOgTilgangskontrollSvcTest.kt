@@ -12,7 +12,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID

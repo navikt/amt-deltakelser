@@ -50,15 +50,11 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedDirekteVedtak
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedTrengerGodkjenning
-import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
-import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
@@ -81,6 +77,11 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -341,7 +342,7 @@ class PameldingServiceTest {
         @Test
         fun `opprettKladd - deltakerliste finnes ikke - kaster NoSuchElementException`() = runTest {
             // Arrange
-            val personIdent = TestData.randomIdent()
+            val personIdent = randomIdent()
 
             coEvery { personServiceClient.hentNavBruker(any()) } throws NoSuchElementException("NavBruker ikke funnet")
 

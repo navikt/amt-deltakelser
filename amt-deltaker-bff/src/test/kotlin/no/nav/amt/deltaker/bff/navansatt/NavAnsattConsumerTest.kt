@@ -3,11 +3,11 @@ package no.nav.amt.deltaker.bff.navansatt
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.dto.NavAnsattDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -23,7 +23,7 @@ class NavAnsattConsumerTest {
 
     @Test
     fun `consumeNavAnsatt - ny navansatt - upserter`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
 
         runTest {
@@ -35,7 +35,7 @@ class NavAnsattConsumerTest {
 
     @Test
     fun `consumeNavAnsatt - oppdatert navansatt - upserter`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         navAnsattRepository.upsert(navAnsatt)
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
@@ -49,7 +49,7 @@ class NavAnsattConsumerTest {
 
     @Test
     fun `consumeNavAnsatt - tombstonet navansatt - sletter`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         navAnsattRepository.upsert(navAnsatt)
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
 

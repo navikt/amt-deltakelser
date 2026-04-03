@@ -17,7 +17,6 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.api.toResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakskoordinatorDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakskoordinatorTilgang
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
@@ -26,6 +25,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

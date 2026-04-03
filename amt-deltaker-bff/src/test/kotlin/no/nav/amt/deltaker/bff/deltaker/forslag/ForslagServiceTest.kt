@@ -13,6 +13,8 @@ import no.nav.amt.deltaker.bff.utils.data.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
@@ -39,8 +41,8 @@ class ForslagServiceTest {
     fun `avvisForslag - produserer avvist forslag og sletter i db`() = runTest {
         val deltaker = TestData.lagDeltaker()
         TestRepository.insert(deltaker)
-        val navAnsatt = TestData.lagNavAnsatt()
-        val navEnhet = TestData.lagNavEnhet()
+        val navAnsatt = lagNavAnsatt()
+        val navEnhet = lagNavEnhet()
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent) } returns navAnsatt
         coEvery { navEnhetService.hentOpprettEllerOppdaterNavEnhet(navEnhet.enhetsnummer) } returns navEnhet
         val opprinneligForslag = TestData.lagForslag(deltakerId = deltaker.id)

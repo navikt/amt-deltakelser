@@ -45,6 +45,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -589,7 +590,7 @@ class DeltakerServiceTest {
 
         @Test
         fun `oppdaterDeltaker(deltakerOppdatering) - avlyst gjennomforing - setter kan ikke endres`() = runTest {
-            val navBruker = TestData.lagNavBruker()
+            val navBruker = lagNavBruker()
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 navBruker = navBruker,

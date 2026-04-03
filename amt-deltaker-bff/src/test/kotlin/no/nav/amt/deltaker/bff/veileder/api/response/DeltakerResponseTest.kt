@@ -2,12 +2,12 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
+import no.nav.amt.lib.testing.utils.TestData.randomOrgnr
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -62,7 +62,7 @@ class DeltakerResponseTest {
             arrangor = Arrangor(
                 id = UUID.randomUUID(),
                 navn = "DIN ARRANGØR AS",
-                organisasjonsnummer = TestData.randomOrgnr(),
+                organisasjonsnummer = randomOrgnr(),
                 overordnetArrangorId = null,
             ),
             overordnetArrangorNavn = null,
@@ -77,7 +77,7 @@ class DeltakerResponseTest {
             arrangor = Arrangor(
                 id = UUID.randomUUID(),
                 navn = "DIN ARRANGØR AS",
-                organisasjonsnummer = TestData.randomOrgnr(),
+                organisasjonsnummer = randomOrgnr(),
                 overordnetArrangorId = UUID.randomUUID(),
             ),
             overordnetArrangorNavn = "TILTAK OG MULIGHETER",

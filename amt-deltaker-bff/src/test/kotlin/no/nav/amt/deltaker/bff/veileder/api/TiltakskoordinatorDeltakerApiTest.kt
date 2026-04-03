@@ -22,10 +22,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForHistorikk
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavBruker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnheterForHistorikk
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagOppfolgingsperiode
 import no.nav.amt.deltaker.bff.utils.data.TestData.leggTilHistorikk
 import no.nav.amt.deltaker.bff.utils.generateJWT
 import no.nav.amt.deltaker.bff.veileder.api.request.AvsluttDeltakelseRequest
@@ -55,6 +52,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagOppfolgingsperiode
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision

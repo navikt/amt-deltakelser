@@ -3,11 +3,12 @@ package no.nav.amt.deltaker.navbruker
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
@@ -29,18 +30,18 @@ class NavBrukerRepositoryTest {
         val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
         navAnsattRepository.upsert(navAnsatt)
 
-        val bruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        val bruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
 
         navBrukerRepository.upsert(bruker).getOrNull() shouldBe bruker
     }
 
     @Test
     fun `upsert - oppdatert bruker - oppdaterer`() {
-        val bruker = TestData.lagNavBruker()
+        val bruker = lagNavBruker()
         TestRepository.insert(bruker)
 
         val oppdatertBruker = bruker.copy(
-            personident = TestData.randomIdent(),
+            personident = randomIdent(),
             fornavn = "Nytt Fornavn",
             mellomnavn = null,
             etternavn = "Nytt Etternavn",

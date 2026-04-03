@@ -30,6 +30,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
@@ -92,13 +95,13 @@ class TestdataServiceTest {
             arrangor = arrangor,
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val opprettetAv = TestData.lagNavAnsatt(navIdent = TESTVEILEDER)
-        val opprettetAvEnhet = TestData.lagNavEnhet(enhetsnummer = TESTENHET)
+        val opprettetAv = lagNavAnsatt(navIdent = TESTVEILEDER)
+        val opprettetAvEnhet = lagNavEnhet(enhetsnummer = TESTENHET)
 
         navAnsattRepository.upsert(opprettetAv)
         navEnhetRepository.upsert(opprettetAvEnhet)
 
-        val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
+        val navBruker = lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
 
         val opprettTestDeltakelseRequest = OpprettTestDeltakelseRequest(
             personident = navBruker.personident,

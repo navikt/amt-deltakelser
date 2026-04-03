@@ -10,14 +10,15 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhetDto
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -67,7 +68,7 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - ny navBruker - upserter`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        val navBruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(
             repository = navBrukerRepository,
             navEnhetService = NavEnhetService(
@@ -88,10 +89,10 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - oppdatert navBruker - ulik personident - upserter - publiserer v1 og v2`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        val navBruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         navBrukerRepository.upsert(navBruker)
 
-        val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker", personident = TestData.randomIdent())
+        val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker", personident = randomIdent())
 
         val navBrukerConsumer = NavBrukerConsumer(
             repository = navBrukerRepository,
@@ -113,7 +114,7 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - oppdatert navBruker - lik personident - upserter - publiserer kun v2`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        val navBruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         navBrukerRepository.upsert(navBruker)
 
         val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
@@ -145,7 +146,7 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - ny navBruker, enhet mangler - henter enhet og lagrer`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        val navBruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(
             repository = navBrukerRepository,
             navEnhetService = NavEnhetService(
@@ -166,7 +167,7 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - oppdatert navBruker, ingen endringer - republiserer ikke deltakere`() = runTest {
-        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        val navBruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         navBrukerRepository.upsert(navBruker)
 
         val navBrukerConsumer = NavBrukerConsumer(

@@ -12,7 +12,6 @@ import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakskoordinatorTilgang
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -20,6 +19,7 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
