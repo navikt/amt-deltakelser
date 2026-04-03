@@ -8,7 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
@@ -29,7 +29,7 @@ import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class PameldingApiTest : RouteTestBase() {
+class PameldingApiTest : IntegrationTestBase() {
     @Test
     fun `get - har ikke tilgang - returnerer 403`() {
         val deltaker = lagDeltaker()

@@ -7,13 +7,13 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
-import no.nav.amt.distribusjon.utils.ClientTestBase
-import no.nav.amt.distribusjon.utils.CountingCache
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.CountingCache
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class DokdistkanalClientTest : ClientTestBase() {
+class DokdistkanalClientTest {
     @Test
     fun `skal returnere DITT_NAV nar bestemDistribusjonskanal kalles med `() = runTest {
         val sut = createDokdistkanalClient(
@@ -76,14 +76,14 @@ class DokdistkanalClientTest : ClientTestBase() {
         return if (cache != null) {
             DokdistkanalClient(
                 httpClient = httpClient,
-                azureAdTokenClient = mockAzureAdTokenClient,
+                azureAdTokenClient = mockAzureAdClient(),
                 environment = testEnvironment,
                 distribusjonskanalCache = cache,
             )
         } else {
             DokdistkanalClient(
                 httpClient = httpClient,
-                azureAdTokenClient = mockAzureAdTokenClient,
+                azureAdTokenClient = mockAzureAdClient(),
                 environment = testEnvironment,
             )
         }

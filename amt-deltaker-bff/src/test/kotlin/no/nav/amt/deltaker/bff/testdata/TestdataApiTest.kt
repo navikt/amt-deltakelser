@@ -6,7 +6,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
@@ -19,7 +19,7 @@ import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class TestdataApiTest : RouteTestBase() {
+class TestdataApiTest : IntegrationTestBase() {
     @Test
     fun `opprett testdata - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->

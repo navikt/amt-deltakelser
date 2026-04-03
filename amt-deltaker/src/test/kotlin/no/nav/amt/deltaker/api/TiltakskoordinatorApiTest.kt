@@ -11,7 +11,7 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.utils.RouteTestBase
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
@@ -24,7 +24,7 @@ import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class TiltakskoordinatorApiTest : RouteTestBase() {
+class TiltakskoordinatorApiTest : IntegrationTestBase() {
     override val unleashToggle = mockk<CommonUnleashToggle>()
 
     @Test

@@ -1,6 +1,6 @@
 package no.nav.amt.distribusjon.utils
 
-import no.nav.amt.distribusjon.application.plugins.objectMapper
+import no.nav.amt.lib.utils.objectMapper
 import org.postgresql.util.PGobject
 
 object DbUtils {

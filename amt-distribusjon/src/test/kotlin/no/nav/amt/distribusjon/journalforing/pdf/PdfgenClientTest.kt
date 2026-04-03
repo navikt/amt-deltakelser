@@ -6,7 +6,6 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
-import no.nav.amt.distribusjon.utils.ClientTestBase
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData.utkast
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata.ansvarligNavVeileder
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata.lagDeltaker
@@ -19,7 +18,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-class PdfgenClientTest : ClientTestBase() {
+class PdfgenClientTest {
     @Test
     fun `skal returnere ByteArray nar genererHovedvedtak kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(

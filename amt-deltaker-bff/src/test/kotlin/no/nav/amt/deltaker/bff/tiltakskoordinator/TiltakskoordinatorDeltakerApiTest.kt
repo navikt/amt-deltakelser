@@ -11,7 +11,7 @@ import io.mockk.every
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
@@ -24,7 +24,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
 
-class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
+class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     @Nested
     inner class HentDeltaker {
         private val urlString = "/tiltakskoordinator/deltaker/${UUID.randomUUID()}"

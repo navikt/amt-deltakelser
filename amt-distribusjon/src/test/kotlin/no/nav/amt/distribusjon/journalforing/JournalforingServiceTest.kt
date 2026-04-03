@@ -1,76 +1,97 @@
 package no.nav.amt.distribusjon.journalforing
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.amt.distribusjon.Environment
-import no.nav.amt.distribusjon.application.plugins.objectMapper
+import io.mockk.coEvery
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
-import no.nav.amt.distribusjon.hendelse.model.HendelseDto
 import no.nav.amt.distribusjon.hendelse.model.toModel
-import no.nav.amt.distribusjon.integrationTest
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
-import no.nav.amt.distribusjon.utils.MockResponseHandler
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
-import no.nav.amt.distribusjon.utils.produceStringString
-import org.apache.kafka.clients.producer.ProducerRecord
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-class JournalforingServiceTest {
+class JournalforingServiceTest : IntegrationTestBase() {
+    @BeforeEach
+    fun setupMocks() {
+        coEvery { pdfgenClient.genererHovedvedtakForIndividuellOppfolging(any()) } returns "pdf".toByteArray()
+    }
+
     @Test
-    fun `handleHendelse - InnbyggerGodkjennUtkast - journalforer hovedvedtak`() = integrationTest { app, _ ->
-        val hendelseDto = Hendelsesdata.lagHendelseDto(HendelseTypeData.innbyggerGodkjennUtkast())
+    fun `handleHendelse - InnbyggerGodkjennUtkast - journalforer hovedvedtak`() = runTest {
+        // Arrange
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.innbyggerGodkjennUtkast())
 
-        produce(hendelseDto)
+        coEvery { amtPersonClient.hentNavBruker(hendelse.deltaker.personident) } returns Persondata.lagNavBruker()
 
-        eventually {
-            app.journalforingstatusRepository
-                .get(hendelseDto.id)
-                .shouldNotBeNull()
-                .journalpostId shouldNotBe null
+        // Act
+        journalforingService.handleHendelse(hendelse)
+
+        // Assert
+        journalforingstatusRepository
+            .get(hendelse.id)
+            .shouldNotBeNull()
+            .journalpostId shouldNotBe null
+    }
+
+    @Test
+    fun `handleHendelse - InnbyggerGodkjennUtkast, er allerede journalfort, skal ikke sende brev - ignorerer hendelse`() = runTest {
+        // Arrange
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.innbyggerGodkjennUtkast())
+
+        coEvery { amtPersonClient.hentNavBruker(hendelse.deltaker.personident) } returns Persondata.lagNavBruker()
+
+        val journalpostId = "12345"
+        hendelseRepository.insert(hendelse)
+        journalforingstatusRepository.upsert(
+            Journalforingstatus(
+                hendelseId = hendelse.id,
+                journalpostId = journalpostId,
+                bestillingsId = null,
+                kanIkkeDistribueres = null,
+                kanIkkeJournalfores = false,
+            ),
+        )
+
+        // Act
+        journalforingService.handleHendelse(hendelse)
+
+        // Assert
+        assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
+            it.journalpostId shouldBe journalpostId
+            bestillingsId shouldBe null
+            kanIkkeDistribueres shouldBe false
+            kanIkkeJournalfores shouldBe false
         }
     }
 
     @Test
-    fun `handleHendelse - InnbyggerGodkjennUtkast, er allerede journalfort, skal ikke sende brev - ignorerer hendelse`() =
-        integrationTest { app, _ ->
-            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.innbyggerGodkjennUtkast())
+    fun `handleHendelse - NavGodkjennUtkast, er journalfort, ikke sendt brev - sender brev`() = runTest {
+        // Arrange
+        val hendelse = Hendelsesdata.hendelse(
+            payload = HendelseTypeData.navGodkjennUtkast(),
+            distribusjonskanal = Distribusjonskanal.PRINT,
+        )
 
-            val journalpostId = "12345"
-
-            app.hendelseRepository.insert(hendelse)
-            app.journalforingstatusRepository.upsert(Journalforingstatus(hendelse.id, journalpostId, null, null, false))
-
-            app.journalforingService.handleHendelse(hendelse)
-
-            val journalforingstatus = app.journalforingstatusRepository.get(hendelse.id)
-            assertSoftly(journalforingstatus.shouldNotBeNull()) {
-                it.journalpostId shouldBe journalpostId
-                bestillingsId shouldBe null
-                kanIkkeDistribueres shouldBe false
-                kanIkkeJournalfores shouldBe false
-            }
-        }
-
-    @Test
-    fun `handleHendelse - NavGodkjennUtkast, er journalfort, ikke sendt brev - sender brev`() = integrationTest { app, _ ->
-        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.navGodkjennUtkast(), distribusjonskanal = Distribusjonskanal.PRINT)
+        coEvery { amtPersonClient.hentNavBruker(hendelse.deltaker.personident) } returns Persondata.lagNavBruker()
 
         val journalpostId = "12345"
+        hendelseRepository.insert(hendelse)
+        journalforingstatusRepository.upsert(Journalforingstatus(hendelse.id, journalpostId, null, null, false))
 
-        app.hendelseRepository.insert(hendelse)
-        app.journalforingstatusRepository.upsert(Journalforingstatus(hendelse.id, journalpostId, null, null, false))
+        // Act
+        journalforingService.handleHendelse(hendelse)
 
-        app.journalforingService.handleHendelse(hendelse)
-
-        assertSoftly(app.journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
+        // Assert
+        assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
             it.journalpostId shouldBe journalpostId
             bestillingsId shouldNotBe null
             kanIkkeDistribueres shouldBe false
@@ -79,18 +100,22 @@ class JournalforingServiceTest {
     }
 
     @Test
-    fun `handleHendelse - NavGodkjennUtkast, manuell oppfolging - sender brev`() = integrationTest { app, _ ->
+    fun `handleHendelse - NavGodkjennUtkast, manuell oppfolging - sender brev`() = runTest {
+        // Arrange
         val hendelse = Hendelsesdata.hendelse(
             HendelseTypeData.navGodkjennUtkast(),
             distribusjonskanal = Distribusjonskanal.SDP,
             manuellOppfolging = true,
         )
+        hendelseRepository.insert(hendelse)
 
-        app.hendelseRepository.insert(hendelse)
+        coEvery { amtPersonClient.hentNavBruker(hendelse.deltaker.personident) } returns Persondata.lagNavBruker()
 
-        app.journalforingService.handleHendelse(hendelse)
+        // Act
+        journalforingService.handleHendelse(hendelse)
 
-        assertSoftly(app.journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
+        // Assert
+        assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
             journalpostId shouldNotBe null
             bestillingsId shouldNotBe null
             kanIkkeDistribueres shouldBe false
@@ -99,24 +124,24 @@ class JournalforingServiceTest {
     }
 
     @Test
-    fun `handleHendelse - NavGodkjennUtkast, ikke digital, ingen adresse - sender ikke brev`() = integrationTest { app, _ ->
-        val navBruker = Persondata.lagNavBruker(
-            adresse = null,
-        )
+    fun `handleHendelse - NavGodkjennUtkast, ikke digital, ingen adresse - sender ikke brev`() = runTest {
+        // Arrange
+        val navBruker = Persondata.lagNavBruker(adresse = null)
 
         val hendelse = Hendelsesdata.hendelse(
-            HendelseTypeData.navGodkjennUtkast(),
+            payload = HendelseTypeData.navGodkjennUtkast(),
             distribusjonskanal = Distribusjonskanal.PRINT,
             manuellOppfolging = false,
         )
+        hendelseRepository.insert(hendelse)
 
-        MockResponseHandler.addNavBrukerResponse(hendelse.deltaker.personident, navBruker)
+        coEvery { amtPersonClient.hentNavBruker(hendelse.deltaker.personident) } returns navBruker
 
-        app.hendelseRepository.insert(hendelse)
+        // Act
+        journalforingService.handleHendelse(hendelse)
 
-        app.journalforingService.handleHendelse(hendelse)
-
-        assertSoftly(app.journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
+        // Assert
+        assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
             journalpostId shouldNotBe null
             bestillingsId shouldBe null
             kanIkkeDistribueres shouldBe true
@@ -125,57 +150,61 @@ class JournalforingServiceTest {
     }
 
     @Test
-    fun `handleHendelse - AvsluttDeltakelse, er allerede journalfort, skal ikke sende brev - ignorerer hendelse`() =
-        integrationTest { app, _ ->
-            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
+    fun `handleHendelse - AvsluttDeltakelse, er allerede journalfort, skal ikke sende brev - ignorerer hendelse`() = runTest {
+        // Arrange
+        val journalpostId = "12345"
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
+        hendelseRepository.insert(hendelse)
 
-            val journalpostId = "12345"
+        journalforingstatusRepository.upsert(
+            Journalforingstatus(
+                hendelseId = hendelse.id,
+                journalpostId = journalpostId,
+                bestillingsId = null,
+                kanIkkeDistribueres = false,
+                kanIkkeJournalfores = false,
+            ),
+        )
 
-            app.hendelseRepository.insert(hendelse)
-            app.journalforingstatusRepository.upsert(
-                Journalforingstatus(
-                    hendelse.id,
-                    journalpostId,
-                    null,
-                    false,
-                    kanIkkeJournalfores = false,
-                ),
-            )
+        // Act
+        journalforingService.handleHendelse(hendelse)
 
-            app.journalforingService.handleHendelse(hendelse)
-
-            val status = app.journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()
-            status.journalpostId shouldNotBe null
-            status.kanIkkeJournalfores shouldBe false
+        // Assert
+        assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
+            it.journalpostId shouldNotBe null
+            kanIkkeJournalfores shouldBe false
         }
+    }
 
     @Test
-    fun `handleHendelse - AvsluttDeltakelse, er allerede journalfort, kan ikke sende brev - ignorerer hendelse`() =
-        integrationTest { app, _ ->
-            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
+    fun `handleHendelse - AvsluttDeltakelse, er allerede journalfort, kan ikke sende brev - ignorerer hendelse`() = runTest {
+        // Arrange
+        val journalpostId = "12345"
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
+        hendelseRepository.insert(hendelse)
 
-            val journalpostId = "12345"
+        journalforingstatusRepository.upsert(
+            Journalforingstatus(
+                hendelseId = hendelse.id,
+                journalpostId = journalpostId,
+                bestillingsId = null,
+                kanIkkeDistribueres = true,
+                kanIkkeJournalfores = false,
+            ),
+        )
 
-            app.hendelseRepository.insert(hendelse)
-            app.journalforingstatusRepository.upsert(
-                Journalforingstatus(
-                    hendelseId = hendelse.id,
-                    journalpostId = journalpostId,
-                    bestillingsId = null,
-                    kanIkkeDistribueres = true,
-                    kanIkkeJournalfores = false,
-                ),
-            )
+        // Act
+        journalforingService.handleHendelse(hendelse)
 
-            app.journalforingService.handleHendelse(hendelse)
-
-            val status = app.journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()
-            status.journalpostId shouldNotBe null
-            status.kanIkkeJournalfores shouldBe false
+        // Assert
+        assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
+            it.journalpostId shouldNotBe null
+            kanIkkeJournalfores shouldBe false
         }
+    }
 
     @Test
-    fun `handleHendelse - InnbyggerGodkjennUtkast, har ikke aktiv oppfolgingsperiode - feiler`() = integrationTest { app, _ ->
+    fun `handleHendelse - InnbyggerGodkjennUtkast, har ikke aktiv oppfolgingsperiode - feiler`() = runTest {
         val navBruker = Persondata.lagNavBruker(
             oppfolgingsperioder = listOf(
                 Persondata.lagOppfolgingsperiode(
@@ -187,53 +216,74 @@ class JournalforingServiceTest {
 
         val hendelse = Hendelsesdata.lagHendelseDto(HendelseTypeData.innbyggerGodkjennUtkast())
 
-        MockResponseHandler.addNavBrukerResponse(hendelse.deltaker.personident, navBruker)
+        coEvery { amtPersonClient.hentNavBruker(hendelse.deltaker.personident) } returns navBruker
 
         shouldThrow<IllegalArgumentException> {
-            app.journalforingService.handleHendelse(hendelse.toModel(Distribusjonskanal.DITT_NAV, false))
+            journalforingService.handleHendelse(hendelse.toModel(Distribusjonskanal.DITT_NAV, false))
         }
     }
 
     @Test
-    fun `handleHendelse - EndreSluttarsak - journalforer ikke`() = integrationTest { app, _ ->
+    fun `handleHendelse - EndreSluttarsak - journalforer ikke`() = runTest {
+        // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.endreSluttarsak())
 
-        app.journalforingService.handleHendelse(hendelse)
-        app.journalforingstatusRepository.get(hendelse.id) shouldBe null
+        // Act
+        journalforingService.handleHendelse(hendelse)
+
+        // Assert
+        journalforingstatusRepository.get(hendelse.id) shouldBe null
     }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - deltakelsesmengde og forleng - journalforer endringsvedtak`() = integrationTest { app, _ ->
+    fun `journalforOgDistribuerEndringsvedtak - deltakelsesmengde og forleng - journalforer endringsvedtak`() = runTest {
+        // Arrange
         val deltaker = Hendelsesdata.lagDeltaker()
 
         val hendelseDeltakelsesmengde = Hendelsesdata.hendelse(
-            HendelseTypeData.endreDeltakelsesmengde(),
+            payload = HendelseTypeData.endreDeltakelsesmengde(),
             deltaker = deltaker,
             opprettet = LocalDateTime.now().minusMinutes(20),
         )
-        val journalforingstatusDeltakelsesmengde =
-            Journalforingstatus(hendelseDeltakelsesmengde.id, null, null, null, kanIkkeJournalfores = null)
-        app.journalforingstatusRepository.upsert(journalforingstatusDeltakelsesmengde)
+        val journalforingstatusDeltakelsesmengde = Journalforingstatus(
+            hendelseId = hendelseDeltakelsesmengde.id,
+            journalpostId = null,
+            bestillingsId = null,
+            kanIkkeDistribueres = null,
+            kanIkkeJournalfores = null,
+        )
+        journalforingstatusRepository.upsert(journalforingstatusDeltakelsesmengde)
+
         val hendelseForleng = Hendelsesdata.hendelse(
-            HendelseTypeData.forlengDeltakelse(),
+            payload = HendelseTypeData.forlengDeltakelse(),
             deltaker = deltaker,
             ansvarlig = hendelseDeltakelsesmengde.ansvarlig,
             opprettet = LocalDateTime.now(),
         )
-        val journalforingstatusForleng = Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
-        app.journalforingstatusRepository.upsert(journalforingstatusForleng)
+        val journalforingstatusForleng = Journalforingstatus(
+            hendelseId = hendelseForleng.id,
+            journalpostId = null,
+            bestillingsId = null,
+            kanIkkeDistribueres = null,
+            kanIkkeJournalfores = null,
+        )
+        journalforingstatusRepository.upsert(journalforingstatusForleng)
 
-        app.journalforingService.journalforOgDistribuerEndringsvedtak(
-            listOf(
+        coEvery { pdfgenClient.endringsvedtak(any()) } returns "pdf".toByteArray()
+
+        // Act
+        journalforingService.journalforOgDistribuerEndringsvedtak(
+            hendelseMedJournalforingstatuser = listOf(
                 HendelseMedJournalforingstatus(hendelseForleng, journalforingstatusForleng),
                 HendelseMedJournalforingstatus(hendelseDeltakelsesmengde, journalforingstatusDeltakelsesmengde),
             ),
         )
 
-        val journalpostForleng = app.journalforingstatusRepository.get(hendelseForleng.id).shouldNotBeNull()
+        // Assert
+        val journalpostForleng = journalforingstatusRepository.get(hendelseForleng.id).shouldNotBeNull()
         journalpostForleng.kanIkkeJournalfores shouldBe false
 
-        assertSoftly(app.journalforingstatusRepository.get(hendelseDeltakelsesmengde.id).shouldNotBeNull()) {
+        assertSoftly(journalforingstatusRepository.get(hendelseDeltakelsesmengde.id).shouldNotBeNull()) {
             journalpostId shouldNotBe null
             journalpostId shouldBe journalpostForleng.journalpostId
             kanIkkeJournalfores shouldBe false
@@ -241,88 +291,105 @@ class JournalforingServiceTest {
     }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - to endringer, en allerede journalfort - journalforer 1, distribuerer 2`() =
-        integrationTest { app, _ ->
-            val deltaker = Hendelsesdata.lagDeltaker()
+    fun `journalforOgDistribuerEndringsvedtak - to endringer, en allerede journalfort - journalforer 1, distribuerer 2`() = runTest {
+        // Arrange
+        val deltaker = Hendelsesdata.lagDeltaker()
 
-            val hendelseDeltakelsesmengde = Hendelsesdata.hendelse(
-                HendelseTypeData.endreDeltakelsesmengde(),
-                deltaker = deltaker,
-                opprettet = LocalDateTime.now().minusMinutes(20),
-                distribusjonskanal = Distribusjonskanal.PRINT,
-            )
-            val journalforingstatusDeltakelsesmengde =
-                Journalforingstatus(hendelseDeltakelsesmengde.id, "99887", null, null, kanIkkeJournalfores = false)
-            app.journalforingstatusRepository.upsert(journalforingstatusDeltakelsesmengde)
+        val hendelseDeltakelsesmengde = Hendelsesdata.hendelse(
+            payload = HendelseTypeData.endreDeltakelsesmengde(),
+            deltaker = deltaker,
+            opprettet = LocalDateTime.now().minusMinutes(20),
+            distribusjonskanal = Distribusjonskanal.PRINT,
+        )
+        val journalforingstatusDeltakelsesmengde = Journalforingstatus(
+            hendelseId = hendelseDeltakelsesmengde.id,
+            journalpostId = "99887",
+            bestillingsId = null,
+            kanIkkeDistribueres = null,
+            kanIkkeJournalfores = false,
+        )
+        journalforingstatusRepository.upsert(journalforingstatusDeltakelsesmengde)
 
-            val hendelseForleng = Hendelsesdata.hendelse(
-                HendelseTypeData.forlengDeltakelse(),
-                deltaker = deltaker,
-                ansvarlig = hendelseDeltakelsesmengde.ansvarlig,
-                opprettet = LocalDateTime.now(),
-                distribusjonskanal = Distribusjonskanal.PRINT,
-            )
-            val journalforingstatusForleng = Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
-            app.journalforingstatusRepository.upsert(journalforingstatusForleng)
+        val hendelseForleng = Hendelsesdata.hendelse(
+            payload = HendelseTypeData.forlengDeltakelse(),
+            deltaker = deltaker,
+            ansvarlig = hendelseDeltakelsesmengde.ansvarlig,
+            opprettet = LocalDateTime.now(),
+            distribusjonskanal = Distribusjonskanal.PRINT,
+        )
+        val journalforingstatusForleng = Journalforingstatus(
+            hendelseId = hendelseForleng.id,
+            journalpostId = null,
+            bestillingsId = null,
+            kanIkkeDistribueres = null,
+            kanIkkeJournalfores = null,
+        )
+        journalforingstatusRepository.upsert(journalforingstatusForleng)
 
-            app.journalforingService.journalforOgDistribuerEndringsvedtak(
-                listOf(
-                    HendelseMedJournalforingstatus(hendelseForleng, journalforingstatusForleng),
-                    HendelseMedJournalforingstatus(hendelseDeltakelsesmengde, journalforingstatusDeltakelsesmengde),
-                ),
-            )
+        coEvery { amtPersonClient.hentNavBruker(any()) } returns Persondata.lagNavBruker()
+        coEvery { pdfgenClient.endringsvedtak(any()) } returns "pdf".toByteArray()
 
-            val journalpostDeltakelsesmengde = app.journalforingstatusRepository.get(hendelseDeltakelsesmengde.id).shouldNotBeNull()
+        // Act
+        journalforingService.journalforOgDistribuerEndringsvedtak(
+            listOf(
+                HendelseMedJournalforingstatus(hendelseForleng, journalforingstatusForleng),
+                HendelseMedJournalforingstatus(hendelseDeltakelsesmengde, journalforingstatusDeltakelsesmengde),
+            ),
+        )
 
-            assertSoftly(journalpostDeltakelsesmengde) {
-                journalpostId shouldBe journalforingstatusDeltakelsesmengde.journalpostId
-                bestillingsId shouldNotBe null
-                kanIkkeDistribueres shouldBe false
-                kanIkkeJournalfores shouldBe false
-            }
+        // Assert
+        val journalpostDeltakelsesmengde = journalforingstatusRepository.get(hendelseDeltakelsesmengde.id).shouldNotBeNull()
 
-            assertSoftly(app.journalforingstatusRepository.get(hendelseForleng.id).shouldNotBeNull()) {
-                journalpostId shouldNotBe journalpostDeltakelsesmengde.journalpostId
-                bestillingsId shouldNotBe null
-                journalpostId shouldNotBe null
-                kanIkkeDistribueres shouldBe false
-                kanIkkeJournalfores shouldBe false
-            }
+        assertSoftly(journalpostDeltakelsesmengde) {
+            journalpostId shouldBe journalforingstatusDeltakelsesmengde.journalpostId
+            bestillingsId shouldNotBe null
+            kanIkkeDistribueres shouldBe false
+            kanIkkeJournalfores shouldBe false
         }
 
-    @Test
-    fun `journalforOgDistribuerEndringsvedtak - avslutt deltakelse, ikke under oppfolging - journalforer endringsvedtak`() =
-        integrationTest { app, _ ->
-            val navBruker = Persondata.lagNavBruker(
-                oppfolgingsperioder = listOf(
-                    Persondata.lagOppfolgingsperiode(
-                        startdato = LocalDateTime.now().minusYears(2),
-                        sluttdato = LocalDateTime.now().minusMonths(4),
-                    ),
-                ),
-            )
-            val avsluttDeltakelseHendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
-            MockResponseHandler.addNavBrukerResponse(avsluttDeltakelseHendelse.deltaker.personident, navBruker)
-
-            val journalforingstatus = Journalforingstatus(avsluttDeltakelseHendelse.id, null, null, null, kanIkkeJournalfores = null)
-            app.journalforingstatusRepository.upsert(journalforingstatus)
-
-            app.journalforingService.journalforOgDistribuerEndringsvedtak(
-                listOf(
-                    HendelseMedJournalforingstatus(avsluttDeltakelseHendelse, journalforingstatus),
-                ),
-            )
-
-            val oppdatertJournalforingstatus = app.journalforingstatusRepository.get(avsluttDeltakelseHendelse.id)
-            assertSoftly(oppdatertJournalforingstatus.shouldNotBeNull()) {
-                journalpostId shouldBe null
-                bestillingsId shouldBe null
-                kanIkkeJournalfores shouldBe true
-            }
+        assertSoftly(journalforingstatusRepository.get(hendelseForleng.id).shouldNotBeNull()) {
+            journalpostId shouldNotBe journalpostDeltakelsesmengde.journalpostId
+            bestillingsId shouldNotBe null
+            journalpostId shouldNotBe null
+            kanIkkeDistribueres shouldBe false
+            kanIkkeJournalfores shouldBe false
         }
+    }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - forleng deltakelse, ikke under oppfolging - feiler`() = integrationTest { app, _ ->
+    fun `journalforOgDistribuerEndringsvedtak - avslutt deltakelse, ikke under oppfolging - journalforer endringsvedtak`() = runTest {
+        // Arrange
+        val navBruker = Persondata.lagNavBruker(
+            oppfolgingsperioder = listOf(
+                Persondata.lagOppfolgingsperiode(
+                    startdato = LocalDateTime.now().minusYears(2),
+                    sluttdato = LocalDateTime.now().minusMonths(4),
+                ),
+            ),
+        )
+        val avsluttDeltakelseHendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
+        val journalforingstatus = Journalforingstatus(avsluttDeltakelseHendelse.id, null, null, null, kanIkkeJournalfores = null)
+        journalforingstatusRepository.upsert(journalforingstatus)
+
+        coEvery { amtPersonClient.hentNavBruker(avsluttDeltakelseHendelse.deltaker.personident) } returns navBruker
+
+        // Act
+        journalforingService.journalforOgDistribuerEndringsvedtak(
+            listOf(
+                HendelseMedJournalforingstatus(avsluttDeltakelseHendelse, journalforingstatus),
+            ),
+        )
+
+        // Assert
+        assertSoftly(journalforingstatusRepository.get(avsluttDeltakelseHendelse.id).shouldNotBeNull()) {
+            journalpostId shouldBe null
+            bestillingsId shouldBe null
+            kanIkkeJournalfores shouldBe true
+        }
+    }
+
+    @Test
+    fun `journalforOgDistribuerEndringsvedtak - forleng deltakelse, ikke under oppfolging - feiler`() = runTest {
         val navBruker = Persondata.lagNavBruker(
             oppfolgingsperioder = listOf(
                 Persondata.lagOppfolgingsperiode(
@@ -332,13 +399,21 @@ class JournalforingServiceTest {
             ),
         )
         val hendelseForleng = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse())
-        MockResponseHandler.addNavBrukerResponse(hendelseForleng.deltaker.personident, navBruker)
 
-        val journalforingstatusForleng = Journalforingstatus(hendelseForleng.id, null, null, null, kanIkkeJournalfores = null)
-        app.journalforingstatusRepository.upsert(journalforingstatusForleng)
+        val journalforingstatusForleng = Journalforingstatus(
+            hendelseId = hendelseForleng.id,
+            journalpostId = null,
+            bestillingsId = null,
+            kanIkkeDistribueres = null,
+            kanIkkeJournalfores = null,
+        )
+        journalforingstatusRepository.upsert(journalforingstatusForleng)
 
+        coEvery { amtPersonClient.hentNavBruker(hendelseForleng.deltaker.personident) } returns navBruker
+
+        // Act & Assert
         shouldThrow<IllegalArgumentException> {
-            app.journalforingService.journalforOgDistribuerEndringsvedtak(
+            journalforingService.journalforOgDistribuerEndringsvedtak(
                 listOf(
                     HendelseMedJournalforingstatus(hendelseForleng, journalforingstatusForleng),
                 ),
@@ -347,19 +422,30 @@ class JournalforingServiceTest {
     }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - ulik deltakerid - feiler`() = integrationTest { app, _ ->
+    fun `journalforOgDistribuerEndringsvedtak - ulik deltakerid - feiler`() = runTest {
+        // Arrange
         val hendelseDeltakelsesmengde = Hendelsesdata.hendelse(
-            HendelseTypeData.endreDeltakelsesmengde(),
+            payload = HendelseTypeData.endreDeltakelsesmengde(),
             opprettet = LocalDateTime.now().minusMinutes(20),
         )
-        val hendelseForleng = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now())
+        val hendelseForleng = Hendelsesdata.hendelse(
+            payload = HendelseTypeData.forlengDeltakelse(),
+            opprettet = LocalDateTime.now(),
+        )
 
+        // Act & Assert
         shouldThrow<IllegalArgumentException> {
-            app.journalforingService.journalforOgDistribuerEndringsvedtak(
+            journalforingService.journalforOgDistribuerEndringsvedtak(
                 listOf(
                     HendelseMedJournalforingstatus(
                         hendelse = hendelseForleng,
-                        journalforingstatus = Journalforingstatus(hendelseForleng.id, null, null, null, null),
+                        journalforingstatus = Journalforingstatus(
+                            hendelseId = hendelseForleng.id,
+                            journalpostId = null,
+                            bestillingsId = null,
+                            kanIkkeDistribueres = null,
+                            kanIkkeJournalfores = null,
+                        ),
                     ),
                     HendelseMedJournalforingstatus(
                         hendelse = hendelseDeltakelsesmengde,
@@ -376,7 +462,3 @@ class JournalforingServiceTest {
         }
     }
 }
-
-private fun produce(hendelse: HendelseDto) = produceStringString(
-    ProducerRecord(Environment.DELTAKER_HENDELSE_TOPIC, hendelse.deltaker.id.toString(), objectMapper.writeValueAsString(hendelse)),
-)

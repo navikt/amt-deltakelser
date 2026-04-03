@@ -14,7 +14,7 @@ import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.fattVedtak
 import no.nav.amt.deltaker.bff.innbygger.model.toInnbyggerDeltakerResponse
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagForslag
@@ -36,7 +36,7 @@ import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class InnbyggerApiTest : RouteTestBase() {
+class InnbyggerApiTest : IntegrationTestBase() {
     @Test
     fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(

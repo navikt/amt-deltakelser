@@ -15,7 +15,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.api.response.DeltakerlisteResp
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.toDeltakerResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.toResponse
 import no.nav.amt.deltaker.bff.tiltakskoordinator.model.Tiltakskoordinator
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakskoordinatorDeltaker
@@ -29,7 +29,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class TiltakskoordinatorDeltakerlisteApiTest : RouteTestBase() {
+class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     override val tilgangskontrollService: TilgangskontrollService = mockk()
 
     @Test
