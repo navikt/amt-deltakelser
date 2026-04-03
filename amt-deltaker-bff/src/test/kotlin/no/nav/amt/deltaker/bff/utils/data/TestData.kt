@@ -153,7 +153,7 @@ object TestData {
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()
 
     fun lagDeltakelsesinnhold(): Deltakelsesinnhold = Deltakelsesinnhold(
-        ledetekst = "Beskrivelse av tilaket",
+        ledetekst = "Beskrivelse av tiltaket",
         innhold = listOf(
             Innhold(
                 tekst = "~tekst~",

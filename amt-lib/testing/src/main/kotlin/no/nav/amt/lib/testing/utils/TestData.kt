@@ -160,6 +160,6 @@ object TestData {
 
     fun lagDeltakerRegistreringInnhold(
         innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
-        ledetekst: String = "Beskrivelse av tilaket",
+        ledetekst: String = "Beskrivelse av tiltaket",
     ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
 }
