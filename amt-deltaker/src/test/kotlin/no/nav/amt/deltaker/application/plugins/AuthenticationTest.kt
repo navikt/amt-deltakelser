@@ -5,11 +5,11 @@ import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import no.nav.amt.deltaker.utils.RouteTestBase
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.generateJWT
 import org.junit.jupiter.api.Test
 
-class AuthenticationTest : RouteTestBase() {
+class AuthenticationTest : IntegrationTestBase() {
     @Test
     fun `testAuthentication - gyldig token, klient-app har tilgang - returnerer 200`() {
         withTestApplicationContext { client ->

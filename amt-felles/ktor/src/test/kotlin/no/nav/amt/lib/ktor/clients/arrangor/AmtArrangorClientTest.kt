@@ -3,9 +3,9 @@ package no.nav.amt.lib.ktor.clients.arrangor
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.lib.ktor.clients.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.TestData
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.Assertions
@@ -25,7 +25,7 @@ class AmtArrangorClientTest {
             { client -> client.hentArrangor(orgnrInTest) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, hentArrangorLambda)
@@ -49,7 +49,7 @@ class AmtArrangorClientTest {
             { client -> client.hentArrangor(arrangorIdInTest) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, hentArrangorLambda)
@@ -95,7 +95,11 @@ class AmtArrangorClientTest {
             expectedResponse: ArrangorResponse,
             block: suspend (AmtArrangorClient) -> ArrangorResponse,
         ) = runBlocking {
-            val arrangorClient = createArrangorClient(expectedUrl, HttpStatusCode.OK, expectedResponse)
+            val arrangorClient = createArrangorClient(
+                expectedUrl = expectedUrl,
+                statusCode = HttpStatusCode.OK,
+                responseBody = expectedResponse,
+            )
 
             block(arrangorClient) shouldBe expectedResponse
         }
@@ -108,7 +112,7 @@ class AmtArrangorClientTest {
             baseUrl = ARRANGOR_BASE_URL,
             scope = "scope",
             httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
-            azureAdTokenClient = mockk(relaxed = true),
+            azureAdTokenClient = mockAzureAdClient(),
         )
     }
 }

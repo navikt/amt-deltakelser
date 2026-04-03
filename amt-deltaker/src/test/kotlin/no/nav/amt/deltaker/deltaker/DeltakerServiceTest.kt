@@ -51,26 +51,21 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs
-import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
-import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -81,6 +76,10 @@ import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
@@ -96,7 +95,7 @@ import java.util.UUID
 class DeltakerServiceTest {
     companion object {
         @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
+        private val dbExtension = DatabaseTestExtension()
     }
 
     @BeforeEach
@@ -994,8 +993,8 @@ class DeltakerServiceTest {
             val deltaker = lagDeltaker(deltakerliste = deltakerliste)
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
+            val endretAv = lagNavAnsatt(navEnhetId = endretAvEnhet.id)
             val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
             val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
 
@@ -1040,8 +1039,8 @@ class DeltakerServiceTest {
 
         @Test
         fun `upsertEndretDeltakere - tildel plass feiler på upsert - ruller tilbake endringer på samme deltaker`() = runTest {
-            val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
+            val endretAv = lagNavAnsatt(navEnhetId = endretAvEnhet.id)
             val deltakerliste = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             )
@@ -1111,8 +1110,8 @@ class DeltakerServiceTest {
                 startDato = LocalDate.now().plusDays(2),
                 sluttDato = LocalDate.now().plusDays(30),
             )
-            val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
+            val endretAv = lagNavAnsatt(navEnhetId = endretAvEnhet.id)
             val deltaker = lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
             val vedtak = lagVedtak(
@@ -1192,8 +1191,8 @@ class DeltakerServiceTest {
             val deltaker = lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
+            val endretAv = lagNavAnsatt(navEnhetId = endretAvEnhet.id)
             val vedtak = lagVedtak(
                 deltakerVedVedtak = deltaker,
                 deltakerId = deltaker.id,
@@ -1265,8 +1264,8 @@ class DeltakerServiceTest {
                 startDato = LocalDate.now().plusDays(2),
                 sluttDato = LocalDate.now().plusDays(30),
             )
-            val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
+            val endretAv = lagNavAnsatt(navEnhetId = endretAvEnhet.id)
             val deltakerInsert = lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
             val deltaker2Insert = lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
             val vedtak = lagVedtak(
@@ -1330,8 +1329,8 @@ class DeltakerServiceTest {
                         Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 ),
             )
-            val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet()
+            val endretAv = lagNavAnsatt(navEnhetId = endretAvEnhet.id)
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
@@ -1485,9 +1484,9 @@ class DeltakerServiceTest {
                 begrunnelse = "Fordi...",
             )
             val deltaker = deltakerService.giAvslag(
-                deltaker.id,
-                avslag,
-                navAnsatt.navIdent,
+                deltakerId = deltaker.id,
+                avslag = avslag,
+                endretAv = navAnsatt.navIdent,
             )
 
             val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(deltaker.id)
@@ -1621,7 +1620,7 @@ class DeltakerServiceTest {
         }
     }
 
-    private val amtPersonClientMock = mockPersonServiceClient()
+    private val amtPersonClientMock: AmtPersonServiceClient = mockk(relaxed = true)
 
     private val navEnhetRepository = NavEnhetRepository()
     private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClientMock)
@@ -1634,7 +1633,10 @@ class DeltakerServiceTest {
     private val vedtakRepository = VedtakRepository()
     private val forslagRepository = ForslagRepository()
     private val endringFraArrangorRepository = EndringFraArrangorRepository()
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val arrangorService = ArrangorService(
+        arrangorRepository = ArrangorRepository(),
+        amtArrangorClient = mockk(relaxed = true),
+    )
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val vurderingRepository = VurderingRepository()
     private val vurderingService = VurderingService(vurderingRepository)

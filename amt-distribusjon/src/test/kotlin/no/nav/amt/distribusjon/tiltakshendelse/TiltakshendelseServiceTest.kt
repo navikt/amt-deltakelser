@@ -2,14 +2,13 @@ package no.nav.amt.distribusjon.tiltakshendelse
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.result.shouldBeSuccess
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
+import io.mockk.coEvery
+import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.Environment
-import no.nav.amt.distribusjon.haveOutboxRecord
-import no.nav.amt.distribusjon.integrationTest
+import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
-import no.nav.amt.distribusjon.utils.MockResponseHandler
 import no.nav.amt.distribusjon.utils.data.DeltakerData
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
@@ -25,18 +24,21 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class TiltakshendelseServiceTest {
+class TiltakshendelseServiceTest : IntegrationTestBase() {
     @Nested
     inner class HandleHendelseTests {
         @Test
-        fun `handleHendelse - nytt utkast - oppretter aktiv tiltakshendelse`() = integrationTest { app, _ ->
+        fun `handleHendelse - nytt utkast - oppretter aktiv tiltakshendelse`() = runTest {
+            // Arrange
             val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
 
+            // Act
             Database.transaction {
-                app.tiltakshendelseService.handleHendelse(hendelse)
+                tiltakshendelseService.handleHendelse(hendelse)
             }
 
-            val tiltakshendelse = app.tiltakshendelseRepository.getByHendelseId(hendelse.id).shouldBeSuccess()
+            // Assert
+            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(hendelse.id).shouldBeSuccess()
             assertSoftly(tiltakshendelse) {
                 aktiv shouldBe true
                 deltakerId shouldBe hendelse.deltaker.id
@@ -49,7 +51,14 @@ class TiltakshendelseServiceTest {
                 tiltakskode shouldBe hendelse.deltaker.deltakerliste.tiltak.tiltakskode
             }
 
-            app should haveOutboxRecord(tiltakshendelse.id, Environment.TILTAKSHENDELSE_TOPIC)
+            verify {
+                outboxService.insertRecord(
+                    key = tiltakshendelse.id,
+                    value = any(),
+                    topic = Environment.TILTAKSHENDELSE_TOPIC,
+                    suppressOutsideTxWarning = any(),
+                )
+            }
         }
 
         @Test
@@ -68,132 +77,163 @@ class TiltakshendelseServiceTest {
         }
 
         @Test
-        fun `handleHendelse - utkast er håndtert - håndterer ikke på nytt`() = integrationTest { app, _ ->
+        fun `handleHendelse - utkast er håndtert - håndterer ikke på nytt`() {
+            // Arrange
             val opprettHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
-            app.tiltakshendelseRepository.upsert(opprettHendelse.toTiltakshendelse().copy(aktiv = false))
+            tiltakshendelseRepository.upsert(opprettHendelse.toTiltakshendelse().copy(aktiv = false))
 
-            app.tiltakshendelseService.handleHendelse(opprettHendelse)
+            // Act
+            tiltakshendelseService.handleHendelse(opprettHendelse)
 
-            val tiltakshendelse = app.tiltakshendelseRepository.getByHendelseId(opprettHendelse.id).shouldBeSuccess()
-
+            // Assert
+            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(opprettHendelse.id).shouldBeSuccess()
             tiltakshendelse.aktiv shouldBe false
-            app shouldNot haveOutboxRecord(tiltakshendelse.id, Environment.TILTAKSHENDELSE_TOPIC)
+
+            verify(exactly = 0) { outboxService.insertRecord(tiltakshendelse.id, any(), any(), any()) }
         }
 
-        @Test
-        fun `handleHendelse - ny ForlengDeltakelse venter på svar - oppretter ny tiltakshendelse`() = integrationTest { app, _ ->
-            val forslag = Forslag(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                LocalDateTime.now(),
-                "begrunnelse",
-                Forslag.ForlengDeltakelse(LocalDate.now()),
-                Forslag.Status.VenterPaSvar,
-            )
+        @Nested
+        inner class HandleForslagTests {
+            @Test
+            fun `ny ForlengDeltakelse venter på svar - oppretter ny tiltakshendelse`() = runTest {
+                // Arrange
+                val deltakerResponse = DeltakerData.lagDeltakerResponse()
+                val forslag = Forslag(
+                    id = UUID.randomUUID(),
+                    deltakerId = deltakerResponse.id,
+                    opprettetAvArrangorAnsattId = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    begrunnelse = "begrunnelse",
+                    endring = Forslag.ForlengDeltakelse(LocalDate.now()),
+                    status = Forslag.Status.VenterPaSvar,
+                )
 
-            app.tiltakshendelseService.handleForslag(forslag)
+                coEvery { amtDeltakerClient.getDeltaker(deltakerResponse.id) } returns deltakerResponse
 
-            val tiltakshendelse = app.tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
-            assertSoftly(tiltakshendelse) {
-                hendelser shouldBe emptyList()
-                tekst shouldBe "Forslag: Forleng deltakelse"
-                tiltakskode shouldBe Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
-                aktiv shouldBe true
+                // Act
+                tiltakshendelseService.handleForslag(forslag)
+
+                // Assert
+                assertSoftly(tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()) {
+                    hendelser shouldBe emptyList()
+                    tekst shouldBe "Forslag: Forleng deltakelse"
+                    tiltakskode shouldBe Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
+                    aktiv shouldBe true
+                }
             }
-        }
 
-        @Test
-        fun `handleHendelse - ny ForlengDeltakelse godkjennes - oppretter ny tiltakshendelse'`() = integrationTest { app, _ ->
-            val deltaker = DeltakerData.lagDeltakerResponse()
-            val forslag = Forslag(
-                id = UUID.randomUUID(),
-                deltakerId = deltaker.id,
-                opprettetAvArrangorAnsattId = UUID.randomUUID(),
-                opprettet = LocalDateTime.now(),
-                begrunnelse = "begrunnelse",
-                endring = Forslag.ForlengDeltakelse(LocalDate.now()),
-                status = Forslag.Status.VenterPaSvar,
-            )
+            @Test
+            fun `ny ForlengDeltakelse godkjennes - oppretter ny tiltakshendelse'`() = runTest {
+                // Arrange
+                val deltakerResponse = DeltakerData.lagDeltakerResponse()
+                val forslag = Forslag(
+                    id = UUID.randomUUID(),
+                    deltakerId = deltakerResponse.id,
+                    opprettetAvArrangorAnsattId = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    begrunnelse = "begrunnelse",
+                    endring = Forslag.ForlengDeltakelse(LocalDate.now()),
+                    status = Forslag.Status.VenterPaSvar,
+                )
+                val godkjentForslag = forslag.copy(
+                    status = Forslag.Status.Godkjent(
+                        godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                        godkjent = LocalDateTime.now(),
+                    ),
+                )
 
-            MockResponseHandler.addDeltakerResponse(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltakerResponse
 
-            app.tiltakshendelseService.handleForslag(forslag)
+                // Act
+                tiltakshendelseService.handleForslag(forslag)
+                tiltakshendelseService.handleForslag(godkjentForslag)
 
-            val godkjentForslag = forslag.copy(
-                status = Forslag.Status.Godkjent(Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()), LocalDateTime.now()),
-            )
+                // Assert
+                val tiltakhendelseFerdig = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
+                tiltakhendelseFerdig.aktiv shouldBe false
+            }
 
-            app.tiltakshendelseService.handleForslag(godkjentForslag)
+            @Test
+            fun `flere hendelser på samme bruker - oppretter nye tiltakshendelse`() = runTest {
+                // Arrange
+                val deltakerResponse = DeltakerData.lagDeltakerResponse()
+                val forslag1 = Forslag(
+                    id = UUID.randomUUID(),
+                    deltakerId = deltakerResponse.id,
+                    opprettetAvArrangorAnsattId = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    begrunnelse = "begrunnelse",
+                    endring = Forslag.ForlengDeltakelse(LocalDate.now()),
+                    status = Forslag.Status.VenterPaSvar,
+                )
 
-            val tiltakhendelseFerdig = app.tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
+                val forslag2 = Forslag(
+                    id = UUID.randomUUID(),
+                    deltakerId = deltakerResponse.id,
+                    opprettetAvArrangorAnsattId = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    begrunnelse = "begrunnelse",
+                    endring = Forslag.AvsluttDeltakelse(LocalDate.now(), EndringAarsak.FattJobb, null, null),
+                    status = Forslag.Status.VenterPaSvar,
+                )
 
-            tiltakhendelseFerdig.aktiv shouldBe false
-        }
+                coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltakerResponse
 
-        @Test
-        fun `handleHendelse - Flere hendelser på samme bruker - oppretter nye tiltakshendelse`() = integrationTest { app, _ ->
-            val deltaker = DeltakerData.lagDeltakerResponse()
-            val forslag1 = Forslag(
-                id = UUID.randomUUID(),
-                deltakerId = deltaker.id,
-                opprettetAvArrangorAnsattId = UUID.randomUUID(),
-                opprettet = LocalDateTime.now(),
-                begrunnelse = "begrunnelse",
-                endring = Forslag.ForlengDeltakelse(LocalDate.now()),
-                status = Forslag.Status.VenterPaSvar,
-            )
+                // Act
+                tiltakshendelseService.handleForslag(forslag1)
+                tiltakshendelseService.handleForslag(forslag2)
 
-            val forslag2 = Forslag(
-                id = UUID.randomUUID(),
-                deltakerId = deltaker.id,
-                opprettetAvArrangorAnsattId = UUID.randomUUID(),
-                opprettet = LocalDateTime.now(),
-                begrunnelse = "begrunnelse",
-                endring = Forslag.AvsluttDeltakelse(LocalDate.now(), EndringAarsak.FattJobb, null, null),
-                status = Forslag.Status.VenterPaSvar,
-            )
+                // Assert
+                val tiltakshendelse1 = tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldBeSuccess()
+                tiltakshendelse1.forslagId shouldBe forslag1.id
 
-            MockResponseHandler.addDeltakerResponse(deltaker)
+                val tiltakshendelse2 = tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldBeSuccess()
+                tiltakshendelse2.forslagId shouldBe forslag2.id
 
-            app.tiltakshendelseService.handleForslag(forslag1)
-            app.tiltakshendelseService.handleForslag(forslag2)
+                // Arrange
+                val forslag1Godkjent = forslag1.copy(
+                    status = Forslag.Status.Godkjent(
+                        godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                        godkjent = LocalDateTime.now(),
+                    ),
+                )
 
-            val tiltakshendelse1 = app.tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldBeSuccess()
-            val tiltakshendelse2 = app.tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldBeSuccess()
+                // Act
+                tiltakshendelseService.handleForslag(forslag1Godkjent)
 
-            tiltakshendelse1.forslagId shouldBe forslag1.id
-            tiltakshendelse2.forslagId shouldBe forslag2.id
+                // Assert
+                val tiltakshendelse1Godkjent = tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldBeSuccess()
+                tiltakshendelse1Godkjent.aktiv shouldBe false
 
-            val forslag1Godkjent = forslag1.copy(
-                status = Forslag.Status.Godkjent(Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()), LocalDateTime.now()),
-            )
-
-            app.tiltakshendelseService.handleForslag(forslag1Godkjent)
-
-            val tiltakshendelse1Godkjent = app.tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldBeSuccess()
-            tiltakshendelse1Godkjent.aktiv shouldBe false
-
-            val tiltakshendelse2IkkeGodkjent = app.tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldBeSuccess()
-            tiltakshendelse2IkkeGodkjent.aktiv shouldBe true
+                val tiltakshendelse2IkkeGodkjent = tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldBeSuccess()
+                tiltakshendelse2IkkeGodkjent.aktiv shouldBe true
+            }
         }
     }
 
-    companion object {
-        private fun testInaktiveringAvTiltakshendelse(hendelseType: HendelseType) = integrationTest { app, _ ->
-            val opprettHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
-            app.tiltakshendelseRepository.upsert(opprettHendelse.toTiltakshendelse())
+    private fun testInaktiveringAvTiltakshendelse(hendelseType: HendelseType) = runTest {
+        // Arrange
+        val opprettHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+        tiltakshendelseRepository.upsert(opprettHendelse.toTiltakshendelse())
 
-            val godkjennHendelse = Hendelsesdata.hendelse(hendelseType, deltaker = opprettHendelse.deltaker)
+        val godkjennHendelse = Hendelsesdata.hendelse(hendelseType, deltaker = opprettHendelse.deltaker)
 
-            Database.transaction {
-                app.tiltakshendelseService.handleHendelse(godkjennHendelse)
-            }
+        // Act
+        Database.transaction {
+            tiltakshendelseService.handleHendelse(godkjennHendelse)
+        }
 
-            val tiltakshendelse = app.tiltakshendelseRepository.getByHendelseId(godkjennHendelse.id).shouldBeSuccess()
+        // Assert
+        val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(godkjennHendelse.id).shouldBeSuccess()
+        tiltakshendelse.aktiv shouldBe false
 
-            tiltakshendelse.aktiv shouldBe false
-            app should haveOutboxRecord(tiltakshendelse.id, Environment.TILTAKSHENDELSE_TOPIC)
+        verify {
+            outboxService.insertRecord(
+                key = tiltakshendelse.id,
+                value = any(),
+                topic = Environment.TILTAKSHENDELSE_TOPIC,
+                suppressOutsideTxWarning = any(),
+            )
         }
     }
 }

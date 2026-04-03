@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.lib.ktor.clients.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.CountingCache
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -119,14 +119,24 @@ class AzureAdTokenClientTest {
                 azureAdTokenUrl = AZURE_AD_TOKEN_URL,
                 clientId = "fake-client-id",
                 clientSecret = "fake-client-secret",
-                httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
+                httpClient = createMockHttpClient(
+                    expectedUrl = AZURE_AD_TOKEN_URL,
+                    responseBody = responseBodyInTest,
+                    statusCode = statusCode,
+                    expectAuthHeader = false,
+                ),
             )
         } else {
             AzureAdTokenClient(
                 azureAdTokenUrl = AZURE_AD_TOKEN_URL,
                 clientId = "fake-client-id",
                 clientSecret = "fake-client-secret",
-                httpClient = createMockHttpClient(AZURE_AD_TOKEN_URL, responseBodyInTest, statusCode),
+                httpClient = createMockHttpClient(
+                    expectedUrl = AZURE_AD_TOKEN_URL,
+                    responseBody = responseBodyInTest,
+                    statusCode = statusCode,
+                    expectAuthHeader = false,
+                ),
                 tokenCache = cache,
             )
         }

@@ -10,9 +10,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.amt.distribusjon.Environment
-import no.nav.amt.distribusjon.application.plugins.objectMapper
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
+import no.nav.amt.lib.utils.objectMapper
 
 class AmtPersonClient(
     private val httpClient: HttpClient,

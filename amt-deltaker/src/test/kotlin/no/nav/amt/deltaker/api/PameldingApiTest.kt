@@ -11,7 +11,7 @@ import io.mockk.every
 import io.mockk.just
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
-import no.nav.amt.deltaker.utils.RouteTestBase
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
@@ -23,7 +23,7 @@ import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class PameldingApiTest : RouteTestBase() {
+class PameldingApiTest : IntegrationTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->

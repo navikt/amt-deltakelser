@@ -7,14 +7,14 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
-import no.nav.amt.distribusjon.utils.ClientTestBase
-import no.nav.amt.distribusjon.utils.CountingCache
-import no.nav.amt.distribusjon.utils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.CountingCache
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class VeilarboppfolgingClientTest : ClientTestBase() {
+class VeilarboppfolgingClientTest {
     @Nested
     inner class OpprettEllerHentSakTests {
         @Test
@@ -113,14 +113,14 @@ class VeilarboppfolgingClientTest : ClientTestBase() {
     ): VeilarboppfolgingClient = if (cache != null) {
         VeilarboppfolgingClient(
             httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
-            azureAdTokenClient = mockAzureAdTokenClient,
+            azureAdTokenClient = mockAzureAdClient(),
             environment = testEnvironment,
             manuellOppfolgingCache = cache,
         )
     } else {
         VeilarboppfolgingClient(
             httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
-            azureAdTokenClient = mockAzureAdTokenClient,
+            azureAdTokenClient = mockAzureAdClient(),
             environment = testEnvironment,
         )
     }

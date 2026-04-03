@@ -19,12 +19,14 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.tiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.utils.data.TestData
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
@@ -66,9 +68,9 @@ class TiltakskoordinatorServiceIntegrationTest {
 
     @Test
     fun `tildelPlass - returnerer og lagrer deltaker med ny status`() = runTest {
-        val deltaker = TestData.lagDeltaker()
-        val navEnhet = TestData.lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
-        val navAnsatt = TestData.lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
+        val deltaker = lagDeltaker()
+        val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
+        val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
         every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
@@ -87,9 +89,9 @@ class TiltakskoordinatorServiceIntegrationTest {
         } returns listOf(deltakerOppdateringResponseFromDeltaker(deltaker.copy(status = nyStatus)))
 
         val resultatFraAmtDeltaker = tiltakskoordinatorService.endreDeltakere(
-            listOf(deltaker.id),
-            EndringFraTiltakskoordinator.TildelPlass,
-            navAnsatt.navIdent,
+            deltakerIder = listOf(deltaker.id),
+            endring = EndringFraTiltakskoordinator.TildelPlass,
+            endretAv = navAnsatt.navIdent,
         )
         val resultDeltaker = resultatFraAmtDeltaker.first()
         resultatFraAmtDeltaker.size shouldBe 1
@@ -102,14 +104,22 @@ class TiltakskoordinatorServiceIntegrationTest {
         val deltakerFraDb = tiltakskoordinatorService.getDeltaker(deltaker.id)
         deltakerFraDb shouldBeCloseTo deltaker
             .copy(status = nyStatus)
-            .toTiltakskoordinatorsDeltaker(null, navEnhet, navAnsatt, null, false, emptyList(), emptyList())
+            .toTiltakskoordinatorsDeltaker(
+                sisteVurdering = null,
+                navEnhet = navEnhet,
+                navVeileder = navAnsatt,
+                feilkode = null,
+                ikkeDigitalOgManglerAdresse = false,
+                forslag = emptyList(),
+                ulesteHendelser = emptyList(),
+            )
     }
 
     @Test
     fun `settPaaVenteliste - returnerer og lagrer deltaker med ny status`() = runTest {
-        val deltaker = TestData.lagDeltaker()
-        val navEnhet = TestData.lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
-        val navAnsatt = TestData.lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
+        val deltaker = lagDeltaker()
+        val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
+        val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
         every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
@@ -120,8 +130,14 @@ class TiltakskoordinatorServiceIntegrationTest {
         every { forslagRepository.getForDeltaker(any()) } returns emptyList()
         every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
 
-        val nyStatus =
-            DeltakerStatus(UUID.randomUUID(), DeltakerStatus.Type.VENTELISTE, null, LocalDateTime.now(), null, LocalDateTime.now())
+        val nyStatus = DeltakerStatus(
+            id = UUID.randomUUID(),
+            type = DeltakerStatus.Type.VENTELISTE,
+            aarsak = null,
+            gyldigFra = LocalDateTime.now(),
+            gyldigTil = null,
+            opprettet = LocalDateTime.now(),
+        )
 
         coEvery {
             tiltaksKoordinatorClient.settPaaVenteliste(listOf(deltaker.id), navAnsatt.navIdent)
@@ -148,9 +164,9 @@ class TiltakskoordinatorServiceIntegrationTest {
 
     @Test
     fun `settPaaVenteliste - en deltaker feiler i amt-deltaker - returnerer deltaker med feilkode`() = runTest {
-        val deltaker = TestData.lagDeltaker()
-        val navEnhet = TestData.lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
-        val navAnsatt = TestData.lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
+        val deltaker = lagDeltaker()
+        val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
+        val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
         every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null

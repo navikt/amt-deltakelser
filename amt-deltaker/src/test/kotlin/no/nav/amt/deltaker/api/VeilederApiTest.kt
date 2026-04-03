@@ -16,7 +16,7 @@ import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.utils.RouteTestBase
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
@@ -36,6 +36,8 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Test
@@ -44,7 +46,7 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 
-class VeilederApiTest : RouteTestBase() {
+class VeilederApiTest : IntegrationTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
@@ -60,8 +62,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post bakgrunnsinformasjon til felles endepunkt for endringer - har tilgang - returnerer 200`() {
         val bakgrunnsinformasjonRequest = BakgrunnsinformasjonRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             bakgrunnsinformasjon = "bakgrunnsinformasjon",
         )
 
@@ -74,8 +76,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post innhold - har tilgang - returnerer 200`() {
         val innholdRequest = EndretInnholdRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             deltakelsesinnhold = Deltakelsesinnhold(
                 ledetekst = "ledetekst",
                 innhold = listOf(
@@ -104,8 +106,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post deltakelsesmengde - har tilgang - returnerer 200`() {
         val deltakelsesmengdeRequest = DeltakelsesmengdeRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             deltakelsesprosent = 50,
             dagerPerUke = 2,
@@ -126,8 +128,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post startdato - har tilgang - returnerer 200`() {
         val startdatoRequest = StartdatoRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             startdato = LocalDate.now().minusDays(2),
             sluttdato = LocalDate.now().plusMonths(2),
@@ -143,8 +145,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post sluttdato - har tilgang - returnerer 200`() {
         val sluttdatoRequest = SluttdatoRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             sluttdato = LocalDate.now().minusDays(2),
             begrunnelse = "begrunnelse",
@@ -159,8 +161,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post sluttarsak - har tilgang - returnerer 200`() {
         val sluttarsakRequest = SluttarsakRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             aarsak = DeltakerEndring.Aarsak(
                 type = DeltakerEndring.Aarsak.Type.ANNET,
@@ -183,8 +185,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post forleng - har tilgang - returnerer 200`() {
         val forlengDeltakelseRequest = ForlengDeltakelseRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             sluttdato = LocalDate.now().plusWeeks(2),
             begrunnelse = "begrunnelse",
@@ -199,8 +201,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post ikke aktuell - har tilgang - returnerer 200`() {
         val ikkeAktuellRequest = IkkeAktuellRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             aarsak = DeltakerEndring.Aarsak(
                 type = DeltakerEndring.Aarsak.Type.IKKE_MOTT,
@@ -223,8 +225,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post avslutt deltakelse - har tilgang - returnerer 200`() {
         val avsluttDeltakelseRequest = AvsluttDeltakelseRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             sluttdato = LocalDate.now(),
             aarsak = DeltakerEndring.Aarsak(
@@ -250,8 +252,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post endre avslutning - har tilgang - returnerer 200`() {
         val endreAvslutningRequest = EndreAvslutningRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             aarsak = DeltakerEndring.Aarsak(
                 type = DeltakerEndring.Aarsak.Type.UTDANNING,
@@ -276,8 +278,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post reaktiver - har tilgang - returnerer 200`() {
         val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             begrunnelse = "begrunnelse",
         )
 
@@ -294,8 +296,8 @@ class VeilederApiTest : RouteTestBase() {
     @Test
     fun `post fjern oppstartsdato - har tilgang - returnerer 200`() {
         val fjernOppstartsdatoRequest = FjernOppstartsdatoRequest(
-            endretAv = TestData.randomIdent(),
-            endretAvEnhet = TestData.randomEnhetsnummer(),
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             begrunnelse = "begrunnelse",
         )

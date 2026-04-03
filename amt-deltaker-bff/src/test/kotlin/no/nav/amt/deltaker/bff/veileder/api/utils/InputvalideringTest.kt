@@ -10,6 +10,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -94,7 +95,7 @@ class InputvalideringTest {
 
     @Test
     fun testValiderDeltakelsesinnhold() {
-        val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+        val tiltaksinnhold = lagDeltakerRegistreringInnhold(
             innholdselementer = listOf(
                 Innholdselement("Type", "type"),
             ),
@@ -107,7 +108,7 @@ class InputvalideringTest {
         shouldThrow<IllegalArgumentException> {
             validerDeltakelsesinnhold(
                 listOf(InnholdsElementRequest("type", null)),
-                TestData.lagDeltakerRegistreringInnhold(innholdselementer = emptyList()),
+                lagDeltakerRegistreringInnhold(innholdselementer = emptyList()),
                 tiltakstype,
             )
         }
@@ -168,7 +169,7 @@ class InputvalideringTest {
 
     @Test
     fun testValiderKladdInnhold() {
-        val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+        val tiltaksinnhold = lagDeltakerRegistreringInnhold(
             innholdselementer = listOf(
                 Innholdselement("Type", "type"),
                 annetInnholdselement,
@@ -182,7 +183,7 @@ class InputvalideringTest {
         shouldThrow<IllegalArgumentException> {
             validerKladdInnhold(
                 listOf(InnholdsElementRequest("type", null)),
-                TestData.lagDeltakerRegistreringInnhold(innholdselementer = emptyList()),
+                lagDeltakerRegistreringInnhold(innholdselementer = emptyList()),
                 tiltakstype,
             )
         }

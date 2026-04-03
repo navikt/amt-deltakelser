@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.utils.weeks
 import no.nav.amt.deltaker.bff.utils.years
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -67,11 +68,11 @@ class DeltakerTest {
     fun `maxVarighetDato - skal kalkulere riktig max varighet basert pa innsatsgruppe for oppfolging`() {
         val deltakerStandardInnsats = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING)),
-            navBruker = TestData.lagNavBruker(innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS),
+            navBruker = lagNavBruker(innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS),
         )
         val deltakerSituasjonsbestemt = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING)),
-            navBruker = TestData.lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS),
+            navBruker = lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS),
         )
         val andreInnsatsgrupper = listOf(
             Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
@@ -82,7 +83,7 @@ class DeltakerTest {
                 deltakerliste = TestData.lagDeltakerliste(
                     tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING),
                 ),
-                navBruker = TestData.lagNavBruker(innsatsgruppe = it),
+                navBruker = lagNavBruker(innsatsgruppe = it),
             )
         }
 
@@ -95,11 +96,11 @@ class DeltakerTest {
     fun `softVarighetDato - skal kalkulere riktig varighet basert pa innsatsgruppe for oppfolging`() {
         val deltakerStandardInnsats = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING)),
-            navBruker = TestData.lagNavBruker(innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS),
+            navBruker = lagNavBruker(innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS),
         )
         val deltakerSituasjonsbestemt = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING)),
-            navBruker = TestData.lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS),
+            navBruker = lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS),
         )
         val andreInnsatsgrupper = listOf(
             Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
@@ -110,7 +111,7 @@ class DeltakerTest {
                 deltakerliste = TestData.lagDeltakerliste(
                     tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING),
                 ),
-                navBruker = TestData.lagNavBruker(innsatsgruppe = it),
+                navBruker = lagNavBruker(innsatsgruppe = it),
             )
         }
 

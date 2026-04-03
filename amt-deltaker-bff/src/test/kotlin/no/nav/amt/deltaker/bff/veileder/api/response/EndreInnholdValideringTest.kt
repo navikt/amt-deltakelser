@@ -8,13 +8,14 @@ import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
+import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
 import org.junit.jupiter.api.Test
 
 class EndreInnholdValideringTest {
     @Test
     fun `valider - innhold er uendret - feiler`() {
         shouldThrow<IllegalArgumentException> {
-            val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+            val tiltaksinnhold = lagDeltakerRegistreringInnhold(
                 innholdselementer = listOf(
                     Innholdselement("Type", "type"),
                     annetInnholdselement,
@@ -39,7 +40,7 @@ class EndreInnholdValideringTest {
     @Test
     fun `valider - lagt til innholdselement - ok`() {
         shouldNotThrow<IllegalArgumentException> {
-            val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+            val tiltaksinnhold = lagDeltakerRegistreringInnhold(
                 innholdselementer = listOf(
                     Innholdselement("Type", "type"),
                     Innholdselement("Type2", "type2"),
@@ -68,7 +69,7 @@ class EndreInnholdValideringTest {
     @Test
     fun `valider - endret tekst for annet-element - ok`() {
         shouldNotThrow<IllegalArgumentException> {
-            val tiltaksinnhold = TestData.lagDeltakerRegistreringInnhold(
+            val tiltaksinnhold = lagDeltakerRegistreringInnhold(
                 innholdselementer = listOf(
                     Innholdselement("Type", "type"),
                     annetInnholdselement,
