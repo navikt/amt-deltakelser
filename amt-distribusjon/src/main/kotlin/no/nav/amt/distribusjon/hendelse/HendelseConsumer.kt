@@ -2,7 +2,6 @@ package no.nav.amt.distribusjon.hendelse
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.distribusjon.Environment
-import no.nav.amt.distribusjon.application.plugins.objectMapper
 import no.nav.amt.distribusjon.distribusjonskanal.DokdistkanalClient
 import no.nav.amt.distribusjon.hendelse.model.HendelseDto
 import no.nav.amt.distribusjon.hendelse.model.toModel
@@ -16,6 +15,7 @@ import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.utils.database.Database.transaction
+import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import org.slf4j.LoggerFactory

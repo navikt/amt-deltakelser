@@ -4,8 +4,11 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Kladd
@@ -17,53 +20,70 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.utils.MockResponseHandler
-import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerKladd
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
-import no.nav.amt.deltaker.bff.utils.mockPaameldingClient
+import no.nav.amt.deltaker.bff.utils.toUtkastResponse
+import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID
 
 class PameldingServiceTest {
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClient())
+    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+    private val navAnsattService = NavAnsattService(
+        repository = NavAnsattRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
     private val navEnhetRepository = NavEnhetRepository()
-    private val navEnhetService = NavEnhetService(navEnhetRepository, mockAmtPersonServiceClient())
+    private val navEnhetService = NavEnhetService(
+        repository = navEnhetRepository,
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
     private val deltakerRepository = DeltakerRepository()
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
-        amtDeltakerClient = mockAmtDeltakerClient(),
+        amtDeltakerClient = mockk(relaxed = true),
         navEnhetService = navEnhetService,
         forslagRepository = mockk(),
     )
 
+    private val paameldingClient: PaameldingClient = mockk(relaxed = true)
+
     private var pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService),
+        navBrukerService = NavBrukerService(
+            amtPersonServiceClient = mockk(relaxed = true),
+            repository = NavBrukerRepository(),
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+        ),
         navEnhetService = navEnhetService,
-        paameldingClient = mockPaameldingClient(),
-        amtDeltakerClient = mockAmtDeltakerClient(),
+        paameldingClient = paameldingClient,
+        amtDeltakerClient = mockk(relaxed = true),
     )
 
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }
+
+    @BeforeEach
+    fun setup() = clearAllMocks()
 
     @Nested
     inner class UpsertKladdTests {
@@ -111,14 +131,24 @@ class PameldingServiceTest {
             val overordnetArrangorInTest = lagArrangor()
             val arrangorInTest = lagArrangor(overordnetArrangorId = overordnetArrangorInTest.id)
             val deltakerListeInTest = lagDeltakerliste(arrangor = arrangorInTest, overordnetArrangor = overordnetArrangorInTest)
+
             val kladdInTest = lagDeltakerKladd(deltakerliste = deltakerListeInTest)
-            val navVeilederInTest = lagNavAnsatt(id = kladdInTest.navBruker.navVeilederId!!)
-            val navEnhetInTest = lagNavEnhet(id = kladdInTest.navBruker.navEnhetId!!)
+
+            TestRepository.insert(kladdInTest)
             TestRepository.insert(deltakerListeInTest, overordnetArrangorInTest)
 
-            MockResponseHandler.addOpprettKladdResponse(kladdInTest)
-            MockResponseHandler.addNavAnsattResponse(navVeilederInTest)
-            MockResponseHandler.addNavEnhetGetResponse(navEnhetInTest)
+            coEvery { paameldingClient.opprettKladd(any(), any()) } returns OpprettKladdResponse(
+                id = kladdInTest.id,
+                navBruker = kladdInTest.navBruker,
+                deltakerlisteId = kladdInTest.deltakerliste.id,
+                startdato = kladdInTest.startdato,
+                sluttdato = kladdInTest.sluttdato,
+                dagerPerUke = kladdInTest.dagerPerUke,
+                deltakelsesprosent = kladdInTest.deltakelsesprosent,
+                bakgrunnsinformasjon = kladdInTest.bakgrunnsinformasjon,
+                deltakelsesinnhold = kladdInTest.deltakelsesinnhold!!,
+                status = kladdInTest.status,
+            )
 
             val deltaker = pameldingService.opprettKladd(
                 deltakerlisteId = deltakerListeInTest.id,
@@ -152,8 +182,10 @@ class PameldingServiceTest {
 
         @Test
         fun `kall til amt-deltaker feiler - kaster exception`() = runTest {
-            val personIdent = TestData.randomIdent()
-            MockResponseHandler.addOpprettKladdResponse(null)
+            val personIdent = randomIdent()
+
+            coEvery { paameldingClient.opprettKladd(any(), any()) } throws
+                IllegalStateException("Kunne ikke opprette kladd i amt-deltaker. Status=500 error=Noe gikk galt")
 
             val thrown = shouldThrow<IllegalStateException> {
                 pameldingService.opprettKladd(UUID.randomUUID(), personIdent)
@@ -180,7 +212,7 @@ class PameldingServiceTest {
             dagerPerUke = 3F,
         )
 
-        MockResponseHandler.addUtkastResponse(forventetDeltaker)
+        coEvery { paameldingClient.utkast(any()) } returns forventetDeltaker.toUtkastResponse()
 
         val utkast = Utkast(
             deltakerId = deltaker.id,
@@ -214,7 +246,7 @@ class PameldingServiceTest {
 
             val gammelDeltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-                navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id),
+                navBruker = lagNavBruker(navEnhetId = navEnhet.id),
             )
             TestRepository.insert(gammelDeltaker)
 
@@ -239,9 +271,6 @@ class PameldingServiceTest {
 
             deltakerService.oppdaterDeltaker(nyDeltakerOppdaterUtkast)
             deltakerRepository.get(gammelDeltaker.id).getOrThrow().kanEndres shouldBe false
-
-            MockResponseHandler.addNavEnhetPostResponse(navEnhet)
-            MockResponseHandler.avbrytUtkastResponse(nyDeltaker)
 
             pameldingService.avbrytUtkast(nyDeltaker, navEnhet.enhetsnummer, "test")
 
@@ -256,7 +285,7 @@ class PameldingServiceTest {
 
             val gammelDeltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
-                navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id),
+                navBruker = lagNavBruker(navEnhetId = navEnhet.id),
             )
             TestRepository.insert(gammelDeltaker)
 
@@ -281,8 +310,6 @@ class PameldingServiceTest {
 
             deltakerService.oppdaterDeltaker(nyDeltakerOppdaterUtkast)
             deltakerRepository.get(gammelDeltaker.id).getOrThrow().kanEndres shouldBe false
-
-            MockResponseHandler.avbrytUtkastResponse(nyDeltaker)
 
             pameldingService.avbrytUtkast(nyDeltaker, navEnhet.enhetsnummer, "test")
 

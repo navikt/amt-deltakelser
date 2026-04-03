@@ -12,6 +12,12 @@ dependencies {
 
     // --- Ktor ---
     implementation(platform(libs.ktor.bom))
+    constraints {
+        implementation(libs.netty.codec.http2) {
+            because("CVE-2026-33870")
+        }
+    }
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.server.core)
 

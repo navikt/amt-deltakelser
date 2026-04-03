@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.arrangor
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
@@ -16,7 +16,7 @@ class ArrangorRepositoryTest {
 
     @Test
     fun `upsert - ny arrangor - inserter`() {
-        val arrangor = TestData.lagArrangor()
+        val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
         arrangorRepository.get(arrangor.id) shouldBe arrangor
@@ -24,7 +24,7 @@ class ArrangorRepositoryTest {
 
     @Test
     fun `upsert - eksisterende arrangor - oppdaterer`() {
-        val arrangor = TestData.lagArrangor()
+        val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
         val oppdatertArrangor = arrangor.copy(navn = "Oppdatert Arrangor")
@@ -35,7 +35,7 @@ class ArrangorRepositoryTest {
 
     @Test
     fun `delete - eksisterende arrangor - sletter`() {
-        val arrangor = TestData.lagArrangor()
+        val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
         arrangorRepository.delete(arrangor.id)

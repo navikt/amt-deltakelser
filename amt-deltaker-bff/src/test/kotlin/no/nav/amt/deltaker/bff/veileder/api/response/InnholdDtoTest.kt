@@ -11,6 +11,7 @@ import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
+import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 
@@ -21,7 +22,7 @@ class InnholdDtoTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 tiltakstype = TestData.lagTiltakstype(
-                    innhold = TestData.lagDeltakerRegistreringInnhold(
+                    innhold = lagDeltakerRegistreringInnhold(
                         innholdselementer = listOf(innholdselement, annetInnholdselement),
                     ),
                 ),

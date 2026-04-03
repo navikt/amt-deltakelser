@@ -8,13 +8,13 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.digitalbruker.api.DigitalBrukerRequest
-import no.nav.amt.distribusjon.integrationTest
-import no.nav.amt.distribusjon.utils.data.randomIdent
 import no.nav.amt.distribusjon.utils.generateJWT
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import org.junit.jupiter.api.Test
 
-class AuthenticationTest {
+class AuthenticationTest : IntegrationTestBase() {
     @Test
     fun `skal returnere Unauthorized naar bearer token mangler ved POST til digital`() {
         val response = performPost()
@@ -59,16 +59,12 @@ class AuthenticationTest {
         response.status shouldBe HttpStatusCode.Unauthorized
     }
 
-    fun performPost(bearerToken: String? = null): HttpResponse {
-        lateinit var httpResponse: HttpResponse
-        integrationTest { _, httpClient ->
-            httpResponse = httpClient.post("/digital") {
-                contentType(ContentType.Application.Json)
-                setBody(DigitalBrukerRequest(randomIdent()))
+    private fun performPost(bearerToken: String? = null): HttpResponse = withTestApplicationContext { httpClient ->
+        httpClient.post("/digital") {
+            contentType(ContentType.Application.Json)
+            setBody(DigitalBrukerRequest(randomIdent()))
 
-                if (bearerToken != null) bearerAuth(bearerToken)
-            }
+            if (bearerToken != null) bearerAuth(bearerToken)
         }
-        return httpResponse
     }
 }

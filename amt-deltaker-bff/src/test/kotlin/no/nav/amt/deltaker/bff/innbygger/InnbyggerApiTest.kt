@@ -14,13 +14,12 @@ import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.fattVedtak
 import no.nav.amt.deltaker.bff.innbygger.model.toInnbyggerDeltakerResponse
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForHistorikk
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnheterForHistorikk
 import no.nav.amt.deltaker.bff.utils.data.TestData.leggTilHistorikk
 import no.nav.amt.deltaker.bff.utils.tokenXToken
@@ -29,6 +28,7 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision
@@ -36,7 +36,7 @@ import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class InnbyggerApiTest : RouteTestBase() {
+class InnbyggerApiTest : IntegrationTestBase() {
     @Test
     fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(

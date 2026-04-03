@@ -35,6 +35,7 @@ import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.SporbarhetOgTilgangskontrollSvc
 import no.nav.amt.deltaker.bff.tiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseService
+import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.Decision
@@ -43,7 +44,7 @@ import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
 import java.util.UUID
 
-abstract class RouteTestBase {
+abstract class IntegrationTestBase {
     protected val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
     protected val deltakerService: DeltakerService = mockk(relaxed = true)
     protected val pameldingService: PameldingService = mockk(relaxed = true)
@@ -94,7 +95,10 @@ abstract class RouteTestBase {
         groups = listOf(UUID(0L, 0L).toString()),
     )
 
-    protected fun <T : Any> withTestApplicationContext(block: suspend (HttpClient) -> T): T {
+    protected fun <T : Any> withTestApplicationContext(
+        appIsReady: Boolean = true, // for readiness-tester
+        block: suspend (HttpClient) -> T,
+    ): T {
         lateinit var result: T
 
         testApplication {
@@ -127,16 +131,15 @@ abstract class RouteTestBase {
                     testdataService = testdataService,
                     paameldingClient = paameldingClient,
                 )
+
+                attributes.put(isReadyKey, appIsReady)
             }
 
-            result =
-                block(
-                    createClient {
-                        install(ContentNegotiation) {
-                            jackson { applicationConfig() }
-                        }
-                    },
-                )
+            result = block(
+                createClient {
+                    install(ContentNegotiation) { jackson { applicationConfig() } }
+                },
+            )
         }
 
         return result

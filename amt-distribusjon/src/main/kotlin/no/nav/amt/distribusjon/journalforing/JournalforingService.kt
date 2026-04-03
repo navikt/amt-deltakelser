@@ -112,23 +112,23 @@ class JournalforingService(
 
         val pdf: suspend () -> ByteArray = {
             pdfgenClient.endringsvedtak(
-                lagEndringsvedtakPdfDto(
-                    hendelse.deltaker,
-                    navBruker,
-                    hendelseAnsvarlig,
-                    listOf(hendelse),
-                    hendelse.opprettet.toLocalDate(),
+                endringsvedtakPdfDto = lagEndringsvedtakPdfDto(
+                    deltaker = hendelse.deltaker,
+                    navBruker = navBruker,
+                    ansvarlig = hendelseAnsvarlig,
+                    hendelser = listOf(hendelse),
+                    opprettetDato = hendelse.opprettet.toLocalDate(),
                 ),
             )
         }
 
         journalforOgSend(
-            pdf,
-            hendelse,
-            hendelseAnsvarlig.enhet.enhetsnummer,
-            journalforingstatus,
-            DokumentType.AVSLAG,
-            DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
+            genererPDF = pdf,
+            hendelse = hendelse,
+            journalforendeEnhet = hendelseAnsvarlig.enhet.enhetsnummer,
+            journalforingstatus = journalforingstatus,
+            dokumentType = DokumentType.AVSLAG,
+            distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
         )
 
         log.info("Journalførte avslag for deltaker ${hendelse.deltaker.id}")
@@ -250,12 +250,12 @@ class JournalforingService(
         }
 
         journalforOgSend(
-            pdf,
-            hendelse,
-            veileder.enhet.enhetsnummer,
-            journalforingstatus,
-            DokumentType.HOVEDVEDTAK,
-            DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
+            genererPDF = pdf,
+            hendelse = hendelse,
+            journalforendeEnhet = veileder.enhet.enhetsnummer,
+            journalforingstatus = journalforingstatus,
+            dokumentType = DokumentType.HOVEDVEDTAK,
+            distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
         )
 
         log.info("Journalførte hovedvedtak for deltaker ${hendelse.deltaker.id}")

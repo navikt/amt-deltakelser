@@ -7,15 +7,15 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
-import no.nav.amt.distribusjon.utils.ClientTestBase
-import no.nav.amt.distribusjon.utils.createMockHttpClient
-import no.nav.amt.distribusjon.utils.withLogCapture
 import no.nav.amt.distribusjon.veilarboppfolging.Sak
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClientTest.Companion.oppfolgingsperiodeId
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.withLogCapture
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class DokarkivClientTest : ClientTestBase() {
+class DokarkivClientTest {
     @Test
     fun `skal returnere journalpostId nar opprettJournalpost kalles med gyldig respons`() = runTest {
         val sut = createDokarkivClient(
@@ -65,7 +65,7 @@ class DokarkivClientTest : ClientTestBase() {
             responseBody = responseBody,
             statusCode = statusCode,
         ),
-        azureAdTokenClient = mockAzureAdTokenClient,
+        azureAdTokenClient = mockAzureAdClient(),
         environment = testEnvironment,
     )
 

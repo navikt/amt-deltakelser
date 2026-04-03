@@ -35,7 +35,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.Hendelse
@@ -48,27 +47,34 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
-import no.nav.amt.lib.models.person.address.Bostedsadresse
-import no.nav.amt.lib.models.person.address.Kontaktadresse
-import no.nav.amt.lib.models.person.address.Matrikkeladresse
-import no.nav.amt.lib.models.person.address.Vegadresse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.testing.utils.TestData.lagAdresse
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagOppfolgingsperiode
+import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
 
 object TestData {
-    fun randomIdent() = (10_00_00_00_000..31_12_00_99_999).random().toString()
-
-    fun randomNavIdent() = ('A'..'Z').random().toString() + (100_000..999_999).random().toString()
-
-    fun randomEnhetsnummer() = (1000..9999).random().toString()
-
-    fun randomOrgnr() = (900_000_000..999_999_998).random().toString()
-
     fun input(n: Int) = (1..n).map { ('a'..'z').random() }.joinToString("")
+
+    fun lagArrangorClientResponse(arrangorInTest: Arrangor = lagArrangor()): no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse {
+        val overordnetArrangorInTest = arrangorInTest.overordnetArrangorId?.let { lagArrangor(id = it) }
+
+        return no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse(
+            id = arrangorInTest.id,
+            navn = arrangorInTest.navn,
+            organisasjonsnummer = arrangorInTest.organisasjonsnummer,
+            overordnetArrangor = overordnetArrangorInTest,
+        )
+    }
 
     fun Deltaker.toDeltakerVedVedtak() = DeltakerVedVedtak(
         id,
@@ -147,7 +153,7 @@ object TestData {
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()
 
     fun lagDeltakelsesinnhold(): Deltakelsesinnhold = Deltakelsesinnhold(
-        ledetekst = "Beskrivelse av tilaket",
+        ledetekst = "Beskrivelse av tiltaket",
         innhold = listOf(
             Innhold(
                 tekst = "~tekst~",
@@ -186,11 +192,6 @@ object TestData {
 
         return nyttTiltak
     }
-
-    fun lagDeltakerRegistreringInnhold(
-        innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
-        ledetekst: String = "Beskrivelse av tilaket",
-    ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
 
     fun lagEnkeltplassDeltakerlistePayload(
         arrangor: Arrangor = lagArrangor(),
@@ -380,14 +381,6 @@ object TestData {
         begrunnelse = begrunnelse,
     )
 
-    private fun lagArenaDeltakerHistorikk(
-        deltaker: Deltaker,
-        innsoktDatoFraArena: LocalDate,
-    ): List<DeltakerHistorikk> {
-        val importertFraArena = lagImportertFraArena(deltaker = deltaker, innsoktDato = innsoktDatoFraArena)
-        return listOf(DeltakerHistorikk.ImportertFraArena(importertFraArena))
-    }
-
     private fun lagImportertFraArena(
         deltaker: Deltaker,
         innsoktDato: LocalDate,
@@ -404,6 +397,14 @@ object TestData {
             status = deltaker.status,
         ),
     )
+
+    private fun lagArenaDeltakerHistorikk(
+        deltaker: Deltaker,
+        innsoktDatoFraArena: LocalDate,
+    ): List<DeltakerHistorikk> {
+        val importertFraArena = lagImportertFraArena(deltaker = deltaker, innsoktDato = innsoktDatoFraArena)
+        return listOf(DeltakerHistorikk.ImportertFraArena(importertFraArena))
+    }
 
     private fun lagDeltakerHistorikk(deltaker: Deltaker = lagDeltaker()): List<DeltakerHistorikk> {
         val vedtak = lagVedtak(
@@ -507,65 +508,6 @@ object TestData {
         ),
     ) = EndringFraArrangor(id, deltakerId, opprettetAvArrangorAnsattId, opprettet, endring)
 
-    fun lagNavAnsatt(
-        id: UUID = UUID.randomUUID(),
-        navIdent: String = randomNavIdent(),
-        navn: String = "Veileder Veiledersen",
-        epost: String = "veileder.veiledersen@nav.no",
-        telefon: String = "12345678",
-        navEnhetId: UUID? = null,
-    ) = NavAnsatt(
-        id = id,
-        navIdent = navIdent,
-        navn = navn,
-        epost = epost,
-        telefon = telefon,
-        navEnhetId = navEnhetId,
-    )
-
-    private val navEnhetCache = mutableMapOf<String, NavEnhet>()
-
-    fun lagNavEnhet(
-        id: UUID = UUID.randomUUID(),
-        enhetsnummer: String = randomEnhetsnummer(),
-        navn: String = "Nav Testheim",
-    ): NavEnhet {
-        val enhet = navEnhetCache[enhetsnummer] ?: NavEnhet(id, enhetsnummer, navn)
-        val nyEnhet = enhet.copy(id = id, navn = navn)
-        navEnhetCache[enhetsnummer] = nyEnhet
-        return nyEnhet
-    }
-
-    fun lagNavBruker(
-        personId: UUID = UUID.randomUUID(),
-        personident: String = randomIdent(),
-        fornavn: String = "Fornavn",
-        mellomnavn: String? = "Mellomnavn",
-        etternavn: String = "Etternavn",
-        adressebeskyttelse: Adressebeskyttelse? = null,
-        oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
-        innsatsgruppe: Innsatsgruppe? = Innsatsgruppe.STANDARD_INNSATS,
-        adresse: Adresse? = lagAdresse(),
-        erSkjermet: Boolean = false,
-        navVeilederId: UUID = UUID.randomUUID(),
-        navEnhetId: UUID = UUID.randomUUID(),
-    ) = NavBruker(
-        personId = personId,
-        personident = personident,
-        fornavn = fornavn,
-        mellomnavn = mellomnavn,
-        etternavn = etternavn,
-        navVeilederId = navVeilederId,
-        navEnhetId = navEnhetId,
-        erSkjermet = erSkjermet,
-        adresse = adresse,
-        adressebeskyttelse = adressebeskyttelse,
-        oppfolgingsperioder = oppfolgingsperioder,
-        innsatsgruppe = innsatsgruppe,
-        telefon = null,
-        epost = null,
-    )
-
     fun lagNavBrukerResponse(
         personident: String = randomIdent(),
         fornavn: String = "Fornavn",
@@ -593,41 +535,6 @@ object TestData {
         erDigital = true,
         navVeileder = "Nav Veiledersen",
         navEnhet = "Nav Grunerløkka",
-    )
-
-    fun lagAdresse(): Adresse = Adresse(
-        bostedsadresse = Bostedsadresse(
-            coAdressenavn = "C/O Gutterommet",
-            vegadresse = null,
-            matrikkeladresse = Matrikkeladresse(
-                tilleggsnavn = "Gården",
-                postnummer = "0484",
-                poststed = "OSLO",
-            ),
-        ),
-        oppholdsadresse = null,
-        kontaktadresse = Kontaktadresse(
-            coAdressenavn = null,
-            vegadresse = Vegadresse(
-                husnummer = "1",
-                husbokstav = null,
-                adressenavn = "Gate",
-                tilleggsnavn = null,
-                postnummer = "1234",
-                poststed = "MOSS",
-            ),
-            postboksadresse = null,
-        ),
-    )
-
-    fun lagOppfolgingsperiode(
-        id: UUID = UUID.randomUUID(),
-        startdato: LocalDateTime = LocalDateTime.now().minusMonths(1),
-        sluttdato: LocalDateTime? = null,
-    ) = Oppfolgingsperiode(
-        id,
-        startdato,
-        sluttdato,
     )
 
     private fun finnOppstartstype(type: Tiltakskode) = when (type) {
@@ -730,7 +637,10 @@ object TestData {
             id = UUID.randomUUID(),
             navn = UUID.randomUUID().toString(),
             navIdent = UUID.randomUUID().toString(),
-            enhet = HendelseAnsvarlig.NavVeileder.Enhet(id = UUID.randomUUID(), enhetsnummer = randomEnhetsnummer()),
+            enhet = HendelseAnsvarlig.NavVeileder.Enhet(
+                id = UUID.randomUUID(),
+                enhetsnummer = randomEnhetsnummer(),
+            ),
         ),
         payload: HendelseType = HendelseType.EndreBakgrunnsinformasjon(
             bakgrunnsinformasjon = "Ny bakgrunnsinformasjon",

@@ -38,12 +38,8 @@ import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordi
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -52,6 +48,8 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -63,10 +61,17 @@ class DeltakerStatusOppdateringTest {
     private val deltakerRepository: DeltakerRepository = DeltakerRepository()
 
     private val navEnhetRepository = NavEnhetRepository()
-    private val navEnhetService = NavEnhetService(navEnhetRepository, mockPersonServiceClient())
+    private val navEnhetService = NavEnhetService(
+        repository = navEnhetRepository,
+        amtPersonServiceClient = mockk(relaxed = true),
+    )
 
     private val navAnsattRepository = NavAnsattRepository()
-    private val navAnsattService = NavAnsattService(navAnsattRepository, mockPersonServiceClient(), navEnhetService)
+    private val navAnsattService = NavAnsattService(
+        repository = navAnsattRepository,
+        amtPersonServiceClient = mockk(relaxed = true),
+        navEnhetService = navEnhetService,
+    )
 
     private val deltakerEndringRepository = DeltakerEndringRepository()
     private val vedtakRepository = VedtakRepository()
@@ -103,7 +108,10 @@ class DeltakerStatusOppdateringTest {
             deltakerEksternV1Producer,
             unleashToggle,
         )
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val arrangorService = ArrangorService(
+        arrangorRepository = ArrangorRepository(),
+        amtArrangorClient = mockk(relaxed = true),
+    )
     private val vurderingService = VurderingService(vurderingRepository)
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),

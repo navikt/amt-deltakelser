@@ -1,51 +1,43 @@
 package no.nav.amt.deltaker.apiclients.oppfolgingstilfelle
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.utils.ISOPPFOLGINGSTILFELLE_URL
-import no.nav.amt.deltaker.utils.MockResponseHandler
-import no.nav.amt.deltaker.utils.createMockHttpClient
-import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.mockAzureAdClient
-import no.nav.amt.deltaker.utils.mockIsOppfolgingstilfelleClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDate
+import kotlin.reflect.KClass
 
 class IsOppfolgingstilfelleClientTest {
-    @Test
-    fun `erSykmeldtMedArbeidsgiver returnerer feilkode`() = runTest {
-        val oppfolgingstilfelleClient = IsOppfolgingstilfelleClient(
-            baseUrl = ISOPPFOLGINGSTILFELLE_URL,
-            scope = "scope",
-            httpClient = createMockHttpClient(
-                expectedUrl = "${ISOPPFOLGINGSTILFELLE_URL}/api/system/v1/oppfolgingstilfelle/personident",
-                responseBody = null,
-                statusCode = HttpStatusCode.BadRequest,
-            ),
-            azureAdTokenClient = mockAzureAdClient(),
+    @ParameterizedTest
+    @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+    fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        val (statusCode, expectedExceptionType) = testCase
+        runFailureTest(
+            exceptionType = expectedExceptionType,
+            statusCode = statusCode,
         )
-
-        val thrown = shouldThrow<RuntimeException> {
-            oppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(personIdentInTest)
-        }
-
-        thrown.message shouldStartWith "Kunne ikke hente oppfølgingstilfelle fra isoppfolgingstilfelle"
     }
 
     @Test
     fun `erSykmeldtMedArbeidsgiver - ingen oppfolgingstilfeller - returnerer false`() = runTest {
-        MockResponseHandler.addOppfolgingstilfelleRespons(OppfolgingstilfellePersonResponse(emptyList()))
-
-        isOppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(personIdentInTest) shouldBe false
+        runHappyPathTest(
+            responseBody = OppfolgingstilfellePersonResponse(emptyList()),
+            expectedResult = false,
+        )
     }
 
     @Test
     fun `erSykmeldtMedArbeidsgiver - har oppfolgingstilfelle, ikke arbeidsgiver - returnerer false`() = runTest {
-        MockResponseHandler.addOppfolgingstilfelleRespons(
-            OppfolgingstilfellePersonResponse(
+        runHappyPathTest(
+            responseBody = OppfolgingstilfellePersonResponse(
                 listOf(
                     OppfolgingstilfelleDto(
                         arbeidstakerAtTilfelleEnd = false,
@@ -54,15 +46,14 @@ class IsOppfolgingstilfelleClientTest {
                     ),
                 ),
             ),
+            expectedResult = false,
         )
-
-        isOppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(personIdentInTest) shouldBe false
     }
 
     @Test
     fun `erSykmeldtMedArbeidsgiver - oppfolgingstilfelle avsluttet - returnerer false`() = runTest {
-        MockResponseHandler.addOppfolgingstilfelleRespons(
-            OppfolgingstilfellePersonResponse(
+        runHappyPathTest(
+            responseBody = OppfolgingstilfellePersonResponse(
                 listOf(
                     OppfolgingstilfelleDto(
                         arbeidstakerAtTilfelleEnd = true,
@@ -71,15 +62,14 @@ class IsOppfolgingstilfelleClientTest {
                     ),
                 ),
             ),
+            expectedResult = false,
         )
-
-        isOppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(personIdentInTest) shouldBe false
     }
 
     @Test
     fun `erSykmeldtMedArbeidsgiver - har oppfolgingstilfelle og arbeidsgiver - returnerer true`() = runTest {
-        MockResponseHandler.addOppfolgingstilfelleRespons(
-            OppfolgingstilfellePersonResponse(
+        runHappyPathTest(
+            responseBody = OppfolgingstilfellePersonResponse(
                 listOf(
                     OppfolgingstilfelleDto(
                         arbeidstakerAtTilfelleEnd = true,
@@ -88,13 +78,52 @@ class IsOppfolgingstilfelleClientTest {
                     ),
                 ),
             ),
+            expectedResult = true,
         )
-
-        isOppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(personIdentInTest) shouldBe true
     }
 
     companion object {
-        private val isOppfolgingstilfelleClient = mockIsOppfolgingstilfelleClient()
-        private val personIdentInTest = TestData.randomIdent()
+        private const val BASE_URL = "http://isoppfolgingstilfelle"
+        private const val EXPECTED_URL = "$BASE_URL/api/system/v1/oppfolgingstilfelle/personident"
+        private val personidentInTest = randomIdent()
+
+        private fun runFailureTest(
+            exceptionType: KClass<out Throwable>,
+            statusCode: HttpStatusCode,
+        ) {
+            val thrown = assertThrows(exceptionType.java) {
+                runBlocking {
+                    createIsOppfolgingstilfelleClient(EXPECTED_URL, statusCode)
+                        .erSykmeldtMedArbeidsgiver(personidentInTest)
+                }
+            }
+            thrown.message shouldStartWith "Kunne ikke hente oppfølgingstilfelle fra isoppfolgingstilfelle."
+        }
+
+        private suspend fun runHappyPathTest(
+            responseBody: OppfolgingstilfellePersonResponse,
+            expectedResult: Boolean,
+        ) {
+            createIsOppfolgingstilfelleClient(
+                expectedUrl = EXPECTED_URL,
+                statusCode = HttpStatusCode.OK,
+                responseBody = responseBody,
+            ).erSykmeldtMedArbeidsgiver(personidentInTest) shouldBe expectedResult
+        }
+
+        private fun createIsOppfolgingstilfelleClient(
+            expectedUrl: String,
+            statusCode: HttpStatusCode = HttpStatusCode.OK,
+            responseBody: Any? = null,
+        ) = IsOppfolgingstilfelleClient(
+            baseUrl = BASE_URL,
+            scope = "scope",
+            httpClient = createMockHttpClient(
+                expectedUrl = expectedUrl,
+                responseBody = responseBody,
+                statusCode = statusCode,
+            ),
+            azureAdTokenClient = mockAzureAdClient(),
+        )
     }
 }

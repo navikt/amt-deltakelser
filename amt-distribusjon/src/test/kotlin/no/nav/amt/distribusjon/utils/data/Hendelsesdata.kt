@@ -13,6 +13,10 @@ import no.nav.amt.lib.models.hendelse.HendelseDeltaker
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.hendelse.InnholdDto
 import no.nav.amt.lib.models.hendelse.UtkastDto
+import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
+import no.nav.amt.lib.testing.utils.TestData.randomNavIdent
+import no.nav.amt.lib.testing.utils.TestData.randomOrgnr
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
@@ -68,11 +72,11 @@ object Hendelsesdata {
         forsteVedtakFattet: LocalDate? = LocalDate.now().minusDays(3),
         opprettet: LocalDate = LocalDate.now(),
     ) = HendelseDeltaker(
-        id,
-        personident,
-        deltakerliste,
-        forsteVedtakFattet,
-        opprettet,
+        id = id,
+        personident = personident,
+        deltakerliste = deltakerliste,
+        forsteVedtakFattet = forsteVedtakFattet,
+        opprettetDato = opprettet,
     )
 
     fun lagDeltakerliste(

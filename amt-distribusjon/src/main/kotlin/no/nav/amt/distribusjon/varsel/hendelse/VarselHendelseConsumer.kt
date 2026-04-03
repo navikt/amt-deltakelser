@@ -2,7 +2,6 @@ package no.nav.amt.distribusjon.varsel.hendelse
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.distribusjon.Environment
-import no.nav.amt.distribusjon.application.plugins.objectMapper
 import no.nav.amt.distribusjon.varsel.VarselRepository
 import no.nav.amt.distribusjon.varsel.VarselService
 import no.nav.amt.distribusjon.varsel.model.Varsel
@@ -13,6 +12,7 @@ import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.utils.database.Database.transaction
+import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.LoggerFactory
 import java.util.UUID

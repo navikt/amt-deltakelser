@@ -8,11 +8,11 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.EnhetResponse
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-class ArrangorsokApiTest : RouteTestBase() {
+class ArrangorsokApiTest : IntegrationTestBase() {
     companion object {
         private const val ORGNUMMER_IN_TEST = "987654321"
     }

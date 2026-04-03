@@ -1,14 +1,12 @@
-package no.nav.amt.deltaker.bff.apiclients
+package no.nav.amt.deltaker.bff.apiclients.arrangorsok
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
-import no.nav.amt.deltaker.bff.apiclients.arrangorsok.EnhetResponse
-import no.nav.amt.deltaker.bff.utils.createMockHttpClient
-import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -25,7 +23,7 @@ class ArrangorsokClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -62,7 +60,7 @@ class ArrangorsokClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
@@ -119,7 +117,7 @@ class ArrangorsokClientTest {
         ) = runBlocking {
             val arrangorsokClient = createArrangorsokClient(
                 expectedUrl = expectedUrl,
-                statusCode = HttpStatusCode.Companion.OK,
+                statusCode = HttpStatusCode.OK,
                 responseBody = expectedResponse,
             )
 
@@ -132,7 +130,7 @@ class ArrangorsokClientTest {
 
         private fun createArrangorsokClient(
             expectedUrl: String,
-            statusCode: HttpStatusCode = HttpStatusCode.Companion.OK,
+            statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
         ) = ArrangorsokClient(
             baseUrl = ARRANGORSOK_BASE_URL,

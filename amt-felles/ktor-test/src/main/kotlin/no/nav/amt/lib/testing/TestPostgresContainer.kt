@@ -32,7 +32,7 @@ object TestPostgresContainer {
                     FROM pg_tables
                     WHERE 
                         schemaname = 'public'
-                        AND tablename NOT IN ('flyway_schema_history', 'outbox_record')
+                        AND tablename NOT IN ('flyway_schema_history')
                 ) 
                 LOOP
                     EXECUTE format('TRUNCATE TABLE %I CASCADE', r.tablename);

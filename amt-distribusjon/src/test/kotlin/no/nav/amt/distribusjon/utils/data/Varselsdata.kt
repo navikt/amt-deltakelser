@@ -2,6 +2,7 @@ package no.nav.amt.distribusjon.utils.data
 
 import no.nav.amt.distribusjon.varsel.model.Varsel
 import no.nav.amt.distribusjon.varsel.nowUTC
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import java.time.ZonedDateTime
 import java.util.UUID
 

@@ -19,9 +19,6 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
-import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -32,6 +29,9 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.GenericCache
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -92,6 +92,8 @@ class ResponseBuilderTest {
             navEnhetId = UUID.randomUUID(),
             erSkjermet = true,
             adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
+            telefon = "12345678",
+            epost = "a@b.c",
         )
 
         val navAnsattCache: GenericCache<NavAnsatt> = mockk()

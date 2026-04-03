@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients
+package no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
@@ -7,13 +7,13 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.tiltakskoordinator.api.AvslagRequest
-import no.nav.amt.deltaker.bff.utils.createMockHttpClient
-import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -35,7 +35,7 @@ class TiltaksKoordinatorClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, delMedArrangorLambda)
@@ -69,7 +69,7 @@ class TiltaksKoordinatorClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, giAvslagLambda)
@@ -83,7 +83,7 @@ class TiltaksKoordinatorClientTest {
 
     companion object {
         private const val CLIENT_BASE_URL = "http://amt-tiltakskoordinator"
-        private val deltakerInTest = TestData.lagDeltaker()
+        private val deltakerInTest = lagDeltaker()
         private val deltakerOppdateringInTest = deltakerInTest.toDeltakeroppdatering()
 
         private fun runFailureTest(
@@ -106,8 +106,7 @@ class TiltaksKoordinatorClientTest {
             expectedResponse: T,
             block: suspend (TiltaksKoordinatorClient) -> T,
         ) = runTest {
-            val deltakerClient =
-                createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.Companion.OK, expectedResponse)
+            val deltakerClient = createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.OK, expectedResponse)
 
             if (expectedResponse == null) {
                 shouldNotThrowAny { block(deltakerClient) }
@@ -118,7 +117,7 @@ class TiltaksKoordinatorClientTest {
 
         private fun createTiltaksKoordinatorClient(
             expectedUrl: String,
-            statusCode: HttpStatusCode = HttpStatusCode.Companion.OK,
+            statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
         ) = TiltaksKoordinatorClient(
             baseUrl = CLIENT_BASE_URL,

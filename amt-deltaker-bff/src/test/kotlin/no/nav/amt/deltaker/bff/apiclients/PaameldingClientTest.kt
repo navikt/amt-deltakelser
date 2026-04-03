@@ -1,20 +1,22 @@
-package no.nav.amt.deltaker.bff.apiclients
+package no.nav.amt.deltaker.bff.apiclients.paamelding
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.bff.apiclients.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
-import no.nav.amt.deltaker.bff.testdata.TestdataService
-import no.nav.amt.deltaker.bff.utils.createMockHttpClient
+import no.nav.amt.deltaker.bff.testdata.TestdataService.Companion.lagUtkast
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toUtkastResponse
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.internapi.paamelding.response.UtkastResponse
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -33,7 +35,7 @@ class PaameldingClientTest {
             { client -> client.opprettKladd(deltakerlisteId = UUID.randomUUID(), personIdent = "~personident~") }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, opprettKladdLambda)
@@ -43,7 +45,7 @@ class PaameldingClientTest {
         fun `skal returnere KladdResponse`() {
             runHappyPathTest(
                 expectedUrl,
-                DtoMappers.opprettKladdResponseFromDeltaker(deltakerInTest),
+                opprettKladdResponseFromDeltaker(deltakerInTest),
                 opprettKladdLambda,
             )
         }
@@ -54,7 +56,7 @@ class PaameldingClientTest {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}"
         val expectedErrorMessage = "Kunne ikke oppdatere utkast i amt-deltaker."
 
-        val navBruker = TestData.lagNavBruker(deltakerInTest.id, navEnhetId = UUID.randomUUID())
+        val navBruker = lagNavBruker(deltakerInTest.id, navEnhetId = UUID.randomUUID())
         val deltakerListe = TestData.lagDeltakerliste()
 
         val opprettTestDeltakelseRequest = OpprettTestDeltakelseRequest(
@@ -65,13 +67,13 @@ class PaameldingClientTest {
             dagerPerUke = 3,
         )
 
-        val utkast = TestdataService.Companion.lagUtkast(deltakerInTest.id, deltakerListe, opprettTestDeltakelseRequest)
+        val utkast = lagUtkast(deltakerInTest.id, deltakerListe, opprettTestDeltakelseRequest)
 
         val utkastLambda: suspend (PaameldingClient) -> UtkastResponse =
             { client -> client.utkast(utkast) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, utkastLambda)
@@ -90,7 +92,7 @@ class PaameldingClientTest {
         val slettKladdLambda: suspend (PaameldingClient) -> Unit = { client -> client.slettKladd(deltakerInTest.id) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, slettKladdLambda)
@@ -116,7 +118,7 @@ class PaameldingClientTest {
             }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, avbrytUtkastLambda)
@@ -136,7 +138,7 @@ class PaameldingClientTest {
             { client -> client.innbyggerGodkjennUtkast(deltakerInTest.id) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, innbyggerGodkjennUtkastLambda)
@@ -174,7 +176,7 @@ class PaameldingClientTest {
             expectedResponse: T,
             block: suspend (PaameldingClient) -> T,
         ) = runTest {
-            val deltakerClient = createPaameldingClient(expectedUrl, HttpStatusCode.Companion.OK, expectedResponse)
+            val deltakerClient = createPaameldingClient(expectedUrl, HttpStatusCode.OK, expectedResponse)
 
             if (expectedResponse == null) {
                 shouldNotThrowAny { block(deltakerClient) }
@@ -185,7 +187,7 @@ class PaameldingClientTest {
 
         private fun createPaameldingClient(
             expectedUrl: String,
-            statusCode: HttpStatusCode = HttpStatusCode.Companion.OK,
+            statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
         ) = PaameldingClient(
             baseUrl = DELTAKER_BASE_URL,
