@@ -24,7 +24,7 @@ class HendelseRepositoryTest {
     }
 
     @Test
-    fun `inseert - inserter hendelse i database`() {
+    fun `insert - inserter hendelse i database`() {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(
             payload = HendelseTypeData.forlengDeltakelse(),

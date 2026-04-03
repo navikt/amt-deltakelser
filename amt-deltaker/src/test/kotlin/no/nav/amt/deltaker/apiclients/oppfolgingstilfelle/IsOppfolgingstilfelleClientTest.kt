@@ -85,7 +85,7 @@ class IsOppfolgingstilfelleClientTest {
     companion object {
         private const val BASE_URL = "http://isoppfolgingstilfelle"
         private const val EXPECTED_URL = "$BASE_URL/api/system/v1/oppfolgingstilfelle/personident"
-        private val personindentInTest = randomIdent()
+        private val personidentInTest = randomIdent()
 
         private fun runFailureTest(
             exceptionType: KClass<out Throwable>,
@@ -94,7 +94,7 @@ class IsOppfolgingstilfelleClientTest {
             val thrown = assertThrows(exceptionType.java) {
                 runBlocking {
                     createIsOppfolgingstilfelleClient(EXPECTED_URL, statusCode)
-                        .erSykmeldtMedArbeidsgiver(personindentInTest)
+                        .erSykmeldtMedArbeidsgiver(personidentInTest)
                 }
             }
             thrown.message shouldStartWith "Kunne ikke hente oppfølgingstilfelle fra isoppfolgingstilfelle."
@@ -108,7 +108,7 @@ class IsOppfolgingstilfelleClientTest {
                 expectedUrl = EXPECTED_URL,
                 statusCode = HttpStatusCode.OK,
                 responseBody = responseBody,
-            ).erSykmeldtMedArbeidsgiver(personindentInTest) shouldBe expectedResult
+            ).erSykmeldtMedArbeidsgiver(personidentInTest) shouldBe expectedResult
         }
 
         private fun createIsOppfolgingstilfelleClient(

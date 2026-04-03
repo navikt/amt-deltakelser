@@ -8,25 +8,15 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
-import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class IsOppfolgingstilfelleClient(
-    baseUrl: String,
-    scope: String,
-    httpClient: HttpClient,
-    azureAdTokenClient: AzureAdTokenClient,
-) : ApiClientBase(
-        baseUrl = baseUrl,
-        scope = scope,
-        httpClient = httpClient,
-        azureAdTokenClient = azureAdTokenClient,
-    ) {
-    val log: Logger = LoggerFactory.getLogger(javaClass)
-
+    private val baseUrl: String,
+    private val scope: String,
+    private val httpClient: HttpClient,
+    private val azureAdTokenClient: AzureAdTokenClient,
+) {
     companion object {
         private const val PERSONIDENT_HEADER = "nav-personident"
     }
