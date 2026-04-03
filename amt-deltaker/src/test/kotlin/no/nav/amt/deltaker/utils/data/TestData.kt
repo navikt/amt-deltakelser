@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -21,129 +22,36 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.models.person.Oppfolgingsperiode
-import no.nav.amt.lib.models.person.address.Adresse
-import no.nav.amt.lib.models.person.address.Adressebeskyttelse
-import no.nav.amt.lib.models.person.address.Bostedsadresse
-import no.nav.amt.lib.models.person.address.Kontaktadresse
-import no.nav.amt.lib.models.person.address.Matrikkeladresse
-import no.nav.amt.lib.models.person.address.Vegadresse
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
 
 object TestData {
-    fun randomIdent() = (10_00_00_00_000..31_12_00_99_999).random().toString()
-
-    fun randomNavIdent() = ('A'..'Z').random().toString() + (100_000..999_999).random().toString()
-
-    fun randomEnhetsnummer() = (1000..9999999999).random().toString()
-
-    fun randomOrgnr() = (900_000_000..999_999_998).random().toString()
-
-    fun lagArrangor(
-        id: UUID = UUID.randomUUID(),
-        navn: String = "Arrangor 1",
-        organisasjonsnummer: String = randomOrgnr(),
-        overordnetArrangorId: UUID? = null,
-    ) = Arrangor(id, navn, organisasjonsnummer, overordnetArrangorId)
-
-    fun lagNavAnsatt(
-        id: UUID = UUID.randomUUID(),
-        navIdent: String = randomNavIdent(),
-        navn: String = "Veileder Veiledersen",
-        telefon: String = "99988777",
-        epost: String = "ansatt@nav.no",
-        navEnhetId: UUID? = UUID.randomUUID(),
-    ) = NavAnsatt(id, navIdent, navn, epost, telefon, navEnhetId)
-
-    fun lagNavEnhet(
-        id: UUID = UUID.randomUUID(),
-        enhetsnummer: String = randomEnhetsnummer(),
-        navn: String = "Nav Testheim",
-    ) = NavEnhet(id, enhetsnummer, navn)
-
-    fun lagAdresse(): Adresse = Adresse(
-        bostedsadresse = Bostedsadresse(
-            coAdressenavn = "C/O Gutterommet",
-            vegadresse = null,
-            matrikkeladresse = Matrikkeladresse(
-                tilleggsnavn = "Gården",
-                postnummer = "0484",
-                poststed = "OSLO",
-            ),
-        ),
-        oppholdsadresse = null,
-        kontaktadresse = Kontaktadresse(
-            coAdressenavn = null,
-            vegadresse = Vegadresse(
-                husnummer = "1",
-                husbokstav = null,
-                adressenavn = "Gate",
-                tilleggsnavn = null,
-                postnummer = "1234",
-                poststed = "MOSS",
-            ),
-            postboksadresse = null,
-        ),
-    )
-
-    fun lagNavBruker(
-        personId: UUID = UUID.randomUUID(),
-        personident: String = randomIdent(),
-        fornavn: String = "Fornavn",
-        mellomnavn: String? = "Mellomnavn",
-        etternavn: String = "Etternavn",
-        navVeilederId: UUID? = UUID.randomUUID(),
-        navEnhetId: UUID? = UUID.randomUUID(),
-        telefon: String? = "77788999",
-        epost: String? = "nav_bruker@gmail.com",
-        erSkjermet: Boolean = false,
-        adresse: Adresse? = lagAdresse(),
-        adressebeskyttelse: Adressebeskyttelse? = null,
-        oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
-        innsatsgruppe: Innsatsgruppe? = Innsatsgruppe.STANDARD_INNSATS,
-    ) = NavBruker(
-        personId,
-        personident,
-        fornavn,
-        mellomnavn,
-        etternavn,
-        navVeilederId,
-        navEnhetId,
-        telefon,
-        epost,
-        erSkjermet,
-        adresse,
-        adressebeskyttelse,
-        oppfolgingsperioder,
-        innsatsgruppe,
-    )
-
-    fun lagOppfolgingsperiode(
-        id: UUID = UUID.randomUUID(),
-        startdato: LocalDateTime = LocalDateTime.now().minusMonths(1),
-        sluttdato: LocalDateTime? = null,
-    ) = Oppfolgingsperiode(
-        id,
-        startdato,
-        sluttdato,
-    )
+    fun lagArrangorResponse(arrangor: Arrangor = lagArrangor()): ArrangorResponse {
+        val overordnetArrangor = arrangor.overordnetArrangorId?.let {
+            lagArrangor(id = it)
+        }
+        return ArrangorResponse(
+            id = arrangor.id,
+            navn = arrangor.navn,
+            organisasjonsnummer = arrangor.organisasjonsnummer,
+            overordnetArrangor = overordnetArrangor,
+        )
+    }
 
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()
-
-    fun lagDeltakerRegistreringInnhold(
-        innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
-        ledetekst: String = "Beskrivelse av tilaket",
-    ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
 
     fun lagTiltakstype(
         tiltakskode: Tiltakskode = Tiltakskode.OPPFOLGING,

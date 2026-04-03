@@ -20,21 +20,22 @@ import no.nav.amt.deltaker.external.data.DeltakerKort
 import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
 import no.nav.amt.deltaker.external.data.Periode
-import no.nav.amt.deltaker.utils.RouteTestBase
-import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
-import no.nav.amt.deltaker.utils.data.TestData.randomIdent
 import no.nav.amt.deltaker.utils.generateJWT
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -44,7 +45,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-class ExternalApiTest : RouteTestBase() {
+class ExternalApiTest : IntegrationTestBase() {
     override val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     @BeforeEach
@@ -338,11 +339,11 @@ class ExternalApiTest : RouteTestBase() {
 
     @Test
     fun `post deltaker personalia - flere deltakere - returnerer alle personalia`() {
-        val navEnhet1 = TestData.lagNavEnhet(enhetsnummer = "1111", navn = "Nav En")
-        val navEnhet2 = TestData.lagNavEnhet(enhetsnummer = "2222", navn = "Nav To")
+        val navEnhet1 = lagNavEnhet(enhetsnummer = "1111", navn = "Nav En")
+        val navEnhet2 = lagNavEnhet(enhetsnummer = "2222", navn = "Nav To")
 
         val deltaker1 = lagDeltaker(
-            navBruker = TestData.lagNavBruker(
+            navBruker = lagNavBruker(
                 personident = "11111111111",
                 fornavn = "Person",
                 etternavn = "En",
@@ -350,7 +351,7 @@ class ExternalApiTest : RouteTestBase() {
             ),
         )
         val deltaker2 = lagDeltaker(
-            navBruker = TestData.lagNavBruker(
+            navBruker = lagNavBruker(
                 personident = "22222222222",
                 fornavn = "Person",
                 etternavn = "To",
@@ -438,9 +439,9 @@ class ExternalApiTest : RouteTestBase() {
             adressebeskyttelse: Adressebeskyttelse? = null,
             navEnhetId: UUID? = null,
         ): Pair<Deltaker, NavEnhet?> {
-            val navEnhet = if (navEnhetId != null) null else TestData.lagNavEnhet(enhetsnummer = enhetsnummer, navn = enhetsnavn)
+            val navEnhet = if (navEnhetId != null) null else lagNavEnhet(enhetsnummer = enhetsnummer, navn = enhetsnavn)
             val deltaker = lagDeltaker(
-                navBruker = TestData.lagNavBruker(
+                navBruker = lagNavBruker(
                     personident = personident,
                     fornavn = fornavn,
                     mellomnavn = mellomnavn,

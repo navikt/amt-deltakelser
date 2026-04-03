@@ -16,16 +16,13 @@ import io.mockk.every
 import io.mockk.verify
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForHistorikk
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavBruker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnheterForHistorikk
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagOppfolgingsperiode
 import no.nav.amt.deltaker.bff.utils.data.TestData.leggTilHistorikk
 import no.nav.amt.deltaker.bff.utils.generateJWT
 import no.nav.amt.deltaker.bff.veileder.api.request.AvsluttDeltakelseRequest
@@ -55,6 +52,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagOppfolgingsperiode
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision
@@ -64,7 +64,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
+class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     @Test
     fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() {
         val deltaker = lagDeltaker(navBruker = lagNavBruker(personident = "1234"))
@@ -872,79 +872,6 @@ class TiltakskoordinatorDeltakerApiTest : RouteTestBase() {
             )
             header("aktiv-enhet", "0101")
         }
-
-        private val deltakerRequest = DeltakerRequest("1234")
-        private val bakgrunnsinformasjonRequest = EndreBakgrunnsinformasjonRequest(
-            bakgrunnsinformasjon = "Oppdatert bakgrunnsinformasjon",
-        )
-
-        private val innholdRequest = EndreInnholdRequest(
-            listOf(
-                InnholdsElementRequest(
-                    innholdskode = "annet",
-                    beskrivelse = "beskrivelse",
-                ),
-            ),
-        )
-        private val deltakelsesmengdeRequest = EndreDeltakelsesmengdeRequest(
-            deltakelsesprosent = 50,
-            dagerPerUke = 3,
-            begrunnelse = "begrunnelse",
-            gyldigFra = LocalDate.now(),
-            forslagId = null,
-        )
-        private val startdatoRequest = EndreStartdatoRequest(
-            startdato = LocalDate.now().plusWeeks(1),
-            sluttdato = LocalDate.now().plusMonths(2),
-            begrunnelse = "begrunnelse",
-            forslagId = null,
-        )
-
-        private val ikkeAktuellRequest = IkkeAktuellRequest(
-            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB),
-            begrunnelse = "begrunnelse",
-            forslagId = null,
-        )
-
-        private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest("begrunnelse")
-        private val forlengDeltakelseRequest = ForlengDeltakelseRequest(LocalDate.now().plusWeeks(3), "begrunnelse", null)
-
-        private val avsluttDeltakelseRequest = AvsluttDeltakelseRequest(
-            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB),
-            sluttdato = LocalDate.now(),
-            harDeltatt = true,
-            harFullfort = null,
-            begrunnelse = "begrunnelse",
-            forslagId = null,
-        )
-
-        private val endreAvslutningRequest = EndreAvslutningRequest(
-            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB),
-            harDeltatt = true,
-            harFullfort = null,
-            begrunnelse = "begrunnelse",
-            sluttdato = null,
-            forslagId = null,
-        )
-
-        private val sluttdatoRequest = EndreSluttdatoRequest(
-            sluttdato = LocalDate.now().minusDays(1),
-            begrunnelse = "begrunnelse",
-            forslagId = null,
-        )
-
-        private val sluttarsakRequest = EndreSluttarsakRequest(
-            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT),
-            begrunnelse = "begrunnelse",
-            forslagId = null,
-        )
-
-        private val avvisForslagRequest = AvvisForslagRequest("Avvist fordi..")
-
-        private val fjernOppstartsdatoRequest = FjernOppstartsdatoRequest(
-            begrunnelse = "begrunnelse",
-            forslagId = null,
-        )
 
         private fun deltakerResponseInTest(
             deltaker: Deltaker,

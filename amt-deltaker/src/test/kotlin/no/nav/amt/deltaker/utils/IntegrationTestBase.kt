@@ -36,12 +36,13 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import org.junit.jupiter.api.BeforeEach
 
-abstract class RouteTestBase {
+abstract class IntegrationTestBase {
     protected open val deltakelserResponseMapper: DeltakelserResponseMapper = mockk(relaxed = true)
 
     protected val pameldingService: PameldingService = mockk(relaxed = true)
@@ -75,7 +76,10 @@ abstract class RouteTestBase {
         configureEnvForAuthentication()
     }
 
-    protected fun <T : Any> withTestApplicationContext(block: suspend (HttpClient) -> T): T {
+    protected fun <T : Any> withTestApplicationContext(
+        appIsReady: Boolean = true,
+        block: suspend (HttpClient) -> T,
+    ): T {
         lateinit var result: T
 
         testApplication {
@@ -106,16 +110,15 @@ abstract class RouteTestBase {
                     responseBuilder,
                 )
                 setUpTestRoute()
+
+                attributes.put(isReadyKey, appIsReady)
             }
 
-            result =
-                block(
-                    createClient {
-                        install(ContentNegotiation) {
-                            jackson { applicationConfig() }
-                        }
-                    },
-                )
+            result = block(
+                createClient {
+                    install(ContentNegotiation) { jackson { applicationConfig() } }
+                },
+            )
         }
 
         return result

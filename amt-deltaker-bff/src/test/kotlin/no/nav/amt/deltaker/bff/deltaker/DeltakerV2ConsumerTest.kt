@@ -18,8 +18,7 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -33,6 +32,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
@@ -42,15 +42,28 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakerV2ConsumerTest {
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClient())
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClient())
-    private val navBrukerService = NavBrukerService(mockAmtPersonServiceClient(), NavBrukerRepository(), navAnsattService, navEnhetService)
+    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+
+    private val navAnsattService = NavAnsattService(
+        repository = NavAnsattRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
+    private val navEnhetService = NavEnhetService(
+        repository = NavEnhetRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
+    private val navBrukerService = NavBrukerService(
+        amtPersonServiceClient = mockk(relaxed = true),
+        repository = NavBrukerRepository(),
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+    )
     private val deltakerRepository = DeltakerRepository()
     private val deltakerService = DeltakerService(
-        deltakerRepository,
-        mockAmtDeltakerClient(),
-        navEnhetService,
-        mockk(relaxed = true),
+        deltakerRepository = deltakerRepository,
+        amtDeltakerClient = mockk(relaxed = true),
+        navEnhetService = navEnhetService,
+        forslagRepository = mockk(relaxed = true),
     )
     private val deltakerlisteRepository = DeltakerlisteRepository()
     private val vurdersRepository = VurderingRepository()
@@ -108,7 +121,7 @@ class DeltakerV2ConsumerTest {
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         TestRepository.insert(deltakerliste)
-        val navbruker = TestData.lagNavBruker()
+        val navbruker = lagNavBruker()
         val sistEndret = LocalDateTime.now().minusDays(1)
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val deltaker = TestData.lagDeltaker(
@@ -138,7 +151,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val navbruker = TestData.lagNavBruker()
+        val navbruker = lagNavBruker()
         val tidligereDeltakelse = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
@@ -172,7 +185,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val navbruker = TestData.lagNavBruker()
+        val navbruker = lagNavBruker()
         val statusdato = LocalDateTime.now().minusMonths(2)
         val tidligereDeltakelse = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
@@ -214,7 +227,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val navbruker = TestData.lagNavBruker()
+        val navbruker = lagNavBruker()
         val eldsteDeltakelse = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
             navBruker = navbruker,

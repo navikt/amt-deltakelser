@@ -23,7 +23,6 @@ import no.nav.amt.distribusjon.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.distribusjon.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.distribusjon.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
 import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerClient
-import no.nav.amt.distribusjon.application.plugins.applicationConfig
 import no.nav.amt.distribusjon.application.plugins.configureAuthentication
 import no.nav.amt.distribusjon.application.plugins.configureMonitoring
 import no.nav.amt.distribusjon.application.plugins.configureRouting
@@ -56,6 +55,7 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
+import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.leaderelection.Leader
@@ -67,9 +67,7 @@ fun main() {
     embeddedServer(
         factory = Netty,
         configure = {
-            connector {
-                port = 8080
-            }
+            connector { port = 8080 }
             shutdownGracePeriod = 10.seconds.inWholeMilliseconds
             shutdownTimeout = 20.seconds.inWholeMilliseconds
         },
@@ -131,17 +129,22 @@ fun Application.module() {
     val leaderElection = LeaderElectionClient(leaderProvider, environment.leaderElectorUrl)
     val jobManager = JobManager(leaderElection::isLeader, ::isReady)
 
-    val azureAdTokenClient =
-        AzureAdTokenClient(
-            azureAdTokenUrl = environment.azureAdTokenUrl,
-            clientId = environment.azureClientId,
-            clientSecret = environment.azureClientSecret,
-            httpClient = httpClient,
-        )
+    val azureAdTokenClient = AzureAdTokenClient(
+        azureAdTokenUrl = environment.azureAdTokenUrl,
+        clientId = environment.azureClientId,
+        clientSecret = environment.azureClientSecret,
+        httpClient = httpClient,
+    )
 
     val pdfgenClient = PdfgenClient(httpClient, environment)
     val amtPersonClient = AmtPersonClient(httpClient, azureAdTokenClient, environment)
-    val amtDeltakerClient = AmtDeltakerClient(httpClient, azureAdTokenClient, environment)
+    val amtDeltakerClient = AmtDeltakerClient(
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
+
     val veilarboppfolgingClient = VeilarboppfolgingClient(httpClient, azureAdTokenClient, environment)
     val dokarkivClient = DokarkivClient(httpClient, azureAdTokenClient, environment)
     val dokdistkanalClient = DokdistkanalClient(httpClient, azureAdTokenClient, environment)
@@ -175,12 +178,11 @@ fun Application.module() {
         amtDeltakerClient,
     )
 
-    val tiltakshendelseService =
-        TiltakshendelseService(
-            tiltakshendelseRepository = TiltakshendelseRepository(),
-            amtDeltakerClient = amtDeltakerClient,
-            tiltakshendelseProducer = TiltakshendelseProducer(outboxService),
-        )
+    val tiltakshendelseService = TiltakshendelseService(
+        tiltakshendelseRepository = TiltakshendelseRepository(),
+        amtDeltakerClient = amtDeltakerClient,
+        tiltakshendelseProducer = TiltakshendelseProducer(outboxService),
+    )
 
     val consumers = listOf(
         HendelseConsumer(

@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.arrangor
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -19,7 +19,7 @@ class ArrangorConsumerTest {
 
     @Test
     fun `consumeArrangor - ny arrangor - upserter`() = runTest {
-        val arrangor = TestData.lagArrangor()
+        val arrangor = lagArrangor()
 
         arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
 
@@ -28,7 +28,7 @@ class ArrangorConsumerTest {
 
     @Test
     fun `consumeArrangor - oppdatert arrangor - upserter`() = runTest {
-        val arrangor = TestData.lagArrangor()
+        val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
         val oppdatertArrangor = arrangor.copy(navn = "Oppdatert Arrangor")
@@ -40,7 +40,7 @@ class ArrangorConsumerTest {
 
     @Test
     fun `consumeArrangor - tombstonet arrangor - sletter`() = runTest {
-        val arrangor = TestData.lagArrangor()
+        val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
         arrangorConsumer.consume(arrangor.id, null)

@@ -1,12 +1,12 @@
-package no.nav.amt.lib.ktor.clients.distribusjon
+package no.nav.amt.deltaker.bff.apiclients.distribusjon
 
 import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.lib.ktor.clients.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.CountingCache
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -16,7 +16,7 @@ import kotlin.reflect.KClass
 
 class AmtDistribusjonClientTest {
     @ParameterizedTest
-    @MethodSource("no.nav.amt.lib.ktor.clients.ClientTestUtils#failureCases")
+    @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
     fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
         val (statusCode, expectedExceptionType) = testCase
 
@@ -82,14 +82,14 @@ class AmtDistribusjonClientTest {
                 baseUrl = DISTRIBUSJON_BASE_URL,
                 scope = "scope",
                 httpClient = createMockHttpClient(EXPECTED_URL, responseBody, statusCode),
-                azureAdTokenClient = mockk(relaxed = true),
+                azureAdTokenClient = mockAzureAdClient(),
             )
         } else {
             AmtDistribusjonClient(
                 baseUrl = DISTRIBUSJON_BASE_URL,
                 scope = "scope",
                 httpClient = createMockHttpClient(EXPECTED_URL, responseBody, statusCode),
-                azureAdTokenClient = mockk(relaxed = true),
+                azureAdTokenClient = mockAzureAdClient(),
                 digitalBrukerCache = cache,
             )
         }

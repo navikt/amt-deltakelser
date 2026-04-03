@@ -14,7 +14,7 @@ import io.mockk.just
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
-import no.nav.amt.deltaker.utils.RouteTestBase
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-class KladdApiTest : RouteTestBase() {
+class KladdApiTest : IntegrationTestBase() {
     @Test
     fun `post - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->

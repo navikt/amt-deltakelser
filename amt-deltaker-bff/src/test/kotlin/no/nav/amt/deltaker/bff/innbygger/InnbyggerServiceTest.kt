@@ -1,8 +1,12 @@
 package no.nav.amt.deltaker.bff.innbygger
 
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.sammenlignVedtak
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
@@ -11,28 +15,44 @@ import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.fattVedtak
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils.sammenlignDeltakere
-import no.nav.amt.deltaker.bff.utils.MockResponseHandler
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.mockAmtDeltakerClient
-import no.nav.amt.deltaker.bff.utils.mockAmtPersonServiceClient
-import no.nav.amt.deltaker.bff.utils.mockPaameldingClient
+import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 class InnbyggerServiceTest {
-    private val amtDeltakerClient = mockAmtDeltakerClient()
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClient())
-    private val deltakerService = DeltakerService(DeltakerRepository(), amtDeltakerClient, navEnhetService, mockk())
-    private val innbyggerService = InnbyggerService(deltakerService, mockPaameldingClient())
+    private val amtDeltakerClient: AmtDeltakerClient = mockk(relaxed = true)
+    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+    private val navEnhetService = NavEnhetService(
+        repository = NavEnhetRepository(),
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
+    private val deltakerService = DeltakerService(
+        deltakerRepository = DeltakerRepository(),
+        amtDeltakerClient = amtDeltakerClient,
+        navEnhetService = navEnhetService,
+        forslagRepository = mockk(),
+    )
+
+    private val paameldingClient: PaameldingClient = mockk(relaxed = true)
+    private val innbyggerService = InnbyggerService(
+        deltakerService = deltakerService,
+        paameldingClient = paameldingClient,
+    )
 
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }
+
+    @BeforeEach
+    fun setup() = clearAllMocks()
 
     @Test
     fun `godkjennUtkast - har feil status - feiler`() {
@@ -51,7 +71,7 @@ class InnbyggerServiceTest {
 
         val deltakerMedFattetVedtak = deltaker.fattVedtak()
 
-        MockResponseHandler.addInnbyggerGodkjennUtkastResponse(deltakerMedFattetVedtak)
+        coEvery { paameldingClient.innbyggerGodkjennUtkast(deltaker.id) } returns deltakerMedFattetVedtak.toDeltakeroppdatering()
 
         val oppdatertDeltaker = innbyggerService.godkjennUtkast(deltaker)
 

@@ -6,8 +6,6 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.testEnvironment
-import no.nav.amt.distribusjon.utils.ClientTestBase
-import no.nav.amt.distribusjon.utils.createMockHttpClient
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData.utkast
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata.ansvarligNavVeileder
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata.lagDeltaker
@@ -15,11 +13,12 @@ import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-class PdfgenClientTest : ClientTestBase() {
+class PdfgenClientTest {
     @Test
     fun `skal returnere ByteArray nar genererHovedvedtak kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
@@ -159,7 +158,7 @@ class PdfgenClientTest : ClientTestBase() {
             expectedUrl = expectedUrl,
             responseBody = responseBody,
             statusCode = statusCode,
-            requiresAuthHeader = false,
+            expectAuthHeader = false,
         ),
         environment = testEnvironment,
     )

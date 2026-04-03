@@ -2,7 +2,6 @@ package no.nav.amt.distribusjon.arrangormelding
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.distribusjon.Environment
-import no.nav.amt.distribusjon.application.plugins.objectMapper
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.kafka.ManagedKafkaConsumer
@@ -11,6 +10,7 @@ import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Melding
+import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import org.slf4j.LoggerFactory

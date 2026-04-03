@@ -11,10 +11,11 @@ import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
@@ -59,7 +60,7 @@ object TestRepository {
 
     fun insert(bruker: NavBruker) {
         bruker.navVeilederId?.let { NavAnsattRepository().upsert(lagNavAnsatt(it)) }
-        bruker.navEnhetId?.let { NavEnhetRepository().upsert(TestData.lagNavEnhet(it)) }
+        bruker.navEnhetId?.let { NavEnhetRepository().upsert(lagNavEnhet(it)) }
         NavBrukerRepository().upsert(bruker)
     }
 

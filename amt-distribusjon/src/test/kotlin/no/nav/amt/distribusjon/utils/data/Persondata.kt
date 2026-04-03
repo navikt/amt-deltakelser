@@ -11,6 +11,7 @@ import no.nav.amt.distribusjon.journalforing.person.model.Oppfolgingsperiode
 import no.nav.amt.distribusjon.journalforing.person.model.Vegadresse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import java.time.LocalDateTime
 import java.util.UUID
 

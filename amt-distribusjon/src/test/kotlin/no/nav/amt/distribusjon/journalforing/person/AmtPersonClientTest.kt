@@ -6,12 +6,12 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.distribusjon.testEnvironment
-import no.nav.amt.distribusjon.utils.ClientTestBase
-import no.nav.amt.distribusjon.utils.createMockHttpClient
 import no.nav.amt.distribusjon.utils.data.Persondata.lagNavBruker
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import org.junit.jupiter.api.Test
 
-class AmtPersonClientTest : ClientTestBase() {
+class AmtPersonClientTest {
     @Test
     fun `skal returnere NavBruker nar hentNavBruker kalles med gyldig respons`() = runTest {
         val expectedResponse = lagNavBruker()
@@ -48,7 +48,7 @@ class AmtPersonClientTest : ClientTestBase() {
             responseBody = responseBody,
             statusCode = statusCode,
         ),
-        azureAdTokenClient = mockAzureAdTokenClient,
+        azureAdTokenClient = mockAzureAdClient(),
         environment = testEnvironment,
     )
 }

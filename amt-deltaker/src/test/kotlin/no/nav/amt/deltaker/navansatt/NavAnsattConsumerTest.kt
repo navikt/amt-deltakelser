@@ -6,10 +6,11 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,8 +26,8 @@ class NavAnsattConsumerTest {
         NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService),
     )
 
-    private val navEnhet = TestData.lagNavEnhet()
-    private val navAnsatt = TestData.lagNavAnsatt(navEnhetId = navEnhet.id)
+    private val navEnhet = lagNavEnhet()
+    private val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
 
     companion object {
         @RegisterExtension
@@ -43,8 +44,8 @@ class NavAnsattConsumerTest {
 
     @Test
     fun `consumeNavAnsatt - ny navansatt - upserter`() = runTest {
-        val navAnsatt = TestData.lagNavAnsatt()
-        coEvery { amtPersonServiceClient.hentNavEnhet(navAnsatt.navEnhetId!!) } returns TestData.lagNavEnhet(navAnsatt.navEnhetId!!)
+        val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
+        coEvery { amtPersonServiceClient.hentNavEnhet(navAnsatt.navEnhetId!!) } returns lagNavEnhet(navAnsatt.navEnhetId!!)
 
         navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(navAnsatt.toDto()))
 

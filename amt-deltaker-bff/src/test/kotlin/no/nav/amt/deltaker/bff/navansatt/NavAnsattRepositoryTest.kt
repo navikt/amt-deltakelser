@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.bff.navansatt
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
@@ -18,9 +18,9 @@ class NavAnsattRepositoryTest {
     @Test
     fun `getMany - flere navidenter - returnerer flere ansatte`() {
         val ansatte = listOf(
-            TestData.lagNavAnsatt(),
-            TestData.lagNavAnsatt(),
-            TestData.lagNavAnsatt(),
+            lagNavAnsatt(),
+            lagNavAnsatt(),
+            lagNavAnsatt(),
         )
         ansatte.forEach { navAnsattRepository.upsert(it) }
 
