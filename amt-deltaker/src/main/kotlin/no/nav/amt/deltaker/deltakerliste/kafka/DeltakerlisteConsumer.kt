@@ -137,7 +137,10 @@ class DeltakerlisteConsumer(
                     nyDeltakerStatus = deltaker.status,
                     erDeltakerSluttdatoEndret = true,
                 )
-                deltakerProducerService.produce(deltaker, forcedUpdate = true)
+                deltakerProducerService.produce(
+                    deltaker = deltakerRepository.get(deltaker.id).getOrThrow(),
+                    forcedUpdate = true,
+                )
 
                 log.info("Deltaker ${deltaker.id} fikk ny sluttdato")
             }
