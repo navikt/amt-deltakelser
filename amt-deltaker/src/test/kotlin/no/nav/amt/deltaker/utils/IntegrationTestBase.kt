@@ -82,6 +82,30 @@ abstract class IntegrationTestBase {
     protected open val endringFraArrangorRepository: EndringFraArrangorRepository = mockk()
     protected open val importertFraArenaRepository: ImportertFraArenaRepository = mockk()
 
+    protected open val navEnhetService: NavEnhetService by lazy {
+        NavEnhetService(
+            repository = navEnhetRepository,
+            amtPersonServiceClient = personServiceClient,
+        )
+    }
+
+    protected open val navAnsattService: NavAnsattService by lazy {
+        NavAnsattService(
+            repository = navAnsattRepository,
+            navEnhetService = navEnhetService,
+            amtPersonServiceClient = personServiceClient,
+        )
+    }
+
+    protected open val navBrukerService: NavBrukerService by lazy {
+        NavBrukerService(
+            repository = navBrukerRepository,
+            personServiceClient = personServiceClient,
+            enhetService = navEnhetService,
+            ansattService = navAnsattService,
+        )
+    }
+
     protected open val arrangorService: ArrangorService by lazy {
         ArrangorService(
             arrangorRepository = arrangorRepository,
@@ -132,29 +156,6 @@ abstract class IntegrationTestBase {
             navEnhetService = navEnhetService,
             navAnsattService = navAnsattService,
             vedtakService = vedtakService,
-        )
-    }
-
-    protected open val navEnhetService: NavEnhetService by lazy {
-        NavEnhetService(
-            repository = navEnhetRepository,
-            amtPersonServiceClient = personServiceClient,
-        )
-    }
-    protected open val navAnsattService: NavAnsattService by lazy {
-        NavAnsattService(
-            repository = navAnsattRepository,
-            navEnhetService = navEnhetService,
-            amtPersonServiceClient = personServiceClient,
-        )
-    }
-
-    protected open val navBrukerService: NavBrukerService by lazy {
-        NavBrukerService(
-            repository = navBrukerRepository,
-            personServiceClient = personServiceClient,
-            enhetService = navEnhetService,
-            ansattService = navAnsattService,
         )
     }
 

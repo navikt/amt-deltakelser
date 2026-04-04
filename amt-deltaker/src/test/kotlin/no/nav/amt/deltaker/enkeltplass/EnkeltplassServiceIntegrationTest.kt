@@ -4,30 +4,17 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
-import no.nav.amt.deltaker.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navbruker.NavBrukerRepository
-import no.nav.amt.deltaker.navbruker.NavBrukerService
-import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
-import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
@@ -35,35 +22,38 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class EnkeltplassServiceIntegrationTest {
+class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
     val sistEndretAvNavEnhet = lagNavEnhet()
     val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
+    val navBruker: NavBruker = lagNavBruker(
+        navVeilederId = sistEndretAvNavAnsatt.id,
+        navEnhetId = sistEndretAvNavEnhet.id,
+    )
+
     val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
 
     @BeforeEach
     fun setup() {
         navEnhetRepository.upsert(sistEndretAvNavEnhet)
         navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+        navBrukerRepository.upsert(navBruker)
+
+        sistEndretAvNavAnsatt.navEnhetId?.let {
+            coEvery { personServiceClient.hentNavEnhet(it) } returns lagNavEnhet(it)
+        }
+
+        coEvery { personServiceClient.hentNavEnhet(sistEndretAvNavEnhet.id) } returns sistEndretAvNavEnhet
+        coEvery { personServiceClient.hentNavAnsatt(sistEndretAvNavAnsatt.id) } returns sistEndretAvNavAnsatt
+        coEvery { personServiceClient.hentNavBruker(navBruker.personident) } returns navBruker
 
         TiltakstypeRepository().upsert(tiltak)
     }
 
     @Nested
     inner class EnkeltplassTests {
-        val navBruker = lagNavBruker(
-            navVeilederId = sistEndretAvNavAnsatt.id,
-            navEnhetId = sistEndretAvNavEnhet.id,
-        )
-
-        @BeforeEach
-        fun beforeEach() {
-            mockResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-        }
-
         @Test
         fun `opprettKladd - returnerer ny deltakerId`() = runTest {
             val deltaker = enkeltplassService.opprettKladd(
@@ -199,76 +189,5 @@ class EnkeltplassServiceIntegrationTest {
                     deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
                 }
          */
-    }
-
-    private val navEnhetRepository = NavEnhetRepository()
-    private val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
-    private val navEnhetService = NavEnhetService(
-        repository = navEnhetRepository,
-        amtPersonServiceClient = personServiceClient,
-    )
-
-    private val navAnsattRepository = NavAnsattRepository()
-    private val navAnsattService = NavAnsattService(
-        repository = navAnsattRepository,
-        amtPersonServiceClient = personServiceClient,
-        navEnhetService = navEnhetService,
-    )
-
-    private val deltakerRepository = DeltakerRepository()
-    private val tiltakRepository = TiltakstypeRepository()
-
-    private val deltakerService = DeltakerService(
-        deltakerRepository = deltakerRepository,
-        deltakerProducerService = mockk(relaxed = true),
-        deltakerEndringRepository = mockk(relaxed = true),
-        deltakerEndringService = mockk(relaxed = true),
-        vedtakRepository = mockk(relaxed = true),
-        vedtakService = mockk(relaxed = true),
-        hendelseService = mockk(relaxed = true),
-        endringFraArrangorRepository = mockk(relaxed = true),
-        importertFraArenaRepository = mockk(relaxed = true),
-        deltakerHistorikkService = mockk(relaxed = true),
-        navAnsattService = navAnsattService,
-        endringFraTiltakskoordinatorRepository = mockk(relaxed = true),
-        navEnhetService = navEnhetService,
-        forslagRepository = mockk(relaxed = true),
-    )
-
-    private val deltakerlisteRepository = DeltakerlisteRepository()
-    private val enkeltplassService = EnkeltplassService(
-        deltakerRepository = deltakerRepository,
-        deltakerService = deltakerService,
-        navBrukerService = NavBrukerService(
-            repository = NavBrukerRepository(),
-            personServiceClient = personServiceClient,
-            enhetService = navEnhetService,
-            ansattService = navAnsattService,
-        ),
-        gjennomforingRequestProducer = mockk(),
-        deltakerlisteRepository = deltakerlisteRepository,
-        tiltakstypeRepository = tiltakRepository,
-        navEnhetService = navEnhetService,
-        navAnsattService = navAnsattService,
-        vedtakService = mockk(relaxed = true),
-    )
-
-    private fun mockResponses(
-        navEnhet: NavEnhet,
-        navAnsatt: NavAnsatt,
-        navBruker: NavBruker,
-    ) {
-        navAnsatt.navEnhetId?.let {
-            coEvery { personServiceClient.hentNavEnhet(it) } returns lagNavEnhet(it)
-        }
-
-        coEvery { personServiceClient.hentNavEnhet(navEnhet.id) } returns navEnhet
-        coEvery { personServiceClient.hentNavAnsatt(navAnsatt.id) } returns navAnsatt
-        coEvery { personServiceClient.hentNavBruker(navBruker.personident) } returns navBruker
-    }
-
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
     }
 }
