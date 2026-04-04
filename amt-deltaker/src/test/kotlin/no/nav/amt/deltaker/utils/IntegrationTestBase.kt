@@ -65,22 +65,21 @@ abstract class IntegrationTestBase {
     protected open val arrangorClient: AmtArrangorClient = mockk()
     protected open val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
 
+    protected open val arrangorRepository: ArrangorRepository = mockk(relaxed = true)
+    protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
+    protected open val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
+    protected open val deltakerlisteRepository: DeltakerlisteRepository = mockk(relaxed = true)
+    protected open val endringFraArrangorRepository: EndringFraArrangorRepository = mockk()
+    protected open val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk(relaxed = true)
+    protected open val forslagRepository: ForslagRepository = mockk()
+    protected open val importertFraArenaRepository: ImportertFraArenaRepository = mockk()
+    protected open val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository = mockk(relaxed = true)
+    protected open val navAnsattRepository: NavAnsattRepository = mockk(relaxed = true)
     protected open val navBrukerRepository: NavBrukerRepository = mockk(relaxed = true)
     protected open val navEnhetRepository: NavEnhetRepository = mockk(relaxed = true)
-    protected open val navAnsattRepository: NavAnsattRepository = mockk(relaxed = true)
-    protected open val deltakerlisteRepository: DeltakerlisteRepository = mockk(relaxed = true)
-    protected open val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
-    protected open val vurderingRepository: VurderingRepository = mockk(relaxed = true)
-    protected open val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk(relaxed = true)
-    protected open val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository = mockk(relaxed = true)
-    protected open val arrangorRepository: ArrangorRepository = mockk(relaxed = true)
     protected open val tiltakstypeRepository: TiltakstypeRepository = mockk(relaxed = true)
     protected open val vedtakRepository = mockk<VedtakRepository>()
-    protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
-
-    protected open val forslagRepository: ForslagRepository = mockk()
-    protected open val endringFraArrangorRepository: EndringFraArrangorRepository = mockk()
-    protected open val importertFraArenaRepository: ImportertFraArenaRepository = mockk()
+    protected open val vurderingRepository: VurderingRepository = mockk(relaxed = true)
 
     protected open val navEnhetService: NavEnhetService by lazy {
         NavEnhetService(
