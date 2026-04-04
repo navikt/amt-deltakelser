@@ -33,31 +33,33 @@ class PaameldingClient(
         tiltakskode: Tiltakskode,
         personident: String,
     ): DeltakerIdResponse = performPost(
-        "/enkeltplass/opprett-kladd",
-        OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
+        urlSubPath = "enkeltplass/opprett-kladd",
+        requestBody = OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
 
     suspend fun oppdaterKladdEnkeltplass(
         deltakerId: UUID,
         request: OppdaterEnkeltplassKladdRequest,
     ) = performPost(
-        "enkeltplass/oppdater-kladd/$deltakerId",
-        request,
+        urlSubPath = "enkeltplass/oppdater-kladd/$deltakerId",
+        requestBody = request,
     ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.")
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,
         personIdent: String,
-    ): OpprettKladdResponse = performPost("kladd", OpprettKladdRequest(deltakerlisteId, personIdent))
-        .failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.")
+    ): OpprettKladdResponse = performPost(
+        urlSubPath = "kladd",
+        requestBody = OpprettKladdRequest(deltakerlisteId, personIdent),
+    ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.")
         .body()
 
     suspend fun oppdaterKladd(
         deltakerId: UUID,
         request: KladdRequest,
     ) = performPost(
-        "oppdater-kladd/$deltakerId",
-        request,
+        urlSubPath = "oppdater-kladd/$deltakerId",
+        requestBody = request,
     ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.")
 
     suspend fun slettKladd(deltakerId: UUID) {
@@ -66,8 +68,8 @@ class PaameldingClient(
     }
 
     suspend fun utkast(utkast: Utkast): UtkastResponse = performPost(
-        "pamelding/${utkast.deltakerId}",
-        DtoMappers.utkastRequestFromUtkast(utkast),
+        urlSubPath = "pamelding/${utkast.deltakerId}",
+        requestBody = DtoMappers.utkastRequestFromUtkast(utkast),
     ).failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker.")
         .body()
 
@@ -76,12 +78,15 @@ class PaameldingClient(
         avbruttAv: String,
         avbruttAvEnhet: String,
     ) {
-        performPost("pamelding/$deltakerId/avbryt", AvbrytUtkastRequest(avbruttAv, avbruttAvEnhet))
-            .failIfNotSuccess("Kunne ikke avbryte utkast i amt-deltaker.")
+        performPost(
+            urlSubPath = "pamelding/$deltakerId/avbryt",
+            requestBody = AvbrytUtkastRequest(avbruttAv, avbruttAvEnhet),
+        ).failIfNotSuccess("Kunne ikke avbryte utkast i amt-deltaker.")
     }
 
-    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltakeroppdatering =
-        performPost("pamelding/$deltakerId/innbygger/godkjenn-utkast", null)
-            .failIfNotSuccess("Kunne ikke fatte vedtak i amt-deltaker.")
-            .body()
+    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltakeroppdatering = performPost(
+        urlSubPath = "pamelding/$deltakerId/innbygger/godkjenn-utkast",
+        requestBody = null,
+    ).failIfNotSuccess("Kunne ikke fatte vedtak i amt-deltaker.")
+        .body()
 }
