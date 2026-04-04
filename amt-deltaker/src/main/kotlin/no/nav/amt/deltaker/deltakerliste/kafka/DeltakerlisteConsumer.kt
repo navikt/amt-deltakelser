@@ -72,17 +72,6 @@ class DeltakerlisteConsumer(
                 return
             }
 
-            // hvis deltakerliste er for enkeltplass, publiser deltaker
-            if (eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
-                deltakerliste.status != GjennomforingStatusType.KLADD
-            ) {
-                val enkeltplassDeltaker = deltakerRepository
-                    .getEnkeltplassdeltaker(eksisterendeDeltakerliste.id)
-                    .getOrThrow()
-
-                deltakerProducerService.produce(enkeltplassDeltaker)
-            }
-
             // deltakerliste med deltakere kan ikke endre pameldingstype eller oppstartstype
             deltakerlistePayload.assertValidChanges(
                 antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(eksisterendeDeltakerliste.id),
@@ -95,6 +84,17 @@ class DeltakerlisteConsumer(
                     deltakerlisteFromPayload = deltakerliste,
                     eksisterendeDeltakerliste = eksisterendeDeltakerliste,
                 )
+
+                // hvis deltakerliste er for enkeltplass, publiser deltaker
+                if (eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
+                    deltakerliste.status != GjennomforingStatusType.KLADD
+                ) {
+                    val enkeltplassDeltaker = deltakerRepository
+                        .getEnkeltplassdeltaker(eksisterendeDeltakerliste.id)
+                        .getOrThrow()
+
+                    deltakerProducerService.produce(enkeltplassDeltaker)
+                }
             }
         }
 
