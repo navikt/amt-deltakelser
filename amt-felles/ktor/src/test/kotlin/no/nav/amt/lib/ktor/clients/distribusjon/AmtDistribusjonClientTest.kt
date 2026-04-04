@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.distribusjon
+package no.nav.amt.lib.ktor.clients.distribusjon
 
 import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe

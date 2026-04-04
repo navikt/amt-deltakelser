@@ -6,10 +6,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.deltakerOppdateringResponseFromDeltaker
-import no.nav.amt.deltaker.bff.apiclients.TiltaksKoordinatorClient
-import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator.TiltaksKoordinatorClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
@@ -22,6 +21,7 @@ import no.nav.amt.deltaker.bff.tiltakskoordinator.ulesthendelse.UlestHendelseSer
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
+import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.DatabaseTestExtension
