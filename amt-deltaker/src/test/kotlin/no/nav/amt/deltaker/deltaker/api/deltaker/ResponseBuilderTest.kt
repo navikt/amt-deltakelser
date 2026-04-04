@@ -9,7 +9,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
@@ -21,6 +20,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
