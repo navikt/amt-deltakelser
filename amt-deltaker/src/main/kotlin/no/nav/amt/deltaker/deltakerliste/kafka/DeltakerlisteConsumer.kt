@@ -85,6 +85,8 @@ class DeltakerlisteConsumer(
                     eksisterendeDeltakerliste = eksisterendeDeltakerliste,
                 )
 
+                deltakerlisteRepository.upsert(deltakerliste)
+
                 // hvis deltakerliste er for enkeltplass, publiser deltaker
                 if (eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
                     deltakerliste.status != GjennomforingStatusType.KLADD
@@ -96,9 +98,9 @@ class DeltakerlisteConsumer(
                     deltakerProducerService.produce(enkeltplassDeltaker)
                 }
             }
+        } else {
+            deltakerlisteRepository.upsert(deltakerliste)
         }
-
-        deltakerlisteRepository.upsert(deltakerliste)
     }
 
     fun handterDeltakere(
