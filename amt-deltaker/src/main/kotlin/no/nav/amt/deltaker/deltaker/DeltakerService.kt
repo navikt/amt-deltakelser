@@ -334,30 +334,32 @@ class DeltakerService(
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 
-    suspend fun oppdaterDeltakerStatuser() = Database.transaction {
-        val deltakereSomSkalAvsluttes = deltakerRepository
+    suspend fun oppdaterDeltakerStatuser() {
+        fun getDeltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
             .getDeltakereHvorSluttdatoHarPassert()
             .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
             .distinct()
 
-        avsluttDeltakere(deltakereSomSkalAvsluttes)
-
-        val deltakereSomSkalDelta = deltakerRepository
+        fun getDeltakereSomSkalHaStatusDeltar() = deltakerRepository
             .skalHaStatusDeltar()
             .distinct()
 
-        DeltakerProgresjonHandler
-            .tilDeltar(deltakereSomSkalDelta)
-            .forEach { deltaker ->
-                deltakerRepository.upsert(deltaker)
-                lagreDeltakerStatus(
-                    deltakerId = deltaker.id,
-                    nyDeltakerStatus = deltaker.status,
-                    erDeltakerSluttdatoEndret = true,
-                )
-                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-                deltakerProducerService.produce(oppdatertDeltaker)
-            }
+        Database.transaction {
+            avsluttDeltakere(getDeltakereSomSkalHaAvsluttendeStatus())
+
+            DeltakerProgresjonHandler
+                .tilDeltar(getDeltakereSomSkalHaStatusDeltar())
+                .forEach { deltaker ->
+                    deltakerRepository.upsert(deltaker)
+                    lagreDeltakerStatus(
+                        deltakerId = deltaker.id,
+                        nyDeltakerStatus = deltaker.status,
+                        erDeltakerSluttdatoEndret = true,
+                    )
+                    val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+                    deltakerProducerService.produce(oppdatertDeltaker)
+                }
+        }
     }
 
     fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {

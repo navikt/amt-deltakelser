@@ -103,7 +103,7 @@ class DeltakerlisteConsumer(
         }
     }
 
-    fun handterDeltakere(
+    private fun handterDeltakere(
         deltakerlisteFromPayload: Deltakerliste,
         eksisterendeDeltakerliste: Deltakerliste,
     ) {
@@ -119,7 +119,7 @@ class DeltakerlisteConsumer(
         }
     }
 
-    fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
+    internal fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
         val deltakerePaAvbruttDeltakerliste = deltakerRepository
             .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
             .map { it.copy(deltakerliste = deltakerliste) }

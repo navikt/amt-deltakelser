@@ -47,9 +47,8 @@ class EnkeltplassService(
             ?.let { return it }
 
         val navBruker = navBrukerService.get(personident).getOrThrow()
-        val tiltak = Tiltakskode.valueOf(tiltakskode.name).let {
-            tiltakstypeRepository.get(tiltakskode).getOrThrow()
-        }
+        val tiltak = tiltakstypeRepository.get(tiltakskode).getOrThrow()
+
         val gjennomforing = GjennomforingInsertDbo(
             id = UUID.randomUUID(),
             type = GjennomforingType.Enkeltplass,
