@@ -80,12 +80,12 @@ class DeltakerlisteConsumer(
             )
 
             Database.transaction {
+                deltakerlisteRepository.upsert(deltakerliste)
+
                 handterDeltakere(
                     deltakerlisteFromPayload = deltakerliste,
                     eksisterendeDeltakerliste = eksisterendeDeltakerliste,
                 )
-
-                deltakerlisteRepository.upsert(deltakerliste)
 
                 // hvis deltakerliste er for enkeltplass, publiser deltaker
                 if (eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
