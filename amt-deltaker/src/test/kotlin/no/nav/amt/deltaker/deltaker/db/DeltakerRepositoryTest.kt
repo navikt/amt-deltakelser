@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.BeforeEach
@@ -48,6 +49,7 @@ class DeltakerRepositoryTest {
         fun `skal returnere deltaker`() {
             // Arrange
             val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
             TestRepository.insert(deltakerInTest)
@@ -59,6 +61,24 @@ class DeltakerRepositoryTest {
 
             // Assert
             deltaker.shouldBeSuccess()
+        }
+
+        @Test
+        fun `skal returnere failure for deltaker som ikke er enkeltplass`() {
+            // Arrange
+            val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+            TestRepository.insert(deltakerInTest)
+
+            // Act
+            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
+                deltakerlisteId = deltakerInTest.deltakerliste.id,
+            )
+
+            // Assert
+            deltaker.shouldBeFailure()
         }
     }
 

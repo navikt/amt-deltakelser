@@ -256,8 +256,8 @@ class DeltakerRepository {
                 queryOf(
                     buildDeltakerSql(
                         methodName = "getEnkeltplassdeltaker",
-                        whereClause = "d.deltakerliste_id = :deltakerliste_id",
-                        limit = null,
+                        whereClause = "d.deltakerliste_id = :deltakerliste_id AND dl.gjennomforingstype = 'Enkeltplass'",
+                        limit = 1,
                     ),
                     mapOf("deltakerliste_id" to deltakerlisteId),
                 ).map(::deltakerRowMapper).asSingle,
