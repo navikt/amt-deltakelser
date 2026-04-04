@@ -15,7 +15,6 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -335,62 +334,57 @@ class DeltakerService(
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 
-    suspend fun oppdaterDeltakerStatuser() {
-        val deltakereSomSkalAvsluttes = getDeltakereSomSkalHaAvsluttendeStatus()
+    suspend fun oppdaterDeltakerStatuser() = Database.transaction {
+        val deltakereSomSkalAvsluttes = deltakerRepository
+            .getDeltakereHvorSluttdatoHarPassert()
+            .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
+            .distinct()
+
         avsluttDeltakere(deltakereSomSkalAvsluttes)
 
-        val deltakereSomSkalDelta = getDeltakereSomSkalHaStatusDeltar()
+        val deltakereSomSkalDelta = deltakerRepository
+            .skalHaStatusDeltar()
+            .distinct()
+
         DeltakerProgresjonHandler
             .tilDeltar(deltakereSomSkalDelta)
-            .forEach { upsertAndProduceDeltaker(deltaker = it, erDeltakerSluttdatoEndret = true) }
+            .forEach { deltaker ->
+                deltakerRepository.upsert(deltaker)
+                lagreDeltakerStatus(
+                    deltakerId = deltaker.id,
+                    nyDeltakerStatus = deltaker.status,
+                    erDeltakerSluttdatoEndret = true,
+                )
+                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+                deltakerProducerService.produce(oppdatertDeltaker)
+            }
     }
 
-    suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
-        val deltakerePaAvbruttDeltakerliste = deltakerRepository
-            .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
-            .map { it.copy(deltakerliste = deltakerliste) }
-
-        avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
-    }
-
-    private suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
+    fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
         DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes)
             .map { oppdaterVedtakForAvbruttUtkast(it) }
-            .forEach { upsertAndProduceDeltaker(deltaker = it, erDeltakerSluttdatoEndret = true) }
+            .forEach { deltaker ->
+                deltakerRepository.upsert(deltaker)
+                lagreDeltakerStatus(
+                    deltakerId = deltaker.id,
+                    nyDeltakerStatus = deltaker.status,
+                    erDeltakerSluttdatoEndret = true,
+                )
+
+                val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
+                deltakerProducerService.produce(deltakerFromDb)
+            }
     }
 
-    private suspend fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) =
-        if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
-            Database.transaction {
-                val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+    private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
+        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
 
-                hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
-                deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
-            }
-        } else {
-            deltaker
-        }
-
-    private fun getDeltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
-        .getDeltakereHvorSluttdatoHarPassert()
-        .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
-        .distinct()
-
-    private fun getDeltakereSomSkalHaStatusDeltar() = deltakerRepository
-        .skalHaStatusDeltar()
-        .distinct()
-
-    suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) = deltakerRepository
-        .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
-        .forEach { deltaker ->
-            upsertAndProduceDeltaker(
-                deltaker = deltaker.copy(sluttdato = deltakerliste.sluttDato),
-                erDeltakerSluttdatoEndret = true,
-                forceProduce = true, // For at oppdateringen skal propageres riktig til amt-deltaker-bff så må vi sette denne.
-            )
-            log.info("Deltaker ${deltaker.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
-        }
+        hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
+        deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
+    } else {
+        deltaker
+    }
 
     companion object {
         fun validerIkkeFeilregistrert(deltaker: Deltaker) = require(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {

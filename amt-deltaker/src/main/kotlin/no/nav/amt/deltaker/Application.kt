@@ -356,7 +356,7 @@ fun Application.module() {
         gjennomforingRequestProducer = gjennomforingRequestProducer,
         deltakerlisteRepository = deltakerlisteRepository,
         navBrukerService = navBrukerService,
-        tiltakRepository = tiltakstypeRepository,
+        tiltakstypeRepository = tiltakstypeRepository,
         navEnhetService = navEnhetService,
         navAnsattService = navAnsattService,
         vedtakService = vedtakService,

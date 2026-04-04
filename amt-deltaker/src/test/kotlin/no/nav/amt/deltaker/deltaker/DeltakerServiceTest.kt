@@ -1575,51 +1575,6 @@ class DeltakerServiceTest {
         assertProducedDeltakerEksternV1(deltaker.id)
     }
 
-    @Nested
-    inner class AvgrensSluttdatoerTilTests {
-        @Test
-        fun `avgrensSluttdatoerTil - deltaker har senere sluttdato enn deltakerliste - deltakers sluttdato endres`() = runTest {
-            val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                sluttdato = deltakerliste.sluttDato!!.plusMonths(1),
-            )
-            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-
-            TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
-
-            deltakerService.avgrensSluttdatoerTil(deltakerliste)
-
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
-            oppdatertDeltaker.sluttdato shouldBe deltakerliste.sluttDato
-        }
-
-        @Test
-        fun `avgrensSluttdatoerTil - deltaker har tidligere sluttdato enn deltakerliste - deltakers sluttdato endres ikke`() = runTest {
-            val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                sluttdato = deltakerliste.sluttDato!!.minusDays(1),
-            )
-            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-
-            TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
-
-            deltakerService.avgrensSluttdatoerTil(deltakerliste)
-
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
-            oppdatertDeltaker.sluttdato shouldNotBe deltakerliste.sluttDato
-        }
-    }
-
     private val amtPersonClientMock: AmtPersonServiceClient = mockk(relaxed = true)
 
     private val navEnhetRepository = NavEnhetRepository()

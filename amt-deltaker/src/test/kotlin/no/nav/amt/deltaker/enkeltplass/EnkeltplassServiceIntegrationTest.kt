@@ -247,7 +247,7 @@ class EnkeltplassServiceIntegrationTest {
         ),
         gjennomforingRequestProducer = mockk(),
         deltakerlisteRepository = deltakerlisteRepository,
-        tiltakRepository = tiltakRepository,
+        tiltakstypeRepository = tiltakRepository,
         navEnhetService = navEnhetService,
         navAnsattService = navAnsattService,
         vedtakService = mockk(relaxed = true),

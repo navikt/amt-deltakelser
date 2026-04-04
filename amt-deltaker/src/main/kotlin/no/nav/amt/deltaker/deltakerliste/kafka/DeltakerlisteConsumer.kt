@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
@@ -89,28 +90,54 @@ class DeltakerlisteConsumer(
                 eksisterendeOppstartstype = eksisterendeDeltakerliste.oppstart,
             )
 
-            handterDeltakere(
-                deltakerlisteFromPayload = deltakerliste,
-                eksisterendeDeltakerliste = eksisterendeDeltakerliste,
-            )
+            Database.transaction {
+                handterDeltakere(
+                    deltakerlisteFromPayload = deltakerliste,
+                    eksisterendeDeltakerliste = eksisterendeDeltakerliste,
+                )
+            }
         }
 
         deltakerlisteRepository.upsert(deltakerliste)
     }
 
-    suspend fun handterDeltakere(
+    fun handterDeltakere(
         deltakerlisteFromPayload: Deltakerliste,
         eksisterendeDeltakerliste: Deltakerliste,
     ) {
         if (deltakerlisteFromPayload.erAvlystEllerAvbrutt() && eksisterendeDeltakerliste.status != deltakerlisteFromPayload.status) {
-            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerlisteFromPayload)
+            avsluttDeltakelserPaaDeltakerliste(deltakerlisteFromPayload)
         }
 
         if (deltakerlisteFromPayload.sluttDato != null &&
             eksisterendeDeltakerliste.sluttDato != null &&
             deltakerlisteFromPayload.sluttDato < eksisterendeDeltakerliste.sluttDato
         ) {
-            deltakerService.avgrensSluttdatoerTil(deltakerlisteFromPayload)
+            avgrensSluttdatoerTil(deltakerlisteFromPayload)
         }
+    }
+
+    fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
+        val deltakerePaAvbruttDeltakerliste = deltakerRepository
+            .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
+            .map { it.copy(deltakerliste = deltakerliste) }
+
+        deltakerService.avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
+    }
+
+    internal fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
+        deltakerRepository
+            .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
+            .forEach { deltaker ->
+                deltakerRepository.upsert(deltaker.copy(sluttdato = deltakerliste.sluttDato))
+                deltakerService.lagreDeltakerStatus(
+                    deltakerId = deltaker.id,
+                    nyDeltakerStatus = deltaker.status,
+                    erDeltakerSluttdatoEndret = true,
+                )
+                deltakerProducerService.produce(deltaker, forcedUpdate = true)
+
+                log.info("Deltaker ${deltaker.id} fikk ny sluttdato")
+            }
     }
 }

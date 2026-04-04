@@ -8,7 +8,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.mockk
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.DeltakerIdResponse
@@ -24,6 +26,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 class EnkeltplassApiTest : IntegrationTestBase() {
+    override val enkeltplassService = mockk<EnkeltplassService>(relaxed = true)
+
     @Nested
     inner class MeldPaaDirekteTests {
         @Test
@@ -82,7 +86,12 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             val deltaker = TestData.lagDeltaker()
 
             coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
-            coEvery { enkeltplassService.opprettKladd(any<Tiltakskode>(), any()) } returns deltaker
+            coEvery {
+                enkeltplassService.opprettKladd(
+                    tiltakskode = any<Tiltakskode>(),
+                    personident = any(),
+                )
+            } returns deltaker
 
             withTestApplicationContext { client ->
                 val response = client.post("/enkeltplass/opprett-kladd") {
@@ -103,7 +112,15 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             val deltaker = TestData.lagDeltaker()
 
             coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
-            coEvery { enkeltplassService.opprettKladd(any<Tiltakskode>(), any()) } returns deltaker
+            coEvery {
+                enkeltplassService.oppdaterKladd(
+                    deltakerId = deltaker.id,
+                    startdato = any(),
+                    sluttdato = any(),
+                    beskrivelse = any(),
+                    prisinformasjon = any(),
+                )
+            } returns deltaker
 
             withTestApplicationContext { client ->
                 val response = client.post("/enkeltplass/oppdater-kladd/${deltaker.id}") {

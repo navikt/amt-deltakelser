@@ -12,14 +12,16 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.mockk.every
+import io.mockk.mockk
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.data.DeltakelserResponse
 import no.nav.amt.deltaker.external.data.DeltakerKort
 import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
 import no.nav.amt.deltaker.external.data.Periode
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -39,17 +41,14 @@ import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
 class ExternalApiTest : IntegrationTestBase() {
-    override val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-
-    @BeforeEach
-    fun setup() = unleashClient.enableAll()
+    override val navEnhetService = mockk<NavEnhetService>()
+    override val arrangorService = mockk<ArrangorService>()
 
     @Nested
     inner class DeltakelserTests {
@@ -141,7 +140,6 @@ class ExternalApiTest : IntegrationTestBase() {
 
         @Test
         fun `post deltakelser - har tilgang, kladd og avsluttet deltakelse - returnerer 200`() {
-            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
             val innsoktDato = LocalDate.now().minusDays(4)
             val deltakerKladd = lagDeltaker(
                 deltakerliste = lagDeltakerliste(
@@ -153,7 +151,9 @@ class ExternalApiTest : IntegrationTestBase() {
                 ),
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
+
             every { arrangorService.getArrangorNavn(any()) } returns deltakerKladd.deltakerliste.arrangor!!.navn
+            every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
             val avsluttetDeltaker = lagDeltaker(
                 deltakerliste = lagDeltakerliste(

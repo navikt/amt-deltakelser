@@ -31,7 +31,7 @@ class EnkeltplassService(
     private val deltakerService: DeltakerService,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
-    private val tiltakRepository: TiltakstypeRepository,
+    private val tiltakstypeRepository: TiltakstypeRepository,
     private val navEnhetService: NavEnhetService,
     private val navAnsattService: NavAnsattService,
     private val vedtakService: VedtakService,
@@ -48,7 +48,7 @@ class EnkeltplassService(
 
         val navBruker = navBrukerService.get(personident).getOrThrow()
         val tiltak = Tiltakskode.valueOf(tiltakskode.name).let {
-            tiltakRepository.get(tiltakskode).getOrThrow()
+            tiltakstypeRepository.get(tiltakskode).getOrThrow()
         }
         val gjennomforing = GjennomforingInsertDbo(
             id = UUID.randomUUID(),

@@ -9,6 +9,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -20,12 +21,11 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorApiTest : IntegrationTestBase() {
-    override val unleashToggle = mockk<CommonUnleashToggle>()
+    override val deltakerService = mockk<DeltakerService>()
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {

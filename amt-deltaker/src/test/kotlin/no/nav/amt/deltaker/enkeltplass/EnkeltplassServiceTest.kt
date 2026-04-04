@@ -12,15 +12,8 @@ import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
-import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
-import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navbruker.NavBrukerService
-import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -39,28 +32,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-class EnkeltplassServiceTest {
-    private val deltakerRepository = mockk<DeltakerRepository>(relaxed = true)
-    private val deltakerService: DeltakerService = mockk(relaxed = true)
-    private val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>(relaxUnitFun = true)
-    private val deltakerlisteRepository = mockk<DeltakerlisteRepository>(relaxed = true)
-    private val navBrukerService = mockk<NavBrukerService>()
-    private val tiltakRepository = mockk<TiltakstypeRepository>()
-    private val navEnhetservice = mockk<NavEnhetService>()
-    private val navAnsattService = mockk<NavAnsattService>()
-    private val vedtakService = mockk<VedtakService>(relaxed = true)
-
-    private val sut = EnkeltplassService(
-        deltakerRepository = deltakerRepository,
-        deltakerService = deltakerService,
-        gjennomforingRequestProducer = gjennomforingRequestProducer,
-        deltakerlisteRepository = deltakerlisteRepository,
-        navBrukerService = navBrukerService,
-        tiltakRepository = tiltakRepository,
-        navEnhetService = navEnhetservice,
-        navAnsattService = navAnsattService,
-        vedtakService = vedtakService,
-    )
+class EnkeltplassServiceTest : IntegrationTestBase() {
+    override val deltakerService = mockk<DeltakerService>(relaxed = true)
 
     companion object {
         private val request = EnkeltplassPameldingRequest(
@@ -106,7 +79,7 @@ class EnkeltplassServiceTest {
         } just runs
 
         coEvery {
-            navEnhetservice.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+            navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
         } returns navEnhetInTest
 
         coEvery {
@@ -130,7 +103,7 @@ class EnkeltplassServiceTest {
             // Arrange
 
             // Act
-            sut.meldPaaDirekte(deltakerId = deltakerInTest.id, decoratedRequest = decoratedRequest)
+            enkeltplassService.meldPaaDirekte(deltakerId = deltakerInTest.id, decoratedRequest = decoratedRequest)
 
             // Assert
             verify { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
@@ -150,7 +123,7 @@ class EnkeltplassServiceTest {
 
             // Act
             shouldThrow<IllegalArgumentException> {
-                sut.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
+                enkeltplassService.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
             }
             // Assert
             verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
@@ -167,7 +140,7 @@ class EnkeltplassServiceTest {
 
             // Act
             shouldThrow<IllegalArgumentException> {
-                sut.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
+                enkeltplassService.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
             }
 
             // Assert
