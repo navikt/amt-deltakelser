@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
@@ -14,7 +13,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdUpdateDbo
 import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -60,15 +58,12 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
+import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -96,6 +91,11 @@ class PameldingServiceTest {
     val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
     val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
 
+    companion object {
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+    }
+
     @BeforeEach
     fun setup() {
         navEnhetRepository.upsert(sistEndretAvNavEnhet)
@@ -104,154 +104,6 @@ class PameldingServiceTest {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
         TiltakstypeRepository().upsert(tiltak)
-    }
-
-    @Nested
-    inner class EnkeltplassTests {
-        val navBruker = lagNavBruker(
-            navVeilederId = sistEndretAvNavAnsatt.id,
-            navEnhetId = sistEndretAvNavEnhet.id,
-        )
-
-        @BeforeEach
-        fun beforeEach() {
-            mockPersonServiceResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-        }
-
-        @Test
-        fun `opprettKladd - returnerer ny deltakerId`() = runTest {
-            val deltaker = kladdService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-
-            assertSoftly(deltaker) {
-                id shouldBe deltaker.id
-                startdato shouldBe null
-                sluttdato shouldBe null
-                dagerPerUke shouldBe null
-                deltakelsesprosent shouldBe null
-                bakgrunnsinformasjon shouldBe null
-                vedtaksinformasjon shouldBe null
-                sistEndret shouldBeCloseTo LocalDateTime.now()
-                kilde shouldBe Kilde.KOMET
-                erManueltDeltMedArrangor shouldBe false
-                opprettet shouldBeCloseTo LocalDateTime.now()
-            }
-
-            assertSoftly(deltaker.status) {
-                type shouldBe DeltakerStatus.Type.KLADD
-            }
-
-            assertSoftly(deltaker.deltakerliste) {
-                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
-                tiltakstype shouldBe tiltak
-                navn shouldBe tiltak.navn
-                startDato shouldBe null
-                sluttDato shouldBe null
-                oppstart shouldBe Oppstartstype.LOPENDE
-                apentForPamelding shouldBe true
-                oppmoteSted shouldBe null
-                arrangor shouldBe null
-                pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
-                status shouldBe GjennomforingStatusType.KLADD
-            }
-        }
-
-        @Test
-        fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer ny deltakerId`() = runTest {
-            val deltaker = kladdService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-
-            val deltaker2 = kladdService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-            deltaker2.id shouldBe deltaker.id
-        }
-
-        @Test
-        fun `oppdaterKladd - returnerer ny deltakerId`() = runTest {
-            val deltakerInserted = kladdService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-            val deltakerExpected = lagEnkeltplassKladdUpdateDbo(
-                deltakerId = deltakerInserted.id,
-                tiltakstype = deltakerInserted.deltakerliste.tiltakstype,
-                startdato = LocalDate.now().plusDays(1),
-                sluttdato = LocalDate.now().plusDays(2),
-                beskrivelse = "Beskrivelse",
-            )
-            val prisinfoExpected = "Prisinfo"
-            val oppdatertDeltaker = kladdService.oppdaterKladd(
-                deltakerId = deltakerExpected.id,
-                startdato = deltakerExpected.startdato,
-                sluttdato = deltakerExpected.sluttdato,
-                beskrivelse = deltakerExpected.deltakelsesinnhold
-                    ?.innhold
-                    ?.first()
-                    ?.beskrivelse,
-                prisinformasjon = prisinfoExpected,
-            )
-
-            oppdatertDeltaker shouldNotBe null
-
-            assertSoftly(oppdatertDeltaker) {
-                id shouldBe deltakerExpected.id
-                startdato shouldBe deltakerExpected.startdato
-                sluttdato shouldBe deltakerExpected.sluttdato
-                dagerPerUke shouldBe null
-                deltakelsesprosent shouldBe null
-                bakgrunnsinformasjon shouldBe null
-                vedtaksinformasjon shouldBe null
-                sistEndret shouldBeCloseTo LocalDateTime.now()
-                kilde shouldBe Kilde.KOMET
-                erManueltDeltMedArrangor shouldBe false
-                opprettet shouldBeCloseTo LocalDateTime.now()
-            }
-
-            assertSoftly(oppdatertDeltaker.status) {
-                type shouldBe DeltakerStatus.Type.KLADD
-            }
-
-            assertSoftly(oppdatertDeltaker.deltakerliste) {
-                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
-                tiltakstype shouldBe tiltak
-                navn shouldBe tiltak.navn
-                prisinformasjon shouldBe prisinfoExpected
-            }
-        }
-
-        @Test
-        fun `slettKladd - deltaker er KLADD - sletter deltaker og gjennomføring`() = runTest {
-            val deltakerInserted = kladdService.opprettKladd(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                navBruker.personident,
-            )
-
-            kladdService.slettKladd(deltakerInserted.id)
-
-            deltakerRepository.get(deltakerInserted.id).shouldBeFailure()
-            deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeFailure()
-        }
-
-        @Test
-        fun `slettKladd - deltaker er KLADD men deltakerliste er syncet med valp - sletter ikke`() = runTest {
-            val deltakerInserted = kladdService.opprettKladd(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                navBruker.personident,
-            )
-            deltakerlisteRepository.upsert(deltakerInserted.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES))
-
-            shouldThrowAny {
-                kladdService.slettKladd(deltakerInserted.id)
-            }
-            deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
-            deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
-        }
     }
 
     @Nested
@@ -311,6 +163,8 @@ class PameldingServiceTest {
             )
             val arrangor = lagArrangor()
             val deltakerListe = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+            TestRepository.insert(deltakerListe)
+
             val navBruker = lagNavBruker(
                 navVeilederId = sistEndretAvNavAnsatt.id,
                 navEnhetId = sistEndretAvNavEnhet.id,
@@ -318,7 +172,6 @@ class PameldingServiceTest {
             )
 
             mockPersonServiceResponses(sistEndretAvNavEnhet, sistEndretAvNavAnsatt, navBruker)
-            TestRepository.insert(deltakerListe)
 
             val deltaker = kladdService.opprettKladd(
                 deltakerListeId = deltakerListe.id,
@@ -341,14 +194,15 @@ class PameldingServiceTest {
 
         @Test
         fun `opprettKladd - deltakerliste finnes ikke - kaster NoSuchElementException`() = runTest {
-            // Arrange
             val personIdent = randomIdent()
 
             coEvery { personServiceClient.hentNavBruker(any()) } throws NoSuchElementException("NavBruker ikke funnet")
 
-            // Act & Assert
             shouldThrow<NoSuchElementException> {
-                kladdService.opprettKladd(UUID.randomUUID(), personIdent)
+                kladdService.opprettKladd(
+                    deltakerListeId = UUID.randomUUID(),
+                    personIdent = personIdent,
+                )
             }
         }
 
@@ -657,28 +511,37 @@ class PameldingServiceTest {
                 status = deltakerStatusKladd,
             )
 
-            val deltakerStatus = getOppdatertStatus(deltaker, true)
+            val deltakerStatus = getOppdatertStatus(
+                opprinneligDeltaker = deltaker,
+                godkjentAvNav = true,
+            )
 
             deltakerStatus.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         }
     }
 
+    private val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+    private val arrangorClient: AmtArrangorClient = mockk(relaxed = true)
+
     private val navEnhetRepository = NavEnhetRepository()
     private val navEnhetService = NavEnhetService(
         repository = navEnhetRepository,
-        amtPersonServiceClient = mockk(relaxed = true),
+        amtPersonServiceClient = personServiceClient,
     )
 
     private val navAnsattRepository = NavAnsattRepository()
     private val navAnsattService = NavAnsattService(
         repository = navAnsattRepository,
-        amtPersonServiceClient = mockk(relaxed = true),
+        amtPersonServiceClient = personServiceClient,
         navEnhetService = navEnhetService,
     )
 
+    private val endringFraTiltaksKoordinatorRepository = EndringFraTiltakskoordinatorRepository()
+    private val vurderingRepository = VurderingRepository()
+
     private val arrangorService = ArrangorService(
         arrangorRepository = ArrangorRepository(),
-        amtArrangorClient = mockk(relaxed = true),
+        amtArrangorClient = arrangorClient,
     )
     private val forslagRepository = ForslagRepository()
     private val deltakerRepository = DeltakerRepository()
@@ -688,54 +551,71 @@ class PameldingServiceTest {
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
     private val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
-    private val endringFraTiltaksKoordinatorRepository = EndringFraTiltakskoordinatorRepository()
-    private val vurderingRepository = VurderingRepository()
-    private val tiltakRepository = TiltakstypeRepository()
 
     private val deltakerHistorikkService = DeltakerHistorikkService(
-        deltakerEndringRepository,
-        vedtakRepository,
-        forslagRepository,
-        endringFraArrangorRepository,
-        importertFraArenaRepository,
-        innsokPaaFellesOppstartRepository,
-        endringFraTiltaksKoordinatorRepository,
-        vurderingRepository,
+        deltakerEndringRepository = deltakerEndringRepository,
+        vedtakRepository = vedtakRepository,
+        forslagRepository = forslagRepository,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+        innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+        endringFraTiltakskoordinatorRepository = endringFraTiltaksKoordinatorRepository,
+        vurderingRepository = vurderingRepository,
     )
 
     private val unleashToggle = mockk<CommonUnleashToggle>(relaxed = true)
 
     private val hendelseService = HendelseService(
-        HendelseProducer(TestOutboxEnvironment.outboxService),
-        navAnsattRepository,
-        navAnsattService,
-        navEnhetRepository,
-        navEnhetService,
-        arrangorService,
-        deltakerHistorikkService,
-        VurderingService(VurderingRepository()),
-        unleashToggle,
+        hendelseProducer = HendelseProducer(TestOutboxEnvironment.outboxService),
+        navAnsattRepository = navAnsattRepository,
+        navAnsattService = navAnsattService,
+        navEnhetRepository = navEnhetRepository,
+        navEnhetService = navEnhetService,
+        arrangorService = arrangorService,
+        deltakerHistorikkService = deltakerHistorikkService,
+        vurderingService = VurderingService(VurderingRepository()),
+        unleashToggle = unleashToggle,
     )
 
     private val vedtakService = VedtakService(vedtakRepository)
-    private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, mockk())
-    private val deltakerKafkaPayloadBuilder =
-        DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, VurderingRepository())
 
-    private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
-    private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val forslagService = ForslagService(
+        forslagRepository = forslagRepository,
+        arrangorMeldingProducer = mockk(),
+        deltakerRepository = deltakerRepository,
+        deltakerProducerService = mockk(),
+    )
+
+    private val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
+        vurderingRepository = VurderingRepository(),
+    )
+
+    private val deltakerProducer = DeltakerProducer(
+        outboxService = TestOutboxEnvironment.outboxService,
+        producer = TestOutboxEnvironment.kafkaProducer,
+    )
+
+    private val deltakerV1Producer = DeltakerV1Producer(
+        outboxService = TestOutboxEnvironment.outboxService,
+        producer = TestOutboxEnvironment.kafkaProducer,
+    )
+
     private val deltakerEksternV1Producer = DeltakerEksternV1Producer(
-        TestOutboxEnvironment.outboxService,
-        TestOutboxEnvironment.kafkaProducer,
+        outboxService = TestOutboxEnvironment.outboxService,
+        producer = TestOutboxEnvironment.kafkaProducer,
     )
 
-    private val deltakerProducerService = DeltakerProducerService(
-        deltakerKafkaPayloadBuilder,
-        deltakerProducer,
-        deltakerV1Producer,
-        deltakerEksternV1Producer,
-        unleashToggle,
-    )
+    private val deltakerProducerService =
+        DeltakerProducerService(
+            deltakerKafkaPayloadBuilder,
+            deltakerProducer,
+            deltakerV1Producer,
+            deltakerEksternV1Producer,
+            unleashToggle,
+        )
 
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -771,9 +651,6 @@ class PameldingServiceTest {
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
     private val deltakerlisteRepository = DeltakerlisteRepository()
-
-    private val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
-
     private val kladdService = KladdService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
@@ -784,7 +661,6 @@ class PameldingServiceTest {
             enhetService = navEnhetService,
             ansattService = navAnsattService,
         ),
-        tiltakRepository = tiltakRepository,
     )
 
     private fun mockPersonServiceResponses(
@@ -798,10 +674,5 @@ class PameldingServiceTest {
         coEvery { personServiceClient.hentNavEnhet(navEnhet.id) } returns navEnhet
         coEvery { personServiceClient.hentNavAnsatt(navAnsatt.id) } returns navAnsatt
         coEvery { personServiceClient.hentNavBruker(navBruker.personident) } returns navBruker
-    }
-
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
     }
 }

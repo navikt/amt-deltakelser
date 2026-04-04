@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.enkeltplass
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -16,12 +17,8 @@ import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
-import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
-import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -32,6 +29,9 @@ import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -170,42 +170,50 @@ class EnkeltplassServiceIntegrationTest {
                 prisinformasjon shouldBe prisinfoExpected
             }
         }
-/*
-    Slett kladd ligger fortsatt i pamelingService, uavhengig av om det er enkeltplass. Splitte opp?
-        @Test
-        fun `slettKladd - deltaker er KLADD - sletter deltaker og gjennomføring`() = runTest {
-            val deltakerInserted = enkeltplassService.opprettKladd(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                navBruker.personident,
-            )
+        /*
+            Slett kladd ligger fortsatt i pamelingService, uavhengig av om det er enkeltplass. Splitte opp?
+                @Test
+                fun `slettKladd - deltaker er KLADD - sletter deltaker og gjennomføring`() = runTest {
+                    val deltakerInserted = enkeltplassService.opprettKladd(
+                        tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                        navBruker.personident,
+                    )
 
-            pameldingService.slettKladd(deltakerInserted.id)
+                    pameldingService.slettKladd(deltakerInserted.id)
 
-            deltakerRepository.get(deltakerInserted.id).shouldBeFailure()
-            deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeFailure()
-        }
-        @Test
-        fun `slettKladd - deltaker er KLADD men deltakerliste er syncet med valp - sletter ikke`() = runTest {
-            val deltakerInserted = enkeltplassService.opprettKladd(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                navBruker.personident,
-            )
-            deltakerlisteRepository.upsert(deltakerInserted.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES))
+                    deltakerRepository.get(deltakerInserted.id).shouldBeFailure()
+                    deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeFailure()
+                }
+                @Test
+                fun `slettKladd - deltaker er KLADD men deltakerliste er syncet med valp - sletter ikke`() = runTest {
+                    val deltakerInserted = enkeltplassService.opprettKladd(
+                        tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                        navBruker.personident,
+                    )
+                    deltakerlisteRepository.upsert(deltakerInserted.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES))
 
-            shouldThrowAny {
-                pameldingService.slettKladd(deltakerInserted.id)
-            }
-            deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
-            deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
-        }
- */
+                    shouldThrowAny {
+                        pameldingService.slettKladd(deltakerInserted.id)
+                    }
+                    deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
+                    deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
+                }
+         */
     }
 
     private val navEnhetRepository = NavEnhetRepository()
-    private val navEnhetService = NavEnhetService(navEnhetRepository, mockPersonServiceClient())
+    private val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+    private val navEnhetService = NavEnhetService(
+        repository = navEnhetRepository,
+        amtPersonServiceClient = personServiceClient,
+    )
 
     private val navAnsattRepository = NavAnsattRepository()
-    private val navAnsattService = NavAnsattService(navAnsattRepository, mockPersonServiceClient(), navEnhetService)
+    private val navAnsattService = NavAnsattService(
+        repository = navAnsattRepository,
+        amtPersonServiceClient = personServiceClient,
+        navEnhetService = navEnhetService,
+    )
 
     private val deltakerRepository = DeltakerRepository()
     private val tiltakRepository = TiltakstypeRepository()
@@ -233,7 +241,7 @@ class EnkeltplassServiceIntegrationTest {
         deltakerService = deltakerService,
         navBrukerService = NavBrukerService(
             repository = NavBrukerRepository(),
-            personServiceClient = mockPersonServiceClient(),
+            personServiceClient = personServiceClient,
             enhetService = navEnhetService,
             ansattService = navAnsattService,
         ),
@@ -245,19 +253,22 @@ class EnkeltplassServiceIntegrationTest {
         vedtakService = mockk(relaxed = true),
     )
 
+    private fun mockResponses(
+        navEnhet: NavEnhet,
+        navAnsatt: NavAnsatt,
+        navBruker: NavBruker,
+    ) {
+        navAnsatt.navEnhetId?.let {
+            coEvery { personServiceClient.hentNavEnhet(it) } returns lagNavEnhet(it)
+        }
+
+        coEvery { personServiceClient.hentNavEnhet(navEnhet.id) } returns navEnhet
+        coEvery { personServiceClient.hentNavAnsatt(navAnsatt.id) } returns navAnsatt
+        coEvery { personServiceClient.hentNavBruker(navBruker.personident) } returns navBruker
+    }
+
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
-
-        private fun mockResponses(
-            navEnhet: NavEnhet,
-            navAnsatt: NavAnsatt,
-            navBruker: NavBruker,
-        ) {
-            navAnsatt.navEnhetId?.let { MockResponseHandler.addNavEnhetGetResponse(lagNavEnhet(it)) }
-            MockResponseHandler.addNavEnhetResponse(navEnhet)
-            MockResponseHandler.addNavAnsattResponse(navAnsatt)
-            MockResponseHandler.addNavBrukerResponse(navBruker)
-        }
     }
 }

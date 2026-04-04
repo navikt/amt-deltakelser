@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe

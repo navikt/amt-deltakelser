@@ -11,7 +11,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.utils.RouteTestBase
+import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.internapi.PersonIdentResponse
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class EnkeltplassApiTest : RouteTestBase() {
+class EnkeltplassApiTest : IntegrationTestBase() {
     override val tilgangskontrollService: TilgangskontrollService = mockk(relaxed = true)
 
     val deltakerInTest = lagDeltaker()

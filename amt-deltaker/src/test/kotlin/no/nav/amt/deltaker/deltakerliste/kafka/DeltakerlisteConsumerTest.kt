@@ -59,6 +59,7 @@ class DeltakerlisteConsumerTest {
             arrangorService = arrangorService,
             deltakerService = deltakerService,
             unleashToggle = unleashToggle,
+            deltakerProducerService = mockk(relaxed = true),
         )
 
     companion object {

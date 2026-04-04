@@ -5,10 +5,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.utils.createMockHttpClient
-import no.nav.amt.deltaker.bff.utils.mockAzureAdClient
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
+import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -24,7 +24,7 @@ class EnkeltplassClientTest {
             { client -> client.meldPaaDirekte(deltakerIdInTest, decoratedRequest) }
 
         @ParameterizedTest
-        @MethodSource("no.nav.amt.deltaker.bff.apiclients.ApiClientTestUtils#failureCases")
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) = runTest {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(

@@ -9,7 +9,7 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
-import no.nav.amt.deltaker.utils.RouteTestBase
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-class EnkeltplassApiTest : RouteTestBase() {
+class EnkeltplassApiTest : IntegrationTestBase() {
     @Nested
     inner class MeldPaaDirekteTests {
         @Test
