@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.tiltakskoordinator
 
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakeroppdatering
-import no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator.TiltaksKoordinatorClient
+import no.nav.amt.deltaker.bff.apiclients.TiltaksKoordinatorClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
