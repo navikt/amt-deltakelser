@@ -1,13 +1,10 @@
 package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
-import io.mockk.runs
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
@@ -25,9 +22,7 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.database.Database.transaction
 import org.junit.jupiter.api.AfterEach
@@ -39,56 +34,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     override val deltakerService = mockk<DeltakerService>(relaxUnitFun = true)
     override val vedtakService = mockk<VedtakService>()
 
-    companion object {
-        private val request = EnkeltplassPameldingRequest(
-            beskrivelse = "Testbeskrivelse",
-            prisinformasjon = "Test prisinformasjon",
-            arrangorOrgnummer = "987654321",
-        )
-
-        private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
-            wrappedRequest = request,
-            endretAvEnhet = "1234",
-            endretAv = "123456789",
-        )
-
-        private val navEnhetInTest = lagNavEnhet()
-        private val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
-
-        private val deltakerInTest = lagDeltaker(
-            navBruker = lagNavBruker(
-                navEnhetId = navEnhetInTest.id,
-                navVeilederId = navAnsattInTest.id,
-            ),
-            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
-            deltakerliste = lagDeltakerliste(
-                gjennomforingstype = GjennomforingType.Enkeltplass,
-                status = GjennomforingStatusType.KLADD,
-                prisinformasjon = "1234",
-            ),
-        )
-    }
-
     @BeforeEach
     fun setup() {
-        clearAllMocks()
-
         every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
-        every {
-            deltakerService.lagreDeltakerStatus(
-                deltakerId = deltakerInTest.id,
-                nyDeltakerStatus = match { it.type == DeltakerStatus.Type.SOKT_INN },
-                erDeltakerSluttdatoEndret = false,
-            )
-        } just runs
-
-        coEvery {
-            navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
-        } returns navEnhetInTest
-
-        coEvery {
-            navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
-        } returns navAnsattInTest
 
         mockkObject(Database)
         coEvery { transaction<Any>(any()) } answers {
@@ -113,7 +61,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     deltaker = any(),
                     fattetDato = any(),
                 )
-            } returns lagVedtak(deltakerId = deltakerInTest.id, deltakerVedVedtak = deltakerInTest)
+            } returns lagVedtak(
+                deltakerId = deltakerInTest.id,
+                deltakerVedVedtak = deltakerInTest,
+            )
 
             // Act
             enkeltplassService.meldPaaDirekte(
@@ -148,6 +99,11 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
             }
+
+            // Assert
+            verify(exactly = 0) {
+                outboxService.insertRecord(any(), any(), any(), any())
+            }
         }
 
         @Test
@@ -165,7 +121,33 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             }
 
             // Assert
-            verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
+            verify(exactly = 0) {
+                outboxService.insertRecord(any(), any(), any(), any())
+            }
         }
+    }
+
+    companion object {
+        private val pameldingRequestInTest = EnkeltplassPameldingRequest(
+            beskrivelse = "Testbeskrivelse",
+            prisinformasjon = "Test prisinformasjon",
+            arrangorOrgnummer = "987654321",
+        )
+
+        private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+            wrappedRequest = pameldingRequestInTest,
+            endretAvEnhet = "1234",
+            endretAv = "123456789",
+        )
+
+        private val deltakerInTest = lagDeltaker(
+            navBruker = lagNavBruker(),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
+            deltakerliste = lagDeltakerliste(
+                gjennomforingstype = GjennomforingType.Enkeltplass,
+                status = GjennomforingStatusType.KLADD,
+                prisinformasjon = "1234",
+            ),
+        )
     }
 }
