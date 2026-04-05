@@ -23,10 +23,10 @@ import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.kafka.utils.assertProduced
-import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
+import no.nav.amt.deltaker.utils.assertProduced
+import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus

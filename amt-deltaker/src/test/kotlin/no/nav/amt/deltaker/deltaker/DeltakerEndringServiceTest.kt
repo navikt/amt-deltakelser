@@ -7,9 +7,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignDeltakerEndring
 import no.nav.amt.deltaker.deltaker.endring.VellykketEndring
-import no.nav.amt.deltaker.kafka.utils.assertProducedForslag
-import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
+import no.nav.amt.deltaker.utils.assertProducedForslag
+import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
