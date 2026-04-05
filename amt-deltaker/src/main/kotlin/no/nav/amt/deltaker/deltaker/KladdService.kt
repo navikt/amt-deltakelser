@@ -23,7 +23,7 @@ import java.util.UUID
 class KladdService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
-    private val deltakerListeRepository: DeltakerlisteRepository,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -45,7 +45,7 @@ class KladdService(
             .upsertAndProduceDeltaker(
                 deltaker = lagKladd(
                     navBrukerService.get(personIdent).getOrThrow(),
-                    deltakerListeRepository.get(deltakerListeId).getOrThrow(),
+                    deltakerlisteRepository.get(deltakerListeId).getOrThrow(),
                 ),
                 erDeltakerSluttdatoEndret = false,
             ).also { deltaker ->
@@ -93,7 +93,7 @@ class KladdService(
                 deltakerService.deleteDeltaker(deltakerId)
                 if (opprinneligDeltaker.erEnkeltplass) {
                     log.info("Sletter deltakerliste med id $gjennomforingId for kladd deltaker med id $deltakerId")
-                    deltakerListeRepository.delete(gjennomforingId)
+                    deltakerlisteRepository.delete(gjennomforingId)
                 }
             }
         }

@@ -11,6 +11,8 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
+import io.mockk.mockk
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
@@ -22,6 +24,8 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class KladdApiTest : IntegrationTestBase() {
+    override val kladdService = mockk<KladdService>()
+
     @Test
     fun `post - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->

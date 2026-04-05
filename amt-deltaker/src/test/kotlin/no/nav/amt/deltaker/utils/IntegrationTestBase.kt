@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
@@ -31,17 +32,25 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
+import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -50,20 +59,36 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
+import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import org.junit.jupiter.api.BeforeEach
 
 abstract class IntegrationTestBase {
-    protected open val responseBuilder = mockk<ResponseBuilder>()
+    protected open val deltakerLaaseService: DeltakerLaaseService = mockk(relaxed = true)
+
+    protected open val responseBuilder: ResponseBuilder by lazy {
+        ResponseBuilder(
+            arrangorService = arrangorService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            amtDistribusjonClient = distribusjonClient,
+            deltakerHistorikkService = deltakerHistorikkService,
+            forslagRepository = forslagRepository,
+            deltakerLaaseService = deltakerLaaseService,
+        )
+    }
 
     protected open val arrangorClient: AmtArrangorClient = mockk()
     protected open val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+    protected open val distribusjonClient: AmtDistribusjonClient = mockk(relaxed = true)
 
     protected open val arrangorRepository: ArrangorRepository = mockk(relaxed = true)
     protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
@@ -111,12 +136,113 @@ abstract class IntegrationTestBase {
             amtArrangorClient = arrangorClient,
         )
     }
-    protected open val pameldingService: PameldingService = mockk(relaxed = true)
-    protected open val kladdService: KladdService = mockk(relaxed = true)
-    protected open val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
-    protected open val deltakerProducerService: DeltakerProducerService = mockk(relaxed = true)
-    protected open val vedtakService: VedtakService = mockk(relaxed = true)
-    protected open val hendelseService: HendelseService = mockk(relaxed = true)
+
+    protected open val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService by lazy {
+        InnsokPaaFellesOppstartService(repository = innsokPaaFellesOppstartRepository)
+    }
+
+    protected open val pameldingService: PameldingService by lazy {
+        PameldingService(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            navEnhetService = navEnhetService,
+            navAnsattService = navAnsattService,
+            vedtakService = vedtakService,
+            hendelseService = hendelseService,
+            innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        )
+    }
+
+    protected open val kladdService: KladdService by lazy {
+        KladdService(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            deltakerlisteRepository = deltakerlisteRepository,
+            navBrukerService = navBrukerService,
+        )
+    }
+
+    protected open val vedtakService: VedtakService by lazy {
+        VedtakService(vedtakRepository = vedtakRepository)
+    }
+
+    protected open val vurderingService: VurderingService by lazy {
+        VurderingService(vurderingRepository = vurderingRepository)
+    }
+
+    protected open val hendelseProducer: HendelseProducer by lazy {
+        HendelseProducer(outboxService = outboxService)
+    }
+
+    protected open val hendelseService: HendelseService by lazy {
+        HendelseService(
+            hendelseProducer = hendelseProducer,
+            navAnsattRepository = navAnsattRepository,
+            navAnsattService = navAnsattService,
+            navEnhetRepository = navEnhetRepository,
+            navEnhetService = navEnhetService,
+            arrangorService = arrangorService,
+            deltakerHistorikkService = deltakerHistorikkService,
+            vurderingService = vurderingService,
+            unleashToggle = unleashToggle,
+        )
+    }
+
+    protected open val deltakerHistorikkService: DeltakerHistorikkService by lazy {
+        DeltakerHistorikkService(
+            deltakerEndringRepository = deltakerEndringRepository,
+            vedtakRepository = vedtakRepository,
+            forslagRepository = forslagRepository,
+            endringFraArrangorRepository = endringFraArrangorRepository,
+            importertFraArenaRepository = importertFraArenaRepository,
+            innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+            endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+            vurderingRepository = vurderingRepository,
+        )
+    }
+
+    protected open val deltakerKafkaPayloadBuilder: DeltakerKafkaPayloadBuilder by lazy {
+        DeltakerKafkaPayloadBuilder(
+            navAnsattRepository = navAnsattRepository,
+            navEnhetRepository = navEnhetRepository,
+            deltakerHistorikkService = deltakerHistorikkService,
+            vurderingRepository = vurderingRepository,
+        )
+    }
+
+    protected open val outboxService: OutboxService = mockk(relaxed = true)
+    protected open val stringStringProducer: Producer<String, String> = mockk(relaxed = true)
+
+    protected open val deltakerProducer: DeltakerProducer by lazy {
+        DeltakerProducer(
+            outboxService = outboxService,
+            producer = stringStringProducer,
+        )
+    }
+
+    protected open val deltakerV1Producer: DeltakerV1Producer by lazy {
+        DeltakerV1Producer(
+            outboxService = outboxService,
+            producer = stringStringProducer,
+        )
+    }
+
+    protected open val deltakerEksternV1Producer: DeltakerEksternV1Producer by lazy {
+        DeltakerEksternV1Producer(
+            outboxService = outboxService,
+            producer = stringStringProducer,
+        )
+    }
+
+    protected open val deltakerProducerService: DeltakerProducerService by lazy {
+        DeltakerProducerService(
+            deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
+            deltakerProducer = deltakerProducer,
+            deltakerV1Producer = deltakerV1Producer,
+            deltakerEksternV1Producer = deltakerEksternV1Producer,
+            unleashToggle = unleashToggle,
+        )
+    }
 
     protected open val deltakelserResponseMapper: DeltakelserResponseMapper by lazy {
         DeltakelserResponseMapper(
@@ -155,6 +281,16 @@ abstract class IntegrationTestBase {
             navEnhetService = navEnhetService,
             navAnsattService = navAnsattService,
             vedtakService = vedtakService,
+        )
+    }
+
+    protected val endringFraArrangorService: EndringFraArrangorService by lazy {
+        EndringFraArrangorService(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            endringFraArrangorRepository = endringFraArrangorRepository,
+            hendelseService = hendelseService,
+            deltakerHistorikkService = deltakerHistorikkService,
         )
     }
 

@@ -9,6 +9,9 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
+import io.mockk.mockk
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -24,6 +27,9 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class PameldingApiTest : IntegrationTestBase() {
+    override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
+    override val pameldingService = mockk<PameldingService>()
+
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->

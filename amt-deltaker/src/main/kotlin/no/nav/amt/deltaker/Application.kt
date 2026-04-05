@@ -347,7 +347,7 @@ fun Application.module() {
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
-        deltakerListeRepository = deltakerlisteRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
     )
 
     val enkeltplassService = EnkeltplassService(

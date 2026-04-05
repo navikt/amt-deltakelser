@@ -12,11 +12,13 @@ import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -33,7 +35,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class EnkeltplassServiceTest : IntegrationTestBase() {
-    override val deltakerService = mockk<DeltakerService>(relaxed = true)
+    override val deltakerService = mockk<DeltakerService>(relaxUnitFun = true)
+    override val vedtakService = mockk<VedtakService>()
 
     companion object {
         private val request = EnkeltplassPameldingRequest(
@@ -101,6 +104,15 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal opprette enkeltplass hos Mulighetsrommet for deltaker i kladd med enkeltplass`() = runTest {
             // Arrange
+            every {
+                vedtakService.opprettEllerOppdaterVedtak(
+                    fattetAvNav = any(),
+                    endretAv = any(),
+                    endretAvEnhet = any(),
+                    deltaker = any(),
+                    fattetDato = any(),
+                )
+            } returns lagVedtak(deltakerId = deltakerInTest.id, deltakerVedVedtak = deltakerInTest)
 
             // Act
             enkeltplassService.meldPaaDirekte(deltakerId = deltakerInTest.id, decoratedRequest = decoratedRequest)

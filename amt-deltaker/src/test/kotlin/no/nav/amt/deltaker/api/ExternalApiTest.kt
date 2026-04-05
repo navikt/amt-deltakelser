@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.external.data.DeltakelserResponse
@@ -49,6 +50,7 @@ import java.util.UUID
 class ExternalApiTest : IntegrationTestBase() {
     override val navEnhetService = mockk<NavEnhetService>()
     override val arrangorService = mockk<ArrangorService>()
+    override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
 
     @Nested
     inner class DeltakelserTests {

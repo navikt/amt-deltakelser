@@ -654,7 +654,7 @@ class PameldingServiceTest {
     private val kladdService = KladdService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        deltakerListeRepository = deltakerlisteRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
         navBrukerService = NavBrukerService(
             repository = NavBrukerRepository(),
             personServiceClient = personServiceClient,

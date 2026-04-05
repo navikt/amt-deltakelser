@@ -8,6 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
@@ -26,6 +27,7 @@ import java.util.UUID
 
 class TiltakskoordinatorApiTest : IntegrationTestBase() {
     override val deltakerService = mockk<DeltakerService>()
+    override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {

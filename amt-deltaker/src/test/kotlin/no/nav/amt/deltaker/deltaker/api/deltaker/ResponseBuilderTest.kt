@@ -4,7 +4,6 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -13,14 +12,13 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
-import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -33,34 +31,18 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.GenericCache
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class ResponseBuilderTest {
-    private val arrangorService: ArrangorService = mockk(relaxed = true)
-    private val navAnsattService: NavAnsattService = mockk(relaxed = true)
-    private val navEnhetService: NavEnhetService = mockk(relaxed = true)
-    private val amtDistribusjonClient: AmtDistribusjonClient = mockk()
-    private val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
-    private val forslagRepository: ForslagRepository = mockk(relaxed = true)
-    private val deltakerLaaseService: DeltakerLaaseService = mockk(relaxed = true)
-
-    private val responseBuilder = ResponseBuilder(
-        arrangorService = arrangorService,
-        navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
-        amtDistribusjonClient = amtDistribusjonClient,
-        deltakerHistorikkService = deltakerHistorikkService,
-        forslagRepository = forslagRepository,
-        deltakerLaaseService = deltakerLaaseService,
-    )
-
-    @BeforeEach
-    fun setup() = clearAllMocks()
+class ResponseBuilderTest : IntegrationTestBase() {
+    override val arrangorService: ArrangorService = mockk(relaxed = true)
+    override val deltakerLaaseService: DeltakerLaaseService = mockk(relaxed = true)
+    override val navEnhetService: NavEnhetService = mockk(relaxed = true)
+    override val navAnsattService: NavAnsattService = mockk(relaxed = true)
+    override val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
 
     @Nested
     inner class CacheTests {
@@ -99,7 +81,7 @@ class ResponseBuilderTest {
         val navAnsattCache: GenericCache<NavAnsatt> = mockk()
         val navEnhetCache: GenericCache<NavEnhet> = mockk()
 
-        coEvery { amtDistribusjonClient.digitalBruker(navBruker.personident) } returns true
+        coEvery { distribusjonClient.digitalBruker(navBruker.personident) } returns true
 
         every { navAnsattCache.getOrThrow(navBruker.navVeilederId.shouldNotBeNull()) } returns mockk {
             every { navn } returns "Nav-ansatt"
@@ -242,7 +224,7 @@ class ResponseBuilderTest {
             erManueltDeltMedArrangor = true,
         )
 
-        coEvery { amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
+        coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
         every { deltakerLaaseService.erLaastForEndringer(any()) } returns true
 
         val expectedForslag = listOf(

@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
@@ -50,6 +51,7 @@ import java.util.UUID
 
 class VeilederApiTest : IntegrationTestBase() {
     override val deltakerService: DeltakerService = mockk()
+    override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
