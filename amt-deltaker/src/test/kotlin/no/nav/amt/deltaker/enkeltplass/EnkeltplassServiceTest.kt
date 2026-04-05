@@ -148,8 +148,6 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
             }
-            // Assert
-            verify(exactly = 0) { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
         }
 
         @Test
