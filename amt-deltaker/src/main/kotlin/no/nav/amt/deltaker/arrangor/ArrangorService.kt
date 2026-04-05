@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.arrangor
 
-import no.nav.amt.deltaker.utils.toTitleCase
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.utils.toTitleCase
 import java.util.UUID
 
 class ArrangorService(
@@ -24,6 +24,6 @@ class ArrangorService(
 
     fun getArrangorNavn(arrangor: Arrangor): String {
         val arrangor = arrangor.overordnetArrangorId?.let { arrangorRepository.get(it) } ?: arrangor
-        return toTitleCase(arrangor.navn)
+        return arrangor.navn.toTitleCase()
     }
 }

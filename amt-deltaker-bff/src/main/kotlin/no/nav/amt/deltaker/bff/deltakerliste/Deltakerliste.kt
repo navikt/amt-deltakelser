@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.bff.deltakerliste
 
-import no.nav.amt.deltaker.bff.utils.toTitleCase
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
 import java.util.UUID
 
@@ -29,13 +29,11 @@ data class Deltakerliste(
         val arrangor: no.nav.amt.lib.models.deltaker.Arrangor,
         val overordnetArrangorNavn: String?,
     ) {
-        fun getArrangorNavn(): String = toTitleCase(
-            if (overordnetArrangorNavn.isNullOrEmpty() || overordnetArrangorNavn == UKJENT_VIRKSOMHET) {
-                arrangor.navn
-            } else {
-                overordnetArrangorNavn
-            },
-        )
+        fun getArrangorNavn(): String = if (overordnetArrangorNavn.isNullOrEmpty() || overordnetArrangorNavn == UKJENT_VIRKSOMHET) {
+            arrangor.navn
+        } else {
+            overordnetArrangorNavn
+        }.toTitleCase()
 
         companion object {
             private const val UKJENT_VIRKSOMHET = "Ukjent Virksomhet"
