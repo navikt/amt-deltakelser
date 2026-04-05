@@ -5,95 +5,42 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.verify
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerEksternV1Dto
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 import kotlin.reflect.KClass
 
-suspend fun assertProduced(deltakerId: UUID) {
-    val cache = mutableMapOf<UUID, DeltakerV2Dto>()
-
-    val consumer = stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
-        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+inline fun <reified T : Any> OutboxService.assertProduced(
+    expectedDeltakerId: UUID,
+    expectedTopic: String,
+) {
+    verify {
+        insertRecord(
+            key = expectedDeltakerId,
+            value = ofType<T>(),
+            topic = expectedTopic,
+            suppressOutsideTxWarning = any(),
+        )
     }
-
-    consumer.start()
-
-    eventually {
-        val cachedDeltaker = cache[deltakerId].shouldNotBeNull()
-        cachedDeltaker.id shouldBe deltakerId
-    }
-
-    consumer.close()
 }
 
-suspend fun assertProducedDeltakerV1(deltakerId: UUID) {
-    val cache = mutableMapOf<UUID, DeltakerV1Dto>()
-
-    val consumer = stringStringConsumer(Environment.DELTAKER_V1_TOPIC) { k, v ->
-        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+inline fun <reified T : HendelseType> OutboxService.assertProducedHendelse(expectedDeltakerId: UUID) {
+    verify {
+        insertRecord(
+            key = expectedDeltakerId,
+            value = match {
+                it is Hendelse && it.payload is T
+            },
+            topic = Environment.DELTAKER_HENDELSE_TOPIC,
+            suppressOutsideTxWarning = any(),
+        )
     }
-
-    consumer.start()
-
-    eventually {
-        val cachedDeltaker = cache[deltakerId].shouldNotBeNull()
-        cachedDeltaker.id shouldBe deltakerId
-    }
-
-    consumer.close()
-}
-
-suspend fun assertProducedDeltakerEksternV1(deltakerId: UUID) {
-    val cache = mutableMapOf<UUID, DeltakerEksternV1Dto>()
-
-    val consumer = stringStringConsumer(Environment.DELTAKER_EKSTERN_V1_TOPIC) { k, v ->
-        cache[UUID.fromString(k)] = objectMapper.readValue(v)
-    }
-
-    consumer.start()
-
-    eventually {
-        val cachedDeltaker = cache[deltakerId].shouldNotBeNull()
-        cachedDeltaker.id shouldBe deltakerId
-    }
-
-    consumer.close()
-}
-
-suspend fun assertProducedFeilregistrert(deltakerId: UUID) {
-    val cache = mutableMapOf<UUID, DeltakerV2Dto>()
-
-    val consumer = stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
-        cache[UUID.fromString(k)] = objectMapper.readValue(v)
-    }
-
-    consumer.start()
-
-    eventually {
-        assertSoftly(cache[deltakerId].shouldNotBeNull()) {
-            id shouldBe deltakerId
-            status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
-            dagerPerUke shouldBe null
-            prosentStilling shouldBe null
-            oppstartsdato shouldBe null
-            sluttdato shouldBe null
-            bestillingTekst shouldBe null
-            innhold shouldBe null
-            historikk?.filterIsInstance<DeltakerHistorikk.Endring>() shouldBe emptyList()
-        }
-    }
-
-    consumer.close()
 }
 
 suspend fun <T : HendelseType> assertProducedHendelse(

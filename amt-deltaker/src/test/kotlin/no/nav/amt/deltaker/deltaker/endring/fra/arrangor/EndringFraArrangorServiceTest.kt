@@ -2,9 +2,8 @@ package no.nav.amt.deltaker.deltaker.endring.fra.arrangor
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -13,14 +12,12 @@ import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
     @Test
@@ -66,7 +63,7 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
             it.endring shouldBe endringFraArrangor.endring
         }
 
-        assertProducedLeggTilOppstartsdato(deltaker.id)
+        outboxService.assertProducedHendelse<HendelseType.LeggTilOppstartsdato>(deltaker.id)
     }
 
     @Test
@@ -110,7 +107,7 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
             it.endring shouldBe endringFraArrangor.endring
         }
 
-        assertProducedLeggTilOppstartsdato(deltaker.id)
+        outboxService.assertProducedHendelse<HendelseType.LeggTilOppstartsdato>(deltaker.id)
     }
 
     @Test
@@ -153,7 +150,7 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
             it.endring shouldBe endringFraArrangor.endring
         }
 
-        assertProducedLeggTilOppstartsdato(deltaker.id)
+        outboxService.assertProducedHendelse<HendelseType.LeggTilOppstartsdato>(deltaker.id)
     }
 
     @Test
@@ -202,7 +199,7 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
 
         deltakerEtterEndring.sluttdato shouldBe gammelsluttdato
 
-        assertProducedLeggTilOppstartsdato(deltaker.id)
+        outboxService.assertProducedHendelse<HendelseType.LeggTilOppstartsdato>(deltaker.id)
     }
 
     @Test
@@ -246,19 +243,6 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
             it.endring shouldBe endringFraArrangor.endring
         }
 
-        assertProducedLeggTilOppstartsdato(deltaker.id)
-    }
-
-    private fun assertProducedLeggTilOppstartsdato(deltakerId: UUID) {
-        verify {
-            outboxService.insertRecord(
-                key = deltakerId,
-                value = match {
-                    it is Hendelse && it.payload is HendelseType.LeggTilOppstartsdato
-                },
-                topic = Environment.DELTAKER_HENDELSE_TOPIC,
-                suppressOutsideTxWarning = any(),
-            )
-        }
+        outboxService.assertProducedHendelse<HendelseType.LeggTilOppstartsdato>(deltaker.id)
     }
 }

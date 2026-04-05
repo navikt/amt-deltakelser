@@ -9,13 +9,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatus
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
+import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -34,7 +35,6 @@ import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
@@ -252,7 +252,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 it.sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
             }
 
-            assertProducedHendelse<HendelseType.OpprettUtkast>(deltaker.id)
+            outboxService.assertProducedHendelse<HendelseType.OpprettUtkast>(deltaker.id)
         }
 
         @Test
@@ -294,7 +294,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
 
             innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
 
-            assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltaker.id)
+            outboxService.assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltaker.id)
         }
 
         @Test
@@ -341,7 +341,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 innsokt shouldBeCloseTo LocalDateTime.now()
             }
 
-            assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltaker.id)
+            outboxService.assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltaker.id)
         }
     }
 
@@ -391,25 +391,25 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
         }
 
-        assertProducedHendelse<HendelseType.AvbrytUtkast>(deltaker.id)
+        outboxService.assertProducedHendelse<HendelseType.AvbrytUtkast>(deltaker.id)
     }
 
     @Nested
     inner class InnbyggerGodkjennUtkastTests {
         private fun assertProduced(deltakerId: UUID) {
-            assertProducedHendelse<HendelseType.InnbyggerGodkjennUtkast>(deltakerId)
+            outboxService.assertProducedHendelse<HendelseType.InnbyggerGodkjennUtkast>(deltakerId)
 
-            assertProduced<DeltakerKafkaPayload>(
+            outboxService.assertProduced<DeltakerKafkaPayload>(
                 expectedDeltakerId = deltakerId,
                 expectedTopic = Environment.DELTAKER_V2_TOPIC,
             )
 
-            assertProduced<DeltakerV1Dto>(
+            outboxService.assertProduced<DeltakerV1Dto>(
                 expectedDeltakerId = deltakerId,
                 expectedTopic = Environment.DELTAKER_V1_TOPIC,
             )
 
-            assertProduced<DeltakerEksternV1Dto>(
+            outboxService.assertProduced<DeltakerEksternV1Dto>(
                 expectedDeltakerId = deltakerId,
                 expectedTopic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
@@ -541,33 +541,6 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             deltakerStatus.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        }
-    }
-
-    private inline fun <reified T : Any> assertProduced(
-        expectedDeltakerId: UUID,
-        expectedTopic: String,
-    ) {
-        verify {
-            outboxService.insertRecord(
-                key = expectedDeltakerId,
-                value = ofType<T>(),
-                topic = expectedTopic,
-                suppressOutsideTxWarning = any(),
-            )
-        }
-    }
-
-    private inline fun <reified T : HendelseType> assertProducedHendelse(expectedDeltakerId: UUID) {
-        verify {
-            outboxService.insertRecord(
-                key = expectedDeltakerId,
-                value = match {
-                    it is Hendelse && it.payload is T
-                },
-                topic = Environment.DELTAKER_HENDELSE_TOPIC,
-                suppressOutsideTxWarning = any(),
-            )
         }
     }
 }
