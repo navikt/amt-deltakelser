@@ -11,6 +11,7 @@ import io.mockk.runs
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
@@ -115,10 +116,20 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             } returns lagVedtak(deltakerId = deltakerInTest.id, deltakerVedVedtak = deltakerInTest)
 
             // Act
-            enkeltplassService.meldPaaDirekte(deltakerId = deltakerInTest.id, decoratedRequest = decoratedRequest)
+            enkeltplassService.meldPaaDirekte(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
 
             // Assert
-            verify { gjennomforingRequestProducer.produce(any<GjennomforingRequestPayload.OpprettEnkeltplass>()) }
+            verify {
+                outboxService.insertRecord(
+                    key = any(),
+                    value = ofType<GjennomforingRequestPayload.OpprettEnkeltplass>(),
+                    topic = Environment.GJENNOMFORING_REQUEST_TOPIC,
+                    suppressOutsideTxWarning = any(),
+                )
+            }
         }
 
         @Test
