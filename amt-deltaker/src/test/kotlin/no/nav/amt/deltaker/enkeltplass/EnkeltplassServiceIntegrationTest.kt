@@ -95,7 +95,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer ny deltakerId`() = runTest {
+        fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer samme deltakerId`() = runTest {
             val deltaker = enkeltplassService.opprettKladd(
                 tiltak.tiltakskode,
                 navBruker.personident,
