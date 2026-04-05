@@ -8,7 +8,6 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
-import io.mockk.every
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatus
@@ -59,9 +58,6 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         navEnhetRepository.upsert(sistEndretAvNavEnhet)
         navAnsattRepository.upsert(sistEndretAvNavAnsatt)
         tiltakstypeRepository.upsert(tiltak)
-
-        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
-        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
     }
 
     @Nested

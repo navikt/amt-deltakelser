@@ -69,6 +69,7 @@ import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.outbox.OutboxRecord
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
@@ -77,25 +78,25 @@ import org.junit.jupiter.api.BeforeEach
 
 abstract class IntegrationTestBase {
     protected open val arrangorClient: AmtArrangorClient = mockk()
-    protected open val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
-    protected open val distribusjonClient: AmtDistribusjonClient = mockk(relaxed = true)
-    protected open val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient = mockk(relaxed = true)
+    protected open val personServiceClient: AmtPersonServiceClient = mockk()
+    protected open val distribusjonClient: AmtDistribusjonClient = mockk()
+    protected open val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient = mockk()
 
-    protected open val arrangorRepository: ArrangorRepository = mockk(relaxed = true)
+    protected open val arrangorRepository: ArrangorRepository = mockk()
     protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
-    protected open val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
-    protected open val deltakerlisteRepository: DeltakerlisteRepository = mockk(relaxed = true)
+    protected open val deltakerRepository: DeltakerRepository = mockk()
+    protected open val deltakerlisteRepository: DeltakerlisteRepository = mockk()
     protected open val endringFraArrangorRepository: EndringFraArrangorRepository = mockk()
-    protected open val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk(relaxed = true)
+    protected open val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk()
     protected open val forslagRepository: ForslagRepository = mockk()
     protected open val importertFraArenaRepository: ImportertFraArenaRepository = mockk()
-    protected open val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository = mockk(relaxed = true)
-    protected open val navAnsattRepository: NavAnsattRepository = mockk(relaxed = true)
-    protected open val navBrukerRepository: NavBrukerRepository = mockk(relaxed = true)
-    protected open val navEnhetRepository: NavEnhetRepository = mockk(relaxed = true)
-    protected open val tiltakstypeRepository: TiltakstypeRepository = mockk(relaxed = true)
+    protected open val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository = mockk()
+    protected open val navAnsattRepository: NavAnsattRepository = mockk()
+    protected open val navBrukerRepository: NavBrukerRepository = mockk()
+    protected open val navEnhetRepository: NavEnhetRepository = mockk()
+    protected open val tiltakstypeRepository: TiltakstypeRepository = mockk()
     protected open val vedtakRepository = mockk<VedtakRepository>()
-    protected open val vurderingRepository: VurderingRepository = mockk(relaxed = true)
+    protected open val vurderingRepository: VurderingRepository = mockk()
 
     protected open val navEnhetService: NavEnhetService by lazy {
         NavEnhetService(
@@ -201,10 +202,10 @@ abstract class IntegrationTestBase {
         )
     }
 
-    protected open val outboxService: OutboxService = mockk(relaxed = true)
-    protected open val stringStringProducer: Producer<String, String> = mockk(relaxed = true)
+    protected open val outboxService: OutboxService = mockk()
+    protected open val stringStringProducer: Producer<String, String> = mockk()
     protected open val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
-    protected open val unleashToggle: CommonUnleashToggle = mockk(relaxed = true)
+    protected open val unleashToggle: CommonUnleashToggle = mockk()
 
     protected open val deltakerProducer: DeltakerProducer by lazy {
         DeltakerProducer(
@@ -361,7 +362,14 @@ abstract class IntegrationTestBase {
     protected fun init() {
         clearAllMocks()
         configureEnvForAuthentication()
+
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
+        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
+
+        val mockOutboxRecord = mockk<OutboxRecord>()
+        every {
+            outboxService.insertRecord(any(), any(), any(), any())
+        } returns mockOutboxRecord
     }
 
     protected fun <T : Any> withTestApplicationContext(

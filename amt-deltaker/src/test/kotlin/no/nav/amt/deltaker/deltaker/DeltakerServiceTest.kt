@@ -10,7 +10,6 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.every
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_V1_TOPIC
@@ -69,9 +68,6 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
     @BeforeEach
     fun setup() {
-        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
-        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
-
         navEnhetRepository.upsert(navEnhetInTest)
         navAnsattRepository.upsert(navAnsattInTest)
     }

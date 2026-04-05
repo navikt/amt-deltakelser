@@ -35,9 +35,6 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
     fun setup() {
         navEnhetRepository.upsert(sistEndretAvNavEnhet)
         navAnsattRepository.upsert(sistEndretAvNavAnsatt)
-
-        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
-        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
     }
 
     @Test

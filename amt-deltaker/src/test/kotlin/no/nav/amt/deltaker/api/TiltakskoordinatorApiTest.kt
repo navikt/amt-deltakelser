@@ -19,7 +19,6 @@ import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -54,7 +53,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
-        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
@@ -73,7 +71,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
-        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
