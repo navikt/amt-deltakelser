@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.Duration.Companion.milliseconds
 
 class JobManagerTest {
     @Test
@@ -32,7 +33,7 @@ class JobManagerTest {
             counter.incrementAndGet()
         }
 
-        delay(150)
+        delay(150.milliseconds)
 
         jobManager.stopJobs()
 
@@ -73,7 +74,7 @@ class JobManagerTest {
             initialDelay = Duration.ofMillis(0),
             period = Duration.ofMillis(50),
         ) {
-            delay(100)
+            delay(100.milliseconds)
             counter.incrementAndGet()
         }
 

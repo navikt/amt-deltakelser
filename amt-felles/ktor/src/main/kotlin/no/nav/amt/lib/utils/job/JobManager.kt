@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Manages recurring jobs in a coroutine-based environment.
@@ -50,7 +51,7 @@ class JobManager(
     ) {
         scope
             .launch {
-                delay(initialDelay.toMillis())
+                delay(initialDelay.toMillis().milliseconds)
                 while (isRunning) {
                     val startTime = System.currentTimeMillis()
                     if (isLeader() && applicationIsReady()) {
@@ -60,7 +61,7 @@ class JobManager(
                                 log.info("Kjører jobb: $name")
                             }
                             job()
-                        } catch (e: CancellationException) {
+                        } catch (_: CancellationException) {
                             log.info("Jobb $name ble avbrutt")
                             break
                         } catch (e: Exception) {
@@ -69,7 +70,7 @@ class JobManager(
                     }
                     val executionTime = System.currentTimeMillis() - startTime
                     val delayTime = (period.toMillis() - executionTime).coerceAtLeast(0)
-                    delay(delayTime)
+                    delay(delayTime.milliseconds)
                 }
                 log.info("Jobb $name er stoppet")
             }.also { jobs.add(it) }
