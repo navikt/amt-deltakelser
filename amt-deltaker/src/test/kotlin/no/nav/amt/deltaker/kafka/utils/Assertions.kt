@@ -43,6 +43,19 @@ inline fun <reified T : HendelseType> OutboxService.assertProducedHendelse(expec
     }
 }
 
+inline fun <reified T : Forslag.Status> OutboxService.assertProducedForslag(expectedForslagId: UUID) {
+    verify {
+        insertRecord(
+            key = expectedForslagId,
+            value = match {
+                it is Forslag && it.status is T
+            },
+            topic = Environment.ARRANGOR_MELDING_TOPIC,
+            suppressOutsideTxWarning = any(),
+        )
+    }
+}
+
 suspend fun <T : HendelseType> assertProducedHendelse(
     deltakerId: UUID,
     hendelsetype: KClass<T>,
@@ -60,29 +73,6 @@ suspend fun <T : HendelseType> assertProducedHendelse(
             deltaker.id shouldBe deltakerId
             payload::class shouldBe hendelsetype
         }
-    }
-
-    consumer.close()
-}
-
-suspend fun assertProducedForslag(forslag: Forslag) {
-    val cache = mutableMapOf<UUID, Forslag>()
-
-    val consumer = stringStringConsumer(Environment.ARRANGOR_MELDING_TOPIC) { k, v ->
-        cache[UUID.fromString(k)] = objectMapper.readValue(v)
-    }
-
-    consumer.start()
-
-    eventually {
-        val cachedForslag = cache[forslag.id]!!
-        cachedForslag.id shouldBe forslag.id
-        cachedForslag.deltakerId shouldBe forslag.deltakerId
-        cachedForslag.endring shouldBe forslag.endring
-        cachedForslag.begrunnelse shouldBe forslag.begrunnelse
-        cachedForslag.opprettet shouldBeCloseTo forslag.opprettet
-        cachedForslag.opprettetAvArrangorAnsattId shouldBe forslag.opprettetAvArrangorAnsattId
-        sammenlignForslagStatus(cachedForslag.status, forslag.status)
     }
 
     consumer.close()
