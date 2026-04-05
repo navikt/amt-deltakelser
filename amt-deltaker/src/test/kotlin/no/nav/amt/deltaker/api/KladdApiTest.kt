@@ -13,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.just
 import io.mockk.mockk
 import no.nav.amt.deltaker.deltaker.KladdService
+import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
@@ -25,6 +26,7 @@ import java.util.UUID
 
 class KladdApiTest : IntegrationTestBase() {
     override val kladdService = mockk<KladdService>()
+    override val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
 
     @Test
     fun `post - mangler token - returnerer 401`() {

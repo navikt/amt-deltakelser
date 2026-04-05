@@ -13,6 +13,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.application.plugins.configureRouting
@@ -31,9 +32,12 @@ import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
@@ -72,23 +76,10 @@ import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import org.junit.jupiter.api.BeforeEach
 
 abstract class IntegrationTestBase {
-    protected open val deltakerLaaseService: DeltakerLaaseService = mockk(relaxed = true)
-
-    protected open val responseBuilder: ResponseBuilder by lazy {
-        ResponseBuilder(
-            arrangorService = arrangorService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            amtDistribusjonClient = distribusjonClient,
-            deltakerHistorikkService = deltakerHistorikkService,
-            forslagRepository = forslagRepository,
-            deltakerLaaseService = deltakerLaaseService,
-        )
-    }
-
     protected open val arrangorClient: AmtArrangorClient = mockk()
     protected open val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
     protected open val distribusjonClient: AmtDistribusjonClient = mockk(relaxed = true)
+    protected open val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient = mockk(relaxed = true)
 
     protected open val arrangorRepository: ArrangorRepository = mockk(relaxed = true)
     protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
@@ -212,6 +203,8 @@ abstract class IntegrationTestBase {
 
     protected open val outboxService: OutboxService = mockk(relaxed = true)
     protected open val stringStringProducer: Producer<String, String> = mockk(relaxed = true)
+    protected open val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
+    protected open val unleashToggle: CommonUnleashToggle = mockk(relaxed = true)
 
     protected open val deltakerProducer: DeltakerProducer by lazy {
         DeltakerProducer(
@@ -251,6 +244,30 @@ abstract class IntegrationTestBase {
         )
     }
 
+    protected open val arrangorMeldingProducer: ArrangorMeldingProducer by lazy {
+        ArrangorMeldingProducer(outboxService = outboxService)
+    }
+
+    protected open val forslagService: ForslagService by lazy {
+        ForslagService(
+            forslagRepository = forslagRepository,
+            arrangorMeldingProducer = arrangorMeldingProducer,
+            deltakerRepository = deltakerRepository,
+            deltakerProducerService = deltakerProducerService,
+        )
+    }
+
+    protected open val deltakerEndringService: DeltakerEndringService by lazy {
+        DeltakerEndringService(
+            deltakerEndringRepository = deltakerEndringRepository,
+            navAnsattRepository = navAnsattRepository,
+            navEnhetRepository = navEnhetRepository,
+            hendelseService = hendelseService,
+            forslagService = forslagService,
+            deltakerHistorikkService = deltakerHistorikkService,
+        )
+    }
+
     protected open val deltakerService: DeltakerService by lazy {
         DeltakerService(
             deltakerRepository = deltakerRepository,
@@ -261,7 +278,7 @@ abstract class IntegrationTestBase {
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             deltakerEndringRepository = deltakerEndringRepository,
             hendelseService = hendelseService,
-            deltakerEndringService = mockk(relaxed = true),
+            deltakerEndringService = deltakerEndringService,
             navEnhetService = navEnhetService,
             navAnsattService = navAnsattService,
             forslagRepository = forslagRepository,
@@ -284,7 +301,7 @@ abstract class IntegrationTestBase {
         )
     }
 
-    protected val endringFraArrangorService: EndringFraArrangorService by lazy {
+    protected open val endringFraArrangorService: EndringFraArrangorService by lazy {
         EndringFraArrangorService(
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
@@ -294,12 +311,16 @@ abstract class IntegrationTestBase {
         )
     }
 
-    protected open val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
     protected open val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
 
-    protected open val unleashToggle: CommonUnleashToggle = mockk(relaxed = true)
-
-    protected val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
+    protected open val opprettKladdRequestValidator: OpprettKladdRequestValidator by lazy {
+        OpprettKladdRequestValidator(
+            deltakerlisteRepository = deltakerlisteRepository,
+            brukerService = navBrukerService,
+            personServiceClient = personServiceClient,
+            isOppfolgingsTilfelleClient = isOppfolgingstilfelleClient,
+        )
+    }
 
     protected open val deltakerlisteConsumer: DeltakerlisteConsumer by lazy {
         DeltakerlisteConsumer(
@@ -309,11 +330,32 @@ abstract class IntegrationTestBase {
             arrangorService = arrangorService,
             deltakerService = deltakerService,
             unleashToggle = unleashToggle,
-            deltakerProducerService = mockk(relaxed = true),
+            deltakerProducerService = deltakerProducerService,
         )
     }
 
-    protected open val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>(relaxUnitFun = true)
+    protected open val gjennomforingRequestProducer: GjennomforingRequestProducer by lazy {
+        GjennomforingRequestProducer(outboxService = outboxService)
+    }
+
+    protected open val deltakerLaaseService: DeltakerLaaseService by lazy {
+        DeltakerLaaseService(
+            deltakerRepository = deltakerRepository,
+            importertFraArenaRepository = importertFraArenaRepository,
+        )
+    }
+
+    protected open val responseBuilder: ResponseBuilder by lazy {
+        ResponseBuilder(
+            arrangorService = arrangorService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            amtDistribusjonClient = distribusjonClient,
+            deltakerHistorikkService = deltakerHistorikkService,
+            forslagRepository = forslagRepository,
+            deltakerLaaseService = deltakerLaaseService,
+        )
+    }
 
     @BeforeEach
     protected fun init() {

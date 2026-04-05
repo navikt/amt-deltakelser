@@ -9,6 +9,7 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -27,6 +28,7 @@ import java.util.UUID
 
 class EnkeltplassApiTest : IntegrationTestBase() {
     override val enkeltplassService = mockk<EnkeltplassService>(relaxed = true)
+    override val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>(relaxed = true)
 
     @Nested
     inner class MeldPaaDirekteTests {
