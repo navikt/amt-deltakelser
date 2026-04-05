@@ -7,7 +7,6 @@ import java.util.Locale
 private val locale = Locale
     .Builder()
     .setLanguageTag("no")
-    .setLanguageTag("no")
     .setRegion("NO")
     .build()
 

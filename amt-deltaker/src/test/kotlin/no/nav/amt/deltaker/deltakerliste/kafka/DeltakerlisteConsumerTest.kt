@@ -2,6 +2,8 @@ package no.nav.amt.deltaker.deltakerliste.kafka
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -46,6 +48,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
     inner class AvgrensSluttdatoerTilTests {
         @Test
         fun `avgrensSluttdatoerTil - deltaker har senere sluttdato enn deltakerliste - deltakers sluttdato endres`() = runTest {
+            // Arrange
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
@@ -58,15 +61,17 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
             TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
 
+            // Act
             deltakerlisteConsumer.avgrensSluttdatoerTil(deltakerliste)
 
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
+            // Assert
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
             oppdatertDeltaker.sluttdato shouldBe deltakerliste.sluttDato
         }
 
         @Test
         fun `avgrensSluttdatoerTil - deltaker har tidligere sluttdato enn deltakerliste - deltakers sluttdato endres ikke`() = runTest {
+            // Arrange
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
@@ -79,16 +84,18 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
             TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
 
+            // Act
             deltakerlisteConsumer.avgrensSluttdatoerTil(deltakerliste)
 
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
+            // Assert
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
             oppdatertDeltaker.sluttdato shouldNotBe deltakerliste.sluttDato
         }
     }
 
     @Test
-    fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() {
+    fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest)
         val deltaker = lagDeltaker(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
@@ -98,21 +105,22 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
                 arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
             ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
 
-        runTest {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                deltakerlisteConsumer.consume(
-                    deltakerlistePayload.id,
-                    objectMapper.writeValueAsString(deltakerlistePayload),
-                )
-            }
-
-            thrown.message shouldBe
-                "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
+        // Act
+        val thrown = shouldThrow<IllegalArgumentException> {
+            deltakerlisteConsumer.consume(
+                key = deltakerlistePayload.id,
+                value = objectMapper.writeValueAsString(deltakerlistePayload),
+            )
         }
+
+        // Assert
+        thrown.message shouldBe
+            "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
     }
 
     @Test
-    fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() {
+    fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() = runTest {
+        // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
         tiltakstypeRepository.upsert(tiltakstype)
 
@@ -125,18 +133,17 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         every { unleashToggle.skalLeseGjennomforing(tiltakstype.tiltakskode.name) } returns false
         coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
-        runTest {
-            deltakerlisteConsumer.consume(
-                deltakerlistePayload.id,
-                objectMapper.writeValueAsString(deltakerlistePayload),
-            )
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerlistePayload.id,
+            value = objectMapper.writeValueAsString(deltakerlistePayload),
+        )
 
-            val thrown = shouldThrow<NoSuchElementException> {
-                deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
-            }
-
-            thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
+        val thrown = shouldThrow<NoSuchElementException> {
+            deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
         }
+
+        thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
     }
 
     @Test
@@ -159,12 +166,12 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
         // Act
         deltakerlisteConsumer.consume(
-            deltakerlistePayload.id,
-            objectMapper.writeValueAsString(deltakerlistePayload),
+            key = deltakerlistePayload.id,
+            value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste
     }
 
     @Test
@@ -188,12 +195,12 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
         // Act
         deltakerlisteConsumer.consume(
-            deltakerlistePayload.id,
-            objectMapper.writeValueAsString(deltakerlistePayload),
+            key = deltakerlistePayload.id,
+            value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste.copy(
             navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
             status = null,
             startDato = null,
@@ -219,16 +226,17 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
         // Act
         deltakerlisteConsumer.consume(
-            deltakerliste.id,
-            objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, deltakerliste)),
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, deltakerliste)),
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste
     }
 
     @Test
-    fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() {
+    fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
@@ -237,51 +245,59 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
-        runTest {
-            deltakerlisteConsumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
-            )
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
-        }
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
     }
 
     @Test
-    fun `consumeDeltakerliste - avbrutt - oppdaterer deltakerliste og avslutter deltakere`() {
+    fun `consumeDeltakerliste - avbrutt - oppdaterer deltakerliste og avslutter deltakere`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         TestRepository.insert(deltakerliste)
 
-        val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
+        val oppdatertDeltakerliste = deltakerliste.copy(
+            sluttDato = LocalDate.now(),
+            status = GjennomforingStatusType.AVBRUTT,
+        )
 
-        runTest {
-            deltakerlisteConsumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
-            )
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
-        }
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
     }
 
     @Test
-    fun `consumeDeltakerliste - tombstone - sletter deltakerliste`() {
+    fun `consumeDeltakerliste - tombstone - sletter deltakerliste`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste()
-
         TestRepository.insert(deltakerliste)
 
-        runTest {
-            deltakerlisteConsumer.consume(deltakerliste.id, null)
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = null,
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
-        }
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeFailure()
     }
 
     @Test
-    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato pa deltakere`() {
+    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato pa deltakere`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
@@ -290,17 +306,15 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
-        runTest {
-            deltakerlisteConsumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
-            )
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
-        }
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
     }
-
-    // FLYTTET
 
     @Nested
     inner class AvsluttDeltakelserPaaDeltakerlisteTests {
@@ -308,7 +322,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         private val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
 
         @Test
-        fun `avsluttDeltakelserPaaDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() {
+        fun `avsluttDeltakelserPaaDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() = runTest {
             // Arrange
             navEnhetRepository.upsert(sistEndretAvNavEnhet)
             navAnsattRepository.upsert(sistEndretAvNavAnsatt)
@@ -350,22 +364,20 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             )
             TestRepository.insert(deltaker2, vedtak2)
 
-            runTest {
-                // Act
-                deltakerlisteConsumer.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
+            // Act
+            deltakerlisteConsumer.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
 
-                // Assert
-                assertSoftly(deltakerRepository.get(deltaker.id).getOrThrow()) {
-                    status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-                    status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-                    sluttdato shouldBe deltakerliste.sluttDato
-                }
+            // Assert
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+                status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+                sluttdato shouldBe deltakerliste.sluttDato
+            }
 
-                assertSoftly(deltakerRepository.get(deltaker2.id).getOrThrow()) {
-                    status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-                    status.aarsak?.type shouldBe null
-                    sluttdato shouldBe deltaker2.sluttdato
-                }
+            assertSoftly(deltakerRepository.get(deltaker2.id).shouldBeSuccess()) {
+                status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                status.aarsak?.type shouldBe null
+                sluttdato shouldBe deltaker2.sluttdato
             }
         }
     }

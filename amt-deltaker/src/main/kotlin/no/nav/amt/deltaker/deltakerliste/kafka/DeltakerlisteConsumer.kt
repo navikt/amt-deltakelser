@@ -19,6 +19,7 @@ import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerlisteConsumer(
@@ -131,7 +132,12 @@ class DeltakerlisteConsumer(
         deltakerRepository
             .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
             .forEach { deltaker ->
-                deltakerRepository.upsert(deltaker.copy(sluttdato = deltakerliste.sluttDato))
+                deltakerRepository.upsert(
+                    deltaker.copy(
+                        sluttdato = deltakerliste.sluttDato,
+                        sistEndret = LocalDateTime.now(),
+                    ),
+                )
                 deltakerService.lagreDeltakerStatus(
                     deltakerId = deltaker.id,
                     nyDeltakerStatus = deltaker.status,
