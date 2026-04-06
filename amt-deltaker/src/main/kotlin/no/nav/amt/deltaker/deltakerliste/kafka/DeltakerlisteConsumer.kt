@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.deltakerliste.toModel
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
@@ -89,14 +90,14 @@ class DeltakerlisteConsumer(
                 )
 
                 // hvis deltakerliste er for enkeltplass, publiser deltaker
-                if (eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
+                if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
+                    eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
                     deltakerliste.status != GjennomforingStatusType.KLADD
                 ) {
-                    val enkeltplassDeltaker = deltakerRepository
+                    deltakerRepository
                         .getEnkeltplassdeltaker(eksisterendeDeltakerliste.id)
-                        .getOrThrow()
-
-                    deltakerProducerService.produce(enkeltplassDeltaker)
+                        .onSuccess { enkeltplassDeltaker -> deltakerProducerService.produce(enkeltplassDeltaker) }
+                        .onFailure { log.warn("Fant ikke enkeltplass-deltaker for deltakerliste ${eksisterendeDeltakerliste.id}") }
                 }
             }
         } else {
