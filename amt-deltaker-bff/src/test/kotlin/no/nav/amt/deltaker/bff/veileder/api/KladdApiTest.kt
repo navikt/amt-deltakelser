@@ -4,10 +4,12 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.mockk
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
@@ -17,6 +19,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
+import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -26,20 +29,29 @@ import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class KladdApiTest : IntegrationTestBase() {
+    private val deltakerInTest = lagDeltaker()
+
+    @BeforeEach
+    fun setup() {
+        coEvery {
+            amtDeltakerClient.getPersonidentForDeltaker(any())
+        } returns PersonIdentResponse(deltakerInTest.navBruker.personident)
+    }
+
     @Test
     fun `post kladd - har tilgang - returnerer deltaker`() {
-        val deltaker = lagDeltaker()
-        val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
-        val navEnhet = lagNavEnhet(id = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet)
+        val ansatte = lagNavAnsatteForDeltaker(deltakerInTest).associateBy { it.id }
+        val navEnhet = lagNavEnhet(id = deltakerInTest.vedtaksinformasjon!!.sistEndretAvEnhet)
 
-        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltaker
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
+        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltakerInTest
+        every { navAnsattService.hentAnsatteForDeltaker(deltakerInTest) } returns ansatte
         every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        every { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
         withTestApplicationContext { httpClient ->
@@ -47,7 +59,7 @@ class KladdApiTest : IntegrationTestBase() {
                 assertEquals(HttpStatusCode.OK, status)
 
                 val expected = DeltakerResponse.fromDeltaker(
-                    deltaker = deltaker,
+                    deltaker = deltakerInTest,
                     ansatte = ansatte,
                     vedtakSistEndretAvEnhet = navEnhet,
                     digitalBruker = true,
@@ -61,13 +73,13 @@ class KladdApiTest : IntegrationTestBase() {
 
     @Test
     fun `post - har ikke tilgang - returnerer 403`() {
-        val deltaker = lagDeltaker()
+        // Arrange
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
         every { deltakerRepository.get(any()) } returns Result.success(
-            lagDeltaker(
+            deltakerInTest.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             ),
         )
@@ -78,7 +90,7 @@ class KladdApiTest : IntegrationTestBase() {
 
             httpClient
                 .post("/kladd/${UUID.randomUUID()}") {
-                    createPostRequest(utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto()))
+                    createPostRequest(utkastRequest(deltakerInTest.deltakelsesinnhold!!.innhold.toInnholdDto()))
                 }.status shouldBe HttpStatusCode.Forbidden
 
             httpClient.post("/kladd/${UUID.randomUUID()}") { createPostRequest(kladdRequest) }.status shouldBe HttpStatusCode.Forbidden
@@ -89,13 +101,17 @@ class KladdApiTest : IntegrationTestBase() {
 
     @Test
     fun `post kladd - har tilgang - returnerer 200`() {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+        // Arrange
+        val deltaker = deltakerInTest.copy(
+            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+        )
 
-        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-
         coEvery { pameldingService.upsertKladd(any()) } returns deltaker
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+        coEvery { paameldingClient.oppdaterKladd(deltakerInTest.id, any()) } returns mockk<HttpResponse>()
 
+        // Act & Assert
         withTestApplicationContext { httpClient ->
             httpClient.post("/kladd/${deltaker.id}") { createPostRequest(kladdRequest) }.apply {
                 status shouldBe HttpStatusCode.OK

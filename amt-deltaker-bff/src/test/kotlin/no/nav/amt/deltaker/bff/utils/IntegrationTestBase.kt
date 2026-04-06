@@ -45,33 +45,31 @@ import org.junit.jupiter.api.BeforeEach
 import java.util.UUID
 
 abstract class IntegrationTestBase {
-    protected val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
-    protected val deltakerService: DeltakerService = mockk(relaxed = true)
-    protected val pameldingService: PameldingService = mockk(relaxed = true)
-    protected val paameldingClient: PaameldingClient = mockk(relaxed = true)
-    protected val navAnsattService: NavAnsattService = mockk(relaxed = true)
-    protected val navEnhetService: NavEnhetService = mockk(relaxed = true)
-    protected val innbyggerService: InnbyggerService = mockk(relaxed = true)
-    protected val forslagRepository: ForslagRepository = mockk(relaxed = true)
-    protected val forslagService: ForslagService = mockk(relaxed = true)
-
-    protected val amtDistribusjonClient: AmtDistribusjonClient = mockk(relaxed = true)
-    protected val amtDeltakerClient = mockk<AmtDeltakerClient>(relaxed = true)
-    protected val arrangorsokClient = mockk<ArrangorsokClient>(relaxed = true)
-
+    protected val amtDeltakerClient = mockk<AmtDeltakerClient>()
+    protected val amtDistribusjonClient: AmtDistribusjonClient = mockk()
+    protected val arrangorsokClient = mockk<ArrangorsokClient>()
     protected val enkeltplassClient = mockk<EnkeltplassClient>()
-
-    protected val sporbarhetsloggService: SporbarhetsloggService = mockk(relaxed = true)
-    protected val deltakerlisteService: DeltakerlisteService = mockk(relaxed = true)
-    protected val unleash: Unleash = mockk(relaxed = true)
-    protected val commonUnleashToggle: CommonUnleashToggle = mockk(relaxed = true)
-    protected val sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc = mockk(relaxed = true)
-    protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk(relaxed = true)
-    protected val tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository = mockk(relaxed = true)
-    protected val ulestHendelseService: UlestHendelseService = mockk(relaxed = true)
-    protected val testdataService: TestdataService = mockk(relaxed = true)
-    protected val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
+    protected val paameldingClient: PaameldingClient = mockk()
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
+
+    protected val deltakerRepository: DeltakerRepository = mockk()
+    protected val forslagRepository: ForslagRepository = mockk()
+    protected val tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository = mockk()
+
+    protected val deltakerService: DeltakerService = mockk()
+    protected val pameldingService: PameldingService = mockk()
+    protected val navAnsattService: NavAnsattService = mockk()
+    protected val navEnhetService: NavEnhetService = mockk()
+    protected val innbyggerService: InnbyggerService = mockk()
+    protected val forslagService: ForslagService = mockk()
+    protected val sporbarhetsloggService: SporbarhetsloggService = mockk()
+    protected val deltakerlisteService: DeltakerlisteService = mockk()
+
+    protected val sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc = mockk()
+    protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk()
+    protected val ulestHendelseService: UlestHendelseService = mockk()
+    protected val testdataService: TestdataService = mockk()
+    protected val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
     protected open val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient = poaoTilgangCachedClient,
         navAnsattService = navAnsattService,
@@ -80,6 +78,9 @@ abstract class IntegrationTestBase {
         tiltakskoordinatorService = tiltakskoordinatorService,
         deltakerlisteService = deltakerlisteService,
     )
+
+    protected val unleash: Unleash = mockk()
+    protected val commonUnleashToggle: CommonUnleashToggle = mockk()
 
     @BeforeEach
     protected fun init() {

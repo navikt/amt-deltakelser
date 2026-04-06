@@ -7,8 +7,10 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
@@ -65,14 +67,19 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `get id - innbygger har tilgang - returnerer 200 og deltaker`() = runTest {
+        // Arrange
         val deltaker = lagDeltaker()
         val forslag = lagForslag(deltakerId = deltaker.id)
         val (ansatte, enhet) = setupMocks(deltaker, forslag = listOf(forslag))
 
+        coEvery { deltakerService.oppdaterSistBesokt(deltaker) } just Runs
+
+        // Act
         val httpResponse = withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${deltaker.id}") { noBodyRequest() }
         }
 
+        // Assert
         httpResponse.status shouldBe HttpStatusCode.OK
         httpResponse.bodyAsText() shouldBe objectMapper.writeValueAsString(
             deltaker.toInnbyggerDeltakerResponse(

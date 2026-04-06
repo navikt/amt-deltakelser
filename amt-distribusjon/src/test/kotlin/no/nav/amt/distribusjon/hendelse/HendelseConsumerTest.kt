@@ -13,27 +13,35 @@ import no.nav.amt.distribusjon.hendelse.model.HendelseDto
 import no.nav.amt.distribusjon.hendelse.model.toModel
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
+import no.nav.amt.distribusjon.utils.data.Persondata.lagNavBruker
 import no.nav.amt.distribusjon.utils.data.Varselsdata
 import no.nav.amt.distribusjon.varsel.model.Varsel
 import no.nav.amt.distribusjon.varsel.model.beskjedTekst
 import no.nav.amt.distribusjon.varsel.model.oppgaveTekst
 import no.nav.amt.distribusjon.varsel.nowUTC
 import no.nav.amt.distribusjon.varsel.skalVarslesEksternt
+import no.nav.amt.distribusjon.veilarboppfolging.Sak
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class HendelseConsumerTest : IntegrationTestBase() {
-    private fun setupMocks(hendelse: HendelseDto) {
-        coEvery {
-            dokdistkanalClient.bestemDistribusjonskanal(hendelse.deltaker.personident, hendelse.deltaker.id)
-        } returns Distribusjonskanal.DITT_NAV
-
-        coEvery { veilarboppfolgingClient.erUnderManuellOppfolging(hendelse.deltaker.personident) } returns false
-
+    @BeforeEach
+    fun setupMocks() {
+        coEvery { amtPersonClient.hentNavBruker(any()) } returns lagNavBruker()
         coEvery { pdfgenClient.genererHovedvedtakForIndividuellOppfolging(any()) } returns "pdf".toByteArray()
+        coEvery { veilarboppfolgingClient.opprettEllerHentSak(any()) } returns Sak(
+            oppfolgingsperiodeId = UUID.randomUUID(),
+            sakId = 42L,
+            fagsaksystem = "~fagsaksystem~",
+        )
+        coEvery {
+            dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any())
+        } returns "journalpostId"
     }
 
     @Nested
@@ -42,8 +50,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
         fun `opprettUtkast - oppretter nytt varsel og produserer`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.lagHendelseDto(HendelseTypeData.opprettUtkast())
-
-            setupMocks(hendelse)
 
             // Act
             hendelseConsumer.consume(
@@ -81,8 +87,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
             )
             varselRepository.upsert(forrigeVarsel)
 
-            setupMocks(hendelse)
-
             // Act
             hendelseConsumer.consume(
                 key = hendelse.id,
@@ -109,8 +113,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
             // Arrange
             val hendelse = Hendelsesdata.lagHendelseDto(HendelseTypeData.navGodkjennUtkast())
 
-            setupMocks(hendelse)
-
             // Act
             hendelseConsumer.consume(
                 key = hendelse.id,
@@ -132,8 +134,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 deltakerId = hendelse.deltaker.id,
             )
             varselRepository.upsert(forrigeVarsel)
-
-            setupMocks(hendelse)
 
             // Act
             hendelseConsumer.consume(
@@ -165,8 +165,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
             deltakerId = hendelse.deltaker.id,
         )
         varselRepository.upsert(forrigeVarsel)
-
-        setupMocks(hendelse)
 
         // Act*
         hendelseConsumer.consume(
@@ -203,8 +201,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
         )
         varselRepository.upsert(forrigeVarsel)
 
-        setupMocks(hendelse)
-
         // Act*
         hendelseConsumer.consume(
             key = hendelse.id,
@@ -233,8 +229,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
         // Arrange
         val hendelse = Hendelsesdata.lagHendelseDto(HendelseTypeData.endreSluttdato())
 
-        setupMocks(hendelse)
-
         // Act*
         hendelseConsumer.consume(
             key = hendelse.id,
@@ -252,8 +246,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
     fun `endreStartdato - ingen tidligere varsel - oppretter forsinket varsel`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.lagHendelseDto(HendelseTypeData.endreStartdato())
-
-        setupMocks(hendelse)
 
         // Act*
         hendelseConsumer.consume(
@@ -278,8 +270,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 aktivFra = nowUTC().minusMinutes(1),
             )
             varselRepository.upsert(varsel)
-
-            setupMocks(hendelse)
 
             // Act*
             hendelseConsumer.consume(
@@ -308,8 +298,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 aktivFra = nowUTC().plusMinutes(10),
             )
             varselRepository.upsert(varsel)
-
-            setupMocks(hendelse)
 
             // Act*
             hendelseConsumer.consume(
@@ -347,8 +335,6 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 aktivFra = nowUTC().plusMinutes(10),
             )
             varselRepository.upsert(ventendeVarsel)
-
-            setupMocks(hendelse)
 
             // Act
             hendelseConsumer.consume(
