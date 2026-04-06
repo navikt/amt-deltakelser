@@ -194,6 +194,7 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `ny liste v2 enkeltplass - lagrer deltakerliste`() = runTest {
+        // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
         tiltakstypeRepository.upsert(tiltakstype)
 
@@ -203,16 +204,21 @@ class DeltakerlisteConsumerTest {
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
 
-        val deltakerlistePayload = lagEnkeltplassDeltakerlistePayload(arrangorInTest, deltakerliste)
+        val deltakerlistePayload = lagEnkeltplassDeltakerlistePayload(
+            arrangor = arrangorInTest,
+            deltakerliste = deltakerliste,
+        )
 
+        // Act
         consumer.consume(
             deltakerlistePayload.id,
             objectMapper.writeValueAsString(deltakerlistePayload),
         )
 
+        // Assert
         deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
             navn = tiltakstype.navn,
-            status = null,
+            status = deltakerliste.status,
             startDato = null,
             sluttDato = null,
             oppstart = null,

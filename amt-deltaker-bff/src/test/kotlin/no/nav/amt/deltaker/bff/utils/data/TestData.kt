@@ -200,6 +200,7 @@ object TestData {
     ) = GjennomforingV2KafkaPayload.Enkeltplass(
         id = deltakerliste.id,
         tiltakskode = deltakerliste.tiltak.tiltakskode,
+        status = deltakerliste.status ?: GjennomforingStatusType.KLADD,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
