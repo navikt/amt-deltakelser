@@ -86,6 +86,10 @@ class EnkeltplassService(
         // kan puttes i jsonobjektet i innhold
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
+        require(deltaker.deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+            "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id $deltakerId har gjennomforingstype ${deltaker.deltakerliste.gjennomforingstype}"
+        }
+
         require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
             "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id $deltakerId har status ${deltaker.status.type}"
         }

@@ -59,6 +59,29 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     fun cleanup() = unmockkObject(Database)
 
     @Nested
+    inner class OppdaterKladdTests {
+        @Test
+        fun `skal kaste exception for deltaker som ikke er enkeltplass`() = runTest {
+            // Arrange
+            val deltaker = deltakerInTest.copy(
+                deltakerliste = deltakerInTest.deltakerliste.copy(gjennomforingstype = GjennomforingType.Gruppe),
+            )
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+
+            // Act & Assert
+            shouldThrow<IllegalArgumentException> {
+                enkeltplassService.oppdaterKladd(
+                    deltakerId = deltaker.id,
+                    startdato = null,
+                    sluttdato = null,
+                    beskrivelse = null,
+                    prisinformasjon = null,
+                )
+            }
+        }
+    }
+
+    @Nested
     inner class MeldPaaDirekteTests {
         @Test
         fun `skal opprette enkeltplass hos Mulighetsrommet for deltaker i kladd med enkeltplass`() = runTest {
