@@ -1,10 +1,12 @@
-package no.nav.amt.deltaker.bff.apiclients.arrangorsok
+package no.nav.amt.deltaker.bff.apiclients
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
+import no.nav.amt.deltaker.bff.apiclients.arrangorsok.EnhetResponse
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import org.junit.jupiter.api.Assertions

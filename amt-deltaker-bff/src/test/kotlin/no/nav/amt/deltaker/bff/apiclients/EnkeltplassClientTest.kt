@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.bff.apiclients
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
@@ -30,7 +29,6 @@ class EnkeltplassClientTest {
             runFailureTest(
                 exceptionType = expectedExceptionType,
                 statusCode = statusCode,
-                expectedUrl = expectedOpprettEnkeltplassUrl,
                 expectedErrorMessage = "Kunne ikke opprette enkeltplass i amt-deltaker for deltaker $deltakerIdInTest",
                 block = opprettEnkeltplassLambda,
             )
@@ -39,8 +37,6 @@ class EnkeltplassClientTest {
         @Test
         fun `skal returnere OK`() = runTest {
             runHappyPathTest(
-                expectedUrl = expectedOpprettEnkeltplassUrl,
-                expectedResponse = null,
                 block = opprettEnkeltplassLambda,
             )
         }
@@ -68,32 +64,23 @@ class EnkeltplassClientTest {
         private fun runFailureTest(
             exceptionType: KClass<out Throwable>,
             statusCode: HttpStatusCode,
-            expectedUrl: String,
             expectedErrorMessage: String,
             block: suspend (EnkeltplassClient) -> Any,
         ) {
             val thrown = assertThrows(exceptionType.java) {
-                runTest { block(createEnkeltplassClient(expectedUrl, statusCode)) }
+                runTest { block(createEnkeltplassClient(expectedOpprettEnkeltplassUrl, statusCode)) }
             }
             thrown.message shouldStartWith expectedErrorMessage
         }
 
-        private suspend fun <T> runHappyPathTest(
-            expectedUrl: String,
-            expectedResponse: T,
-            block: suspend (EnkeltplassClient) -> T,
-        ) {
+        private suspend fun runHappyPathTest(block: suspend (EnkeltplassClient) -> Unit) {
             val enkeltplassClient = createEnkeltplassClient(
-                expectedUrl = expectedUrl,
+                expectedUrl = expectedOpprettEnkeltplassUrl,
                 statusCode = HttpStatusCode.OK,
-                responseBody = expectedResponse,
+                responseBody = null,
             )
 
-            if (expectedResponse == null) {
-                shouldNotThrowAny { block(enkeltplassClient) }
-            } else {
-                block(enkeltplassClient) shouldBe expectedResponse
-            }
+            shouldNotThrowAny { block(enkeltplassClient) }
         }
 
         private fun createEnkeltplassClient(

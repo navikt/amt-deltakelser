@@ -34,7 +34,6 @@ abstract class RepositoryTestBase {
         private const val POSTGRES_DOCKER_IMAGE_NAME = "postgres:17-alpine"
 
         @ServiceConnection
-        @Suppress("unused")
         private val postgres = PostgreSQLContainer(
             DockerImageName
                 .parse(POSTGRES_DOCKER_IMAGE_NAME)

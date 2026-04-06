@@ -85,12 +85,11 @@ class TiltaksarrangorService(
         val ansatte = navAnsattService.hentAnsatteForUlesteEndringer(ulesteEndringer)
         val enheter = navEnhetService.hentEnheterForUlesteEndringer(ulesteEndringer)
 
-        val deltakerlisteMedArrangor =
-            deltakerlisteRepository
-                .getDeltakerlisteMedArrangor(
-                    medDeltakerlisteDbo.deltakerliste.id,
-                )?.takeIf { it.deltakerlisteDbo.erTilgjengeligForArrangor() }
-                ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${medDeltakerlisteDbo.deltakerliste.id}")
+        val deltakerlisteMedArrangor = deltakerlisteRepository
+            .getDeltakerlisteMedArrangor(
+                medDeltakerlisteDbo.deltakerliste.id,
+            )?.takeIf { it.deltakerlisteDbo.erTilgjengeligForArrangor() }
+            ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${medDeltakerlisteDbo.deltakerliste.id}")
 
         val overordnetArrangor = deltakerlisteMedArrangor.arrangorDbo.overordnetArrangorId?.let { arrangorRepository.getArrangor(it) }
         val arrangorNavn = overordnetArrangor?.navn ?: deltakerlisteMedArrangor.arrangorDbo.navn
@@ -114,12 +113,11 @@ class TiltaksarrangorService(
         val ansatte = navAnsattService.hentAnsatteForHistorikk(historikk)
         val enheter = navEnhetService.hentEnheterForHistorikk(historikk)
 
-        val deltakerlisteMedArrangor =
-            deltakerlisteRepository
-                .getDeltakerlisteMedArrangor(
-                    deltaker.deltakerliste.id,
-                )?.takeIf { it.deltakerlisteDbo.erTilgjengeligForArrangor() }
-                ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${deltaker.deltakerliste.id}")
+        val deltakerlisteMedArrangor = deltakerlisteRepository
+            .getDeltakerlisteMedArrangor(
+                deltaker.deltakerliste.id,
+            )?.takeIf { it.deltakerlisteDbo.erTilgjengeligForArrangor() }
+            ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${deltaker.deltakerliste.id}")
 
         val overordnetArrangor = deltakerlisteMedArrangor.arrangorDbo.overordnetArrangorId?.let { arrangorRepository.getArrangor(it) }
 

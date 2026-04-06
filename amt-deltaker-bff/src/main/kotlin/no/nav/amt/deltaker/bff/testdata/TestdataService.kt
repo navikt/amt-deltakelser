@@ -17,6 +17,7 @@ import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.time.Duration.Companion.milliseconds
 
 const val TESTVEILEDER = "Z990098"
 const val TESTENHET = "0314"
@@ -45,12 +46,12 @@ class TestdataService(
         )
         val deltakerId = deltaker.id
 
-        delay(10)
+        delay(10.milliseconds)
 
         val utkast = lagUtkast(deltakerId, deltakerliste, opprettTestDeltakelseRequest)
         pameldingService.upsertUtkast(utkast)
 
-        delay(100)
+        delay(100.milliseconds)
 
         val endringFraArrangor = lagEndringFraArrangor(
             deltakerId = deltakerId,
@@ -62,7 +63,7 @@ class TestdataService(
             arrangorMeldingProducer.produce(endringFraArrangor)
         }
 
-        delay(100)
+        delay(100.milliseconds)
 
         return deltakerRepository.get(deltakerId).getOrThrow()
     }
