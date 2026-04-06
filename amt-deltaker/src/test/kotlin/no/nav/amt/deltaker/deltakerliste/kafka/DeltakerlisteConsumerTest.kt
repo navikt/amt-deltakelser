@@ -6,9 +6,14 @@ import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangorResponse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -37,11 +42,101 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
+    override val deltakerProducerService: DeltakerProducerService = mockk()
+
     private val arrangorInTest = lagArrangor()
 
     @BeforeEach
     fun setupMocks() {
         every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns true
+    }
+
+    @Nested
+    inner class EnkeltplassTests {
+        private val deltakerlisteInTest = lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+            status = GjennomforingStatusType.KLADD,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
+
+        private val deltakerInTest = lagDeltaker(
+            deltakerliste = deltakerlisteInTest,
+            status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+        )
+
+        @BeforeEach
+        fun setup() {
+            lagVedtak(deltakerVedVedtak = deltakerInTest).let { vedtak ->
+                TestRepository.insertAll(
+                    deltakerInTest,
+                    lagNavEnhet(id = vedtak.opprettetAvEnhet),
+                    lagNavAnsatt(id = vedtak.opprettetAv),
+                    vedtak,
+                )
+            }
+
+            every {
+                deltakerProducerService.produce(
+                    deltaker = any(),
+                    forcedUpdate = any(),
+                    publiserTilDeltakerV1 = any(),
+                    publiserTilDeltakerEksternV1 = any(),
+                    publiserTilDeltakerV2 = any(),
+                )
+            } just Runs
+        }
+
+        @Test
+        fun `skal produsere deltaker pa topics nar status for gjennomforing er endret fra kladd`() = runTest {
+            // Arrange
+            val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
+                arrangor = arrangorInTest,
+                deltakerliste = deltakerlisteInTest.copy(status = GjennomforingStatusType.GJENNOMFORES),
+            )
+
+            // Act
+            deltakerlisteConsumer.consume(
+                key = enkeltplassPayloadInTest.id,
+                value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
+            )
+
+            // Assert
+            verify {
+                deltakerProducerService.produce(
+                    deltaker = match { it.id == deltakerInTest.id },
+                    forcedUpdate = any(),
+                    publiserTilDeltakerV1 = any(),
+                    publiserTilDeltakerEksternV1 = any(),
+                    publiserTilDeltakerV2 = any(),
+                )
+            }
+        }
+
+        @Test
+        fun `skal ikke produsere deltaker pa topics nar status for gjennomforing er uendret`() = runTest {
+            // Arrange
+            val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
+                arrangor = arrangorInTest,
+                deltakerliste = deltakerlisteInTest,
+            )
+
+            // Act
+            deltakerlisteConsumer.consume(
+                key = enkeltplassPayloadInTest.id,
+                value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
+            )
+
+            // Assert
+            verify(exactly = 0) {
+                deltakerProducerService.produce(
+                    deltaker = any(),
+                    forcedUpdate = any(),
+                    publiserTilDeltakerV1 = any(),
+                    publiserTilDeltakerEksternV1 = any(),
+                    publiserTilDeltakerV2 = any(),
+                )
+            }
+        }
     }
 
     @Nested

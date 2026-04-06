@@ -32,7 +32,7 @@ fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(
     tiltakstype = tiltakstype,
     navn = tiltakstype.navn,
     gjennomforingstype = GjennomforingType.Enkeltplass,
-    status = null,
+    status = status,
     startDato = null,
     sluttDato = null,
     oppstart = null,
