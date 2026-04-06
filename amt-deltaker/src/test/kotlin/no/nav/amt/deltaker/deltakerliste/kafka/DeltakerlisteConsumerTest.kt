@@ -156,6 +156,10 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
             TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
 
+            every {
+                deltakerProducerService.produce(any(), any(), any(), any(), any())
+            } just Runs
+
             // Act
             deltakerlisteConsumer.avgrensSluttdatoerTil(deltakerliste)
 
@@ -297,7 +301,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         // Assert
         deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste.copy(
             navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
-            status = null,
+            status = deltakerliste.status,
             startDato = null,
             sluttDato = null,
             oppstart = null,
@@ -458,6 +462,10 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
                 fattet = LocalDateTime.now(),
             )
             TestRepository.insert(deltaker2, vedtak2)
+
+            every {
+                deltakerProducerService.produce(any(), any(), any(), any(), any())
+            } just Runs
 
             // Act
             deltakerlisteConsumer.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
