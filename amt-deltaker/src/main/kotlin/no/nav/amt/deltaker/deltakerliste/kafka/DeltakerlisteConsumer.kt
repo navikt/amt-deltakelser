@@ -94,10 +94,9 @@ class DeltakerlisteConsumer(
                     eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
                     deltakerliste.status != GjennomforingStatusType.KLADD
                 ) {
-                    deltakerRepository
-                        .getEnkeltplassdeltaker(eksisterendeDeltakerliste.id)
-                        .onSuccess { enkeltplassDeltaker -> deltakerProducerService.produce(enkeltplassDeltaker) }
-                        .onFailure { log.warn("Fant ikke enkeltplass-deltaker for deltakerliste ${eksisterendeDeltakerliste.id}") }
+                    deltakerProducerService.produce(
+                        deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
+                    )
                 }
             }
         } else {

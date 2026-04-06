@@ -57,6 +57,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             gjennomforingstype = GjennomforingType.Enkeltplass,
             status = GjennomforingStatusType.KLADD,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            arrangor = arrangorInTest,
         )
 
         private val deltakerInTest = lagDeltaker(
@@ -64,31 +65,53 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
         )
 
+        private fun arrange(isHappyPathTest: Boolean = true) {
+            if (isHappyPathTest) {
+                lagVedtak(deltakerVedVedtak = deltakerInTest).let { vedtak ->
+                    TestRepository.insertAll(
+                        deltakerInTest,
+                        lagNavEnhet(id = vedtak.opprettetAvEnhet),
+                        lagNavAnsatt(id = vedtak.opprettetAv),
+                        vedtak,
+                    )
+                }
+            } else {
+                TestRepository.insertAll(deltakerlisteInTest)
+            }
+        }
+
         @BeforeEach
         fun setup() {
-            lagVedtak(deltakerVedVedtak = deltakerInTest).let { vedtak ->
-                TestRepository.insertAll(
-                    deltakerInTest,
-                    lagNavEnhet(id = vedtak.opprettetAvEnhet),
-                    lagNavAnsatt(id = vedtak.opprettetAv),
-                    vedtak,
+            every {
+                deltakerProducerService.produce(any(), any(), any(), any(), any())
+            } just Runs
+        }
+
+        @Test
+        fun `skal kaste feil hvis enkeltplassdeltaker ikke finnes i db`() = runTest {
+            // Arrange
+            arrange(false)
+
+            val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
+                arrangor = arrangorInTest,
+                deltakerliste = deltakerlisteInTest.copy(
+                    status = GjennomforingStatusType.GJENNOMFORES,
+                ),
+            )
+
+            // Act & Assert
+            shouldThrow<NoSuchElementException> {
+                deltakerlisteConsumer.consume(
+                    key = enkeltplassPayloadInTest.id,
+                    value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
                 )
             }
-
-            every {
-                deltakerProducerService.produce(
-                    deltaker = any(),
-                    forcedUpdate = any(),
-                    publiserTilDeltakerV1 = any(),
-                    publiserTilDeltakerEksternV1 = any(),
-                    publiserTilDeltakerV2 = any(),
-                )
-            } just Runs
         }
 
         @Test
         fun `skal produsere deltaker pa topics nar status for gjennomforing er endret fra kladd`() = runTest {
             // Arrange
+            arrange()
             val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
                 arrangor = arrangorInTest,
                 deltakerliste = deltakerlisteInTest.copy(status = GjennomforingStatusType.GJENNOMFORES),
@@ -115,6 +138,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         @Test
         fun `skal ikke produsere deltaker pa topics nar status for gjennomforing er uendret`() = runTest {
             // Arrange
+            arrange()
             val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
                 arrangor = arrangorInTest,
                 deltakerliste = deltakerlisteInTest,

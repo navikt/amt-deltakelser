@@ -110,6 +110,7 @@ sealed interface GjennomforingV2KafkaPayload {
         override val arrangor: Arrangor,
         override val pameldingType: GjennomforingPameldingType? = null,
         override val gjennomforingType: GjennomforingType = GjennomforingType.Enkeltplass,
+        // TODO: Default bør fjernes etter neste relast
         override val status: GjennomforingStatusType = GjennomforingStatusType.KLADD,
     ) : GjennomforingV2KafkaPayload
 
