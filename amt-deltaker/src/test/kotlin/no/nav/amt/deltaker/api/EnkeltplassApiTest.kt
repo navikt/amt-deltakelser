@@ -6,8 +6,10 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.requestvalidation.ValidationResult
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.just
 import io.mockk.mockk
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
@@ -27,8 +29,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 class EnkeltplassApiTest : IntegrationTestBase() {
-    override val enkeltplassService = mockk<EnkeltplassService>(relaxed = true)
-    override val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>(relaxed = true)
+    override val enkeltplassService = mockk<EnkeltplassService>()
+    override val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
 
     @Nested
     inner class MeldPaaDirekteTests {
@@ -43,6 +45,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
         @Test
         fun `skal returnere 200 OK`() {
+            // Arrange
             val deltakerId = UUID.randomUUID()
 
             val request = EnkeltplassPameldingRequest(
@@ -59,6 +62,9 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 endretAv = "123456789",
             )
 
+            coEvery { enkeltplassService.meldPaaDirekte(deltakerId, decoratedRequest) } just Runs
+
+            // Act & Assert
             withTestApplicationContext { client ->
                 client
                     .post("/enkeltplass/utkast/$deltakerId/meld-paa-direkte") {

@@ -124,9 +124,9 @@ class EndringsvedtakJobTest {
 
     @Test
     fun `startJob - starter jobb med forventet initialDelay og period`() {
-        val jobManager = mockk<JobManager>(relaxed = true)
-        val hendelseRepository = mockk<HendelseRepository>(relaxed = true)
-        val journalforingService = mockk<JournalforingService>(relaxed = true)
+        val jobManager = mockk<JobManager>(relaxUnitFun = true)
+        val hendelseRepository = mockk<HendelseRepository>()
+        val journalforingService = mockk<JournalforingService>()
 
         EndringsvedtakJob(jobManager, hendelseRepository, journalforingService).startJob()
 
@@ -141,9 +141,9 @@ class EndringsvedtakJobTest {
     }
 
     private fun testSetup(hendelser: List<HendelseMedJournalforingstatus>): TestSetup {
-        val jobManager = mockk<JobManager>(relaxed = true)
-        val hendelseRepository = mockk<HendelseRepository>(relaxed = true)
-        val journalforingService = mockk<JournalforingService>(relaxed = true)
+        val jobManager = mockk<JobManager>(relaxUnitFun = true)
+        val hendelseRepository = mockk<HendelseRepository>()
+        val journalforingService = mockk<JournalforingService>()
 
         every { hendelseRepository.hentIkkeJournalforteHendelser() } returns hendelser
         every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()

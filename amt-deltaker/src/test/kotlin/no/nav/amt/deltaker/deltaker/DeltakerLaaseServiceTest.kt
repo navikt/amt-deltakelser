@@ -19,8 +19,8 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class DeltakerLaaseServiceTest {
-    private val mockDeltakerRepository = mockk<DeltakerRepository>(relaxUnitFun = true)
-    private val mockImportertFraArenaRepository = mockk<ImportertFraArenaRepository>(relaxUnitFun = true)
+    private val mockDeltakerRepository = mockk<DeltakerRepository>()
+    private val mockImportertFraArenaRepository = mockk<ImportertFraArenaRepository>()
     private val sut = DeltakerLaaseService(mockDeltakerRepository, mockImportertFraArenaRepository)
 
     private val deltakerInTest = lagDeltaker()

@@ -38,11 +38,11 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class ResponseBuilderTest : IntegrationTestBase() {
-    override val arrangorService: ArrangorService = mockk(relaxed = true)
-    override val deltakerLaaseService: DeltakerLaaseService = mockk(relaxed = true)
-    override val navEnhetService: NavEnhetService = mockk(relaxed = true)
-    override val navAnsattService: NavAnsattService = mockk(relaxed = true)
-    override val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
+    override val arrangorService: ArrangorService = mockk()
+    override val deltakerLaaseService: DeltakerLaaseService = mockk()
+    override val navEnhetService: NavEnhetService = mockk()
+    override val navAnsattService: NavAnsattService = mockk()
+    override val deltakerHistorikkService: DeltakerHistorikkService = mockk()
 
     @Nested
     inner class CacheTests {
@@ -225,7 +225,9 @@ class ResponseBuilderTest : IntegrationTestBase() {
         )
 
         coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
-        every { deltakerLaaseService.erLaastForEndringer(any()) } returns true
+        every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
+        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
 
         val expectedForslag = listOf(
             Forslag(

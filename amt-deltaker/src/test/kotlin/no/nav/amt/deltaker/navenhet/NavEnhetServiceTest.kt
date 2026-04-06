@@ -47,7 +47,7 @@ class NavEnhetServiceTest {
     @Test
     fun `hentEllerOpprettNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() = runTest {
         // Arrange
-        val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
+        val amtPersonServiceClient: AmtPersonServiceClient = mockk()
         val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
 
         coEvery { amtPersonServiceClient.hentNavEnhet(navEnhetResponse.enhetsnummer) } returns navEnhetResponse
@@ -62,7 +62,7 @@ class NavEnhetServiceTest {
 
     @Nested
     inner class HentNavEnheterForDeltakerTests {
-        val mockPersonServiceClient = mockk<AmtPersonServiceClient>(relaxed = true)
+        val mockPersonServiceClient = mockk<AmtPersonServiceClient>()
 
         val navEnhetService = NavEnhetService(
             repository = navEnhetRepository,
@@ -95,6 +95,7 @@ class NavEnhetServiceTest {
 
             coEvery { mockPersonServiceClient.hentNavEnhet(vedtakOpprettetAvEnhet.id) } returns vedtakOpprettetAvEnhet
             coEvery { mockPersonServiceClient.hentNavEnhet(vedtakSistEndretAvEnhet.id) } returns vedtakSistEndretAvEnhet
+            coEvery { mockPersonServiceClient.hentNavEnhet(extraNavEnhetId) } returns lagNavEnhet(id = extraNavEnhetId)
 
             // Act
             val navEnheter = navEnhetService.hentNavEnheterForDeltaker(

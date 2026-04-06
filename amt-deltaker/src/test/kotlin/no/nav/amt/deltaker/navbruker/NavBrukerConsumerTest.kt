@@ -1,8 +1,11 @@
 package no.nav.amt.deltaker.navbruker
 
 import io.kotest.matchers.shouldBe
+import io.mockk.Runs
 import io.mockk.clearMocks
 import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
@@ -28,7 +31,7 @@ class NavBrukerConsumerTest {
     private val navEnhetRepository = NavEnhetRepository()
     private val navAnsattRepository = NavAnsattRepository()
     private val navBrukerRepository = NavBrukerRepository()
-    private val deltakerService = mockk<DeltakerService>(relaxed = true)
+    private val deltakerService = mockk<DeltakerService>()
 
     private val navEnhet = lagNavEnhet()
     private val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
@@ -64,6 +67,10 @@ class NavBrukerConsumerTest {
 
         navEnhetRepository.upsert(navEnhet)
         navAnsattRepository.upsert(navAnsatt)
+
+        every {
+            deltakerService.produserDeltakereForPerson(any(), any(), any())
+        } just Runs
     }
 
     @Test
@@ -73,7 +80,7 @@ class NavBrukerConsumerTest {
             repository = navBrukerRepository,
             navEnhetService = NavEnhetService(
                 repository = navEnhetRepository,
-                amtPersonServiceClient = mockk(relaxed = true),
+                amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
         )
@@ -98,7 +105,7 @@ class NavBrukerConsumerTest {
             repository = navBrukerRepository,
             navEnhetService = NavEnhetService(
                 repository = navEnhetRepository,
-                amtPersonServiceClient = mockk(relaxed = true),
+                amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
         )
@@ -123,7 +130,7 @@ class NavBrukerConsumerTest {
             repository = navBrukerRepository,
             navEnhetService = NavEnhetService(
                 repository = navEnhetRepository,
-                amtPersonServiceClient = mockk(relaxed = true),
+                amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
         )
@@ -151,7 +158,7 @@ class NavBrukerConsumerTest {
             repository = navBrukerRepository,
             navEnhetService = NavEnhetService(
                 repository = navEnhetRepository,
-                amtPersonServiceClient = mockk(relaxed = true),
+                amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
         )
@@ -174,7 +181,7 @@ class NavBrukerConsumerTest {
             repository = navBrukerRepository,
             navEnhetService = NavEnhetService(
                 repository = navEnhetRepository,
-                amtPersonServiceClient = mockk(relaxed = true),
+                amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
         )

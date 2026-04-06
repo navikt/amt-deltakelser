@@ -27,10 +27,10 @@ import java.time.Year
 import java.util.UUID
 
 class OpprettKladdRequestValidatorTest {
-    private val deltakerListeRepository: DeltakerlisteRepository = mockk(relaxed = true)
-    private val brukerService: NavBrukerService = mockk(relaxed = true)
-    private val personServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
-    private val isOppfolgingsTilfelleClient: IsOppfolgingstilfelleClient = mockk(relaxed = true)
+    private val deltakerListeRepository: DeltakerlisteRepository = mockk()
+    private val brukerService: NavBrukerService = mockk()
+    private val personServiceClient: AmtPersonServiceClient = mockk()
+    private val isOppfolgingsTilfelleClient: IsOppfolgingstilfelleClient = mockk()
 
     private val sut = OpprettKladdRequestValidator(
         deltakerlisteRepository = deltakerListeRepository,
@@ -133,6 +133,8 @@ class OpprettKladdRequestValidatorTest {
         every { deltakerListeRepository.get(any()) } returns Result.success(
             lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
         )
+
+        coEvery { isOppfolgingsTilfelleClient.erSykmeldtMedArbeidsgiver(any()) } returns false
 
         coEvery { brukerService.get(any()) } returns
             Result.success(lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS))
