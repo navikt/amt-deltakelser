@@ -37,6 +37,7 @@ class DeltakerAmtDeltakerResponseTest {
 
             response.endringsforslagFraArrangor.shouldNotBeEmpty()
             endringsforslagFraArrangor shouldBe response.endringsforslagFraArrangor
+            prisinformasjon shouldBe response.prisinformasjon
         }
     }
 }

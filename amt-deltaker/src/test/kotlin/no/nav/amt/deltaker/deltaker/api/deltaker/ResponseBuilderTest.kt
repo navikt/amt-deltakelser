@@ -277,6 +277,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
             historikk shouldBe emptyList()
             erLaastForEndringer shouldBe true
             endringsforslagFraArrangor shouldBe expectedForslag
+            prisinformasjon shouldBe deltaker.deltakerliste.prisinformasjon
         }
     }
 }

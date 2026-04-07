@@ -68,6 +68,7 @@ class ResponseBuilder(
             historikk = deltakerHistorikkService.getForDeltaker(deltaker.id),
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
             endringsforslagFraArrangor = endringsforslagForDeltaker,
+            prisinformasjon = deltaker.deltakerliste.prisinformasjon,
         )
     }
 

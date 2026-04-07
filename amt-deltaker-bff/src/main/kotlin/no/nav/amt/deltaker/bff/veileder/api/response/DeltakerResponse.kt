@@ -37,6 +37,7 @@ data class DeltakerResponse(
     val deltakelsesmengder: DeltakelsesmengderDto,
     val erUnderOppfolging: Boolean,
     val erManueltDeltMedArrangor: Boolean,
+    val prisinformasjon: String?,
 ) {
     data class DeltakelsesmengderDto(
         val nesteDeltakelsesmengde: DeltakelsesmengdeDto?,
@@ -60,6 +61,8 @@ data class DeltakerResponse(
     }
 
     companion object {
+        // Brukes kun i tilfelle henting/lagring i lokal database
+        // Vil fases sakte ut når oppgaver blir delegert til amt-deltaker
         fun fromDeltaker(
             deltaker: Deltaker,
             digitalBruker: Boolean,
@@ -134,6 +137,7 @@ data class DeltakerResponse(
                 ),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+                prisinformasjon = null, // Denne mapperen skal uansett ikke brukes for enkeltplasser
             )
         }
 
@@ -214,6 +218,7 @@ data class DeltakerResponse(
                 ),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+                prisinformasjon = prisinformasjon,
             )
         }
     }
