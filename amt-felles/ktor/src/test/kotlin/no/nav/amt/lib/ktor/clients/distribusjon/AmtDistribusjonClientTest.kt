@@ -20,13 +20,13 @@ class AmtDistribusjonClientTest {
     fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
         val (statusCode, expectedExceptionType) = testCase
 
-        val digitalBrukertLambda: suspend (AmtDistribusjonClient) -> Boolean =
+        val digitalBrukerLambda: suspend (AmtDistribusjonClient) -> Boolean =
             { client -> client.digitalBruker("~personident~") }
 
         runFailureTest(
             exceptionType = expectedExceptionType,
             statusCode = statusCode,
-            digitalBrukertLambda,
+            digitalBrukerLambda,
         )
     }
 

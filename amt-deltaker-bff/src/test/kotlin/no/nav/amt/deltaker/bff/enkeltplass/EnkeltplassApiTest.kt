@@ -66,7 +66,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `skal returnere Forbidden nar veileder ikke har tilgant til bruker`() {
+            fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
                 // Arrange
                 every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 
@@ -117,7 +117,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `skal returnere Forbidden nar veileder ikke har tilgant til bruker`() {
+            fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
                 // Arrange
                 every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 
@@ -133,7 +133,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `skal returnere OK nar kladd er opprettet`() = runTest {
+            fun `skal returnere OK nar kladd er oppdatert`() = runTest {
                 // Act
                 val response = withTestApplicationContext { client ->
                     client.post(url) {
@@ -163,7 +163,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere Forbidden nar veileder ikke har tilgant til bruker`() {
+        fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
             // Arrange
             every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 

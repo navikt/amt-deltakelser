@@ -65,7 +65,9 @@ class OutboxRepositoryTest {
             key = "key-3",
             value = objectMapper.createObjectNode().put("key", "processed"),
         )
-        outboxRepository.insertNewRecord(processedRecord).also { outboxRepository.deleteOutboxRecord(it.id) }
+
+        val processedInserted = outboxRepository.insertNewRecord(processedRecord)
+        outboxRepository.deleteOutboxRecord(processedInserted.id)
 
         // Act
         val result = outboxRepository.findUnprocessedRecords(10)
