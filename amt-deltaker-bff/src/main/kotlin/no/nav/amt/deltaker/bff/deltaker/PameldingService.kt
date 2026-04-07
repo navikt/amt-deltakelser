@@ -30,6 +30,7 @@ class PameldingService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    // TODO: Skal slettes
     suspend fun opprettKladdForEnkeltplass(
         tiltakskode: Tiltakskode,
         personident: String,
@@ -38,6 +39,7 @@ class PameldingService(
         .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
         .let { ModelMapper.toDeltaker(it) }
 
+    // TODO: Skal slettes
     suspend fun oppdaterKladdForEnkeltplass(
         deltakerId: UUID,
         enkeltplassKladdRequest: OppdaterEnkeltplassKladdRequest,

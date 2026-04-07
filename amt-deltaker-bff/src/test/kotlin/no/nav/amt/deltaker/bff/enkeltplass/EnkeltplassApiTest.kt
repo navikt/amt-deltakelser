@@ -13,10 +13,15 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerResponse
+import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
+import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -29,15 +34,121 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setup() {
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns PersonIdentResponse("1234")
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns PersonIdentResponse(personidentInTest)
         every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
 
         val mockHttpResponse = mockk<HttpResponse>()
         coEvery { enkeltplassClient.meldPaaDirekte(deltakerInTest.id, any()) } returns mockHttpResponse
+        coEvery { enkeltplassClient.opprettKladdEnkeltplass(any(), any()) } returns DeltakerIdResponse(deltakerInTest.id)
+        coEvery { enkeltplassClient.oppdaterKladdEnkeltplass(any(), any()) } returns mockHttpResponse
+        coEvery { amtDeltakerClient.getDeltaker(deltakerInTest.id) } returns lagDeltakerResponse()
     }
 
     @Nested
-    inner class OpprettEnkeltplassTests {
+    inner class KladdTests {
+        @Nested
+        inner class OpprettKladdTests {
+            private val requestInTest = OpprettEnkeltplassKladdRequest(
+                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                personident = personidentInTest,
+            )
+            val url = "/enkeltplass/opprett-kladd"
+
+            @Test
+            fun `skal returnere Unauthorized nar tilgang mangler`() {
+                // Act
+                val response = withTestApplicationContext { client ->
+                    client.post(url)
+                }
+
+                // Assert
+                response.status shouldBe HttpStatusCode.Unauthorized
+            }
+
+            @Test
+            fun `skal returnere Forbidden nar veileder ikke har tilgant til bruker`() {
+                // Arrange
+                every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
+
+                // Act
+                val response = withTestApplicationContext { client ->
+                    client.post(url) {
+                        createPostRequest(requestInTest)
+                    }
+                }
+
+                // Assert
+                response.status shouldBe HttpStatusCode.Forbidden
+            }
+
+            @Test
+            fun `skal returnere OK nar kladd er opprettet`() = runTest {
+                // Act
+                val response = withTestApplicationContext { client ->
+                    client.post(url) {
+                        createPostRequest(requestInTest)
+                    }
+                }
+
+                // Assert
+                response.status shouldBe HttpStatusCode.OK
+            }
+        }
+
+        @Nested
+        inner class OppdaterKladdTests {
+            val url = "/enkeltplass/oppdater-kladd/${deltakerInTest.id}"
+            private val requestInTest = OppdaterEnkeltplassKladdRequest(
+                startdato = null,
+                sluttdato = null,
+                prisinformasjon = null,
+                beskrivelse = null,
+            )
+
+            @Test
+            fun `skal returnere Unauthorized nar tilgang mangler`() {
+                // Act
+                val response = withTestApplicationContext { client ->
+                    client.post(url)
+                }
+
+                // Assert
+                response.status shouldBe HttpStatusCode.Unauthorized
+            }
+
+            @Test
+            fun `skal returnere Forbidden nar veileder ikke har tilgant til bruker`() {
+                // Arrange
+                every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
+
+                // Act
+                val response = withTestApplicationContext { client ->
+                    client.post(url) {
+                        createPostRequest(requestInTest)
+                    }
+                }
+
+                // Assert
+                response.status shouldBe HttpStatusCode.Forbidden
+            }
+
+            @Test
+            fun `skal returnere OK nar kladd er opprettet`() = runTest {
+                // Act
+                val response = withTestApplicationContext { client ->
+                    client.post(url) {
+                        createPostRequest(requestInTest)
+                    }
+                }
+
+                // Assert
+                response.status shouldBe HttpStatusCode.OK
+            }
+        }
+    }
+
+    @Nested
+    inner class EnkeltplassUtkastTests {
         val url = "/enkeltplass/utkast/${deltakerInTest.id}/meld-paa-direkte"
 
         @Test
@@ -95,6 +206,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
     }
 
     companion object {
+        private val personidentInTest = "1234"
         private val requestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",

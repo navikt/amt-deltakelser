@@ -29,6 +29,7 @@ class PaameldingClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
+    // TODO: Skal slettes
     suspend fun opprettKladdEnkeltplass(
         tiltakskode: Tiltakskode,
         personident: String,
@@ -37,6 +38,7 @@ class PaameldingClient(
         requestBody = OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
 
+    // TODO: Skal slettes
     suspend fun oppdaterKladdEnkeltplass(
         deltakerId: UUID,
         request: OppdaterEnkeltplassKladdRequest,

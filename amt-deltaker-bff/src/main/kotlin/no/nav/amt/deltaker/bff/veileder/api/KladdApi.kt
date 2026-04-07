@@ -71,6 +71,7 @@ fun Routing.registerKladdApi(
             call.respond(komplettDeltakerResponse(deltaker))
         }
 
+        // TODO: Skal sletes til fordel for opprett-kladd i Enkeltplass API
         post("/opprett-enkeltplass-kladd") {
             val request = call.receive<OpprettEnkeltplassKladdRequest>()
 
@@ -85,6 +86,7 @@ fun Routing.registerKladdApi(
             call.respond(response)
         }
 
+        // TODO: Skal sletes til fordel for oppdater-kladd i Enkeltplass API
         post("/oppdater-enkeltplass-kladd/{deltakerId}") {
             val deltakerId = call.getDeltakerId()
             val request = call.receive<OppdaterEnkeltplassKladdRequest>()
