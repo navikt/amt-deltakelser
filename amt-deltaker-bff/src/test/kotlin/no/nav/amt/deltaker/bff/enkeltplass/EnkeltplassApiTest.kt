@@ -30,11 +30,11 @@ import java.util.UUID
 class EnkeltplassApiTest : IntegrationTestBase() {
     override val tilgangskontrollService: TilgangskontrollService = mockk(relaxed = true)
 
-    val deltakerInTest = lagDeltaker()
+    private val deltakerInTest = lagDeltaker()
 
     @BeforeEach
     fun setup() {
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns PersonIdentResponse(personidentInTest)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns PersonIdentResponse(PERSONIDENT_IN_TEST)
         every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
 
         val mockHttpResponse = mockk<HttpResponse>()
@@ -50,7 +50,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         inner class OpprettKladdTests {
             private val requestInTest = OpprettEnkeltplassKladdRequest(
                 tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                personident = personidentInTest,
+                personident = PERSONIDENT_IN_TEST,
             )
             val url = "/enkeltplass/opprett-kladd"
 
@@ -206,7 +206,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
     }
 
     companion object {
-        private val personidentInTest = "1234"
+        private const val PERSONIDENT_IN_TEST = "1234"
         private val requestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
