@@ -11,10 +11,7 @@ import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.paamelding.request.KladdRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
@@ -32,30 +29,6 @@ fun Routing.registerKladdApi(
             )
 
             call.respond(opprettKladdResponseFromDeltaker(deltaker))
-        }
-
-        post("/opprett-enkeltplass-kladd") {
-            val opprettKladdRequest = call.receive<OpprettKladdEnkeltplassRequest>()
-
-            val deltaker = kladdService
-                .opprettKladd(opprettKladdRequest.tiltakskode, opprettKladdRequest.personident)
-
-            call.respond(DeltakerIdResponse(deltakerId = deltaker.id))
-        }
-
-        post("/oppdater-enkeltplass-kladd/{deltakerId}") {
-            val deltakerId = call.getDeltakerId()
-            val oppdaterKladdRequest = call.receive<OppdaterEnkeltplassKladdRequest>()
-            kladdService
-                .oppdaterKladd(
-                    deltakerId = deltakerId,
-                    startdato = oppdaterKladdRequest.startdato,
-                    sluttdato = oppdaterKladdRequest.sluttdato,
-                    prisinformasjon = oppdaterKladdRequest.prisinformasjon,
-                    beskrivelse = oppdaterKladdRequest.beskrivelse,
-                )
-
-            call.respond(HttpStatusCode.OK)
         }
 
         post("/oppdater-kladd/{deltakerId}") {

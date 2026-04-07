@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
@@ -13,9 +14,10 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
-import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
@@ -25,6 +27,8 @@ import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
+import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
+import no.nav.amt.deltaker.bff.enkeltplass.validate
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.innbygger.registerInnbyggerApi
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
@@ -43,6 +47,7 @@ import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
 import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi
 import no.nav.amt.deltaker.bff.veileder.api.registerVeilederApi
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
@@ -50,6 +55,12 @@ import no.nav.amt.lib.ktor.routing.registerHealthApi
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+fun Application.configureRequestValidation() {
+    install(RequestValidation) {
+        validate<EnkeltplassPameldingRequest> { request -> request.validate() }
+    }
+}
 
 fun Application.configureRouting(
     tilgangskontrollService: TilgangskontrollService,
@@ -64,6 +75,7 @@ fun Application.configureRouting(
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     arrangorsokClient: ArrangorsokClient,
+    enkeltplassClient: EnkeltplassClient,
     sporbarhetsloggService: SporbarhetsloggService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteService: DeltakerlisteService,
@@ -101,8 +113,15 @@ fun Application.configureRouting(
             call.respondText(text = "500: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
     }
+
     routing {
         registerHealthApi()
+
+        registerEnkeltplassApi(
+            amtDeltakerClient = amtDeltakerClient,
+            tilgangskontrollService = tilgangskontrollService,
+            enkeltplassClient = enkeltplassClient,
+        )
 
         registerVeilederApi(
             tilgangskontrollService = tilgangskontrollService,

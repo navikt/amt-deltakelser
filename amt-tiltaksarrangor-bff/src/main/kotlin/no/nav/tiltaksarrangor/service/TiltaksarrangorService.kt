@@ -5,6 +5,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.utils.toTitleCase
 import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
 import no.nav.tiltaksarrangor.api.response.DeltakerHistorikkResponse
 import no.nav.tiltaksarrangor.api.response.UlestEndringResponse
@@ -19,7 +20,6 @@ import no.nav.tiltaksarrangor.repositories.UlestEndringRepository
 import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerMedDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.STATUSER_SOM_KAN_SKJULES
-import no.nav.tiltaksarrangor.utils.toTitleCase
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -85,18 +85,17 @@ class TiltaksarrangorService(
         val ansatte = navAnsattService.hentAnsatteForUlesteEndringer(ulesteEndringer)
         val enheter = navEnhetService.hentEnheterForUlesteEndringer(ulesteEndringer)
 
-        val deltakerlisteMedArrangor =
-            deltakerlisteRepository
-                .getDeltakerlisteMedArrangor(
-                    medDeltakerlisteDbo.deltakerliste.id,
-                )?.takeIf { it.deltakerlisteDbo.erTilgjengeligForArrangor() }
-                ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${medDeltakerlisteDbo.deltakerliste.id}")
+        val deltakerlisteMedArrangor = deltakerlisteRepository
+            .getDeltakerlisteMedArrangor(
+                medDeltakerlisteDbo.deltakerliste.id,
+            )?.takeIf { it.deltakerlisteDbo.erTilgjengeligForArrangor() }
+            ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${medDeltakerlisteDbo.deltakerliste.id}")
 
         val overordnetArrangor = deltakerlisteMedArrangor.arrangorDbo.overordnetArrangorId?.let { arrangorRepository.getArrangor(it) }
         val arrangorNavn = overordnetArrangor?.navn ?: deltakerlisteMedArrangor.arrangorDbo.navn
         return ulesteEndringer.toResponse(
             ansatte,
-            toTitleCase(arrangorNavn),
+            arrangorNavn.toTitleCase(),
             enheter,
             deltakerlisteMedArrangor.deltakerlisteDbo.oppstartstype,
         )
@@ -114,12 +113,11 @@ class TiltaksarrangorService(
         val ansatte = navAnsattService.hentAnsatteForHistorikk(historikk)
         val enheter = navEnhetService.hentEnheterForHistorikk(historikk)
 
-        val deltakerlisteMedArrangor =
-            deltakerlisteRepository
-                .getDeltakerlisteMedArrangor(
-                    deltaker.deltakerliste.id,
-                )?.takeIf { it.deltakerlisteDbo.erTilgjengeligForArrangor() }
-                ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${deltaker.deltakerliste.id}")
+        val deltakerlisteMedArrangor = deltakerlisteRepository
+            .getDeltakerlisteMedArrangor(
+                deltaker.deltakerliste.id,
+            )?.takeIf { it.deltakerlisteDbo.erTilgjengeligForArrangor() }
+            ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${deltaker.deltakerliste.id}")
 
         val overordnetArrangor = deltakerlisteMedArrangor.arrangorDbo.overordnetArrangorId?.let { arrangorRepository.getArrangor(it) }
 
@@ -128,7 +126,12 @@ class TiltaksarrangorService(
             .filterNot {
                 deltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING &&
                     it is DeltakerHistorikk.Vedtak
-            }.toResponse(ansatte, toTitleCase(arrangorNavn), enheter, deltaker.deltakerliste.oppstartstype)
+            }.toResponse(
+                ansatte = ansatte,
+                arrangornavn = arrangorNavn.toTitleCase(),
+                enheter = enheter,
+                oppstartstype = deltaker.deltakerliste.oppstartstype,
+            )
     }
 
     fun registrerVurdering(

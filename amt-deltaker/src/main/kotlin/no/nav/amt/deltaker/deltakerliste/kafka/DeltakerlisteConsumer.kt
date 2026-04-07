@@ -5,17 +5,22 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.toModel
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerlisteConsumer(
@@ -24,6 +29,7 @@ class DeltakerlisteConsumer(
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
+    private val deltakerProducerService: DeltakerProducerService,
     private val unleashToggle: CommonUnleashToggle,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
@@ -75,25 +81,74 @@ class DeltakerlisteConsumer(
                 eksisterendeOppstartstype = eksisterendeDeltakerliste.oppstart,
             )
 
-            handterDeltakere(deltakerliste, eksisterendeDeltakerliste)
-        }
+            Database.transaction {
+                deltakerlisteRepository.upsert(deltakerliste)
 
-        deltakerlisteRepository.upsert(deltakerliste)
+                handterDeltakere(
+                    deltakerlisteFromPayload = deltakerliste,
+                    eksisterendeDeltakerliste = eksisterendeDeltakerliste,
+                )
+
+                // hvis deltakerliste er for enkeltplass, publiser deltaker
+                if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
+                    eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
+                    deltakerliste.status != GjennomforingStatusType.KLADD
+                ) {
+                    deltakerProducerService.produce(
+                        deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
+                    )
+                }
+            }
+        } else {
+            deltakerlisteRepository.upsert(deltakerliste)
+        }
     }
 
-    suspend fun handterDeltakere(
+    private fun handterDeltakere(
         deltakerlisteFromPayload: Deltakerliste,
         eksisterendeDeltakerliste: Deltakerliste,
     ) {
         if (deltakerlisteFromPayload.erAvlystEllerAvbrutt() && eksisterendeDeltakerliste.status != deltakerlisteFromPayload.status) {
-            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerlisteFromPayload)
+            avsluttDeltakelserPaaDeltakerliste(deltakerlisteFromPayload)
         }
 
         if (deltakerlisteFromPayload.sluttDato != null &&
             eksisterendeDeltakerliste.sluttDato != null &&
             deltakerlisteFromPayload.sluttDato < eksisterendeDeltakerliste.sluttDato
         ) {
-            deltakerService.avgrensSluttdatoerTil(deltakerlisteFromPayload)
+            avgrensSluttdatoerTil(deltakerlisteFromPayload)
         }
+    }
+
+    internal fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
+        val deltakerePaAvbruttDeltakerliste = deltakerRepository
+            .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
+            .map { it.copy(deltakerliste = deltakerliste) }
+
+        deltakerService.avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
+    }
+
+    internal fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
+        deltakerRepository
+            .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
+            .forEach { deltaker ->
+                deltakerRepository.upsert(
+                    deltaker.copy(
+                        sluttdato = deltakerliste.sluttDato,
+                        sistEndret = LocalDateTime.now(),
+                    ),
+                )
+                deltakerService.lagreDeltakerStatus(
+                    deltakerId = deltaker.id,
+                    nyDeltakerStatus = deltaker.status,
+                    erDeltakerSluttdatoEndret = true,
+                )
+                deltakerProducerService.produce(
+                    deltaker = deltakerRepository.get(deltaker.id).getOrThrow(),
+                    forcedUpdate = true,
+                )
+
+                log.info("Deltaker ${deltaker.id} fikk ny sluttdato")
+            }
     }
 }

@@ -11,8 +11,10 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.verify
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
@@ -391,6 +393,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
     @Test
     fun `getDeltaker - deltaker er importert fra arena - returnerer importertFraArenaDto`() {
+        // Arrange
         val innsoktDatoFraArena = LocalDate.now().minusDays(5)
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -399,6 +402,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         )
         setupMocks(deltaker, null)
 
+        // Act
         withTestApplicationContext { httpClient ->
             httpClient.post("/deltaker/${deltaker.id}") { createPostRequest(deltakerRequest) }.apply {
                 status shouldBe HttpStatusCode.OK
@@ -408,6 +412,8 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 deltakerResponse.vedtaksinformasjon shouldBe null
             }
         }
+
+        // Assert
         verify(exactly = 1) { sporbarhetsloggService.sendAuditLog(any(), any()) }
     }
 
@@ -768,12 +774,19 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
     @Test
     fun `avvis forslag - har tilgang - returnerer oppdatert deltaker`() {
+        // Arrange
         val deltaker = lagDeltaker()
         val forslag = lagForslag(deltakerId = deltaker.id)
+
+        coEvery {
+            forslagService.avvisForslag(forslag, any(), any(), any())
+        } just Runs
+
         every { forslagRepository.get(forslag.id) } returns Result.success(forslag)
 
         val expectedDeltakerResponse = deltakerResponseInTest(deltaker, setupMocks(deltaker, deltaker))
 
+        // Act & Assert
         withTestApplicationContext { httpClient ->
             httpClient
                 .post("/forslag/${forslag.id}/avvis") { createPostRequest(avvisForslagRequest) }
@@ -828,6 +841,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         oppdatertDeltaker: Deltaker?,
         forslag: List<Forslag> = emptyList(),
     ): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
+        every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
         every { deltakerRepository.getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id) } returns listOf(deltaker)

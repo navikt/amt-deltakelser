@@ -122,6 +122,7 @@ object TestData {
         deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
     ) = GjennomforingV2KafkaPayload.Enkeltplass(
         id = deltakerliste.id,
+        status = deltakerliste.status ?: GjennomforingStatusType.KLADD,
         tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),

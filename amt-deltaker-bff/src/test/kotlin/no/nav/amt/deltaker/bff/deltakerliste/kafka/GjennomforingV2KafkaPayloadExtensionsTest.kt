@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagGruppeDeltakerlistePayload
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakstype
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.Test
@@ -43,27 +44,34 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
 
     @Test
     fun `toModel enkeltplass - mapper felter korrekt`() {
+        // Arrange
         val tiltakstypeInTest = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING)
 
         val deltakerListeInTest = lagDeltakerliste(
             navn = tiltakstypeInTest.tiltakskode.name,
             tiltakstype = tiltakstypeInTest,
             arrangor = arrangorInTest,
+            status = GjennomforingStatusType.GJENNOMFORES,
         ).copy(navn = tiltakstypeInTest.tiltakskode.name)
 
         val payload = lagEnkeltplassDeltakerlistePayload(deltakerliste = deltakerListeInTest)
 
-        val model = payload.toModel(arrangorInTest, tiltakstypeInTest)
+        // Act
+        val model = payload.toModel(
+            arrangor = arrangorInTest,
+            tiltakstype = tiltakstypeInTest,
+        )
 
+        // Assert
         assertSoftly(model) {
             it.tiltak shouldBe deltakerListeInTest.tiltak
             it.arrangor.arrangor shouldBe arrangorInTest
 
             id shouldBe id
             navn shouldBe deltakerListeInTest.tiltak.navn
+            status shouldBe deltakerListeInTest.status
             startDato.shouldBeNull()
             sluttDato.shouldBeNull()
-            status.shouldBeNull()
             oppstart.shouldBeNull()
             apentForPamelding.shouldBeTrue()
             antallPlasser.shouldBeNull()

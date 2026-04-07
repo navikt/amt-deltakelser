@@ -63,6 +63,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseProducer
@@ -206,6 +207,7 @@ fun Application.module() {
 
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService)
+
     val navBrukerService = NavBrukerService(
         navBrukerRepository,
         amtPersonServiceClient,
@@ -277,6 +279,8 @@ fun Application.module() {
     val deltakerProducerService =
         DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, deltakerEksternV1Producer, unleashToggle)
 
+    val vedtakService = VedtakService(vedtakRepository)
+
     val forslagService =
         ForslagService(
             forslagRepository = forslagRepository,
@@ -296,8 +300,6 @@ fun Application.module() {
         )
 
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-
-    val vedtakService = VedtakService(vedtakRepository)
 
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -345,8 +347,19 @@ fun Application.module() {
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
-        deltakerListeRepository = deltakerlisteRepository,
-        tiltakRepository = tiltakstypeRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
+    )
+
+    val enkeltplassService = EnkeltplassService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        gjennomforingRequestProducer = gjennomforingRequestProducer,
+        deltakerlisteRepository = deltakerlisteRepository,
+        navBrukerService = navBrukerService,
+        tiltakstypeRepository = tiltakstypeRepository,
+        navEnhetService = navEnhetService,
+        navAnsattService = navAnsattService,
+        vedtakService = vedtakService,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(
@@ -375,6 +388,7 @@ fun Application.module() {
             tiltakstypeRepository = tiltakstypeRepository,
             arrangorService = arrangorService,
             deltakerService = deltakerService,
+            deltakerProducerService = deltakerProducerService,
             unleashToggle = unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(
@@ -423,6 +437,7 @@ fun Application.module() {
         vedtakRepository = vedtakRepository,
         responseBuilder = responseBuilder,
         kladdService = kladdService,
+        enkeltplassService = enkeltplassService,
     )
     configureMonitoring()
 

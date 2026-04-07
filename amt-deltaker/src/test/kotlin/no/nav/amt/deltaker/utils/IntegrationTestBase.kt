@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.utils
 
-import io.getunleash.FakeUnleash
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.jackson.jackson
@@ -11,69 +10,366 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
+import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
+import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navbruker.NavBrukerRepository
+import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.lib.kafka.Producer
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
+import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
+import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.outbox.OutboxRecord
+import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import org.junit.jupiter.api.BeforeEach
 
 abstract class IntegrationTestBase {
-    protected open val deltakelserResponseMapper: DeltakelserResponseMapper = mockk(relaxed = true)
+    protected open val arrangorClient: AmtArrangorClient = mockk()
+    protected open val personServiceClient: AmtPersonServiceClient = mockk()
+    protected open val distribusjonClient: AmtDistribusjonClient = mockk()
+    protected open val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient = mockk()
 
-    protected val pameldingService: PameldingService = mockk(relaxed = true)
-    protected val kladdService: KladdService = mockk(relaxed = true)
-    protected val deltakerService: DeltakerService = mockk(relaxed = true)
-    protected val deltakerRepository: DeltakerRepository = mockk(relaxed = true)
-    protected val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
-    protected val deltakerProducerService: DeltakerProducerService = mockk(relaxed = true)
-    protected val vedtakService: VedtakService = mockk(relaxed = true)
-    protected val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository = mockk(relaxed = true)
-    protected val vurderingRepository: VurderingRepository = mockk(relaxed = true)
-    protected val hendelseService: HendelseService = mockk(relaxed = true)
-    protected val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk(relaxed = true)
-    protected val arrangorService = mockk<ArrangorService>()
-    protected val navEnhetService = mockk<NavEnhetService>()
-    protected val navAnsattService = mockk<NavAnsattService>()
-    protected val vedtakRepository = mockk<VedtakRepository>()
-    protected val responseBuilder = mockk<ResponseBuilder>()
+    protected open val arrangorRepository: ArrangorRepository = mockk()
+    protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
+    protected open val deltakerRepository: DeltakerRepository = mockk()
+    protected open val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+    protected open val endringFraArrangorRepository: EndringFraArrangorRepository = mockk()
+    protected open val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk()
+    protected open val forslagRepository: ForslagRepository = mockk()
+    protected open val importertFraArenaRepository: ImportertFraArenaRepository = mockk()
+    protected open val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository = mockk()
+    protected open val navAnsattRepository: NavAnsattRepository = mockk()
+    protected open val navBrukerRepository: NavBrukerRepository = mockk()
+    protected open val navEnhetRepository: NavEnhetRepository = mockk()
+    protected open val tiltakstypeRepository: TiltakstypeRepository = mockk()
+    protected open val vedtakRepository = mockk<VedtakRepository>()
+    protected open val vurderingRepository: VurderingRepository = mockk()
 
-    protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
-    protected val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
+    protected open val navEnhetService: NavEnhetService by lazy {
+        NavEnhetService(
+            repository = navEnhetRepository,
+            amtPersonServiceClient = personServiceClient,
+        )
+    }
 
-    protected val unleashClient = FakeUnleash()
-    protected open val unleashToggle = CommonUnleashToggle(unleashClient)
+    protected open val navAnsattService: NavAnsattService by lazy {
+        NavAnsattService(
+            repository = navAnsattRepository,
+            navEnhetService = navEnhetService,
+            amtPersonServiceClient = personServiceClient,
+        )
+    }
 
-    protected val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
+    protected open val navBrukerService: NavBrukerService by lazy {
+        NavBrukerService(
+            repository = navBrukerRepository,
+            personServiceClient = personServiceClient,
+            enhetService = navEnhetService,
+            ansattService = navAnsattService,
+        )
+    }
+
+    protected open val arrangorService: ArrangorService by lazy {
+        ArrangorService(
+            arrangorRepository = arrangorRepository,
+            amtArrangorClient = arrangorClient,
+        )
+    }
+
+    protected open val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService by lazy {
+        InnsokPaaFellesOppstartService(repository = innsokPaaFellesOppstartRepository)
+    }
+
+    protected open val pameldingService: PameldingService by lazy {
+        PameldingService(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            navEnhetService = navEnhetService,
+            navAnsattService = navAnsattService,
+            vedtakService = vedtakService,
+            hendelseService = hendelseService,
+            innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        )
+    }
+
+    protected open val kladdService: KladdService by lazy {
+        KladdService(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            deltakerlisteRepository = deltakerlisteRepository,
+            navBrukerService = navBrukerService,
+        )
+    }
+
+    protected open val vedtakService: VedtakService by lazy {
+        VedtakService(vedtakRepository = vedtakRepository)
+    }
+
+    protected open val vurderingService: VurderingService by lazy {
+        VurderingService(vurderingRepository = vurderingRepository)
+    }
+
+    protected open val hendelseProducer: HendelseProducer by lazy {
+        HendelseProducer(outboxService = outboxService)
+    }
+
+    protected open val hendelseService: HendelseService by lazy {
+        HendelseService(
+            hendelseProducer = hendelseProducer,
+            navAnsattRepository = navAnsattRepository,
+            navAnsattService = navAnsattService,
+            navEnhetRepository = navEnhetRepository,
+            navEnhetService = navEnhetService,
+            arrangorService = arrangorService,
+            deltakerHistorikkService = deltakerHistorikkService,
+            vurderingService = vurderingService,
+            unleashToggle = unleashToggle,
+        )
+    }
+
+    protected open val deltakerHistorikkService: DeltakerHistorikkService by lazy {
+        DeltakerHistorikkService(
+            deltakerEndringRepository = deltakerEndringRepository,
+            vedtakRepository = vedtakRepository,
+            forslagRepository = forslagRepository,
+            endringFraArrangorRepository = endringFraArrangorRepository,
+            importertFraArenaRepository = importertFraArenaRepository,
+            innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+            endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+            vurderingRepository = vurderingRepository,
+        )
+    }
+
+    protected open val deltakerKafkaPayloadBuilder: DeltakerKafkaPayloadBuilder by lazy {
+        DeltakerKafkaPayloadBuilder(
+            navAnsattRepository = navAnsattRepository,
+            navEnhetRepository = navEnhetRepository,
+            deltakerHistorikkService = deltakerHistorikkService,
+            vurderingRepository = vurderingRepository,
+        )
+    }
+
+    protected open val outboxService: OutboxService = mockk()
+    protected open val stringStringProducer: Producer<String, String> = mockk()
+    protected open val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
+    protected open val unleashToggle: CommonUnleashToggle = mockk()
+
+    protected open val deltakerProducer: DeltakerProducer by lazy {
+        DeltakerProducer(
+            outboxService = outboxService,
+            producer = stringStringProducer,
+        )
+    }
+
+    protected open val deltakerV1Producer: DeltakerV1Producer by lazy {
+        DeltakerV1Producer(
+            outboxService = outboxService,
+            producer = stringStringProducer,
+        )
+    }
+
+    protected open val deltakerEksternV1Producer: DeltakerEksternV1Producer by lazy {
+        DeltakerEksternV1Producer(
+            outboxService = outboxService,
+            producer = stringStringProducer,
+        )
+    }
+
+    protected open val deltakerProducerService: DeltakerProducerService by lazy {
+        DeltakerProducerService(
+            deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
+            deltakerProducer = deltakerProducer,
+            deltakerV1Producer = deltakerV1Producer,
+            deltakerEksternV1Producer = deltakerEksternV1Producer,
+            unleashToggle = unleashToggle,
+        )
+    }
+
+    protected open val deltakelserResponseMapper: DeltakelserResponseMapper by lazy {
+        DeltakelserResponseMapper(
+            deltakerHistorikkService = deltakerHistorikkService,
+            arrangorService = arrangorService,
+        )
+    }
+
+    protected open val arrangorMeldingProducer: ArrangorMeldingProducer by lazy {
+        ArrangorMeldingProducer(outboxService = outboxService)
+    }
+
+    protected open val forslagService: ForslagService by lazy {
+        ForslagService(
+            forslagRepository = forslagRepository,
+            arrangorMeldingProducer = arrangorMeldingProducer,
+            deltakerRepository = deltakerRepository,
+            deltakerProducerService = deltakerProducerService,
+        )
+    }
+
+    protected open val deltakerEndringService: DeltakerEndringService by lazy {
+        DeltakerEndringService(
+            deltakerEndringRepository = deltakerEndringRepository,
+            navAnsattRepository = navAnsattRepository,
+            navEnhetRepository = navEnhetRepository,
+            hendelseService = hendelseService,
+            forslagService = forslagService,
+            deltakerHistorikkService = deltakerHistorikkService,
+        )
+    }
+
+    protected open val deltakerService: DeltakerService by lazy {
+        DeltakerService(
+            deltakerRepository = deltakerRepository,
+            vedtakRepository = vedtakRepository,
+            deltakerHistorikkService = deltakerHistorikkService,
+            deltakerProducerService = deltakerProducerService,
+            vedtakService = vedtakService,
+            endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+            deltakerEndringRepository = deltakerEndringRepository,
+            hendelseService = hendelseService,
+            deltakerEndringService = deltakerEndringService,
+            navEnhetService = navEnhetService,
+            navAnsattService = navAnsattService,
+            forslagRepository = forslagRepository,
+            endringFraArrangorRepository = endringFraArrangorRepository,
+            importertFraArenaRepository = importertFraArenaRepository,
+        )
+    }
+
+    protected open val enkeltplassService: EnkeltplassService by lazy {
+        EnkeltplassService(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            gjennomforingRequestProducer = gjennomforingRequestProducer,
+            deltakerlisteRepository = deltakerlisteRepository,
+            navBrukerService = navBrukerService,
+            tiltakstypeRepository = tiltakstypeRepository,
+            navEnhetService = navEnhetService,
+            navAnsattService = navAnsattService,
+            vedtakService = vedtakService,
+        )
+    }
+
+    protected open val endringFraArrangorService: EndringFraArrangorService by lazy {
+        EndringFraArrangorService(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            endringFraArrangorRepository = endringFraArrangorRepository,
+            hendelseService = hendelseService,
+            deltakerHistorikkService = deltakerHistorikkService,
+        )
+    }
+
+    protected open val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
+
+    protected open val opprettKladdRequestValidator: OpprettKladdRequestValidator by lazy {
+        OpprettKladdRequestValidator(
+            deltakerlisteRepository = deltakerlisteRepository,
+            brukerService = navBrukerService,
+            personServiceClient = personServiceClient,
+            isOppfolgingsTilfelleClient = isOppfolgingstilfelleClient,
+        )
+    }
+
+    protected open val deltakerlisteConsumer: DeltakerlisteConsumer by lazy {
+        DeltakerlisteConsumer(
+            deltakerlisteRepository = deltakerlisteRepository,
+            deltakerRepository = deltakerRepository,
+            tiltakstypeRepository = tiltakstypeRepository,
+            arrangorService = arrangorService,
+            deltakerService = deltakerService,
+            unleashToggle = unleashToggle,
+            deltakerProducerService = deltakerProducerService,
+        )
+    }
+
+    protected open val gjennomforingRequestProducer: GjennomforingRequestProducer by lazy {
+        GjennomforingRequestProducer(outboxService = outboxService)
+    }
+
+    protected open val deltakerLaaseService: DeltakerLaaseService by lazy {
+        DeltakerLaaseService(
+            deltakerRepository = deltakerRepository,
+            importertFraArenaRepository = importertFraArenaRepository,
+        )
+    }
+
+    protected open val responseBuilder: ResponseBuilder by lazy {
+        ResponseBuilder(
+            arrangorService = arrangorService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            amtDistribusjonClient = distribusjonClient,
+            deltakerHistorikkService = deltakerHistorikkService,
+            forslagRepository = forslagRepository,
+            deltakerLaaseService = deltakerLaaseService,
+        )
+    }
 
     @BeforeEach
     protected fun init() {
         clearAllMocks()
         configureEnvForAuthentication()
+
+        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
+        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
+
+        val mockOutboxRecord = mockk<OutboxRecord>()
+        every {
+            outboxService.insertRecord(any(), any(), any(), any())
+        } returns mockOutboxRecord
     }
 
     protected fun <T : Any> withTestApplicationContext(
@@ -90,24 +386,25 @@ abstract class IntegrationTestBase {
                     opprettKladdRequestValidator = opprettKladdRequestValidator,
                 )
                 configureRouting(
-                    pameldingService,
-                    kladdService,
-                    deltakerService,
-                    deltakerRepository,
-                    deltakerHistorikkService,
-                    tilgangskontrollService,
-                    deltakelserResponseMapper,
-                    deltakerProducerService,
-                    vedtakService,
-                    unleashToggle,
-                    innsokPaaFellesOppstartRepository,
-                    vurderingRepository,
-                    hendelseService,
-                    endringFraTiltakskoordinatorRepository,
-                    navEnhetService,
-                    vedtakRepository,
-                    navAnsattService,
-                    responseBuilder,
+                    pameldingService = pameldingService,
+                    kladdService = kladdService,
+                    enkeltplassService = enkeltplassService,
+                    deltakerService = deltakerService,
+                    deltakerRepository = deltakerRepository,
+                    deltakerHistorikkService = deltakerHistorikkService,
+                    tilgangskontrollService = tilgangskontrollService,
+                    deltakelserResponseMapper = deltakelserResponseMapper,
+                    deltakerProducerService = deltakerProducerService,
+                    vedtakService = vedtakService,
+                    unleashToggle = unleashToggle,
+                    innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+                    vurderingRepository = vurderingRepository,
+                    hendelseService = hendelseService,
+                    endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+                    navEnhetService = navEnhetService,
+                    vedtakRepository = vedtakRepository,
+                    navAnsattService = navAnsattService,
+                    responseBuilder = responseBuilder,
                 )
                 setUpTestRoute()
 

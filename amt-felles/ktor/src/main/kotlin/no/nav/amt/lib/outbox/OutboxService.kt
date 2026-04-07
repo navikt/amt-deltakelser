@@ -72,9 +72,4 @@ class OutboxService(
         outboxRepository.markAsFailed(record.id, errorMessage)
         meter.incrementProcessedRecords(record.topic, OutboxRecordStatus.FAILED)
     }
-
-    fun getRecordsByTopicAndKey(
-        topic: String,
-        key: String,
-    ): List<OutboxRecord> = outboxRepository.getRecordsByTopicAndKey(topic, key)
 }

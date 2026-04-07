@@ -22,9 +22,9 @@ object TestOutboxEnvironment {
 
         OutboxService().also { innerOutboxService ->
             OutboxProcessor(
-                innerOutboxService,
-                jobManager,
-                kafkaProducer,
+                outboxService = innerOutboxService,
+                jobManager = jobManager,
+                producer = kafkaProducer,
             ).apply {
                 start(
                     initialDelay = Duration.ofMillis(INIT_DELAY_IN_MS),

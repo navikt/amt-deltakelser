@@ -5,8 +5,8 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
+import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.sammenlignVedtak
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository

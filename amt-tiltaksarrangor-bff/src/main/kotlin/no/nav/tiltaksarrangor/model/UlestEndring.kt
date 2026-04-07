@@ -121,7 +121,7 @@ sealed interface Oppdatering {
         val begrunnelse: String?,
     ) : Oppdatering
 
-    val id
+    val id: UUID
         get() = when (this) {
             is DeltakelsesEndring -> endring.id
             is AvvistForslag -> forslag.id

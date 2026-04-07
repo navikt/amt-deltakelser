@@ -25,6 +25,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -96,8 +97,10 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
     @Test
     fun `get deltakerliste - liste finnes - returnerer 200 og liste`() {
+        // Arrange
         val expectedResponse = deltakerlisteInTest.toResponse(listOf(tiltakskoordinatorInTest))
 
+        every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
         every { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
         every {
             tiltakskoordinatorTilgangRepository.hentKoordinatorer(
@@ -107,14 +110,15 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         } returns listOf(tiltakskoordinatorInTest)
 
         withTestApplicationContext { client ->
+            // Act
             val response = client.get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}") {
                 noBodyTiltakskoordinatorRequest()
             }
 
+            // Assert
             response.status shouldBe HttpStatusCode.OK
-
-            val actualResponse = response.body<DeltakerlisteResponse>()
-            actualResponse shouldBe expectedResponse
+            val deltakerlisteResponse = response.body<DeltakerlisteResponse>()
+            deltakerlisteResponse shouldBe expectedResponse
         }
     }
 

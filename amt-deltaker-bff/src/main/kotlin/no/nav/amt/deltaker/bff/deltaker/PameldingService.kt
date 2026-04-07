@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.bff.deltaker
 
+import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakeroppdatering
-import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.deltaker.ModelMapper
-import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
+import no.nav.amt.deltaker.bff.apiclients.ModelMapper
+import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker

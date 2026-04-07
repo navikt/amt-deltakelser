@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.innbygger
 
-import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
+import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

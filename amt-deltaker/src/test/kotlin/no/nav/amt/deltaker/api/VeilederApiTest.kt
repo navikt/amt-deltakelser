@@ -11,7 +11,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.verify
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
@@ -47,6 +50,9 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class VeilederApiTest : IntegrationTestBase() {
+    override val deltakerService: DeltakerService = mockk()
+    override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
+
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
@@ -314,6 +320,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
     @Test
     fun `post sist-besokt - har tilgang - returnerer 200`() {
+        // Arrange
         val deltakerInTest = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
@@ -322,8 +329,14 @@ class VeilederApiTest : IntegrationTestBase() {
 
         val sistBesoktInTest = ZonedDateTime.now()
 
-        every { deltakerService.oppdaterSistBesokt(deltakerInTest.id, sistBesoktInTest) } just Runs
+        every {
+            deltakerService.oppdaterSistBesokt(
+                deltakerId = deltakerInTest.id,
+                sistBesokt = any(),
+            )
+        } just Runs
 
+        // Act
         withTestApplicationContext { client ->
             val response = client.post("/deltaker/${deltakerInTest.id}/sist-besokt") {
                 postRequest(sistBesoktInTest)
@@ -332,7 +345,7 @@ class VeilederApiTest : IntegrationTestBase() {
             response.status shouldBe HttpStatusCode.OK
         }
 
-        verify(exactly = 1) {
+        verify {
             deltakerService.oppdaterSistBesokt(
                 deltakerId = deltakerInTest.id,
                 sistBesokt = sistBesoktInTest.withZoneSameInstant(ZoneOffset.UTC),

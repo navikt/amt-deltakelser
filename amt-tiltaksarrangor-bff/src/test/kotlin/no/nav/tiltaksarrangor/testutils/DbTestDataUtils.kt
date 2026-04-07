@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldNotBe
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import java.time.Duration
 import java.time.LocalDateTime
 import javax.sql.DataSource
@@ -25,8 +24,8 @@ object DbTestDataUtils {
     fun cleanDatabase(dataSource: DataSource) {
         val jdbcTemplate = JdbcTemplate(dataSource)
 
-        val tables = getAllTables(jdbcTemplate, SCHEMA).filter { it != FLYWAY_SCHEMA_HISTORY_TABLE_NAME }
-        val sequences = getAllSequences(jdbcTemplate, SCHEMA)
+        val tables = getAllTables(jdbcTemplate).filter { it != FLYWAY_SCHEMA_HISTORY_TABLE_NAME }
+        val sequences = getAllSequences(jdbcTemplate)
 
         tables.forEach {
             jdbcTemplate.update("TRUNCATE TABLE $it CASCADE")
@@ -37,23 +36,15 @@ object DbTestDataUtils {
         }
     }
 
-    fun <V> parameters(vararg pairs: Pair<String, V>): MapSqlParameterSource = MapSqlParameterSource().addValues(pairs.toMap())
-
-    private fun getAllTables(
-        jdbcTemplate: JdbcTemplate,
-        schema: String,
-    ): List<String> {
+    private fun getAllTables(jdbcTemplate: JdbcTemplate): List<String> {
         val sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = ?"
 
-        return jdbcTemplate.query(sql, { rs, _ -> rs.getString(1) }, schema)
+        return jdbcTemplate.query(sql, { rs, _ -> rs.getString(1) }, SCHEMA)
     }
 
-    private fun getAllSequences(
-        jdbcTemplate: JdbcTemplate,
-        schema: String,
-    ): List<String> {
+    private fun getAllSequences(jdbcTemplate: JdbcTemplate): List<String> {
         val sql = "SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = ?"
 
-        return jdbcTemplate.query(sql, { rs, _ -> rs.getString(1) }, schema)
+        return jdbcTemplate.query(sql, { rs, _ -> rs.getString(1) }, SCHEMA)
     }
 }

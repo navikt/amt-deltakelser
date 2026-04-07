@@ -48,9 +48,9 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
                 tiltakstype shouldBe tiltakstypeInTest
                 navn shouldBe "Test tiltak ${tiltakstypeInTest.tiltakskode.name}"
                 tiltakstype shouldBe tiltakstypeInTest
+                status shouldBe deltakerliste.status
                 startDato shouldBe null
                 sluttDato shouldBe null
-                status shouldBe null
                 oppstart shouldBe null
                 apentForPamelding.shouldBeTrue()
                 arrangor shouldBe arrangorInTest

@@ -8,10 +8,11 @@ import java.util.UUID
 sealed interface GjennomforingRequestPayload {
     val gjennomforingId: UUID
 
-    data class OpprettGjennomforing(
+    data class OpprettEnkeltplass(
         override val gjennomforingId: UUID,
         val tiltakskode: Tiltakskode,
         val prisinformasjon: String,
         val organisasjonsnummer: String,
+        val kostnadssted: String, // dette er Nav-enheten som skal bære kostnaden
     ) : GjennomforingRequestPayload
 }

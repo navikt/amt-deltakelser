@@ -125,19 +125,6 @@ internal class OutboxRepository {
         )
     }
 
-    fun getRecordsByTopicAndKey(
-        topic: String,
-        key: String,
-    ) = Database.query { session ->
-        session.list(
-            queryOf(
-                "SELECT * FROM outbox_record WHERE key = :key AND topic = :topic",
-                mapOf("key" to key, "topic" to topic),
-            ),
-            ::rowMapper,
-        )
-    }
-
     companion object {
         private fun toPGObject(value: Any?) = PGobject().also {
             it.type = "json"

@@ -7,7 +7,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassKladdUpdateDbo
+import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
 import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.BeforeEach
@@ -26,9 +27,60 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
+import java.util.UUID
 
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
+
+    @Nested
+    inner class GetEnkeltplassdeltakerTests {
+        @Test
+        fun `skal returnere failure hvis ingen deltaker`() {
+            // Act
+            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
+                deltakerlisteId = UUID.randomUUID(),
+            )
+
+            // Assert
+            deltaker.shouldBeFailure()
+        }
+
+        @Test
+        fun `skal returnere deltaker`() {
+            // Arrange
+            val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+            TestRepository.insert(deltakerInTest)
+
+            // Act
+            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
+                deltakerlisteId = deltakerInTest.deltakerliste.id,
+            )
+
+            // Assert
+            deltaker.shouldBeSuccess()
+        }
+
+        @Test
+        fun `skal returnere failure for deltaker som ikke er enkeltplass`() {
+            // Arrange
+            val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+            TestRepository.insert(deltakerInTest)
+
+            // Act
+            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
+                deltakerlisteId = deltakerInTest.deltakerliste.id,
+            )
+
+            // Assert
+            deltaker.shouldBeFailure()
+        }
+    }
 
     @Nested
     inner class KladdTests {
@@ -101,7 +153,7 @@ class DeltakerRepositoryTest {
             )
 
             TestRepository.insert(deltaker)
-            val oppdatertDeltaker = lagEnkeltplassKladdUpdateDbo(
+            val oppdatertDeltaker = lagEnkeltplassUpdateDbo(
                 deltakerId = deltaker.id,
                 tiltakstype = deltaker.deltakerliste.tiltakstype,
                 startdato = deltaker.startdato,

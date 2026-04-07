@@ -8,7 +8,9 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -17,15 +19,14 @@ import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorApiTest : IntegrationTestBase() {
-    override val unleashToggle = mockk<CommonUnleashToggle>()
+    override val deltakerService = mockk<DeltakerService>()
+    override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
@@ -52,7 +53,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
-        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
@@ -71,7 +71,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
-        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 

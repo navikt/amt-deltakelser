@@ -11,11 +11,9 @@ data class VeilederRequest(
     val ansattId: UUID,
     val erMedveileder: Boolean,
 ) {
-    fun toVeiledertype(): Veiledertype {
-        if (erMedveileder) {
-            return Veiledertype.MEDVEILEDER
-        } else {
-            return Veiledertype.VEILEDER
-        }
+    fun toVeiledertype(): Veiledertype = if (erMedveileder) {
+        Veiledertype.MEDVEILEDER
+    } else {
+        Veiledertype.VEILEDER
     }
 }

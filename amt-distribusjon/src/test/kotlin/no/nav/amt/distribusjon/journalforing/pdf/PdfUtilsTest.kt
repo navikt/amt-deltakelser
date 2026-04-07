@@ -120,9 +120,7 @@ class PdfUtilsTest {
 
             pdfDto.endringer.size shouldBe 1
             (pdfDto.endringer.first() as EndringDto.ForlengDeltakelse).tittel shouldBe "Deltakelsen er forlenget til ${
-                formatDateWithMonthName(
-                    LocalDate.now().plusWeeks(4),
-                )
+                LocalDate.now().plusWeeks(4).formatDateWithMonthName()
             }"
         }
 

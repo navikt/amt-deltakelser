@@ -1,79 +1,224 @@
 package no.nav.amt.deltaker.deltakerliste.kafka
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.mockk.clearAllMocks
+import io.kotest.matchers.shouldNotBe
+import io.mockk.Runs
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.arrangor.ArrangorRepository
-import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangorResponse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
+import java.time.LocalDateTime
 
-class DeltakerlisteConsumerTest {
+class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
+    override val deltakerProducerService: DeltakerProducerService = mockk()
+
     private val arrangorInTest = lagArrangor()
 
-    private val deltakerlisteRepository = DeltakerlisteRepository()
-    private val deltakerRepository = DeltakerRepository()
-    private val tiltakstypeRepository = TiltakstypeRepository()
-    private val deltakerService: DeltakerService = mockk(relaxed = true)
-    private val arrangorRepository = ArrangorRepository()
-    private val arrangorClient: AmtArrangorClient = mockk(relaxed = true)
-    private val arrangorService = ArrangorService(
-        arrangorRepository = arrangorRepository,
-        amtArrangorClient = arrangorClient,
-    )
-    private val unleashToggle: CommonUnleashToggle = mockk()
-
-    private val consumer =
-        DeltakerlisteConsumer(
-            deltakerlisteRepository = deltakerlisteRepository,
-            deltakerRepository = deltakerRepository,
-            tiltakstypeRepository = tiltakstypeRepository,
-            arrangorService = arrangorService,
-            deltakerService = deltakerService,
-            unleashToggle = unleashToggle,
-        )
-
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-    }
-
     @BeforeEach
-    fun setup() {
-        clearAllMocks()
+    fun setupMocks() {
         every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns true
     }
 
+    @Nested
+    inner class EnkeltplassTests {
+        private val deltakerlisteInTest = lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+            status = GjennomforingStatusType.KLADD,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            arrangor = arrangorInTest,
+        )
+
+        private val deltakerInTest = lagDeltaker(
+            deltakerliste = deltakerlisteInTest,
+            status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+        )
+
+        private fun arrange(isHappyPathTest: Boolean = true) {
+            if (isHappyPathTest) {
+                lagVedtak(deltakerVedVedtak = deltakerInTest).let { vedtak ->
+                    TestRepository.insertAll(
+                        deltakerInTest,
+                        lagNavEnhet(id = vedtak.opprettetAvEnhet),
+                        lagNavAnsatt(id = vedtak.opprettetAv),
+                        vedtak,
+                    )
+                }
+            } else {
+                TestRepository.insertAll(deltakerlisteInTest)
+            }
+        }
+
+        @BeforeEach
+        fun setup() {
+            every {
+                deltakerProducerService.produce(any(), any(), any(), any(), any())
+            } just Runs
+        }
+
+        @Test
+        fun `skal kaste feil hvis enkeltplassdeltaker ikke finnes i db`() = runTest {
+            // Arrange
+            arrange(false)
+
+            val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
+                arrangor = arrangorInTest,
+                deltakerliste = deltakerlisteInTest.copy(
+                    status = GjennomforingStatusType.GJENNOMFORES,
+                ),
+            )
+
+            // Act & Assert
+            shouldThrow<NoSuchElementException> {
+                deltakerlisteConsumer.consume(
+                    key = enkeltplassPayloadInTest.id,
+                    value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
+                )
+            }
+        }
+
+        @Test
+        fun `skal produsere deltaker pa topics nar status for gjennomforing er endret fra kladd`() = runTest {
+            // Arrange
+            arrange()
+            val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
+                arrangor = arrangorInTest,
+                deltakerliste = deltakerlisteInTest.copy(status = GjennomforingStatusType.GJENNOMFORES),
+            )
+
+            // Act
+            deltakerlisteConsumer.consume(
+                key = enkeltplassPayloadInTest.id,
+                value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
+            )
+
+            // Assert
+            verify {
+                deltakerProducerService.produce(
+                    deltaker = match { it.id == deltakerInTest.id },
+                    forcedUpdate = any(),
+                    publiserTilDeltakerV1 = any(),
+                    publiserTilDeltakerEksternV1 = any(),
+                    publiserTilDeltakerV2 = any(),
+                )
+            }
+        }
+
+        @Test
+        fun `skal ikke produsere deltaker pa topics nar status for gjennomforing er uendret`() = runTest {
+            // Arrange
+            arrange()
+            val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
+                arrangor = arrangorInTest,
+                deltakerliste = deltakerlisteInTest,
+            )
+
+            // Act
+            deltakerlisteConsumer.consume(
+                key = enkeltplassPayloadInTest.id,
+                value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
+            )
+
+            // Assert
+            verify(exactly = 0) {
+                deltakerProducerService.produce(
+                    deltaker = any(),
+                    forcedUpdate = any(),
+                    publiserTilDeltakerV1 = any(),
+                    publiserTilDeltakerEksternV1 = any(),
+                    publiserTilDeltakerV2 = any(),
+                )
+            }
+        }
+    }
+
+    @Nested
+    inner class AvgrensSluttdatoerTilTests {
+        @Test
+        fun `avgrensSluttdatoerTil - deltaker har senere sluttdato enn deltakerliste - deltakers sluttdato endres`() = runTest {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                sluttdato = deltakerliste.sluttDato!!.plusMonths(1),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+
+            TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
+
+            every {
+                deltakerProducerService.produce(any(), any(), any(), any(), any())
+            } just Runs
+
+            // Act
+            deltakerlisteConsumer.avgrensSluttdatoerTil(deltakerliste)
+
+            // Assert
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            oppdatertDeltaker.sluttdato shouldBe deltakerliste.sluttDato
+        }
+
+        @Test
+        fun `avgrensSluttdatoerTil - deltaker har tidligere sluttdato enn deltakerliste - deltakers sluttdato endres ikke`() = runTest {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                sluttdato = deltakerliste.sluttDato!!.minusDays(1),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+
+            TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
+
+            // Act
+            deltakerlisteConsumer.avgrensSluttdatoerTil(deltakerliste)
+
+            // Assert
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            oppdatertDeltaker.sluttdato shouldNotBe deltakerliste.sluttDato
+        }
+    }
+
     @Test
-    fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() {
+    fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest)
         val deltaker = lagDeltaker(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
@@ -83,23 +228,22 @@ class DeltakerlisteConsumerTest {
                 arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
             ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
 
-        runTest {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                consumer.consume(
-                    deltakerlistePayload.id,
-                    objectMapper.writeValueAsString(deltakerlistePayload),
-                )
-            }
-
-            thrown.message shouldBe
-                "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
+        // Act
+        val thrown = shouldThrow<IllegalArgumentException> {
+            deltakerlisteConsumer.consume(
+                key = deltakerlistePayload.id,
+                value = objectMapper.writeValueAsString(deltakerlistePayload),
+            )
         }
+
+        // Assert
+        thrown.message shouldBe
+            "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
     }
 
     @Test
-    fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() {
-        every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns false
-
+    fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() = runTest {
+        // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
         tiltakstypeRepository.upsert(tiltakstype)
 
@@ -109,18 +253,20 @@ class DeltakerlisteConsumerTest {
             arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
         )
 
-        runTest {
-            consumer.consume(
-                deltakerlistePayload.id,
-                objectMapper.writeValueAsString(deltakerlistePayload),
-            )
+        every { unleashToggle.skalLeseGjennomforing(tiltakstype.tiltakskode.name) } returns false
+        coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
-            val thrown = shouldThrow<NoSuchElementException> {
-                deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
-            }
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerlistePayload.id,
+            value = objectMapper.writeValueAsString(deltakerlistePayload),
+        )
 
-            thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
+        val thrown = shouldThrow<NoSuchElementException> {
+            deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
         }
+
+        thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
     }
 
     @Test
@@ -142,15 +288,13 @@ class DeltakerlisteConsumerTest {
         coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
         // Act
-        consumer.consume(
-            deltakerlistePayload.id,
-            objectMapper.writeValueAsString(deltakerlistePayload),
+        deltakerlisteConsumer.consume(
+            key = deltakerlistePayload.id,
+            value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
-
-        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste
     }
 
     @Test
@@ -173,22 +317,20 @@ class DeltakerlisteConsumerTest {
         coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
         // Act
-        consumer.consume(
-            deltakerlistePayload.id,
-            objectMapper.writeValueAsString(deltakerlistePayload),
+        deltakerlisteConsumer.consume(
+            key = deltakerlistePayload.id,
+            value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste.copy(
             navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
-            status = null,
+            status = deltakerliste.status,
             startDato = null,
             sluttDato = null,
             oppstart = null,
             oppmoteSted = null,
         )
-
-        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
     }
 
     @Test
@@ -206,19 +348,18 @@ class DeltakerlisteConsumerTest {
         coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
         // Act
-        consumer.consume(
-            deltakerliste.id,
-            objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, deltakerliste)),
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, deltakerliste)),
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
-
-        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste
     }
 
     @Test
-    fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() {
+    fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
@@ -227,57 +368,59 @@ class DeltakerlisteConsumerTest {
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
-        runTest {
-            consumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
-            )
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
-        }
-
-        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
     }
 
     @Test
-    fun `consumeDeltakerliste - avbrutt - oppdaterer deltakerliste og avslutter deltakere`() {
+    fun `consumeDeltakerliste - avbrutt - oppdaterer deltakerliste og avslutter deltakere`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         TestRepository.insert(deltakerliste)
 
-        val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
+        val oppdatertDeltakerliste = deltakerliste.copy(
+            sluttDato = LocalDate.now(),
+            status = GjennomforingStatusType.AVBRUTT,
+        )
 
-        runTest {
-            consumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
-            )
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
-        }
-
-        coVerify { deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste) }
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
     }
 
     @Test
-    fun `consumeDeltakerliste - tombstone - sletter deltakerliste`() {
+    fun `consumeDeltakerliste - tombstone - sletter deltakerliste`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste()
-
         TestRepository.insert(deltakerliste)
 
-        runTest {
-            consumer.consume(deltakerliste.id, null)
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = null,
+        )
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
-        }
-
-        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeFailure()
     }
 
     @Test
-    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato pa deltakere`() {
+    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato pa deltakere`() = runTest {
+        // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
@@ -286,15 +429,83 @@ class DeltakerlisteConsumerTest {
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
-        runTest {
-            consumer.consume(
-                deltakerliste.id,
-                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        // Act
+        deltakerlisteConsumer.consume(
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        )
+
+        // Assert
+        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
+    }
+
+    @Nested
+    inner class AvsluttDeltakelserPaaDeltakerlisteTests {
+        private val sistEndretAvNavEnhet = lagNavEnhet()
+        private val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
+
+        @Test
+        fun `avsluttDeltakelserPaaDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() = runTest {
+            // Arrange
+            navEnhetRepository.upsert(sistEndretAvNavEnhet)
+            navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+
+            val deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = GjennomforingStatusType.AVLYST,
             )
+            TestRepository.insert(deltakerliste)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = LocalDate.now().plusDays(2),
+                deltakerliste = deltakerliste,
+            )
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = sistEndretAvNavAnsatt,
+                opprettetAvEnhet = sistEndretAvNavEnhet,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insert(deltaker, vedtak)
+
+            val deltaker2 = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = LocalDate.now().minusDays(2),
+                deltakerliste = deltakerliste,
+            )
+            val vedtak2 = lagVedtak(
+                deltakerId = deltaker2.id,
+                deltakerVedVedtak = deltaker2,
+                opprettetAv = sistEndretAvNavAnsatt,
+                opprettetAvEnhet = sistEndretAvNavEnhet,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insert(deltaker2, vedtak2)
+
+            every {
+                deltakerProducerService.produce(any(), any(), any(), any(), any())
+            } just Runs
+
+            // Act
+            deltakerlisteConsumer.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
+
+            // Assert
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+                status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+                sluttdato shouldBe deltakerliste.sluttDato
+            }
+
+            assertSoftly(deltakerRepository.get(deltaker2.id).shouldBeSuccess()) {
+                status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                status.aarsak?.type shouldBe null
+                sluttdato shouldBe deltaker2.sluttdato
+            }
         }
-
-        coVerify { deltakerService.avgrensSluttdatoerTil(oppdatertDeltakerliste) }
     }
 }

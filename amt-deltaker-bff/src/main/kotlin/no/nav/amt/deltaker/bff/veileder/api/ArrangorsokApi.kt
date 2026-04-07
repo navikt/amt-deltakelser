@@ -8,8 +8,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
+import no.nav.amt.deltaker.bff.enkeltplass.ORGNUMMER_REGEX
 
-private val ORGNUMMER_REGEX = Regex("^[89]\\d{8}$")
 private const val TERMS__PARAM = "term"
 private const val ORGANISASJONSNUMMER_PARAM = "orgnummer"
 

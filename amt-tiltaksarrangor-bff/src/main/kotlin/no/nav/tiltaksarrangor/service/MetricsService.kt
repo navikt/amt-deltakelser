@@ -10,7 +10,6 @@ private const val FJERNET_DELTAKER_METRIC = "tiltaksarrangorbff_fjernet_deltaker
 private const val LAGT_TIL_DELTAKERLISTE_METRIC = "tiltaksarrangorbff_lagttil_deltakerliste"
 private const val FJERNET_DELTAKERLISTE_METRIC = "tiltaksarrangorbff_fjernet_deltakerliste"
 private const val TILDELT_VEILEDER_METRIC = "tiltaksarrangorbff_tildelt_veileder"
-private const val TILBAKEKALT_EM_METRIC = "tiltaksarrangorbff_tilbakekalt_em"
 private const val VURDERING_OPPRETTET_METRIC = "tiltaksarrangorbff_vurdering_opprettet"
 
 @Service
@@ -30,7 +29,6 @@ class MetricsService(
     private val lagtTilDeltakerlisteCounter = registry.counter(LAGT_TIL_DELTAKERLISTE_METRIC)
     private val fjernetDeltakerlisteCounter = registry.counter(FJERNET_DELTAKERLISTE_METRIC)
     private val tildeltVeilederCounter = registry.counter(TILDELT_VEILEDER_METRIC)
-    private val tilbakekaltEndringsmeldingCounter = registry.counter(TILBAKEKALT_EM_METRIC)
 
     fun incInnloggetAnsatt(roller: List<String>) {
         if (roller.isEmpty()) {

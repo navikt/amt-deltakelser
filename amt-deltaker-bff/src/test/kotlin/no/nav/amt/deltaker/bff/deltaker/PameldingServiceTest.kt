@@ -8,7 +8,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
+import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Kladd

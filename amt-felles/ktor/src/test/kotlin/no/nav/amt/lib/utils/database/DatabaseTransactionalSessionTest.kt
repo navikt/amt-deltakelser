@@ -11,6 +11,7 @@ import kotliquery.TransactionalSession
 import no.nav.amt.lib.testing.TestPostgresContainer
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 class DatabaseTransactionalSessionTest {
     companion object {
@@ -59,7 +60,7 @@ class DatabaseTransactionalSessionTest {
         val jobs =
             List(maxConnectionPoolSize + 1) {
                 launch {
-                    delay(1000)
+                    delay(1000.milliseconds)
                     Database.transaction {
                         sessions.add(Database.transactionalSession)
                     }

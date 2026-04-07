@@ -44,6 +44,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 ulesteHendelser = emptyList(),
             )
 
+            every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
             coEvery { tiltakskoordinatorService.getDeltaker(any()) } returns tiltakskoordinatorsDeltaker
 
             coEvery {
@@ -100,6 +101,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
         @Test
         fun `skal returnere liste med DeltakerHistorikk`() {
+            // Arrange
             val historikk = deltaker.getDeltakerHistorikkForVisning()
 
             val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
@@ -115,6 +117,8 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 ),
             )
 
+            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
+            coEvery { amtDeltakerClient.getDeltakerHistorikk(any()) } returns historikk
             every { deltakerRepository.get(any()) } returns Result.success(deltaker)
             coEvery {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(

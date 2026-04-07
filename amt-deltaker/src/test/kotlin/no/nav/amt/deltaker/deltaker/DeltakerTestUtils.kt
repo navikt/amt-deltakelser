@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
@@ -140,6 +140,43 @@ object DeltakerTestUtils {
                 first.data.innsoktAvEnhet shouldBe second.data.innsoktAvEnhet
                 first.data.utkastDelt shouldBeCloseTo second.data.utkastDelt
                 first.data.utkastGodkjentAvNav shouldBe second.data.utkastGodkjentAvNav
+            }
+        }
+    }
+
+    fun sammenlignForslagStatus(
+        a: Forslag.Status,
+        b: Forslag.Status,
+    ) {
+        when (a) {
+            is Forslag.Status.VenterPaSvar -> {
+                b as Forslag.Status.VenterPaSvar
+                a shouldBe b
+            }
+
+            is Forslag.Status.Avvist -> {
+                b as Forslag.Status.Avvist
+                a.avvist shouldBeCloseTo b.avvist
+                a.avvistAv shouldBe b.avvistAv
+                a.begrunnelseFraNav shouldBe b.begrunnelseFraNav
+            }
+
+            is Forslag.Status.Godkjent -> {
+                b as Forslag.Status.Godkjent
+                a.godkjent shouldBeCloseTo b.godkjent
+                a.godkjentAv shouldBe b.godkjentAv
+            }
+
+            is Forslag.Status.Tilbakekalt -> {
+                b as Forslag.Status.Tilbakekalt
+                a.tilbakekalt shouldBeCloseTo b.tilbakekalt
+                a.tilbakekaltAvArrangorAnsattId shouldBe b.tilbakekaltAvArrangorAnsattId
+            }
+
+            is Forslag.Status.Erstattet -> {
+                b as Forslag.Status.Erstattet
+                a.erstattetMedForslagId shouldBe b.erstattetMedForslagId
+                a.erstattet shouldBeCloseTo b.erstattet
             }
         }
     }

@@ -28,7 +28,7 @@ class NavAnsattServiceTest {
     private val navEnhetRepository = NavEnhetRepository()
     private val navAnsattRepository = NavAnsattRepository()
 
-    val mockPersonServiceClient = mockk<AmtPersonServiceClient>(relaxed = true)
+    val mockPersonServiceClient = mockk<AmtPersonServiceClient>()
 
     val navEnhetService = NavEnhetService(
         repository = navEnhetRepository,
@@ -117,6 +117,9 @@ class NavAnsattServiceTest {
 
             coEvery { mockPersonServiceClient.hentNavAnsatt(vedtakOpprettetAv.id) } returns vedtakOpprettetAv
             coEvery { mockPersonServiceClient.hentNavAnsatt(vedtakSistEndretAv.id) } returns vedtakSistEndretAv
+            coEvery {
+                mockPersonServiceClient.hentNavAnsatt(extraNavAnsattId)
+            } returns lagNavAnsatt(id = extraNavAnsattId, navEnhetId = navEnhet.id)
 
             // Act
             val ansatte = navAnsattService.hentNavAnsatteForDeltaker(

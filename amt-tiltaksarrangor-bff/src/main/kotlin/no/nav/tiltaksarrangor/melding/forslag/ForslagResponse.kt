@@ -26,11 +26,13 @@ data class ForslagResponse(
             val begrunnelseFraNav: String,
         ) : Status
 
+        @Suppress("unused")
         data class Tilbakekalt(
             val tilbakekaltAvArrangor: String,
             val tilbakekalt: LocalDateTime,
         ) : Status
 
+        @Suppress("unused")
         data class Erstattet(
             val erstattet: LocalDateTime,
         )

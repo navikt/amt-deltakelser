@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.deltaker
 
+import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakeroppdatering
-import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository

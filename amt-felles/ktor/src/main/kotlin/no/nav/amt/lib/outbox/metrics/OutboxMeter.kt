@@ -10,12 +10,3 @@ interface OutboxMeter {
         status: OutboxRecordStatus,
     )
 }
-
-internal class NoOpOutboxMeter : OutboxMeter {
-    override fun incrementNewRecords(topic: String) {}
-
-    override fun incrementProcessedRecords(
-        topic: String,
-        status: OutboxRecordStatus,
-    ) {}
-}

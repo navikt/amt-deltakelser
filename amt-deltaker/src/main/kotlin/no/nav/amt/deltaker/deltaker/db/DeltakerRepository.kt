@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
@@ -212,7 +213,7 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker kladd med id ${deltaker.id}")
     }
 
-    fun updateEnkeltplassKladd(deltaker: EnkeltplassKladdUpdateDbo) {
+    fun updateEnkeltplassKladd(deltaker: EnkeltplassDeltakerUpdateDbo) {
         val sql =
             """
             UPDATE deltaker
@@ -246,6 +247,21 @@ class DeltakerRepository {
                     mapOf("id" to id),
                 ).map(::deltakerRowMapper).asSingle,
             ) ?: throw NoSuchElementException("Ingen deltaker med id $id")
+        }
+    }
+
+    fun getEnkeltplassdeltaker(deltakerlisteId: UUID): Result<Deltaker> = runCatching {
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    buildDeltakerSql(
+                        methodName = "getEnkeltplassdeltaker",
+                        whereClause = "d.deltakerliste_id = :deltakerliste_id AND dl.gjennomforingstype = 'Enkeltplass'",
+                        limit = 1,
+                    ),
+                    mapOf("deltakerliste_id" to deltakerlisteId),
+                ).map(::deltakerRowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Ingen enkeltplassdeltaker for deltakerliste $deltakerlisteId")
         }
     }
 

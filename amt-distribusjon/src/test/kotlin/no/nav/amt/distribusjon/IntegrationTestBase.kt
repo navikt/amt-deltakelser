@@ -5,12 +5,15 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerClient
 import no.nav.amt.distribusjon.application.plugins.configureAuthentication
 import no.nav.amt.distribusjon.application.plugins.configureRouting
 import no.nav.amt.distribusjon.application.plugins.configureSerialization
 import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
+import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.distribusjonskanal.DokdistkanalClient
 import no.nav.amt.distribusjon.hendelse.HendelseConsumer
 import no.nav.amt.distribusjon.hendelse.HendelseRepository
@@ -36,19 +39,19 @@ import org.junit.jupiter.api.extension.RegisterExtension
 
 abstract class IntegrationTestBase {
     protected open val hendelseRepository = HendelseRepository()
-    protected open val varselRepository = VarselRepository()
     protected open val journalforingstatusRepository = JournalforingstatusRepository()
     protected open val tiltakshendelseRepository = TiltakshendelseRepository()
+    protected open val varselRepository = VarselRepository()
 
-    protected open val amtDeltakerClient: AmtDeltakerClient = mockk(relaxed = true)
-    protected open val pdfgenClient: PdfgenClient = mockk(relaxed = true)
-    protected open val amtPersonClient: AmtPersonClient = mockk(relaxed = true)
-    protected open val veilarboppfolgingClient: VeilarboppfolgingClient = mockk(relaxed = true)
-    protected open val dokarkivClient: DokarkivClient = mockk(relaxed = true)
-    protected open val dokdistkanalClient: DokdistkanalClient = mockk(relaxed = true)
-    protected open val dokdistfordelingClient: DokdistfordelingClient = mockk(relaxed = true)
+    protected open val amtDeltakerClient: AmtDeltakerClient = mockk()
+    protected open val pdfgenClient: PdfgenClient = mockk()
+    protected open val amtPersonClient: AmtPersonClient = mockk()
+    protected open val veilarboppfolgingClient: VeilarboppfolgingClient = mockk()
+    protected open val dokarkivClient: DokarkivClient = mockk()
+    protected open val dokdistkanalClient: DokdistkanalClient = mockk()
+    protected open val dokdistfordelingClient: DokdistfordelingClient = mockk()
 
-    protected open val outboxService: OutboxService = mockk(relaxed = true)
+    protected open val outboxService: OutboxService = mockk()
 
     protected open val journalforingService = JournalforingService(
         journalforingstatusRepository = journalforingstatusRepository,
@@ -94,7 +97,16 @@ abstract class IntegrationTestBase {
     }
 
     @BeforeEach
-    fun setup() = clearAllMocks()
+    fun setup() {
+        clearAllMocks()
+
+        coEvery { veilarboppfolgingClient.erUnderManuellOppfolging(any()) } returns false
+        coEvery {
+            dokdistkanalClient.bestemDistribusjonskanal(any(), any())
+        } returns Distribusjonskanal.DITT_NAV
+
+        every { outboxService.insertRecord(any(), any(), any()) } returns mockk()
+    }
 
     protected fun <T : Any> withTestApplicationContext(
         appIsReady: Boolean = true, // for readiness-tester

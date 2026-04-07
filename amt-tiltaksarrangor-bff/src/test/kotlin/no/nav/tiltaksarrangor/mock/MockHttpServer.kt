@@ -36,7 +36,7 @@ abstract class MockHttpServer(
                                 "	Body: ${request.getBodyAsString()}",
                         )
 
-                    response.count = response.count + 1
+                    response.count += 1
 
                     log.info("Responding [${request.method}: ${request.path}]: $response")
                     return response.response.invoke(request)
@@ -79,8 +79,7 @@ abstract class MockHttpServer(
     fun serverUrl(): String = server.url("").toString().removeSuffix("/")
 
     private fun printHeaders(headers: Headers): String = headers
-        .map { "		${it.first} : ${it.second}" }
-        .joinToString("\n")
+        .joinToString("\n") { "		${it.first} : ${it.second}" }
 
     private data class ResponseHolder(
         val id: UUID,

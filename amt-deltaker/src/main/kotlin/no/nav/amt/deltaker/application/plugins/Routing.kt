@@ -13,6 +13,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.amt.deltaker.api.registerEnkeltplassApi
 import no.nav.amt.deltaker.api.registerExternalApi
 import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
@@ -32,6 +33,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -56,6 +58,7 @@ fun Application.configureRequestValidation(opprettKladdRequestValidator: Opprett
 fun Application.configureRouting(
     pameldingService: PameldingService,
     kladdService: KladdService,
+    enkeltplassService: EnkeltplassService,
     deltakerService: DeltakerService,
     deltakerRepository: DeltakerRepository,
     deltakerHistorikkService: DeltakerHistorikkService,
@@ -111,6 +114,9 @@ fun Application.configureRouting(
             deltakerRepository = deltakerRepository,
         )
         registerVeilederApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
+        registerEnkeltplassApi(
+            enkeltplassService = enkeltplassService,
+        )
         registerInternalApi(
             deltakerRepository,
             deltakerService,

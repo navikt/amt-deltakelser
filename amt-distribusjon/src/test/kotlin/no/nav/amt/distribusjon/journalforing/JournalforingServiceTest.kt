@@ -10,19 +10,39 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.hendelse.model.toModel
+import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DistribuerJournalpostRequest
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
+import no.nav.amt.distribusjon.veilarboppfolging.Sak
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
+import java.util.UUID
 
 class JournalforingServiceTest : IntegrationTestBase() {
     @BeforeEach
     fun setupMocks() {
         coEvery { pdfgenClient.genererHovedvedtakForIndividuellOppfolging(any()) } returns "pdf".toByteArray()
+        coEvery { veilarboppfolgingClient.opprettEllerHentSak(any()) } returns Sak(
+            oppfolgingsperiodeId = UUID.randomUUID(),
+            sakId = 42L,
+            fagsaksystem = "~fagsaksystem~",
+        )
+
+        coEvery {
+            dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any())
+        } returns "journalpostId"
+
+        coEvery {
+            dokdistfordelingClient.distribuerJournalpost(
+                any<String>(),
+                any<DistribuerJournalpostRequest.Distribusjonstype>(),
+                any<Boolean>(),
+            )
+        } returns UUID.randomUUID()
     }
 
     @Test
@@ -269,6 +289,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
         )
         journalforingstatusRepository.upsert(journalforingstatusForleng)
 
+        coEvery { amtPersonClient.hentNavBruker(any()) } returns Persondata.lagNavBruker()
         coEvery { pdfgenClient.endringsvedtak(any()) } returns "pdf".toByteArray()
 
         // Act

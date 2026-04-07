@@ -19,12 +19,14 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
+import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
+import no.nav.amt.deltaker.bff.apiclients.TiltaksKoordinatorClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
-import no.nav.amt.deltaker.bff.apiclients.deltaker.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.paamelding.PaameldingClient
-import no.nav.amt.deltaker.bff.apiclients.tiltakskoordinator.TiltaksKoordinatorClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureMonitoring
+import no.nav.amt.deltaker.bff.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
 import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
 import no.nav.amt.deltaker.bff.arrangor.ArrangorConsumer
@@ -177,6 +179,13 @@ fun Application.module() {
         azureAdTokenClient = azureAdTokenClient,
     )
 
+    val enkeltplassClient = EnkeltplassClient(
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
+
     val unleash = DefaultUnleash(
         UnleashConfig
             .builder()
@@ -243,6 +252,7 @@ fun Application.module() {
     val forslagService = ForslagService(forslagRepository, navAnsattService, navEnhetService, arrangorMeldingProducer)
 
     val vurderingRepository = VurderingRepository()
+
     val vurderingService = VurderingService(vurderingRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -331,6 +341,7 @@ fun Application.module() {
     consumers.forEach { it.start() }
 
     configureAuthentication(environment)
+    configureRequestValidation()
     configureRouting(
         tilgangskontrollService = tilgangskontrollService,
         deltakerService = deltakerService,
@@ -344,6 +355,7 @@ fun Application.module() {
         amtDistribusjonClient = amtDistribusjonClient,
         amtDeltakerClient = amtDeltakerClient,
         arrangorsokClient = arrangorsokClient,
+        enkeltplassClient = enkeltplassClient,
         sporbarhetsloggService = sporbarhetsloggService,
         deltakerRepository = deltakerRepository,
         deltakerlisteService = deltakerlisteService,
