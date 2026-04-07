@@ -34,6 +34,7 @@ data class DeltakerModel(
     val historikk: List<DeltakerHistorikk>,
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
+    val prisinformasjon: String?,
 ) {
     val deltakelsesmengder: Deltakelsesmengder
         get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()

@@ -31,6 +31,7 @@ class ModelMapper {
                 vedtaksinformasjon = vedtaksinformasjon?.let { toVedtaksinformasjon(it) },
                 erLaastForEndringer = erLaastForEndringer,
                 endringsforslagFraArrangor = endringsforslagFraArrangor,
+                prisinformasjon = prisinformasjon,
             )
         }
 

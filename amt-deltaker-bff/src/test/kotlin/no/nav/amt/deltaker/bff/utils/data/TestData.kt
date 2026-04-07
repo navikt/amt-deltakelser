@@ -328,6 +328,7 @@ object TestData {
         vedtaksinformasjon: VedtaksinformasjonResponse? = lagVedtaksinformasjonResponse(),
         endringsforslagFraArrangor: List<Forslag> = listOf(lagForslag()),
         historikk: List<DeltakerHistorikk> = lagDeltakerHistorikk(),
+        prisinformasjon: String? = null,
     ) = DeltakerResponse(
         id = id,
         status = status,
@@ -347,6 +348,7 @@ object TestData {
         historikk = historikk,
         erLaastForEndringer = false,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
+        prisinformasjon = prisinformasjon,
     )
 
     fun lagTiltakskoordinatorDeltaker(

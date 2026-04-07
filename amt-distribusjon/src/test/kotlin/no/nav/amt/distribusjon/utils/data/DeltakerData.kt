@@ -43,6 +43,7 @@ object DeltakerData {
         historikk = emptyList(),
         erLaastForEndringer = true,
         endringsforslagFraArrangor = emptyList(),
+        prisinformasjon = null,
     )
 
     fun lagGjennomforingResponse() = GjennomforingResponse(

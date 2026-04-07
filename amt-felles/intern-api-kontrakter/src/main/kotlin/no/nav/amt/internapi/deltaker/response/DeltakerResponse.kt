@@ -34,4 +34,5 @@ data class DeltakerResponse(
     val historikk: List<DeltakerHistorikk>,
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
+    val prisinformasjon: String?,
 )
