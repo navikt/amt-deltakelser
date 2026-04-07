@@ -17,4 +17,4 @@
 - [ ] I have performed a self-review of my code.
 - [ ] I have added tests that prove my fix is effective or that my feature works.
 - [ ] I have commented my code, particularly in hard-to-understand areas.
-- [ ] I have linked this PR to related Trello card.
+- [ ] I have linked this PR in related Trello card.
