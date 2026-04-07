@@ -38,7 +38,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
     @Nested
     inner class OpprettEnkeltplassTests {
-        val url = "/enkeltplass-utkast/${deltakerInTest.id}/meld-paa-direkte"
+        val url = "/enkeltplass/utkast/${deltakerInTest.id}/meld-paa-direkte"
 
         @Test
         fun `skal returnere Unauthorized nar tilgang mangler`() {
