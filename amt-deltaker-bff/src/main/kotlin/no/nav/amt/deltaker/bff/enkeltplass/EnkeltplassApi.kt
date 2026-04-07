@@ -6,6 +6,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
@@ -22,47 +23,49 @@ fun Routing.registerEnkeltplassApi(
     tilgangskontrollService: TilgangskontrollService,
 ) {
     authenticate("VEILEDER") {
-        /*
+        route("/enkeltplass") {
+            /*
             Oppretter utkast for en enkeltplass deltaker.
             Opprettes i handlingen "Del utkast"
             Status: Kladd/utkast -> Utkast
             @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-         */
-        post("/enkeltplass-utkast/{deltakerId}") {
-            // val request = call.receive<EnkeltplassUtkastRequest>()
-            throw NotImplementedError("Dette er ikke implementert.")
-        }
+             */
+            post("/utkast/{deltakerId}") {
+                // val request = call.receive<EnkeltplassUtkastRequest>()
+                throw NotImplementedError("Dette er ikke implementert.")
+            }
 
-        /*
+            /*
            Direktepåmelding av enkeltplass  deltaker uten at utkast/deltakelsen er delt med innbygger
            Handling: "Meld på uten å dele utkast"
            Status Kladd/Utkast -> søkt inn
            @Returns no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-         */
-        post("/enkeltplass-utkast/{deltakerId}/meld-paa-direkte") {
-            // tilsvarer post("/pamelding/{deltakerId}/utenGodkjenning") for enkeltplasser
-            // val request = call.receive<EnkeltplassUtkastRequest>()
-            // Requeste gjennomføring hos valp(via amt-deltaker)
+             */
+            post("/utkast/{deltakerId}/meld-paa-direkte") {
+                // tilsvarer post("/pamelding/{deltakerId}/utenGodkjenning") for enkeltplasser
+                // val request = call.receive<EnkeltplassUtkastRequest>()
+                // Requeste gjennomføring hos valp(via amt-deltaker)
 
-            val deltakerId = call.getDeltakerId()
+                val deltakerId = call.getDeltakerId()
 
-            tilgangskontrollService.verifiserSkrivetilgang(
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident,
-            )
+                tilgangskontrollService.verifiserSkrivetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident,
+                )
 
-            val request: EnkeltplassPameldingRequest = call.receive()
+                val request: EnkeltplassPameldingRequest = call.receive()
 
-            enkeltplassClient.meldPaaDirekte(
-                deltakerId = deltakerId,
-                EnkeltplassPameldingDecoratedRequest(
-                    wrappedRequest = request,
-                    endretAvEnhet = call.getEnhetsnummer(),
-                    endretAv = call.getNavIdent(),
-                ),
-            )
+                enkeltplassClient.meldPaaDirekte(
+                    deltakerId = deltakerId,
+                    EnkeltplassPameldingDecoratedRequest(
+                        wrappedRequest = request,
+                        endretAvEnhet = call.getEnhetsnummer(),
+                        endretAv = call.getNavIdent(),
+                    ),
+                )
 
-            call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
+            }
         }
     }
 }
