@@ -11,8 +11,8 @@ import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 
 fun Routing.registerEnkeltplassApi(enkeltplassService: EnkeltplassService) {
     authenticate("SYSTEM") {
@@ -36,6 +36,7 @@ fun Routing.registerEnkeltplassApi(enkeltplassService: EnkeltplassService) {
                         sluttdato = oppdaterKladdRequest.sluttdato,
                         prisinformasjon = oppdaterKladdRequest.prisinformasjon,
                         beskrivelse = oppdaterKladdRequest.beskrivelse,
+                        arrangorUnderenhet = oppdaterKladdRequest.arrangorUnderenhet,
                     )
 
                 call.respond(HttpStatusCode.OK)

@@ -5,7 +5,7 @@ import java.time.LocalDate
 data class EnkeltplassPameldingRequest(
     val beskrivelse: String,
     val prisinformasjon: String,
-    val arrangorOrgnummer: String,
+    val arrangorUnderenhet: String,
     val startdato: LocalDate? = null,
     val sluttdato: LocalDate? = null,
 )

@@ -19,7 +19,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
@@ -103,6 +103,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 sluttdato = null,
                 prisinformasjon = null,
                 beskrivelse = null,
+                arrangorUnderenhet = null,
             )
 
             @Test
@@ -183,7 +184,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    createPostRequest(requestInTest.copy(arrangorOrgnummer = "abc"))
+                    createPostRequest(requestInTest.copy(arrangorUnderenhet = "abc"))
                 }
             }
 
@@ -210,7 +211,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         private val requestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
-            arrangorOrgnummer = "987654321",
+            arrangorUnderenhet = "987654322",
         )
     }
 }

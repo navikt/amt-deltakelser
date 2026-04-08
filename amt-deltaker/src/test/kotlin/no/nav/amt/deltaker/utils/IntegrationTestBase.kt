@@ -299,6 +299,7 @@ abstract class IntegrationTestBase {
             navEnhetService = navEnhetService,
             navAnsattService = navAnsattService,
             vedtakService = vedtakService,
+            arrangorService = arrangorService,
         )
     }
 

@@ -19,7 +19,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdReque
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 
 fun Routing.registerEnkeltplassApi(
     amtDeltakerClient: AmtDeltakerClient,
@@ -37,7 +37,10 @@ fun Routing.registerEnkeltplassApi(
             post("/opprett-kladd") {
                 val request = call.receive<OpprettEnkeltplassKladdRequest>()
 
-                tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
+                tilgangskontrollService.verifiserSkrivetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = request.personident,
+                )
 
                 val response = enkeltplassClient
                     .opprettKladdEnkeltplass(request.tiltakskode, request.personident)
@@ -56,13 +59,22 @@ fun Routing.registerEnkeltplassApi(
              */
             post("/oppdater-kladd/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
-                val request = call.receive<OppdaterEnkeltplassKladdRequest>()
                 val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
-                tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), personident)
 
-                val response = enkeltplassClient
-                    .oppdaterKladdEnkeltplass(deltakerId, request)
-                    .let { amtDeltakerClient.getDeltaker(deltakerId) }
+                val oppdaterEnkeltplassKladdRequest = call.receive<OppdaterEnkeltplassKladdRequest>()
+
+                tilgangskontrollService.verifiserSkrivetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = personident,
+                )
+
+                enkeltplassClient.oppdaterKladdEnkeltplass(
+                    deltakerId = deltakerId,
+                    request = oppdaterEnkeltplassKladdRequest,
+                )
+
+                val response = amtDeltakerClient
+                    .getDeltaker(deltakerId)
                     .let { ModelMapper.toDeltaker(it) }
                     .let { DeltakerResponse.fromDeltakerModel(it) }
 

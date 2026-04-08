@@ -1,4 +1,4 @@
-package no.nav.amt.internapi.paamelding.request
+package no.nav.amt.internapi.enkeltplass
 
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 

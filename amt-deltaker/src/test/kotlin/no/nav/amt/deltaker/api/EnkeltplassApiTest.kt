@@ -19,8 +19,8 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
@@ -51,7 +51,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             val request = EnkeltplassPameldingRequest(
                 beskrivelse = "Testbeskrivelse",
                 prisinformasjon = "Test prisinformasjon",
-                arrangorOrgnummer = "987654321",
+                arrangorUnderenhet = "987654322",
                 startdato = LocalDate.now(),
                 sluttdato = LocalDate.now(),
             )
@@ -80,7 +80,13 @@ class EnkeltplassApiTest : IntegrationTestBase() {
     inner class Enkeltplass {
         private val opprettEnkeltplassKladdRequest = OpprettKladdEnkeltplassRequest(Tiltakskode.ARBEIDSMARKEDSOPPLAERING, "1234")
         private val oppdaterEnkeltplassKladdRequest =
-            OppdaterEnkeltplassKladdRequest(LocalDate.now(), LocalDate.now(), "prisinfo", "beskrivelse")
+            OppdaterEnkeltplassKladdRequest(
+                beskrivelse = "beskrivelse",
+                prisinformasjon = "prisinfo",
+                arrangorUnderenhet = "987654322",
+                startdato = LocalDate.now(),
+                sluttdato = LocalDate.now().plusDays(1),
+            )
 
         @Test
         fun `post kladd - mangler token - returnerer 401`() {
@@ -123,6 +129,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             coEvery {
                 enkeltplassService.oppdaterKladd(
                     deltakerId = deltaker.id,
+                    arrangorUnderenhet = any(),
                     startdato = any(),
                     sluttdato = any(),
                     beskrivelse = any(),

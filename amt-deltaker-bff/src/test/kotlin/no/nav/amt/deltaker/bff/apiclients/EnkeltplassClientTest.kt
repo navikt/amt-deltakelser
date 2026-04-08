@@ -52,7 +52,7 @@ class EnkeltplassClientTest {
         private val request = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
-            arrangorOrgnummer = "987654321",
+            arrangorUnderenhet = "987654322",
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(

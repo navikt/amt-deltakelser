@@ -5,8 +5,8 @@ import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess

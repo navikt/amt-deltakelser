@@ -138,14 +138,16 @@ class DeltakerlisteRepository {
             """
             UPDATE deltakerliste
             SET 
-            prisinformasjon  		= :prisinformasjon,
-            modified_at             = CURRENT_TIMESTAMP
+                prisinformasjon  		= :prisinformasjon,
+                arrangor_id 			= :arrangor_id,
+                modified_at             = CURRENT_TIMESTAMP
             WHERE id = :id
             """.trimIndent()
 
         val params = mapOf(
             "id" to gjennomforing.id,
             "prisinformasjon" to gjennomforing.prisinformasjon,
+            "arrangor_id" to gjennomforing.arrangorId,
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }

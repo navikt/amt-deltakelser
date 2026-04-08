@@ -7,13 +7,14 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
 import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -153,13 +154,18 @@ class DeltakerRepositoryTest {
             )
 
             TestRepository.insert(deltaker)
-            val oppdatertDeltaker = lagEnkeltplassUpdateDbo(
-                deltakerId = deltaker.id,
-                tiltakstype = deltaker.deltakerliste.tiltakstype,
+            val oppdatertDeltaker = EnkeltplassDeltakerUpdateDbo(
+                id = deltaker.id,
+                arrangorId = UUID.randomUUID(),
                 startdato = deltaker.startdato,
                 sluttdato = deltaker.sluttdato,
-                beskrivelse = "Dette er beskrivelsen",
+                deltakelsesinnhold = Deltakelsesinnhold(
+                    ledetekst = deltaker.deltakerliste.tiltakstype.innhold
+                        ?.ledetekst,
+                    innhold = listOf(Innhold.createFritekstInnhold("Dette er beskrivelsen")),
+                ),
             )
+
             deltakerRepository.updateEnkeltplassKladd(oppdatertDeltaker)
             val kladdResult = deltakerRepository
                 .get(deltaker.id)

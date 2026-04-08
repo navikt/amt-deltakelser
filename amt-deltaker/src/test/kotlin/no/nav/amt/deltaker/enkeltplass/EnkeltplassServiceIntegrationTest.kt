@@ -5,24 +5,25 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
@@ -110,18 +111,29 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
         @Test
         fun `oppdaterKladd - returnerer ny deltakerId`() = runTest {
+            // Arrange
             val deltakerInserted = enkeltplassService.opprettKladd(
                 tiltak.tiltakskode,
                 navBruker.personident,
             )
-            val deltakerExpected = lagEnkeltplassUpdateDbo(
-                deltakerId = deltakerInserted.id,
-                tiltakstype = deltakerInserted.deltakerliste.tiltakstype,
-                startdato = LocalDate.now().plusDays(1),
-                sluttdato = LocalDate.now().plusDays(2),
-                beskrivelse = "Beskrivelse",
+
+            val arrangorInTest = lagArrangor()
+            arrangorRepository.upsert(arrangorInTest)
+
+            val deltakerExpected = EnkeltplassDeltakerUpdateDbo(
+                id = deltakerInserted.id,
+                arrangorId = arrangorInTest.id,
+                startdato = deltakerInserted.startdato,
+                sluttdato = deltakerInserted.sluttdato,
+                deltakelsesinnhold = Deltakelsesinnhold(
+                    ledetekst = deltakerInserted.deltakerliste.tiltakstype.innhold
+                        ?.ledetekst,
+                    innhold = listOf(Innhold.createFritekstInnhold("Beskrivelse")),
+                ),
             )
             val prisinfoExpected = "Prisinfo"
+
+            // Act
             val oppdatertDeltaker = enkeltplassService.oppdaterKladd(
                 deltakerId = deltakerExpected.id,
                 startdato = deltakerExpected.startdato,
@@ -131,8 +143,10 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                     ?.first()
                     ?.beskrivelse,
                 prisinformasjon = prisinfoExpected,
+                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
             )
 
+            // Assert
             oppdatertDeltaker shouldNotBe null
 
             assertSoftly(oppdatertDeltaker) {
