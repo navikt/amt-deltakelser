@@ -38,7 +38,6 @@ fun Routing.registerVeilederApi(
         get("/deltaker/{deltakerId}") {
             val deltakerResponse = deltakerRepository
                 .get(call.getDeltakerId())
-                .onFailure { call.respond(HttpStatusCode.NotFound) }
                 .getOrThrow()
                 .let { responseBuilder.buildDeltakerResponse(it) }
 

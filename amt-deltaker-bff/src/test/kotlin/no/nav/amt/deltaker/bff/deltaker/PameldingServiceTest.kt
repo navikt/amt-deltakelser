@@ -74,7 +74,6 @@ class PameldingServiceTest {
         ),
         navEnhetService = navEnhetService,
         paameldingClient = paameldingClient,
-        amtDeltakerClient = mockk(relaxed = true),
     )
 
     companion object {

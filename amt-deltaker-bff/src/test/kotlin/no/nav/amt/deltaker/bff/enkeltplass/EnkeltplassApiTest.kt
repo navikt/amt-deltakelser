@@ -38,14 +38,15 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
 
         val mockHttpResponse = mockk<HttpResponse>()
+        coEvery { enkeltplassClient.opprettKladd(any(), any()) } returns DeltakerIdResponse(deltakerInTest.id)
+        coEvery { enkeltplassClient.oppdaterKladd(any(), any()) } returns mockHttpResponse
+        coEvery { enkeltplassClient.oppdaterUtkast(any(), any()) } returns lagDeltakerResponse()
         coEvery { enkeltplassClient.meldPaaDirekte(deltakerInTest.id, any()) } returns mockHttpResponse
-        coEvery { enkeltplassClient.opprettKladdEnkeltplass(any(), any()) } returns DeltakerIdResponse(deltakerInTest.id)
-        coEvery { enkeltplassClient.oppdaterKladdEnkeltplass(any(), any()) } returns mockHttpResponse
         coEvery { amtDeltakerClient.getDeltaker(deltakerInTest.id) } returns lagDeltakerResponse()
     }
 
     @Nested
-    inner class KladdTests {
+    inner class OpprettKladdTests {
         @Nested
         inner class OpprettKladdTests {
             private val requestInTest = OpprettEnkeltplassKladdRequest(
@@ -149,7 +150,65 @@ class EnkeltplassApiTest : IntegrationTestBase() {
     }
 
     @Nested
-    inner class EnkeltplassUtkastTests {
+    inner class UtkastTests {
+        val utkastUrlInTest = "/enkeltplass/utkast/${deltakerInTest.id}"
+
+        @Test
+        fun `skal returnere Unauthorized nar tilgang mangler`() {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(utkastUrlInTest)
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Unauthorized
+        }
+
+        @Test
+        fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+            // Arrange
+            every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
+
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(utkastUrlInTest) {
+                    createPostRequest(requestInTest)
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `skal returnere BadRequest hvis request er ugyldig`() {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(utkastUrlInTest) {
+                    createPostRequest(requestInTest.copy(arrangorUnderenhet = "abc"))
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.BadRequest
+        }
+
+        @Test
+        fun `skal returnere OK nar utkast er oppdatert`() = runTest {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(utkastUrlInTest) {
+                    createPostRequest(requestInTest)
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Nested
+    inner class MeldPaaDirekteTests {
         val url = "/enkeltplass/utkast/${deltakerInTest.id}/meld-paa-direkte"
 
         @Test

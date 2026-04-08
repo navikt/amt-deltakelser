@@ -116,6 +116,7 @@ fun Application.configureRouting(
         registerVeilederApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
         registerEnkeltplassApi(
             enkeltplassService = enkeltplassService,
+            responseBuilder = responseBuilder,
         )
         registerInternalApi(
             deltakerRepository,

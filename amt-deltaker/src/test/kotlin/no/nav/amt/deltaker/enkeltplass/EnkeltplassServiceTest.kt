@@ -23,6 +23,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -70,15 +71,19 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
+            val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
+                beskrivelse = null,
+                prisinformasjon = null,
+                startdato = null,
+                sluttdato = null,
+                arrangorUnderenhet = null,
+            )
+
             // Act & Assert
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.oppdaterKladd(
                     deltakerId = deltaker.id,
-                    startdato = null,
-                    sluttdato = null,
-                    beskrivelse = null,
-                    prisinformasjon = null,
-                    arrangorUnderenhet = null,
+                    oppdaterKladdRequest = oppdaterKladdRequest,
                 )
             }
         }

@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -26,7 +27,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
-import java.time.LocalDate
 import java.util.UUID
 
 class EnkeltplassService(
@@ -84,23 +84,10 @@ class EnkeltplassService(
         return deltakerRepository.get(kladdDbo.id).getOrThrow()
     }
 
-    private suspend fun hentArrangor(
-        organisasjonsnummer: String,
-        eksisterendeArrangor: Arrangor? = null,
-    ): Arrangor? = if (eksisterendeArrangor?.organisasjonsnummer == organisasjonsnummer) {
-        eksisterendeArrangor
-    } else {
-        arrangorService.hentArrangor(organisasjonsnummer)
-    }
-
     suspend fun oppdaterKladd(
         deltakerId: UUID,
-        startdato: LocalDate?,
-        sluttdato: LocalDate?,
-        beskrivelse: String?,
-        prisinformasjon: String?,
-        arrangorUnderenhet: String?,
-    ): Deltaker {
+        oppdaterKladdRequest: OppdaterEnkeltplassKladdRequest,
+    ) {
         // Trenger egentlig bare deltakeren for tiltakstypen sånn at ledeteksten
         // kan puttes i jsonobjektet i innhold
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
@@ -114,7 +101,7 @@ class EnkeltplassService(
         }
 
         // hvis arrangor er endret
-        val arrangor = arrangorUnderenhet?.let {
+        val arrangor = oppdaterKladdRequest.arrangorUnderenhet?.let {
             hentArrangor(
                 organisasjonsnummer = it,
                 eksisterendeArrangor = deltaker.deltakerliste.arrangor,
@@ -123,20 +110,20 @@ class EnkeltplassService(
 
         val gjennomforingUpdateDbo = EnkeltplassGjennomforingUpdateDbo(
             id = deltaker.deltakerliste.id,
-            prisinformasjon = prisinformasjon,
+            prisinformasjon = oppdaterKladdRequest.prisinformasjon,
             arrangorId = arrangor?.id,
         )
 
         val kladdUpdateDbo = EnkeltplassDeltakerUpdateDbo(
             id = deltakerId,
             arrangorId = arrangor?.id,
-            startdato = startdato,
-            sluttdato = sluttdato,
+            startdato = oppdaterKladdRequest.startdato,
+            sluttdato = oppdaterKladdRequest.sluttdato,
             deltakelsesinnhold = Deltakelsesinnhold(
                 ledetekst = deltaker.deltakerliste.tiltakstype.innhold
                     ?.ledetekst,
-                innhold = beskrivelse?.let {
-                    listOf(Innhold.createFritekstInnhold(beskrivelse))
+                innhold = oppdaterKladdRequest.beskrivelse?.let { innerBeskrivelse ->
+                    listOf(Innhold.createFritekstInnhold(innerBeskrivelse))
                 } ?: emptyList(),
             ),
         )
@@ -145,7 +132,82 @@ class EnkeltplassService(
             deltakerlisteRepository.update(gjennomforingUpdateDbo)
             deltakerRepository.updateEnkeltplassKladd(kladdUpdateDbo)
         }
-        return deltakerRepository.get(deltakerId).getOrThrow()
+    }
+
+    suspend fun oppdaterUtkast(
+        deltakerId: UUID,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ): Deltaker {
+        // TODO: Kopiert fra meldPaaDirekte
+
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val gjennomforing = deltaker.deltakerliste
+
+        require(gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
+            "Kan ikke opprette gjennomforing hos Mulighetsrommet for " +
+                "gjennomforingstype ${gjennomforing.gjennomforingstype} for deltaker $deltakerId"
+        }
+
+        require(gjennomforing.status == GjennomforingStatusType.KLADD) {
+            "Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd"
+        }
+
+        // hvis arrangor er endret
+        val arrangor = hentArrangor(
+            organisasjonsnummer = decoratedRequest.wrappedRequest.arrangorUnderenhet,
+            eksisterendeArrangor = gjennomforing.arrangor,
+        ) ?: throw IllegalArgumentException(
+            "Fant ikke arrangør med organisasjonsnummer ${decoratedRequest.wrappedRequest.arrangorUnderenhet}",
+        )
+
+        val gjennomforingUpdateDbo = EnkeltplassGjennomforingUpdateDbo(
+            id = deltaker.deltakerliste.id,
+            prisinformasjon = decoratedRequest.wrappedRequest.prisinformasjon,
+            arrangorId = arrangor.id,
+        )
+
+        val utkastUpdateDbo = EnkeltplassDeltakerUpdateDbo(
+            id = deltakerId,
+            arrangorId = arrangor.id,
+            startdato = decoratedRequest.wrappedRequest.startdato,
+            sluttdato = decoratedRequest.wrappedRequest.sluttdato,
+            deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = deltaker.deltakerliste.tiltakstype.innhold
+                    ?.ledetekst,
+                innhold = decoratedRequest.wrappedRequest.beskrivelse.let {
+                    listOf(Innhold.createFritekstInnhold(decoratedRequest.wrappedRequest.beskrivelse))
+                },
+            ),
+        )
+
+        val navEnhetForVedtak = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        val navAnsattForVedtak = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
+
+        lateinit var oppdatertDeltaker: Deltaker
+
+        Database.transaction {
+            deltakerService.lagreDeltakerStatus(
+                deltakerId = deltaker.id,
+                nyDeltakerStatus = nyDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                erDeltakerSluttdatoEndret = deltaker.sluttdato != decoratedRequest.wrappedRequest.sluttdato,
+            )
+
+            deltakerlisteRepository.update(gjennomforingUpdateDbo)
+            // TODO: Navnet updateEnkeltplassKladd blir litt feil
+            deltakerRepository.updateEnkeltplassKladd(utkastUpdateDbo)
+
+            oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
+
+            vedtakService.opprettEllerOppdaterVedtak(
+                fattetAvNav = true,
+                endretAv = navAnsattForVedtak,
+                endretAvEnhet = navEnhetForVedtak,
+                deltaker = oppdatertDeltaker.toDeltakerVedVedtak(),
+                fattetDato = null, // fattes når økonomi er godkjent
+            )
+        }
+
+        return oppdatertDeltaker
     }
 
     suspend fun meldPaaDirekte(
@@ -224,5 +286,14 @@ class EnkeltplassService(
                 ),
             )
         }
+    }
+
+    private suspend fun hentArrangor(
+        organisasjonsnummer: String,
+        eksisterendeArrangor: Arrangor? = null,
+    ): Arrangor? = if (eksisterendeArrangor?.organisasjonsnummer == organisasjonsnummer) {
+        eksisterendeArrangor
+    } else {
+        arrangorService.hentArrangor(organisasjonsnummer)
     }
 }

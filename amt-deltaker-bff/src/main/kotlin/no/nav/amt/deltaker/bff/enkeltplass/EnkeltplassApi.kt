@@ -43,7 +43,7 @@ fun Routing.registerEnkeltplassApi(
                 )
 
                 val response = enkeltplassClient
-                    .opprettKladdEnkeltplass(request.tiltakskode, request.personident)
+                    .opprettKladd(request.tiltakskode, request.personident)
                     .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
                     .let { ModelMapper.toDeltaker(it) }
                     .let { DeltakerResponse.fromDeltakerModel(it) }
@@ -68,17 +68,12 @@ fun Routing.registerEnkeltplassApi(
                     norskIdent = personident,
                 )
 
-                enkeltplassClient.oppdaterKladdEnkeltplass(
+                enkeltplassClient.oppdaterKladd(
                     deltakerId = deltakerId,
-                    request = oppdaterEnkeltplassKladdRequest,
+                    kladdRequest = oppdaterEnkeltplassKladdRequest,
                 )
 
-                val response = amtDeltakerClient
-                    .getDeltaker(deltakerId)
-                    .let { ModelMapper.toDeltaker(it) }
-                    .let { DeltakerResponse.fromDeltakerModel(it) }
-
-                call.respond(response)
+                call.respond(HttpStatusCode.OK)
             }
 
             /*
@@ -88,8 +83,28 @@ fun Routing.registerEnkeltplassApi(
             @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
              */
             post("/utkast/{deltakerId}") {
-                // val request = call.receive<EnkeltplassUtkastRequest>()
-                throw NotImplementedError("Dette er ikke implementert.")
+                val deltakerId = call.getDeltakerId()
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+
+                val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
+
+                tilgangskontrollService.verifiserSkrivetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = personident,
+                )
+
+                val deltakerResponse = enkeltplassClient
+                    .oppdaterUtkast(
+                        deltakerId = deltakerId,
+                        pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                            wrappedRequest = pameldingRequest,
+                            endretAvEnhet = call.getEnhetsnummer(),
+                            endretAv = call.getNavIdent(),
+                        ),
+                    ).let { ModelMapper.toDeltaker(it) }
+                    .let { DeltakerResponse.fromDeltakerModel(it) }
+
+                call.respond(deltakerResponse)
             }
 
             /*
@@ -99,8 +114,6 @@ fun Routing.registerEnkeltplassApi(
            @Returns no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
              */
             post("/utkast/{deltakerId}/meld-paa-direkte") {
-                // tilsvarer post("/pamelding/{deltakerId}/utenGodkjenning") for enkeltplasser
-
                 val deltakerId = call.getDeltakerId()
 
                 tilgangskontrollService.verifiserSkrivetilgang(
@@ -112,7 +125,7 @@ fun Routing.registerEnkeltplassApi(
 
                 enkeltplassClient.meldPaaDirekte(
                     deltakerId = deltakerId,
-                    EnkeltplassPameldingDecoratedRequest(
+                    pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
                         wrappedRequest = request,
                         endretAvEnhet = call.getEnhetsnummer(),
                         endretAv = call.getNavIdent(),
