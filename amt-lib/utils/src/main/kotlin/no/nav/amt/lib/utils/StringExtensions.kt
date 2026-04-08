@@ -21,3 +21,5 @@ fun String.toTitleCase(): String = this.lowercase().split(Regex("(?<=[\\s\\-'])"
 }
 
 fun String.trimOgFjernAvsluttendePunktum(): String = this.trim().trimEnd(DOT_CHAR)
+
+fun String?.trimToNull(): String? = this?.trim()?.takeIf { it.isNotBlank() }

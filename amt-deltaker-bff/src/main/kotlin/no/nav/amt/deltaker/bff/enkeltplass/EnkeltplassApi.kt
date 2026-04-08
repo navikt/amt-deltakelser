@@ -70,7 +70,7 @@ fun Routing.registerEnkeltplassApi(
 
                 enkeltplassClient.oppdaterKladd(
                     deltakerId = deltakerId,
-                    kladdRequest = oppdaterEnkeltplassKladdRequest,
+                    kladdRequest = oppdaterEnkeltplassKladdRequest.sanitized(),
                 )
 
                 call.respond(HttpStatusCode.OK)
