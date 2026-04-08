@@ -21,7 +21,7 @@ class ArrangorsokClientTest {
     inner class HovedenhetSokTests {
         val hovedenhetSokLambda: suspend (ArrangorsokClient) -> List<EnhetResponse> =
             { client ->
-                client.hovedenhetSok(term = "term")
+                client.hovedenhetSok(term = "term with space")
             }
 
         @ParameterizedTest
@@ -94,7 +94,7 @@ class ArrangorsokClientTest {
     companion object {
         private const val ORGNUM_IN_TEST = "987654321"
         private const val ARRANGORSOK_BASE_URL = "http://arrangorsok"
-        private const val EXPECTED_HOVEDENHET_SOK_URL = "$ARRANGORSOK_BASE_URL/api/v1/arrangor/hovedenhet/sok/term"
+        private const val EXPECTED_HOVEDENHET_SOK_URL = "$ARRANGORSOK_BASE_URL/api/v1/arrangor/hovedenhet/sok/term%20with%20space"
         private const val EXPECTED_UNDERENHET_URL = "$ARRANGORSOK_BASE_URL/api/v1/arrangor/hovedenhet/$ORGNUM_IN_TEST/underenheter"
 
         private fun runFailureTest(
