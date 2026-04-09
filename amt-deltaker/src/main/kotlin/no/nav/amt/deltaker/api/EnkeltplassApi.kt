@@ -36,7 +36,7 @@ fun Routing.registerEnkeltplassApi(
 
                 enkeltplassService.oppdaterKladd(
                     deltakerId = deltakerId,
-                    oppdaterKladdRequest = oppdaterKladdRequest,
+                    oppdaterKladdRequest = oppdaterKladdRequest.sanitized(),
                 )
 
                 call.respond(HttpStatusCode.OK)
