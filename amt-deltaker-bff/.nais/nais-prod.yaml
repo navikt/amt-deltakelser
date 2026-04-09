@@ -74,7 +74,7 @@ spec:
         - host: amt-unleash-api.nav.cloud.nais.io
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=70.0"
+      value: "-XX:MaxRAMPercentage=80.0"
     - name: AMT_ARRANGOR_SCOPE
       value: api://prod-gcp.amt.amt-arrangor/.default
     - name: AMT_ARRANGOR_URL
