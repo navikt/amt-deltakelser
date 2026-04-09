@@ -183,13 +183,7 @@ class EnkeltplassService(
             "Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd"
         }
 
-        // hvis arrangor er endret
-        val arrangor = hentArrangor(
-            organisasjonsnummer = decoratedRequest.wrappedRequest.arrangorUnderenhet,
-            eksisterendeArrangor = gjennomforing.arrangor,
-        ) ?: throw IllegalArgumentException(
-            "Fant ikke arrangør med organisasjonsnummer ${decoratedRequest.wrappedRequest.arrangorUnderenhet}",
-        )
+        val arrangor = arrangorService.hentArrangor(decoratedRequest.wrappedRequest.arrangorUnderenhet)
 
         val gjennomforingUpdateDbo = EnkeltplassGjennomforingUpdateDbo(
             id = deltaker.deltakerliste.id,
