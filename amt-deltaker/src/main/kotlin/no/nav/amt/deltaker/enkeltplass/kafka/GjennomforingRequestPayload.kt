@@ -13,6 +13,7 @@ sealed interface GjennomforingRequestPayload {
         val tiltakskode: Tiltakskode,
         val prisinformasjon: String,
         val organisasjonsnummer: String,
-        val kostnadssted: String, // dette er Nav-enheten som skal bære kostnaden
+        val ansvarligEnhet: String, // enhetsnummer
+        val opprettetAv: String, // Nav-ident
     ) : GjennomforingRequestPayload
 }

@@ -26,7 +26,6 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -151,14 +150,15 @@ class EnkeltplassService(
             deltakerId = deltakerId,
             decoratedRequest = decoratedRequest,
             nyDeltakerStatus = DeltakerStatus.Type.SOKT_INN,
-        ) { deltaker, navEnhetForKostnadssted ->
+        ) { deltaker ->
             gjennomforingRequestProducer.produce(
                 GjennomforingRequestPayload.OpprettEnkeltplass(
                     gjennomforingId = deltaker.deltakerliste.id,
                     tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
                     prisinformasjon = decoratedRequest.wrappedRequest.prisinformasjon,
                     organisasjonsnummer = decoratedRequest.wrappedRequest.arrangorUnderenhet,
-                    kostnadssted = navEnhetForKostnadssted.enhetsnummer,
+                    ansvarligEnhet = decoratedRequest.endretAvEnhet,
+                    opprettetAv = decoratedRequest.endretAv,
                 ),
             )
         }
@@ -168,7 +168,7 @@ class EnkeltplassService(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
         nyDeltakerStatus: DeltakerStatus.Type,
-        doInTxBlock: (Deltaker, NavEnhet) -> Unit = { _, _ -> },
+        doInTxBlock: (Deltaker) -> Unit = { _ -> },
     ): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         val gjennomforing = deltaker.deltakerliste
@@ -203,7 +203,8 @@ class EnkeltplassService(
             ),
         )
 
-        val navEnhetForKostnadssted = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        // for vedtak
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
 
         lateinit var oppdatertDeltaker: Deltaker
@@ -223,12 +224,12 @@ class EnkeltplassService(
             vedtakService.opprettEllerOppdaterVedtak(
                 fattetAvNav = true,
                 endretAv = navAnsatt,
-                endretAvEnhet = navEnhetForKostnadssted,
+                endretAvEnhet = navEnhet,
                 deltaker = oppdatertDeltaker.toDeltakerVedVedtak(),
                 fattetDato = null, // fattes når økonomi er godkjent
             )
 
-            doInTxBlock(oppdatertDeltaker, navEnhetForKostnadssted)
+            doInTxBlock(oppdatertDeltaker)
         }
 
         return oppdatertDeltaker
