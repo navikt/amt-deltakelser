@@ -147,25 +147,7 @@ data class DeltakerResponse(
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste = DeltakerlisteResponse(
-                    deltakerlisteId = gjennomforing.id,
-                    deltakerlisteNavn = gjennomforing.navn,
-                    tiltakskode = gjennomforing.tiltak.tiltakskode,
-                    // Nå er det amtdeltaker som sender med navnet som er riktig for visningen
-                    arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
-                    oppstartstype = gjennomforing.oppstart,
-                    startdato = gjennomforing.startDato,
-                    sluttdato = gjennomforing.sluttDato,
-                    status = gjennomforing.status,
-                    tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
-                        gjennomforing.tiltak.innhold,
-                        gjennomforing.tiltak.tiltakskode,
-                    ),
-                    erEnkeltplassUtenRammeavtale = gjennomforing.erEnkeltplass, // TODO: Denne skal fjernes når frontend er klar
-                    erEnkeltplass = gjennomforing.erEnkeltplass,
-                    oppmoteSted = gjennomforing.oppmoteSted,
-                    pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-                ),
+                deltakerliste = DeltakerlisteResponse.fromModel(gjennomforing),
                 status = status,
                 startdato = startdato,
                 sluttdato = sluttdato,

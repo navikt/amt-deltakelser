@@ -13,11 +13,14 @@ import io.mockk.every
 import io.mockk.just
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.fattVedtak
+import no.nav.amt.deltaker.bff.innbygger.model.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.innbygger.model.toInnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
@@ -26,6 +29,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavEnheterForHistorikk
 import no.nav.amt.deltaker.bff.utils.data.TestData.leggTilHistorikk
 import no.nav.amt.deltaker.bff.utils.tokenXToken
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
+import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -35,10 +39,17 @@ import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class InnbyggerApiTest : IntegrationTestBase() {
+    @BeforeEach
+    fun setup() {
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns PersonIdentResponse("123")
+        coEvery { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
+    }
+
     @Test
     fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
@@ -66,13 +77,14 @@ class InnbyggerApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get id - innbygger har tilgang - returnerer 200 og deltaker`() = runTest {
+    fun `get deltaker - toggle er av - returnerer 200 og deltaker`() = runTest {
         // Arrange
         val deltaker = lagDeltaker()
         val forslag = lagForslag(deltakerId = deltaker.id)
         val (ansatte, enhet) = setupMocks(deltaker, forslag = listOf(forslag))
 
-        coEvery { deltakerService.oppdaterSistBesokt(deltaker) } just Runs
+        coEvery { deltakerService.oppdaterSistBesokt(deltaker.id) } just Runs
+        coEvery { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
 
         // Act
         val httpResponse = withTestApplicationContext { httpClient ->
@@ -91,9 +103,32 @@ class InnbyggerApiTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `get deltaker - toggle er på - returnerer 200 og deltaker`() = runTest {
+        // Arrange
+        val deltaker = lagDeltakerResponse()
+
+        coEvery { deltakerService.oppdaterSistBesokt(deltaker.id) } just Runs
+        coEvery { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
+        coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltaker
+
+        // Act
+        val httpResponse = withTestApplicationContext { httpClient ->
+            httpClient.get("/innbygger/${deltaker.id}") { noBodyRequest() }
+        }
+
+        // Assert
+        httpResponse.status shouldBe HttpStatusCode.OK
+        httpResponse.bodyAsText() shouldBe objectMapper.writeValueAsString(
+            ModelMapper
+                .toDeltaker(deltaker)
+                .let { InnbyggerDeltakerResponse.fromModel(it) },
+        )
+    }
+
+    @Test
     fun `get id - deltaker finnes ikke - returnerer 404`() {
         every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
-
+        coEvery { amtDeltakerClient.getDeltaker(any()) } throws NoSuchElementException()
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.NotFound
         }

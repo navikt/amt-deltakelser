@@ -36,11 +36,7 @@ data class Tiltakstype(
             GRUPPE_FAG_OG_YRKESOPPLAERING,
             JOBBKLUBB,
         )
-        val enkeltplassTiltak = setOf(
-            HOYERE_UTDANNING,
-            ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-            ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
-        )
+
         val opplaeringsTiltak = setOf(
             ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
             ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
@@ -64,8 +60,6 @@ data class Tiltakstype(
 
     @Deprecated("Utrygg sjekk av kurstiltak. Må erstattes med å sjekke oppstartstype på tiltak")
     fun erKurs() = this.tiltakskode in kursTiltak
-
-    fun erEnkeltplass() = this.tiltakskode in enkeltplassTiltak
 
     val erOpplaeringstiltak = tiltakskode in opplaeringsTiltak
     val harDeltakelsesmengde = tiltakskode in setOf(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING, Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET)
