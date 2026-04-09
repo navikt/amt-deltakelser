@@ -66,6 +66,8 @@ class DeltakerKafkaPayloadBuilderTest {
     @BeforeEach
     fun init() {
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        every { navAnsattRepository.getOrThrow(veileder.id) } returns veileder
+        every { navEnhetRepository.getOrThrow(navEnhet.id) } returns navEnhet
     }
 
     @Test
