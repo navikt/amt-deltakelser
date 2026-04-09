@@ -67,7 +67,7 @@ class EnkeltplassClientTest {
         val request = OppdaterEnkeltplassKladdRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
-            arrangorUnderenhet = "9876544321",
+            arrangorUnderenhet = "987654321",
             startdato = null,
             sluttdato = null,
         )
@@ -103,7 +103,7 @@ class EnkeltplassClientTest {
         val pameldingRequest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
-            arrangorUnderenhet = "9876544321",
+            arrangorUnderenhet = "987654321",
             startdato = null,
             sluttdato = null,
         )

@@ -180,7 +180,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
-            arrangorUnderenhet = "9876544321",
+            arrangorUnderenhet = "987654321",
             startdato = LocalDate.now(),
             sluttdato = LocalDate.now().plusDays(1),
         )
