@@ -1,15 +1,20 @@
 package no.nav.amt.deltaker.bff.deltaker
 
+import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakeroppdatering
+import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.deltaker.model.Kladd
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -21,8 +26,27 @@ class PameldingService(
     private val navBrukerService: NavBrukerService,
     private val paameldingClient: PaameldingClient,
     private val navEnhetService: NavEnhetService,
+    private val amtDeltakerClient: AmtDeltakerClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    // TODO: Skal slettes
+    suspend fun opprettKladdForEnkeltplass(
+        tiltakskode: Tiltakskode,
+        personident: String,
+    ): DeltakerModel = paameldingClient
+        .opprettKladdEnkeltplass(tiltakskode, personident)
+        .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
+        .let { ModelMapper.toDeltaker(it) }
+
+    // TODO: Skal slettes
+    suspend fun oppdaterKladdForEnkeltplass(
+        deltakerId: UUID,
+        enkeltplassKladdRequest: OppdaterEnkeltplassKladdRequest,
+    ): DeltakerModel = paameldingClient
+        .oppdaterKladdEnkeltplass(deltakerId, enkeltplassKladdRequest)
+        .let { amtDeltakerClient.getDeltaker(deltakerId) }
+        .let { ModelMapper.toDeltaker(it) }
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,

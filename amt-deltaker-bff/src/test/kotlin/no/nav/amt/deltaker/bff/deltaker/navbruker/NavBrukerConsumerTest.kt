@@ -59,6 +59,7 @@ class NavBrukerConsumerTest {
         navBrukerService = navBrukerService,
         navEnhetService = navEnhetService,
         paameldingClient = mockk(relaxed = true),
+        amtDeltakerClient = mockk(relaxed = true),
     )
 
     @Test
