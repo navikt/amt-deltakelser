@@ -97,7 +97,7 @@ fun Routing.registerEnkeltplassApi(
                     .oppdaterUtkast(
                         deltakerId = deltakerId,
                         pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
-                            wrappedRequest = pameldingRequest,
+                            wrappedRequest = pameldingRequest.sanitized(),
                             endretAvEnhet = call.getEnhetsnummer(),
                             endretAv = call.getNavIdent(),
                         ),
@@ -121,12 +121,12 @@ fun Routing.registerEnkeltplassApi(
                     norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident,
                 )
 
-                val request: EnkeltplassPameldingRequest = call.receive()
+                val pameldingRequest: EnkeltplassPameldingRequest = call.receive()
 
                 enkeltplassClient.meldPaaDirekte(
                     deltakerId = deltakerId,
                     pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
-                        wrappedRequest = request,
+                        wrappedRequest = pameldingRequest.sanitized(),
                         endretAvEnhet = call.getEnhetsnummer(),
                         endretAv = call.getNavIdent(),
                     ),

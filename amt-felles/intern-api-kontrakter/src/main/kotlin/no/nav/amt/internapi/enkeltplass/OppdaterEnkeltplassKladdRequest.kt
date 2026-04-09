@@ -11,8 +11,8 @@ data class OppdaterEnkeltplassKladdRequest(
     val sluttdato: LocalDate?,
 ) {
     fun sanitized() = copy(
-        beskrivelse = beskrivelse.trimToNull(),
-        prisinformasjon = prisinformasjon.trimToNull(),
-        arrangorUnderenhet = arrangorUnderenhet.trimToNull(),
+        beskrivelse = beskrivelse.trimToNull()?.sanitizeBeskrivelse(),
+        prisinformasjon = prisinformasjon.trimToNull()?.sanitizePrisinformasjon(),
+        arrangorUnderenhet = arrangorUnderenhet.trimToNull()?.sanitizeArrangorUnderenhet(),
     )
 }

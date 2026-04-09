@@ -102,7 +102,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             private val requestInTest = OppdaterEnkeltplassKladdRequest(
                 startdato = null,
                 sluttdato = null,
-                prisinformasjon = null,
+                prisinformasjon = "a".repeat(1000),
                 beskrivelse = null,
                 arrangorUnderenhet = null,
             )
@@ -172,7 +172,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(utkastUrlInTest) {
-                    createPostRequest(requestInTest)
+                    createPostRequest(enkeltplassPameldingRequest)
                 }
             }
 
@@ -185,7 +185,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(utkastUrlInTest) {
-                    createPostRequest(requestInTest.copy(arrangorUnderenhet = "abc"))
+                    createPostRequest(enkeltplassPameldingRequest.copy(arrangorUnderenhet = "abc"))
                 }
             }
 
@@ -198,7 +198,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(utkastUrlInTest) {
-                    createPostRequest(requestInTest)
+                    createPostRequest(enkeltplassPameldingRequest)
                 }
             }
 
@@ -230,7 +230,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    createPostRequest(requestInTest)
+                    createPostRequest(enkeltplassPameldingRequest)
                 }
             }
 
@@ -243,7 +243,10 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    createPostRequest(requestInTest.copy(arrangorUnderenhet = "abc"))
+                    createPostRequest(
+                        enkeltplassPameldingRequest
+                            .copy(arrangorUnderenhet = "abc"),
+                    )
                 }
             }
 
@@ -256,7 +259,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    createPostRequest(requestInTest)
+                    createPostRequest(enkeltplassPameldingRequest)
                 }
             }
 
@@ -267,7 +270,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
     companion object {
         private const val PERSONIDENT_IN_TEST = "1234"
-        private val requestInTest = EnkeltplassPameldingRequest(
+        private val enkeltplassPameldingRequest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654322",
