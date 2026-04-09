@@ -1,6 +1,7 @@
 package no.nav.amt.lib.ktor.clients
 
 import io.ktor.client.HttpClient
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -19,9 +20,13 @@ abstract class ApiClientBase(
     protected val httpClient: HttpClient,
     protected val azureAdTokenClient: AzureAdTokenClient,
 ) {
-    protected suspend fun performGet(urlSubPath: String): HttpResponse = httpClient.get("$baseUrl/$urlSubPath") {
+    protected suspend fun performGet(
+        urlSubPath: String,
+        builder: HttpRequestBuilder.() -> Unit = {},
+    ): HttpResponse = httpClient.get("$baseUrl/$urlSubPath") {
         header(HttpHeaders.Authorization, azureAdTokenClient.getMachineToMachineToken(scope))
         accept(ContentType.Application.Json)
+        builder()
     }
 
     protected suspend fun performPost(

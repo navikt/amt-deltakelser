@@ -8,36 +8,16 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
-import no.nav.amt.deltaker.bff.enkeltplass.ORGNUMMER_REGEX
 
-private const val TERMS__PARAM = "term"
-private const val ORGANISASJONSNUMMER_PARAM = "orgnummer"
+private const val TERMS_PARAM = "term"
 
-private fun ApplicationCall.getTerm(): String = this.parameters[TERMS__PARAM] ?: throw IllegalArgumentException("Mangler søketerm")
-
-private fun ApplicationCall.requireValidOrgnummer(): String {
-    val orgnummer = this.parameters[ORGANISASJONSNUMMER_PARAM] ?: throw IllegalArgumentException("Mangler orgnummer")
-
-    return if (ORGNUMMER_REGEX.matches(orgnummer)) {
-        orgnummer
-    } else {
-        throw IllegalArgumentException("Organisasjonsnummeret må starte med 8 eller 9 og inneholde 9 siffer")
-    }
-}
+private fun ApplicationCall.getTerm(): String = this.parameters[TERMS_PARAM] ?: throw IllegalArgumentException("Mangler søketerm")
 
 fun Routing.registerArrangorsokApi(arrangorsokClient: ArrangorsokClient) {
     route("/arrangor") {
         authenticate(AuthLevel.VEILEDER.name) {
-            get("/hovedenhet/sok/{term}") {
-                val enheter = arrangorsokClient.hovedenhetSok(call.getTerm())
-                call.respond(enheter)
-            }
-        }
-
-        authenticate(AuthLevel.VEILEDER.name) {
-            get("/hovedenhet/{orgnummer}/underenheter") {
-                val orgnummer = call.requireValidOrgnummer()
-                val enheter = arrangorsokClient.hentUnderenheter(orgnummer)
+            get("/underenhet/sok/{term}") {
+                val enheter = arrangorsokClient.underenhetSok(call.getTerm())
                 call.respond(enheter)
             }
         }
