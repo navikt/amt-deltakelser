@@ -205,9 +205,9 @@ class EnkeltplassService(
             deltakelsesinnhold = Deltakelsesinnhold(
                 ledetekst = deltaker.deltakerliste.tiltakstype.innhold
                     ?.ledetekst,
-                innhold = decoratedRequest.wrappedRequest.beskrivelse.let {
-                    listOf(Innhold.createFritekstInnhold(decoratedRequest.wrappedRequest.beskrivelse))
-                },
+                innhold = listOf(
+                    Innhold.createFritekstInnhold(decoratedRequest.wrappedRequest.beskrivelse),
+                ),
             ),
         )
 
