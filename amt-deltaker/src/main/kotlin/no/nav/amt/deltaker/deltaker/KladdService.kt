@@ -6,17 +6,14 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -119,38 +116,6 @@ class KladdService(
             kilde = Kilde.KOMET,
             erManueltDeltMedArrangor = false,
             opprettet = LocalDateTime.now(),
-        )
-
-        fun lagEnkeltplassKladdInsertDbo(
-            navBrukerId: UUID,
-            deltakerlisteId: UUID,
-            tiltakstype: Tiltakstype,
-        ) = DeltakerKladdUpsertDbo(
-            id = UUID.randomUUID(),
-            navBrukerId = navBrukerId,
-            deltakerlisteId = deltakerlisteId,
-            bakgrunnsinformasjon = null,
-            deltakelsesinnhold = Deltakelsesinnhold(tiltakstype.innhold?.ledetekst, emptyList()),
-            kilde = Kilde.KOMET,
-            erManueltDeltMedArrangor = false,
-        )
-
-        fun lagEnkeltplassUpdateDbo(
-            deltakerId: UUID,
-            tiltakstype: Tiltakstype,
-            startdato: LocalDate?,
-            sluttdato: LocalDate?,
-            beskrivelse: String?,
-        ) = EnkeltplassDeltakerUpdateDbo(
-            id = deltakerId,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            deltakelsesinnhold = Deltakelsesinnhold(
-                ledetekst = tiltakstype.innhold?.ledetekst,
-                innhold = beskrivelse?.let {
-                    listOf(Innhold.createFritekstInnhold(beskrivelse))
-                } ?: emptyList(),
-            ),
         )
 
         fun lagKladdUpsertDbo(

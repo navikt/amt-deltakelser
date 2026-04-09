@@ -19,7 +19,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
@@ -38,14 +38,15 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
 
         val mockHttpResponse = mockk<HttpResponse>()
+        coEvery { enkeltplassClient.opprettKladd(any(), any()) } returns DeltakerIdResponse(deltakerInTest.id)
+        coEvery { enkeltplassClient.oppdaterKladd(any(), any()) } returns mockHttpResponse
+        coEvery { enkeltplassClient.oppdaterUtkast(any(), any()) } returns lagDeltakerResponse()
         coEvery { enkeltplassClient.meldPaaDirekte(deltakerInTest.id, any()) } returns mockHttpResponse
-        coEvery { enkeltplassClient.opprettKladdEnkeltplass(any(), any()) } returns DeltakerIdResponse(deltakerInTest.id)
-        coEvery { enkeltplassClient.oppdaterKladdEnkeltplass(any(), any()) } returns mockHttpResponse
         coEvery { amtDeltakerClient.getDeltaker(deltakerInTest.id) } returns lagDeltakerResponse()
     }
 
     @Nested
-    inner class KladdTests {
+    inner class OpprettKladdTests {
         @Nested
         inner class OpprettKladdTests {
             private val requestInTest = OpprettEnkeltplassKladdRequest(
@@ -101,8 +102,9 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             private val requestInTest = OppdaterEnkeltplassKladdRequest(
                 startdato = null,
                 sluttdato = null,
-                prisinformasjon = null,
+                prisinformasjon = "a".repeat(1000),
                 beskrivelse = null,
+                arrangorUnderenhet = null,
             )
 
             @Test
@@ -148,7 +150,65 @@ class EnkeltplassApiTest : IntegrationTestBase() {
     }
 
     @Nested
-    inner class EnkeltplassUtkastTests {
+    inner class UtkastTests {
+        val utkastUrlInTest = "/enkeltplass/utkast/${deltakerInTest.id}"
+
+        @Test
+        fun `skal returnere Unauthorized nar tilgang mangler`() {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(utkastUrlInTest)
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Unauthorized
+        }
+
+        @Test
+        fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+            // Arrange
+            every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
+
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(utkastUrlInTest) {
+                    createPostRequest(enkeltplassPameldingRequest)
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `skal returnere BadRequest hvis request er ugyldig`() {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(utkastUrlInTest) {
+                    createPostRequest(enkeltplassPameldingRequest.copy(arrangorUnderenhet = "abc"))
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.BadRequest
+        }
+
+        @Test
+        fun `skal returnere OK nar utkast er oppdatert`() = runTest {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(utkastUrlInTest) {
+                    createPostRequest(enkeltplassPameldingRequest)
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Nested
+    inner class MeldPaaDirekteTests {
         val url = "/enkeltplass/utkast/${deltakerInTest.id}/meld-paa-direkte"
 
         @Test
@@ -170,7 +230,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    createPostRequest(requestInTest)
+                    createPostRequest(enkeltplassPameldingRequest)
                 }
             }
 
@@ -183,7 +243,10 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    createPostRequest(requestInTest.copy(arrangorOrgnummer = "abc"))
+                    createPostRequest(
+                        enkeltplassPameldingRequest
+                            .copy(arrangorUnderenhet = "abc"),
+                    )
                 }
             }
 
@@ -196,7 +259,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
-                    createPostRequest(requestInTest)
+                    createPostRequest(enkeltplassPameldingRequest)
                 }
             }
 
@@ -207,10 +270,10 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
     companion object {
         private const val PERSONIDENT_IN_TEST = "1234"
-        private val requestInTest = EnkeltplassPameldingRequest(
+        private val enkeltplassPameldingRequest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
-            arrangorOrgnummer = "987654321",
+            arrangorUnderenhet = "987654322",
         )
     }
 }

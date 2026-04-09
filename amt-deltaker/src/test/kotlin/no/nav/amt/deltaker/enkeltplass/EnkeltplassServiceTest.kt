@@ -23,6 +23,8 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -35,6 +37,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class EnkeltplassServiceTest : IntegrationTestBase() {
     override val deltakerService = mockk<DeltakerService>()
@@ -68,14 +71,19 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
+            val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
+                beskrivelse = null,
+                prisinformasjon = null,
+                startdato = null,
+                sluttdato = null,
+                arrangorUnderenhet = null,
+            )
+
             // Act & Assert
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.oppdaterKladd(
                     deltakerId = deltaker.id,
-                    startdato = null,
-                    sluttdato = null,
-                    beskrivelse = null,
-                    prisinformasjon = null,
+                    oppdaterKladdRequest = oppdaterKladdRequest,
                 )
             }
         }
@@ -105,6 +113,13 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             } returns lagVedtak(
                 deltakerId = deltakerInTest.id,
                 deltakerVedVedtak = deltakerInTest,
+            )
+
+            every { arrangorRepository.get(any<String>()) } returns Arrangor(
+                id = UUID.randomUUID(),
+                organisasjonsnummer = "987654322",
+                navn = "Test Arrangør",
+                overordnetArrangorId = UUID.randomUUID(),
             )
 
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
@@ -175,7 +190,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
-            arrangorOrgnummer = "987654321",
+            arrangorUnderenhet = "987654322",
         )
 
         private val navEnhetInTest = lagNavEnhet(enhetsnummer = "1234")

@@ -7,14 +7,18 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 
-fun Routing.registerEnkeltplassApi(enkeltplassService: EnkeltplassService) {
+fun Routing.registerEnkeltplassApi(
+    enkeltplassService: EnkeltplassService,
+    responseBuilder: ResponseBuilder,
+) {
     authenticate("SYSTEM") {
         route("/enkeltplass") {
             post("/opprett-kladd") {
@@ -29,16 +33,25 @@ fun Routing.registerEnkeltplassApi(enkeltplassService: EnkeltplassService) {
             post("/oppdater-kladd/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
                 val oppdaterKladdRequest = call.receive<OppdaterEnkeltplassKladdRequest>()
-                enkeltplassService
-                    .oppdaterKladd(
-                        deltakerId = deltakerId,
-                        startdato = oppdaterKladdRequest.startdato,
-                        sluttdato = oppdaterKladdRequest.sluttdato,
-                        prisinformasjon = oppdaterKladdRequest.prisinformasjon,
-                        beskrivelse = oppdaterKladdRequest.beskrivelse,
-                    )
+
+                enkeltplassService.oppdaterKladd(
+                    deltakerId = deltakerId,
+                    oppdaterKladdRequest = oppdaterKladdRequest.sanitized(),
+                )
 
                 call.respond(HttpStatusCode.OK)
+            }
+
+            post("/utkast/{deltakerId}") {
+                val request: EnkeltplassPameldingDecoratedRequest = call.receive()
+
+                val oppdatertDeltaker = enkeltplassService.oppdaterUtkast(
+                    deltakerId = call.getDeltakerId(),
+                    decoratedRequest = request,
+                )
+
+                val deltakerResponse = responseBuilder.buildDeltakerResponse(oppdatertDeltaker)
+                call.respond(deltakerResponse)
             }
 
             post("/utkast/{deltakerId}/meld-paa-direkte") {

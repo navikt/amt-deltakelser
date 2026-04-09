@@ -4,9 +4,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import no.nav.amt.internapi.DeltakerIdResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
-import no.nav.amt.internapi.paamelding.request.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.internapi.paamelding.request.OpprettKladdEnkeltplassRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
@@ -24,25 +25,38 @@ class EnkeltplassClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun opprettKladdEnkeltplass(
+    suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
         personident: String,
     ): DeltakerIdResponse = performPost(
         urlSubPath = "enkeltplass/opprett-kladd",
-        requestBody = OpprettKladdEnkeltplassRequest(tiltakskode = tiltakskode, personident = personident),
-    ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.").body()
+        requestBody = OpprettKladdEnkeltplassRequest(
+            tiltakskode = tiltakskode,
+            personident = personident,
+        ),
+    ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker").body()
 
-    suspend fun oppdaterKladdEnkeltplass(
+    suspend fun oppdaterKladd(
         deltakerId: UUID,
-        request: OppdaterEnkeltplassKladdRequest,
-    ) = performPost(
+        kladdRequest: OppdaterEnkeltplassKladdRequest,
+    ): HttpResponse = performPost(
         urlSubPath = "enkeltplass/oppdater-kladd/$deltakerId",
-        requestBody = request,
-    ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.")
+        requestBody = kladdRequest,
+    ).failIfNotSuccess("Kunne ikke oppdatere enkeltplasskladd i amt-deltaker for deltaker $deltakerId")
+
+    suspend fun oppdaterUtkast(
+        deltakerId: UUID,
+        pameldingDecoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ): DeltakerResponse = performPost(
+        urlSubPath = "enkeltplass/utkast/$deltakerId",
+        requestBody = pameldingDecoratedRequest,
+    ).failIfNotSuccess("Kunne ikke opprette utkast i amt-deltaker for deltaker $deltakerId").body()
 
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
-        enkeltplassPamelding: EnkeltplassPameldingDecoratedRequest,
-    ): HttpResponse = performPost("enkeltplass/utkast/$deltakerId/meld-paa-direkte", enkeltplassPamelding)
-        .failIfNotSuccess("Kunne ikke opprette enkeltplass i amt-deltaker for deltaker $deltakerId")
+        pameldingDecoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ): HttpResponse = performPost(
+        urlSubPath = "enkeltplass/utkast/$deltakerId/meld-paa-direkte",
+        requestBody = pameldingDecoratedRequest,
+    ).failIfNotSuccess("Kunne ikke opprette enkeltplass i amt-deltaker for deltaker $deltakerId")
 }

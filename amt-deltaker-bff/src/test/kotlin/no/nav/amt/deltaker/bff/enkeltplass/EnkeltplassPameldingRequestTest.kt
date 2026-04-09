@@ -12,7 +12,7 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "",
             prisinformasjon = "",
-            arrangorOrgnummer = "",
+            arrangorUnderenhet = "",
         )
 
         assertInvalidResult(request.validate(), "Beskrivelse kan ikke være tom")
@@ -23,18 +23,18 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "",
-            arrangorOrgnummer = "",
+            arrangorUnderenhet = "",
         )
 
         assertInvalidResult(request.validate(), "Prisinformasjon kan ikke være tom")
     }
 
     @Test
-    fun `validate - skal returnere feil hvis arrangorOrgnummer er tom`() {
+    fun `validate - skal returnere feil hvis arrangorUnderenhet er tom`() {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
-            arrangorOrgnummer = "",
+            arrangorUnderenhet = "",
         )
 
         assertInvalidResult(request.validate(), "Arrangør orgnummer kan ikke være tom")
@@ -45,18 +45,18 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
-            arrangorOrgnummer = "abc",
+            arrangorUnderenhet = "abc",
         )
 
         assertInvalidResult(request.validate(), "Organisasjonsnummeret må starte med 8 eller 9 og inneholde 9 siffer")
     }
 
     @Test
-    fun `validate - skal returnere gyldig resultat hvis alle felt er fylt ut`() {
+    fun `validate - skal returnere gyldig resultat hvis alle påkrevde felt er fylt ut`() {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
-            arrangorOrgnummer = "987654321",
+            arrangorUnderenhet = "987654321",
         )
 
         request.validate().shouldBeInstanceOf<ValidationResult.Valid>()

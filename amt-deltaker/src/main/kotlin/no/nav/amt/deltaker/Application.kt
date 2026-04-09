@@ -360,6 +360,7 @@ fun Application.module() {
         navEnhetService = navEnhetService,
         navAnsattService = navAnsattService,
         vedtakService = vedtakService,
+        arrangorService = arrangorService,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(

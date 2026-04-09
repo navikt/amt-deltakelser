@@ -5,4 +5,5 @@ import java.util.UUID
 data class EnkeltplassGjennomforingUpdateDbo(
     val id: UUID,
     val prisinformasjon: String?,
+    val arrangorId: UUID?,
 )

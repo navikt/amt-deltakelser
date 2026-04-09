@@ -1,21 +1,27 @@
 package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagEnkeltplassUpdateDbo
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -28,18 +34,18 @@ import java.time.LocalDateTime
 class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
     val sistEndretAvNavEnhet = lagNavEnhet()
     val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
-    val navBruker: NavBruker = lagNavBruker(
+    val navBrukerInTest: NavBruker = lagNavBruker(
         navVeilederId = sistEndretAvNavAnsatt.id,
         navEnhetId = sistEndretAvNavEnhet.id,
     )
 
-    val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
+    val tiltakInTest = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
 
     @BeforeEach
     fun setup() {
         navEnhetRepository.upsert(sistEndretAvNavEnhet)
         navAnsattRepository.upsert(sistEndretAvNavAnsatt)
-        navBrukerRepository.upsert(navBruker)
+        navBrukerRepository.upsert(navBrukerInTest)
 
         sistEndretAvNavAnsatt.navEnhetId?.let {
             coEvery { personServiceClient.hentNavEnhet(it) } returns lagNavEnhet(it)
@@ -47,18 +53,18 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
         coEvery { personServiceClient.hentNavEnhet(sistEndretAvNavEnhet.id) } returns sistEndretAvNavEnhet
         coEvery { personServiceClient.hentNavAnsatt(sistEndretAvNavAnsatt.id) } returns sistEndretAvNavAnsatt
-        coEvery { personServiceClient.hentNavBruker(navBruker.personident) } returns navBruker
+        coEvery { personServiceClient.hentNavBruker(navBrukerInTest.personident) } returns navBrukerInTest
 
-        TiltakstypeRepository().upsert(tiltak)
+        TiltakstypeRepository().upsert(tiltakInTest)
     }
 
     @Nested
-    inner class EnkeltplassTests {
+    inner class OpprettKladdTests {
         @Test
         fun `opprettKladd - returnerer ny deltakerId`() = runTest {
             val deltaker = enkeltplassService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
             )
 
             assertSoftly(deltaker) {
@@ -81,8 +87,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
             assertSoftly(deltaker.deltakerliste) {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
-                tiltakstype shouldBe tiltak
-                navn shouldBe tiltak.navn
+                tiltakstype shouldBe tiltakInTest
+                navn shouldBe tiltakInTest.navn
                 startDato shouldBe null
                 sluttDato shouldBe null
                 oppstart shouldBe null
@@ -97,97 +103,159 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         @Test
         fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer samme deltakerId`() = runTest {
             val deltaker = enkeltplassService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
             )
 
             val deltaker2 = enkeltplassService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
             )
             deltaker2.id shouldBe deltaker.id
         }
+    }
 
+    @Nested
+    inner class OppdaterKladdTests {
         @Test
-        fun `oppdaterKladd - returnerer ny deltakerId`() = runTest {
+        fun `oppdaterKladd - lagrer kladd`() = runTest {
+            // Arrange
             val deltakerInserted = enkeltplassService.opprettKladd(
-                tiltak.tiltakskode,
-                navBruker.personident,
-            )
-            val deltakerExpected = lagEnkeltplassUpdateDbo(
-                deltakerId = deltakerInserted.id,
-                tiltakstype = deltakerInserted.deltakerliste.tiltakstype,
-                startdato = LocalDate.now().plusDays(1),
-                sluttdato = LocalDate.now().plusDays(2),
-                beskrivelse = "Beskrivelse",
-            )
-            val prisinfoExpected = "Prisinfo"
-            val oppdatertDeltaker = enkeltplassService.oppdaterKladd(
-                deltakerId = deltakerExpected.id,
-                startdato = deltakerExpected.startdato,
-                sluttdato = deltakerExpected.sluttdato,
-                beskrivelse = deltakerExpected.deltakelsesinnhold
-                    ?.innhold
-                    ?.first()
-                    ?.beskrivelse,
-                prisinformasjon = prisinfoExpected,
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
             )
 
-            oppdatertDeltaker shouldNotBe null
+            val arrangorInTest = lagArrangor()
+            arrangorRepository.upsert(arrangorInTest)
 
-            assertSoftly(oppdatertDeltaker) {
-                id shouldBe deltakerExpected.id
-                startdato shouldBe deltakerExpected.startdato
-                sluttdato shouldBe deltakerExpected.sluttdato
+            val expectedDeltaker = EnkeltplassDeltakerUpdateDbo(
+                id = deltakerInserted.id,
+                startdato = deltakerInserted.startdato,
+                sluttdato = deltakerInserted.sluttdato,
+                deltakelsesinnhold = Deltakelsesinnhold(
+                    ledetekst = deltakerInserted.deltakerliste.tiltakstype.innhold
+                        ?.ledetekst,
+                    innhold = listOf(Innhold.createFritekstInnhold("Beskrivelse")),
+                ),
+            )
+            val expectedPrisinfo = "Prisinfo"
+
+            val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
+                beskrivelse = expectedDeltaker.deltakelsesinnhold
+                    .shouldNotBeNull()
+                    .innhold
+                    .first()
+                    .beskrivelse,
+                prisinformasjon = expectedPrisinfo,
+                startdato = expectedDeltaker.startdato,
+                sluttdato = expectedDeltaker.sluttdato,
+                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+            )
+
+            // Act
+            enkeltplassService.oppdaterKladd(
+                deltakerId = expectedDeltaker.id,
+                oppdaterKladdRequest,
+            )
+
+            // Assert
+            val deltakerUpdated = deltakerRepository.get(expectedDeltaker.id).shouldBeSuccess()
+
+            assertSoftly(deltakerUpdated) {
+                id shouldBe expectedDeltaker.id
+                startdato shouldBe expectedDeltaker.startdato
+                sluttdato shouldBe expectedDeltaker.sluttdato
                 dagerPerUke shouldBe null
                 deltakelsesprosent shouldBe null
                 bakgrunnsinformasjon shouldBe null
                 vedtaksinformasjon shouldBe null
                 sistEndret shouldBeCloseTo LocalDateTime.now()
                 kilde shouldBe Kilde.KOMET
-                erManueltDeltMedArrangor shouldBe false
-                opprettet shouldBeCloseTo LocalDateTime.now()
+            }
+        }
+    }
+
+    @Nested
+    inner class OppdaterUtkastTests {
+        private val pameldingRequestInTest = EnkeltplassPameldingRequest(
+            beskrivelse = "Testbeskrivelse",
+            prisinformasjon = "Test prisinformasjon",
+            arrangorUnderenhet = "987654321",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
+        )
+
+        private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+            wrappedRequest = pameldingRequestInTest,
+            endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+            endretAv = sistEndretAvNavAnsatt.navIdent,
+        )
+
+        @Test
+        fun `oppdater utkast - lagrer utkast`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
+            arrangorRepository.upsert(arrangorInTest)
+
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+
+            // Act
+            val oppdatertDeltaker = enkeltplassService.oppdaterUtkast(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            assertSoftly(oppdatertDeltaker) {
+                id shouldBe deltakerInTest.id
+                startdato shouldBe pameldingRequestInTest.startdato
+                sluttdato shouldBe pameldingRequestInTest.sluttdato
+                sistEndret shouldBeCloseTo LocalDateTime.now()
             }
 
             assertSoftly(oppdatertDeltaker.status) {
-                type shouldBe DeltakerStatus.Type.KLADD
+                type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
             }
 
             assertSoftly(oppdatertDeltaker.deltakerliste) {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
-                tiltakstype shouldBe tiltak
-                navn shouldBe tiltak.navn
-                prisinformasjon shouldBe prisinfoExpected
+                tiltakstype shouldBe tiltakInTest
+                navn shouldBe tiltakInTest.navn
+                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
+                arrangor shouldBe arrangorInTest
             }
         }
-        /*
-            Slett kladd ligger fortsatt i pamelingService, uavhengig av om det er enkeltplass. Splitte opp?
-                @Test
-                fun `slettKladd - deltaker er KLADD - sletter deltaker og gjennomføring`() = runTest {
-                    val deltakerInserted = enkeltplassService.opprettKladd(
-                        tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                        navBruker.personident,
-                    )
-
-                    pameldingService.slettKladd(deltakerInserted.id)
-
-                    deltakerRepository.get(deltakerInserted.id).shouldBeFailure()
-                    deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeFailure()
-                }
-                @Test
-                fun `slettKladd - deltaker er KLADD men deltakerliste er syncet med valp - sletter ikke`() = runTest {
-                    val deltakerInserted = enkeltplassService.opprettKladd(
-                        tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                        navBruker.personident,
-                    )
-                    deltakerlisteRepository.upsert(deltakerInserted.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES))
-
-                    shouldThrowAny {
-                        pameldingService.slettKladd(deltakerInserted.id)
-                    }
-                    deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
-                    deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
-                }
-         */
     }
+    /*
+        Slett kladd ligger fortsatt i pamelingService, uavhengig av om det er enkeltplass. Splitte opp?
+            @Test
+            fun `slettKladd - deltaker er KLADD - sletter deltaker og gjennomføring`() = runTest {
+                val deltakerInserted = enkeltplassService.opprettKladd(
+                    tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                    navBruker.personident,
+                )
+
+                pameldingService.slettKladd(deltakerInserted.id)
+
+                deltakerRepository.get(deltakerInserted.id).shouldBeFailure()
+                deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeFailure()
+            }
+            @Test
+            fun `slettKladd - deltaker er KLADD men deltakerliste er syncet med valp - sletter ikke`() = runTest {
+                val deltakerInserted = enkeltplassService.opprettKladd(
+                    tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                    navBruker.personident,
+                )
+                deltakerlisteRepository.upsert(deltakerInserted.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES))
+
+                shouldThrowAny {
+                    pameldingService.slettKladd(deltakerInserted.id)
+                }
+                deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
+                deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
+            }
+     */
 }
