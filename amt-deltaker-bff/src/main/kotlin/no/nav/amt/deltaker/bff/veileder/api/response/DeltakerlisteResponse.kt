@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
+import no.nav.amt.deltaker.bff.deltaker.model.GjennomforingModel
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -7,6 +8,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
 
+// Burde brukes av både veileder og innbygger
 data class DeltakerlisteResponse(
     val deltakerlisteId: UUID,
     val deltakerlisteNavn: String,
@@ -21,4 +23,27 @@ data class DeltakerlisteResponse(
     val erEnkeltplass: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
-)
+) {
+    companion object {
+        fun fromModel(gjennomforingModel: GjennomforingModel) = with(gjennomforingModel) {
+            DeltakerlisteResponse(
+                deltakerlisteId = id,
+                deltakerlisteNavn = navn,
+                tiltakskode = tiltak.tiltakskode,
+                arrangorNavn = arrangor?.navn ?: "Ukjent arrangør",
+                oppstartstype = oppstart,
+                startdato = startDato,
+                sluttdato = sluttDato,
+                status = status,
+                tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
+                    tiltak.innhold,
+                    tiltak.tiltakskode,
+                ),
+                erEnkeltplassUtenRammeavtale = erEnkeltplass, // TODO: Denne skal fjernes når frontend er klar
+                erEnkeltplass = erEnkeltplass,
+                oppmoteSted = oppmoteSted,
+                pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+            )
+        }
+    }
+}

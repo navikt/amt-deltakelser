@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getPersonIdent
@@ -43,6 +44,7 @@ fun Routing.registerInnbyggerApi(
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
+    // Denne skal fases ut når når vi alltid kan hente data fra amt-deltaker
     fun komplettInnbyggerDeltakerResponse(deltaker: Deltaker): InnbyggerDeltakerResponse = deltaker.toInnbyggerDeltakerResponse(
         ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
         vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
@@ -52,16 +54,28 @@ fun Routing.registerInnbyggerApi(
     authenticate(AuthLevel.INNBYGGER.name) {
         // kaller amtDeltakerClient.sistBesokt
         get("/innbygger/{deltakerId}") {
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val deltakerId = call.getDeltakerId()
+            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
 
             tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
                 rekvirentPersonident = call.getPersonIdent(),
-                ressursPersonident = deltaker.navBruker.personident,
+                ressursPersonident = personident,
             )
 
-            scope.launch { deltakerService.oppdaterSistBesokt(deltaker) }
+            val deltakerResponse =
+                if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                    amtDeltakerClient
+                        .getDeltaker(deltakerId)
+                        .let { ModelMapper.toDeltaker(it) }
+                        .let { deltaker -> InnbyggerDeltakerResponse.fromModel(deltaker) }
+                } else {
+                    val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                    komplettInnbyggerDeltakerResponse(deltaker)
+                }
 
-            call.respond(komplettInnbyggerDeltakerResponse(deltaker))
+            scope.launch { deltakerService.oppdaterSistBesokt(deltakerId) }
+
+            call.respond(deltakerResponse)
         }
 
         // kaller paameldingClient.innbyggerGodkjennUtkast
@@ -88,16 +102,18 @@ fun Routing.registerInnbyggerApi(
         // henter deltakerhistorikk via amtDeltakerClient.getDeltakerHistorikk når
         // prioriterSynkronKommunikasjon-toggle er aktiv, ellers brukes lokal historikk fra deltaker
         get("/innbygger/{deltakerId}/historikk") {
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val deltakerId = call.getDeltakerId()
+            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
 
             tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
                 rekvirentPersonident = call.getPersonIdent(),
-                ressursPersonident = deltaker.navBruker.personident,
+                ressursPersonident = personident,
             )
 
+            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
             val historikk =
                 if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    amtDeltakerClient.getDeltakerHistorikk(deltaker.id)
+                    amtDeltakerClient.getDeltakerHistorikk(deltakerId)
                 } else {
                     deltaker.getDeltakerHistorikkForVisning()
                 }

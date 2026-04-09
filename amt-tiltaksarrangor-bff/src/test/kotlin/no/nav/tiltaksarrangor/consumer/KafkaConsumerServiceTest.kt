@@ -145,7 +145,7 @@ class KafkaConsumerServiceTest {
     fun `lagreDeltaker - enkeltplass type - lagres ikke i db`(): Unit = runBlocking {
         with(DeltakerDtoCtx()) {
             medStatus(DeltakerStatus.Type.DELTAR)
-            medDeltakerlisteType(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING)
+            medGjenomforingstype(GjennomforingType.Enkeltplass)
             every { deltakerRepository.getDeltaker(any()) } returns null
             kafkaConsumerService.lagreDeltaker(deltakerDto.id, objectMapper.writeValueAsString(deltakerDto))
 
@@ -783,12 +783,10 @@ class DeltakerDtoCtx {
         sistEndretAvEnhet = null,
     )
 
-    fun medDeltakerlisteType(tiltakskode: Tiltakskode) {
+    fun medGjenomforingstype(gjennomforingstype: GjennomforingType) {
         deltakerDto = deltakerDto.copy(
             deltakerliste = deltakerDto.deltakerliste.copy(
-                tiltak = deltakerDto.deltakerliste.tiltak.copy(
-                    tiltakskode = tiltakskode,
-                ),
+                gjennomforingstype = gjennomforingstype,
             ),
         )
     }

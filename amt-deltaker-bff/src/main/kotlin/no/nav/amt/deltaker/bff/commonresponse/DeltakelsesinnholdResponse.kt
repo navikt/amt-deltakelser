@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.amt.deltaker.bff.commonresponse
 
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.toInnhold

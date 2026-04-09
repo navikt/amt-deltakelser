@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltaker.Arrangor
