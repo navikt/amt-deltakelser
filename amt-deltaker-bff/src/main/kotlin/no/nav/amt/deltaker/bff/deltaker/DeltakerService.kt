@@ -224,10 +224,10 @@ class DeltakerService(
     }
 
     // benyttes av Routing.registerInnbyggerApi
-    suspend fun oppdaterSistBesokt(deltaker: Deltaker) {
+    suspend fun oppdaterSistBesokt(deltakerId: UUID) {
         val sistBesokt = ZonedDateTime.now()
-        amtDeltakerClient.sistBesokt(deltaker.id, sistBesokt)
-        deltakerRepository.oppdaterSistBesokt(deltaker.id, sistBesokt)
+        amtDeltakerClient.sistBesokt(deltakerId, sistBesokt)
+        deltakerRepository.oppdaterSistBesokt(deltakerId, sistBesokt)
     }
 
     // benyttes av TiltakskoordinatorService

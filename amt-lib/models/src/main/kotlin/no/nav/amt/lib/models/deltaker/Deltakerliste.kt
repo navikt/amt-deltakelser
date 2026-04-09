@@ -14,4 +14,6 @@ data class Deltakerliste(
     val startdato: LocalDate? = null,
     val sluttdato: LocalDate? = null,
     val oppstartstype: Oppstartstype? = null,
-)
+) {
+    val erEnkeltplass = gjennomforingstype == GjennomforingType.Enkeltplass
+}

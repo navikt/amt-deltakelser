@@ -1,11 +1,14 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengdeResponse
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengderResponse
+import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
@@ -32,34 +35,13 @@ data class DeltakerResponse(
     val softMaxVarighet: Long?,
     val forslag: List<ForslagResponse>,
     val vedtaksinformasjon: VedtaksinformasjonResponse?,
-    val importertFraArena: ImportertFraArenaDto?,
+    val importertFraArena: ImportertFraArenaResponse?,
     val harAdresse: Boolean,
-    val deltakelsesmengder: DeltakelsesmengderDto,
+    val deltakelsesmengder: DeltakelsesmengderResponse,
     val erUnderOppfolging: Boolean,
     val erManueltDeltMedArrangor: Boolean,
     val prisinformasjon: String?,
 ) {
-    data class DeltakelsesmengderDto(
-        val nesteDeltakelsesmengde: DeltakelsesmengdeDto?,
-        val sisteDeltakelsesmengde: DeltakelsesmengdeDto?,
-    )
-
-    data class DeltakelsesmengdeDto(
-        val deltakelsesprosent: Float,
-        val dagerPerUke: Float?,
-        val gyldigFra: LocalDate,
-    ) {
-        companion object {
-            fun fromDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde) = with(deltakelsesmengde) {
-                DeltakelsesmengdeDto(
-                    deltakelsesprosent = deltakelsesprosent,
-                    dagerPerUke = dagerPerUke,
-                    gyldigFra = gyldigFra,
-                )
-            }
-        }
-    }
-
     companion object {
         // Brukes kun i tilfelle henting/lagring i lokal database
         // Vil fases sakte ut når oppgaver blir delegert til amt-deltaker
@@ -129,11 +111,11 @@ data class DeltakerResponse(
                         ansatte = ansatte,
                     )
                 },
-                importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
+                importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
-                deltakelsesmengder = DeltakelsesmengderDto(
-                    nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let { DeltakelsesmengdeDto.fromDeltakelsesmengde(it) },
-                    sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let { DeltakelsesmengdeDto.fromDeltakelsesmengde(it) },
+                deltakelsesmengder = DeltakelsesmengderResponse(
+                    nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let { DeltakelsesmengdeResponse.fromDeltakelsesmengde(it) },
+                    sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let { DeltakelsesmengdeResponse.fromDeltakelsesmengde(it) },
                 ),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
@@ -147,25 +129,7 @@ data class DeltakerResponse(
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste = DeltakerlisteResponse(
-                    deltakerlisteId = gjennomforing.id,
-                    deltakerlisteNavn = gjennomforing.navn,
-                    tiltakskode = gjennomforing.tiltak.tiltakskode,
-                    // Nå er det amtdeltaker som sender med navnet som er riktig for visningen
-                    arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
-                    oppstartstype = gjennomforing.oppstart,
-                    startdato = gjennomforing.startDato,
-                    sluttdato = gjennomforing.sluttDato,
-                    status = gjennomforing.status,
-                    tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
-                        gjennomforing.tiltak.innhold,
-                        gjennomforing.tiltak.tiltakskode,
-                    ),
-                    erEnkeltplassUtenRammeavtale = gjennomforing.erEnkeltplass, // TODO: Denne skal fjernes når frontend er klar
-                    erEnkeltplass = gjennomforing.erEnkeltplass,
-                    oppmoteSted = gjennomforing.oppmoteSted,
-                    pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-                ),
+                deltakerliste = DeltakerlisteResponse.fromModel(gjennomforing),
                 status = status,
                 startdato = startdato,
                 sluttdato = sluttdato,
@@ -198,19 +162,19 @@ data class DeltakerResponse(
                         ansatte = emptyMap(),
                     )
                 },
-                importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
+                importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger
                 // Kan dette utledes i amt-deltaker?
-                deltakelsesmengder = DeltakelsesmengderDto(
+                deltakelsesmengder = DeltakelsesmengderResponse(
                     nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let {
-                        DeltakelsesmengdeDto
+                        DeltakelsesmengdeResponse
                             .fromDeltakelsesmengde(
                                 it,
                             )
                     },
                     sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let {
-                        DeltakelsesmengdeDto
+                        DeltakelsesmengdeResponse
                             .fromDeltakelsesmengde(
                                 it,
                             )

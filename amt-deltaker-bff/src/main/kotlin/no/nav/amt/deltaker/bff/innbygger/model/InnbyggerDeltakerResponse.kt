@@ -1,86 +1,83 @@
 package no.nav.amt.deltaker.bff.innbygger.model
 
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengderResponse
+import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.ImportertFraArenaDto
+import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 data class InnbyggerDeltakerResponse(
     val deltakerId: UUID,
-    val deltakerliste: DeltakerlisteDto,
+    val deltakerliste: GjennomforingInnbyggerResponse,
     val status: DeltakerStatus,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val deltakelsesinnhold: DeltakelsesinnholdDto?,
-    val vedtaksinformasjon: VedtaksinformasjonDto?,
+    val deltakelsesinnhold: DeltakelsesinnholdResponse?,
+    val vedtaksinformasjon: VedtaksinformasjonResponse?,
     val adresseDelesMedArrangor: Boolean,
     val forslag: List<ForslagResponse>,
-    val importertFraArena: ImportertFraArenaDto?,
-    val deltakelsesmengder: DeltakelsesmengderDto,
+    val importertFraArena: ImportertFraArenaResponse?,
+    val deltakelsesmengder: DeltakelsesmengderResponse,
     val erManueltDeltMedArrangor: Boolean,
 ) {
-    data class VedtaksinformasjonDto(
-        val fattet: LocalDateTime?,
-        val fattetAvNav: Boolean,
-        val opprettet: LocalDateTime,
-        val opprettetAv: String,
-        val sistEndret: LocalDateTime,
-        val sistEndretAv: String,
-        val sistEndretAvEnhet: String?,
-    )
-
-    data class DeltakelsesinnholdDto(
-        val ledetekst: String?,
-        val innhold: List<Innhold>,
-    )
-
-    data class DeltakerlisteDto(
-        val deltakerlisteId: UUID,
-        val deltakerlisteNavn: String,
-        val tiltakskode: Tiltakskode,
-        val arrangorNavn: String,
-        val oppstartstype: Oppstartstype?,
-        val startdato: LocalDate?,
-        val sluttdato: LocalDate?,
-        val erEnkeltplassUtenRammeavtale: Boolean,
-        val oppmoteSted: String?,
-        val pameldingstype: GjennomforingPameldingType,
-    )
-
-    data class DeltakelsesmengderDto(
-        val nesteDeltakelsesmengde: DeltakelsesmengdeDto?,
-        val sisteDeltakelsesmengde: DeltakelsesmengdeDto?,
-    )
-
-    data class DeltakelsesmengdeDto(
-        val deltakelsesprosent: Float,
-        val dagerPerUke: Float?,
-        val gyldigFra: LocalDate,
-    )
+    companion object {
+        fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
+            InnbyggerDeltakerResponse(
+                deltakerId = id,
+                deltakerliste = GjennomforingInnbyggerResponse.fromModel(deltaker.gjennomforing),
+                status = status,
+                startdato = startdato,
+                sluttdato = sluttdato,
+                dagerPerUke = dagerPerUke,
+                deltakelsesprosent = deltakelsesprosent,
+                bakgrunnsinformasjon = bakgrunnsinformasjon,
+                deltakelsesinnhold = deltakelsesinnhold?.let {
+                    DeltakelsesinnholdResponse(
+                        ledetekst = it.ledetekst,
+                        innhold = it.innhold,
+                    )
+                },
+                vedtaksinformasjon = vedtaksinformasjon?.let {
+                    VedtaksinformasjonResponse.fromVedtak(it)
+                },
+                adresseDelesMedArrangor = adresseDelesMedArrangor,
+                forslag = endringsforslagFraArrangor.map {
+                    ForslagResponse.fromForslag(
+                        forslag = it,
+                        arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
+                        enheter = emptyMap(),
+                        ansatte = emptyMap(),
+                    )
+                },
+                importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
+                deltakelsesmengder = DeltakelsesmengderResponse.fromDeltakelsesmengder(deltakelsesmengder),
+                erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+            )
+        }
+    }
 }
 
+// Denne skal fases ut når når vi alltid kan hente data fra amt-deltaker
 fun Deltaker.toInnbyggerDeltakerResponse(
     ansatte: Map<UUID, NavAnsatt>,
     vedtakSistEndretAvEnhet: NavEnhet?,
     forslag: List<Forslag>,
 ): InnbyggerDeltakerResponse = InnbyggerDeltakerResponse(
     deltakerId = id,
-    deltakerliste = InnbyggerDeltakerResponse.DeltakerlisteDto(
+    deltakerliste = GjennomforingInnbyggerResponse(
         deltakerlisteId = deltakerliste.id,
         deltakerlisteNavn = deltakerliste.navn,
         tiltakskode = deltakerliste.tiltak.tiltakskode,
@@ -90,6 +87,7 @@ fun Deltaker.toInnbyggerDeltakerResponse(
         sluttdato = deltakerliste.sluttDato,
         // midlertidig løsning inntil vi vet ner om det foreligger rammeavtale eller ikke
         erEnkeltplassUtenRammeavtale = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
+        erEnkeltplass = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
         oppmoteSted = deltakerliste.oppmoteSted,
         pameldingstype = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
     ),
@@ -99,7 +97,7 @@ fun Deltaker.toInnbyggerDeltakerResponse(
     dagerPerUke = dagerPerUke,
     deltakelsesprosent = deltakelsesprosent,
     bakgrunnsinformasjon = bakgrunnsinformasjon,
-    deltakelsesinnhold = InnbyggerDeltakerResponse.DeltakelsesinnholdDto(
+    deltakelsesinnhold = DeltakelsesinnholdResponse(
         ledetekst = deltakelsesinnhold?.ledetekst,
         innhold = deltakelsesinnhold?.innhold ?: emptyList(),
     ),
@@ -113,18 +111,15 @@ fun Deltaker.toInnbyggerDeltakerResponse(
             ansatte = ansatte,
         )
     },
-    importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
-    deltakelsesmengder = InnbyggerDeltakerResponse.DeltakelsesmengderDto(
-        nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.toDto(),
-        sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.toDto(),
-    ),
+    importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
+    deltakelsesmengder = DeltakelsesmengderResponse.fromDeltakelsesmengder(deltakelsesmengder),
     erManueltDeltMedArrangor = erManueltDeltMedArrangor,
 )
 
 private fun Vedtak.toDto(
     ansatte: Map<UUID, NavAnsatt>,
     vedtakSistEndretEnhet: NavEnhet?,
-) = InnbyggerDeltakerResponse.VedtaksinformasjonDto(
+) = VedtaksinformasjonResponse(
     fattet = fattet,
     fattetAvNav = fattetAvNav,
     opprettet = opprettet,
@@ -132,10 +127,4 @@ private fun Vedtak.toDto(
     sistEndret = sistEndret,
     sistEndretAv = ansatte[sistEndretAv]?.navn ?: sistEndretAv.toString(),
     sistEndretAvEnhet = vedtakSistEndretEnhet?.navn ?: sistEndretAvEnhet.toString(),
-)
-
-private fun Deltakelsesmengde.toDto() = InnbyggerDeltakerResponse.DeltakelsesmengdeDto(
-    deltakelsesprosent,
-    dagerPerUke,
-    gyldigFra,
 )

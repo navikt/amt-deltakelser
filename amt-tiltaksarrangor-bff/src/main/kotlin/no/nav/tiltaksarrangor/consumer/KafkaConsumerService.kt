@@ -351,7 +351,7 @@ class KafkaConsumerService(
     }
 
     private fun DeltakerKafkaPayload.skalLagres(lagretDeltaker: DeltakerDbo?): Boolean {
-        if (deltakerliste.tiltak.tiltakskode.erEnkeltplass()) {
+        if (deltakerliste.erEnkeltplass) {
             return false
         } else if (status.type in SKJULES_ALLTID_STATUSER) {
             return false
