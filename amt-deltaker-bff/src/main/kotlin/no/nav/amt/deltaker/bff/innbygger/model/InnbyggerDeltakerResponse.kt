@@ -1,15 +1,15 @@
 package no.nav.amt.deltaker.bff.innbygger.model
 
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengderResponse
+import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.ImportertFraArenaDto
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
@@ -25,30 +25,14 @@ data class InnbyggerDeltakerResponse(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val deltakelsesinnhold: DeltakelsesinnholdDto?,
+    val deltakelsesinnhold: DeltakelsesinnholdResponse?,
     val vedtaksinformasjon: VedtaksinformasjonResponse?,
     val adresseDelesMedArrangor: Boolean,
     val forslag: List<ForslagResponse>,
-    val importertFraArena: ImportertFraArenaDto?,
-    val deltakelsesmengder: DeltakelsesmengderDto,
+    val importertFraArena: ImportertFraArenaResponse?,
+    val deltakelsesmengder: DeltakelsesmengderResponse,
     val erManueltDeltMedArrangor: Boolean,
 ) {
-    data class DeltakelsesinnholdDto(
-        val ledetekst: String?,
-        val innhold: List<Innhold>,
-    )
-
-    data class DeltakelsesmengderDto(
-        val nesteDeltakelsesmengde: DeltakelsesmengdeDto?,
-        val sisteDeltakelsesmengde: DeltakelsesmengdeDto?,
-    )
-
-    data class DeltakelsesmengdeDto(
-        val deltakelsesprosent: Float,
-        val dagerPerUke: Float?,
-        val gyldigFra: LocalDate,
-    )
-
     companion object {
         fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
             InnbyggerDeltakerResponse(
@@ -61,7 +45,7 @@ data class InnbyggerDeltakerResponse(
                 deltakelsesprosent = deltakelsesprosent,
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold?.let {
-                    DeltakelsesinnholdDto(
+                    DeltakelsesinnholdResponse(
                         ledetekst = it.ledetekst,
                         innhold = it.innhold,
                     )
@@ -78,11 +62,8 @@ data class InnbyggerDeltakerResponse(
                         ansatte = emptyMap(),
                     )
                 },
-                importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
-                deltakelsesmengder = DeltakelsesmengderDto(
-                    nesteDeltakelsesmengde = null, // Deltakelsesmengder finnes ikke i amt-deltaker
-                    sisteDeltakelsesmengde = null, // Deltakelsesmengder finnes ikke i amt-deltaker
-                ),
+                importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
+                deltakelsesmengder = DeltakelsesmengderResponse.fromDeltakelsesmengder(deltakelsesmengder),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             )
         }
@@ -116,7 +97,7 @@ fun Deltaker.toInnbyggerDeltakerResponse(
     dagerPerUke = dagerPerUke,
     deltakelsesprosent = deltakelsesprosent,
     bakgrunnsinformasjon = bakgrunnsinformasjon,
-    deltakelsesinnhold = InnbyggerDeltakerResponse.DeltakelsesinnholdDto(
+    deltakelsesinnhold = DeltakelsesinnholdResponse(
         ledetekst = deltakelsesinnhold?.ledetekst,
         innhold = deltakelsesinnhold?.innhold ?: emptyList(),
     ),
@@ -130,11 +111,8 @@ fun Deltaker.toInnbyggerDeltakerResponse(
             ansatte = ansatte,
         )
     },
-    importertFraArena = ImportertFraArenaDto.fromDeltaker(this),
-    deltakelsesmengder = InnbyggerDeltakerResponse.DeltakelsesmengderDto(
-        nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.toDto(),
-        sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.toDto(),
-    ),
+    importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
+    deltakelsesmengder = DeltakelsesmengderResponse.fromDeltakelsesmengder(deltakelsesmengder),
     erManueltDeltMedArrangor = erManueltDeltMedArrangor,
 )
 
@@ -149,10 +127,4 @@ private fun Vedtak.toDto(
     sistEndret = sistEndret,
     sistEndretAv = ansatte[sistEndretAv]?.navn ?: sistEndretAv.toString(),
     sistEndretAvEnhet = vedtakSistEndretEnhet?.navn ?: sistEndretAvEnhet.toString(),
-)
-
-private fun Deltakelsesmengde.toDto() = InnbyggerDeltakerResponse.DeltakelsesmengdeDto(
-    deltakelsesprosent,
-    dagerPerUke,
-    gyldigFra,
 )
