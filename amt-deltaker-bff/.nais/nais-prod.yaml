@@ -17,7 +17,7 @@ spec:
     path: /internal/health/readiness
     initialDelay: 30
     periodSeconds: 5
-    failureThreshold: 1
+    failureThreshold: 3
   liveness:
     path: /internal/health/liveness
     initialDelay: 30
