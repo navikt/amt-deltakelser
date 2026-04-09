@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
 
 class ArrangorsokClientTest {
     @Nested
-    inner class HovedenhetSokTests {
+    inner class UnderenhetSokTests {
         val underenhetSokLambda: suspend (ArrangorsokClient) -> List<EnhetResponse> =
             { client ->
                 client.underenhetSok(term = "term with space")
