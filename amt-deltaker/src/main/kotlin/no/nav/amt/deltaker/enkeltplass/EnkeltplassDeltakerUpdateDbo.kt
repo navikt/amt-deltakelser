@@ -6,7 +6,6 @@ import java.util.UUID
 
 data class EnkeltplassDeltakerUpdateDbo(
     val id: UUID,
-    val arrangorId: UUID?,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val deltakelsesinnhold: Deltakelsesinnhold?,

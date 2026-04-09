@@ -156,7 +156,6 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltaker)
             val oppdatertDeltaker = EnkeltplassDeltakerUpdateDbo(
                 id = deltaker.id,
-                arrangorId = UUID.randomUUID(),
                 startdato = deltaker.startdato,
                 sluttdato = deltaker.sluttdato,
                 deltakelsesinnhold = Deltakelsesinnhold(

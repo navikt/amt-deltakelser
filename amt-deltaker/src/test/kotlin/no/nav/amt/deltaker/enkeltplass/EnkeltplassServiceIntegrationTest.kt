@@ -130,7 +130,6 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
             val expectedDeltaker = EnkeltplassDeltakerUpdateDbo(
                 id = deltakerInserted.id,
-                arrangorId = arrangorInTest.id,
                 startdato = deltakerInserted.startdato,
                 sluttdato = deltakerInserted.sluttdato,
                 deltakelsesinnhold = Deltakelsesinnhold(

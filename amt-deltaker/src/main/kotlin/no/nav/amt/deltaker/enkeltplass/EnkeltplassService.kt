@@ -117,7 +117,6 @@ class EnkeltplassService(
 
         val kladdUpdateDbo = EnkeltplassDeltakerUpdateDbo(
             id = deltakerId,
-            arrangorId = arrangor?.id,
             startdato = oppdaterKladdRequest.startdato,
             sluttdato = oppdaterKladdRequest.sluttdato,
             deltakelsesinnhold = Deltakelsesinnhold(
@@ -193,7 +192,6 @@ class EnkeltplassService(
 
         val utkastUpdateDbo = EnkeltplassDeltakerUpdateDbo(
             id = deltakerId,
-            arrangorId = arrangor.id,
             startdato = decoratedRequest.wrappedRequest.startdato,
             sluttdato = decoratedRequest.wrappedRequest.sluttdato,
             deltakelsesinnhold = Deltakelsesinnhold(
