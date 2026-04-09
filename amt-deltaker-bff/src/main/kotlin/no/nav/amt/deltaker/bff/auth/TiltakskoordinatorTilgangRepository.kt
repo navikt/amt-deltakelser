@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.auth
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
-import no.nav.amt.deltaker.bff.tiltakskoordinator.model.Tiltakskoordinator
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
 import java.util.UUID
