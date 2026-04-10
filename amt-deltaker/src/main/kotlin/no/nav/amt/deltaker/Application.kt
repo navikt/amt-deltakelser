@@ -376,6 +376,7 @@ fun Application.module() {
         deltakerHistorikkService = deltakerHistorikkService,
         forslagRepository = forslagRepository,
         deltakerLaaseService = deltakerLaaseService,
+        vurderingRepository = vurderingRepository,
     )
 
     val consumers = listOf(

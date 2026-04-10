@@ -187,7 +187,13 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         coEvery { tiltakskoordinatorService.hentDeltakereForDeltakerliste(deltakerlisteInTest.id) } returns deltakere
 
         deltakere.forEach {
-            every { tilgangskontrollService.harKoordinatorTilgangTilPerson(any(), it.navBruker) } returns true
+            every {
+                tilgangskontrollService.harKoordinatorTilgangTilPerson(
+                    any(),
+                    innbyggerAdressebeskyttelse = it.navBruker.adressebeskyttelse,
+                    erInnbyggerSkjermet = it.navBruker.erSkjermet,
+                )
+            } returns true
         }
 
         withTestApplicationContext { client ->

@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
-import no.nav.amt.lib.models.person.NavBruker
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import java.util.UUID
 
 class SporbarhetOgTilgangskontrollSvc(
@@ -14,12 +14,14 @@ class SporbarhetOgTilgangskontrollSvc(
     suspend fun kontrollerTilgangTilBruker(
         navIdent: String,
         navAnsattAzureId: UUID,
-        navBruker: NavBruker,
+        personident: String,
+        erInnbyggerSkjermet: Boolean,
+        adressebeskyttelse: Adressebeskyttelse?,
         deltakerlisteId: UUID,
     ): Boolean {
         sporbarhetsloggService.sendAuditLog(
             navIdent = navIdent,
-            deltakerPersonIdent = navBruker.personident,
+            deltakerPersonIdent = personident,
         )
 
         deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
@@ -32,7 +34,8 @@ class SporbarhetOgTilgangskontrollSvc(
         return tilgangskontrollService
             .harKoordinatorTilgangTilPerson(
                 navAnsattAzureId,
-                navBruker,
+                erInnbyggerSkjermet = erInnbyggerSkjermet,
+                innbyggerAdressebeskyttelse = adressebeskyttelse,
             )
     }
 }

@@ -19,8 +19,11 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -223,11 +226,20 @@ class ResponseBuilderTest : IntegrationTestBase() {
             innhold = Deltakelsesinnhold("~ledetekst~", emptyList()),
             erManueltDeltMedArrangor = true,
         )
+        val vurdering = Vurdering(
+            id = UUID.randomUUID(),
+            deltakerId = deltaker.id,
+            opprettetAvArrangorAnsattId = UUID.randomUUID(),
+            gyldigFra = LocalDateTime.now(),
+            vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
+            begrunnelse = null,
+        )
 
         coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
         every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
+        every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
         val expectedForslag = listOf(
             Forslag(
@@ -278,6 +290,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
             erLaastForEndringer shouldBe true
             endringsforslagFraArrangor shouldBe expectedForslag
             prisinformasjon shouldBe deltaker.deltakerliste.prisinformasjon
+            sisteVurdering shouldBe VurderingResponse.fromVurdering(vurdering)
         }
     }
 }

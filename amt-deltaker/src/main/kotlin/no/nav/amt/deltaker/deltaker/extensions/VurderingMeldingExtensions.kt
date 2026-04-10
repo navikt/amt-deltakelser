@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.deltaker.extensions
 
-import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
+import no.nav.amt.lib.models.deltaker.Vurdering
 
 fun no.nav.amt.lib.models.arrangor.melding.Vurdering.toVurdering() = Vurdering(
     id = id,

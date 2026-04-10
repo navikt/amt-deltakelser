@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.vurdering
+package no.nav.amt.lib.models.deltaker
 
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import java.time.LocalDateTime

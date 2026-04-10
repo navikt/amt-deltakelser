@@ -7,6 +7,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
@@ -15,6 +16,7 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.SporbarhetOgTilgangskontrollSvc
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
@@ -39,19 +41,40 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
     authenticate(AuthLevel.TILTAKSKOORDINATOR.name) {
         get(apiPath) {
             val deltakerId = UUID.fromString(call.parameters["id"])
-            val tiltakskoordinatorsDeltaker = tiltakskoordinatorService.getDeltaker(deltakerId)
 
-            val harTilgangTilBruker = sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
-                navIdent = call.getNavIdent(),
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-                navBruker = tiltakskoordinatorsDeltaker.navBruker,
-                deltakerlisteId = tiltakskoordinatorsDeltaker.deltakerliste.id,
-            )
+            val responseBody = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val deltaker = amtDeltakerClient
+                    .getDeltaker(deltakerId)
+                    .let { ModelMapper.toDeltaker(it) }
 
-            val responseBody = tiltakskoordinatorsDeltaker.toResponse(
-                harTilgangTilBruker,
-                ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId),
-            )
+                val harTilgangTilBruker = sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                    navIdent = call.getNavIdent(),
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    personident = deltaker.navBruker.personident,
+                    erInnbyggerSkjermet = deltaker.navBruker.erSkjermet,
+                    adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                    deltakerlisteId = deltaker.gjennomforing.id,
+                )
+                val ulesteHendelser = ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId)
+                deltaker.let { ResponseBuilder.buildDeltakerDetaljerResponse(it, harTilgangTilBruker, ulesteHendelser) }
+            } else {
+                // Skal slettes etter hvert
+                val tiltakskoordinatorsDeltaker = tiltakskoordinatorService.getDeltaker(deltakerId)
+                val harTilgangTilBruker = sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                    navIdent = call.getNavIdent(),
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    personident = tiltakskoordinatorsDeltaker.navBruker.personident,
+                    erInnbyggerSkjermet = tiltakskoordinatorsDeltaker.navBruker.erSkjermet,
+                    adressebeskyttelse = tiltakskoordinatorsDeltaker.navBruker.adressebeskyttelse,
+                    deltakerlisteId = tiltakskoordinatorsDeltaker.deltakerliste.id,
+                )
+                val ulesteHendelser = ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId)
+
+                tiltakskoordinatorsDeltaker.toResponse(
+                    harTilgangTilBruker,
+                    ulesteHendelser,
+                )
+            }
 
             call.respond(responseBody)
         }
@@ -64,7 +87,9 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                 .kontrollerTilgangTilBruker(
                     navIdent = call.getNavIdent(),
                     navAnsattAzureId = call.getNavAnsattAzureId(),
-                    navBruker = deltaker.navBruker,
+                    personident = deltaker.navBruker.personident,
+                    erInnbyggerSkjermet = deltaker.navBruker.erSkjermet,
+                    adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                     deltakerlisteId = deltaker.deltakerliste.id,
                 ).also { harTilgangTilBruker ->
                     if (!harTilgangTilBruker) {

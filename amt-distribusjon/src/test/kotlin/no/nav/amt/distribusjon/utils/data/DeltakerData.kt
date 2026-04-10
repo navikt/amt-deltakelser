@@ -44,6 +44,7 @@ object DeltakerData {
         erLaastForEndringer = true,
         endringsforslagFraArrangor = emptyList(),
         prisinformasjon = null,
+        sisteVurdering = null,
     )
 
     fun lagGjennomforingResponse() = GjennomforingResponse(

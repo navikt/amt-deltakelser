@@ -35,4 +35,5 @@ data class DeltakerResponse(
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
     val prisinformasjon: String?,
+    val sisteVurdering: VurderingResponse?,
 )

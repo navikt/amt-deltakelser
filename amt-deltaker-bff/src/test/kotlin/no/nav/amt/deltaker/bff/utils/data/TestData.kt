@@ -134,7 +134,7 @@ object TestData {
         oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
         apentForPamelding: Boolean = true,
         oppmoteSted: String = "~oppmoteSted~",
-        pameldingType: GjennomforingPameldingType? = null,
+        pameldingType: GjennomforingPameldingType? = GjennomforingPameldingType.TRENGER_GODKJENNING,
     ) = GjennomforingResponse(
         id = id,
         tiltakstype = tiltakstype,
@@ -349,6 +349,7 @@ object TestData {
         erLaastForEndringer = false,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
         prisinformasjon = prisinformasjon,
+        sisteVurdering = null,
     )
 
     fun lagTiltakskoordinatorDeltaker(

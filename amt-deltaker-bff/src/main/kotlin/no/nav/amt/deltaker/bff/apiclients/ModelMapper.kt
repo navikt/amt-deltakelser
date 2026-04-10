@@ -32,6 +32,7 @@ class ModelMapper {
                 erLaastForEndringer = erLaastForEndringer,
                 endringsforslagFraArrangor = endringsforslagFraArrangor,
                 prisinformasjon = prisinformasjon,
+                sisteVurdering = sisteVurdering,
             )
         }
 
