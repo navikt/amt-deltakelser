@@ -7,7 +7,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.DeltakerResponseUtils.Compa
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.DeltakerResponseUtils.Companion.SKJERMET_PERSON_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelseType
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerModel
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagForslag
@@ -43,7 +42,6 @@ class ResponseBuilderTest {
 
         @Test
         fun `mapper status med aarsak`() {
-            lagDeltaker()
             val deltaker = lagDeltakerModel(
                 status = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.HAR_SLUTTET,
