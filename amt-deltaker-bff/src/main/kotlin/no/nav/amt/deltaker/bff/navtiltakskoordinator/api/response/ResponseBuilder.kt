@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.getDeltakelsesinnholdAnnet
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.NavVeileder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
@@ -49,7 +50,7 @@ class ResponseBuilder {
                 ulesteHendelser = ulesteHendelser,
                 oppstartstype = gjennomforing.oppstart,
                 pameldingstype = gjennomforing.pameldingstype!!, // Hvorfor er denne optional?
-                deltakelsesinnhold = null,
+                deltakelsesinnhold = getDeltakelsesinnholdAnnet(tilgangTilBruker, gjennomforing.pameldingstype, deltakelsesinnhold),
             )
         }
     }
