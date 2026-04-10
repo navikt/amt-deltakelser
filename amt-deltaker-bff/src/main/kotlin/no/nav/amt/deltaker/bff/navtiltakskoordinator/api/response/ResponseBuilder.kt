@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.NavVeileder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 
 class ResponseBuilder {
     companion object {
@@ -14,6 +15,7 @@ class ResponseBuilder {
             tilgangTilBruker: Boolean,
             ulesteHendelser: List<UlestHendelse>,
         ) = with(deltaker) {
+            val (fornavn, mellomnavn, etternavn) = deltaker.navBruker.getVisningsnavn(tilgangTilBruker)
             val aktiveForslag = endringsforslagFraArrangor
                 .filter { forslag -> forslag.status == Forslag.Status.VenterPaSvar }
                 .map {
@@ -29,9 +31,10 @@ class ResponseBuilder {
 
             DeltakerDetaljerResponse(
                 id = id,
-                fornavn = navBruker.fornavn,
-                etternavn = navBruker.etternavn,
-                fodselsnummer = navBruker.personident,
+                fornavn = fornavn,
+                mellomnavn = mellomnavn,
+                etternavn = etternavn,
+                fodselsnummer = if (tilgangTilBruker) navBruker.personident else null,
                 status = DeltakerStatusResponse(
                     type = status.type,
                     aarsak = status.aarsak?.let { DeltakerStatusAarsakResponse(it.type, it.beskrivelse) },
@@ -49,7 +52,8 @@ class ResponseBuilder {
                 aktiveForslag = aktiveForslag,
                 ulesteHendelser = ulesteHendelser,
                 oppstartstype = gjennomforing.oppstart,
-                pameldingstype = gjennomforing.pameldingstype!!, // Hvorfor er denne optional?
+                // Hvorfor er denne optional?
+                pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
                 deltakelsesinnhold = getDeltakelsesinnholdAnnet(tilgangTilBruker, gjennomforing.pameldingstype, deltakelsesinnhold),
             )
         }

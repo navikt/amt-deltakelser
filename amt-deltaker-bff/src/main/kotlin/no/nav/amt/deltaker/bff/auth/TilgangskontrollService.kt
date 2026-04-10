@@ -109,7 +109,7 @@ class TilgangskontrollService(
     }
 
     /*
-        Vurderer ansatt tilgang for innbygger basert på addressebeskyttelse og skjerming.
+        Vurderer ansatt tilgang for innbygger basert på adressebeskyttelse og skjerming.
         OBS: Gir automatisk permit om innbygger ikke har spesifikke restriksjoner
      */
     fun harKoordinatorTilgangTilPerson(
