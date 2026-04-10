@@ -100,7 +100,6 @@ fun Routing.registerKladdApi(
             call.respond(response)
         }
 
-        // Dette endepunktet kommuniserer ikke med amt-deltaker
         post("/kladd/{deltakerId}") {
             val request = call.receive<KladdRequest>().sanitize()
             val deltakerId = call.getDeltakerId()

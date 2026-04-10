@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.DeltakerResponseUtils.Companion.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.DeltakerResponseUtils.Companion.SKJERMET_PERSON_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
@@ -138,11 +139,13 @@ class ResponseBuilderTest {
             val navBruker = lagNavBrukerResponse()
             val deltaker = lagDeltakerModel(navBrukerResponse = navBruker)
             val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val navVeileder = deltaker.navBruker.navVeileder
 
             response.navEnhet shouldBe deltaker.navBruker.navEnhet
-            response.navVeileder.navn shouldBe deltaker.navBruker.navVeileder
-            response.navVeileder.telefonnummer shouldBe null // Skal fikses
-            response.navVeileder.epost shouldBe null // Skal fikses
+            navVeileder shouldNotBe null
+            response.navVeileder.navn shouldBe navVeileder!!.navn
+            response.navVeileder.telefonnummer shouldBe navVeileder.telefonnummer // Skal fikses
+            response.navVeileder.epost shouldBe navVeileder.epost // Skal fikses
         }
 
         @Test

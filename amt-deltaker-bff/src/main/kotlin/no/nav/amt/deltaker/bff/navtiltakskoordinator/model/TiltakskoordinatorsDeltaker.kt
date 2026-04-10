@@ -8,6 +8,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.deltaker.NavVeilederResponse
 import no.nav.amt.lib.models.person.Beskyttelsesmarkering
 import no.nav.amt.lib.models.person.NavBruker
 import java.time.LocalDate
@@ -20,7 +21,7 @@ data class TiltakskoordinatorsDeltaker(
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val navEnhet: String?,
-    val navVeileder: NavVeileder,
+    val navVeileder: NavVeilederResponse,
     val beskyttelsesmarkering: List<Beskyttelsesmarkering>,
     val vurdering: Vurdering?,
     val innsatsgruppe: Innsatsgruppe?,

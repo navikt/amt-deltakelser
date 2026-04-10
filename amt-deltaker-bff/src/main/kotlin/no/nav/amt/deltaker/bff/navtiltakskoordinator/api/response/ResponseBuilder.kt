@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.getDeltakelsesinnholdAnnet
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.NavVeileder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.deltaker.NavVeilederResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 
 class ResponseBuilder {
@@ -42,8 +42,8 @@ class ResponseBuilder {
                 startdato = startdato,
                 sluttdato = sluttdato,
                 navEnhet = navBruker.navEnhet,
-                // TODO: amt-deltaker må returnere mer info om veileder
-                navVeileder = NavVeileder(navBruker.navVeileder, null, null),
+                // Beholder tom instansiering fordi det er dette som skjedde i den gamle koden som brukes av frontend
+                navVeileder = navBruker.navVeileder ?: NavVeilederResponse("", null, null),
                 vurdering = sisteVurdering,
                 beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
                 innsatsgruppe = navBruker.innsatsgruppe,

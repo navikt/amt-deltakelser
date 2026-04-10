@@ -29,6 +29,7 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.NavVeilederResponse
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -554,7 +555,7 @@ object TestData {
         telefon = telefon,
         epost = epost,
         erDigital = true,
-        navVeileder = "Nav Veiledersen",
+        navVeileder = NavVeilederResponse("Nav Veiledersen", null, null),
         navEnhet = "Nav Grunerløkka",
     )
 
