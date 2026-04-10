@@ -23,6 +23,7 @@ import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.NavVeilederResponse
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -85,10 +86,15 @@ class ResponseBuilderTest : IntegrationTestBase() {
         val navEnhetCache: GenericCache<NavEnhet> = mockk()
 
         coEvery { distribusjonClient.digitalBruker(navBruker.personident) } returns true
-
-        every { navAnsattCache.getOrThrow(navBruker.navVeilederId.shouldNotBeNull()) } returns mockk {
-            every { navn } returns "Nav-ansatt"
-        }
+        val navVeilederExpected = NavAnsatt(
+            id = UUID.randomUUID(),
+            navn = "Nav Veiledersen",
+            epost = "Nav-ansatt@tr.no",
+            navIdent = "z123",
+            telefon = "1234",
+            navEnhetId = UUID.randomUUID(),
+        )
+        every { navAnsattCache.getOrThrow(navBruker.navVeilederId.shouldNotBeNull()) } returns navVeilederExpected
 
         every { navEnhetCache.getOrThrow(navBruker.navEnhetId.shouldNotBeNull()) } returns mockk {
             every { navn } returns "Nav-enhet"
@@ -112,7 +118,11 @@ class ResponseBuilderTest : IntegrationTestBase() {
             erSkjermet shouldBe true
             adresse shouldBe navBruker.adresse.shouldNotBeNull()
             adressebeskyttelse shouldBe navBruker.adressebeskyttelse.shouldNotBeNull()
-            navVeileder shouldBe "Nav-ansatt"
+            navVeileder shouldBe NavVeilederResponse(
+                navn = navVeilederExpected.navn,
+                epost = navVeilederExpected.epost,
+                telefonnummer = navVeilederExpected.telefon,
+            )
             navEnhet shouldBe "Nav-enhet"
             innsatsgruppe shouldBe navBruker.innsatsgruppe.shouldNotBeNull()
             erDigital shouldBe true
