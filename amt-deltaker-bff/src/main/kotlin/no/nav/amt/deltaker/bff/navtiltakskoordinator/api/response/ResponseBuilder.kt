@@ -42,8 +42,9 @@ class ResponseBuilder {
                 startdato = startdato,
                 sluttdato = sluttdato,
                 navEnhet = navBruker.navEnhet,
-                // Beholder tom instansiering fordi det er dette som skjedde i den gamle koden som brukes av frontend
-                navVeileder = navBruker.navVeileder ?: NavVeilederResponse("", null, null),
+                navVeileder =
+                    navBruker.navVeileder
+                        ?: NavVeilederResponse(navn = null, telefonnummer = null, epost = null),
                 vurdering = sisteVurdering,
                 beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
                 innsatsgruppe = navBruker.innsatsgruppe,
