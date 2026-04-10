@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.vurdering
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
+import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 

@@ -8,11 +8,14 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
+import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerDetaljerResponse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -38,7 +41,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
         @ParameterizedTest
         @ValueSource(booleans = [true, false])
-        fun `skal returnere DeltakerDetaljerResponse`(harTilgangTilBruker: Boolean) {
+        fun `skal returnere DeltakerDetaljerResponse - toggle er av`(harTilgangTilBruker: Boolean) {
             val expectedResponseBody = tiltakskoordinatorsDeltaker.toResponse(
                 harTilgangTilBruker = harTilgangTilBruker,
                 ulesteHendelser = emptyList(),
@@ -46,12 +49,15 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
             every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
             coEvery { tiltakskoordinatorService.getDeltaker(any()) } returns tiltakskoordinatorsDeltaker
+            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
 
             coEvery {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
-                    navBruker = any(),
+                    personident = any(),
+                    erInnbyggerSkjermet = any(),
+                    adressebeskyttelse = any(),
                     deltakerlisteId = any(),
                 )
             } returns harTilgangTilBruker
@@ -64,6 +70,41 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             }
 
             responseBody shouldBe expectedResponseBody
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = [true, false])
+        fun `skal returnere DeltakerDetaljerResponse - toggle er på`(harTilgangTilBruker: Boolean) {
+            val deltaker = lagDeltakerResponse()
+
+            coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltaker
+
+            every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
+
+            coEvery {
+                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                    navIdent = any(),
+                    navAnsattAzureId = any(),
+                    personident = any(),
+                    erInnbyggerSkjermet = any(),
+                    adressebeskyttelse = any(),
+                    deltakerlisteId = any(),
+                )
+            } returns harTilgangTilBruker
+
+            val responseBody = withTestApplicationContext { httpClient ->
+                httpClient
+                    .get(urlString) {
+                        bearerAuth(bearerTokenInTest)
+                    }.body<DeltakerDetaljerResponse>()
+            }
+
+            responseBody shouldBe ModelMapper
+                .toDeltaker(deltaker)
+                .let {
+                    ResponseBuilder.buildDeltakerDetaljerResponse(it, harTilgangTilBruker, emptyList())
+                }
         }
     }
 
@@ -85,8 +126,10 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
-                    navBruker = any(),
                     deltakerlisteId = any(),
+                    personident = any(),
+                    erInnbyggerSkjermet = any(),
+                    adressebeskyttelse = any(),
                 )
             } returns false
 
@@ -124,7 +167,9 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
-                    navBruker = any(),
+                    personident = any(),
+                    erInnbyggerSkjermet = any(),
+                    adressebeskyttelse = any(),
                     deltakerlisteId = any(),
                 )
             } returns true

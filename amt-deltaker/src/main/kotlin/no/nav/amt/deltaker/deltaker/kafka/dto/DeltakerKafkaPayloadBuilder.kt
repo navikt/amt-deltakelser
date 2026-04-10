@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDatoFraImportertDeltake
 import no.nav.amt.deltaker.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -22,6 +21,7 @@ import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.amt.lib.models.deltaker.Navn
 import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.deltaker.SisteEndring
+import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak

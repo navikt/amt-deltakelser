@@ -356,6 +356,7 @@ abstract class IntegrationTestBase {
             deltakerHistorikkService = deltakerHistorikkService,
             forslagRepository = forslagRepository,
             deltakerLaaseService = deltakerLaaseService,
+            vurderingRepository = vurderingRepository,
         )
     }
 

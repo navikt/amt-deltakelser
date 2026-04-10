@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -14,6 +15,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -29,6 +31,7 @@ class ResponseBuilder(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val forslagRepository: ForslagRepository,
     private val deltakerLaaseService: DeltakerLaaseService,
+    private val vurderingRepository: VurderingRepository,
 ) {
     suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
         // hent alle entries som behøver navn på Nav-ansatt eller -enhet
@@ -38,6 +41,9 @@ class ResponseBuilder(
 
         val navAnsatte = navAnsattService.hentNavAnsatteForDeltaker(deltaker)
         val navEnheter = navEnhetService.hentNavEnheterForDeltaker(deltaker)
+        val sisteVurdering = vurderingRepository
+            .getForDeltaker(deltaker.id)
+            .maxByOrNull { it.gyldigFra }
 
         return DeltakerResponse(
             id = deltaker.id,
@@ -69,6 +75,7 @@ class ResponseBuilder(
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
             endringsforslagFraArrangor = endringsforslagForDeltaker,
             prisinformasjon = deltaker.deltakerliste.prisinformasjon,
+            sisteVurdering = sisteVurdering?.let { VurderingResponse.fromVurdering(it) },
         )
     }
 

@@ -1,11 +1,9 @@
 package no.nav.amt.deltaker.bff.auth
 
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
-import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.poao_tilgang.client.Decision
@@ -110,30 +108,25 @@ class TilgangskontrollService(
         }
     }
 
-    fun harKoordinatorTilgangTilDeltaker(
-        navAnsattAzureId: UUID,
-        deltaker: Deltaker,
-    ): Boolean {
-        val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(deltaker.navBruker.adressebeskyttelse, navAnsattAzureId)
-        val tilgangTilSkjerming = vurderSkjermingTilgang(deltaker.navBruker, navAnsattAzureId)
-
-        return tilgangTilAdressebeskyttelse.isPermit && tilgangTilSkjerming.isPermit
-    }
-
+    /*
+        Vurderer ansatt tilgang for innbygger basert på adressebeskyttelse og skjerming.
+        OBS: Gir automatisk permit om innbygger ikke har spesifikke restriksjoner
+     */
     fun harKoordinatorTilgangTilPerson(
         navAnsattAzureId: UUID,
-        navBruker: NavBruker,
+        innbyggerAdressebeskyttelse: Adressebeskyttelse?,
+        erInnbyggerSkjermet: Boolean,
     ): Boolean {
-        val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(navBruker.adressebeskyttelse, navAnsattAzureId)
-        val tilgangTilSkjerming = vurderSkjermingTilgang(navBruker, navAnsattAzureId)
+        val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(innbyggerAdressebeskyttelse, navAnsattAzureId)
+        val tilgangTilSkjerming = vurderSkjermingTilgang(erInnbyggerSkjermet, navAnsattAzureId)
 
         return tilgangTilAdressebeskyttelse.isPermit && tilgangTilSkjerming.isPermit
     }
 
     private fun vurderSkjermingTilgang(
-        navBruker: NavBruker,
+        erSkjermet: Boolean,
         navAnsattAzureId: UUID,
-    ): Decision = if (navBruker.erSkjermet) {
+    ): Decision = if (erSkjermet) {
         poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId)).getOrThrow()
     } else {
         Decision.Permit

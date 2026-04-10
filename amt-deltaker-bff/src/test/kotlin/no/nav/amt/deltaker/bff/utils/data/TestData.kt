@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.utils.data
 
+import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorDeltakerlisteTilgang
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
@@ -134,7 +135,7 @@ object TestData {
         oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
         apentForPamelding: Boolean = true,
         oppmoteSted: String = "~oppmoteSted~",
-        pameldingType: GjennomforingPameldingType? = null,
+        pameldingType: GjennomforingPameldingType? = GjennomforingPameldingType.TRENGER_GODKJENNING,
     ) = GjennomforingResponse(
         id = id,
         tiltakstype = tiltakstype,
@@ -301,6 +302,22 @@ object TestData {
         }
     }
 
+    fun lagDeltakerModel(
+        navBrukerResponse: NavBrukerResponse = lagNavBrukerResponse(),
+        gjennomforingResponse: GjennomforingResponse = lagGjennomforingResponse(),
+        deltakelsesinnhold: Deltakelsesinnhold? = lagDeltakelsesinnhold(),
+        endringsforslagFraArrangor: List<Forslag> = emptyList(),
+        status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+    ) = ModelMapper.toDeltaker(
+        lagDeltakerResponse(
+            navBruker = navBrukerResponse,
+            deltakerliste = gjennomforingResponse,
+            deltakelsesinnhold = deltakelsesinnhold,
+            endringsforslagFraArrangor = endringsforslagFraArrangor,
+            status = status,
+        ),
+    )
+
     fun lagVedtaksinformasjonResponse() = VedtaksinformasjonResponse(
         fattet = LocalDateTime.now(),
         fattetAvNav = true,
@@ -349,6 +366,7 @@ object TestData {
         erLaastForEndringer = false,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
         prisinformasjon = prisinformasjon,
+        sisteVurdering = null,
     )
 
     fun lagTiltakskoordinatorDeltaker(

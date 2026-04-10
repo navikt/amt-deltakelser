@@ -159,7 +159,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
 
             val harTilgang = tilgangskontrollService.harKoordinatorTilgangTilPerson(
                 navAnsattAzureId = call.getNavAnsattAzureId(),
-                navBruker = oppdatertDeltaker.navBruker,
+                erInnbyggerSkjermet = oppdatertDeltaker.navBruker.erSkjermet,
+                innbyggerAdressebeskyttelse = oppdatertDeltaker.navBruker.adressebeskyttelse,
             )
 
             call.respond(oppdatertDeltaker.toDeltakerResponse(harTilgang))
@@ -194,7 +195,8 @@ private fun List<TiltakskoordinatorsDeltaker>.toDeltakerResponses(
     val harTilgangTilAASeNavn =
         tilgangskontrollService.harKoordinatorTilgangTilPerson(
             navAnsattAzureId = navAnsattAzureId,
-            navBruker = deltaker.navBruker,
+            erInnbyggerSkjermet = deltaker.navBruker.erSkjermet,
+            innbyggerAdressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
         )
 
     deltaker.toDeltakerResponse(harTilgangTilAASeNavn)
