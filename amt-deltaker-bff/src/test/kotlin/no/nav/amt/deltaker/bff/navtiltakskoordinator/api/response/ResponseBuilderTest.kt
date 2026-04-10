@@ -144,8 +144,8 @@ class ResponseBuilderTest {
             response.navEnhet shouldBe deltaker.navBruker.navEnhet
             navVeileder shouldNotBe null
             response.navVeileder.navn shouldBe navVeileder!!.navn
-            response.navVeileder.telefonnummer shouldBe navVeileder.telefonnummer // Skal fikses
-            response.navVeileder.epost shouldBe navVeileder.epost // Skal fikses
+            response.navVeileder.telefonnummer shouldBe navVeileder.telefonnummer
+            response.navVeileder.epost shouldBe navVeileder.epost
         }
 
         @Test
