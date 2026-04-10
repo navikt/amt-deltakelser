@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.apiclients
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
-import no.nav.amt.deltaker.bff.tiltakskoordinator.api.AvslagRequest
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
