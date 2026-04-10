@@ -4,8 +4,8 @@ import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.getDeltakelsesinnholdAnnet
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
+import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltaker.NavVeilederResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 
 class ResponseBuilder {

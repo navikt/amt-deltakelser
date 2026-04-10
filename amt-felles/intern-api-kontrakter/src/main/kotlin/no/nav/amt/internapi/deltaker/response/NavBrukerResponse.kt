@@ -1,7 +1,6 @@
 package no.nav.amt.internapi.deltaker.response
 
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.NavVeilederResponse
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse

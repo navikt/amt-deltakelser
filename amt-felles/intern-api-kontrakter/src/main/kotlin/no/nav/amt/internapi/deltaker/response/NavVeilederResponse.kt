@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.deltaker
+package no.nav.amt.internapi.deltaker.response
 
 data class NavVeilederResponse(
     val navn: String?,
