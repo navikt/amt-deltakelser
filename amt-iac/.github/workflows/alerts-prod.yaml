@@ -1,0 +1,28 @@
+name: Deploy alerts to prod
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "alerts/prod/*.yaml"
+      - ".github/workflows/alerts-prod.yaml"
+
+jobs:
+  deploy-prod:
+    name: Deploy alerts to prod
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: List resource files
+        run: echo "RESOURCE_FILES=$(find alerts/prod -type f -name '*.yaml' -printf '%p,' | sed 's/,$/\n/')" >> $GITHUB_ENV
+      - name: Deploy to GCP
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: ${{ env.RESOURCE_FILES }}
+          PRINT_PAYLOAD: true

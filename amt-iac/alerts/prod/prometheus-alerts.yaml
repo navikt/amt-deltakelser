@@ -1,0 +1,195 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: amt-prometheus-alerts
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  groups:
+    - name: amt-application-alerts
+      rules:
+        # Sjekk mengden errors i loggen
+        - alert: LogsErrorRate
+          expr: (1000 * sum by (app, namespace) (rate(log_messages_errors{level="Error", namespace="amt"}[3m])) / sum by (app, namespace) (rate(log_messages_total{namespace="amt"}[3m]))) > 1
+          for: 3m
+          annotations:
+            title: 'Applikasjonen `{{ $labels.app }}` logger mye feil'
+            summary: 'Applikasjonen `{{ $labels.app }}` har hatt en høy andel feil i loggene de siste 3 minuttene.'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
+            resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt'
+          labels:
+            namespace: amt
+            severity: warning
+            alert_type: custom
+
+        # Sjekk antallet errors over tid
+        - alert: LogsErrorCount
+          expr: sum by (app, namespace) (increase(log_messages_errors{level="Error",namespace="amt"}[10m])) > 5
+          for: 1m
+          annotations:
+            title: 'Applikasjonen `{{ $labels.app }}` logger mange feil'
+            summary: 'Applikasjonen `{{ $labels.app }}` har hatt mer enn 10 feil i loggene de siste 10 minuttene.'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
+            resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt'
+          labels:
+            namespace: amt
+            severity: warning
+            alert_type: custom
+
+        # Egen alert for SendVentendeVarslerJob
+        # Om antall Error hvor message inneholder "SendVentendeVarslerJob" i løpet av 20 minutter er større enn 3, og dette vedvarer i 3 minutter, så trigges alerten
+        - alert: SendVentendeVarslerJobAlert
+          expr: sum by (app, namespace) (increase(log_messages_errors{level="Error", namespace="amt", message=~".*SendVentendeVarslerJob.*"}[20m])) > 3
+          for: 3m
+          annotations:
+              title: 'Applikasjonen `{{ $labels.app }}` logger mye SendVentendeVarslerJob feil'
+              summary: 'Applikasjonen `{{ $labels.app }}` har hatt en høy andel feil i loggene for SendVentendeVarslerJob de siste 20 minuttene.'
+              action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
+              resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt for SendVentendeVarslerJob'
+          labels:
+              namespace: amt
+              severity: warning
+              alert_type: custom
+
+        # Sjekk HTTP 5xx statuser i ingresser
+        - alert: HTTP5xxStatus
+          expr: (1000 * sum by (service) (rate(nginx_ingress_controller_requests_total{status=~"5\\d\\d", namespace="amt"}[3m])) / sum by (service) (rate(nginx_ingress_controller_requests_total{namespace="amt"}[3m]))) > 1
+          for: 3m
+          annotations:
+            title: 'Tjenesten `{{ $labels.service }}` svarer med HTTP 5xx feil'
+            summary: 'Høy andel HTTP 5xx-feil i det siste fra tjenesten `{{ $labels.service }}`'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.service }}`'
+            resolved: 'Tjenesten `{{ $labels.service }}` svarer som normalt'
+          labels:
+            namespace: amt
+            severity: warning
+            alert_type: custom
+
+        # Sjekk HTTP 4xx statuser i ingresser (alle 4xx, ikke bare 400)
+        - alert: HTTP4xxStatus
+          expr: (100 * sum by (service) (rate(nginx_ingress_controller_requests_total{status=~"4\\d\\d", namespace="amt"}[3m])) / sum by (service) (rate(nginx_ingress_controller_requests_total{namespace="amt"}[3m]))) > 5
+          for: 3m
+          annotations:
+            title: 'Tjenesten `{{ $labels.service }}` opplever mange HTTP 4xx feil'
+            summary: 'Høy andel HTTP 4xx-feil i det siste til tjenesten `{{ $labels.service }}`'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.service }}`'
+            resolved: 'Tjenesten `{{ $labels.service }}` oppfører seg normalt'
+          labels:
+            namespace: amt
+            severity: warning
+            alert_type: custom
+
+        # Sjekk Kafka consumer lag per group
+        - alert: KafkaConsumerLag
+          expr: sum by(group, topic) (kafka_consumergroup_group_lag{group=~"^amt-.*",topic!="min-side.aapen-varsel-hendelse-v1",client_id!="unknown"}) > 10
+          for: 5m
+          annotations:
+            title: 'Konsumenten `{{ $labels.group }}` har treghet i mottak av Kafka-meldinger'
+            summary: 'Forsinkelsen ved mottak av Kafka-meldinger for `{{ $labels.group }}` på topic `{{ $labels.topic }}` overstiger terskelen på over 10 meldinger i 5 minutter.'
+            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana> eller NAIS Console for telemetri og logger.'
+            resolved: 'Konsumenten `{{ $labels.group }}` oppfører seg normalt'
+          labels:
+            namespace: amt
+            severity: warning
+            alert_type: custom
+
+        # Skiller ut denne alerten for å forhindre alarmer pga. consumer lag spikes i min-side varsel topic
+        - alert: AmtDistribusjonMinSideVarslerConsumerLag
+          expr: sum by(group, topic) (kafka_consumergroup_group_lag{topic="min-side.aapen-varsel-hendelse-v1",group="amt-distribusjon-consumer",client_id!="unknown"}) > 100
+          for: 5m
+          annotations:
+            title: 'Konsumenten `{{ $labels.group }}` har treghet i mottak av Kafka-meldinger'
+            summary: 'Forsinkelsen ved mottak av Kafka-meldinger for `{{ $labels.group }}` på topic `{{ $labels.topic }}` overstiger terskelen på 100 meldinger i lag.'
+            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana> eller NAIS Console for telemetri og logger.'
+            resolved: 'Konsumenten `{{ $labels.group }}` oppfører seg normalt'
+          labels:
+            namespace: amt
+            severity: warning
+            alert_type: custom
+
+    - name: amt-runtime-alerts
+      rules:
+        # Sjekk CPU-bruk (tilpass terskel etter behov)
+        - alert: HighCPUUsage
+          expr: (100 * sum by(app) (rate(jvm_cpu_time_seconds_total{namespace="amt"}[5m]))) > 80
+          for: 5m
+          annotations:
+            title: 'Applikasjonen `{{ $labels.app }}` har høy CPU-bruk'
+            summary: 'En eller flere instanser av `{{ $labels.app }}` bruker mer enn 80% av CPU de siste 5 minuttene.'
+            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
+            resolved: 'Applikasjonen `{{ $labels.app }}` bruker nå normal CPU'
+          labels:
+            namespace: amt
+            severity: critical
+            alert_type: custom
+
+        # Sjekk minneforbruk
+        - alert: HighMemoryUsage
+          expr: (100 * sum by (app, pod) (jvm_memory_used_bytes{namespace="amt", area="heap"})) / sum by (app, pod) (jvm_memory_max_bytes{namespace="amt", area="heap"}) > 60
+          for: 3m
+          annotations:
+            title: 'Applikasjonen `{{ $labels.app }}` har høyt minneforbruk for pod `{{ $labels.pod }}`'
+            summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` bruker mer enn 60% av heap-minne'
+            action: 'Sjekk Grafana (<https://grafana.nav.cloud.nais.io>), NAIS Console, eller hent logger med `kubectl logs {{ $labels.pod }}`.'
+            resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har normalt minneforbruk'
+          labels:
+            namespace: amt
+            severity: critical
+            alert_type: custom
+
+        # Sjekk manglende POD replicas (uten offset)
+        - alert: InstanceDown
+          expr: sum by (deployment, namespace) (kube_deployment_status_replicas_available{namespace="amt"}) == 0
+          for: 3m
+          annotations:
+            title: 'Deployment `{{ $labels.deployment }}` har nedetid'
+            summary: 'Ingen pods er tilgjengelige for deployment `{{ $labels.deployment }}`'
+            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.deployment }}`'
+            resolved: 'Deployment `{{ $labels.deployment }}` kjører nå som normalt'
+          labels:
+            namespace: amt
+            severity: critical
+            alert_type: custom
+
+        # Sjekk POD restart status
+        - alert: CrashLoopBackoff
+          expr: sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace="amt"}[5m])) > 3
+          for: 5m
+          annotations:
+            title: 'POD `{{ $labels.pod }}` starter ikke'
+            summary: 'POD `{{ $labels.pod }}` har restartet mer enn 3 ganger på 5 minutter.'
+            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.pod }}`'
+            resolved: 'POD `{{ $labels.pod }}` kjører nå normalt'
+          labels:
+            namespace: amt
+            severity: critical
+            alert_type: custom
+
+        # Unik sjekk i amt-arena-acl
+        - alert: Antall meldinger i arena-acl med status FAILED > 0
+          expr: amt_arena_acl_ingest_status{app="amt-arena-acl", status="FAILED"} > 0
+          for: 1m
+          annotations:
+            title: 'Appen `{{ $labels.app }}` har problemer med å prosessere meldinger'
+            summary: 'En eller flere kafkameldinger har ikke blitt prossesert riktig'
+            action: "Sjekk `arena_data` tabellen i `{{ $labels.app }}` slik: `select * from arena_data where ingest_status = 'FAILED';`"
+            resolved: '`{{ $labels.app }}` prosesserer meldinger som normalt'
+          labels:
+            namespace: amt
+            severity: critical
+            alert_type: custom
+
+        # Unik sjekk i amt-tiltak
+        - alert: Antall meldinger i amt-tiltak med status FAILED > 0
+          expr: amt_tiltak_antall_feilede_kafkameldinger{app="amt-tiltak"} > 0
+          for: 1m
+          annotations:
+            title: 'Appen `{{ $labels.app }}` har problemer med å prosessere meldinger'
+            summary: "En eller flere kafkameldinger har ikke blitt prossesert riktig"
+            action: "Sjekk `kafka_consumer_record`-tabellen i `{{ $labels.app }}` slik: `select * from kafka_consumer_record;`"
+            resolved: '`{{ $labels.app }}` prosesserer meldinger som normalt'
+          labels:
+            namespace: amt
+            severity: critical
+            alert_type: custom

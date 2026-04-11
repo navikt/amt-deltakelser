@@ -1,0 +1,24 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: arrangor-ansatt-personalia-v1
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  pool: nav-prod
+  config:
+    cleanupPolicy: compact
+    minimumInSyncReplicas: 2
+    partitions: 1
+    replication: 2
+  acl:
+    - team: amt
+      application: amt-person-service
+      access: write
+    - team: amt
+      application: amt-kafka-manager
+      access: read
+    - team: amt
+      application: amt-arrangor
+      access: read
