@@ -23,13 +23,11 @@ import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.sanitize
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.request.valider
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -48,7 +46,7 @@ fun Routing.registerKladdApi(
 ) {
     val log = LoggerFactory.getLogger(javaClass)
 
-    // duplikat i DeltakerApi
+    // Skal fases ut ifm henting av data fra amt-deltaker
     suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
         deltaker = deltaker,
         ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
@@ -71,35 +69,6 @@ fun Routing.registerKladdApi(
             call.respond(komplettDeltakerResponse(deltaker))
         }
 
-        // TODO: Skal sletes til fordel for opprett-kladd i Enkeltplass API
-        post("/opprett-enkeltplass-kladd") {
-            val request = call.receive<OpprettEnkeltplassKladdRequest>()
-
-            tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
-
-            val response = pameldingService
-                .opprettKladdForEnkeltplass(
-                    personident = request.personident,
-                    tiltakskode = request.tiltakskode,
-                ).let { DeltakerResponse.fromDeltakerModel(it) }
-
-            call.respond(response)
-        }
-
-        // TODO: Skal sletes til fordel for oppdater-kladd i Enkeltplass API
-        post("/oppdater-enkeltplass-kladd/{deltakerId}") {
-            val deltakerId = call.getDeltakerId()
-            val request = call.receive<OppdaterEnkeltplassKladdRequest>()
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
-            tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), personident)
-
-            val response = pameldingService
-                .oppdaterKladdForEnkeltplass(deltakerId, request)
-                .let { DeltakerResponse.fromDeltakerModel(it) }
-
-            call.respond(response)
-        }
-
         post("/kladd/{deltakerId}") {
             val request = call.receive<KladdRequest>().sanitize()
             val deltakerId = call.getDeltakerId()
@@ -110,7 +79,8 @@ fun Routing.registerKladdApi(
                 navAnsattAzureId = call.getNavAnsattAzureId(),
                 norskIdent = deltaker.navBruker.personident,
             )
-
+            // 14 dager etter denne koden er prodsatt så
+            // er det trygt å anta at amt-deltaker har siste versjon av alle kladder
             paameldingClient
                 .oppdaterKladd(deltakerId, request)
 
