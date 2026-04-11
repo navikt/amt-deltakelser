@@ -26,12 +26,18 @@ jobs:
         id: filter
         with:
           filters: |
-            alerts:
-              - amt-iac/alerts/**
-            kafka-manager:
-              - amt-iac/kafka-manager/**
-            kafka-topic:
-              - amt-iac/kafka-topic/**
+            alerts/dev:
+              - amt-iac/alerts/dev/**
+            alerts/prod:
+              - amt-iac/alerts/prod/**
+            kafka-manager/dev:
+              - amt-iac/kafka-manager/dev/**
+            kafka-manager/prod:
+              - amt-iac/kafka-manager/prod/**
+            kafka-topic/dev:
+              - amt-iac/kafka-topic/dev/**
+            kafka-topic/prod:
+              - amt-iac/kafka-topic/prod/**
 
       - name: Debug changed environments
         run: echo '${{ steps.filter.outputs.changes }}'
@@ -49,16 +55,17 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Deploy ${{ matrix.iac_folder }} dev
+        if: ${{ endsWith(matrix.iac_folder, '/dev') }}
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: dev-gcp
-          RESOURCE: amt-iac/${{ matrix.iac_folder }}/dev/*.yaml
+          RESOURCE: amt-iac/${{ matrix.iac_folder }}/*.yaml
           PRINT_PAYLOAD: true
 
       - name: Deploy ${{ matrix.iac_folder }} prod
-        if: github.ref == 'refs/heads/main'
+        if: ${{ github.ref == 'refs/heads/main' && endsWith(matrix.iac_folder, '/prod') }}
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
-          RESOURCE: amt-iac/${{ matrix.iac_folder }}/prod/*.yaml
+          RESOURCE: amt-iac/${{ matrix.iac_folder }}/*.yaml
           PRINT_PAYLOAD: true
