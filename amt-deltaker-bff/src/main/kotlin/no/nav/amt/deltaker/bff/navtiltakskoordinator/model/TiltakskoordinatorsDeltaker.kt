@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.model
 
 import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
+import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
@@ -20,7 +21,7 @@ data class TiltakskoordinatorsDeltaker(
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val navEnhet: String?,
-    val navVeileder: NavVeileder,
+    val navVeileder: NavVeilederResponse,
     val beskyttelsesmarkering: List<Beskyttelsesmarkering>,
     val vurdering: Vurdering?,
     val innsatsgruppe: Innsatsgruppe?,

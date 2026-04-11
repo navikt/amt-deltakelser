@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.NavVeileder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
+import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -22,7 +22,7 @@ data class DeltakerDetaljerResponse(
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val navEnhet: String?,
-    val navVeileder: NavVeileder,
+    val navVeileder: NavVeilederResponse,
     val beskyttelsesmarkering: List<Beskyttelsesmarkering>,
     val vurdering: VurderingResponse?,
     val innsatsgruppe: Innsatsgruppe?,

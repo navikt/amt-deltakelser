@@ -14,6 +14,7 @@ import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
+import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
@@ -131,7 +132,9 @@ class ResponseBuilder(
         oppfolgingsperioder = navBruker.oppfolgingsperioder,
         innsatsgruppe = navBruker.innsatsgruppe,
         erDigital = amtDistribusjonClient.digitalBruker(navBruker.personident),
-        navVeileder = navBruker.navVeilederId?.let { navAnsatte.getOrThrow(it).navn },
+        navVeileder = navBruker.navVeilederId
+            ?.let { navAnsatte.getOrThrow(it) }
+            ?.let { veileder -> NavVeilederResponse(navn = veileder.navn, epost = veileder.epost, telefonnummer = veileder.telefon) },
         navEnhet = navBruker.navEnhetId?.let { navEnheter.getOrThrow(it).navn },
     )
 }
