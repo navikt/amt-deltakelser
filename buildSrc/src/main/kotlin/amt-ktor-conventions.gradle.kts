@@ -12,7 +12,12 @@ plugins {
 }
 
 dependencies {
-    // netty-codec-http2
+    constraints {
+        implementation(libsWrapper.getLibrary("tools.jackson.core")) {
+            because("Misc Dependabot alerts")
+        }
+    }
+
     // --- Ktor ---
     implementation(platform(libsWrapper.getLibrary("ktor.bom")))
     constraints {
