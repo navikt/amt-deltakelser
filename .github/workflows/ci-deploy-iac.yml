@@ -1,0 +1,64 @@
+name: Deploy amt-iac
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "amt-iac/**/*.yaml"
+      - ".github/workflows/ci-deploy-iac.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+
+    outputs:
+      iac_folders: ${{ steps.filter.outputs.changes }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            alerts:
+              - amt-iac/alerts/**
+            kafka-manager:
+              - amt-iac/kafka-manager/**
+            kafka-topic:
+              - amt-iac/kafka-topic/**
+
+      - name: Debug changed environments
+        run: echo '${{ steps.filter.outputs.changes }}'
+
+  deploy:
+    needs: changes
+    if: ${{ needs.changes.outputs.iac_folders != '[]' }}
+
+    strategy:
+      matrix:
+        iac_folder: ${{ fromJSON(needs.changes.outputs.iac_folders) }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy ${{ matrix.iac_folder }} dev
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: amt-iac/${{ matrix.iac_folder }}/dev/*.yaml
+          PRINT_PAYLOAD: true
+
+      - name: Deploy ${{ matrix.iac_folder }} prod
+        if: github.ref == 'refs/heads/main'
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: amt-iac/${{ matrix.iac_folder }}/prod/*.yaml
+          PRINT_PAYLOAD: true
