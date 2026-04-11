@@ -1,0 +1,36 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-pdfgen
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  readiness:
+    path: /internal/is_alive
+    initialDelay: 30
+  liveness:
+    path: /internal/is_alive
+    initialDelay: 30
+  replicas:
+    disableAutoScaling: true
+    min: 2
+    max: 2
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-distribusjon
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0"

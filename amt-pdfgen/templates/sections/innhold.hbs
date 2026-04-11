@@ -1,0 +1,25 @@
+{{#if deltaker.innhold}}
+    <section>
+        <h2>Dette er innholdet</h2>
+        {{#if deltaker.innhold.ledetekst}}
+            <p id="ledetekst">{{deltaker.innhold.ledetekst}}</p>
+        {{/if}}
+
+        {{! Viser linjeskift hvis begge feltene finnes }}
+        {{#if deltaker.innhold.ledetekst}}
+            {{#if deltaker.innhold.fritekstBeskrivelse}}<br />{{/if}}
+        {{/if}}
+
+        {{#if deltaker.innhold.fritekstBeskrivelse}}
+            <p class="fritekst" id="fritekst">{{deltaker.innhold.fritekstBeskrivelse}}</p>
+        {{/if}}
+
+        {{#if deltaker.innhold.valgteInnholdselementer.length}}
+            <ul id="innholdselementer">
+                {{#each deltaker.innhold.valgteInnholdselementer}}
+                    <li class="fritekst">{{this}}</li>
+                {{/each}}
+            </ul>
+        {{/if}}
+    </section>
+{{/if}}

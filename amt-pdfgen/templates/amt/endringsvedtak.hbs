@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="description" content="Vedtak om tiltak"/>
+    <meta name="author" content="amt-pdfgen"/>
+    <meta name="subject" content="Vedtak"/>
+
+    {{#block 'amt/style' }}
+    {{/block}}
+
+    <title>Vedtak om tiltaksdeltakelse</title>
+
+</head>
+<body>
+    <div id="footer">
+        <span class="sidetall">Side <span id="pagenumber"></span> av <span id="pagecount"></span></span>
+    </div>
+    {{> sections/header}}
+    <main>
+        <h1>Endring: {{this.sidetittel}}</h1>
+        {{#eq deltakerliste.pameldingstype "DIREKTE_VEDTAK"}}
+            <p>Du ble meldt på arbeidsmarkedstiltaket {{this.ingressnavn}} {{iso_to_long_date this.forsteVedtakFattet}}, og deltakelsen er nå endret. Du, arrangør og Nav ser samme informasjon.</p>
+        {{/eq}}
+        {{#eq deltakerliste.pameldingstype "TRENGER_GODKJENNING"}}
+            <p>Du ble søkt inn på arbeidsmarkedstiltaket: {{this.ingressnavn}} den {{iso_to_long_date this.deltaker.opprettetDato}}, og deltakelsen er nå endret.</p>
+        {{/eq}}
+        {{#each endringer}}
+            {{> sections/endring/endring-listeelement}}
+        {{/each}}
+
+        {{> sections/dette-er-et-vedtak}}
+
+        {{> sections/klagerett}}
+
+        {{> sections/sporsmal}}
+
+        {{> sections/avsender}}
+    </main>
+</body>
+</html>

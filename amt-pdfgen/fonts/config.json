@@ -1,0 +1,16 @@
+[
+  {
+    "family": "Source Sans 3",
+    "path": "SourceSans3-Regular.ttf",
+    "weight": 400,
+    "style": "NORMAL",
+    "subset": false
+  },
+  {
+    "family": "Source Sans 3",
+    "path": "SourceSans3-Bold.ttf",
+    "weight": 700,
+    "style": "NORMAL",
+    "subset": false
+  }
+]

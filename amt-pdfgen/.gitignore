@@ -1,0 +1,4 @@
+*.pdf
+.idea/
+build/
+.gradle/

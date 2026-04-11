@@ -1,0 +1,9 @@
+ {{#if this.vurdering}}
+        <div class="forslag">
+            <p><b>Vurdering fra arrangør</b></p>
+            <p>{{this.vurdering.type}}</p>
+            {{#if this.vurdering.begrunnelse}}
+                <p class="fritekst">Begrunnelse: {{this.vurdering.begrunnelse}}</p>
+            {{/if}}
+        </div>
+{{/if}}
