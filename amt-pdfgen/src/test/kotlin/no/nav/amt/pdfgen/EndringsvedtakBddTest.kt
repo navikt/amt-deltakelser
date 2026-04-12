@@ -237,53 +237,6 @@ class EndringsvedtakBddTest :
                 }
             }
         }
-
-        Given("EndreStartdatoOgVarighet2") {
-            val baseEndring =
-                EndringDto.EndreStartdatoOgVarighet(
-                    tittel = "Startdato og varighet er endret",
-                    begrunnelseFraNav = null,
-                    forslagFraArrangor = null,
-                    sluttdato = "1.1.2023",
-                )
-
-            val baseForslag =
-                ForslagDto.EndreStartdatoOgVarighet(
-                    startdato = null,
-                    sluttdato = fixedDate,
-                    begrunnelseFraArrangor = null,
-                )
-
-            forAll(
-                row(baseEndring),
-                row(baseEndring.copy(begrunnelseFraNav = "Begrunnelse")),
-                row(baseEndring.copy(forslagFraArrangor = baseForslag)),
-                row(baseEndring.copy(forslagFraArrangor = baseForslag.copy(startdato = fixedDate))),
-                row(baseEndring.copy(forslagFraArrangor = baseForslag.copy(begrunnelseFraArrangor = "Arrangor sin begrunnelse"))),
-            ) { endring ->
-
-                When("dokumentet rendres med endring: $endring") {
-                    val doc = renderEndringsvedtak(endringsvedtak(endringer = listOf(endring)))
-
-                    Then("skal vise endring korrekt") {
-                        doc.sectionText() shouldContain endring.tittel
-
-                        doc.sectionText().assertSectionText("Nav sin begrunnelse:", endring.begrunnelseFraNav)
-
-                        if (endring.forslagFraArrangor != null) {
-                            val forslag =
-                                endring.forslagFraArrangor.shouldBeInstanceOf<ForslagDto.EndreStartdatoOgVarighet>()
-
-                            doc.sectionText() shouldContain "Forslaget sendt fra arrangør:"
-                            doc.sectionText() shouldContain "Ny sluttdato: ${forslag.sluttdato.toNorwegianShortDate()}"
-
-                            doc.sectionText().assertSectionText("Ny oppstartsdato:", forslag.startdato)
-                            doc.sectionText().assertSectionText("Begrunnelse:", forslag.begrunnelseFraArrangor)
-                        }
-                    }
-                }
-            }
-        }
     }) {
     companion object {
         private fun renderEndringsvedtak(payload: EndringsvedtakPdfDto): Document = render("endringsvedtak", payload)
