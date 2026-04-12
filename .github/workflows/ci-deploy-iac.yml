@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Deploy ${{ matrix.iac_folder }} dev
+      - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ endsWith(matrix.iac_folder, '/dev') }}
         uses: nais/deploy/actions/deploy@v2
         env:
@@ -62,7 +62,7 @@ jobs:
           RESOURCE: amt-iac/${{ matrix.iac_folder }}/*.yaml
           PRINT_PAYLOAD: true
 
-      - name: Deploy ${{ matrix.iac_folder }} prod
+      - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ github.ref == 'refs/heads/main' && endsWith(matrix.iac_folder, '/prod') }}
         uses: nais/deploy/actions/deploy@v2
         env:
