@@ -1,0 +1,65 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: amt-alertmanager-config
+  namespace: amt
+  labels:
+    team: amt
+    alertmanagerConfig: amt-alertmanager-config
+spec:
+  receivers:
+    - name: amt-custom-slack-receiver
+      slackConfigs:
+        - apiURL:
+            key: apiUrl
+            name: slack-webhook
+          channel: "#team_komet_dev_alerts"
+          iconEmoji: '{{ if eq .Status "firing" }}:nav-on-fire:{{ else }}:white_check_mark:{{ end }}'
+          username: "KOMET alertmanager dev-gcp"
+          sendResolved: true
+          title: |-
+            {{ if eq .Status "firing" }}:nav-on-fire:{{ else }}:white_check_mark:{{ end }} [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
+          text: >-
+            {{ range .Alerts -}}
+              *Severity:* `{{ .Labels.severity | toUpper }}`
+              *Title:* {{ .Annotations.title }}
+              *Summary:* {{ .Annotations.summary }}
+              *Action:* {{ .Annotations.action }}
+            {{- end }}
+          color: |-
+            {{ if eq .Status "firing" -}}
+              {{ if eq .CommonLabels.severity "fatal" -}}
+                #ff0000
+              {{- else if eq .CommonLabels.severity "critical" -}}
+                #ff0000
+              {{- else if eq .CommonLabels.severity "danger" -}}
+                danger
+              {{- else if eq .CommonLabels.severity "error" -}}
+                danger
+              {{- else if eq .CommonLabels.severity "warning" -}}
+                warning
+              {{- else if eq .CommonLabels.severity "notice" -}}
+                good
+              {{- else if eq .CommonLabels.severity "info" -}}
+                #8ab4f8
+              {{- else -}}
+                #808080
+              {{- end -}}
+            {{ else -}}
+                good
+            {{- end }}
+
+  route:
+    groupWait: 5s
+    groupInterval: 10s
+    repeatInterval: 30m
+    groupBy:
+      - alertname
+    receiver: amt-custom-slack-receiver
+    matchers:
+      - name: "namespace"
+        value: "amt"
+        matchType: "="
+      - name: "alert_type"
+        value: "custom"
+        matchType: "="
