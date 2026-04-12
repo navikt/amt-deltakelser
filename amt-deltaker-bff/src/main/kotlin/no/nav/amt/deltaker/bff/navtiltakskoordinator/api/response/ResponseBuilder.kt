@@ -2,9 +2,9 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.getDeltakelsesinnholdAnnet
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.NavVeileder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
+import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 
@@ -42,8 +42,9 @@ class ResponseBuilder {
                 startdato = startdato,
                 sluttdato = sluttdato,
                 navEnhet = navBruker.navEnhet,
-                // TODO: amt-deltaker må returnere mer info om veileder
-                navVeileder = NavVeileder(navBruker.navVeileder, null, null),
+                navVeileder =
+                    navBruker.navVeileder
+                        ?: NavVeilederResponse(navn = null, telefonnummer = null, epost = null),
                 vurdering = sisteVurdering,
                 beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
                 innsatsgruppe = navBruker.innsatsgruppe,

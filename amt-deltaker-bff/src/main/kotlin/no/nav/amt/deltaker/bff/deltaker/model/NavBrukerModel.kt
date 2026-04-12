@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.deltaker.model
 
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.DeltakerResponseUtils.Companion.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.DeltakerResponseUtils.Companion.SKJERMET_PERSON_PLACEHOLDER_NAVN
+import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.person.Beskyttelsesmarkering
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
@@ -14,7 +15,7 @@ data class NavBrukerModel(
     val fornavn: String,
     val mellomnavn: String?,
     val etternavn: String,
-    val navVeileder: String?,
+    val navVeileder: NavVeilederResponse?,
     val navEnhet: String?,
     val telefon: String?,
     val epost: String?,

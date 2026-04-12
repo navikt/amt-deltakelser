@@ -52,7 +52,10 @@ fun Routing.registerInnbyggerApi(
     )
 
     authenticate(AuthLevel.INNBYGGER.name) {
-        // kaller amtDeltakerClient.sistBesokt
+        /*
+            Henter en komplett deltaker for innbyggers flate
+            Dette endepunktet nås når en innbygger trykker seg inn på aktivitetskort "detaljer om deltakelsen" i aktivitetsplanen
+         */
         get("/innbygger/{deltakerId}") {
             val deltakerId = call.getDeltakerId()
             val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
@@ -78,7 +81,11 @@ fun Routing.registerInnbyggerApi(
             call.respond(deltakerResponse)
         }
 
-        // kaller paameldingClient.innbyggerGodkjennUtkast
+        /*
+            Endepunkt når innbygger godkjenner utkast ("deltakelse delt med bruker")
+            Status: Utkast til påmelding -> Søkt inn/Venter på oppstart/Deltaker(kommer ann på tiltakstypen)
+            gjør synkronkall til amt-deltaker med dataene som returnerer et mindre "Deltakeroppdatering" objekt
+         */
         post("/innbygger/{deltakerId}/godkjenn-utkast") {
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
 

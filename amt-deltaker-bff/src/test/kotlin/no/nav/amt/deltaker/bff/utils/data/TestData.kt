@@ -12,6 +12,7 @@ import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
+import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -554,7 +555,7 @@ object TestData {
         telefon = telefon,
         epost = epost,
         erDigital = true,
-        navVeileder = "Nav Veiledersen",
+        navVeileder = NavVeilederResponse("Nav Veiledersen", null, null),
         navEnhet = "Nav Grunerløkka",
     )
 
