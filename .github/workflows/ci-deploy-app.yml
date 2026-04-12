@@ -11,6 +11,7 @@ on:
       - "amt-distribusjon/**"
       - "amt-felles/**"
       - "amt-lib/**"
+      - "amt-pdfgen/**"
       - "amt-tiltaksarrangor-bff/**"
       - "gradle/libs.versions.toml"
 
@@ -48,6 +49,13 @@ jobs:
 
             amt-distribusjon:
               - amt-distribusjon/**
+              - amt-felles/**
+              - amt-lib/**
+              - gradle/libs.versions.toml
+              - buildSrc/**
+
+            amt-pdfgen:
+              - amt-pdfgen/**
               - amt-felles/**
               - amt-lib/**
               - gradle/libs.versions.toml

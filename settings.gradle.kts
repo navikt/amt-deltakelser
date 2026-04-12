@@ -11,5 +11,6 @@ include(
     "amt-lib:testing",
     "amt-lib:utils",
     "amt-lib:models",
+    "amt-pdfgen",
     "amt-tiltaksarrangor-bff",
 )

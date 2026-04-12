@@ -11,6 +11,7 @@ on:
       - "amt-distribusjon/**"
       - "amt-felles/**"
       - "amt-lib/**"
+      - "amt-pdfgen/**"
       - "amt-tiltaksarrangor-bff/**"
       - "buildSrc/**"
       - "gradle/**"
@@ -24,6 +25,7 @@ on:
       - "amt-distribusjon/**"
       - "amt-felles/**"
       - "amt-lib/**"
+      - "amt-pdfgen/**"
       - "amt-tiltaksarrangor-bff/**"
       - "buildSrc/**"
       - "gradle/**"
@@ -61,8 +63,6 @@ jobs:
           languages: java-kotlin
           queries: security-and-quality
 
-          # --no-parallel \
-          # --no-build-cache \
       - name: Build project
         run: |
           ./gradlew assemble \

@@ -1,13 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm")
 }
-
-val jsoupVersion = "1.22.1"
-val pdfgenCoreVersion = "1.1.67"
-val kotestVersion = "6.0.7"
-val mockkVersion = "1.14.7"
-val jacksonModuleKotlinVersion = "2.20.1"
-val amtLibVersion = "1.2026.02.08_16.17-c69b2d0f7d8d"
 
 repositories {
     mavenCentral()
@@ -15,17 +8,21 @@ repositories {
 }
 
 dependencies {
-    testImplementation("no.nav.amt.lib:models:$amtLibVersion")
-    testImplementation("org.jsoup:jsoup:$jsoupVersion")
-    testImplementation("no.nav.pdfgen:pdfgen-core:$pdfgenCoreVersion")
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
-    testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
-    testImplementation("io.kotest:kotest-assertions-table-jvm:$kotestVersion")
-    testImplementation("io.mockk:mockk-jvm:$mockkVersion")
-    testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonModuleKotlinVersion")
-    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion")
+    testImplementation(project(":amt-lib:models"))
+    testImplementation(libs.jsoup)
+    testImplementation(libs.pdfgen.core)
+
+    testImplementation(libs.mockk)
+
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.table)
+
+    testImplementation(libs.jackson.datatype.jsr310)
+    testImplementation(libs.jackson.module.kotlin)
+
+    testImplementation(libs.kotest.runner.junit5)
 }
 
-tasks.test {
+tasks.named<Test>("test") {
     useJUnitPlatform()
 }

@@ -26,6 +26,7 @@ jobs:
             amt-distribusjon: amt-distribusjon/**
             amt-felles: amt-felles/**
             amt-lib: amt-lib/**
+            amt-pdfgen: amt-pdfgen/**
             amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
             all: gradle/libs.versions.toml
 

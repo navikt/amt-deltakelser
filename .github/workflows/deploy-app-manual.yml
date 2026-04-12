@@ -11,6 +11,7 @@ on:
           - amt-deltaker-bff
           - amt-deltaker
           - amt-distribusjon
+          - amt-pdfgen
           - amt-tiltaksarrangor-bff
 
 permissions:
