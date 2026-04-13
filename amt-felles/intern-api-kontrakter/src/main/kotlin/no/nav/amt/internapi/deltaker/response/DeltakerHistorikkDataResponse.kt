@@ -12,4 +12,3 @@ data class DeltakerHistorikkDataResponse(
     val ansatte: List<NavAnsatt>,
     val enheter: List<NavEnhet>,
 )
-
