@@ -1,0 +1,14 @@
+{
+  "domain": "general",
+  "tags": ["security", "compliance", "gdpr", "threat-modeling"],
+  "examples": [
+    {
+      "prompt": "@security-champion-agent Gjennomfør en trusselmodell for sosialhjelp-innsyn-api",
+      "scenario": "Trusselmodellering"
+    },
+    {
+      "prompt": "@security-champion-agent Følger lagringen av persondata i dp-soknad GDPR?",
+      "scenario": "GDPR-vurdering"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "domain": "backend",
+  "tags": ["kafka", "events", "rapids-rivers", "streaming"],
+  "examples": [
+    {
+      "prompt": "@kafka-agent Lag en Rapids & Rivers consumer for sykmeldingshendelser i syfosmmanuell-backend",
+      "scenario": "Opprett event consumer"
+    },
+    {
+      "prompt": "@kafka-agent Design et event-skjema for dagpengevedtak i dp-inntekt",
+      "scenario": "Lag event-skjema"
+    }
+  ]
+}

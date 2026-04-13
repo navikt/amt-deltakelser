@@ -1,0 +1,14 @@
+{
+  "domain": "auth",
+  "tags": ["auth", "azure-ad", "tokenx", "id-porten", "security"],
+  "examples": [
+    {
+      "prompt": "@auth-agent Sett opp Azure AD-autentisering i fp-sak",
+      "scenario": "Azure AD-integrasjon"
+    },
+    {
+      "prompt": "@auth-agent Hvordan validerer jeg et ID-porten-token i dp-soknad?",
+      "scenario": "ID-porten-validering"
+    }
+  ]
+}
