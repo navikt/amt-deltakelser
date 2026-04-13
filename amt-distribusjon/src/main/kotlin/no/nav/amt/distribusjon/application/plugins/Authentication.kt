@@ -33,7 +33,8 @@ fun Application.configureAuthentication(environment: Environment) {
                     return@validate reject("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
                 }
 
-                val azpClaim: String = credentials.payload.getClaim("azp").asString()
+                val azpClaim = credentials.payload.getClaim("azp").asString()
+                    ?: return@validate reject("Token mangler azp-claim")
                 val preAuthorizedApp = environment.preAuthorizedApps
                     .firstOrNull { it.clientId == azpClaim }
 
