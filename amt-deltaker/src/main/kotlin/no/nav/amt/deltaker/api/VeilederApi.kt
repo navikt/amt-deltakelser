@@ -1,11 +1,9 @@
 package no.nav.amt.deltaker.api
 
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -21,8 +19,6 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
-import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
 import java.time.ZonedDateTime
 
 fun Routing.registerVeilederApi(
@@ -62,12 +58,6 @@ fun Routing.registerVeilederApi(
         }
 
         get("/deltaker/{deltakerId}/historikk") {
-            val historikk = historikkService.getForDeltaker(call.getDeltakerId())
-            val historikkResponse = objectMapper.writePolymorphicListAsString(historikk)
-            call.respondText(historikkResponse, ContentType.Application.Json)
-        }
-
-        get("/deltaker/{deltakerId}/historikk-data") {
             val deltakerId = call.getDeltakerId()
             val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
             val historikk = historikkService.getForDeltaker(deltakerId)

@@ -33,8 +33,6 @@ import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.withLogCapture
-import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -580,42 +578,6 @@ class AmtDeltakerClientTest {
     @Nested
     inner class Historikk {
         val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/historikk"
-        val expectedErrorMessage = "Fant ikke deltakerhistorikk for ${deltakerInTest.id} i amt-deltaker."
-        val historikk = TestData.leggTilHistorikk(deltakerInTest, 2, 2, 1).historikk
-
-        @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
-            val (statusCode, expectedExceptionType) = testCase
-            val thrown = Assertions.assertThrows(expectedExceptionType.java) {
-                runTest {
-                    createDeltakerClient(
-                        expectedUrl = expectedUrl,
-                        statusCode = statusCode,
-                        responseBody = "feil",
-                    ).getDeltakerHistorikk(deltakerInTest.id)
-                }
-            }
-
-            thrown.message shouldStartWith expectedErrorMessage
-        }
-
-        @Test
-        fun `skal returnere deltakerhistorikk`() {
-            val amtDeltakerClient = createDeltakerClient(
-                expectedUrl = expectedUrl,
-                responseBody = objectMapper.writePolymorphicListAsString(historikk),
-            )
-
-            runTest {
-                amtDeltakerClient.getDeltakerHistorikk(deltakerInTest.id) shouldBe historikk
-            }
-        }
-    }
-
-    @Nested
-    inner class HistorikkData {
-        val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/historikk-data"
         val expectedErrorMessage = "Fant ikke historikkdata for ${deltakerInTest.id} i amt-deltaker."
         val historikk = TestData.leggTilHistorikk(deltakerInTest, 2, 2, 1).historikk
 
@@ -636,7 +598,7 @@ class AmtDeltakerClientTest {
         }
 
         @Test
-        fun `skal returnere DeltakerHistorikkData med ett kall`() {
+        fun `skal returnere DeltakerHistorikkData`() {
             val navAnsatt = lagNavAnsatt()
             val navEnhet = lagNavEnhet()
             val response = DeltakerHistorikkDataResponse(

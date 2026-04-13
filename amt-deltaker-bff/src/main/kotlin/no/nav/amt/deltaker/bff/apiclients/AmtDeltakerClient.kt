@@ -49,12 +49,8 @@ class AmtDeltakerClient(
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
         .body()
 
-    suspend fun getDeltakerHistorikk(deltakerId: UUID): List<DeltakerHistorikk> = performGet("deltaker/$deltakerId/historikk")
-        .failIfNotSuccess("Fant ikke deltakerhistorikk for $deltakerId i amt-deltaker.")
-        .body()
-
     suspend fun getDeltakerHistorikkData(deltakerId: UUID): DeltakerHistorikkData {
-        val response = performGet("deltaker/$deltakerId/historikk-data")
+        val response = performGet("deltaker/$deltakerId/historikk")
             .failIfNotSuccess("Fant ikke historikkdata for $deltakerId i amt-deltaker.")
             .body<DeltakerHistorikkDataResponse>()
         return DeltakerHistorikkData(

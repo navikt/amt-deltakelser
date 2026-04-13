@@ -178,8 +178,8 @@ fun Routing.registerVeilederApi(
             call.respond(deltakerResponse)
         }
 
-        // henter deltakerhistorikk via amtDeltakerClient.getDeltakerHistorikk når
-        // prioriterSynkronKommunikasjon-toggle er aktiv, ellers brukes lokal historikk fra deltaker
+        // henter all historikkdata fra amt-deltaker når prioriterSynkronKommunikasjon-toggle er aktiv,
+        // ellers brukes lokal historikk fra deltaker
         get("/deltaker/{deltakerId}/historikk") {
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
             tilgangskontrollService.verifiserLesetilgang(

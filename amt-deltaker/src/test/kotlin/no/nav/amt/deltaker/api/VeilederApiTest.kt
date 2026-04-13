@@ -46,7 +46,6 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -65,8 +64,6 @@ class VeilederApiTest : IntegrationTestBase() {
             client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe
                 HttpStatusCode.Unauthorized
             client.get("/deltaker/${UUID.randomUUID()}/historikk").status shouldBe
-                HttpStatusCode.Unauthorized
-            client.get("/deltaker/${UUID.randomUUID()}/historikk-data").status shouldBe
                 HttpStatusCode.Unauthorized
         }
     }
@@ -361,31 +358,6 @@ class VeilederApiTest : IntegrationTestBase() {
 
     @Test
     fun `get historikk - har tilgang - returnerer 200`() {
-        val deltakerId = UUID.randomUUID()
-        val historikk = listOf(
-            DeltakerHistorikk.Endring(
-                TestData.lagDeltakerEndring(deltakerId = deltakerId),
-            ),
-        )
-
-        every { deltakerHistorikkService.getForDeltaker(deltakerId) } returns historikk
-
-        withTestApplicationContext { client ->
-            val response = client.get("/deltaker/$deltakerId/historikk") {
-                noBodyRequest()
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(historikk)
-        }
-
-        verify(exactly = 1) {
-            deltakerHistorikkService.getForDeltaker(deltakerId)
-        }
-    }
-
-    @Test
-    fun `get historikk-data - har tilgang - returnerer 200`() {
         val arrangor = lagArrangor()
         val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
         val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
@@ -400,7 +372,7 @@ class VeilederApiTest : IntegrationTestBase() {
         every { arrangorRepository.get(arrangor.id) } returns arrangor
 
         withTestApplicationContext { client ->
-            val response = client.get("/deltaker/${deltaker.id}/historikk-data") {
+            val response = client.get("/deltaker/${deltaker.id}/historikk") {
                 noBodyRequest()
             }
 
@@ -413,7 +385,6 @@ class VeilederApiTest : IntegrationTestBase() {
             body.enheter shouldBe navEnheter
         }
     }
-
 
     private fun runEndringTest(
         request: EndringRequest,
