@@ -24,7 +24,6 @@ import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import java.time.ZonedDateTime
-import java.util.UUID
 
 fun Routing.registerVeilederApi(
     deltakerRepository: DeltakerRepository,
@@ -91,16 +90,6 @@ fun Routing.registerVeilederApi(
             )
 
             call.respond(HttpStatusCode.OK)
-        }
-
-        post("/nav-ansatt/many") {
-            val ider = call.receive<List<UUID>>()
-            call.respond(navAnsattService.getMany(ider.toSet()))
-        }
-
-        post("/nav-enhet/many") {
-            val ider = call.receive<List<UUID>>()
-            call.respond(navEnhetService.getEnheter(ider.toSet()).values.toList())
         }
     }
 }

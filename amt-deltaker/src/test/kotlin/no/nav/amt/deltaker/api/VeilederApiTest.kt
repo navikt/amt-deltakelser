@@ -68,10 +68,6 @@ class VeilederApiTest : IntegrationTestBase() {
                 HttpStatusCode.Unauthorized
             client.get("/deltaker/${UUID.randomUUID()}/historikk-data").status shouldBe
                 HttpStatusCode.Unauthorized
-            client.post("/nav-ansatt/many") { setBody("[]") }.status shouldBe
-                HttpStatusCode.Unauthorized
-            client.post("/nav-enhet/many") { setBody("[]") }.status shouldBe
-                HttpStatusCode.Unauthorized
         }
     }
 
@@ -418,37 +414,6 @@ class VeilederApiTest : IntegrationTestBase() {
         }
     }
 
-    @Test
-    fun `post nav-ansatt many - har tilgang - returnerer liste med nav-ansatte`() {
-        val navAnsatt1 = lagNavAnsatt()
-        val navAnsatt2 = lagNavAnsatt()
-        val ider = listOf(navAnsatt1.id, navAnsatt2.id)
-
-        every { navAnsattRepository.getManyById(ider.toSet()) } returns listOf(navAnsatt1, navAnsatt2)
-
-        withTestApplicationContext { client ->
-            val response = client.post("/nav-ansatt/many") { postRequest(ider) }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(navAnsatt1, navAnsatt2))
-        }
-    }
-
-    @Test
-    fun `post nav-enhet many - har tilgang - returnerer liste med nav-enheter`() {
-        val navEnhet1 = lagNavEnhet()
-        val navEnhet2 = lagNavEnhet()
-        val ider = listOf(navEnhet1.id, navEnhet2.id)
-
-        every { navEnhetRepository.getMany(ider.toSet()) } returns listOf(navEnhet1, navEnhet2)
-
-        withTestApplicationContext { client ->
-            val response = client.post("/nav-enhet/many") { postRequest(ider) }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(navEnhet1, navEnhet2))
-        }
-    }
 
     private fun runEndringTest(
         request: EndringRequest,
