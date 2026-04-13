@@ -335,33 +335,41 @@ class DeltakerService(
     }
 
     suspend fun oppdaterDeltakerStatuser() {
-        fun getDeltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
+        val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository
             .getDeltakereHvorSluttdatoHarPassert()
             .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
             .distinct()
 
-        fun getDeltakereSomSkalHaStatusDeltar() = deltakerRepository
-            .skalHaStatusDeltar()
-            .distinct()
-
         Database.transaction {
-            avsluttDeltakere(getDeltakereSomSkalHaAvsluttendeStatus())
+            // avsluttDeltakere burde ha mer finkornede transaksjoner
+            avsluttDeltakere(deltakereSomSkalHaAvsluttendeStatus)
+        }
 
-            DeltakerProgresjonHandler
-                .tilDeltar(getDeltakereSomSkalHaStatusDeltar())
-                .forEach { deltaker ->
+        val deltakereMedStatusDeltar = deltakerRepository.skalHaStatusDeltar().distinct()
+
+        var antallOppdatert = 0
+        deltakereMedStatusDeltar.forEach { deltaker ->
+            runCatching {
+                Database.transaction {
+                    val oppdatertDeltaker = deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR))
+
                     // kun status er endret, skipper upsert av deltaker
-                    val nyStatus = deltaker.status.copy(gyldigFra = LocalDateTime.now())
                     lagreDeltakerStatus(
-                        deltakerId = deltaker.id,
-                        nyDeltakerStatus = nyStatus,
+                        deltakerId = oppdatertDeltaker.id,
+                        nyDeltakerStatus = oppdatertDeltaker.status,
                         erDeltakerSluttdatoEndret = true,
                     )
-                    // henter oppdatert deltaker fra db før publisering på Kafka
-                    val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+
                     deltakerProducerService.produce(oppdatertDeltaker)
                 }
+            }.onSuccess {
+                antallOppdatert++
+            }.onFailure { e ->
+                log.error("Feil ved oppdatering av deltaker ${deltaker.id} til DELTAR", e)
+            }
         }
+
+        log.info("Endret status til DELTAR for $antallOppdatert av ${deltakereMedStatusDeltar.size}")
     }
 
     fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {

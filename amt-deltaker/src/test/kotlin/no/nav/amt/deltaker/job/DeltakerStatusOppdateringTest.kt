@@ -6,14 +6,21 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC
+import no.nav.amt.deltaker.Environment.Companion.DELTAKER_V1_TOPIC
+import no.nav.amt.deltaker.Environment.Companion.DELTAKER_V2_TOPIC
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerEksternV1Dto
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
+import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -394,5 +401,83 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         }
 
         outboxService.assertProducedHendelse<HendelseType.AvbrytUtkast>(deltaker.id)
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - startdato er passert - publiserer til kafka`() = runTest {
+        // Arrange
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().minusDays(1),
+            sluttdato = LocalDate.now().plusWeeks(2),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+        )
+        TestRepository.insert(deltaker, vedtak)
+
+        // Act
+        deltakerService.oppdaterDeltakerStatuser()
+
+        // Assert
+        outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, DELTAKER_V2_TOPIC)
+        outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, DELTAKER_V1_TOPIC)
+        outboxService.assertProduced<DeltakerEksternV1Dto>(deltaker.id, DELTAKER_EKSTERN_V1_TOPIC)
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - feil for en deltaker - oppdaterer de andre`() = runTest {
+        // Arrange
+        val deltaker1 = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().minusDays(1),
+            sluttdato = LocalDate.now().plusWeeks(2),
+        )
+        val vedtak1 = lagVedtak(
+            deltakerId = deltaker1.id,
+            deltakerVedVedtak = deltaker1,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+        )
+        TestRepository.insert(deltaker1, vedtak1)
+
+        val deltaker2 = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().minusDays(1),
+            sluttdato = LocalDate.now().plusWeeks(2),
+        )
+        val vedtak2 = lagVedtak(
+            deltakerId = deltaker2.id,
+            deltakerVedVedtak = deltaker2,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+        )
+        TestRepository.insert(deltaker2, vedtak2)
+
+        every {
+            outboxService.insertRecord(
+                key = deltaker1.id,
+                value = any(),
+                topic = any(),
+                suppressOutsideTxWarning = any(),
+            )
+        } throws RuntimeException("Simulert feil for deltaker1")
+
+        // Act
+        deltakerService.oppdaterDeltakerStatuser()
+
+        // Assert
+        deltakerRepository
+            .get(deltaker2.id)
+            .shouldBeSuccess()
+            .status.type shouldBe DeltakerStatus.Type.DELTAR
+
+        deltakerRepository
+            .get(deltaker1.id)
+            .shouldBeSuccess()
+            .status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
     }
 }

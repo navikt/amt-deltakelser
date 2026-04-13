@@ -51,10 +51,6 @@ object DeltakerProgresjonHandler {
         return deltakerEndringsUtfall
     }
 
-    fun tilDeltar(deltakere: List<Deltaker>): List<Deltaker> = deltakere
-        .map { deltaker -> deltaker.medNyStatus(DeltakerStatus.Type.DELTAR) }
-        .also { log.info("Endret status til DELTAR for ${deltakere.size}") }
-
     private fun getDeltakereSomSkalFullfores(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
