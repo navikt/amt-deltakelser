@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":amt-felles:ktor"))
     implementation(project(":amt-lib:models"))
     implementation(project(":amt-lib:utils"))
     testImplementation(project(":amt-lib:testing"))
