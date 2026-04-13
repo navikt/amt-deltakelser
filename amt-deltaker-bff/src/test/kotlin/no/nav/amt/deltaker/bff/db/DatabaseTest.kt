@@ -1,9 +1,9 @@
-package no.nav.amt.lib.utils
+package no.nav.amt.deltaker.bff.db
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class ToPGObjectTest {
+class DatabaseTest {
     @Test
     fun `toPGObject - value er null - skal skrive null ikke en string`() {
         val value: String? = null
