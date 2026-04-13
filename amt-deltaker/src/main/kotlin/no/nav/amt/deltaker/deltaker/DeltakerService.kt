@@ -350,17 +350,21 @@ class DeltakerService(
         val deltakereMedStatusDeltar = deltakerRepository.skalHaStatusDeltar().distinct()
 
         deltakereMedStatusDeltar.forEach { deltaker ->
-            Database.transaction {
-                val oppdatertDeltaker = deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            runCatching {
+                Database.transaction {
+                    val oppdatertDeltaker = deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR))
 
-                // kun status er endret, skipper upsert av deltaker
-                lagreDeltakerStatus(
-                    deltakerId = oppdatertDeltaker.id,
-                    nyDeltakerStatus = oppdatertDeltaker.status,
-                    erDeltakerSluttdatoEndret = true,
-                )
+                    // kun status er endret, skipper upsert av deltaker
+                    lagreDeltakerStatus(
+                        deltakerId = oppdatertDeltaker.id,
+                        nyDeltakerStatus = oppdatertDeltaker.status,
+                        erDeltakerSluttdatoEndret = true,
+                    )
 
-                deltakerProducerService.produce(oppdatertDeltaker)
+                    deltakerProducerService.produce(oppdatertDeltaker)
+                }
+            }.onFailure { e ->
+                log.error("Feil ved oppdatering av deltaker ${deltaker.id} til DELTAR", e)
             }
         }
 
