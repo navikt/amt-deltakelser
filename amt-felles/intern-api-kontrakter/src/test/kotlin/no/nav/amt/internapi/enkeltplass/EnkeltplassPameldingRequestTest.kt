@@ -5,6 +5,7 @@ package no.nav.amt.internapi.enkeltplass
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class EnkeltplassPameldingRequestTest {
     @Test
@@ -17,8 +18,8 @@ class EnkeltplassPameldingRequestTest {
             beskrivelse = longString,
             prisinformasjon = longString,
             arrangorUnderenhet = longString,
-            startdato = null,
-            sluttdato = null,
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         ).sanitized()
 
         // Assert
