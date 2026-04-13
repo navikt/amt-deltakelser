@@ -349,6 +349,7 @@ class DeltakerService(
 
         val deltakereMedStatusDeltar = deltakerRepository.skalHaStatusDeltar().distinct()
 
+        var antallOppdatert = 0
         deltakereMedStatusDeltar.forEach { deltaker ->
             runCatching {
                 Database.transaction {
@@ -363,12 +364,14 @@ class DeltakerService(
 
                     deltakerProducerService.produce(oppdatertDeltaker)
                 }
+            }.onSuccess {
+                antallOppdatert++
             }.onFailure { e ->
                 log.error("Feil ved oppdatering av deltaker ${deltaker.id} til DELTAR", e)
             }
         }
 
-        log.info("Endret status til DELTAR for ${deltakereMedStatusDeltar.size}")
+        log.info("Endret status til DELTAR for $antallOppdatert av ${deltakereMedStatusDeltar.size}")
     }
 
     fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
