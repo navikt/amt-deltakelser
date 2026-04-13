@@ -340,12 +340,6 @@ class DeltakerService(
             .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
             .distinct()
 
-        fun getDeltakereMedStatusDeltar(): List<Deltaker> = deltakerRepository
-            .skalHaStatusDeltar()
-            .distinct()
-            .map { deltaker -> deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR)) }
-            .also { log.info("Endret status til DELTAR for ${it.size}") }
-
         val deltakereSomSkalHaAvsluttendeStatus = getDeltakereSomSkalHaAvsluttendeStatus()
 
         Database.transaction {
@@ -353,18 +347,24 @@ class DeltakerService(
             avsluttDeltakere(deltakereSomSkalHaAvsluttendeStatus)
         }
 
-        getDeltakereMedStatusDeltar().forEach { deltaker ->
+        val deltakereMedStatusDeltar = deltakerRepository.skalHaStatusDeltar().distinct()
+
+        deltakereMedStatusDeltar.forEach { deltaker ->
             Database.transaction {
+                val oppdatertDeltaker = deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR))
+
                 // kun status er endret, skipper upsert av deltaker
                 lagreDeltakerStatus(
-                    deltakerId = deltaker.id,
-                    nyDeltakerStatus = deltaker.status,
+                    deltakerId = oppdatertDeltaker.id,
+                    nyDeltakerStatus = oppdatertDeltaker.status,
                     erDeltakerSluttdatoEndret = true,
                 )
 
-                deltakerProducerService.produce(deltaker)
+                deltakerProducerService.produce(oppdatertDeltaker)
             }
         }
+
+        log.info("Endret status til DELTAR for ${deltakereMedStatusDeltar.size}")
     }
 
     fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
