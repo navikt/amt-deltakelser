@@ -120,7 +120,7 @@ class AuthenticationTest {
 
     private fun Application.setUpTestRoute() {
         routing {
-            authenticate("VEILEDER") {
+            authenticate(AuthLevel.VEILEDER.name) {
                 get("/fnr/{fnr}") {
                     val norskIdent = call.parameters["fnr"]!!
                     tilgangskontrollService.verifiserLesetilgang(call.getNavAnsattAzureId(), norskIdent)
