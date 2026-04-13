@@ -17,7 +17,6 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
-import no.nav.amt.deltaker.job.DeltakerProgresjonHandler.medNyStatus
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
@@ -344,7 +343,7 @@ class DeltakerService(
         fun getDeltakereMedStatusDeltar(): List<Deltaker> = deltakerRepository
             .skalHaStatusDeltar()
             .distinct()
-            .map { deltaker -> deltaker.medNyStatus(DeltakerStatus.Type.DELTAR) }
+            .map { deltaker -> deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR)) }
             .also { log.info("Endret status til DELTAR for ${it.size}") }
 
         val deltakereSomSkalHaAvsluttendeStatus = getDeltakereSomSkalHaAvsluttendeStatus()

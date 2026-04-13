@@ -147,7 +147,7 @@ object DeltakerProgresjonHandler {
         null
     }
 
-    fun Deltaker.medNyStatus(
+    private fun Deltaker.medNyStatus(
         status: DeltakerStatus.Type,
         aarsak: DeltakerStatus.Aarsak? = null,
     ) = this.copy(
