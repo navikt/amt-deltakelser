@@ -5,6 +5,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class EnkeltplassPameldingRequestTest {
     @Test
@@ -13,6 +14,8 @@ class EnkeltplassPameldingRequestTest {
             beskrivelse = "",
             prisinformasjon = "",
             arrangorUnderenhet = "",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         )
 
         assertInvalidResult(request.validate(), "Beskrivelse kan ikke være tom")
@@ -24,6 +27,8 @@ class EnkeltplassPameldingRequestTest {
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "",
             arrangorUnderenhet = "",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         )
 
         assertInvalidResult(request.validate(), "Prisinformasjon kan ikke være tom")
@@ -35,6 +40,8 @@ class EnkeltplassPameldingRequestTest {
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
             arrangorUnderenhet = "",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         )
 
         assertInvalidResult(request.validate(), "Arrangør orgnummer kan ikke være tom")
@@ -46,6 +53,8 @@ class EnkeltplassPameldingRequestTest {
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
             arrangorUnderenhet = "abc",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         )
 
         assertInvalidResult(request.validate(), "Organisasjonsnummeret må starte med 8 eller 9 og inneholde 9 siffer")
@@ -57,6 +66,8 @@ class EnkeltplassPameldingRequestTest {
             beskrivelse = "~beskrivelse~",
             prisinformasjon = "~prisinfo~",
             arrangorUnderenhet = "987654321",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         )
 
         request.validate().shouldBeInstanceOf<ValidationResult.Valid>()

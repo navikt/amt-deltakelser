@@ -37,6 +37,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 class EnkeltplassServiceTest : IntegrationTestBase() {
@@ -191,6 +192,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654322",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         )
 
         private val navEnhetInTest = lagNavEnhet(enhetsnummer = "1234")

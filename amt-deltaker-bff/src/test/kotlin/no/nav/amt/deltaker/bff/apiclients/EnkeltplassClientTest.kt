@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -104,8 +105,8 @@ class EnkeltplassClientTest {
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654321",
-            startdato = null,
-            sluttdato = null,
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -194,6 +195,8 @@ class EnkeltplassClientTest {
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654322",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(

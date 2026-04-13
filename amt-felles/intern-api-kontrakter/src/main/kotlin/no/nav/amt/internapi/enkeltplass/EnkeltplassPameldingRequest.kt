@@ -6,8 +6,8 @@ data class EnkeltplassPameldingRequest(
     val beskrivelse: String,
     val prisinformasjon: String,
     val arrangorUnderenhet: String,
-    val startdato: LocalDate? = null,
-    val sluttdato: LocalDate? = null,
+    val startdato: LocalDate,
+    val sluttdato: LocalDate,
 ) {
     fun sanitized() = copy(
         beskrivelse = beskrivelse.sanitizeBeskrivelse(),
