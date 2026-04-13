@@ -29,7 +29,7 @@ fun Application.configureRouting(
             call.respondText(text = "400: ${cause.message}", status = HttpStatusCode.BadRequest)
         }
         exception<AuthenticationException> { call, cause ->
-            StatusPageLogger.log(HttpStatusCode.Forbidden, call, cause)
+            StatusPageLogger.log(HttpStatusCode.Unauthorized, call, cause)
             call.respondText(text = "401: ${cause.message}", status = HttpStatusCode.Unauthorized)
         }
         exception<AuthorizationException> { call, cause ->
