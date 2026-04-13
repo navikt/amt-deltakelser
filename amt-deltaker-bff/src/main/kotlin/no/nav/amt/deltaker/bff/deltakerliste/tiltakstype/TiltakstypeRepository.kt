@@ -3,12 +3,12 @@ package no.nav.amt.deltaker.bff.deltakerliste.tiltakstype
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.deltaker.bff.db.toPGObject
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.toPGObject
 import org.slf4j.LoggerFactory
 
 class TiltakstypeRepository {
