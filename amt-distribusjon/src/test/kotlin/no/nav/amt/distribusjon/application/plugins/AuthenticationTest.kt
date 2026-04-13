@@ -48,6 +48,17 @@ class AuthenticationTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `skal returnere Unauthorized naar azp-claim mangler i token ved POST til digital`() {
+        val response = performPost(
+            bearerToken = generateJWT(
+                audience = "amt-distribusjon",
+            ),
+        )
+
+        response.status shouldBe HttpStatusCode.Unauthorized
+    }
+
+    @Test
     fun `skal returnere Unauthorized naar azp ikke finnes i preauthorized-apps ved POST til digital`() {
         val response = performPost(
             bearerToken = generateJWT(
