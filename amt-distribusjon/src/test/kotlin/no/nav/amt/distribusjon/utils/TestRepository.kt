@@ -2,8 +2,8 @@ package no.nav.amt.distribusjon.utils
 
 import kotliquery.queryOf
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
-import no.nav.amt.distribusjon.utils.DbUtils.toPGObject
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.toPGObject
 
 object TestRepository {
     fun insertHendelse(hendelse: Hendelse) {

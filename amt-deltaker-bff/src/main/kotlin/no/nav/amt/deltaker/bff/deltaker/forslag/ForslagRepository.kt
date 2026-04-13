@@ -3,10 +3,10 @@ package no.nav.amt.deltaker.bff.deltaker.forslag
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.bff.db.toPGObject
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

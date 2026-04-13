@@ -7,10 +7,10 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
 import no.nav.amt.deltaker.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import java.util.UUID
 
 object DeltakerStatusRepository {

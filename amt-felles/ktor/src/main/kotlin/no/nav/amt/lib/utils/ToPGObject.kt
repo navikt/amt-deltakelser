@@ -1,7 +1,5 @@
-package no.nav.amt.deltaker.bff.db
+package no.nav.amt.lib.utils
 
-import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.postgresql.util.PGobject
 
 inline fun <reified T> toPGObject(value: T?) = PGobject().also {
