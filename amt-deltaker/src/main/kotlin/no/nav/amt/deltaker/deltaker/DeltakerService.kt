@@ -335,12 +335,10 @@ class DeltakerService(
     }
 
     suspend fun oppdaterDeltakerStatuser() {
-        fun getDeltakereSomSkalHaAvsluttendeStatus(): List<Deltaker> = deltakerRepository
+        val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository
             .getDeltakereHvorSluttdatoHarPassert()
             .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
             .distinct()
-
-        val deltakereSomSkalHaAvsluttendeStatus = getDeltakereSomSkalHaAvsluttendeStatus()
 
         Database.transaction {
             // avsluttDeltakere burde ha mer finkornede transaksjoner
