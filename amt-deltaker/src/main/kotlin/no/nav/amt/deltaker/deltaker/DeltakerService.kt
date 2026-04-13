@@ -351,9 +351,10 @@ class DeltakerService(
                 .tilDeltar(getDeltakereSomSkalHaStatusDeltar())
                 .forEach { deltaker ->
                     // kun status er endret, skipper upsert av deltaker
+                    val nyStatus = deltaker.status.copy(gyldigFra = LocalDateTime.now())
                     lagreDeltakerStatus(
                         deltakerId = deltaker.id,
-                        nyDeltakerStatus = deltaker.status,
+                        nyDeltakerStatus = nyStatus,
                         erDeltakerSluttdatoEndret = true,
                     )
                     // henter oppdatert deltaker fra db før publisering på Kafka
@@ -368,10 +369,11 @@ class DeltakerService(
             .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes)
             .map { oppdaterVedtakForAvbruttUtkast(it) }
             .forEach { deltaker ->
+                val nyStatus = deltaker.status.copy(gyldigFra = LocalDateTime.now())
                 deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()))
                 lagreDeltakerStatus(
                     deltakerId = deltaker.id,
-                    nyDeltakerStatus = deltaker.status,
+                    nyDeltakerStatus = nyStatus,
                     erDeltakerSluttdatoEndret = true,
                 )
 
