@@ -92,7 +92,6 @@ class DeltakerlisteConsumerTest {
         ),
         navEnhetService = navEnhetService,
         paameldingClient = mockk(relaxed = true),
-        amtDeltakerClient = mockk(relaxed = true),
     )
 
     private val consumer = DeltakerlisteConsumer(

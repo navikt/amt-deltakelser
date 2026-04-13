@@ -73,7 +73,6 @@ class TestdataServiceTest {
         ),
         navEnhetService = navEnhetService,
         paameldingClient = paameldingClient,
-        amtDeltakerClient = mockk(relaxed = true),
     )
     private val arrangorMeldingProducer = mockk<ArrangorMeldingProducer>(relaxed = true)
     private val testdataService = TestdataService(
