@@ -13,7 +13,8 @@ data class DeltakerlisteResponse(
     val deltakerlisteId: UUID,
     val deltakerlisteNavn: String,
     val tiltakskode: Tiltakskode,
-    val arrangorNavn: String,
+    val arrangorNavn: String, // skal fjernes
+    val arrangor: ArrangorResponse?,
     val oppstartstype: Oppstartstype?,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
@@ -24,13 +25,24 @@ data class DeltakerlisteResponse(
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
 ) {
+    data class ArrangorResponse(
+        val navn: String,
+        val organisasjonsnummer: String,
+    )
+
     companion object {
         fun fromModel(gjennomforingModel: GjennomforingModel) = with(gjennomforingModel) {
             DeltakerlisteResponse(
                 deltakerlisteId = id,
                 deltakerlisteNavn = navn,
                 tiltakskode = tiltak.tiltakskode,
-                arrangorNavn = arrangor?.navn ?: "Ukjent arrangør",
+                arrangorNavn = arrangor?.navn ?: "Ukjent arrangør", // skal fjernes
+                arrangor = arrangor?.let {
+                    ArrangorResponse(
+                        navn = it.navn,
+                        organisasjonsnummer = it.organisasjonsnummer,
+                    )
+                },
                 oppstartstype = oppstart,
                 startdato = startDato,
                 sluttdato = sluttDato,

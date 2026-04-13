@@ -72,7 +72,10 @@ class ModelMapper {
             )
         }
 
-        internal fun toArrangor(arrangorResponse: ArrangorResponse) = ArrangorModel(arrangorResponse.navn)
+        internal fun toArrangor(arrangorResponse: ArrangorResponse) = ArrangorModel(
+            navn = arrangorResponse.navn,
+            organisasjonsnummer = arrangorResponse.organisasjonsnummer,
+        )
 
         internal fun toVedtaksinformasjon(vedtaksinformasjonResponse: VedtaksinformasjonResponse) = with(vedtaksinformasjonResponse) {
             VedtaksinformasjonModel(

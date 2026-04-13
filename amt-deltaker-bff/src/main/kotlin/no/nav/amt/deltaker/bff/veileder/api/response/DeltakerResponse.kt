@@ -62,6 +62,10 @@ data class DeltakerResponse(
                     deltakerlisteNavn = deltakerliste.navn,
                     tiltakskode = deltakerliste.tiltak.tiltakskode,
                     arrangorNavn = deltakerliste.arrangor.getArrangorNavn(),
+                    arrangor = DeltakerlisteResponse.ArrangorResponse(
+                        navn = deltakerliste.arrangor.getArrangorNavn(),
+                        organisasjonsnummer = deltakerliste.arrangor.arrangor.organisasjonsnummer,
+                    ),
                     oppstartstype = deltakerliste.oppstart,
                     startdato = deltakerliste.startDato,
                     sluttdato = deltakerliste.sluttDato,
