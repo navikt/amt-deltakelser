@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
+import no.nav.amt.deltaker.job.DeltakerProgresjonHandler.medNyStatus
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
@@ -335,32 +336,35 @@ class DeltakerService(
     }
 
     suspend fun oppdaterDeltakerStatuser() {
-        fun getDeltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
+        fun getDeltakereSomSkalHaAvsluttendeStatus(): List<Deltaker> = deltakerRepository
             .getDeltakereHvorSluttdatoHarPassert()
             .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
             .distinct()
 
-        fun getDeltakereSomSkalHaStatusDeltar() = deltakerRepository
+        fun getDeltakereMedStatusDeltar(): List<Deltaker> = deltakerRepository
             .skalHaStatusDeltar()
             .distinct()
+            .map { deltaker -> deltaker.medNyStatus(DeltakerStatus.Type.DELTAR) }
+            .also { log.info("Endret status til DELTAR for ${it.size}") }
+
+        val deltakereSomSkalHaAvsluttendeStatus = getDeltakereSomSkalHaAvsluttendeStatus()
 
         Database.transaction {
-            avsluttDeltakere(getDeltakereSomSkalHaAvsluttendeStatus())
+            // avsluttDeltakere burde ha mer finkornede transaksjoner
+            avsluttDeltakere(deltakereSomSkalHaAvsluttendeStatus)
+        }
 
-            DeltakerProgresjonHandler
-                .tilDeltar(getDeltakereSomSkalHaStatusDeltar())
-                .forEach { deltaker ->
-                    // kun status er endret, skipper upsert av deltaker
-                    val nyStatus = deltaker.status.copy(gyldigFra = LocalDateTime.now())
-                    lagreDeltakerStatus(
-                        deltakerId = deltaker.id,
-                        nyDeltakerStatus = nyStatus,
-                        erDeltakerSluttdatoEndret = true,
-                    )
-                    // henter oppdatert deltaker fra db før publisering på Kafka
-                    val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-                    deltakerProducerService.produce(oppdatertDeltaker)
-                }
+        getDeltakereMedStatusDeltar().forEach { deltaker ->
+            Database.transaction {
+                // kun status er endret, skipper upsert av deltaker
+                lagreDeltakerStatus(
+                    deltakerId = deltaker.id,
+                    nyDeltakerStatus = deltaker.status,
+                    erDeltakerSluttdatoEndret = true,
+                )
+
+                deltakerProducerService.produce(deltaker)
+            }
         }
     }
 
