@@ -54,12 +54,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: List resource files
+        run: echo "RESOURCE_FILES=$(find amt-iac/${{ matrix.iac_folder }} -type f -name '*.yaml' -printf '%p,' | sed 's/,$//')" >> $GITHUB_ENV
+
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ endsWith(matrix.iac_folder, '/dev') }}
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: dev-gcp
-          RESOURCE: amt-iac/${{ matrix.iac_folder }}/*.yaml
+          RESOURCE: ${{ env.RESOURCE_FILES }}
           PRINT_PAYLOAD: true
 
       - name: Deploy ${{ matrix.iac_folder }}
@@ -67,5 +70,5 @@ jobs:
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
-          RESOURCE: amt-iac/${{ matrix.iac_folder }}/*.yaml
+          RESOURCE: ${{ env.RESOURCE_FILES }}
           PRINT_PAYLOAD: true
