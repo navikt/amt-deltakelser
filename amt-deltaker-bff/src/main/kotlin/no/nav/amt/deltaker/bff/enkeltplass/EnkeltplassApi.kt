@@ -10,6 +10,7 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.apiclients.ModelMapper
+import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
@@ -26,7 +27,7 @@ fun Routing.registerEnkeltplassApi(
     enkeltplassClient: EnkeltplassClient,
     tilgangskontrollService: TilgangskontrollService,
 ) {
-    authenticate("VEILEDER") {
+    authenticate(AuthLevel.VEILEDER.name) {
         route("/enkeltplass") {
             /*
             Oppretter kladd for en enkeltplass deltaker.

@@ -7,6 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
+import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
@@ -46,7 +47,7 @@ fun Routing.registerPameldingApi(
         forslag = forslageRepository.getForDeltaker(deltaker.id),
     )
 
-    authenticate("VEILEDER") {
+    authenticate(AuthLevel.VEILEDER.name) {
         /*
             Oppretter/endrer utkast for en deltaker.
             Handling: "Del utkast"
