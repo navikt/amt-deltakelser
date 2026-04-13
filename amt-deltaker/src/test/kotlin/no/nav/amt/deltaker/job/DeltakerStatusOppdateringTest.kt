@@ -411,7 +411,13 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             startdato = LocalDate.now().minusDays(1),
             sluttdato = LocalDate.now().plusWeeks(2),
         )
-        TestRepository.insert(deltaker)
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+        )
+        TestRepository.insert(deltaker, vedtak)
 
         // Act
         deltakerService.oppdaterDeltakerStatuser()
@@ -430,13 +436,26 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             startdato = LocalDate.now().minusDays(1),
             sluttdato = LocalDate.now().plusWeeks(2),
         )
+        val vedtak1 = lagVedtak(
+            deltakerId = deltaker1.id,
+            deltakerVedVedtak = deltaker1,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+        )
+        TestRepository.insert(deltaker1, vedtak1)
+
         val deltaker2 = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().minusDays(1),
             sluttdato = LocalDate.now().plusWeeks(2),
         )
-        TestRepository.insert(deltaker1)
-        TestRepository.insert(deltaker2)
+        val vedtak2 = lagVedtak(
+            deltakerId = deltaker2.id,
+            deltakerVedVedtak = deltaker2,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+        )
+        TestRepository.insert(deltaker2, vedtak2)
 
         every {
             outboxService.insertRecord(
@@ -451,7 +470,14 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        deltakerRepository.get(deltaker2.id).shouldBeSuccess().status.type shouldBe DeltakerStatus.Type.DELTAR
-        deltakerRepository.get(deltaker1.id).shouldBeSuccess().status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        deltakerRepository
+            .get(deltaker2.id)
+            .shouldBeSuccess()
+            .status.type shouldBe DeltakerStatus.Type.DELTAR
+
+        deltakerRepository
+            .get(deltaker1.id)
+            .shouldBeSuccess()
+            .status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
     }
 }
