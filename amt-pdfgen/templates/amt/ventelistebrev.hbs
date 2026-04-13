@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="description" content="Vedtak om tiltak"/>
+    <meta name="author" content="amt-pdfgen"/>
+    <meta name="subject" content="Vedtak"/>
+
+    {{#block 'amt/style' }}
+    {{/block}}
+
+    <title>Du er satt på venteliste</title>
+
+</head>
+<body>
+<div id="footer">
+    <span class="sidetall">Side <span id="pagenumber"></span> av <span id="pagecount"></span></span>
+</div>
+{{> sections/header}}
+<main>
+    <h1>Endring: {{this.deltakerliste.tittelNavn}}</h1>
+    <p>Du ble søkt inn på arbeidsmarkedstiltaket: {{this.deltakerliste.ingressNavn}} den {{iso_to_long_date
+            this.deltaker.opprettetDato}}, og deltakelsen er nå endret. </p>
+    <section>
+        <h2>Du er satt på venteliste</h2>
+        <p>
+            Hvis det blir en ledig plass, vil Nav eller arrangøren ta kontakt med deg for å avtale når du skal begynne.
+        </p>
+
+        {{#eq this.deltakerliste.oppstartstype "FELLES"}}
+            {{> sections/kurs-oppstartsdato }}
+            <br/>
+            <p>Ledige plasser kan dukke opp etter den vanlige oppstartsdatoen. Hvis det blir en ledig plass ber vi om at
+                du er tilgjengelig på kort varsel.</p>
+        {{/eq}}
+
+        {{> sections/oppmote-sted }}
+
+        <p class="margins-1-rem">
+            Hvis du ikke får plass, vil søknaden avslås.
+        </p>
+    </section>
+    {{> sections/sporsmal}}
+
+    {{> sections/avsender}}
+</main>
+</body>
+</html>

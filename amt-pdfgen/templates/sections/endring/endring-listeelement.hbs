@@ -1,0 +1,85 @@
+<section>
+    <h2>{{this.tittel}}</h2>
+    {{#if this.gyldigFra}}
+        <p>Endringen gjelder fra: {{iso_to_nor_date this.gyldigFra}}</p>
+    {{/if}}
+
+    {{#if this.aarsak}}
+        <p>Årsak: {{this.aarsak}}</p>
+    {{/if}}
+
+    {{#if this.endringFraArrangor}}
+
+        {{#if this.sluttdatoFraArrangor}}
+            <p>Forventet sluttdato: {{iso_to_nor_date this.sluttdatoFraArrangor}}</p>
+        {{/if}}
+
+        <p>Endret {{iso_to_nor_date vedtaksdato}} av {{deltakerliste.arrangor.navn}}</p>
+    {{/if}}
+
+    {{#if this.sluttdato}}
+        <p>{{this.sluttdato}}</p>
+    {{/if}}
+
+    {{#if this.begrunnelseFraNav}}
+        <p>Nav sin begrunnelse: {{this.begrunnelseFraNav}}</p>
+    {{/if}}
+
+    {{#if this.harDeltatt}}
+        <p>Har personen deltatt? {{this.harDeltatt}}</p>
+    {{/if}}
+
+    {{#if this.harFullfort}}
+        <p>Er kurset fullført? {{this.harFullfort}}</p>
+    {{/if}}
+
+    {{> sections/endring/vurdering }}
+    
+    {{#if this.forslagFraArrangor}}
+        <div class="forslag">
+            <p><b>Forslaget sendt fra arrangør:</b></p>
+            <p>{{this.forslagFraArrangor.type}}</p>
+            {{#if this.forslagFraArrangor.aarsak}}
+                <p>Årsak: {{this.forslagFraArrangor.aarsak}}</p>
+            {{/if}}
+            {{#if this.forslagFraArrangor.harDeltatt}}
+                <p>Har personen deltatt? {{this.forslagFraArrangor.harDeltatt}}</p>
+            {{/if}}
+            {{#if this.forslagFraArrangor.harFullfort}}
+                <p>Er kurset fullført? {{this.forslagFraArrangor.harFullfort}}</p>
+            {{/if}}
+            {{#if this.forslagFraArrangor.startdato}}
+                <p>Ny oppstartsdato: {{iso_to_nor_date this.forslagFraArrangor.startdato}}</p>
+            {{/if}}
+            {{#if this.forslagFraArrangor.sluttdato}}
+                <p>Ny sluttdato: {{iso_to_nor_date this.forslagFraArrangor.sluttdato}}</p>
+            {{/if}}
+            {{#if this.forslagFraArrangor.deltakelsesmengdeTekst}}
+                <p>Ny deltakelsesmengde: {{this.forslagFraArrangor.deltakelsesmengdeTekst}}</p>
+            {{/if}}
+            {{#if this.forslagFraArrangor.begrunnelseFraArrangor}}
+                <p class="fritekst">Begrunnelse: {{this.forslagFraArrangor.begrunnelseFraArrangor}}</p>
+            {{/if}}
+        </div>
+    {{/if}}
+
+    {{#if this.bakgrunnsinformasjon}}
+        <p class="fritekst">{{this.bakgrunnsinformasjon}}</p>
+    {{/if}}
+
+    {{#if this.innhold.length}}
+        <p>{{deltakerliste.ledetekst}}</p>
+
+        {{#if this.innholdBeskrivelse}}
+            <br />
+            <p class="fritekst">{{this.innholdBeskrivelse}}</p>
+        {{/if}}
+        {{#unless this.innholdBeskrivelse}}
+            <ul>
+                {{#each this.innhold}}
+                    <li class="fritekst">{{this}}</li>
+                {{/each}}
+            </ul>
+        {{/unless}}
+    {{/if}}
+</section>

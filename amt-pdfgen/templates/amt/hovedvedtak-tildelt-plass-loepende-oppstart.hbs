@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="description" content="Vedtak om tiltak"/>
+    <meta name="author" content="amt-pdfgen"/>
+    <meta name="subject" content="Vedtak"/>
+
+    {{#block 'amt/style' }}
+    {{/block}}
+
+    <title>Vedtak om tiltaksdeltakelse</title>
+
+</head>
+<body>
+    <div id="footer">
+        <span class="sidetall">side <span id="pagenumber"></span> av <span id="pagecount"></span></span>
+    </div>
+    {{> sections/header}}
+    <main>
+
+        {{> sections/overskrift-med-ingress-kurstiltak}}
+
+        {{> sections/om-kurset }}
+
+        {{> sections/innhold}}
+
+        {{> sections/dette-er-et-vedtak}}
+
+        {{> sections/klagerett}}
+
+        {{> sections/dette-deles-med-arrangor}}
+
+        {{> sections/sporsmal}}
+
+        {{> sections/avsender}}
+    </main>
+</body>
+</html>

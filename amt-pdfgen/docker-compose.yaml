@@ -1,0 +1,18 @@
+services:
+  amt-pdfgen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: amt-pdfgen:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./templates:/app/templates
+      - ./fonts:/app/fonts
+      - ./data:/app/data
+      - ./resources:/app/resources
+    environment:
+      DISABLE_PDF_GET: "false"
+      DEV_MODE: "true"
+      ENABLE_HTML_ENDPOINT: "true"
+      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS}

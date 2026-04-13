@@ -1,0 +1,25 @@
+{
+  "deltaker": {
+    "fornavn": "Navn",
+    "mellomnavn": null,
+    "etternavn": "Navnersen",
+    "personident": "12345678910",
+    "opprettetDato":"2025-04-04"
+  },
+  "deltakerliste": {
+    "tittelNavn": "Arbeidsmarkedsopplæring hos Muligheter AS",
+    "ingressNavn": "Sveiserkurs - Møre og romsdal DEL 1",
+    "arrangor": {
+      "navn": "Muligheter AS"
+    },
+    "startdato": "2025-05-04",
+    "sluttdato": "2026-05-04",
+    "oppmoteSted": "Dronning Frederikkes gate 66. Gå rundt hjørnet til inngang B2. Oppmøte første dagen er klokken 09:30",
+    "oppstartstype": "FELLES"
+  },
+  "avsender": {
+    "navn": "Veileder Veiledersen",
+    "enhet": "Nav Fyrstikkaleen"
+  },
+  "opprettetDato": "2025-05-06"
+}

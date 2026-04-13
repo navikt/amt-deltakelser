@@ -1,0 +1,27 @@
+{
+    "deltaker": {
+        "fornavn": "Navn",
+        "mellomnavn": null,
+        "etternavn": "Navnersen",
+        "personident": "12345678910"
+    },
+    "deltakerliste": {
+        "tiltakskode": "GRUPPE_FAG_OG_YRKESOPPLAERING",
+        "navn": "Fag- og yrkesopplæring hos Muligheter AS",
+        "ledetekst": null,
+        "arrangor": {
+            "navn": "Muligheter AS"
+        },
+        "startdato": "2025-05-04",
+        "sluttdato": "2026-05-04",
+        "oppmoteSted": "Dronning Frederikkes gate 66. Gå rundt hjørnet til inngang B2. Oppmøte første dagen er klokken 09:30"
+    },
+    "avsender": {
+        "navn": "Veileder Veiledersen",
+        "enhet": "Nav Fyrstikkaleen"
+    },
+    "sidetittel": "Fag- og yrkesopplæring hos Muligheter AS",
+    "ingressnavn": "Sveisekurs hos Muligheter AS",
+    "opprettetDato": "2024-04-30"
+
+}

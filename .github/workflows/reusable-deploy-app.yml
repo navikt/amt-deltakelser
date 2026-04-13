@@ -36,12 +36,14 @@ jobs:
 
       - name: Build artifacts
         run: |
-          GRADLE_ARGS=""
+          GRADLE_ARGS="installDist"
           
-          if [ "${{ inputs.module_path }}" != "amt-tiltaksarrangor-bff" ]; then
-            GRADLE_ARGS="installDist"
-          fi
-
+          case "${{ inputs.module_path }}" in
+            amt-tiltaksarrangor-bff|amt-pdfgen)
+            GRADLE_ARGS=""
+          ;;
+          esac
+          
           ./gradlew build \
             $GRADLE_ARGS \
             -p ${{ inputs.module_path }} \

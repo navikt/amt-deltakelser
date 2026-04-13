@@ -1,0 +1,17 @@
+<section>
+    <h2>Dette deles med arrangøren</h2>
+    <p>Nav samarbeider med {{deltakerliste.arrangor.navn}}.</p>
+    <br/>
+    <span>Dette deles:</span>
+    <ul>
+        <li>Navn og fødselsnummer</li>
+        <li>Telefonnummer og e-postadresse</li>
+        {{#if deltaker.adresseDelesMedArrangor}}
+            <li>Adresse</li>
+        {{/if}}
+        {{#not_eq deltakerliste.tiltakskode "JOBBKLUBB"}}
+            <li>Innholdet og bakgrunnsinformasjonen i påmeldingen</li>
+        {{/not_eq}}
+        <li>Navn og kontaktinformasjonen til Nav-veilederen din</li>
+    </ul>
+</section>

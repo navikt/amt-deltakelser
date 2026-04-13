@@ -1,0 +1,33 @@
+{
+  "deltaker": {
+    "fornavn": "Navn",
+    "mellomnavn": null,
+    "etternavn": "Navnersen",
+    "personident": "12345678910",
+    "innhold": {
+      "fritekstBeskrivelse": "Ola har behov for dette og dette",
+      "valgteInnholdselementer": [],
+      "ledetekst": "Du får oppfølging og støtte til jobbsøkingen. På kurset får du karriereveiledning, hjelp til å orientere deg på\narbeidsmarkedet, skrive CV og jobbsøknad og trene på jobbintervju."
+    }
+  },
+  "deltakerliste": {
+    "tiltakskode": "JOBBKLUBB",
+    "tittelNavn": "Arbeidsmarkedsopplæring hos Muligheter AS",
+    "ingressNavn": "Sveiserkurs - Møre og romsdal DEL 1",
+    "ledetekst": "Du får oppfølging og støtte til jobbsøkingen. På kurset får du karriereveiledning, hjelp til å orientere deg på arbeidsmarkedet, skrive CV og jobbsøknad og trene på jobbintervju.",
+    "startdato": "2025-05-04",
+    "sluttdato": "2026-05-04",
+    "forskriftskapittel": 10,
+    "harKursetStartet": true,
+    "oppmoteSted": "Dronning Frederikkes gate 66. Gå rundt hjørnet til inngang B2. Oppmøte første dagen er klokken 09:30",
+    "harKlagerett": true,
+    "arrangor": {
+      "navn": "Muligheter AS"
+    }
+  },
+  "avsender": {
+    "navn": "Veileder Veiledersen",
+    "enhet": "Nav Fyrstikkaleen"
+  },
+  "opprettetDato": "2024-04-30"
+}

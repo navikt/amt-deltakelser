@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="description" content="Innsøking på tiltak"/>
+    <meta name="author" content="amt-pdfgen"/>
+    <meta name="subject" content="Innsøkingsbrev"/>
+
+    {{#block 'amt/style' }}
+    {{/block}}
+
+    <title>Innsøking på tiltak</title>
+
+</head>
+<body>
+    <div id="footer">
+        <span class="sidetall">side <span id="pagenumber"></span> av <span id="pagecount"></span></span>
+    </div>
+
+    {{> sections/header}}
+
+    <main>
+
+        <section>
+            <h1>{{this.sidetittel}}</h1>
+            <p>Du er søkt inn på arbeidsmarkedstiltaket: {{this.ingressnavn}}.</p>
+        </section>
+
+        {{> sections/innhold}}
+
+        <section>
+            <h2>Om kurset</h2>
+            {{#eq deltakerliste.oppstartstype "LOPENDE"}}
+                <p>
+                    Nav vurderer søknaden din, og du får beskjed om resultatet.
+                </p>
+            {{/eq}}
+
+            {{#eq deltakerliste.oppstartstype "FELLES"}}
+                <p>
+                    Når det nærmer seg oppstart av kurset, vil Nav gjøre en vurdering av om du oppfyller kravene for å delta. Du får svar på søknaden etter dette. Hvis du oppfyller kravene, vil du bli tildelt en plass eller satt på venteliste. Dersom kravene til kurset ikke er oppfylt, vil du få avslag på søknaden.
+                </p>
+            {{/eq}}
+
+            {{#not_eq deltakerliste.tiltakskode "JOBBKLUBB"}}
+                <br/>
+                <p>
+                    For å avgjøre hvem som skal få plass, kan Nav be om hjelp til vurdering fra arrangøren av kurset. Arrangør eller Nav vil kontakte deg hvis det er behov for et møte.
+                </p>
+            {{/not_eq}}
+
+            {{#eq deltakerliste.oppstartstype "FELLES"}}
+                {{> sections/kurs-oppstartsdato }}
+            {{/eq}}
+
+            {{> sections/oppmote-sted }}
+        </section>
+
+        {{> sections/dette-deles-med-arrangor}}
+
+        {{> sections/sporsmal}}
+
+        {{> sections/avsender}}
+    </main>
+</body>
+</html>

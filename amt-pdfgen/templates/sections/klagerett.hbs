@@ -1,0 +1,7 @@
+{{#if deltakerliste.harKlagerett}}
+    {{> sections/rett-til-klage}}
+{{/if}}
+
+{{#unless deltakerliste.harKlagerett}}
+    {{> sections/unntak-fra-klagerett}}
+{{/unless}}

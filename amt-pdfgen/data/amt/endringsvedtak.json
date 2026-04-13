@@ -1,0 +1,99 @@
+{
+  "deltaker": {
+    "fornavn": "Navn",
+    "mellomnavn": null,
+    "etternavn": "Navnersen",
+    "personident": "12345678910",
+    "opprettetDato":"2025-04-04"
+  },
+  "deltakerliste": {
+    "navn": "Arbeidsforberedende trening hos Muligheter AS",
+    "ledetekst": "Varig tilrettelagt arbeid er et tilbud for deg som får uføretrygd. Du jobber i en skjermet bedrift med arbeidsoppgaver som er tilpasset deg.",
+    "arrangor": {
+      "navn": "Muligheter AS"
+    },
+    "forskriftskapittel": 13,
+    "harKlagerett": true,
+    "pameldingstype": "DIREKTE_VEDTAK",
+    "oppstart": "FELLES"
+  },
+  "endringer": [
+    {
+      "tittel": "Deltakelsen er endret til 80 % fordelt på 3 dager i uka",
+      "begrunnelseFraNav": "Bla bla",
+      "gyldigFra": "2024-12-01"
+    },
+    {
+      "tittel": "Deltakelsen er forlenget til 3. juli 2024",
+      "begrunnelseFraNav": "Se samtalereferat",
+      "forslagFraArrangor": {
+        "type": "Forleng deltakelse",
+        "sluttdato": "2024-07-02",
+        "begrunnelseFraArrangor": "Tiltaket har god effekt og bør forlenges."
+      }
+    },
+    {
+      "tittel": "Ny sluttdato er 28. mai 2024",
+      "aarsak": "Fått jobb"
+    },
+    {
+      "tittel": "Oppstartsdato er 15. januar 2024",
+      "endringFraArrangor": true,
+      "sluttdatoFraArrangor": "2024-04-15"
+    },
+    {
+      "tittel": "Deltakelsen er ikke aktuell",
+      "aarsak": "Møter ikke opp",
+      "forslagFraArrangor": {
+        "type": "Avslutt deltakelse",
+        "aarsak": "Møter ikke opp",
+        "harDeltatt": "Nei",
+        "harFullfort": "Nei",
+        "begrunnelseFraArrangor": "Deltakeren møter ikke opp"
+      }
+    },
+    {
+      "tittel": "Ny sluddato er 25.mai 2025",
+      "aarsak": null,
+      "harDeltatt": "Ja",
+      "harFullfort": "Ja",
+      "forslagFraArrangor": {
+        "type": "Avslutt deltakelse",
+        "aarsak": "Møter ikke opp",
+        "harDeltatt": "Nei",
+        "harFullfort": "Nei",
+        "begrunnelseFraArrangor": "Deltakeren møter ikke opp"
+      }
+    },
+    {
+      "tittel": "Bakgrunnsinfo er endret",
+      "bakgrunnsinformasjon": "Masse flott bakgrunnsinformasjon"
+    },
+    {
+      "tittel": "Innholdet er endret",
+      "innhold": [
+        "Innhold 1",
+        "Innhold 2",
+        "Innhold 3"
+      ]
+    },
+    {
+      "tittel": "Søknaden er avslått",
+      "aarsak": "Krav for deltakelse ikke oppfylt",
+      "begrunnelseFraNav": "Kan ikke strikke",
+      "vurdering": {
+            "type": "Krav for deltakelse er ikke oppfylt",
+            "begrunnelse": "Kan bare sy"
+      }
+    }
+  ],
+  "avsender": {
+    "navn": "Veileder Veiledersen",
+    "enhet": "Nav Fyrstikkaleen"
+  },
+  "sidetittel": "Arbeidsforberedende trening hos Muligheter AS",
+  "ingressnavn": "Arbeidsforberedende trening hos Muligheter AS",
+  "opprettetDato": "2025-04-30",
+  "vedtaksdato": "2024-05-03",
+  "forsteVedtakFattet": "2024-04-30"
+}
