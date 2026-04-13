@@ -1,6 +1,9 @@
 package no.nav.amt.distribusjon
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.amt.lib.ktor.auth.PreAuthorizedApp
 import no.nav.amt.lib.utils.database.DatabaseConfig
+import no.nav.amt.lib.utils.objectMapper
 
 data class Environment(
     val databaseConfig: DatabaseConfig = DatabaseConfig(),
@@ -23,6 +26,10 @@ data class Environment(
     val dokdistfordelingUrl: String = getEnvVar(DOKDISTFORDELING_URL_KEY),
     val dokdistfordelingScope: String = getEnvVar(DOKDISTFORDELING_SCOPE_KEY),
     val leaderElectorUrl: String = getEnvVar(LEADER_ELECTOR_URL),
+    val preAuthorizedApps: List<PreAuthorizedApp> = getEnvVar(
+        varName = AZURE_APP_PRE_AUTHORIZED_APPS,
+        defaultValue = objectMapper.writeValueAsString(emptyList<PreAuthorizedApp>()),
+    ).let { objectMapper.readValue(it) },
 ) {
     companion object {
         const val KAFKA_CONSUMER_GROUP_ID = "amt-distribusjon-consumer"
@@ -32,6 +39,7 @@ data class Environment(
         const val AZURE_APP_CLIENT_ID_KEY = "AZURE_APP_CLIENT_ID"
         const val AZURE_OPENID_CONFIG_JWKS_URI_KEY = "AZURE_OPENID_CONFIG_JWKS_URI"
         const val AZURE_OPENID_CONFIG_ISSUER_KEY = "AZURE_OPENID_CONFIG_ISSUER"
+        const val AZURE_APP_PRE_AUTHORIZED_APPS = "AZURE_APP_PRE_AUTHORIZED_APPS"
 
         const val AMT_PDFGEN_URL_KEY = "AMT_PDFGEN"
         const val AMT_PERSONSERVICE_SCOPE_KEY = "AMT_PERSONSERVICE_SCOPE"

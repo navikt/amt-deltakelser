@@ -20,6 +20,7 @@ dependencies {
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.auth.jwt)
 
     api(libs.bundles.database)
 

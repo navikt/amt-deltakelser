@@ -8,11 +8,11 @@ import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.JWTAuthenticationProvider
-import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.lib.ktor.auth.erMaskinTilMaskin
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import java.net.URI
 import java.util.UUID
@@ -66,7 +66,7 @@ private fun JWTAuthenticationProvider.Config.validerPreAuthorizedApps(
             return null
         }
 
-        if (!erMaskinTilMaskin(credentials)) {
+        if (!credentials.erMaskinTilMaskin()) {
             return@validate reject("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
         }
 
@@ -84,12 +84,6 @@ private fun JWTAuthenticationProvider.Config.validerPreAuthorizedApps(
 
         JWTPrincipal(credentials.payload)
     }
-}
-
-fun erMaskinTilMaskin(credentials: JWTCredential): Boolean {
-    val sub: String = credentials.payload.getClaim("sub").asString()
-    val oid: String = credentials.payload.getClaim("oid").asString()
-    return sub == oid
 }
 
 fun ApplicationCall.getNavAnsattAzureId(): UUID = this

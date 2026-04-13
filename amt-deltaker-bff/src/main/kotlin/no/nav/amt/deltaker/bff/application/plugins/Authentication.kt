@@ -11,6 +11,7 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.lib.ktor.auth.erMaskinTilMaskin
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import java.net.URI
 import java.util.UUID
@@ -100,7 +101,7 @@ fun Application.configureAuthentication(environment: Environment) {
             }
 
             validate { credentials ->
-                if (!erMaskinTilMaskin(credentials)) {
+                if (!credentials.erMaskinTilMaskin()) {
                     application.log.warn("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
                     return@validate null
                 }
@@ -131,9 +132,3 @@ fun ApplicationCall.getPersonIdent(): String = this
     .principal<JWTPrincipal>()
     ?.get("pid")
     ?: throw AuthenticationException("Pid mangler i JWTPrincipal")
-
-fun erMaskinTilMaskin(credentials: JWTCredential): Boolean {
-    val sub: String = credentials.payload.getClaim("sub").asString()
-    val oid: String = credentials.payload.getClaim("oid").asString()
-    return sub == oid
-}

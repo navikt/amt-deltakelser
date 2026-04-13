@@ -1,6 +1,14 @@
 package no.nav.amt.distribusjon
 
+import no.nav.amt.lib.ktor.auth.PreAuthorizedApp
 import java.nio.file.Paths
+
+val preAuthorizedApps = listOf(
+    PreAuthorizedApp(
+        name = "dev:amt:amt-deltaker-bff",
+        clientId = "amt-deltaker-bff",
+    ),
+)
 
 val testEnvironment = Environment(
     dokdistkanalScope = "dokdistkanal.scope",
@@ -12,6 +20,7 @@ val testEnvironment = Environment(
     azureClientId = "amt-distribusjon",
     azureJwtIssuer = "issuer",
     azureJwkKeysUrl = getAzureJwkKeysUrl(),
+    preAuthorizedApps = preAuthorizedApps,
 )
 
 fun getAzureJwkKeysUrl(): String {
