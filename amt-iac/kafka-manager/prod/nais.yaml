@@ -1,0 +1,207 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-kafka-manager
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: europe-north1-docker.pkg.dev/nais-management-233d/poao/kafka-manager:2026.02.02-10.25-b05a49c
+  port: 8080
+  webproxy: true
+  ingresses:
+    - https://amt-kafka-manager.intern.nav.no
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  readiness:
+    path: /internal/health/readiness
+    initialDelay: 20
+  liveness:
+    path: /internal/health/liveness
+    initialDelay: 20
+  replicas:
+    min: 1
+    max: 1 # 1 instance is required since in-memory session management is used
+    disableAutoScaling: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 300Mi
+    limits:
+      memory: 1024Mi
+  azure:
+    application:
+      enabled: true
+      tenant: nav.no
+      claims:
+        groups:
+          - id: 0a84d77e-c8e9-4173-96af-164eb7fbb749
+          - id: dfc550d0-c5bf-4208-8b2b-3542bb8b5b15 # dab skal ha midlertidig tilgang
+  kafka:
+    pool: nav-prod
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=60.0"
+    - name: APP_CONFIG_JSON
+      value: >
+        {
+          "topics": [
+            {
+              "name": "nom.skjermede-personer-status-v1",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },        
+            {
+              "name": "amt.amt-tiltak-v1",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+              "name": "amt.deltaker-v1",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+              "name": "amt.deltaker-ekstern-v1",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-p",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "teamarenanais.aapen-arena-tiltakgjennomforingendret-v1-p",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+              "name": "teamarenanais.aapen-arena-histtiltakdeltakerendret-v1-p",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.virksomheter-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "team-mulighetsrommet.siste-tiltaksgjennomforinger-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },        
+            {
+               "name": "team-mulighetsrommet.siste-tiltakstyper-v3",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+              "name": "amt.deltaker-v2",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+              "name": "amt.arrangor-ansatt-v1",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+              "name": "amt.arrangor-v1",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+              "name": "amt.deltakerliste-v1",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+              "name": "amt.endringsmelding-v1",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.nav-bruker-personalia-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.nav-ansatt-personalia-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.arrangor-ansatt-personalia-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.deltaker-endring-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.arrangor-melding-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.deltaker-hendelse-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.nav-enhet-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.tiltakskoordinators-deltakerliste-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "amt.arena-enkeltplass-deltaker-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
+               "name": "dab.aktivitetskort-feil-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            }
+          ]
+        }

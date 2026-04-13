@@ -1,0 +1,32 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: nav-enhet-v1
+  namespace: amt
+  labels:
+    team: amt
+  annotations:
+    kafka.nais.io/removeDataWhenResourceIsDeleted: "true"
+spec:
+  pool: nav-dev
+  config:
+    cleanupPolicy: compact
+    minimumInSyncReplicas: 2
+    partitions: 2
+    replication: 2
+  acl:
+    - team: amt
+      application: amt-person-service
+      access: write
+    - team: amt
+      application: amt-kafka-manager
+      access: read
+    - team: amt
+      application: amt-deltaker-bff
+      access: read
+    - team: amt
+      application: amt-deltaker
+      access: read
+    - team: amt
+      application: amt-tiltaksarrangor-bff
+      access: read

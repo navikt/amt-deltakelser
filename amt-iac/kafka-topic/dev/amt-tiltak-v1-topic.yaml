@@ -1,0 +1,27 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: amt-tiltak-v1
+  namespace: amt
+  labels:
+    team: amt
+  annotations:
+    kafka.nais.io/removeDataWhenResourceIsDeleted: "true"
+spec:
+  pool: nav-dev
+  config:
+    cleanupPolicy: delete # delete = ingen compaction
+    retentionHours: 720 # 30 dager
+    minimumInSyncReplicas: 2
+    partitions: 4
+    replication: 2
+  acl:
+    - team: amt
+      application: amt-arena-acl
+      access: write
+    - team: amt
+      application: amt-tiltak
+      access: read
+    - team: amt
+      application: amt-kafka-manager
+      access: read
