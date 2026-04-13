@@ -407,6 +407,7 @@ abstract class IntegrationTestBase {
                     vedtakRepository = vedtakRepository,
                     navAnsattService = navAnsattService,
                     responseBuilder = responseBuilder,
+                    arrangorService = arrangorService,
                 )
                 setUpTestRoute()
 

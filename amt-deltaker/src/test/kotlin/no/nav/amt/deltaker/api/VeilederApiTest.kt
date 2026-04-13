@@ -34,11 +34,15 @@ import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
@@ -61,6 +65,12 @@ class VeilederApiTest : IntegrationTestBase() {
             client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe
                 HttpStatusCode.Unauthorized
             client.get("/deltaker/${UUID.randomUUID()}/historikk").status shouldBe
+                HttpStatusCode.Unauthorized
+            client.get("/deltaker/${UUID.randomUUID()}/historikk-data").status shouldBe
+                HttpStatusCode.Unauthorized
+            client.post("/nav-ansatt/many") { setBody("[]") }.status shouldBe
+                HttpStatusCode.Unauthorized
+            client.post("/nav-enhet/many") { setBody("[]") }.status shouldBe
                 HttpStatusCode.Unauthorized
         }
     }
@@ -375,6 +385,68 @@ class VeilederApiTest : IntegrationTestBase() {
 
         verify(exactly = 1) {
             deltakerHistorikkService.getForDeltaker(deltakerId)
+        }
+    }
+
+    @Test
+    fun `get historikk-data - har tilgang - returnerer 200`() {
+        val arrangor = lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(deltakerId = deltaker.id)))
+        val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
+        val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
+
+        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        every { navAnsattRepository.getManyById(any()) } returns navAnsatte
+        every { navEnhetRepository.getMany(any()) } returns navEnheter
+        every { arrangorRepository.get(arrangor.id) } returns arrangor
+
+        withTestApplicationContext { client ->
+            val response = client.get("/deltaker/${deltaker.id}/historikk-data") {
+                noBodyRequest()
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+            val body = objectMapper.readValue(response.bodyAsText(), DeltakerHistorikkDataResponse::class.java)
+            body.historikk shouldBe historikk
+            body.arrangornavn shouldBe arrangor.navn
+            body.oppstartstype shouldBe deltakerliste.oppstart
+            body.ansatte shouldBe navAnsatte
+            body.enheter shouldBe navEnheter
+        }
+    }
+
+    @Test
+    fun `post nav-ansatt many - har tilgang - returnerer liste med nav-ansatte`() {
+        val navAnsatt1 = lagNavAnsatt()
+        val navAnsatt2 = lagNavAnsatt()
+        val ider = listOf(navAnsatt1.id, navAnsatt2.id)
+
+        every { navAnsattRepository.getManyById(ider.toSet()) } returns listOf(navAnsatt1, navAnsatt2)
+
+        withTestApplicationContext { client ->
+            val response = client.post("/nav-ansatt/many") { postRequest(ider) }
+
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(navAnsatt1, navAnsatt2))
+        }
+    }
+
+    @Test
+    fun `post nav-enhet many - har tilgang - returnerer liste med nav-enheter`() {
+        val navEnhet1 = lagNavEnhet()
+        val navEnhet2 = lagNavEnhet()
+        val ider = listOf(navEnhet1.id, navEnhet2.id)
+
+        every { navEnhetRepository.getMany(ider.toSet()) } returns listOf(navEnhet1, navEnhet2)
+
+        withTestApplicationContext { client ->
+            val response = client.post("/nav-enhet/many") { postRequest(ider) }
+
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(navEnhet1, navEnhet2))
         }
     }
 

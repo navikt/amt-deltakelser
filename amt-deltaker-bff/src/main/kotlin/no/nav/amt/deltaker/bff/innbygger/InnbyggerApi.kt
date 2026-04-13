@@ -117,21 +117,26 @@ fun Routing.registerInnbyggerApi(
                 ressursPersonident = personident,
             )
 
-            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-            val historikk =
-                if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    amtDeltakerClient.getDeltakerHistorikk(deltakerId)
-                } else {
-                    deltaker.getDeltakerHistorikkForVisning()
-                }
-
-            val historikkResponse = DeltakerHistorikkResponse.fromModels(
-                models = historikk,
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-            )
+            val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
+                DeltakerHistorikkResponse.fromModels(
+                    models = data.historikk,
+                    arrangornavn = data.arrangornavn,
+                    oppstartstype = data.oppstartstype,
+                    enheter = data.enheter,
+                    ansatte = data.ansatte,
+                )
+            } else {
+                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                val historikk = deltaker.getDeltakerHistorikkForVisning()
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                )
+            }
 
             call.respondText(
                 objectMapper.writePolymorphicListAsString(historikkResponse),

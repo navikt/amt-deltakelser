@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.just
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.Environment
+import no.nav.amt.deltaker.bff.apiclients.DeltakerHistorikkData
 import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.fattVedtak
@@ -179,6 +180,44 @@ class InnbyggerApiTest : IntegrationTestBase() {
     fun `getHistorikk - deltaker finnes, har tilgang - returnerer historikk`() {
         val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+
+        val historikk = deltaker.getDeltakerHistorikkForVisning()
+        val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
+        val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
+
+        val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
+        val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
+        val oppstartstype = deltakerResponse.gjennomforing.oppstart
+
+        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
+        coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltaker.id) } returns DeltakerHistorikkData(
+            historikk = historikk,
+            arrangornavn = arrangornavn,
+            oppstartstype = oppstartstype,
+            ansatte = ansatte,
+            enheter = enheter,
+        )
+
+        withTestApplicationContext { httpClient ->
+            httpClient.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
+                    DeltakerHistorikkResponse.fromModels(
+                        models = historikk,
+                        arrangornavn = arrangornavn,
+                        oppstartstype = oppstartstype,
+                        enheter = enheter,
+                        ansatte = ansatte,
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `getHistorikk - toggle er av - returnerer lokal historikk`() {
+        val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         val historikk = deltaker.getDeltakerHistorikkForVisning()
@@ -186,8 +225,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
         val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
         every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
-        coEvery { amtDeltakerClient.getDeltakerHistorikk(deltaker.id) } returns historikk
+        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
         coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
 
         withTestApplicationContext { httpClient ->

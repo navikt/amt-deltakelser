@@ -8,6 +8,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
+import no.nav.amt.deltaker.bff.apiclients.DeltakerHistorikkData
 import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
@@ -150,6 +151,56 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
             val navEnhetMap = mapOf(navEnhet.id to navEnhet)
 
+            val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
+            val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
+            val oppstartstype = deltakerResponse.gjennomforing.oppstart
+
+            val expectedResponse = objectMapper.writePolymorphicListAsString(
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = arrangornavn,
+                    oppstartstype = oppstartstype,
+                    enheter = navEnhetMap,
+                    ansatte = navAnsattMap,
+                ),
+            )
+
+            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
+            coEvery { amtDeltakerClient.getDeltakerHistorikkData(any()) } returns DeltakerHistorikkData(
+                historikk = historikk,
+                arrangornavn = arrangornavn,
+                oppstartstype = oppstartstype,
+                ansatte = navAnsattMap,
+                enheter = navEnhetMap,
+            )
+            every { deltakerRepository.get(any()) } returns Result.success(deltaker)
+            coEvery {
+                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                    navIdent = any(),
+                    navAnsattAzureId = any(),
+                    navBruker = any(),
+                    deltakerlisteId = any(),
+                )
+            } returns true
+
+            val responseBody = withTestApplicationContext { httpClient ->
+                httpClient
+                    .get(urlString) {
+                        bearerAuth(bearerTokenInTest)
+                    }.bodyAsText()
+            }
+
+            responseBody shouldBe expectedResponse
+        }
+
+        @Test
+        fun `skal returnere liste med DeltakerHistorikk fra lokal data nar toggle er av`() {
+            // Arrange
+            val historikk = deltaker.getDeltakerHistorikkForVisning()
+
+            val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
+            val navEnhetMap = mapOf(navEnhet.id to navEnhet)
+
             val expectedResponse = objectMapper.writePolymorphicListAsString(
                 DeltakerHistorikkResponse.fromModels(
                     models = historikk,
@@ -160,8 +211,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 ),
             )
 
-            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
-            coEvery { amtDeltakerClient.getDeltakerHistorikk(any()) } returns historikk
+            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
             every { deltakerRepository.get(any()) } returns Result.success(deltaker)
             coEvery {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(

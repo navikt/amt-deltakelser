@@ -178,7 +178,8 @@ fun Routing.registerVeilederApi(
             call.respond(deltakerResponse)
         }
 
-        // kaller ikke amt-deltaker
+        // henter deltakerhistorikk via amtDeltakerClient.getDeltakerHistorikk når
+        // prioriterSynkronKommunikasjon-toggle er aktiv, ellers brukes lokal historikk fra deltaker
         get("/deltaker/{deltakerId}/historikk") {
             val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
             tilgangskontrollService.verifiserLesetilgang(
@@ -188,20 +189,25 @@ fun Routing.registerVeilederApi(
 
             log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id ${deltaker.id}")
 
-            val historikk =
-                if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    amtDeltakerClient.getDeltakerHistorikk(deltaker.id)
-                } else {
-                    deltaker.getDeltakerHistorikkForVisning()
-                }
-
-            val historikkResponse = DeltakerHistorikkResponse.fromModels(
-                models = historikk,
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-            )
+            val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val data = amtDeltakerClient.getDeltakerHistorikkData(deltaker.id)
+                DeltakerHistorikkResponse.fromModels(
+                    models = data.historikk,
+                    arrangornavn = data.arrangornavn,
+                    oppstartstype = data.oppstartstype,
+                    enheter = data.enheter,
+                    ansatte = data.ansatte,
+                )
+            } else {
+                val historikk = deltaker.getDeltakerHistorikkForVisning()
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                )
+            }
 
             call.respondText(
                 objectMapper.writePolymorphicListAsString(historikkResponse),

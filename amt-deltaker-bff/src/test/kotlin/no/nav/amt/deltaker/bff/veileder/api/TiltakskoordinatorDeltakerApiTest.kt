@@ -16,10 +16,12 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
+import no.nav.amt.deltaker.bff.apiclients.DeltakerHistorikkData
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
@@ -427,9 +429,49 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
+        val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
+        val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
+        val oppstartstype = deltakerResponse.gjennomforing.oppstart
+
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
+        coEvery { amtDeltakerClient.getDeltakerHistorikkData(any()) } returns DeltakerHistorikkData(
+            historikk = historikk,
+            arrangornavn = arrangornavn,
+            oppstartstype = oppstartstype,
+            ansatte = ansatte,
+            enheter = enheter,
+        )
+
+        withTestApplicationContext { httpClient ->
+            httpClient.get("/deltaker/${deltaker.id}/historikk") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.OK
+                val res = bodyAsText()
+                val json = objectMapper.writePolymorphicListAsString(
+                    DeltakerHistorikkResponse.fromModels(
+                        models = historikk,
+                        arrangornavn = arrangornavn,
+                        oppstartstype = oppstartstype,
+                        enheter = enheter,
+                        ansatte = ansatte,
+                    ),
+                )
+                res shouldBe json
+            }
+        }
+    }
+
+    @Test
+    fun `getDeltakerHistorikk - toggle er av - returnerer lokal historikk`() {
+        val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+
+        val historikk = deltaker.getDeltakerHistorikkForVisning()
+        val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
+        val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
+
+        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
         every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
-        coEvery { amtDeltakerClient.getDeltakerHistorikk(any()) } returns historikk
         coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
 
         withTestApplicationContext { httpClient ->

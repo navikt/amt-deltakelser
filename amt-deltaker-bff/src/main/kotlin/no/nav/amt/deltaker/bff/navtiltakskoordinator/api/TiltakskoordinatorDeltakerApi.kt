@@ -97,20 +97,25 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     }
                 }
 
-            val historikk =
-                if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    amtDeltakerClient.getDeltakerHistorikk(deltaker.id)
-                } else {
-                    deltaker.getDeltakerHistorikkForVisning()
-                }
-
-            val historikkResponse = DeltakerHistorikkResponse.fromModels(
-                models = historikk,
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-            )
+            val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
+                DeltakerHistorikkResponse.fromModels(
+                    models = data.historikk,
+                    arrangornavn = data.arrangornavn,
+                    oppstartstype = data.oppstartstype,
+                    enheter = data.enheter,
+                    ansatte = data.ansatte,
+                )
+            } else {
+                val historikk = deltaker.getDeltakerHistorikkForVisning()
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                )
+            }
 
             val historikkResponseAsJson = objectMapper.writePolymorphicListAsString(historikkResponse)
 

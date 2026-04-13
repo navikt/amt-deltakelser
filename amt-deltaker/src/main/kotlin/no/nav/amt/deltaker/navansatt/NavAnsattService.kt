@@ -31,6 +31,8 @@ class NavAnsattService(
         return oppdaterNavAnsatt(navAnsatt)
     }
 
+    fun getMany(ider: Set<UUID>): List<NavAnsatt> = repository.getManyById(ider)
+
     suspend fun oppdaterNavAnsatt(navAnsatt: NavAnsatt): NavAnsatt {
         navAnsatt.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
         return repository.upsert(navAnsatt)

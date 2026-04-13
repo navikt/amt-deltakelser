@@ -440,6 +440,7 @@ fun Application.module() {
         responseBuilder = responseBuilder,
         kladdService = kladdService,
         enkeltplassService = enkeltplassService,
+        arrangorService = arrangorService,
     )
     configureMonitoring()
 

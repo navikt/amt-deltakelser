@@ -9,23 +9,31 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.extensions.getDeltakerId
+import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.EndringRequest
+import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import java.time.ZonedDateTime
+import java.util.UUID
 
 fun Routing.registerVeilederApi(
     deltakerRepository: DeltakerRepository,
     deltakerService: DeltakerService,
     historikkService: DeltakerHistorikkService,
     responseBuilder: ResponseBuilder,
+    navAnsattService: NavAnsattService,
+    navEnhetService: NavEnhetService,
+    arrangorService: ArrangorService,
 ) {
     authenticate("SYSTEM") {
         get("/personident/{deltakerId}") {
@@ -60,6 +68,22 @@ fun Routing.registerVeilederApi(
             call.respondText(historikkResponse, ContentType.Application.Json)
         }
 
+        get("/deltaker/{deltakerId}/historikk-data") {
+            val deltakerId = call.getDeltakerId()
+            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+            val historikk = historikkService.getForDeltaker(deltakerId)
+            val ansatteIder = historikk.flatMap { it.navAnsatte() }.distinct().toSet()
+            val enheterIder = historikk.flatMap { it.navEnheter() }.distinct().toSet()
+            val response = DeltakerHistorikkDataResponse(
+                historikk = historikk,
+                arrangornavn = deltaker.deltakerliste.arrangor?.let { arrangorService.getArrangorNavn(it) } ?: "",
+                oppstartstype = deltaker.deltakerliste.oppstart,
+                ansatte = navAnsattService.getMany(ansatteIder),
+                enheter = navEnhetService.getEnheter(enheterIder).values.toList(),
+            )
+            call.respond(response)
+        }
+
         post("/deltaker/{deltakerId}/sist-besokt") {
             deltakerService.oppdaterSistBesokt(
                 deltakerId = call.getDeltakerId(),
@@ -67,6 +91,16 @@ fun Routing.registerVeilederApi(
             )
 
             call.respond(HttpStatusCode.OK)
+        }
+
+        post("/nav-ansatt/many") {
+            val ider = call.receive<List<UUID>>()
+            call.respond(navAnsattService.getMany(ider.toSet()))
+        }
+
+        post("/nav-enhet/many") {
+            val ider = call.receive<List<UUID>>()
+            call.respond(navEnhetService.getEnheter(ider.toSet()).values.toList())
         }
     }
 }
