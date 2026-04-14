@@ -134,28 +134,26 @@ class EnkeltplassService(
         }
     }
 
-    suspend fun oppdaterUtkast(
-        deltakerId: UUID,
-        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
-    ): Deltaker = oppdaterDeltaker(
-        deltakerId = deltakerId,
-        decoratedRequest = decoratedRequest,
-    )
-
     suspend fun delUtkastMedInnbygger(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ): Deltaker = oppdaterUtkast(deltakerId, decoratedRequest, DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+
+    suspend fun oppdaterUtkast(
+        deltakerId: UUID,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+        nyDeltakerStatus: DeltakerStatus.Type? = null,
     ): Deltaker {
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
 
-        return oppdaterDeltaker(deltakerId, decoratedRequest, DeltakerStatus.Type.UTKAST_TIL_PAMELDING) { deltaker ->
+        return oppdaterDeltaker(deltakerId = deltakerId, decoratedRequest = decoratedRequest, nyDeltakerStatus) { deltaker ->
             vedtakService.opprettEllerOppdaterVedtak(
                 fattetAvNav = false,
                 endretAv = navAnsatt,
                 endretAvEnhet = navEnhet,
                 deltaker = deltaker.toDeltakerVedVedtak(),
-                fattetDato = null, // fattes når økonomi er godkjent
+                fattetDato = null,
             )
         }
     }
@@ -169,8 +167,6 @@ class EnkeltplassService(
 
         oppdaterDeltaker(deltakerId, decoratedRequest, DeltakerStatus.Type.SOKT_INN) { deltaker ->
             vedtakService.opprettEllerOppdaterVedtak(
-                // Er det riktig at dette fattes? Tror det siden det er sånn vi gjør det med de andre som har søkt inn status
-                // (gjelder også fattetDato)
                 fattetAvNav = true,
                 endretAv = navAnsatt,
                 endretAvEnhet = navEnhet,
@@ -216,7 +212,7 @@ class EnkeltplassService(
             arrangorId = arrangor.id,
         )
 
-        val utkastUpdateDbo = EnkeltplassDeltakerUpdateDbo(
+        val deltakerUpdateDbo = EnkeltplassDeltakerUpdateDbo(
             id = deltakerId,
             startdato = decoratedRequest.wrappedRequest.startdato,
             sluttdato = decoratedRequest.wrappedRequest.sluttdato,
@@ -241,7 +237,7 @@ class EnkeltplassService(
             }
 
             deltakerlisteRepository.update(gjennomforingUpdateDbo)
-            deltakerRepository.updateEnkeltplassKladd(utkastUpdateDbo)
+            deltakerRepository.updateEnkeltplassKladd(deltakerUpdateDbo)
 
             doInTxBlock(deltakerRepository.get(deltakerId).getOrThrow())
 
