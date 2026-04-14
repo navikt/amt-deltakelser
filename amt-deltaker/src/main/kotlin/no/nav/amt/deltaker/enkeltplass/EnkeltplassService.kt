@@ -27,6 +27,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
+import java.time.LocalDateTime
 import java.util.UUID
 
 class EnkeltplassService(
@@ -133,24 +134,45 @@ class EnkeltplassService(
         }
     }
 
+    suspend fun delUtkastMedInnbygger(
+        deltakerId: UUID,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ): Deltaker = oppdaterUtkast(deltakerId, decoratedRequest, DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+
     suspend fun oppdaterUtkast(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
-    ): Deltaker = meldPaa(
-        deltakerId = deltakerId,
-        decoratedRequest = decoratedRequest,
-        nyDeltakerStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-    )
+        nyDeltakerStatus: DeltakerStatus.Type? = null,
+    ): Deltaker {
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
+
+        return oppdaterDeltaker(deltakerId = deltakerId, decoratedRequest = decoratedRequest, nyDeltakerStatus) { deltaker ->
+            vedtakService.opprettEllerOppdaterVedtak(
+                fattetAvNav = false,
+                endretAv = navAnsatt,
+                endretAvEnhet = navEnhet,
+                deltaker = deltaker.toDeltakerVedVedtak(),
+                fattetDato = null,
+            )
+        }
+    }
 
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
     ) {
-        meldPaa(
-            deltakerId = deltakerId,
-            decoratedRequest = decoratedRequest,
-            nyDeltakerStatus = DeltakerStatus.Type.SOKT_INN,
-        ) { deltaker ->
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
+
+        oppdaterDeltaker(deltakerId, decoratedRequest, DeltakerStatus.Type.SOKT_INN) { deltaker ->
+            vedtakService.opprettEllerOppdaterVedtak(
+                fattetAvNav = true,
+                endretAv = navAnsatt,
+                endretAvEnhet = navEnhet,
+                deltaker = deltaker.toDeltakerVedVedtak(),
+                fattetDato = LocalDateTime.now(),
+            )
             gjennomforingRequestProducer.produce(
                 GjennomforingRequestPayload.OpprettEnkeltplass(
                     gjennomforingId = deltaker.deltakerliste.id,
@@ -164,10 +186,10 @@ class EnkeltplassService(
         }
     }
 
-    private suspend fun meldPaa(
+    private suspend fun oppdaterDeltaker(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
-        nyDeltakerStatus: DeltakerStatus.Type,
+        nyDeltakerStatus: DeltakerStatus.Type? = null,
         doInTxBlock: (Deltaker) -> Unit = { _ -> },
     ): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
@@ -190,7 +212,7 @@ class EnkeltplassService(
             arrangorId = arrangor.id,
         )
 
-        val utkastUpdateDbo = EnkeltplassDeltakerUpdateDbo(
+        val deltakerUpdateDbo = EnkeltplassDeltakerUpdateDbo(
             id = deltakerId,
             startdato = decoratedRequest.wrappedRequest.startdato,
             sluttdato = decoratedRequest.wrappedRequest.sluttdato,
@@ -203,33 +225,23 @@ class EnkeltplassService(
             ),
         )
 
-        // for vedtak
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
-
         lateinit var oppdatertDeltaker: Deltaker
 
         Database.transaction {
-            deltakerService.lagreDeltakerStatus(
-                deltakerId = deltaker.id,
-                nyDeltakerStatus = nyDeltakerStatus(type = nyDeltakerStatus),
-                erDeltakerSluttdatoEndret = deltaker.sluttdato != decoratedRequest.wrappedRequest.sluttdato,
-            )
+            nyDeltakerStatus?.let {
+                deltakerService.lagreDeltakerStatus(
+                    deltakerId = deltaker.id,
+                    nyDeltakerStatus = nyDeltakerStatus(type = nyDeltakerStatus),
+                    erDeltakerSluttdatoEndret = deltaker.sluttdato != decoratedRequest.wrappedRequest.sluttdato,
+                )
+            }
 
             deltakerlisteRepository.update(gjennomforingUpdateDbo)
-            deltakerRepository.updateEnkeltplassKladd(utkastUpdateDbo)
+            deltakerRepository.updateEnkeltplassKladd(deltakerUpdateDbo)
+
+            doInTxBlock(deltakerRepository.get(deltakerId).getOrThrow())
 
             oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
-
-            vedtakService.opprettEllerOppdaterVedtak(
-                fattetAvNav = true,
-                endretAv = navAnsatt,
-                endretAvEnhet = navEnhet,
-                deltaker = oppdatertDeltaker.toDeltakerVedVedtak(),
-                fattetDato = null, // fattes når økonomi er godkjent
-            )
-
-            doInTxBlock(oppdatertDeltaker)
         }
 
         return oppdatertDeltaker

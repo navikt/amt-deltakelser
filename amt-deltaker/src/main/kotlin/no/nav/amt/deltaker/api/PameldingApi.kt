@@ -20,9 +20,11 @@ fun Routing.registerPameldingApi(
     authenticate("SYSTEM") {
         /*
             Kalles av av frontend via amt-deltaker-bff med:
-            /pamelding/{deltakerId} godkjentAvNav=false
-            /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true
+            /pamelding/{deltakerId} godkjentAvNav=false (opprett/oppdater utkast)
+            /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true(meld på uten å dele utkast)
+
             sånn sett så kan dette kalles "godkjenn påmelding"
+
          */
         post("/pamelding/{deltakerId}") {
             val deltaker = pameldingService.upsertUtkast(

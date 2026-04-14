@@ -185,6 +185,8 @@ class PameldingService(
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
         )
 
+        // Brukes for "del utkast med innbygger", "oppdater utkast" og "godkjenn utkast"
+        // godkjentAvNav=true betyr "meld på uten å dele utkast"
         internal fun getOppdatertStatus(
             opprinneligDeltaker: Deltaker,
             godkjentAvNav: Boolean,
@@ -195,6 +197,7 @@ class PameldingService(
                 nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
             }
         } else {
+            // Virker som denne er sånn for å tilrettelegge for at man kan bruke det samme api endepunktet for både å dele utkast(som medfører statusendring) og å oppdatere eksisterende utkast,
             when (opprinneligDeltaker.status.type) {
                 DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
 

@@ -52,6 +52,14 @@ class EnkeltplassClient(
         requestBody = pameldingDecoratedRequest,
     ).failIfNotSuccess("Kunne ikke opprette utkast i amt-deltaker for deltaker $deltakerId").body()
 
+    suspend fun delUtkastMedInnbygger(
+        deltakerId: UUID,
+        pameldingDecoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ): DeltakerResponse = performPost(
+        urlSubPath = "enkeltplass/utkast/$deltakerId/del-med-innbygger",
+        requestBody = pameldingDecoratedRequest,
+    ).failIfNotSuccess("Kunne ikke dele utkast med innbygger i amt-deltaker for deltaker $deltakerId").body()
+
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
         pameldingDecoratedRequest: EnkeltplassPameldingDecoratedRequest,
