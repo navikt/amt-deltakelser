@@ -42,8 +42,8 @@ class DeltakerLaaseService(
      * Sjekker om en [deltaker] er låst for endringer.
      *
      * Hvis personen har flere deltakelser i samme deltakerliste, anses kun den
-     * nyeste relevante deltakelsen som redigerbar. Alle tidligere deltakelser
-     * er låst.
+     * nyeste aktive deltakelsen som redigerbar. Alle tidligere deltakelser
+     * er låst. Hvis alle deltakelser er inaktive, er ingen deltakelser låst.
      *
      * @return `true` dersom deltakeren er låst, ellers `false`
      */

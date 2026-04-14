@@ -71,7 +71,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returrnere false hvis deltaker ikke har tidligere deltakelser`() {
+        fun `skal returnere false hvis deltaker ikke har tidligere deltakelser`() {
             // Arrange
             every {
                 mockDeltakerRepository.getFlereForPerson(
@@ -88,7 +88,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returrnere true hvis deltaker ikke er nyeste deltaker`() {
+        fun `skal returnere true hvis deltaker ikke er nyeste deltaker`() {
             // Arrange
             every {
                 mockDeltakerRepository.getFlereForPerson(
@@ -105,7 +105,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returrnere false hvis begge deltakelser er inaktive`() {
+        fun `skal returnere false hvis begge deltakelser er inaktive`() {
             // Arrange
             every {
                 mockDeltakerRepository.getFlereForPerson(
@@ -119,7 +119,7 @@ class DeltakerLaaseServiceTest {
                 ),
             )
 
-            // Act & Assert'
+            // Act & Assert
             sut.erLaastForEndringer(deltakerInTest).shouldBeFalse()
             sut.erLaastForEndringer(tidligereDeltakerInTest).shouldBeFalse()
         }
