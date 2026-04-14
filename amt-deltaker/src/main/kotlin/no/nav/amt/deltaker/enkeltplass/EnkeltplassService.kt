@@ -243,9 +243,9 @@ class EnkeltplassService(
             deltakerlisteRepository.update(gjennomforingUpdateDbo)
             deltakerRepository.updateEnkeltplassKladd(utkastUpdateDbo)
 
-            oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
+            doInTxBlock(deltakerRepository.get(deltakerId).getOrThrow())
 
-            doInTxBlock(oppdatertDeltaker)
+            oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
         }
 
         return oppdatertDeltaker

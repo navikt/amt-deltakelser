@@ -6,9 +6,13 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
@@ -176,7 +180,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
     }
 
     @Nested
-    inner class OppdaterUtkastTests {
+    inner class UtkastTests {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             prisinformasjon = "Test prisinformasjon",
@@ -218,6 +222,119 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
             assertSoftly(oppdatertDeltaker.status) {
                 type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            }
+
+            assertSoftly(oppdatertDeltaker.vedtaksinformasjon) {
+                this.shouldNotBeNull().fattet shouldBe null
+                fattetAvNav shouldBe false
+                opprettet shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(oppdatertDeltaker.deltakerliste) {
+                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
+                tiltakstype shouldBe tiltakInTest
+                navn shouldBe tiltakInTest.navn
+                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
+                arrangor shouldBe arrangorInTest
+            }
+        }
+
+        @Test
+        fun `meld på direkte - lager ferdig påmelding med status søkt inn`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
+            arrangorRepository.upsert(arrangorInTest)
+
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+
+            // Act
+            enkeltplassService.meldPaaDirekte(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            assertSoftly(oppdatertDeltaker) {
+                id shouldBe deltakerInTest.id
+                startdato shouldBe pameldingRequestInTest.startdato
+                sluttdato shouldBe pameldingRequestInTest.sluttdato
+                sistEndret shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(oppdatertDeltaker.status) {
+                type shouldBe DeltakerStatus.Type.SOKT_INN
+            }
+
+            assertSoftly(oppdatertDeltaker.vedtaksinformasjon) {
+                this.shouldNotBeNull().fattet shouldBeCloseTo LocalDateTime.now()
+                fattetAvNav shouldBe true
+                opprettet shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(oppdatertDeltaker.deltakerliste) {
+                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
+                tiltakstype shouldBe tiltakInTest
+                navn shouldBe tiltakInTest.navn
+                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
+                arrangor shouldBe arrangorInTest
+            }
+        }
+
+        @Test
+        fun `oppdater utkast - lagrer utkast`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
+            val deltaker = lagDeltaker(
+                navBruker = navBrukerInTest,
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                deltakerliste = lagDeltakerliste(
+                    arrangor = arrangorInTest,
+                    tiltakstype = tiltakInTest,
+                    gjennomforingstype = GjennomforingType.Enkeltplass,
+                    status = GjennomforingStatusType.KLADD,
+                    navn = tiltakInTest.navn,
+                ),
+            )
+            arrangorRepository.upsert(arrangorInTest)
+            deltakerlisteRepository.upsert(deltaker.deltakerliste)
+            deltakerRepository.upsert(deltaker)
+            DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
+
+            val vedtak = TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                fattetAvNav = false,
+                opprettetAv = sistEndretAvNavAnsatt,
+                opprettetAvEnhet = sistEndretAvNavEnhet,
+            )
+            vedtakRepository.upsert(vedtak)
+
+            // Act
+            val oppdatertDeltaker = enkeltplassService.oppdaterUtkast(
+                deltakerId = deltaker.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            assertSoftly(oppdatertDeltaker) {
+                id shouldBe deltaker.id
+                startdato shouldBe pameldingRequestInTest.startdato
+                sluttdato shouldBe pameldingRequestInTest.sluttdato
+                sistEndret shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(oppdatertDeltaker.status) {
+                type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            }
+
+            assertSoftly(oppdatertDeltaker.vedtaksinformasjon) {
+                this.shouldNotBeNull().fattet shouldBe null
+                fattetAvNav shouldBe false
+                opprettet shouldBeCloseTo LocalDateTime.now()
             }
 
             assertSoftly(oppdatertDeltaker.deltakerliste) {
