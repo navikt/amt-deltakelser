@@ -66,7 +66,7 @@ class DeltakerLaaseService(
 
         val nyesteDeltakelse = deltakelserPaaPersonSorted
             .firstOrNull { it.status.type in AKTIVE_STATUSER }
-            ?: deltakelserPaaPersonSorted.first()
+            ?: return false // alle deltakelser inaktive, alle er åpne for endringer
 
         return if (deltaker.id != nyesteDeltakelse.id) {
             log.info("Deltaker er låst fordi det finnes en nyere deltakelse ${nyesteDeltakelse.id} på personen")
