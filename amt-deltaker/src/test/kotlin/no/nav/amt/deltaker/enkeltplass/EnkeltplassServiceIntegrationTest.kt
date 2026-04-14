@@ -192,7 +192,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         )
 
         @Test
-        fun `oppdater utkast - lagrer utkast`() = runTest {
+        fun `del utkast - lagrer utkast`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
             arrangorRepository.upsert(arrangorInTest)
@@ -203,7 +203,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             )
 
             // Act
-            val oppdatertDeltaker = enkeltplassService.oppdaterUtkast(
+            val oppdatertDeltaker = enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
                 decoratedRequest = decoratedRequest,
             )

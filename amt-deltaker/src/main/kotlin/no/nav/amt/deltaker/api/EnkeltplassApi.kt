@@ -54,6 +54,23 @@ fun Routing.registerEnkeltplassApi(
                 call.respond(deltakerResponse)
             }
 
+            /*
+                Del utkast med innbygger
+                Handling: Del utkast
+                Status: Kladd-> Utkast
+             */
+            post("/utkast/{deltakerId}/del-med-innbygger") {
+                val request: EnkeltplassPameldingDecoratedRequest = call.receive()
+
+                val oppdatertDeltaker = enkeltplassService.delUtkastMedInnbygger(
+                    deltakerId = call.getDeltakerId(),
+                    decoratedRequest = request,
+                )
+
+                val deltakerResponse = responseBuilder.buildDeltakerResponse(oppdatertDeltaker)
+                call.respond(deltakerResponse)
+            }
+
             post("/utkast/{deltakerId}/meld-paa-direkte") {
                 val request: EnkeltplassPameldingDecoratedRequest = call.receive()
 

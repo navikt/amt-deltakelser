@@ -50,7 +50,7 @@ fun Routing.registerPameldingApi(
     authenticate(AuthLevel.VEILEDER.name) {
         /*
             Oppretter/endrer utkast for en deltaker.
-            Handling: "Del utkast"
+            Handling: "Del utkast" /"Del endret utkast"
             Status: Kladd/utkast -> Utkast
             @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
          */

@@ -78,9 +78,9 @@ fun Routing.registerEnkeltplassApi(
             }
 
             /*
-            Oppretter utkast for en enkeltplass deltaker.
-            Opprettes i handlingen "Del utkast"
-            Status: Kladd/utkast -> Utkast
+            Oppdaterer eksisterende utkast for en enkeltplass deltaker.
+            Opprettes i handlingen "Del oppdatert utkast"
+            Status: Utkast -> Utkast
             @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
              */
             post("/utkast/{deltakerId}") {
@@ -96,6 +96,37 @@ fun Routing.registerEnkeltplassApi(
 
                 val deltakerResponse = enkeltplassClient
                     .oppdaterUtkast(
+                        deltakerId = deltakerId,
+                        pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                            wrappedRequest = pameldingRequest.sanitized(),
+                            endretAvEnhet = call.getEnhetsnummer(),
+                            endretAv = call.getNavIdent(),
+                        ),
+                    ).let { ModelMapper.toDeltaker(it) }
+                    .let { DeltakerResponse.fromDeltakerModel(it) }
+
+                call.respond(deltakerResponse)
+            }
+
+            /*
+           Oppretter utkast for en enkeltplass deltaker.
+           Opprettes i handlingen "Del utkast"
+           Status: Kladd/utkast -> Utkast
+           @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+             */
+            post("/utkast/{deltakerId}/del-med-innbygger") {
+                val deltakerId = call.getDeltakerId()
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+
+                val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
+
+                tilgangskontrollService.verifiserSkrivetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = personident,
+                )
+
+                val deltakerResponse = enkeltplassClient
+                    .delUtkastMedInnbygger(
                         deltakerId = deltakerId,
                         pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
                             wrappedRequest = pameldingRequest.sanitized(),
