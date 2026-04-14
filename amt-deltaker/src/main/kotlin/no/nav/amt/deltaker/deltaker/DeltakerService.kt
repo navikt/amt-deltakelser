@@ -190,6 +190,13 @@ class DeltakerService(
         nyDeltakerStatus: DeltakerStatus,
         erDeltakerSluttdatoEndret: Boolean,
     ) {
+        val eksisterendeStatus = DeltakerStatusRepository.getGjeldendeStatusForDeltaker(deltakerId)
+
+        if (eksisterendeStatus.type == nyDeltakerStatus.type && eksisterendeStatus.aarsak == nyDeltakerStatus.aarsak) {
+            log.info("Ny deltakerstatus for deltaker $deltakerId er lik eksisterende status, ingen oppdatering nødvendig")
+            return
+        }
+
         DeltakerStatusRepository.lagreStatus(deltakerId, nyDeltakerStatus)
 
         val erNyStatusAktiv = nyDeltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()

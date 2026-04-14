@@ -220,6 +220,21 @@ object DeltakerStatusRepository {
         return Database.query { session -> session.run(query) }
     }
 
+    internal fun getGjeldendeStatusForDeltaker(deltakerId: UUID): DeltakerStatus = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                    SELECT *
+                    FROM deltaker_status 
+                    WHERE deltaker_id = ? 
+                    AND gyldig_til IS NULL 
+                    AND gyldig_fra <= CURRENT_TIMESTAMP
+                    """,
+                deltakerId,
+            ).map(::deltakerStatusRowMapper).asSingle,
+        ) ?: throw NoSuchElementException("Fant ikke deltakerstatus med for deltaker med id $deltakerId")
+    }
+
     // benyttes kun i tester
     internal fun get(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
         session.run(
