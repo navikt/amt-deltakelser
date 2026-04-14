@@ -122,6 +122,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
         @Test
         fun `skal returnere Forbidden nar ikke tilgang til bruker`() {
+            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
             every { deltakerRepository.get(any()) } returns Result.success(deltaker)
             coEvery {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
@@ -166,6 +167,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             )
 
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
+            coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltakerResponse
             coEvery { amtDeltakerClient.getDeltakerHistorikkData(any()) } returns DeltakerHistorikkData(
                 historikk = historikk,
                 arrangornavn = arrangornavn,
@@ -173,12 +175,13 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 ansatte = navAnsattMap,
                 enheter = navEnhetMap,
             )
-            every { deltakerRepository.get(any()) } returns Result.success(deltaker)
             coEvery {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
-                    navBruker = any(),
+                    personident = any(),
+                    erSkjermet = any(),
+                    adressebeskyttelse = any(),
                     deltakerlisteId = any(),
                 )
             } returns true

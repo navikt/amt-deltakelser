@@ -81,23 +81,22 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
 
         get("$apiPath/historikk") {
             val deltakerId = UUID.fromString(call.parameters["id"])
-            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-
-            sporbarhetOgTilgangskontrollSvc
-                .kontrollerTilgangTilBruker(
-                    navIdent = call.getNavIdent(),
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                    personident = deltaker.navBruker.personident,
-                    erInnbyggerSkjermet = deltaker.navBruker.erSkjermet,
-                    adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                    deltakerlisteId = deltaker.deltakerliste.id,
-                ).also { harTilgangTilBruker ->
-                    if (!harTilgangTilBruker) {
-                        throw AuthorizationException("Ansatt har ikke tilgang til å se historikken til deltaker $deltakerId")
-                    }
-                }
 
             val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val deltakerResponse = amtDeltakerClient.getDeltaker(deltakerId)
+                sporbarhetOgTilgangskontrollSvc
+                    .kontrollerTilgangTilBruker(
+                        navIdent = call.getNavIdent(),
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                        personident = deltakerResponse.navBruker.personident,
+                        erSkjermet = deltakerResponse.navBruker.erSkjermet,
+                        adressebeskyttelse = deltakerResponse.navBruker.adressebeskyttelse,
+                        deltakerlisteId = deltakerResponse.gjennomforing.id,
+                    ).also { harTilgangTilBruker ->
+                        if (!harTilgangTilBruker) {
+                            throw AuthorizationException("Ansatt har ikke tilgang til å se historikken til deltaker $deltakerId")
+                        }
+                    }
                 val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
                 DeltakerHistorikkResponse.fromModels(
                     models = data.historikk,
@@ -107,6 +106,18 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     ansatte = data.ansatte,
                 )
             } else {
+                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                sporbarhetOgTilgangskontrollSvc
+                    .kontrollerTilgangTilBruker(
+                        navIdent = call.getNavIdent(),
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                        navBruker = deltaker.navBruker,
+                        deltakerlisteId = deltaker.deltakerliste.id,
+                    ).also { harTilgangTilBruker ->
+                        if (!harTilgangTilBruker) {
+                            throw AuthorizationException("Ansatt har ikke tilgang til å se historikken til deltaker $deltakerId")
+                        }
+                    }
                 val historikk = deltaker.getDeltakerHistorikkForVisning()
                 DeltakerHistorikkResponse.fromModels(
                     models = historikk,

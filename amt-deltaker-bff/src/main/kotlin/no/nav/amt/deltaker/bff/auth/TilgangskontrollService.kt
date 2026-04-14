@@ -116,9 +116,19 @@ class TilgangskontrollService(
         navAnsattAzureId: UUID,
         innbyggerAdressebeskyttelse: Adressebeskyttelse?,
         erInnbyggerSkjermet: Boolean,
+    ): Boolean = harKoordinatorTilgangTilPerson(navAnsattAzureId, navBruker.erSkjermet, navBruker.adressebeskyttelse)
+
+    fun harKoordinatorTilgangTilPerson(
+        navAnsattAzureId: UUID,
+        erSkjermet: Boolean,
+        adressebeskyttelse: Adressebeskyttelse?,
     ): Boolean {
-        val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(innbyggerAdressebeskyttelse, navAnsattAzureId)
-        val tilgangTilSkjerming = vurderSkjermingTilgang(erInnbyggerSkjermet, navAnsattAzureId)
+        val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(adressebeskyttelse, navAnsattAzureId)
+        val tilgangTilSkjerming = if (erSkjermet) {
+            poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId)).getOrThrow()
+        } else {
+            Decision.Permit
+        }
 
         return tilgangTilAdressebeskyttelse.isPermit && tilgangTilSkjerming.isPermit
     }

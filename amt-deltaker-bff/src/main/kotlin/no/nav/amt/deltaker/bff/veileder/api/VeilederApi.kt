@@ -181,16 +181,17 @@ fun Routing.registerVeilederApi(
         // henter all historikkdata fra amt-deltaker når prioriterSynkronKommunikasjon-toggle er aktiv,
         // ellers brukes lokal historikk fra deltaker
         get("/deltaker/{deltakerId}/historikk") {
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
-            tilgangskontrollService.verifiserLesetilgang(
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
-            )
-
-            log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id ${deltaker.id}")
+            val deltakerId = call.getDeltakerId()
 
             val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                val data = amtDeltakerClient.getDeltakerHistorikkData(deltaker.id)
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                tilgangskontrollService.verifiserLesetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = personident,
+                )
+
+                log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id $deltakerId")
+                val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
                 DeltakerHistorikkResponse.fromModels(
                     models = data.historikk,
                     arrangornavn = data.arrangornavn,
@@ -199,6 +200,11 @@ fun Routing.registerVeilederApi(
                     ansatte = data.ansatte,
                 )
             } else {
+                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                tilgangskontrollService.verifiserLesetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = deltaker.navBruker.personident,
+                )
                 val historikk = deltaker.getDeltakerHistorikkForVisning()
                 DeltakerHistorikkResponse.fromModels(
                     models = historikk,

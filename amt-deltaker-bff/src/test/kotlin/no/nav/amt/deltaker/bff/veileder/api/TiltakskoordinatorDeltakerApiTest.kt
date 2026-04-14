@@ -423,7 +423,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     fun `getDeltakerHistorikk - har tilgang, deltaker finnes - returnerer historikk`() {
         val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns PersonIdentResponse(deltaker.navBruker.personident)
 
         val historikk = deltaker.getDeltakerHistorikkForVisning()
         val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }

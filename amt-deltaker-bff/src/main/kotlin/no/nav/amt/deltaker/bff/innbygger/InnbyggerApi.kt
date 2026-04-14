@@ -110,14 +110,13 @@ fun Routing.registerInnbyggerApi(
         // ellers brukes lokal historikk fra deltaker
         get("/innbygger/{deltakerId}/historikk") {
             val deltakerId = call.getDeltakerId()
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
-
-            tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
-                rekvirentPersonident = call.getPersonIdent(),
-                ressursPersonident = personident,
-            )
 
             val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
+                    rekvirentPersonident = call.getPersonIdent(),
+                    ressursPersonident = personident,
+                )
                 val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
                 DeltakerHistorikkResponse.fromModels(
                     models = data.historikk,
@@ -128,6 +127,10 @@ fun Routing.registerInnbyggerApi(
                 )
             } else {
                 val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
+                    rekvirentPersonident = call.getPersonIdent(),
+                    ressursPersonident = deltaker.navBruker.personident,
+                )
                 val historikk = deltaker.getDeltakerHistorikkForVisning()
                 DeltakerHistorikkResponse.fromModels(
                     models = historikk,
