@@ -190,8 +190,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             every {
                 tilgangskontrollService.harKoordinatorTilgangTilPerson(
                     any(),
-                    innbyggerAdressebeskyttelse = it.navBruker.adressebeskyttelse,
-                    erInnbyggerSkjermet = it.navBruker.erSkjermet,
+                    adressebeskyttelse = it.navBruker.adressebeskyttelse,
+                    erSkjermet = it.navBruker.erSkjermet,
                 )
             } returns true
         }

@@ -51,7 +51,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     navIdent = call.getNavIdent(),
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     personident = deltaker.navBruker.personident,
-                    erInnbyggerSkjermet = deltaker.navBruker.erSkjermet,
+                    erSkjermet = deltaker.navBruker.erSkjermet,
                     adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                     deltakerlisteId = deltaker.gjennomforing.id,
                 )
@@ -64,7 +64,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     navIdent = call.getNavIdent(),
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     personident = tiltakskoordinatorsDeltaker.navBruker.personident,
-                    erInnbyggerSkjermet = tiltakskoordinatorsDeltaker.navBruker.erSkjermet,
+                    erSkjermet = tiltakskoordinatorsDeltaker.navBruker.erSkjermet,
                     adressebeskyttelse = tiltakskoordinatorsDeltaker.navBruker.adressebeskyttelse,
                     deltakerlisteId = tiltakskoordinatorsDeltaker.deltakerliste.id,
                 )
@@ -111,7 +111,9 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     .kontrollerTilgangTilBruker(
                         navIdent = call.getNavIdent(),
                         navAnsattAzureId = call.getNavAnsattAzureId(),
-                        navBruker = deltaker.navBruker,
+                        personident = deltaker.navBruker.personident,
+                        erSkjermet = deltaker.navBruker.erSkjermet,
+                        adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                         deltakerlisteId = deltaker.deltakerliste.id,
                     ).also { harTilgangTilBruker ->
                         if (!harTilgangTilBruker) {

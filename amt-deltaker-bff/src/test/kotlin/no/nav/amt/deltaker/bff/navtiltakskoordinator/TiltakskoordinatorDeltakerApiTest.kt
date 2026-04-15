@@ -57,7 +57,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                     navIdent = any(),
                     navAnsattAzureId = any(),
                     personident = any(),
-                    erInnbyggerSkjermet = any(),
+                    erSkjermet = any(),
                     adressebeskyttelse = any(),
                     deltakerlisteId = any(),
                 )
@@ -88,7 +88,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                     navIdent = any(),
                     navAnsattAzureId = any(),
                     personident = any(),
-                    erInnbyggerSkjermet = any(),
+                    erSkjermet = any(),
                     adressebeskyttelse = any(),
                     deltakerlisteId = any(),
                 )
@@ -130,7 +130,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                     navAnsattAzureId = any(),
                     deltakerlisteId = any(),
                     personident = any(),
-                    erInnbyggerSkjermet = any(),
+                    erSkjermet = any(),
                     adressebeskyttelse = any(),
                 )
             } returns false
@@ -221,7 +221,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                     navIdent = any(),
                     navAnsattAzureId = any(),
                     personident = any(),
-                    erInnbyggerSkjermet = any(),
+                    erSkjermet = any(),
                     adressebeskyttelse = any(),
                     deltakerlisteId = any(),
                 )
