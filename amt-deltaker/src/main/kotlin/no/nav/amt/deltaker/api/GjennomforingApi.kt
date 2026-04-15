@@ -16,7 +16,6 @@ fun Routing.registerGjennomforingApi(
 
     authenticate("SYSTEM") {
         get("$apiPath/{gjennomforingId}") {
-            // API til valp hvor de henter ut alle deltakelser til en gjennomføring
             val gjennomforingId = call.getGjennomforingId()
             val gjennomforingResponse = deltakerlisteRepository
                 .get(gjennomforingId)
