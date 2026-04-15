@@ -42,8 +42,8 @@ class DeltakerLaaseService(
      * Sjekker om en [deltaker] er låst for endringer.
      *
      * Hvis personen har flere deltakelser i samme deltakerliste, anses kun den
-     * nyeste aktive deltakelsen som redigerbar. Alle tidligere deltakelser
-     * er låst. Hvis alle deltakelser er inaktive, er ingen deltakelser låst.
+     * nyeste relevante deltakelsen som redigerbar. Alle tidligere deltakelser
+     * er låst.
      *
      * @return `true` dersom deltakeren er låst, ellers `false`
      */
@@ -66,7 +66,7 @@ class DeltakerLaaseService(
 
         val nyesteDeltakelse = deltakelserPaaPersonSorted
             .firstOrNull { it.status.type in AKTIVE_STATUSER }
-            ?: return false // alle deltakelser inaktive, alle er åpne for endringer
+            ?: deltakelserPaaPersonSorted.first()
 
         return if (deltaker.id != nyesteDeltakelse.id) {
             log.info("Deltaker er låst fordi det finnes en nyere deltakelse ${nyesteDeltakelse.id} på personen")

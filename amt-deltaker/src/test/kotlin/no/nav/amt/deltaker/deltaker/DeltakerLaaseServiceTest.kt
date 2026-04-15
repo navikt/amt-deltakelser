@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -24,13 +23,10 @@ class DeltakerLaaseServiceTest {
     private val mockImportertFraArenaRepository = mockk<ImportertFraArenaRepository>()
     private val sut = DeltakerLaaseService(mockDeltakerRepository, mockImportertFraArenaRepository)
 
-    private val deltakerInTest = lagDeltaker(
-        status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-    )
+    private val deltakerInTest = lagDeltaker()
     private val tidligereDeltakerInTest = lagDeltaker(
-        status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-        navBruker = deltakerInTest.navBruker,
         deltakerliste = deltakerInTest.deltakerliste,
+        navBruker = deltakerInTest.navBruker,
     )
 
     private val importertFraArena = lagImportertFraArena(
@@ -71,7 +67,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returnere false hvis deltaker ikke har tidligere deltakelser`() {
+        fun `skal returrnere false hvis deltaker ikke har tidligere deltakelser`() {
             // Arrange
             every {
                 mockDeltakerRepository.getFlereForPerson(
@@ -88,7 +84,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returnere true hvis deltaker ikke er nyeste deltaker`() {
+        fun `skal returrnere true hvis deltaker ikke er nyeste deltaker`() {
             // Arrange
             every {
                 mockDeltakerRepository.getFlereForPerson(
@@ -102,26 +98,6 @@ class DeltakerLaaseServiceTest {
 
             // Assert
             result shouldBe true
-        }
-
-        @Test
-        fun `skal returnere false hvis begge deltakelser er inaktive`() {
-            // Arrange
-            every {
-                mockDeltakerRepository.getFlereForPerson(
-                    personIdent = deltakerInTest.navBruker.personident,
-                    deltakerlisteId = deltakerInTest.deltakerliste.id,
-                )
-            } returns listOf(
-                deltakerInTest.copy(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)),
-                tidligereDeltakerInTest.copy(
-                    status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
-                ),
-            )
-
-            // Act & Assert
-            sut.erLaastForEndringer(deltakerInTest).shouldBeFalse()
-            sut.erLaastForEndringer(tidligereDeltakerInTest).shouldBeFalse()
         }
 
         @Test
