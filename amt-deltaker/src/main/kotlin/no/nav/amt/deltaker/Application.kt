@@ -441,6 +441,7 @@ fun Application.module() {
         kladdService = kladdService,
         enkeltplassService = enkeltplassService,
         arrangorService = arrangorService,
+        gjennomforingRequestProducer = gjennomforingRequestProducer,
     )
     configureMonitoring()
 
