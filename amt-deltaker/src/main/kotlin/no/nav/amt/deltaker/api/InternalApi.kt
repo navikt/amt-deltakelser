@@ -21,6 +21,8 @@ import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -49,6 +51,7 @@ fun Routing.registerInternalApi(
     vedtakRepository: VedtakRepository,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
+    gjennomforingRequestProducer: GjennomforingRequestProducer,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
     val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -292,6 +295,44 @@ fun Routing.registerInternalApi(
     }
 
     /*
+    Brukes til å opprette manglende gjennomføringer hos valp for enkeltplasser.
+    Finner de manglende gjennomføringene i db slik:
+        SELECT dl.id, dl.prisinformasjon from deltaker d
+        join deltakerliste dl on d.deltakerliste_id=dl.id
+        join deltaker_status ds on d.id=ds.deltaker_id
+        WHERE ds.type='UTKAST_TIL_PAMELDING'
+        AND ds.gyldig_til IS NULL
+        AND dl.status='KLADD';
+     */
+
+    post("/internal/opprett-gjennomforinger-for-enkeltplass") {
+        requireInternal(call.request.local.remoteAddress)
+        val request = call.receive<OpprettEnkeltplassGjennomforingerInternalRequest>()
+        scope.launch {
+            log.info("Oppretter ${request.gjennomforingIder.size} gjennomføringer")
+            request.gjennomforingIder.forEach { gjennomforingId ->
+                val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforingId).getOrThrow()
+                val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
+                    ?: throw IllegalStateException("Enkeltplass deltaker ${deltaker.id} må ha vedtak for å kunne opprette gjennomføring")
+                gjennomforingRequestProducer.produce(
+                    GjennomforingRequestPayload.OpprettEnkeltplass(
+                        gjennomforingId = deltaker.deltakerliste.id,
+                        tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                        prisinformasjon = deltaker.deltakerliste.prisinformasjon
+                            ?: throw IllegalStateException("Enkeltplass må ha prisinformasjon"),
+                        organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
+                            ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),
+                        ansvarligEnhet = vedtak.sistEndretAvEnhet.toString(),
+                        opprettetAv = vedtak.sistEndretAv.toString(),
+                    ),
+                )
+            }
+            log.info("Ferdig opprettet ${request.gjennomforingIder.size} gjennomføringer")
+        }
+        call.respond(HttpStatusCode.OK)
+    }
+
+    /*
         Brukes for å produsere hendelse til amt-distribusjon i tilfeller hvor manglende transaksjonshåndtering har ført til
         at en deltaker har fått godkjent utkast men handlingen ikke har blitt produsert på topic slik at amt-distribusjon ikke
         får inaktivert oppgave når neste handling blir publisert
@@ -375,6 +416,10 @@ data class RepubliserRequest(
 data class RepubliserTiltakskoderRequest(
     val tiltakskoder: List<Tiltakskode>,
     val request: RepubliserRequest,
+)
+
+data class OpprettEnkeltplassGjennomforingerInternalRequest(
+    val gjennomforingIder: List<UUID>,
 )
 
 fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"

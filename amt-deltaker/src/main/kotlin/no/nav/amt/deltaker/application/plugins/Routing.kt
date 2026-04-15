@@ -35,6 +35,7 @@ import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -77,6 +78,7 @@ fun Application.configureRouting(
     navAnsattService: NavAnsattService,
     responseBuilder: ResponseBuilder,
     arrangorService: ArrangorService,
+    gjennomforingRequestProducer: GjennomforingRequestProducer,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -141,6 +143,7 @@ fun Application.configureRouting(
             vedtakRepository,
             navAnsattService,
             navEnhetService,
+            gjennomforingRequestProducer,
         )
         registerTiltakskoordinatorApi(deltakerService, deltakerHistorikkService)
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)

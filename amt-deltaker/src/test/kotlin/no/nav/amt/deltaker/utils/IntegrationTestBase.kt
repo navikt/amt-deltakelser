@@ -408,6 +408,7 @@ abstract class IntegrationTestBase {
                     navAnsattService = navAnsattService,
                     responseBuilder = responseBuilder,
                     arrangorService = arrangorService,
+                    gjennomforingRequestProducer = gjennomforingRequestProducer,
                 )
                 setUpTestRoute()
 
