@@ -33,7 +33,7 @@ class SporbarhetOgTilgangskontrollSvcTest {
         clearAllMocks()
 
         coEvery { mockTilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } just runs
-        every { mockTilgangskontrollService.harKoordinatorTilgangTilPerson(any(), any(), any()) } returns true
+        every { mockTilgangskontrollService.harKoordinatorTilgangTilPerson(any(), any<Boolean>(), anyNullable()) } returns true
     }
 
     @Test
@@ -42,7 +42,7 @@ class SporbarhetOgTilgangskontrollSvcTest {
             NAV_IDENT,
             navAnsattAzureId,
             personident = navBruker.personident,
-            erInnbyggerSkjermet = navBruker.erSkjermet,
+            erSkjermet = navBruker.erSkjermet,
             adressebeskyttelse = navBruker.adressebeskyttelse,
             deltakerlisteId = deltakerlisteId,
         )
@@ -53,11 +53,7 @@ class SporbarhetOgTilgangskontrollSvcTest {
             mockSporbarhetsloggService.sendAuditLog(NAV_IDENT, navBruker.personident)
             mockDeltakerListeService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
             mockTilgangskontrollService.verifiserTiltakskoordinatorTilgang(NAV_IDENT, deltakerlisteId)
-            mockTilgangskontrollService.harKoordinatorTilgangTilPerson(
-                navAnsattAzureId,
-                innbyggerAdressebeskyttelse = navBruker.adressebeskyttelse,
-                erInnbyggerSkjermet = navBruker.erSkjermet,
-            )
+            mockTilgangskontrollService.harKoordinatorTilgangTilPerson(navAnsattAzureId, navBruker.erSkjermet, navBruker.adressebeskyttelse)
         }
     }
 

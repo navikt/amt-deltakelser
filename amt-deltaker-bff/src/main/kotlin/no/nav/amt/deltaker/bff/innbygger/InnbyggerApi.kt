@@ -106,32 +106,40 @@ fun Routing.registerInnbyggerApi(
             call.respond(komplettInnbyggerDeltakerResponse(oppdatertDeltaker))
         }
 
-        // henter deltakerhistorikk via amtDeltakerClient.getDeltakerHistorikk når
-        // prioriterSynkronKommunikasjon-toggle er aktiv, ellers brukes lokal historikk fra deltaker
+        // henter all historikkdata fra amt-deltaker når prioriterSynkronKommunikasjon-toggle er aktiv,
+        // ellers brukes lokal historikk fra deltaker
         get("/innbygger/{deltakerId}/historikk") {
             val deltakerId = call.getDeltakerId()
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
 
-            tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
-                rekvirentPersonident = call.getPersonIdent(),
-                ressursPersonident = personident,
-            )
-
-            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-            val historikk =
-                if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    amtDeltakerClient.getDeltakerHistorikk(deltakerId)
-                } else {
-                    deltaker.getDeltakerHistorikkForVisning()
-                }
-
-            val historikkResponse = DeltakerHistorikkResponse.fromModels(
-                models = historikk,
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-            )
+            val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
+                    rekvirentPersonident = call.getPersonIdent(),
+                    ressursPersonident = personident,
+                )
+                val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
+                DeltakerHistorikkResponse.fromModels(
+                    models = data.historikk,
+                    arrangornavn = data.arrangornavn,
+                    oppstartstype = data.oppstartstype,
+                    enheter = data.enheter,
+                    ansatte = data.ansatte,
+                )
+            } else {
+                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
+                    rekvirentPersonident = call.getPersonIdent(),
+                    ressursPersonident = deltaker.navBruker.personident,
+                )
+                val historikk = deltaker.getDeltakerHistorikkForVisning()
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                )
+            }
 
             call.respondText(
                 objectMapper.writePolymorphicListAsString(historikkResponse),

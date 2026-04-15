@@ -51,7 +51,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     navIdent = call.getNavIdent(),
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     personident = deltaker.navBruker.personident,
-                    erInnbyggerSkjermet = deltaker.navBruker.erSkjermet,
+                    erSkjermet = deltaker.navBruker.erSkjermet,
                     adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                     deltakerlisteId = deltaker.gjennomforing.id,
                 )
@@ -64,7 +64,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     navIdent = call.getNavIdent(),
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     personident = tiltakskoordinatorsDeltaker.navBruker.personident,
-                    erInnbyggerSkjermet = tiltakskoordinatorsDeltaker.navBruker.erSkjermet,
+                    erSkjermet = tiltakskoordinatorsDeltaker.navBruker.erSkjermet,
                     adressebeskyttelse = tiltakskoordinatorsDeltaker.navBruker.adressebeskyttelse,
                     deltakerlisteId = tiltakskoordinatorsDeltaker.deltakerliste.id,
                 )
@@ -81,36 +81,54 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
 
         get("$apiPath/historikk") {
             val deltakerId = UUID.fromString(call.parameters["id"])
-            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
-            sporbarhetOgTilgangskontrollSvc
-                .kontrollerTilgangTilBruker(
-                    navIdent = call.getNavIdent(),
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                    personident = deltaker.navBruker.personident,
-                    erInnbyggerSkjermet = deltaker.navBruker.erSkjermet,
-                    adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                    deltakerlisteId = deltaker.deltakerliste.id,
-                ).also { harTilgangTilBruker ->
-                    if (!harTilgangTilBruker) {
-                        throw AuthorizationException("Ansatt har ikke tilgang til å se historikken til deltaker $deltakerId")
+            val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val deltakerResponse = amtDeltakerClient.getDeltaker(deltakerId)
+                sporbarhetOgTilgangskontrollSvc
+                    .kontrollerTilgangTilBruker(
+                        navIdent = call.getNavIdent(),
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                        personident = deltakerResponse.navBruker.personident,
+                        erSkjermet = deltakerResponse.navBruker.erSkjermet,
+                        adressebeskyttelse = deltakerResponse.navBruker.adressebeskyttelse,
+                        deltakerlisteId = deltakerResponse.gjennomforing.id,
+                    ).also { harTilgangTilBruker ->
+                        if (!harTilgangTilBruker) {
+                            throw AuthorizationException("Ansatt har ikke tilgang til å se historikken til deltaker $deltakerId")
+                        }
                     }
-                }
-
-            val historikk =
-                if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    amtDeltakerClient.getDeltakerHistorikk(deltaker.id)
-                } else {
-                    deltaker.getDeltakerHistorikkForVisning()
-                }
-
-            val historikkResponse = DeltakerHistorikkResponse.fromModels(
-                models = historikk,
-                arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                oppstartstype = deltaker.deltakerliste.oppstart,
-                enheter = navEnhetService.hentEnheterForHistorikk(historikk),
-                ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
-            )
+                val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
+                DeltakerHistorikkResponse.fromModels(
+                    models = data.historikk,
+                    arrangornavn = data.arrangornavn,
+                    oppstartstype = data.oppstartstype,
+                    enheter = data.enheter,
+                    ansatte = data.ansatte,
+                )
+            } else {
+                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                sporbarhetOgTilgangskontrollSvc
+                    .kontrollerTilgangTilBruker(
+                        navIdent = call.getNavIdent(),
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                        personident = deltaker.navBruker.personident,
+                        erSkjermet = deltaker.navBruker.erSkjermet,
+                        adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                        deltakerlisteId = deltaker.deltakerliste.id,
+                    ).also { harTilgangTilBruker ->
+                        if (!harTilgangTilBruker) {
+                            throw AuthorizationException("Ansatt har ikke tilgang til å se historikken til deltaker $deltakerId")
+                        }
+                    }
+                val historikk = deltaker.getDeltakerHistorikkForVisning()
+                DeltakerHistorikkResponse.fromModels(
+                    models = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    enheter = navEnhetService.hentEnheterForHistorikk(historikk),
+                    ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
+                )
+            }
 
             val historikkResponseAsJson = objectMapper.writePolymorphicListAsString(historikkResponse)
 

@@ -197,8 +197,8 @@ class TilgangskontrollServiceTest {
 
         val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
             navAnsattAzureId = navAnsattAzureId,
-            innbyggerAdressebeskyttelse = Adressebeskyttelse.FORTROLIG,
-            erInnbyggerSkjermet = false,
+            adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
+            erSkjermet = false,
         )
         tilgangTilDeltaker shouldBe false
     }
@@ -210,8 +210,8 @@ class TilgangskontrollServiceTest {
 
         val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
             navAnsattAzureId,
-            innbyggerAdressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
-            erInnbyggerSkjermet = false,
+            adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
+            erSkjermet = false,
         )
         tilgangTilDeltaker shouldBe false
     }
@@ -222,8 +222,8 @@ class TilgangskontrollServiceTest {
         mockPoaoTilgangPermit(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId))
         val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
             navAnsattAzureId,
-            innbyggerAdressebeskyttelse = Adressebeskyttelse.FORTROLIG,
-            erInnbyggerSkjermet = false,
+            adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
+            erSkjermet = false,
         )
         tilgangTilDeltaker shouldBe true
     }
@@ -235,8 +235,8 @@ class TilgangskontrollServiceTest {
 
         val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
             navAnsattAzureId,
-            innbyggerAdressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
-            erInnbyggerSkjermet = false,
+            adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
+            erSkjermet = false,
         )
         tilgangTilDeltaker shouldBe true
     }
@@ -248,8 +248,8 @@ class TilgangskontrollServiceTest {
         mockPoaoTilgangPermit(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId))
         val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
             navAnsattAzureId,
-            innbyggerAdressebeskyttelse = null,
-            erInnbyggerSkjermet = true,
+            adressebeskyttelse = null,
+            erSkjermet = true,
         )
         tilgangTilDeltaker shouldBe true
     }
@@ -260,8 +260,8 @@ class TilgangskontrollServiceTest {
         mockPoaoTilgangDeny(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId))
         val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
             navAnsattAzureId,
-            innbyggerAdressebeskyttelse = null,
-            erInnbyggerSkjermet = true,
+            adressebeskyttelse = null,
+            erSkjermet = true,
         )
         tilgangTilDeltaker shouldBe false
     }
@@ -272,8 +272,8 @@ class TilgangskontrollServiceTest {
 
         val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
             navAnsattAzureId,
-            innbyggerAdressebeskyttelse = null,
-            erInnbyggerSkjermet = false,
+            adressebeskyttelse = null,
+            erSkjermet = false,
         )
         tilgangTilDeltaker shouldBe true
     }

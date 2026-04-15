@@ -23,14 +23,16 @@ import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.withLogCapture
-import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -576,7 +578,7 @@ class AmtDeltakerClientTest {
     @Nested
     inner class Historikk {
         val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/historikk"
-        val expectedErrorMessage = "Fant ikke deltakerhistorikk for ${deltakerInTest.id} i amt-deltaker."
+        val expectedErrorMessage = "Fant ikke historikkdata for ${deltakerInTest.id} i amt-deltaker."
         val historikk = TestData.leggTilHistorikk(deltakerInTest, 2, 2, 1).historikk
 
         @ParameterizedTest
@@ -589,22 +591,36 @@ class AmtDeltakerClientTest {
                         expectedUrl = expectedUrl,
                         statusCode = statusCode,
                         responseBody = "feil",
-                    ).getDeltakerHistorikk(deltakerInTest.id)
+                    ).getDeltakerHistorikkData(deltakerInTest.id)
                 }
             }
-
             thrown.message shouldStartWith expectedErrorMessage
         }
 
         @Test
-        fun `skal returnere deltakerhistorikk`() {
+        fun `skal returnere DeltakerHistorikkData`() {
+            val navAnsatt = lagNavAnsatt()
+            val navEnhet = lagNavEnhet()
+            val response = DeltakerHistorikkDataResponse(
+                historikk = historikk,
+                arrangornavn = "Test Arrangør",
+                oppstartstype = Oppstartstype.LOPENDE,
+                ansatte = listOf(navAnsatt),
+                enheter = listOf(navEnhet),
+            )
+
             val amtDeltakerClient = createDeltakerClient(
                 expectedUrl = expectedUrl,
-                responseBody = objectMapper.writePolymorphicListAsString(historikk),
+                responseBody = response,
             )
 
             runTest {
-                amtDeltakerClient.getDeltakerHistorikk(deltakerInTest.id) shouldBe historikk
+                val result = amtDeltakerClient.getDeltakerHistorikkData(deltakerInTest.id)
+                result.historikk shouldBe historikk
+                result.arrangornavn shouldBe response.arrangornavn
+                result.oppstartstype shouldBe response.oppstartstype
+                result.ansatte shouldBe mapOf(navAnsatt.id to navAnsatt)
+                result.enheter shouldBe mapOf(navEnhet.id to navEnhet)
             }
         }
     }

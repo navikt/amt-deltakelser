@@ -114,22 +114,17 @@ class TilgangskontrollService(
      */
     fun harKoordinatorTilgangTilPerson(
         navAnsattAzureId: UUID,
-        innbyggerAdressebeskyttelse: Adressebeskyttelse?,
-        erInnbyggerSkjermet: Boolean,
+        erSkjermet: Boolean,
+        adressebeskyttelse: Adressebeskyttelse?,
     ): Boolean {
-        val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(innbyggerAdressebeskyttelse, navAnsattAzureId)
-        val tilgangTilSkjerming = vurderSkjermingTilgang(erInnbyggerSkjermet, navAnsattAzureId)
+        val tilgangTilAdressebeskyttelse = vurderAdressebeskyttelseTilgang(adressebeskyttelse, navAnsattAzureId)
+        val tilgangTilSkjerming = if (erSkjermet) {
+            poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId)).getOrThrow()
+        } else {
+            Decision.Permit
+        }
 
         return tilgangTilAdressebeskyttelse.isPermit && tilgangTilSkjerming.isPermit
-    }
-
-    private fun vurderSkjermingTilgang(
-        erSkjermet: Boolean,
-        navAnsattAzureId: UUID,
-    ): Decision = if (erSkjermet) {
-        poaoTilgangCachedClient.evaluatePolicy(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId)).getOrThrow()
-    } else {
-        Decision.Permit
     }
 
     private fun vurderAdressebeskyttelseTilgang(

@@ -20,6 +20,7 @@ import no.nav.amt.deltaker.api.registerKladdApi
 import no.nav.amt.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.api.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.api.registerVeilederApi
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -75,6 +76,7 @@ fun Application.configureRouting(
     vedtakRepository: VedtakRepository,
     navAnsattService: NavAnsattService,
     responseBuilder: ResponseBuilder,
+    arrangorService: ArrangorService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -113,7 +115,15 @@ fun Application.configureRouting(
             kladdService = kladdService,
             deltakerRepository = deltakerRepository,
         )
-        registerVeilederApi(deltakerRepository, deltakerService, deltakerHistorikkService, responseBuilder)
+        registerVeilederApi(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            historikkService = deltakerHistorikkService,
+            responseBuilder = responseBuilder,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            arrangorService = arrangorService,
+        )
         registerEnkeltplassApi(
             enkeltplassService = enkeltplassService,
             responseBuilder = responseBuilder,

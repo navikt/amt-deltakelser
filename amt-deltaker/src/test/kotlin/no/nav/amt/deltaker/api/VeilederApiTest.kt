@@ -34,15 +34,18 @@ import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -355,26 +358,31 @@ class VeilederApiTest : IntegrationTestBase() {
 
     @Test
     fun `get historikk - har tilgang - returnerer 200`() {
-        val deltakerId = UUID.randomUUID()
-        val historikk = listOf(
-            DeltakerHistorikk.Endring(
-                TestData.lagDeltakerEndring(deltakerId = deltakerId),
-            ),
-        )
+        val arrangor = lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(deltakerId = deltaker.id)))
+        val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
+        val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
-        every { deltakerHistorikkService.getForDeltaker(deltakerId) } returns historikk
+        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        every { navAnsattRepository.getManyById(any()) } returns navAnsatte
+        every { navEnhetRepository.getMany(any()) } returns navEnheter
+        every { arrangorRepository.get(arrangor.id) } returns arrangor
 
         withTestApplicationContext { client ->
-            val response = client.get("/deltaker/$deltakerId/historikk") {
+            val response = client.get("/deltaker/${deltaker.id}/historikk") {
                 noBodyRequest()
             }
 
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(historikk)
-        }
-
-        verify(exactly = 1) {
-            deltakerHistorikkService.getForDeltaker(deltakerId)
+            val body = objectMapper.readValue(response.bodyAsText(), DeltakerHistorikkDataResponse::class.java)
+            body.historikk shouldBe historikk
+            body.arrangornavn shouldBe arrangor.navn
+            body.oppstartstype shouldBe deltakerliste.oppstart
+            body.ansatte shouldBe navAnsatte
+            body.enheter shouldBe navEnheter
         }
     }
 

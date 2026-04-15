@@ -15,7 +15,7 @@ class SporbarhetOgTilgangskontrollSvc(
         navIdent: String,
         navAnsattAzureId: UUID,
         personident: String,
-        erInnbyggerSkjermet: Boolean,
+        erSkjermet: Boolean,
         adressebeskyttelse: Adressebeskyttelse?,
         deltakerlisteId: UUID,
     ): Boolean {
@@ -33,9 +33,9 @@ class SporbarhetOgTilgangskontrollSvc(
 
         return tilgangskontrollService
             .harKoordinatorTilgangTilPerson(
-                navAnsattAzureId,
-                erInnbyggerSkjermet = erInnbyggerSkjermet,
-                innbyggerAdressebeskyttelse = adressebeskyttelse,
+                navAnsattAzureId = navAnsattAzureId,
+                erSkjermet = erSkjermet,
+                adressebeskyttelse = adressebeskyttelse,
             )
     }
 }
