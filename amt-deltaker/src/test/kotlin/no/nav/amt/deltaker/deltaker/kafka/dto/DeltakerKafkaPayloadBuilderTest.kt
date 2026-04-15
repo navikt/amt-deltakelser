@@ -43,8 +43,8 @@ class DeltakerKafkaPayloadBuilderTest {
         deltakerHistorikkService = deltakerHistorikkService,
         vurderingRepository = vurderingRepository,
     )
-    val veileder: NavAnsatt = lagNavAnsatt()
     val navEnhet: NavEnhet = lagNavEnhet()
+    val veileder: NavAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
 
     var deltaker: Deltaker = lagDeltaker(
         status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -66,6 +66,8 @@ class DeltakerKafkaPayloadBuilderTest {
     @BeforeEach
     fun init() {
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        every { navAnsattRepository.getOrThrow(veileder.id) } returns veileder
+        every { navEnhetRepository.getOrThrow(navEnhet.id) } returns navEnhet
     }
 
     @Test
@@ -126,6 +128,16 @@ class DeltakerKafkaPayloadBuilderTest {
             .deltakelsesmengder
             .first()
             .gyldigFra shouldBe nyStartdato
+    }
+
+    @Test
+    fun `buildDeltakerEksternV1Record - deltaker med veileder - eksternv1 har veileder`() {
+        deltakerKafkaPayloadBuilder
+            .buildDeltakerEksternV1Record(deltaker)
+            .navVeileder shouldBe DeltakerEksternV1Dto.NavVeilederDto(
+            navEnhet.enhetsnummer,
+            veileder.navIdent,
+        )
     }
 
     @Test

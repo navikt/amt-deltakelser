@@ -10,6 +10,7 @@ data class DeltakerEksternV1Dto(
     val id: UUID,
     val gjennomforingId: UUID,
     val personIdent: String,
+    val navVeileder: NavVeilederDto? = null,
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
     val status: StatusDto,
@@ -19,6 +20,11 @@ data class DeltakerEksternV1Dto(
     val innhold: DeltakelsesinnholdDto?,
     val deltakelsesmengder: List<DeltakelsesmengdeDto>,
 ) {
+    data class NavVeilederDto(
+        val enhetsnummer: String?,
+        val navIdent: String,
+    )
+
     data class StatusDto(
         val type: DeltakerStatus.Type,
         val tekst: String,

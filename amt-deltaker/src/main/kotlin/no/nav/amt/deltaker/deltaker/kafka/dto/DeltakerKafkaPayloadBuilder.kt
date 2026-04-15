@@ -75,6 +75,19 @@ class DeltakerKafkaPayloadBuilder(
             id = deltaker.id,
             gjennomforingId = deltaker.deltakerliste.id,
             personIdent = deltaker.navBruker.personident,
+            navVeileder = deltaker.navBruker.navVeilederId?.let { navVeilederId ->
+                val navVeileder = navAnsattRepository.getOrThrow(navVeilederId)
+                // Usikker på hvorfor navEnhetId kan være null her.
+                // Fant endel caser av at navEnhetId er null for aktive deltakelser i prod
+                val enhetsnummer = navVeileder.navEnhetId
+                    ?.let { navEnhetRepository.getOrThrow(it) }
+                    ?.enhetsnummer
+
+                DeltakerEksternV1Dto.NavVeilederDto(
+                    enhetsnummer = enhetsnummer,
+                    navIdent = navVeileder.navIdent,
+                )
+            },
             startDato = deltaker.startdato,
             sluttDato = deltaker.sluttdato,
             status = DeltakerEksternV1Dto.StatusDto(
