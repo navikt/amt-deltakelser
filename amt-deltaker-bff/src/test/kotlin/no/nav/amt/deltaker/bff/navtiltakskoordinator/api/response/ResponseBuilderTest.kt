@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.DeltakerResponseUtils.Companion.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.DeltakerResponseUtils.Companion.SKJERMET_PERSON_PLACEHOLDER_NAVN
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerModel
@@ -259,5 +260,69 @@ class ResponseBuilderTest {
 
             response.deltakelsesinnhold shouldBe null
         }
+    }
+
+    @Nested
+    inner class BuildGjennomforingTest {
+        @Test
+        fun `mapper grunnleggende felter korrekt`() {
+            val gjennomforing = lagGjennomforingResponse()
+            val koordinatorer = listOf(lagTiltakskoordinator())
+
+            val response = ResponseBuilder.buildGjennomforing(gjennomforing, koordinatorer)
+
+            response.id shouldBe gjennomforing.id
+            response.navn shouldBe gjennomforing.navn
+            response.tiltakskode shouldBe gjennomforing.tiltakstype.tiltakskode
+            response.startdato shouldBe gjennomforing.startDato
+            response.sluttdato shouldBe gjennomforing.sluttDato
+            response.oppstartstype shouldBe gjennomforing.oppstart
+            response.apentForPamelding shouldBe gjennomforing.apentForPamelding
+            response.antallPlasser shouldBe gjennomforing.antallPlasser
+            response.pameldingstype shouldBe gjennomforing.pameldingstype
+        }
+
+        @Test
+        fun `mapper koordinatorer`() {
+            val koordinator1 = lagTiltakskoordinator(navn = "Koordinator 1")
+            val koordinator2 = lagTiltakskoordinator(navn = "Koordinator 2")
+            val gjennomforing = lagGjennomforingResponse()
+
+            val response = ResponseBuilder.buildGjennomforing(gjennomforing, listOf(koordinator1, koordinator2))
+
+            response.koordinatorer shouldHaveSize 2
+            response.koordinatorer[0].navn shouldBe "Koordinator 1"
+            response.koordinatorer[1].navn shouldBe "Koordinator 2"
+        }
+
+        @Test
+        fun `tom koordinatorliste gir tom liste`() {
+            val gjennomforing = lagGjennomforingResponse()
+
+            val response = ResponseBuilder.buildGjennomforing(gjennomforing, emptyList())
+
+            response.koordinatorer.shouldBeEmpty()
+        }
+
+        @Test
+        fun `pameldingstype null - bruker TRENGER_GODKJENNING som default`() {
+            val gjennomforing = lagGjennomforingResponse(pameldingType = null)
+
+            val response = ResponseBuilder.buildGjennomforing(gjennomforing, emptyList())
+
+            response.pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
+        }
+
+        private fun lagTiltakskoordinator(
+            id: UUID = UUID.randomUUID(),
+            navn: String = "Test Koordinator",
+            erAktiv: Boolean = true,
+            kanFjernes: Boolean = false,
+        ) = Tiltakskoordinator(
+            id = id,
+            navn = navn,
+            erAktiv = erAktiv,
+            kanFjernes = kanFjernes,
+        )
     }
 }
