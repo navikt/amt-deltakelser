@@ -291,5 +291,5 @@ fun Deltakerliste.toResponse(koordinatorer: List<Tiltakskoordinator>) = Deltaker
         som må gjøres for å få på plass ny løsning for enkeltplasser
         derfor er en forenklet definisjon av erEnkeltplass
      */
-    erEnkeltplass = tiltak.tiltakskode in Tiltakstype.arenaEnkeltplassTiltakstype,
+    erEnkeltplass = tiltak.tiltakskode in Tiltakstype.arenaEnkeltplassTiltakskoder,
 )

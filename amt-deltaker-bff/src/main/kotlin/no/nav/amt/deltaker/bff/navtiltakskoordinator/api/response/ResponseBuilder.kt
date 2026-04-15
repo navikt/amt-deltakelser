@@ -75,7 +75,7 @@ class ResponseBuilder {
                 oppstartstype = oppstart,
                 apentForPamelding = apentForPamelding,
                 antallPlasser = antallPlasser,
-                pameldingstype = pameldingstype ?: throw IllegalStateException("Pameldingstype er null gjennomføring $id"),
+                pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
                 koordinatorer = koordinatortilganger,
                 erEnkeltplass = type == GjennomforingType.Enkeltplass,
             )
