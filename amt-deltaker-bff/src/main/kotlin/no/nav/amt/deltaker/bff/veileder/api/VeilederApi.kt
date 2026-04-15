@@ -205,6 +205,7 @@ fun Routing.registerVeilederApi(
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     norskIdent = deltaker.navBruker.personident,
                 )
+                log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id $deltakerId")
                 val historikk = deltaker.getDeltakerHistorikkForVisning()
                 DeltakerHistorikkResponse.fromModels(
                     models = historikk,
