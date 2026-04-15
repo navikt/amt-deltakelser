@@ -80,13 +80,14 @@ class ResponseBuilder(
         )
     }
 
-    internal fun buildGjennomforingResponse(deltakerliste: Deltakerliste) = GjennomforingResponse(
+    fun buildGjennomforingResponse(deltakerliste: Deltakerliste) = GjennomforingResponse(
         id = deltakerliste.id,
         tiltakstype = deltakerliste.tiltakstype,
         navn = deltakerliste.navn,
         status = deltakerliste.status,
         startDato = deltakerliste.startDato,
         sluttDato = deltakerliste.sluttDato,
+        antallPlasser = deltakerliste.antallPlasser,
         oppstart = deltakerliste.oppstart,
         apentForPamelding = deltakerliste.apentForPamelding,
         oppmoteSted = deltakerliste.oppmoteSted,

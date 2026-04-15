@@ -60,6 +60,7 @@ object DeltakerData {
         oppmoteSted = "Vet olle",
         pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
         type = GjennomforingType.Gruppe,
+        antallPlasser = 45,
     )
 
     fun lagTiltakstype() = Tiltakstype(

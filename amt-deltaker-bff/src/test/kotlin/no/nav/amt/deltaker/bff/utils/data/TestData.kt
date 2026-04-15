@@ -150,6 +150,7 @@ object TestData {
         oppmoteSted = oppmoteSted,
         pameldingstype = pameldingType,
         type = GjennomforingType.Gruppe,
+        antallPlasser = null,
     )
 
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()

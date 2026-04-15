@@ -16,6 +16,7 @@ data class GjennomforingResponse(
     val status: GjennomforingStatusType?,
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
+    val antallPlasser: Int?,
     val oppstart: Oppstartstype?,
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,

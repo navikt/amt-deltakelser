@@ -567,6 +567,7 @@ class DeltakerRepository {
             dl.gjennomforingstype AS "dl.gjennomforingstype",
             dl.status AS "dl.status",
             dl.start_dato AS "dl.start_dato",
+            dl.antall_plasser AS "dl.antall_plasser",
             dl.slutt_dato AS "dl.slutt_dato",
             dl.oppstart AS "dl.oppstart",
             dl.apent_for_pamelding AS "dl.apent_for_pamelding",

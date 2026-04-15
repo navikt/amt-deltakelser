@@ -16,6 +16,7 @@ import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
 import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
@@ -86,6 +87,7 @@ fun Application.configureRouting(
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     ulestHendelseService: UlestHendelseService,
     testdataService: TestdataService,
+    gjennomforingClient: GjennomforingClient,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -190,6 +192,8 @@ fun Application.configureRouting(
             tiltakskoordinatorService = tiltakskoordinatorService,
             tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
             navAnsattService = navAnsattService,
+            gjennomforingClient = gjennomforingClient,
+            unleashToggle = commonUnleashToggle,
         )
 
         registerUlestHendelseApi(ulestHendelseService)

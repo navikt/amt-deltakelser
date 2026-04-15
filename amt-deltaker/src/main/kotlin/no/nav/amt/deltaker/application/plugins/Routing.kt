@@ -15,6 +15,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.api.registerEnkeltplassApi
 import no.nav.amt.deltaker.api.registerExternalApi
+import no.nav.amt.deltaker.api.registerGjennomforingApi
 import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
 import no.nav.amt.deltaker.api.registerPameldingApi
@@ -34,6 +35,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
@@ -63,6 +65,7 @@ fun Application.configureRouting(
     enkeltplassService: EnkeltplassService,
     deltakerService: DeltakerService,
     deltakerRepository: DeltakerRepository,
+    deltakerlisteRepository: DeltakerlisteRepository,
     deltakerHistorikkService: DeltakerHistorikkService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
@@ -126,6 +129,7 @@ fun Application.configureRouting(
             navEnhetService = navEnhetService,
             arrangorService = arrangorService,
         )
+        registerGjennomforingApi(deltakerlisteRepository, responseBuilder)
         registerEnkeltplassApi(
             enkeltplassService = enkeltplassService,
             responseBuilder = responseBuilder,

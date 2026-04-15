@@ -407,6 +407,7 @@ abstract class IntegrationTestBase {
                     vedtakRepository = vedtakRepository,
                     navAnsattService = navAnsattService,
                     responseBuilder = responseBuilder,
+                    deltakerlisteRepository = deltakerlisteRepository,
                     arrangorService = arrangorService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,
                 )

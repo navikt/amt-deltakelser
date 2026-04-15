@@ -277,6 +277,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
+            antallPlasser = 5,
             tiltakstype = tiltakstype,
             pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
@@ -342,6 +343,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             tiltakstype = tiltakstype,
+            antallPlasser = 5,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
 
@@ -362,6 +364,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
+            antallPlasser = 5,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         TestRepository.insert(deltakerliste)
@@ -383,6 +386,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
+            antallPlasser = 5,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         TestRepository.insert(deltakerliste)
@@ -423,6 +427,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
+            antallPlasser = 5,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         TestRepository.insert(deltakerliste)
