@@ -46,5 +46,5 @@ data class EndreAvslutningRequest(
     private fun deltakerErEndret(deltaker: Deltaker): Boolean = (deltaker.status.type === DeltakerStatus.Type.AVBRUTT && harFullfort()) ||
         (deltaker.status.type === DeltakerStatus.Type.FULLFORT && !harFullfort()) ||
         harEndretSluttaarsak(deltaker.status.aarsak, aarsak) ||
-        deltaker.sluttdato != sluttdato
+        deltaker.sluttdato != sluttdato || (deltaker.status.type === DeltakerStatus.Type.HAR_SLUTTET && harDeltatt == false)
 }
