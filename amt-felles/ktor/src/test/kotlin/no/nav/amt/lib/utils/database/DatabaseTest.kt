@@ -2,7 +2,6 @@ package no.nav.amt.lib.utils.database
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.testing.TestPostgresContainer
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -24,7 +23,7 @@ class DatabaseTest {
     }
 
     @Test
-    fun `transaksjon rulles tilbake ved feil`() = runTest {
+    fun `transaksjon rulles tilbake ved feil`() {
         val n = 1
 
         try {
@@ -40,7 +39,7 @@ class DatabaseTest {
     }
 
     @Test
-    fun `transaksjon committes uten feil`() = runTest {
+    fun `transaksjon committes uten feil`() {
         val n = 999
 
         Database.transaction {
@@ -51,7 +50,7 @@ class DatabaseTest {
     }
 
     @Test
-    fun `det er ikke mulig å bruke transaksjoner i en transaksjon`() = runTest {
+    fun `det er ikke mulig å bruke transaksjoner i en transaksjon`() {
         shouldThrow<PSQLException> {
             Database.transaction {
                 Database.query { s ->

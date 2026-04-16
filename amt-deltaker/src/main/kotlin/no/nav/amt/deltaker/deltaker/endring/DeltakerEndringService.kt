@@ -28,7 +28,7 @@ class DeltakerEndringService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun godkjennForslagForUendretDeltaker(endringRequest: EndringRequest) {
+    fun godkjennForslagForUendretDeltaker(endringRequest: EndringRequest) {
         endringRequest.getForslagId()?.let { forslagId ->
             val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
             val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)

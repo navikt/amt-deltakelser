@@ -1,8 +1,6 @@
 package no.nav.amt.lib.utils.database
 
 import com.zaxxer.hikari.HikariDataSource
-import kotlinx.coroutines.asContextElement
-import kotlinx.coroutines.withContext
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
@@ -53,18 +51,15 @@ object Database {
      * @throws IllegalStateException hvis funksjonen kalles mens en annen transaksjon er aktiv
      * @throws [org.postgresql.util.PSQLException] hvis en utilsiktet prøver å committe direkte via session.transaction innenfor aktiv transaksjon
      */
-    suspend fun <T> transaction(block: () -> T): T {
+    fun <T> transaction(block: () -> T): T {
         check(transactionalSession == null) { "Nested transactions are not supported" }
-
         return sessionOf(dataSource).use { session ->
             session.transaction { tx ->
-                val txContext = transactionalSessionThreadLocal.asContextElement(tx)
-                withContext(txContext) {
-                    try {
-                        block()
-                    } finally {
-                        transactionalSessionThreadLocal.remove()
-                    }
+                transactionalSessionThreadLocal.set(tx)
+                try {
+                    block()
+                } finally {
+                    transactionalSessionThreadLocal.remove()
                 }
             }
         }
