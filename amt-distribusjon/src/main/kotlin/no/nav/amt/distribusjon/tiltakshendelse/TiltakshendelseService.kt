@@ -51,7 +51,7 @@ class TiltakshendelseService(
         }
     }
 
-    suspend fun stoppForslagHendelse(forslagId: UUID) {
+    fun stoppForslagHendelse(forslagId: UUID) {
         tiltakshendelseRepository.getForslagHendelse(forslagId).onSuccess {
             val inaktivertHendelse = it.copy(
                 aktiv = false,

@@ -70,7 +70,7 @@ class KladdService(
         return deltakerRepository.get(deltaker.id).getOrThrow()
     }
 
-    suspend fun slettKladd(deltakerId: UUID) {
+    fun slettKladd(deltakerId: UUID) {
         deltakerRepository.get(deltakerId).onSuccess { opprinneligDeltaker ->
             val gjennomforingId = opprinneligDeltaker.deltakerliste.id
             if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
