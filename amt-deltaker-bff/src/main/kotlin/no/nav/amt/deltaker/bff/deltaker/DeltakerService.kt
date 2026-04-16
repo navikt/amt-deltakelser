@@ -32,7 +32,7 @@ class DeltakerService(
     ): Deltaker {
         navEnhetService.hentOpprettEllerOppdaterNavEnhet(endringRequest.endretAvEnhet)
 
-        val deltakeroppdatering: Deltakeroppdatering = amtDeltakerClient
+        val deltakeroppdatering = amtDeltakerClient
             .postEndreDeltaker(
                 deltakerId = deltaker.id,
                 requestBody = endringRequest,
