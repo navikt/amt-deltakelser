@@ -32,6 +32,7 @@ data class InnbyggerDeltakerResponse(
     val importertFraArena: ImportertFraArenaResponse?,
     val deltakelsesmengder: DeltakelsesmengderResponse,
     val erManueltDeltMedArrangor: Boolean,
+    val prisinformasjon: String?,
 ) {
     companion object {
         fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
@@ -65,6 +66,7 @@ data class InnbyggerDeltakerResponse(
                 importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
                 deltakelsesmengder = DeltakelsesmengderResponse.fromDeltakelsesmengder(deltakelsesmengder),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+                prisinformasjon = prisinformasjon,
             )
         }
     }
@@ -114,6 +116,7 @@ fun Deltaker.toInnbyggerDeltakerResponse(
     importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
     deltakelsesmengder = DeltakelsesmengderResponse.fromDeltakelsesmengder(deltakelsesmengder),
     erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+    prisinformasjon = null,
 )
 
 private fun Vedtak.toDto(
