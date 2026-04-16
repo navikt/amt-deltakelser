@@ -34,11 +34,9 @@ object Database {
         runMigration()
     }
 
-    fun <A> query(block: (Session) -> A): A = if (transactionalSession != null) {
-        block(transactionalSession!!)
-    } else {
-        queryWithNewSession(block)
-    }
+    fun <A> query(block: (Session) -> A): A = transactionalSession
+        ?.let(block)
+        ?: queryWithNewSession(block)
 
     /**
      * Kjør synkron kode innenfor en database-transaksjon.
