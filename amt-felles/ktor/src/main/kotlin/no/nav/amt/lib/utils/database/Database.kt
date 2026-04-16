@@ -5,6 +5,7 @@ import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.amt.lib.utils.database.Database.query
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
@@ -42,10 +43,15 @@ object Database {
     /**
      * Kjør synkron kode innenfor en database-transaksjon.
      *
-     * Blokken må ikke suspendere eller bytte coroutine dispatcher.
      * Transaksjonen er tråd-bundet og basert på JDBC.
+     * [TransactionalSession] lagres i en [ThreadLocal] slik at [query] automatisk
+     * gjenbruker samme sesjon innenfor transaksjonen.
      *
-     * @param block Kode som skal kjøres i transaksjon
+     * **Viktig:** Ikke bruk `launch`, `async` eller andre coroutine-builders inne i
+     * transaksjonsblokken — [ThreadLocal] propageres ikke til nye coroutines,
+     * og spørringer i den nye coroutinen vil kjøre utenfor transaksjonen.
+     *
+     * @param block Kode som skal kjøres i transaksjon. Må ikke suspendere eller bytte tråd.
      * @return Resultatet fra blokken
      * @throws IllegalStateException hvis funksjonen kalles mens en annen transaksjon er aktiv
      * @throws [org.postgresql.util.PSQLException] hvis en utilsiktet prøver å committe direkte via session.transaction innenfor aktiv transaksjon
