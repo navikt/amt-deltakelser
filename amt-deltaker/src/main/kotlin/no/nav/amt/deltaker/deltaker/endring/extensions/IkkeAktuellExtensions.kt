@@ -6,7 +6,9 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
-fun DeltakerEndring.Endring.IkkeAktuell.hasChanges(deltaker: Deltaker) = deltaker.status.aarsak != this.aarsak.toDeltakerStatusAarsak()
+fun DeltakerEndring.Endring.IkkeAktuell.hasChanges(deltaker: Deltaker) =
+    deltaker.status.type != DeltakerStatus.Type.IKKE_AKTUELL ||
+        deltaker.status.aarsak != this.aarsak.toDeltakerStatusAarsak()
 
 fun DeltakerEndring.Endring.IkkeAktuell.ikkeAktuell(deltaker: Deltaker) = VellykketEndring(
     deltaker.copy(
