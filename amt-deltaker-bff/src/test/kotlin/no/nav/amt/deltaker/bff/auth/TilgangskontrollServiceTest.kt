@@ -279,15 +279,13 @@ class TilgangskontrollServiceTest {
     }
 
     @Test
-    fun `stengTiltakskoordinatorTilgang - aktiv tilgang - tilgang stenges`() {
+    fun `stengTiltakskoordinatorTilgang - aktiv tilgang - tilgang stenges`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
             val stengtTilgang = tilgangskontrollService.stengTiltakskoordinatorTilgang(tilgang.id)
 
-            runTest {
-                assertThrows<AuthorizationException> {
-                    tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-                }
+            assertThrows<AuthorizationException> {
+                tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
             }
 
             assertProducedTombstone(stengtTilgang.getOrThrow())
@@ -295,7 +293,7 @@ class TilgangskontrollServiceTest {
     }
 
     @Test
-    fun `stengTiltakskoordinatorTilgang - ikke aktiv tilgang - tilgang stenges ikke pa nytt`() {
+    fun `stengTiltakskoordinatorTilgang - ikke aktiv tilgang - tilgang stenges ikke pa nytt`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medInaktivTilgang()
             val resultat = tilgangskontrollService.stengTiltakskoordinatorTilgang(secondTilgang.id)

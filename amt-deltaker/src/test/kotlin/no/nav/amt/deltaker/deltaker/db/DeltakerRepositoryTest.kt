@@ -7,6 +7,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.KladdService.Companion.lagKladdUpsertDbo
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
@@ -36,7 +38,7 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetEnkeltplassdeltakerTests {
         @Test
-        fun `skal returnere failure hvis ingen deltaker`() {
+        fun `skal returnere failure hvis ingen deltaker`() = runTest {
             // Act
             val deltaker = deltakerRepository.getEnkeltplassdeltaker(
                 deltakerlisteId = UUID.randomUUID(),
@@ -47,7 +49,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `skal returnere deltaker`() {
+        fun `skal returnere deltaker`() = runTest {
             // Arrange
             val deltakerInTest = lagDeltaker(
                 deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
@@ -65,7 +67,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `skal returnere failure for deltaker som ikke er enkeltplass`() {
+        fun `skal returnere failure for deltaker som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltakerInTest = lagDeltaker(
                 deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
@@ -88,7 +90,7 @@ class DeltakerRepositoryTest {
         val deltakerliste = lagDeltakerliste()
 
         @Test
-        fun `getKladdForDeltakerliste - skal returnere failure hvis ingen kladd`() {
+        fun `getKladdForDeltakerliste - skal returnere failure hvis ingen kladd`() = runTest {
             TestRepository.insert(deltakerliste)
 
             val kladdResult = deltakerRepository.getKladdForDeltakerliste(
@@ -100,7 +102,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `getKladdForDeltakerliste - skal returnere success hvis kladd finnes`() {
+        fun `getKladdForDeltakerliste - skal returnere success hvis kladd finnes`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 deltakerliste = deltakerliste,
@@ -116,7 +118,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `upsertKladd - skal oppdatere eksisterende kladd`() {
+        fun `upsertKladd - skal oppdatere eksisterende kladd`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 deltakerliste = deltakerliste,
@@ -147,7 +149,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `updateEnkeltplassKladd - skal opprette kladd`() {
+        fun `updateEnkeltplassKladd - skal opprette kladd`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 deltakerliste = deltakerliste,
@@ -184,7 +186,7 @@ class DeltakerRepositoryTest {
         val deltakerliste = lagDeltakerliste()
 
         @Test
-        fun `skal returnere failure hvis ingen deltakere`() {
+        fun `skal returnere failure hvis ingen deltakere`() = runTest {
             TestRepository.insert(deltakerliste)
 
             val kladdResult = deltakerRepository.getKladdForDeltakerliste(
@@ -196,7 +198,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `skal returnere success hvis kladd finnes`() {
+        fun `skal returnere success hvis kladd finnes`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 deltakerliste = deltakerliste,
@@ -217,17 +219,19 @@ class DeltakerRepositoryTest {
         val deltakerlisteInTest = lagDeltakerliste()
 
         @BeforeEach
-        fun setup() = TestRepository.insert(deltakerlisteInTest)
+        fun setup() = runBlocking {
+            TestRepository.insert(deltakerlisteInTest)
+        }
 
         @Test
-        fun `skal returnere tom liste hvis ingen deltakere`() {
+        fun `skal returnere tom liste hvis ingen deltakere`() = runTest {
             val deltakere = deltakerRepository.getDeltakereForAvsluttetDeltakerliste(deltakerlisteInTest.id)
 
             deltakere.shouldBeEmpty()
         }
 
         @Test
-        fun `skal filtrere bort deltakere med status KLADD`() {
+        fun `skal filtrere bort deltakere med status KLADD`() = runTest {
             TestRepository.insert(
                 lagDeltaker(
                     status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
@@ -241,7 +245,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `skal returnere deltakere med status DELTAR`() {
+        fun `skal returnere deltakere med status DELTAR`() = runTest {
             TestRepository.insert(
                 lagDeltaker(
                     status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -260,10 +264,12 @@ class DeltakerRepositoryTest {
         val deltakerlisteInTest = lagDeltakerliste(sluttDato = LocalDate.now().minusDays(2))
 
         @BeforeEach
-        fun setup() = TestRepository.insert(deltakerlisteInTest)
+        fun setup() = runBlocking {
+            TestRepository.insert(deltakerlisteInTest)
+        }
 
         @Test
-        fun `skal returnere tom liste hvis ingen deltakere`() {
+        fun `skal returnere tom liste hvis ingen deltakere`() = runTest {
             val deltakere = deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(deltakerlisteInTest.id)
 
             deltakere.shouldBeEmpty()
@@ -274,7 +280,7 @@ class DeltakerRepositoryTest {
             value = DeltakerStatus.Type::class,
             names = ["AVBRUTT", "AVBRUTT_UTKAST", "FULLFORT", "HAR_SLUTTET", "IKKE_AKTUELL", "FEILREGISTRERT"],
         )
-        fun `skal filtrere bort deltakere med avsluttende status`(status: DeltakerStatus.Type) {
+        fun `skal filtrere bort deltakere med avsluttende status`(status: DeltakerStatus.Type) = runTest {
             TestRepository.insert(
                 lagDeltaker(
                     status = lagDeltakerStatus(status),
@@ -288,7 +294,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `skal returnere deltakere med sluttdato storre enn deltakerliste sluttdato`() {
+        fun `skal returnere deltakere med sluttdato storre enn deltakerliste sluttdato`() = runTest {
             setOf(
                 LocalDate.now().plusDays(1), // skal returneres
                 LocalDate.now().minusDays(2),
@@ -314,17 +320,19 @@ class DeltakerRepositoryTest {
         val deltakerlisteInTest = lagDeltakerliste()
 
         @BeforeEach
-        fun setup() = TestRepository.insert(deltakerlisteInTest)
+        fun setup() = runBlocking {
+            TestRepository.insert(deltakerlisteInTest)
+        }
 
         @Test
-        fun `skal returnere 0 hvis ingen deltakere`() {
+        fun `skal returnere 0 hvis ingen deltakere`() = runTest {
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteInTest.id)
 
             antallDeltakere shouldBe 0
         }
 
         @Test
-        fun `skal returnere antall deltaker hvis deltakerliste inneholder deltakere`() {
+        fun `skal returnere antall deltaker hvis deltakerliste inneholder deltakere`() = runTest {
             TestRepository.insert(lagDeltaker(deltakerliste = deltakerlisteInTest))
 
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteInTest.id)
@@ -336,7 +344,7 @@ class DeltakerRepositoryTest {
     @Nested
     inner class UpsertTests {
         @Test
-        fun `ny deltaker - insertes`() {
+        fun `ny deltaker - insertes`() = runTest {
             val expectedDeltaker = lagDeltaker()
             TestRepository.insertAll(expectedDeltaker.deltakerliste, expectedDeltaker.navBruker)
 
@@ -348,7 +356,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `oppdatert deltaker - oppdaterer`() {
+        fun `oppdatert deltaker - oppdaterer`() = runTest {
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
@@ -371,7 +379,7 @@ class DeltakerRepositoryTest {
     @Nested
     inner class SkalHaAvsluttendeStatusTests {
         @Test
-        fun `deltar, sluttdato passert - returnerer deltaker`() {
+        fun `deltar, sluttdato passert - returnerer deltaker`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = LocalDate.now().minusDays(10),
@@ -393,7 +401,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `venter pa oppstart, sluttdato mangler - returnerer ikke deltaker`() {
+        fun `venter pa oppstart, sluttdato mangler - returnerer ikke deltaker`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = LocalDate.now().minusDays(10),
@@ -410,7 +418,7 @@ class DeltakerRepositoryTest {
     @Nested
     inner class DeltarPaAvsluttetDeltakerlisteTests {
         @Test
-        fun `deltar, dl-sluttdato passert - returnerer deltaker`() {
+        fun `deltar, dl-sluttdato passert - returnerer deltaker`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusDays(10),
@@ -426,7 +434,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `har sluttet, dl-sluttdato passert - returnerer ikke deltaker`() {
+        fun `har sluttet, dl-sluttdato passert - returnerer ikke deltaker`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
                 startdato = LocalDate.now().minusDays(10),
@@ -444,7 +452,7 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetTests {
         @Test
-        fun `skal returnere eksisterende deltaker`() {
+        fun `skal returnere eksisterende deltaker`() = runTest {
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
@@ -455,7 +463,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `deltaker er feilregistrert - fjerner informasjon`() {
+        fun `deltaker er feilregistrert - fjerner informasjon`() = runTest {
             val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT))
             TestRepository.insert(deltaker)
 
@@ -472,7 +480,7 @@ class DeltakerRepositoryTest {
     }
 
     @Test
-    fun `getMany(list) - henter mange deltakere`() {
+    fun `getMany(list) - henter mange deltakere`() = runTest {
         val deltaker1 = lagDeltaker()
         val deltaker2 = lagDeltaker()
 
@@ -485,7 +493,7 @@ class DeltakerRepositoryTest {
     }
 
     @Test
-    fun `getPersonidentForDeltaker - returnerer personident`() {
+    fun `getPersonidentForDeltaker - returnerer personident`() = runTest {
         val deltaker = lagDeltaker()
         TestRepository.insertAll(deltaker)
         deltakerRepository.getPersonidentForDeltaker(deltaker.id) shouldBe deltaker.navBruker.personident

@@ -37,7 +37,7 @@ class PameldingApiTest : IntegrationTestBase() {
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
-        every { deltakerRepository.get(any()) } returns Result.success(
+        coEvery { deltakerRepository.get(any()) } returns Result.success(
             lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             ),
@@ -71,10 +71,10 @@ class PameldingApiTest : IntegrationTestBase() {
     fun `post utkast - har tilgang - oppretter utkast og returnerer deltaker`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         coEvery { pameldingService.upsertUtkast(any()) } returns deltaker
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        coEvery { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         val (ansatte, enhet) = mockAnsatteOgEnhetForDeltaker(deltaker)
 
         withTestApplicationContext { httpClient ->
@@ -100,7 +100,7 @@ class PameldingApiTest : IntegrationTestBase() {
 
     @Test
     fun `post utkast - deltaker finnes ikke - returnerer 404`() {
-        every { deltakerRepository.get(any()) } throws NoSuchElementException()
+        coEvery { deltakerRepository.get(any()) } throws NoSuchElementException()
 
         withTestApplicationContext { httpClient ->
             httpClient.post("/pamelding/${UUID.randomUUID()}") { createPostRequest(utkastRequest()) }.apply {
@@ -114,10 +114,10 @@ class PameldingApiTest : IntegrationTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
 
-        every { deltakerRepository.get(any()) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(any()) } returns Result.success(deltaker)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         coEvery { pameldingService.upsertUtkast(any()) } returns deltaker
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        coEvery { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
 
         val (ansatte, enhet) = mockAnsatteOgEnhetForDeltaker(deltaker)
 
@@ -144,7 +144,7 @@ class PameldingApiTest : IntegrationTestBase() {
 
     @Test
     fun `post utkast uten godkjenning - deltaker finnes ikke - returnerer 404`() {
-        every { deltakerRepository.get(any()) } throws NoSuchElementException()
+        coEvery { deltakerRepository.get(any()) } throws NoSuchElementException()
 
         withTestApplicationContext { httpClient ->
             httpClient
@@ -161,7 +161,7 @@ class PameldingApiTest : IntegrationTestBase() {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
         coEvery { pameldingService.avbrytUtkast(deltaker, any(), any()) } returns Unit
 
         withTestApplicationContext { httpClient ->
@@ -184,8 +184,8 @@ class PameldingApiTest : IntegrationTestBase() {
         val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
         val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
 
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
-        enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
+        coEvery { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
+        enhet?.let { coEvery { navEnhetService.hentEnhet(it.id) } returns it }
 
         return Pair(ansatte, enhet)
     }

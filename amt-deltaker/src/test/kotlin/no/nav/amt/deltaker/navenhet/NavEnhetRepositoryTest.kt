@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.navenhet
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Nested
@@ -17,7 +18,7 @@ class NavEnhetRepositoryTest {
     }
 
     @Test
-    fun `upsert - ny nav enhet - inserter`() {
+    fun `upsert - ny nav enhet - inserter`() = runTest {
         val navEnhet = lagNavEnhet()
 
         val result = navEnhetRepository.upsert(navEnhet)
@@ -27,7 +28,7 @@ class NavEnhetRepositoryTest {
     }
 
     @Test
-    fun `upsert - eksisterende nav enhet - oppdaterer`() {
+    fun `upsert - eksisterende nav enhet - oppdaterer`() = runTest {
         val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
@@ -42,7 +43,7 @@ class NavEnhetRepositoryTest {
     }
 
     @Test
-    fun `get by enhetsnummer - eksisterende enhet - returnerer enhet`() {
+    fun `get by enhetsnummer - eksisterende enhet - returnerer enhet`() = runTest {
         val navEnhet = lagNavEnhet(enhetsnummer = "1234", navn = "NAV Test")
         navEnhetRepository.upsert(navEnhet)
 
@@ -52,14 +53,14 @@ class NavEnhetRepositoryTest {
     }
 
     @Test
-    fun `get by enhetsnummer - ikke eksisterende enhet - returnerer null`() {
+    fun `get by enhetsnummer - ikke eksisterende enhet - returnerer null`() = runTest {
         val result = navEnhetRepository.get("9999")
 
         result shouldBe null
     }
 
     @Test
-    fun `get by id - eksisterende enhet - returnerer enhet`() {
+    fun `get by id - eksisterende enhet - returnerer enhet`() = runTest {
         val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
@@ -69,7 +70,7 @@ class NavEnhetRepositoryTest {
     }
 
     @Test
-    fun `get by id - ikke eksisterende enhet - returnerer null`() {
+    fun `get by id - ikke eksisterende enhet - returnerer null`() = runTest {
         val result = navEnhetRepository.get(UUID.randomUUID())
 
         result shouldBe null
@@ -78,7 +79,7 @@ class NavEnhetRepositoryTest {
     @Nested
     inner class GetManyTests {
         @Test
-        fun `getMany - flere Nav-enheter - returnerer alle enheter`() {
+        fun `getMany - flere Nav-enheter - returnerer alle enheter`() = runTest {
             val navEnheter = listOf(
                 lagNavEnhet(enhetsnummer = "1111", navn = "Nav En"),
                 lagNavEnhet(enhetsnummer = "2222", navn = "Nav To"),
@@ -93,7 +94,7 @@ class NavEnhetRepositoryTest {
         }
 
         @Test
-        fun `getMany - delvis eksisterende enheter - returnerer kun eksisterende`() {
+        fun `getMany - delvis eksisterende enheter - returnerer kun eksisterende`() = runTest {
             val eksisterendeNavEnhet = lagNavEnhet(enhetsnummer = "1234", navn = "Nav Eksisterende")
             navEnhetRepository.upsert(eksisterendeNavEnhet)
             val ikkeEksisterendeId = UUID.randomUUID()
@@ -105,14 +106,14 @@ class NavEnhetRepositoryTest {
         }
 
         @Test
-        fun `getMany - tom liste - returnerer tom liste`() {
+        fun `getMany - tom liste - returnerer tom liste`() = runTest {
             val result = navEnhetRepository.getMany(emptySet())
 
             result.size shouldBe 0
         }
 
         @Test
-        fun `getMany - ingen eksisterende enheter - returnerer tom liste`() {
+        fun `getMany - ingen eksisterende enheter - returnerer tom liste`() = runTest {
             val ikkeEksisterendeIder = setOf(UUID.randomUUID(), UUID.randomUUID())
 
             val result = navEnhetRepository.getMany(ikkeEksisterendeIder)

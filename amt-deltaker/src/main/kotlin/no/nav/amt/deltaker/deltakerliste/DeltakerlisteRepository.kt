@@ -17,7 +17,7 @@ import java.util.UUID
 class DeltakerlisteRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun upsert(deltakerliste: Deltakerliste) {
+    suspend fun upsert(deltakerliste: Deltakerliste) {
         val sql =
             """
             INSERT INTO deltakerliste(
@@ -86,7 +86,7 @@ class DeltakerlisteRepository {
         log.info("Upsertet deltakerliste med id ${deltakerliste.id}")
     }
 
-    fun upsert(gjennomforing: GjennomforingInsertDbo) {
+    suspend fun upsert(gjennomforing: GjennomforingInsertDbo) {
         val sql =
             """
             INSERT INTO deltakerliste(
@@ -137,7 +137,7 @@ class DeltakerlisteRepository {
         log.info("Upsertet gjennomføring med id ${gjennomforing.id}")
     }
 
-    fun update(gjennomforing: EnkeltplassGjennomforingUpdateDbo) {
+    suspend fun update(gjennomforing: EnkeltplassGjennomforingUpdateDbo) {
         val sql =
             """
             UPDATE deltakerliste
@@ -158,7 +158,7 @@ class DeltakerlisteRepository {
         log.info("Oppdaterte gjennomføring kladd med id ${gjennomforing.id}")
     }
 
-    fun delete(id: UUID) = Database.query {
+    suspend fun delete(id: UUID) = Database.query {
         it.update(
             queryOf(
                 statement = "DELETE FROM deltakerliste WHERE id = :id",
@@ -168,7 +168,7 @@ class DeltakerlisteRepository {
         log.info("Slettet deltakerliste med id $id")
     }
 
-    fun get(id: UUID): Result<Deltakerliste> = runCatching {
+    suspend fun get(id: UUID): Result<Deltakerliste> = runCatching {
         val sql =
             """
             SELECT 

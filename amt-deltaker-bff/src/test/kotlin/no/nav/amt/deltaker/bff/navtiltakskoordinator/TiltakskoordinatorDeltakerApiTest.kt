@@ -48,7 +48,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 ulesteHendelser = emptyList(),
             )
 
-            every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+            coEvery { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
             coEvery { tiltakskoordinatorService.getDeltaker(any()) } returns tiltakskoordinatorsDeltaker
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
 
@@ -80,7 +80,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
             coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltaker
 
-            every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+            coEvery { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
 
             coEvery {
@@ -123,7 +123,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         @Test
         fun `skal returnere Forbidden nar ikke tilgang til bruker`() {
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
-            every { deltakerRepository.get(any()) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(any()) } returns Result.success(deltaker)
             coEvery {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
                     navIdent = any(),
@@ -215,7 +215,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             )
 
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
-            every { deltakerRepository.get(any()) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(any()) } returns Result.success(deltaker)
             coEvery {
                 sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
                     navIdent = any(),
@@ -227,7 +227,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 )
             } returns true
 
-            every { navAnsattService.hentAnsatteForHistorikk(any()) } returns navAnsattMap
+            coEvery { navAnsattService.hentAnsatteForHistorikk(any()) } returns navAnsattMap
             coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns navEnhetMap
 
             val responseBody = withTestApplicationContext { httpClient ->

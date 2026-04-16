@@ -61,7 +61,7 @@ class DeltakerService(
     /**
      * Benyttes av [oppdaterDeltaker] og kaller ikke amt-deltaker
      */
-    private fun slettKladdIfExists(
+    private suspend fun slettKladdIfExists(
         deltakerlisteId: UUID,
         personident: String,
     ) {
@@ -71,12 +71,12 @@ class DeltakerService(
     }
 
     // benyttes av DeltakerV2Consumer
-    fun oppdaterDeltakerLaas(
+    suspend fun oppdaterDeltakerLaas(
         deltakerId: UUID,
         personident: String,
         deltakerlisteId: UUID,
     ) {
-        fun laasOppDeltakelse(deltakerId: UUID) {
+        suspend fun laasOppDeltakelse(deltakerId: UUID) {
             log.info("Nyeste deltakelse $deltakerId var låst for endringer. Låser opp")
             deltakerRepository.settKanEndres(deltakerId, true)
         }
@@ -90,8 +90,7 @@ class DeltakerService(
             Scenario 2: Import av data fra arena
             Scenario 3: Avbryt utkast som i praksis vil ha en deltakelse uten påmeldtdato
          */
-        val deltakelserPaaPerson = deltakerRepository
-            .getMany(personident, deltakerlisteId)
+        val deltakelserPaaPerson = deltakerRepository.getMany(personident, deltakerlisteId)
 
         if (deltakelserPaaPerson.none { it.id == deltakerId }) {
             throw IllegalStateException("Den nye deltakelsen $deltakerId må være upsertet for å bruke denne funksjonen")
@@ -154,7 +153,7 @@ class DeltakerService(
         }
     }
 
-    private fun laasTidligereDeltakelser(deltakeroppdatering: Deltakeroppdatering) {
+    private suspend fun laasTidligereDeltakelser(deltakeroppdatering: Deltakeroppdatering) {
         if (deltakeroppdatering.status.type in AKTIVE_STATUSER && harEndretStatus(deltakeroppdatering)) {
             val tidligereDeltakelser = deltakerRepository.getTidligereAvsluttedeDeltakelser(deltakeroppdatering.id)
 
@@ -167,7 +166,7 @@ class DeltakerService(
         }
     }
 
-    private fun laasSingleOrMultipleDeltakelser(
+    private suspend fun laasSingleOrMultipleDeltakelser(
         iderSomSkalLaases: List<UUID>,
         nyDeltakerId: UUID,
     ) {
@@ -184,7 +183,7 @@ class DeltakerService(
         }
     }
 
-    fun lagreDeltakerStatus(
+    suspend fun lagreDeltakerStatus(
         deltakerId: UUID,
         deltakerStatus: DeltakerStatus,
     ) {
@@ -194,8 +193,8 @@ class DeltakerService(
 
     suspend fun oppdaterDeltaker(
         deltakeroppdatering: Deltakeroppdatering,
-        beforeUpsert: () -> Unit = {},
-        afterUpsert: () -> Unit = {},
+        beforeUpsert: suspend () -> Unit = {},
+        afterUpsert: suspend () -> Unit = {},
     ) {
         val disableKanEndres = deltakeroppdatering.status.type == DeltakerStatus.Type.FEILREGISTRERT ||
             deltakeroppdatering.status.aarsak?.type == DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
@@ -217,7 +216,7 @@ class DeltakerService(
         }
     }
 
-    fun deleteDeltaker(deltakerId: UUID) {
+    suspend fun deleteDeltaker(deltakerId: UUID) {
         forslagRepository.deleteForDeltaker(deltakerId)
         DeltakerStatusRepository.slettStatus(deltakerId)
         deltakerRepository.slettDeltaker(deltakerId)
@@ -239,7 +238,7 @@ class DeltakerService(
         }
     }
 
-    private fun harEndretStatus(deltakeroppdatering: Deltakeroppdatering): Boolean {
+    private suspend fun harEndretStatus(deltakeroppdatering: Deltakeroppdatering): Boolean {
         val currentStatus = DeltakerStatusRepository.getAktivDeltakerStatus(deltakeroppdatering.id) ?: return true
 
         return currentStatus.type != deltakeroppdatering.status.type

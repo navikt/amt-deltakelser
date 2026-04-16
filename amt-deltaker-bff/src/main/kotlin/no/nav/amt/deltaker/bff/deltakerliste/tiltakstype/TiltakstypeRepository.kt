@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 class TiltakstypeRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun upsert(tiltakstype: Tiltakstype) {
+    suspend fun upsert(tiltakstype: Tiltakstype) {
         val sql =
             """
             INSERT INTO tiltakstype (
@@ -57,7 +57,7 @@ class TiltakstypeRepository {
         log.info("Upsertet tiltakstype med id ${tiltakstype.id}")
     }
 
-    fun get(tiltakskode: Tiltakskode): Result<Tiltakstype> = runCatching {
+    suspend fun get(tiltakskode: Tiltakskode): Result<Tiltakstype> = runCatching {
         val query = queryOf(
             """
             SELECT 

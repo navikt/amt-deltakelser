@@ -14,7 +14,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerEndringRepository {
-    fun upsert(
+    suspend fun upsert(
         deltakerEndring: DeltakerEndring,
         behandletTidspunkt: LocalDateTime? = LocalDateTime.now(),
     ) {
@@ -65,7 +65,7 @@ class DeltakerEndringRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun get(id: UUID): Result<DeltakerEndring> = runCatching {
+    suspend fun get(id: UUID): Result<DeltakerEndring> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -76,7 +76,7 @@ class DeltakerEndringRepository {
         }
     }
 
-    fun getForDeltaker(deltakerId: UUID): List<DeltakerEndring> = Database.query { session ->
+    suspend fun getForDeltaker(deltakerId: UUID): List<DeltakerEndring> = Database.query { session ->
         session.run(
             queryOf(
                 selectDeltakerEndring("de.deltaker_id = :deltaker_id"),
@@ -85,7 +85,7 @@ class DeltakerEndringRepository {
         )
     }
 
-    fun getUbehandletDeltakelsesmengder(
+    suspend fun getUbehandletDeltakelsesmengder(
         offset: Int = 0,
         limit: Int = 500,
     ): List<DeltakerEndring> {
@@ -110,7 +110,7 @@ class DeltakerEndringRepository {
         }
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) {
+    suspend fun deleteForDeltaker(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(

@@ -3,11 +3,11 @@ package no.nav.amt.deltaker.navbruker
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.clearMocks
+import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -65,10 +65,12 @@ class NavBrukerConsumerTest {
     fun setup() {
         clearMocks(deltakerService)
 
-        navEnhetRepository.upsert(navEnhet)
-        navAnsattRepository.upsert(navAnsatt)
+        runBlocking {
+            navEnhetRepository.upsert(navEnhet)
+            navAnsattRepository.upsert(navAnsatt)
+        }
 
-        every {
+        coEvery {
             deltakerService.produserDeltakereForPerson(any(), any(), any())
         } just Runs
     }
@@ -142,7 +144,7 @@ class NavBrukerConsumerTest {
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
 
-        verify {
+        coVerify {
             deltakerService.produserDeltakereForPerson(
                 personident = oppdatertNavBruker.personident,
                 publiserTilDeltakerV1 = false,

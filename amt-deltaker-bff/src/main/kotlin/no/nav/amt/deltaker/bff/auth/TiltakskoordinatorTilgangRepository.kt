@@ -9,7 +9,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 class TiltakskoordinatorTilgangRepository {
-    fun upsert(tilgang: TiltakskoordinatorDeltakerlisteTilgang): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
+    suspend fun upsert(tilgang: TiltakskoordinatorDeltakerlisteTilgang): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
         val sql =
             """
             INSERT INTO tiltakskoordinator_deltakerliste_tilgang (
@@ -50,7 +50,7 @@ class TiltakskoordinatorTilgangRepository {
         }
     }
 
-    fun hentAktivTilgang(
+    suspend fun hentAktivTilgang(
         navAnsattId: UUID,
         deltakerlisteId: UUID,
     ): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
@@ -87,7 +87,7 @@ class TiltakskoordinatorTilgangRepository {
      * @param paaloggetNavAnsattId ID til Nav-ansatt som er pålogget og gjør spørringen
      * @return en liste av [Tiltakskoordinator]-objekter med tilhørende statusinformasjon
      */
-    fun hentKoordinatorer(
+    suspend fun hentKoordinatorer(
         deltakerlisteId: UUID,
         paaloggetNavAnsattId: UUID,
     ): List<Tiltakskoordinator> {
@@ -123,7 +123,7 @@ class TiltakskoordinatorTilgangRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun get(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
+    suspend fun get(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -134,7 +134,7 @@ class TiltakskoordinatorTilgangRepository {
         }
     }
 
-    fun hentUtdaterteTilganger(): List<TiltakskoordinatorDeltakerlisteTilgang> {
+    suspend fun hentUtdaterteTilganger(): List<TiltakskoordinatorDeltakerlisteTilgang> {
         val grense = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode)
         val sql =
             """
@@ -157,7 +157,7 @@ class TiltakskoordinatorTilgangRepository {
         }
     }
 
-    fun hentAktiveForDeltakerliste(deltakerlisteId: UUID): List<TiltakskoordinatorDeltakerlisteTilgang> {
+    suspend fun hentAktiveForDeltakerliste(deltakerlisteId: UUID): List<TiltakskoordinatorDeltakerlisteTilgang> {
         val sql =
             """
             SELECT

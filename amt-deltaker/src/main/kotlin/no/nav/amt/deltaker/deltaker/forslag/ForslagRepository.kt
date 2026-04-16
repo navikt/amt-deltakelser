@@ -11,7 +11,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class ForslagRepository {
-    fun getForDeltaker(deltakerId: UUID): List<Forslag> {
+    suspend fun getForDeltaker(deltakerId: UUID): List<Forslag> {
         val sql =
             """
             SELECT 
@@ -36,7 +36,7 @@ class ForslagRepository {
         }
     }
 
-    fun get(id: UUID): Result<Forslag> = runCatching {
+    suspend fun get(id: UUID): Result<Forslag> = runCatching {
         val sql =
             """
             SELECT 
@@ -61,7 +61,7 @@ class ForslagRepository {
         }
     }
 
-    fun upsert(forslag: Forslag) {
+    suspend fun upsert(forslag: Forslag) {
         val sql =
             """
             INSERT INTO forslag (
@@ -104,7 +104,7 @@ class ForslagRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun delete(id: UUID) = Database.query { session ->
+    suspend fun delete(id: UUID) = Database.query { session ->
         session.update(
             queryOf(
                 "DELETE FROM forslag WHERE id = :id",
@@ -113,7 +113,7 @@ class ForslagRepository {
         )
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
+    suspend fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
         session.update(
             queryOf(
                 "DELETE FROM forslag WHERE deltaker_id = :deltaker_id",
@@ -122,7 +122,7 @@ class ForslagRepository {
         )
     }
 
-    fun kanLagres(deltakerId: UUID): Boolean = Database.query { session ->
+    suspend fun kanLagres(deltakerId: UUID): Boolean = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT id FROM deltaker WHERE id = :id",

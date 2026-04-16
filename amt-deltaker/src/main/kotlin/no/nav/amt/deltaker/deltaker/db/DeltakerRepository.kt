@@ -25,7 +25,7 @@ import java.util.UUID
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getKladdForDeltakerliste(
+    suspend fun getKladdForDeltakerliste(
         deltakerlisteId: UUID,
         personident: String,
     ): Result<Deltaker> = runCatching {
@@ -51,7 +51,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getKladd(
+    suspend fun getKladd(
         personident: String,
         tiltakskode: Tiltakskode,
     ): Result<Deltaker> = runCatching {
@@ -74,7 +74,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
+    suspend fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT COUNT(*) FROM deltaker WHERE deltakerliste_id = :deltakerliste_id",
@@ -83,7 +83,7 @@ class DeltakerRepository {
         ) ?: 0
     }
 
-    fun getPersonidentForDeltaker(deltakerId: UUID): String = Database.query { session ->
+    suspend fun getPersonidentForDeltaker(deltakerId: UUID): String = Database.query { session ->
         val sql =
             """
             select nb.personident as personident
@@ -99,7 +99,7 @@ class DeltakerRepository {
         ) ?: throw NoSuchElementException("Ingen deltaker med id $deltakerId")
     }
 
-    fun upsert(deltaker: Deltaker) {
+    suspend fun upsert(deltaker: Deltaker) {
         val sql =
             """
             INSERT INTO deltaker (
@@ -162,7 +162,7 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
     }
 
-    fun upsertKladd(deltaker: DeltakerKladdUpsertDbo) {
+    suspend fun upsertKladd(deltaker: DeltakerKladdUpsertDbo) {
         val sql =
             """
             INSERT INTO deltaker (
@@ -213,7 +213,7 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker kladd med id ${deltaker.id}")
     }
 
-    fun updateEnkeltplassKladd(deltaker: EnkeltplassDeltakerUpdateDbo) {
+    suspend fun updateEnkeltplassKladd(deltaker: EnkeltplassDeltakerUpdateDbo) {
         val sql =
             """
             UPDATE deltaker
@@ -235,7 +235,7 @@ class DeltakerRepository {
         log.info("Oppdaterte kladd deltaker med id ${deltaker.id}")
     }
 
-    fun get(id: UUID): Result<Deltaker> = runCatching {
+    suspend fun get(id: UUID): Result<Deltaker> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -250,7 +250,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getEnkeltplassdeltaker(deltakerlisteId: UUID): Result<Deltaker> = runCatching {
+    suspend fun getEnkeltplassdeltaker(deltakerlisteId: UUID): Result<Deltaker> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -265,7 +265,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getMany(deltakerIder: Set<UUID>): List<Deltaker> {
+    suspend fun getMany(deltakerIder: Set<UUID>): List<Deltaker> {
         if (deltakerIder.isEmpty()) return emptyList()
 
         return Database.query { session ->
@@ -282,7 +282,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getFlereForPerson(personIdent: String): List<Deltaker> = Database.query { session ->
+    suspend fun getFlereForPerson(personIdent: String): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
                 buildDeltakerSql("getFlereForPerson", "nb.personident = :personident"),
@@ -291,7 +291,7 @@ class DeltakerRepository {
         )
     }
 
-    fun getFlereForPerson(
+    suspend fun getFlereForPerson(
         personIdent: String,
         deltakerlisteId: UUID,
     ): List<Deltaker> = Database.query { session ->
@@ -309,7 +309,7 @@ class DeltakerRepository {
         )
     }
 
-    fun getDeltakerHvorSluttdatoSkalEndres(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
+    suspend fun getDeltakerHvorSluttdatoSkalEndres(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
                 buildDeltakerSql(
@@ -328,7 +328,7 @@ class DeltakerRepository {
         )
     }
 
-    fun getDeltakereForAvsluttetDeltakerliste(deltakerListeId: UUID): List<Deltaker> = Database.query { session ->
+    suspend fun getDeltakereForAvsluttetDeltakerliste(deltakerListeId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
                 buildDeltakerSql(
@@ -341,7 +341,7 @@ class DeltakerRepository {
         )
     }
 
-    fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode): List<UUID> {
+    suspend fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode): List<UUID> {
         val sql =
             """ 
             SELECT d.id
@@ -362,7 +362,7 @@ class DeltakerRepository {
         }
     }
 
-    fun skalHaStatusDeltar(): List<Deltaker> {
+    suspend fun skalHaStatusDeltar(): List<Deltaker> {
         val sql = buildDeltakerSql(
             "skalHaStatusDeltar",
             """
@@ -377,7 +377,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getDeltakereHvorSluttdatoHarPassert(): List<Deltaker> {
+    suspend fun getDeltakereHvorSluttdatoHarPassert(): List<Deltaker> {
         val sql = buildDeltakerSql(
             "getSluttdatoHarPassert",
             """
@@ -391,7 +391,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
+    suspend fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
         val sql = buildDeltakerSql(
             "getDeltakereSomDeltar",
             """
@@ -405,7 +405,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getDeltakereMedStatus(statusType: DeltakerStatus.Type): List<UUID> {
+    suspend fun getDeltakereMedStatus(statusType: DeltakerStatus.Type): List<UUID> {
         val sql =
             """
             SELECT d.id
@@ -428,7 +428,7 @@ class DeltakerRepository {
         }
     }
 
-    fun slettDeltaker(deltakerId: UUID) {
+    suspend fun slettDeltaker(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(

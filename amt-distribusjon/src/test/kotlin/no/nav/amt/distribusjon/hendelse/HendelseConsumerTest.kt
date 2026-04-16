@@ -5,7 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.verify
+import io.mockk.coVerify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
@@ -102,7 +102,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
 
             varsel.erAktiv shouldBe false
 
-            verify(exactly = 0) { outboxService.insertRecord(varsel.id, any(), any(), any()) }
+            coVerify(exactly = 0) { outboxService.insertRecord(varsel.id, any(), any(), any()) }
         }
     }
 
@@ -150,7 +150,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 aktivTil shouldBeCloseTo nowUTC()
             }
 
-            verify { outboxService.insertRecord(inaktivertVarsel.id, any(), any(), any()) }
+            coVerify { outboxService.insertRecord(inaktivertVarsel.id, any(), any(), any()) }
         }
     }
 
@@ -186,7 +186,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             aktivTil shouldBeCloseTo nowUTC()
         }
 
-        verify { outboxService.insertRecord(forrigeVarsel.id, any(), any(), any()) }
+        coVerify { outboxService.insertRecord(forrigeVarsel.id, any(), any(), any()) }
     }
 
     @Test
@@ -221,7 +221,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             aktivTil shouldBeCloseTo nowUTC()
         }
 
-        verify { outboxService.insertRecord(varsel.id, any(), any(), any()) }
+        coVerify { outboxService.insertRecord(varsel.id, any(), any(), any()) }
     }
 
     @Test
@@ -284,7 +284,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 aktivTil shouldBeCloseTo nowUTC()
             }
 
-            verify { outboxService.insertRecord(varsel.id, any(), any(), any()) }
+            coVerify { outboxService.insertRecord(varsel.id, any(), any(), any()) }
         }
 
         @Test
@@ -359,11 +359,11 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 aktivTil shouldBeCloseTo nowUTC()
             }
 
-            verify { outboxService.insertRecord(aktivtVarsel.id, any(), any(), any()) }
+            coVerify { outboxService.insertRecord(aktivtVarsel.id, any(), any(), any()) }
         }
     }
 
-    private fun assertNyBeskjed(
+    private suspend fun assertNyBeskjed(
         hendelse: HendelseDto,
         aktivFra: ZonedDateTime,
     ) {
@@ -385,7 +385,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             erEksterntVarsel shouldBe hendelse.skalVarslesEksternt()
 
             if (erAktiv) {
-                verify {
+                coVerify {
                     outboxService.insertRecord(varsel.id, any(), any(), any())
                 }
             }

@@ -22,7 +22,7 @@ class TiltakshendelseService(
         const val UTKAST_TIL_PAMELDING_TEKST = "Utkast til påmelding"
     }
 
-    fun handleHendelse(hendelse: Hendelse) {
+    suspend fun handleHendelse(hendelse: Hendelse) {
         if (tiltakshendelseRepository.getByHendelseId(hendelse.id).isSuccess) {
             log.info("Tiltakshendelse for hendelse ${hendelse.id} er allerede håndtert.")
             return
@@ -62,19 +62,19 @@ class TiltakshendelseService(
         }
     }
 
-    fun reproduser(id: UUID) {
+    suspend fun reproduser(id: UUID) {
         val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
         tiltakshendelseProducer.produce(tiltakshendelse)
         log.info("Reproduserte tiltakshendelse $id")
     }
 
-    fun reproduserOgSettAktivFalse(id: UUID) {
+    suspend fun reproduserOgSettAktivFalse(id: UUID) {
         val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
         tiltakshendelseProducer.produce(tiltakshendelse.copy(aktiv = false))
         log.info("Reproduserte tiltakshendelse med $id og aktiv=false for deltakerId ${tiltakshendelse.deltakerId}")
     }
 
-    private fun opprettStartHendelse(hendelse: Hendelse) {
+    private suspend fun opprettStartHendelse(hendelse: Hendelse) {
         lagreOgDistribuer(hendelse.toTiltakshendelse())
     }
 
@@ -92,7 +92,7 @@ class TiltakshendelseService(
         }
     }
 
-    private fun stoppUtkastHendelse(hendelse: Hendelse) {
+    private suspend fun stoppUtkastHendelse(hendelse: Hendelse) {
         tiltakshendelseRepository.getHendelse(hendelse.deltaker.id, Tiltakshendelse.Type.UTKAST).onSuccess {
             val inaktivertHendelse = it.copy(
                 aktiv = false,
@@ -102,7 +102,7 @@ class TiltakshendelseService(
         }
     }
 
-    private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {
+    private suspend fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {
         tiltakshendelseRepository.upsert(tiltakshendelse)
         tiltakshendelseProducer.produce(tiltakshendelse)
         log.info("Upsertet tiltakshendelse ${tiltakshendelse.id}")

@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.arrangor
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
@@ -22,7 +23,7 @@ class ArrangorServiceTest {
     }
 
     @Test
-    fun `getArrangorNavn - overordnet arrangør - returnerer eget navn`() {
+    fun `getArrangorNavn - overordnet arrangør - returnerer eget navn`() = runTest {
         val arrangorNavn = "Test Arrangør"
         val arrangor = Arrangor(
             id = UUID.randomUUID(),
@@ -35,7 +36,7 @@ class ArrangorServiceTest {
     }
 
     @Test
-    fun `getArrangorNavn - underordnet arrangør - returnerer overordnet arrangør navn`() {
+    fun `getArrangorNavn - underordnet arrangør - returnerer overordnet arrangør navn`() = runTest {
         val arrangorNavn = "Test Arrangør"
         val overordnetArrangor = Arrangor(
             id = UUID.randomUUID(),
@@ -56,7 +57,7 @@ class ArrangorServiceTest {
     }
 
     @Test
-    fun `getArrangorNavn - CAPS - formaterer navn`() {
+    fun `getArrangorNavn - CAPS - formaterer navn`() = runTest {
         val arrangorNavn = "TEST ARRANGØR"
         val arrangor = Arrangor(
             id = UUID.randomUUID(),

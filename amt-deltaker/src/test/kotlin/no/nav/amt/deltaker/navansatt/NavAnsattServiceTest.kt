@@ -6,6 +6,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -52,8 +53,11 @@ class NavAnsattServiceTest {
     @BeforeEach
     fun setup() {
         clearAllMocks()
-        navEnhetRepository.upsert(navEnhet)
-        navAnsattRepository.upsert(navAnsatt)
+
+        runBlocking {
+            navEnhetRepository.upsert(navEnhet)
+            navAnsattRepository.upsert(navAnsatt)
+        }
     }
 
     @Test

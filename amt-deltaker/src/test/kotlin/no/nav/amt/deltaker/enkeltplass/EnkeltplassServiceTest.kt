@@ -3,12 +3,11 @@ package no.nav.amt.deltaker.enkeltplass
 import io.kotest.assertions.throwables.shouldThrow
 import io.mockk.Runs
 import io.mockk.coEvery
-import io.mockk.every
+import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -32,7 +31,6 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
-import no.nav.amt.lib.utils.database.Database.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -47,14 +45,15 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setup() {
-        every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
+        coEvery { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
         coEvery { navEnhetService.hentEllerOpprettNavEnhet(navEnhetInTest.enhetsnummer) } returns navEnhetInTest
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsattInTest.navIdent) } returns navAnsattInTest
 
         mockkObject(Database)
-        coEvery { transaction<Any>(any()) } answers {
-            val block = firstArg<() -> Any>()
-            block()
+        val tx = mockk<Database.Tx>(relaxed = true)
+        coEvery { Database.transaction<Any>(any()) } coAnswers {
+            val block = firstArg<suspend (Database.Tx) -> Any>()
+            block(tx)
         }
     }
 
@@ -76,7 +75,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             val deltaker = deltakerInTest.copy(
                 deltakerliste = deltakerInTest.deltakerliste.copy(gjennomforingstype = GjennomforingType.Gruppe),
             )
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.oppdaterKladd(
@@ -91,7 +90,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             val deltaker = deltakerInTest.copy(
                 status = deltakerInTest.status.copy(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.oppdaterKladd(
@@ -106,7 +105,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     inner class DelUtkastMedInnbyggerTests {
         @Test
         fun `skal oppdatere deltaker, sette status UTKAST_TIL_PAMELDING og opprette vedtak`() = runTest {
-            every {
+            coEvery {
                 deltakerService.lagreDeltakerStatus(
                     deltakerId = deltakerInTest.id,
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING },
@@ -114,7 +113,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 )
             } just Runs
 
-            every {
+            coEvery {
                 vedtakService.opprettEllerOppdaterVedtak(
                     fattetAvNav = false,
                     endretAv = navAnsattInTest,
@@ -127,23 +126,23 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 deltakerVedVedtak = deltakerInTest,
             )
 
-            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
-            every { deltakerlisteRepository.update(any()) } just Runs
+            coEvery { arrangorRepository.get(any<String>()) } returns arrangorInTest
+            coEvery { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            coEvery { deltakerlisteRepository.update(any()) } just Runs
 
             enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
                 decoratedRequest = decoratedRequest,
             )
 
-            verify {
+            coVerify {
                 deltakerService.lagreDeltakerStatus(
                     deltakerId = deltakerInTest.id,
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING },
                     erDeltakerSluttdatoEndret = any(),
                 )
             }
-            verify {
+            coVerify {
                 vedtakService.opprettEllerOppdaterVedtak(
                     fattetAvNav = false,
                     endretAv = navAnsattInTest,
@@ -152,8 +151,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     fattetDato = null,
                 )
             }
-            verify { deltakerlisteRepository.update(any()) }
-            verify { deltakerRepository.updateEnkeltplassKladd(any()) }
+            coVerify { deltakerlisteRepository.update(any()) }
+            coVerify { deltakerRepository.updateEnkeltplassKladd(any()) }
         }
 
         @Test
@@ -164,7 +163,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     status = GjennomforingStatusType.KLADD,
                 ),
             )
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.delUtkastMedInnbygger(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
@@ -176,7 +175,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             val deltaker = deltakerInTest.copy(
                 deltakerliste = deltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
             )
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.delUtkastMedInnbygger(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
@@ -188,7 +187,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     inner class OppdaterUtkastTests {
         @Test
         fun `skal oppdatere deltaker og vedtak uten aa endre status`() = runTest {
-            every {
+            coEvery {
                 vedtakService.opprettEllerOppdaterVedtak(
                     fattetAvNav = false,
                     endretAv = navAnsattInTest,
@@ -201,19 +200,19 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 deltakerVedVedtak = deltakerInTest,
             )
 
-            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
-            every { deltakerlisteRepository.update(any()) } just Runs
+            coEvery { arrangorRepository.get(any<String>()) } returns arrangorInTest
+            coEvery { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            coEvery { deltakerlisteRepository.update(any()) } just Runs
 
             enkeltplassService.oppdaterUtkast(
                 deltakerId = deltakerInTest.id,
                 decoratedRequest = decoratedRequest,
             )
 
-            verify(exactly = 0) {
+            coVerify(exactly = 0) {
                 deltakerService.lagreDeltakerStatus(any(), any(), any())
             }
-            verify {
+            coVerify {
                 vedtakService.opprettEllerOppdaterVedtak(
                     fattetAvNav = false,
                     endretAv = navAnsattInTest,
@@ -222,8 +221,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     fattetDato = null,
                 )
             }
-            verify { deltakerlisteRepository.update(any()) }
-            verify { deltakerRepository.updateEnkeltplassKladd(any()) }
+            coVerify { deltakerlisteRepository.update(any()) }
+            coVerify { deltakerRepository.updateEnkeltplassKladd(any()) }
         }
 
         @Test
@@ -234,7 +233,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     status = GjennomforingStatusType.KLADD,
                 ),
             )
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.oppdaterUtkast(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
@@ -246,7 +245,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             val deltaker = deltakerInTest.copy(
                 deltakerliste = deltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
             )
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.oppdaterUtkast(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
@@ -259,7 +258,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal sette status SOKT_INN, fatte vedtak og publisere OpprettEnkeltplass`() = runTest {
             // Arrange
-            every {
+            coEvery {
                 deltakerService.lagreDeltakerStatus(
                     deltakerId = deltakerInTest.id,
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.SOKT_INN },
@@ -267,7 +266,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 )
             } just Runs
 
-            every {
+            coEvery {
                 vedtakService.opprettEllerOppdaterVedtak(
                     fattetAvNav = true,
                     endretAv = navAnsattInTest,
@@ -280,9 +279,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 deltakerVedVedtak = deltakerInTest,
             )
 
-            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
-            every { deltakerlisteRepository.update(any()) } just Runs
+            coEvery { arrangorRepository.get(any<String>()) } returns arrangorInTest
+            coEvery { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            coEvery { deltakerlisteRepository.update(any()) } just Runs
 
             // Act
             enkeltplassService.meldPaaDirekte(
@@ -291,14 +290,14 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
 
             // Assert
-            verify {
+            coVerify {
                 deltakerService.lagreDeltakerStatus(
                     deltakerId = deltakerInTest.id,
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.SOKT_INN },
                     erDeltakerSluttdatoEndret = any(),
                 )
             }
-            verify {
+            coVerify {
                 vedtakService.opprettEllerOppdaterVedtak(
                     fattetAvNav = true,
                     endretAv = navAnsattInTest,
@@ -307,7 +306,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     fattetDato = any(),
                 )
             }
-            verify {
+            coVerify {
                 outboxService.insertRecord(
                     key = any(),
                     value = ofType<GjennomforingRequestPayload.OpprettEnkeltplass>(),
@@ -327,7 +326,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     status = GjennomforingStatusType.KLADD,
                 ),
             )
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             // Act
             shouldThrow<IllegalArgumentException> {
@@ -335,7 +334,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             }
 
             // Assert
-            verify(exactly = 0) {
+            coVerify(exactly = 0) {
                 outboxService.insertRecord(any(), any(), any(), any())
             }
         }
@@ -347,7 +346,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 status = deltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
                 deltakerliste = deltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
             )
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             // Act
             shouldThrow<IllegalArgumentException> {
@@ -355,7 +354,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             }
 
             // Assert
-            verify(exactly = 0) {
+            coVerify(exactly = 0) {
                 outboxService.insertRecord(any(), any(), any(), any())
             }
         }

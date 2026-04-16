@@ -29,7 +29,7 @@ class DeltakerLaaseService(
      * @param deltaker deltaker som skal sjekkes.
      * @return Nyeste påmeldingstidspunkt, eller `null` hvis ingen datoer er tilgjengelige.
      */
-    fun getPaameldtTidspunkt(deltaker: Deltaker): LocalDateTime? = listOfNotNull(
+    suspend fun getPaameldtTidspunkt(deltaker: Deltaker): LocalDateTime? = listOfNotNull(
         deltaker.vedtaksinformasjon?.fattet,
         importertFraArenaRepository
             .getForDeltaker(deltaker.id)
@@ -47,7 +47,7 @@ class DeltakerLaaseService(
      *
      * @return `true` dersom deltakeren er låst, ellers `false`
      */
-    fun erLaastForEndringer(deltaker: Deltaker): Boolean {
+    suspend fun erLaastForEndringer(deltaker: Deltaker): Boolean {
         val deltakelserForPerson = deltakerRepository.getFlereForPerson(
             personIdent = deltaker.navBruker.personident,
             deltakerlisteId = deltaker.deltakerliste.id,
@@ -58,11 +58,15 @@ class DeltakerLaaseService(
         // hvis det kun finnes en deltakelse på personen, så skal den ikke være låst
         deltakelserForPerson.singleOrNull()?.let { return false }
 
-        val deltakelserPaaPersonSorted = deltakelserForPerson
+        val enriched = deltakelserForPerson.map { deltakelse ->
+            deltakelse to getPaameldtTidspunkt(deltakelse)
+        }
+
+        val deltakelserPaaPersonSorted = enriched
             .sortedWith(
-                compareByDescending<Deltaker> { getPaameldtTidspunkt(it) }
-                    .thenByDescending { it.status.gyldigFra },
-            )
+                compareByDescending<Pair<Deltaker, LocalDateTime?>> { it.second }
+                    .thenByDescending { it.first.status.gyldigFra },
+            ).map { it.first }
 
         val nyesteDeltakelse = deltakelserPaaPersonSorted
             .firstOrNull { it.status.type in AKTIVE_STATUSER }

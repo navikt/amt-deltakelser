@@ -15,7 +15,7 @@ class NavBrukerService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun get(id: UUID) = repository.get(id)
+    suspend fun get(id: UUID) = repository.get(id)
 
     suspend fun getOrCreate(personident: String): Result<NavBruker> {
         val brukerResult = repository.get(personident)

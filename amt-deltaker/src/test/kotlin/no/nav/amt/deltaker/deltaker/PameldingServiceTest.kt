@@ -8,6 +8,7 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatus
@@ -54,7 +55,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
     val tiltak = TestData.lagTiltakstype(Tiltakskode.ARBEIDSMARKEDSOPPLAERING)
 
     @BeforeEach
-    fun setup() {
+    fun setup() = runBlocking {
         navEnhetRepository.upsert(sistEndretAvNavEnhet)
         navAnsattRepository.upsert(sistEndretAvNavAnsatt)
         tiltakstypeRepository.upsert(tiltak)

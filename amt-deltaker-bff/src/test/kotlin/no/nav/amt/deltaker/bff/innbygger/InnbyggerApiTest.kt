@@ -57,7 +57,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
-        every { deltakerRepository.get(any()) } returns Result.success(lagDeltaker())
+        coEvery { deltakerRepository.get(any()) } returns Result.success(lagDeltaker())
 
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
@@ -68,7 +68,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal teste tilgangskontroll - mangler token - returnerer 401`() {
-        every { deltakerRepository.get(any()) } returns Result.success(lagDeltaker())
+        coEvery { deltakerRepository.get(any()) } returns Result.success(lagDeltaker())
 
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
@@ -128,7 +128,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `get id - deltaker finnes ikke - returnerer 404`() {
-        every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
+        coEvery { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
         coEvery { amtDeltakerClient.getDeltaker(any()) } throws NoSuchElementException()
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.NotFound
@@ -147,7 +147,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `godkjenn-utkast - deltaker finnes ikke - returnerer 404`() {
-        every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
+        coEvery { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
 
         withTestApplicationContext { httpClient ->
             httpClient.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast") { noBodyRequest() }.status shouldBe HttpStatusCode.NotFound
@@ -218,13 +218,13 @@ class InnbyggerApiTest : IntegrationTestBase() {
     fun `getHistorikk - toggle er av - returnerer lokal historikk`() {
         val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         val historikk = deltaker.getDeltakerHistorikkForVisning()
         val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
-        every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
+        coEvery { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
         coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
 
@@ -250,8 +250,8 @@ class InnbyggerApiTest : IntegrationTestBase() {
         forslag: List<Forslag> = emptyList(),
     ): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
 
         return if (oppdatertDeltaker == null) {
             mockAnsatteOgEnhetForDeltaker(deltaker)
@@ -265,8 +265,8 @@ class InnbyggerApiTest : IntegrationTestBase() {
         val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
         val enheter = lagNavEnheterForHistorikk(deltaker.historikk).associateBy { it.id }
 
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
-        enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
+        coEvery { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
+        enhet?.let { coEvery { navEnhetService.hentEnhet(it.id) } returns it }
         coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns enheter
 
         return Pair(ansatte, enhet)

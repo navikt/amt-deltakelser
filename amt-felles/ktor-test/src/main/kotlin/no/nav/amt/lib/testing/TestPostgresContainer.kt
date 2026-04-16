@@ -20,7 +20,7 @@ object TestPostgresContainer {
         }
     }
 
-    fun truncateAllTables() {
+    suspend fun truncateAllTables() {
         val sql =
             """
             DO $$

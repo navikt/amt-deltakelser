@@ -11,9 +11,9 @@ class DeltakerlisteService(
         val tiltakskoordinatorGraceperiode: Period = Period.ofDays(14)
     }
 
-    fun get(id: UUID) = repository.get(id)
+    suspend fun get(id: UUID) = repository.get(id)
 
-    fun verifiserTilgjengeligDeltakerliste(id: UUID): Deltakerliste {
+    suspend fun verifiserTilgjengeligDeltakerliste(id: UUID): Deltakerliste {
         val deltakerliste = get(id).getOrThrow()
 
         deltakerliste.sluttDato?.let { sluttdato ->

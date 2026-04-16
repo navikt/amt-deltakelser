@@ -15,7 +15,7 @@ class VedtakService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun avbrytVedtak(
+    suspend fun avbrytVedtak(
         deltakerId: UUID,
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
@@ -32,7 +32,7 @@ class VedtakService(
         )
     }
 
-    fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
+    suspend fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
         val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
             ?: throw IllegalStateException("Deltaker ${deltaker.id} har ikke vedtak som kan avbrytes")
 
@@ -43,7 +43,7 @@ class VedtakService(
         return vedtakRepository.upsert(avbruttVedtak)
     }
 
-    fun navFattVedtak(
+    suspend fun navFattVedtak(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
@@ -70,14 +70,14 @@ class VedtakService(
      Kan bare brukes når deltaker selv godkjenner utkast.
      Hvis Nav fatter vedtaket må [opprettEllerOppdaterVedtak] brukes.
      */
-    fun innbyggerFattVedtak(deltakerId: UUID) {
+    suspend fun innbyggerFattVedtak(deltakerId: UUID) {
         val ikkeFattetVedtak = hentIkkeFattetVedtakOrThrow(deltakerId)
         val fattetVedtak = ikkeFattetVedtak.copy(fattet = LocalDateTime.now())
 
         vedtakRepository.upsert(fattetVedtak)
     }
 
-    private fun hentIkkeFattetVedtakOrThrow(deltakerId: UUID): Vedtak {
+    private suspend fun hentIkkeFattetVedtakOrThrow(deltakerId: UUID): Vedtak {
         val vedtak = vedtakRepository.getForDeltaker(deltakerId)
 
         when {
@@ -89,7 +89,7 @@ class VedtakService(
         return vedtak
     }
 
-    fun opprettEllerOppdaterVedtak(
+    suspend fun opprettEllerOppdaterVedtak(
         fattetAvNav: Boolean,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,

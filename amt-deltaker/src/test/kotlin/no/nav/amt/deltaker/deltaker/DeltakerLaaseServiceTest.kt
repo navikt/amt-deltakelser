@@ -3,8 +3,9 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
@@ -38,9 +39,9 @@ class DeltakerLaaseServiceTest {
     fun setup() {
         clearAllMocks()
 
-        every { mockImportertFraArenaRepository.getForDeltaker(any()) } returns null
+        coEvery { mockImportertFraArenaRepository.getForDeltaker(any()) } returns null
 
-        every {
+        coEvery {
             mockImportertFraArenaRepository.getForDeltaker(tidligereDeltakerInTest.id)
         } returns importertFraArena
     }
@@ -48,9 +49,9 @@ class DeltakerLaaseServiceTest {
     @Nested
     inner class ErLaastForEndringerTests {
         @Test
-        fun `skal kaste feil hvis deltaker ikke finnes`() {
+        fun `skal kaste feil hvis deltaker ikke finnes`() = runTest {
             // Arrange
-            every {
+            coEvery {
                 mockDeltakerRepository.getFlereForPerson(
                     personIdent = deltakerInTest.navBruker.personident,
                     deltakerlisteId = deltakerInTest.deltakerliste.id,
@@ -67,9 +68,9 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returrnere false hvis deltaker ikke har tidligere deltakelser`() {
+        fun `skal returrnere false hvis deltaker ikke har tidligere deltakelser`() = runTest {
             // Arrange
-            every {
+            coEvery {
                 mockDeltakerRepository.getFlereForPerson(
                     personIdent = deltakerInTest.navBruker.personident,
                     deltakerlisteId = deltakerInTest.deltakerliste.id,
@@ -84,9 +85,9 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returrnere true hvis deltaker ikke er nyeste deltaker`() {
+        fun `skal returrnere true hvis deltaker ikke er nyeste deltaker`() = runTest {
             // Arrange
-            every {
+            coEvery {
                 mockDeltakerRepository.getFlereForPerson(
                     personIdent = deltakerInTest.navBruker.personident,
                     deltakerlisteId = deltakerInTest.deltakerliste.id,
@@ -101,7 +102,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returnere true hvis aktiv Arena-deltakelse finnes`() {
+        fun `skal returnere true hvis aktiv Arena-deltakelse finnes`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
@@ -113,7 +114,7 @@ class DeltakerLaaseServiceTest {
                 deltakerliste = deltaker.deltakerliste,
             )
 
-            every {
+            coEvery {
                 mockDeltakerRepository.getFlereForPerson(
                     personIdent = deltaker.navBruker.personident,
                     deltakerlisteId = deltaker.deltakerliste.id,
@@ -131,9 +132,9 @@ class DeltakerLaaseServiceTest {
     @Nested
     inner class GetPaameldtTidspunktTests {
         @Test
-        fun `skal returnere null hvis deltaker ikke har vedtak eller importert fra Arena`() {
+        fun `skal returnere null hvis deltaker ikke har vedtak eller importert fra Arena`() = runTest {
             // Arrange
-            every { mockImportertFraArenaRepository.getForDeltaker(any()) } returns null
+            coEvery { mockImportertFraArenaRepository.getForDeltaker(any()) } returns null
 
             // Act
             val result = sut.getPaameldtTidspunkt(tidligereDeltakerInTest)
@@ -143,12 +144,12 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returnere fattet tidspunkt hvis deltaker har vedtak`() {
+        fun `skal returnere fattet tidspunkt hvis deltaker har vedtak`() = runTest {
             // Arrange
             val vedtakInTest = lagVedtak(deltakerVedVedtak = deltakerInTest)
             val tidligereDeltaker = tidligereDeltakerInTest.copy(vedtaksinformasjon = vedtakInTest.tilVedtaksInformasjon())
 
-            every { mockImportertFraArenaRepository.getForDeltaker(any()) } returns null
+            coEvery { mockImportertFraArenaRepository.getForDeltaker(any()) } returns null
 
             // Act
             val result = sut.getPaameldtTidspunkt(tidligereDeltaker)
@@ -158,9 +159,9 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returnere innsoktDato fra Arena hvis deltaker er importert fra Arena`() {
+        fun `skal returnere innsoktDato fra Arena hvis deltaker er importert fra Arena`() = runTest {
             // Arrange
-            every {
+            coEvery {
                 mockImportertFraArenaRepository.getForDeltaker(tidligereDeltakerInTest.id)
             } returns importertFraArena
 

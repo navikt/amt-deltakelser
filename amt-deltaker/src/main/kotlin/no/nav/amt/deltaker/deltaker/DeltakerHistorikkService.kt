@@ -25,7 +25,7 @@ class DeltakerHistorikkService(
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val vurderingRepository: VurderingRepository,
 ) {
-    fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
+    suspend fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
         val vedtak = vedtakRepository
             .getForDeltaker(id)
@@ -75,7 +75,7 @@ class DeltakerHistorikkService(
         return historikk
     }
 
-    fun getForsteVedtakFattet(deltakerId: UUID): LocalDate? {
+    suspend fun getForsteVedtakFattet(deltakerId: UUID): LocalDate? {
         val deltakerhistorikk = getForDeltaker(deltakerId)
         deltakerhistorikk.getInnsoktDatoFraImportertDeltaker()?.let { return it }
 

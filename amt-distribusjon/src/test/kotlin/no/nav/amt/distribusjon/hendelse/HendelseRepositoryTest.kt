@@ -1,6 +1,7 @@
 package no.nav.amt.distribusjon.hendelse
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
@@ -24,7 +25,7 @@ class HendelseRepositoryTest {
     }
 
     @Test
-    fun `insert - inserter hendelse i database`() {
+    fun `insert - inserter hendelse i database`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(
             payload = HendelseTypeData.forlengDeltakelse(),
@@ -42,7 +43,7 @@ class HendelseRepositoryTest {
     @Nested
     inner class HentIkkeJournalforteHendelserTests {
         @Test
-        fun `hentIkkeJournalforteHendelser - hendelse er ikke journalfort - returnerer hendelse`() {
+        fun `hentIkkeJournalforteHendelser - hendelse er ikke journalfort - returnerer hendelse`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 payload = HendelseTypeData.forlengDeltakelse(),
@@ -69,7 +70,7 @@ class HendelseRepositoryTest {
         }
 
         @Test
-        fun `hentIkkeJournalforteHendelser - hendelse kan ikke journalfores - returnerer tom liste`() {
+        fun `hentIkkeJournalforteHendelser - hendelse kan ikke journalfores - returnerer tom liste`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now().minusHours(1))
             TestRepository.insertHendelse(hendelse)
@@ -91,7 +92,7 @@ class HendelseRepositoryTest {
         }
 
         @Test
-        fun `hentIkkeJournalforteHendelser - hendelse er journalfort og skal ikke sendes brev - returnerer tom liste`() {
+        fun `hentIkkeJournalforteHendelser - hendelse er journalfort og skal ikke sendes brev - returnerer tom liste`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 payload = HendelseTypeData.forlengDeltakelse(),
@@ -117,7 +118,7 @@ class HendelseRepositoryTest {
         }
 
         @Test
-        fun `hentIkkeJournalforteHendelser - journalforingstatus finnes ikke - returnerer tom liste`() {
+        fun `hentIkkeJournalforteHendelser - journalforingstatus finnes ikke - returnerer tom liste`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 payload = HendelseTypeData.forlengDeltakelse(),
@@ -136,7 +137,7 @@ class HendelseRepositoryTest {
     @Nested
     inner class HentHendelserSomSkalDistribueresSomBrevTests {
         @Test
-        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er ikke distribuert - returnerer hendelse`() {
+        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er ikke distribuert - returnerer hendelse`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 payload = HendelseTypeData.forlengDeltakelse(),
@@ -164,7 +165,7 @@ class HendelseRepositoryTest {
         }
 
         @Test
-        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort, kan ikke distribueres - returnerer tom liste`() {
+        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort, kan ikke distribueres - returnerer tom liste`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 HendelseTypeData.forlengDeltakelse(),
@@ -191,35 +192,36 @@ class HendelseRepositoryTest {
         }
 
         @Test
-        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort, brev skal sendes, er ikke sendt - returnerer hendelse`() {
-            // Arrange
-            val hendelse = Hendelsesdata.hendelse(
-                payload = HendelseTypeData.forlengDeltakelse(),
-                opprettet = LocalDateTime.now().minusHours(1),
-                distribusjonskanal = Distribusjonskanal.PRINT,
-            )
-            TestRepository.insertHendelse(hendelse)
+        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort, brev skal sendes, er ikke sendt - returnerer hendelse`() =
+            runTest {
+                // Arrange
+                val hendelse = Hendelsesdata.hendelse(
+                    payload = HendelseTypeData.forlengDeltakelse(),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                    distribusjonskanal = Distribusjonskanal.PRINT,
+                )
+                TestRepository.insertHendelse(hendelse)
 
-            journalforingstatusRepository.upsert(
-                Journalforingstatus(
-                    hendelseId = hendelse.id,
-                    journalpostId = "12345",
-                    bestillingsId = null,
-                    kanIkkeDistribueres = null,
-                    kanIkkeJournalfores = false,
-                ),
-            )
+                journalforingstatusRepository.upsert(
+                    Journalforingstatus(
+                        hendelseId = hendelse.id,
+                        journalpostId = "12345",
+                        bestillingsId = null,
+                        kanIkkeDistribueres = null,
+                        kanIkkeJournalfores = false,
+                    ),
+                )
 
-            // Act
-            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
+                // Act
+                val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 
-            // Assert
-            ikkeDistribuerteHendelser.size shouldBe 1
-            ikkeDistribuerteHendelser.first().hendelse.id shouldBe hendelse.id
-        }
+                // Assert
+                ikkeDistribuerteHendelser.size shouldBe 1
+                ikkeDistribuerteHendelser.first().hendelse.id shouldBe hendelse.id
+            }
 
         @Test
-        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort og brev er sendt - returnerer tom liste`() {
+        fun `hentHendelserSomSkalDistribueresSomBrev - hendelse er journalfort og brev er sendt - returnerer tom liste`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 payload = HendelseTypeData.forlengDeltakelse(),
@@ -246,7 +248,7 @@ class HendelseRepositoryTest {
     }
 
     @Test
-    fun `getHendelser - skal returnere hendelser`() {
+    fun `getHendelser - skal returnere hendelser`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
         TestRepository.insertHendelse(hendelse)

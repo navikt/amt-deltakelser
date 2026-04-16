@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -27,7 +28,7 @@ class DeltakerStatusRepositoryTest {
     @Nested
     inner class GetAvsluttendeDeltakerStatuserForOppdatering {
         @Test
-        fun `returnerer tom liste nar ingen deltaker har aktiv DELTAR-status`() {
+        fun `returnerer tom liste nar ingen deltaker har aktiv DELTAR-status`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(
@@ -53,7 +54,9 @@ class DeltakerStatusRepositoryTest {
         )
 
         @BeforeEach
-        fun setup() = TestRepository.insert(deltaker)
+        fun setup() = runBlocking {
+            TestRepository.insert(deltaker)
+        }
 
         @Test
         fun `har fremtidig avsluttende status, deaktiverer ikke fremtidig status`() = runTest {
@@ -117,7 +120,7 @@ class DeltakerStatusRepositoryTest {
     }
 
     @Test
-    fun `slettTidligereFremtidigeStatuser - skal slette fremtidige statuser`() {
+    fun `slettTidligereFremtidigeStatuser - skal slette fremtidige statuser`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         )
@@ -145,7 +148,7 @@ class DeltakerStatusRepositoryTest {
     }
 
     @Test
-    fun `slett - skal slette status`() {
+    fun `slett - skal slette status`() = runTest {
         val deltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.DELTAR)
 
         val deltaker = lagDeltaker(status = deltakerStatus)

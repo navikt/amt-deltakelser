@@ -8,7 +8,7 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class VurderingRepository {
-    fun getForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query { session ->
+    suspend fun getForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM vurdering WHERE deltaker_id = :deltaker_id",
@@ -17,7 +17,7 @@ class VurderingRepository {
         )
     }
 
-    fun get(id: UUID): Result<Vurdering> = runCatching {
+    suspend fun get(id: UUID): Result<Vurdering> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -28,7 +28,7 @@ class VurderingRepository {
         }
     }
 
-    fun upsert(vurdering: Vurdering) {
+    suspend fun upsert(vurdering: Vurdering) {
         val sql =
             """
             INSERT INTO vurdering(

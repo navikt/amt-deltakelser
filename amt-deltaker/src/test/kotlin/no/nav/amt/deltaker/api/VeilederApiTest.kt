@@ -9,10 +9,8 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
@@ -332,7 +330,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         val sistBesoktInTest = ZonedDateTime.now()
 
-        every {
+        coEvery {
             deltakerService.oppdaterSistBesokt(
                 deltakerId = deltakerInTest.id,
                 sistBesokt = any(),
@@ -348,7 +346,7 @@ class VeilederApiTest : IntegrationTestBase() {
             response.status shouldBe HttpStatusCode.OK
         }
 
-        verify {
+        coVerify {
             deltakerService.oppdaterSistBesokt(
                 deltakerId = deltakerInTest.id,
                 sistBesokt = sistBesoktInTest.withZoneSameInstant(ZoneOffset.UTC),
@@ -365,11 +363,11 @@ class VeilederApiTest : IntegrationTestBase() {
         val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
         val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
-        every { navAnsattRepository.getManyById(any()) } returns navAnsatte
-        every { navEnhetRepository.getMany(any()) } returns navEnheter
-        every { arrangorRepository.get(arrangor.id) } returns arrangor
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        coEvery { navAnsattRepository.getManyById(any()) } returns navAnsatte
+        coEvery { navEnhetRepository.getMany(any()) } returns navEnheter
+        coEvery { arrangorRepository.get(arrangor.id) } returns arrangor
 
         withTestApplicationContext { client ->
             val response = client.get("/deltaker/${deltaker.id}/historikk") {
@@ -392,7 +390,7 @@ class VeilederApiTest : IntegrationTestBase() {
         historikk: List<DeltakerHistorikk.Endring>,
     ) {
         coEvery { deltakerService.upsertEndretDeltaker(deltaker.id, request) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         withTestApplicationContext { client ->
             val response = client.post("/deltaker/${deltaker.id}/endre-deltaker") {

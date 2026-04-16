@@ -104,7 +104,7 @@ class DeltakerlisteConsumer(
         }
     }
 
-    private fun handterDeltakere(
+    private suspend fun handterDeltakere(
         deltakerlisteFromPayload: Deltakerliste,
         eksisterendeDeltakerliste: Deltakerliste,
     ) {
@@ -120,7 +120,7 @@ class DeltakerlisteConsumer(
         }
     }
 
-    internal fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
+    internal suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
         val deltakerePaAvbruttDeltakerliste = deltakerRepository
             .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
             .map { it.copy(deltakerliste = deltakerliste) }
@@ -128,7 +128,7 @@ class DeltakerlisteConsumer(
         deltakerService.avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
     }
 
-    internal fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
+    internal suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
         deltakerRepository
             .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
             .forEach { deltaker ->

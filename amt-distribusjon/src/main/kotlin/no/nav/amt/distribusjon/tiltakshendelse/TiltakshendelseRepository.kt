@@ -8,7 +8,7 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class TiltakshendelseRepository {
-    fun upsert(tiltakshendelse: Tiltakshendelse) {
+    suspend fun upsert(tiltakshendelse: Tiltakshendelse) {
         val sql =
             """
             INSERT INTO tiltakshendelse (
@@ -56,7 +56,7 @@ class TiltakshendelseRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
+    suspend fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -67,7 +67,7 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun getHendelse(
+    suspend fun getHendelse(
         deltakerId: UUID,
         hendelseType: Tiltakshendelse.Type,
     ): Result<Tiltakshendelse> = runCatching {
@@ -84,7 +84,7 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun getForslagHendelse(forslagId: UUID): Result<Tiltakshendelse> = runCatching {
+    suspend fun getForslagHendelse(forslagId: UUID): Result<Tiltakshendelse> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -95,7 +95,7 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun getByHendelseId(hendelseId: UUID): Result<Tiltakshendelse> = runCatching {
+    suspend fun getByHendelseId(hendelseId: UUID): Result<Tiltakshendelse> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(

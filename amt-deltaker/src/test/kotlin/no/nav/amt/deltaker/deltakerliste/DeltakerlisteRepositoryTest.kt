@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -28,7 +29,7 @@ class DeltakerlisteRepositoryTest {
     @Nested
     inner class Upsert {
         @Test
-        fun `ny minimal deltakerliste - inserter`() {
+        fun `ny minimal deltakerliste - inserter`() = runTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 
@@ -51,7 +52,7 @@ class DeltakerlisteRepositoryTest {
         }
 
         @Test
-        fun `ny deltakerliste - inserter`() {
+        fun `ny deltakerliste - inserter`() = runTest {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
             val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
@@ -65,7 +66,7 @@ class DeltakerlisteRepositoryTest {
         }
 
         @Test
-        fun `ny deltakerliste kladd - inserter`() {
+        fun `ny deltakerliste kladd - inserter`() = runTest {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
             val deltakerliste = lagDeltakerliste(
@@ -99,7 +100,7 @@ class DeltakerlisteRepositoryTest {
         }
 
         @Test
-        fun `deltakerliste ny sluttdato - oppdaterer`() {
+        fun `deltakerliste ny sluttdato - oppdaterer`() = runTest {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
             val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
@@ -117,7 +118,7 @@ class DeltakerlisteRepositoryTest {
     }
 
     @Test
-    fun `delete - sletter deltakerliste`() {
+    fun `delete - sletter deltakerliste`() = runTest {
         val arrangor = lagArrangor()
         val tiltakstype = lagTiltakstype()
         val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
@@ -132,7 +133,7 @@ class DeltakerlisteRepositoryTest {
     }
 
     @Test
-    fun `get - deltakerliste og arrangor finnes - henter deltakerliste`() {
+    fun `get - deltakerliste og arrangor finnes - henter deltakerliste`() = runTest {
         val arrangor = lagArrangor()
         val tiltakstype = lagTiltakstype()
         val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)

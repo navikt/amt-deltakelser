@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.navbruker
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -23,7 +24,7 @@ class NavBrukerRepositoryTest {
     }
 
     @Test
-    fun `upsert - ny bruker - inserter`() {
+    fun `upsert - ny bruker - inserter`() = runTest {
         val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
@@ -36,7 +37,7 @@ class NavBrukerRepositoryTest {
     }
 
     @Test
-    fun `upsert - oppdatert bruker - oppdaterer`() {
+    fun `upsert - oppdatert bruker - oppdaterer`() = runTest {
         val bruker = lagNavBruker()
         TestRepository.insert(bruker)
 

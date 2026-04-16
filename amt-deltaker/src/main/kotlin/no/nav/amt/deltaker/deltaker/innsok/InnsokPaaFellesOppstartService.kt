@@ -9,17 +9,17 @@ import java.util.UUID
 class InnsokPaaFellesOppstartService(
     private val repository: InnsokPaaFellesOppstartRepository,
 ) {
-    fun nyttInnsokUtkastGodkjentAvNav(
+    suspend fun nyttInnsokUtkastGodkjentAvNav(
         deltaker: Deltaker,
         forrigeStatus: DeltakerStatus,
     ) = innsok(deltaker, forrigeStatus, true)
 
-    fun nyttInnsokUtkastGodkjentAvDeltaker(
+    suspend fun nyttInnsokUtkastGodkjentAvDeltaker(
         deltaker: Deltaker,
         forrigeStatus: DeltakerStatus,
     ) = innsok(deltaker, forrigeStatus, false)
 
-    private fun innsok(
+    private suspend fun innsok(
         deltaker: Deltaker,
         forrigeStatus: DeltakerStatus,
         godkjentAvNav: Boolean,

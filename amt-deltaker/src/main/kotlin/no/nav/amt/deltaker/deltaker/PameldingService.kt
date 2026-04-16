@@ -80,7 +80,7 @@ class PameldingService(
             },
             afterUpsert = { deltaker ->
 
-                hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) { utkastDto ->
+                hendelseService.produceHendelseForUtkast(deltaker = deltaker, navAnsatt = endretAv, enhet = endretAvNavEnhet) { utkastDto ->
                     when {
                         utkast.godkjentAvNav -> HendelseType.NavGodkjennUtkast(utkastDto)
                         opprinneligDeltaker.status.type == DeltakerStatus.Type.KLADD -> HendelseType.OpprettUtkast(utkastDto)
@@ -116,11 +116,11 @@ class PameldingService(
             }
         },
         afterUpsert = { deltaker ->
-            hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
+            hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker = deltaker)
         },
     )
 
-    private fun innbyggerGodkjennInnsok(opprinneligDeltaker: Deltaker): Deltaker {
+    private suspend fun innbyggerGodkjennInnsok(opprinneligDeltaker: Deltaker): Deltaker {
         val oppdatertDeltaker = opprinneligDeltaker.copy(
             status = nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             sistEndret = LocalDateTime.now(),
@@ -170,7 +170,7 @@ class PameldingService(
                 deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
             },
             afterUpsert = { deltaker ->
-                hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) { utkastDto ->
+                hendelseService.produceHendelseForUtkast(deltaker = deltaker, navAnsatt = endretAv, enhet = endretAvNavEnhet) { utkastDto ->
                     HendelseType.AvbrytUtkast(utkastDto)
                 }
             },

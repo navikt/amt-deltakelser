@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.deltaker.db
 
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignVedtak
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -29,12 +31,14 @@ class VedtakRepositoryTest {
 
     @BeforeEach
     fun setup() {
-        navEnhetRepository.upsert(navEnhet)
-        navAnsattRepository.upsert(navAnsatt)
+        runBlocking {
+            navEnhetRepository.upsert(navEnhet)
+            navAnsattRepository.upsert(navAnsatt)
+        }
     }
 
     @Test
-    fun `upsert - nytt vedtak - inserter`() {
+    fun `upsert - nytt vedtak - inserter`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
@@ -49,7 +53,7 @@ class VedtakRepositoryTest {
     }
 
     @Test
-    fun `upsert - oppdatert vedtak - oppdaterer`() {
+    fun `upsert - oppdatert vedtak - oppdaterer`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
@@ -67,7 +71,7 @@ class VedtakRepositoryTest {
     }
 
     @Test
-    fun `upsert - vedtak fattet av nav - inserter`() {
+    fun `upsert - vedtak fattet av nav - inserter`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,

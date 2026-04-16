@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.deltakerliste
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
@@ -27,7 +28,7 @@ class DeltakerlisteRepositoryTest {
     @Nested
     inner class Upsert {
         @Test
-        fun `ny minimal deltakerliste - inserter`() {
+        fun `ny minimal deltakerliste - inserter`() = runTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 
@@ -51,7 +52,7 @@ class DeltakerlisteRepositoryTest {
         }
 
         @Test
-        fun `ny deltakerliste - inserter`() {
+        fun `ny deltakerliste - inserter`() = runTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 
@@ -64,7 +65,7 @@ class DeltakerlisteRepositoryTest {
         }
 
         @Test
-        fun `deltakerliste ny sluttdato - oppdaterer`() {
+        fun `deltakerliste ny sluttdato - oppdaterer`() = runTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 
@@ -82,7 +83,7 @@ class DeltakerlisteRepositoryTest {
     }
 
     @Test
-    fun `delete - sletter deltakerliste`() {
+    fun `delete - sletter deltakerliste`() = runTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
@@ -96,7 +97,7 @@ class DeltakerlisteRepositoryTest {
     }
 
     @Test
-    fun `get - deltakerliste og arrangor finnes - henter deltakerliste`() {
+    fun `get - deltakerliste og arrangor finnes - henter deltakerliste`() = runTest {
         val overordnetArrangor = lagArrangor()
         arrangorRepository.upsert(overordnetArrangor)
 

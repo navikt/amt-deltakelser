@@ -47,7 +47,7 @@ class HendelseService(
         produserHendelseFraTiltaksansvarlig(deltaker, navAnsatt, navEnhet, endring.endring)
     }
 
-    fun produserHendelseFraTiltaksansvarlig(
+    suspend fun produserHendelseFraTiltaksansvarlig(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
@@ -72,7 +72,7 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraKoordinator(deltaker, navAnsatt, navEnhet, hendelseType))
     }
 
-    fun hendelseForDeltakerEndring(
+    suspend fun hendelseForDeltakerEndring(
         deltakerEndring: DeltakerEndring,
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
@@ -87,7 +87,7 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
     }
 
-    fun hendelseForEndringFraArrangor(
+    suspend fun hendelseForEndringFraArrangor(
         endringFraArrangor: EndringFraArrangor,
         deltaker: Deltaker,
     ) {
@@ -97,7 +97,7 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseForEndringFraArrangor(deltaker, navEnhet, endring))
     }
 
-    private fun getNavEnhet(deltaker: Deltaker): NavEnhet {
+    private suspend fun getNavEnhet(deltaker: Deltaker): NavEnhet {
         val navEnhetId: UUID? = deltaker.navBruker.navEnhetId
 
         return when {
@@ -116,7 +116,7 @@ class HendelseService(
         }
     }
 
-    fun hendelseForUtkastGodkjentAvInnbygger(deltaker: Deltaker) {
+    suspend fun hendelseForUtkastGodkjentAvInnbygger(deltaker: Deltaker) {
         val vedtak = deltaker.vedtaksinformasjon ?: throw IllegalStateException(
             "Kan ikke produsere hendelse for utkast godkjent av innbygger for deltaker ${deltaker.id} uten vedtak",
         )
@@ -129,7 +129,7 @@ class HendelseService(
         }
     }
 
-    fun produceHendelseForUtkast(
+    suspend fun produceHendelseForUtkast(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         enhet: NavEnhet,
@@ -139,7 +139,7 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, enhet, endring))
     }
 
-    fun hendelseFraSystem(
+    suspend fun hendelseFraSystem(
         deltaker: Deltaker,
         block: (it: UtkastDto) -> HendelseType.HendelseSystemKanOpprette,
     ) {
@@ -147,7 +147,7 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraSystem(deltaker, endring))
     }
 
-    private fun nyHendelseFraNavAnsatt(
+    private suspend fun nyHendelseFraNavAnsatt(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
@@ -163,7 +163,7 @@ class HendelseService(
         return nyHendelse(deltaker, ansvarlig, endring)
     }
 
-    private fun nyHendelseFraKoordinator(
+    private suspend fun nyHendelseFraKoordinator(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
@@ -183,7 +183,7 @@ class HendelseService(
         return nyHendelse(deltaker, ansvarlig, endring)
     }
 
-    private fun nyHendelseForEndringFraArrangor(
+    private suspend fun nyHendelseForEndringFraArrangor(
         deltaker: Deltaker,
         navEnhet: NavEnhet,
         endring: HendelseType,
@@ -196,7 +196,7 @@ class HendelseService(
         return nyHendelse(deltaker, ansvarlig, endring)
     }
 
-    private fun nyHendelseFraSystem(
+    private suspend fun nyHendelseFraSystem(
         deltaker: Deltaker,
         endring: HendelseType.HendelseSystemKanOpprette,
     ): Hendelse {
@@ -204,7 +204,7 @@ class HendelseService(
         return nyHendelse(deltaker, ansvarlig, endring)
     }
 
-    fun hendelseForSistBesokt(
+    suspend fun hendelseForSistBesokt(
         deltaker: Deltaker,
         sistBesokt: ZonedDateTime,
     ) {
@@ -223,7 +223,7 @@ class HendelseService(
         )
     }
 
-    private fun nyHendelse(
+    private suspend fun nyHendelse(
         deltaker: Deltaker,
         ansvarlig: HendelseAnsvarlig,
         endring: HendelseType,

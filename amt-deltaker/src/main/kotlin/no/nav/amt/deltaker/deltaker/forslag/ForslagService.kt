@@ -16,7 +16,7 @@ class ForslagService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun upsertAndProduce(forslag: Forslag) {
+    suspend fun upsertAndProduce(forslag: Forslag) {
         forslagRepository.upsert(forslag)
 
         when (forslag.status) {
@@ -35,7 +35,7 @@ class ForslagService(
         log.info("Lagret forslag ${forslag.id}")
     }
 
-    fun godkjennForslag(
+    suspend fun godkjennForslag(
         forslagId: UUID,
         godkjentAvAnsattId: UUID,
         godkjentAvEnhetId: UUID,

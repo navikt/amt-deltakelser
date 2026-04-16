@@ -20,7 +20,7 @@ fun Routing.registerTiltakskoordinatorApi(
 ) {
     val apiPath = "/tiltakskoordinator/deltakere"
 
-    fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
+    suspend fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
         fromDeltakerOppdateringResult(
             oppdateringResult = it,
             historikk = deltakerHistorikkService.getForDeltaker(it.deltaker.id),

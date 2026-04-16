@@ -7,7 +7,7 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class ArrangorRepository {
-    fun upsert(arrangor: Arrangor) {
+    suspend fun upsert(arrangor: Arrangor) {
         val sql =
             """
             INSERT INTO arrangor (
@@ -44,7 +44,7 @@ class ArrangorRepository {
         }
     }
 
-    fun get(id: UUID): Arrangor? = Database.query { session ->
+    suspend fun get(id: UUID): Arrangor? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM arrangor WHERE id = :id",
@@ -53,7 +53,7 @@ class ArrangorRepository {
         )
     }
 
-    fun get(orgnr: String): Arrangor? = Database.query { session ->
+    suspend fun get(orgnr: String): Arrangor? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM arrangor WHERE organisasjonsnummer = :orgnr",
@@ -62,7 +62,7 @@ class ArrangorRepository {
         )
     }
 
-    fun delete(id: UUID) {
+    suspend fun delete(id: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(

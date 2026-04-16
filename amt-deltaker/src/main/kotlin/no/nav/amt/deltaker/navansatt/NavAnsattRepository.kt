@@ -7,7 +7,7 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class NavAnsattRepository {
-    fun upsert(navAnsatt: NavAnsatt): NavAnsatt {
+    suspend fun upsert(navAnsatt: NavAnsatt): NavAnsatt {
         val sql =
             """
             INSERT INTO nav_ansatt (
@@ -51,9 +51,9 @@ class NavAnsattRepository {
         }
     }
 
-    fun getOrThrow(id: UUID): NavAnsatt = get(id) ?: throw NoSuchElementException("Fant ikke Nav-ansatt med id $id")
+    suspend fun getOrThrow(id: UUID): NavAnsatt = get(id) ?: throw NoSuchElementException("Fant ikke Nav-ansatt med id $id")
 
-    fun get(id: UUID): NavAnsatt? = Database.query { session ->
+    suspend fun get(id: UUID): NavAnsatt? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM nav_ansatt WHERE id = :id",
@@ -62,10 +62,10 @@ class NavAnsattRepository {
         )
     }
 
-    fun getOrThrow(navIdent: String): NavAnsatt =
+    suspend fun getOrThrow(navIdent: String): NavAnsatt =
         get(navIdent) ?: throw NoSuchElementException("Fant ikke Nav-ansatt med navIdent $navIdent")
 
-    fun get(navIdent: String): NavAnsatt? = Database.query { session ->
+    suspend fun get(navIdent: String): NavAnsatt? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM nav_ansatt WHERE nav_ident = :nav_ident",
@@ -74,7 +74,7 @@ class NavAnsattRepository {
         )
     }
 
-    fun delete(id: UUID) {
+    suspend fun delete(id: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -85,7 +85,7 @@ class NavAnsattRepository {
         }
     }
 
-    fun getManyById(ider: Set<UUID>): List<NavAnsatt> = if (ider.isEmpty()) {
+    suspend fun getManyById(ider: Set<UUID>): List<NavAnsatt> = if (ider.isEmpty()) {
         emptyList()
     } else {
         Database.query { session ->
@@ -98,7 +98,7 @@ class NavAnsattRepository {
         }
     }
 
-    fun getManyByNavIdent(veilederIdenter: Set<String>): List<NavAnsatt> = if (veilederIdenter.isEmpty()) {
+    suspend fun getManyByNavIdent(veilederIdenter: Set<String>): List<NavAnsatt> = if (veilederIdenter.isEmpty()) {
         emptyList()
     } else {
         Database.query { session ->

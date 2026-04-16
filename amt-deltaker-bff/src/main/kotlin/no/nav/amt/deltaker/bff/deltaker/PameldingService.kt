@@ -133,14 +133,14 @@ class PameldingService(
         }
     }
 
-    private fun laasOppDeltaker(deltaker: Deltaker) {
+    private suspend fun laasOppDeltaker(deltaker: Deltaker) {
         deltakerRepository.settKanEndres(deltaker.id, true)
         log.info(
             "Har låst opp tidligere deltaker ${deltaker.id} for endringer pga avbrutt utkast på nåværende deltaker",
         )
     }
 
-    fun getKladder(personident: String): List<Deltaker> = deltakerRepository.getMany(personident).filter {
+    suspend fun getKladder(personident: String): List<Deltaker> = deltakerRepository.getMany(personident).filter {
         it.status.type == DeltakerStatus.Type.KLADD
     }
 }

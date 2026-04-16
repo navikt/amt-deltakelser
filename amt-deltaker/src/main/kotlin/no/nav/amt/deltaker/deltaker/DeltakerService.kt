@@ -60,8 +60,8 @@ class DeltakerService(
         erDeltakerSluttdatoEndret: Boolean,
         forceProduce: Boolean? = false,
         nesteStatus: DeltakerStatus? = null,
-        beforeUpsert: (Deltaker) -> Deltaker = { it },
-        afterUpsert: (Deltaker) -> Unit = { },
+        beforeUpsert: suspend (Deltaker) -> Deltaker = { it },
+        afterUpsert: suspend (Deltaker) -> Unit = { },
     ): Deltaker = transactionalDeltakerUpsert(
         deltaker = deltaker.copy(sistEndret = LocalDateTime.now()),
         erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
@@ -77,7 +77,7 @@ class DeltakerService(
         },
     ).getOrThrow()
 
-    fun deleteDeltaker(deltakerId: UUID) {
+    suspend fun deleteDeltaker(deltakerId: UUID) {
         importertFraArenaRepository.deleteForDeltaker(deltakerId)
         vedtakRepository.deleteForDeltaker(deltakerId)
         deltakerEndringRepository.deleteForDeltaker(deltakerId)
@@ -152,7 +152,7 @@ class DeltakerService(
         )
     }
 
-    private fun slettKladdIfExists(deltaker: Deltaker) {
+    private suspend fun slettKladdIfExists(deltaker: Deltaker) {
         deltakerRepository
             .getKladdForDeltakerliste(
                 deltakerlisteId = deltaker.deltakerliste.id,
@@ -164,8 +164,8 @@ class DeltakerService(
         deltaker: Deltaker,
         erDeltakerSluttdatoEndret: Boolean,
         nesteStatus: DeltakerStatus? = null,
-        beforeDeltakerUpsert: (Deltaker) -> Deltaker = { it },
-        afterDeltakerUpsert: (Deltaker) -> Deltaker = { it },
+        beforeDeltakerUpsert: suspend (Deltaker) -> Deltaker = { it },
+        afterDeltakerUpsert: suspend (Deltaker) -> Deltaker = { it },
     ): Result<Deltaker> = runCatching {
         Database.transaction {
             val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
@@ -185,7 +185,7 @@ class DeltakerService(
         }
     }
 
-    fun lagreDeltakerStatus(
+    suspend fun lagreDeltakerStatus(
         deltakerId: UUID,
         nyDeltakerStatus: DeltakerStatus,
         erDeltakerSluttdatoEndret: Boolean,
@@ -314,7 +314,7 @@ class DeltakerService(
         }
     }
 
-    fun produserDeltakereForPerson(
+    suspend fun produserDeltakereForPerson(
         personident: String,
         publiserTilDeltakerV1: Boolean = true,
         publiserTilDeltakerEksternV1: Boolean = true,
@@ -326,7 +326,7 @@ class DeltakerService(
         )
     }
 
-    fun oppdaterSistBesokt(
+    suspend fun oppdaterSistBesokt(
         deltakerId: UUID,
         sistBesokt: ZonedDateTime,
     ) {
@@ -372,7 +372,7 @@ class DeltakerService(
         log.info("Endret status til DELTAR for $antallOppdatert av ${deltakereMedStatusDeltar.size}")
     }
 
-    fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
+    suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
         DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes)
             .map { oppdaterVedtakForAvbruttUtkast(it) }
@@ -391,7 +391,9 @@ class DeltakerService(
             }
     }
 
-    private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
+    private suspend fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type ==
+        DeltakerStatus.Type.AVBRUTT_UTKAST
+    ) {
         val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
 
         hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }

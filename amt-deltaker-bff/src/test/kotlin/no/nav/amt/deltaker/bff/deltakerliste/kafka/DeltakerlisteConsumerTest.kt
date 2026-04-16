@@ -5,9 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.arrangor.ArrangorService
@@ -118,7 +118,7 @@ class DeltakerlisteConsumerTest {
     }
 
     @Test
-    fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() {
+    fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() = runTest {
         val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest)
         val deltaker = lagDeltaker(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
@@ -128,17 +128,15 @@ class DeltakerlisteConsumerTest {
                 arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
             ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
 
-        runTest {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                consumer.consume(
-                    deltakerlistePayload.id,
-                    objectMapper.writeValueAsString(deltakerlistePayload),
-                )
-            }
-
-            thrown.message shouldBe
-                "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
+        val thrown = shouldThrow<IllegalArgumentException> {
+            consumer.consume(
+                deltakerlistePayload.id,
+                objectMapper.writeValueAsString(deltakerlistePayload),
+            )
         }
+
+        thrown.message shouldBe
+            "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
     }
 
     @Test
@@ -188,7 +186,7 @@ class DeltakerlisteConsumerTest {
 
         deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow() shouldBe expectedDeltakerliste
 
-        verify(exactly = 0) { tilgangskontrollService.stengTilgangerTilDeltakerliste(any()) }
+        coVerify(exactly = 0) { tilgangskontrollService.stengTilgangerTilDeltakerliste(any()) }
     }
 
     @Test
@@ -226,7 +224,7 @@ class DeltakerlisteConsumerTest {
             oppmoteSted = null,
         )
 
-        verify(exactly = 0) { tilgangskontrollService.stengTilgangerTilDeltakerliste(any()) }
+        coVerify(exactly = 0) { tilgangskontrollService.stengTilgangerTilDeltakerliste(any()) }
     }
 
     @Test

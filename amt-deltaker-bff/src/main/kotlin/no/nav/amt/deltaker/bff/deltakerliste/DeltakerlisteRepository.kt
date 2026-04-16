@@ -15,7 +15,7 @@ import java.util.UUID
 class DeltakerlisteRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun upsert(deltakerliste: Deltakerliste) {
+    suspend fun upsert(deltakerliste: Deltakerliste) {
         val sql =
             """
             INSERT INTO deltakerliste (
@@ -80,7 +80,7 @@ class DeltakerlisteRepository {
         log.info("Upsertet deltakerliste med id ${deltakerliste.id}")
     }
 
-    fun delete(id: UUID) = Database.query { session ->
+    suspend fun delete(id: UUID) = Database.query { session ->
         session.update(
             queryOf(
                 statement = "DELETE FROM deltakerliste WHERE id = :id",
@@ -90,7 +90,7 @@ class DeltakerlisteRepository {
         log.info("Slettet deltakerliste med id $id")
     }
 
-    fun get(id: UUID): Result<Deltakerliste> = runCatching {
+    suspend fun get(id: UUID): Result<Deltakerliste> = runCatching {
         val query = queryOf(
             """
             SELECT 

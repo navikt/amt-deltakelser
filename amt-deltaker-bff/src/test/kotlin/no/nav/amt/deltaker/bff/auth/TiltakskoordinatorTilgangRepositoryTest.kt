@@ -4,6 +4,8 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
@@ -36,7 +38,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `upsert - ny tilgang - inserter og returnerer tilgang`() {
+    fun `upsert - ny tilgang - inserter og returnerer tilgang`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             val lagretTilgang = tiltakskoordinatorTilgangRepository.upsert(tilgang).getOrThrow()
             sammenlignTilganger(lagretTilgang, tilgang)
@@ -44,7 +46,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `upsert - endret tilgang - oppdaterer og returnerer tilgang`() {
+    fun `upsert - endret tilgang - oppdaterer og returnerer tilgang`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
             val avsluttetTilgang = tilgang.copy(gyldigTil = LocalDateTime.now())
@@ -54,7 +56,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `hentAktivTilgang - aktiv tilgang finnes ikke - returnerer failure`() {
+    fun `hentAktivTilgang - aktiv tilgang finnes ikke - returnerer failure`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             val resultat = tiltakskoordinatorTilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
             resultat.isFailure shouldBe true
@@ -63,7 +65,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `hentAktivTilgang - inaktiv tilgang finnes - returnerer failure`() {
+    fun `hentAktivTilgang - inaktiv tilgang finnes - returnerer failure`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medInaktivTilgang()
             val resultat = tiltakskoordinatorTilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
@@ -73,7 +75,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `hentAktivTilgang - aktiv tilgang finnes - returnerer succses`() {
+    fun `hentAktivTilgang - aktiv tilgang finnes - returnerer succses`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
             val resultat = tiltakskoordinatorTilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
@@ -85,7 +87,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     @Nested
     inner class HentKoordinatorer {
         @Test
-        fun `deltakerliste har ingen koordinatorer - returnerer tom liste`() {
+        fun `deltakerliste har ingen koordinatorer - returnerer tom liste`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 val koordinatorer = tiltakskoordinatorTilgangRepository.hentKoordinatorer(UUID.randomUUID(), UUID.randomUUID())
@@ -94,7 +96,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
         }
 
         @Test
-        fun `deltakerliste har aktiv koordinator - skal returnere aktiv koordinator`() {
+        fun `deltakerliste har aktiv koordinator - skal returnere aktiv koordinator`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 val koordinatorer = tiltakskoordinatorTilgangRepository.hentKoordinatorer(deltakerliste.id, UUID.randomUUID())
@@ -108,7 +110,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
         }
 
         @Test
-        fun `deltakerliste har aktiv og inaktiv koordinator - returnerer begge koordinatorer`() {
+        fun `deltakerliste har aktiv og inaktiv koordinator - returnerer begge koordinatorer`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 medInaktivTilgang()
@@ -123,7 +125,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
         }
 
         @Test
-        fun `deltakerliste har kun inaktiv koordinator - returnerer inaktiv koordinator`() {
+        fun `deltakerliste har kun inaktiv koordinator - returnerer inaktiv koordinator`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medInaktivTilgang()
 
@@ -135,7 +137,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
         }
 
         @Test
-        fun `samme koordinator finnes som inaktiv og aktiv - returnerer aktiv koordinator`() {
+        fun `samme koordinator finnes som inaktiv og aktiv - returnerer aktiv koordinator`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 tiltakskoordinatorTilgangRepository.upsert(
@@ -154,7 +156,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `hentUtdaterteTilganger - deltakerlisten er avsluttet og stengt - returnerer utdatert tilgang`() {
+    fun `hentUtdaterteTilganger - deltakerlisten er avsluttet og stengt - returnerer utdatert tilgang`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
             medStengtDeltakerliste()
@@ -163,7 +165,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `hentUtdaterteTilganger - deltakerlisten er avsluttet men ikke stengt - returnerer ikke utdatert tilgang`() {
+    fun `hentUtdaterteTilganger - deltakerlisten er avsluttet men ikke stengt - returnerer ikke utdatert tilgang`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
             medAvsluttetDeltakerliste()
@@ -172,7 +174,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `hentAktiveForDeltakerliste - aktiv tilgang - henter tilganger pa deltakerliste`() {
+    fun `hentAktiveForDeltakerliste - aktiv tilgang - henter tilganger pa deltakerliste`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
             tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerliste.id) shouldHaveSize 1
@@ -180,7 +182,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `hentAktiveForDeltakerliste - inaktiv tilgang - henter ikke tilganger pa deltakerliste`() {
+    fun `hentAktiveForDeltakerliste - inaktiv tilgang - henter ikke tilganger pa deltakerliste`() = runTest {
         with(TiltakskoordinatorTilgangContext()) {
             medInaktivTilgang()
             tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerliste.id) shouldHaveSize 0
@@ -217,7 +219,6 @@ data class TiltakskoordinatorTilgangContext(
     val deltakerRepository = DeltakerRepository()
     val tilgangsRepository = TiltakskoordinatorTilgangRepository()
     val deltakerlisteRepository = DeltakerlisteRepository()
-    val navAnsattAzureId: UUID = UUID.randomUUID()
 
     companion object {
         @RegisterExtension
@@ -225,30 +226,30 @@ data class TiltakskoordinatorTilgangContext(
     }
 
     init {
-        navAnsattRepository.upsert(navAnsatt)
-        navAnsattRepository.upsert(secondNavAnsatt)
-        TestRepository.insert(deltakerliste)
-        TestRepository.insert(deltaker)
+        runBlocking {
+            navAnsattRepository.upsert(navAnsatt)
+            navAnsattRepository.upsert(secondNavAnsatt)
+            TestRepository.insert(deltakerliste)
+            TestRepository.insert(deltaker)
+        }
     }
 
-    fun medAktivTilgang() {
+    suspend fun medAktivTilgang() {
         tilgangsRepository.upsert(tilgang)
     }
 
-    fun medInaktivTilgang() {
+    suspend fun medInaktivTilgang() {
         tilgangsRepository.upsert(secondTilgang.copy(gyldigTil = LocalDateTime.now()))
     }
 
-    fun medSkjermetDeltaker() {
+    suspend fun medSkjermetDeltaker() {
         deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(erSkjermet = true))
         deltakerRepository.upsert(deltaker)
     }
 
-    fun medFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.FORTROLIG)
+    suspend fun medFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.FORTROLIG)
 
-    fun medStrengtFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.STRENGT_FORTROLIG)
-
-    fun medStengtDeltakerliste() {
+    suspend fun medStengtDeltakerliste() {
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
             sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
@@ -256,7 +257,7 @@ data class TiltakskoordinatorTilgangContext(
         deltakerlisteRepository.upsert(deltakerliste)
     }
 
-    fun medAvsluttetDeltakerliste() {
+    suspend fun medAvsluttetDeltakerliste() {
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
             sluttDato = LocalDate.now(),
@@ -264,7 +265,7 @@ data class TiltakskoordinatorTilgangContext(
         deltakerlisteRepository.upsert(deltakerliste)
     }
 
-    private fun adressebeskyttetDeltaker(adressebeskyttelse: Adressebeskyttelse?) {
+    private suspend fun adressebeskyttetDeltaker(adressebeskyttelse: Adressebeskyttelse?) {
         deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(adressebeskyttelse = adressebeskyttelse))
         deltakerRepository.upsert(deltaker)
     }

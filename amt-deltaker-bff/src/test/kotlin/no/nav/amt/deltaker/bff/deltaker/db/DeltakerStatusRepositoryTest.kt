@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldStartWith
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
@@ -21,7 +22,7 @@ class DeltakerStatusRepositoryTest {
     }
 
     @Test
-    fun `insertIfNotExists - kaster feil hvis flere aktive statuser`() {
+    fun `insertIfNotExists - kaster feil hvis flere aktive statuser`() = runTest {
         val gammelStatus = lagDeltakerStatus(
             statusType = DeltakerStatus.Type.HAR_SLUTTET,
             aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
@@ -44,7 +45,7 @@ class DeltakerStatusRepositoryTest {
     }
 
     @Test
-    fun `slettTidligereStatuser - skal slette alle andre statuser`() {
+    fun `slettTidligereStatuser - skal slette alle andre statuser`() = runTest {
         val gammelStatus = lagDeltakerStatus(
             statusType = DeltakerStatus.Type.HAR_SLUTTET,
             aarsakType = DeltakerStatus.Aarsak.Type.ANNET,

@@ -29,7 +29,7 @@ class TiltakstypeConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private fun handterTiltakstype(tiltakstype: TiltakstypeDto) {
+    private suspend fun handterTiltakstype(tiltakstype: TiltakstypeDto) {
         repository.upsert(tiltakstype.toModel())
     }
 }

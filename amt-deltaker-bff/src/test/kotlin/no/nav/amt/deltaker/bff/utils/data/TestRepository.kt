@@ -22,7 +22,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 object TestRepository {
-    fun insert(
+    suspend fun insert(
         deltakerliste: Deltakerliste,
         overordnetArrangor: Arrangor? = null,
     ) {
@@ -32,14 +32,14 @@ object TestRepository {
         DeltakerlisteRepository().upsert(deltakerliste)
     }
 
-    fun insert(deltaker: Deltaker) {
+    suspend fun insert(deltaker: Deltaker) {
         insert(deltaker.navBruker)
         insert(deltaker.deltakerliste)
         DeltakerRepository().upsert(deltaker)
         DeltakerStatusRepository.insertIfNotExists(deltaker.id, deltaker.status)
     }
 
-    fun insert(
+    suspend fun insert(
         navEnhet: NavEnhet,
         sistEndret: LocalDateTime,
     ) {
@@ -58,13 +58,13 @@ object TestRepository {
         }
     }
 
-    fun insert(bruker: NavBruker) {
+    suspend fun insert(bruker: NavBruker) {
         bruker.navVeilederId?.let { NavAnsattRepository().upsert(lagNavAnsatt(it)) }
         bruker.navEnhetId?.let { NavEnhetRepository().upsert(lagNavEnhet(it)) }
         NavBrukerRepository().upsert(bruker)
     }
 
-    fun getDeltakerSistBesokt(deltakerId: UUID): ZonedDateTime? = Database.query { session ->
+    suspend fun getDeltakerSistBesokt(deltakerId: UUID): ZonedDateTime? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT sist_besokt FROM deltaker WHERE id = ?",

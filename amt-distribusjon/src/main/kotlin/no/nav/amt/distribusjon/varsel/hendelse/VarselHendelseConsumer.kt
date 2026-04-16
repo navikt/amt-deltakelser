@@ -46,14 +46,14 @@ class VarselHendelseConsumer(
 
         val varselId = UUID.fromString(key)
 
-        varselRepository.get(varselId).onSuccess {
+        varselRepository.get(varselId).onSuccess { varsel ->
             transaction {
-                handterVarselHendelse(it, objectMapper.readValue(value))
+                handterVarselHendelse(varsel, objectMapper.readValue(value))
             }
         }
     }
 
-    private fun handterVarselHendelse(
+    private suspend fun handterVarselHendelse(
         varsel: Varsel,
         hendelse: VarselHendelseDto,
     ) {

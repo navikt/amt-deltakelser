@@ -7,7 +7,7 @@ import no.nav.amt.lib.outbox.OutboxService
 class HendelseProducer(
     private val outboxService: OutboxService,
 ) {
-    fun produce(
+    suspend fun produce(
         hendelse: Hendelse,
         suppressOutsideTxWarning: Boolean = false,
     ) {

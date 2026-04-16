@@ -281,7 +281,7 @@ class JournalforingService(
         log.info("Journalførte brev for deltaker ${hendelse.deltaker.id}")
     }
 
-    private fun handleEndringsvedtak(
+    private suspend fun handleEndringsvedtak(
         hendelse: Hendelse,
         journalforingstatus: Journalforingstatus?,
     ) {
@@ -455,7 +455,7 @@ class JournalforingService(
         return journalpostId
     }
 
-    private fun upsertJournalforingsstatus(
+    private suspend fun upsertJournalforingsstatus(
         hendelseId: UUID,
         journalpostId: String?,
         kanIkkeJournalfores: Boolean = false,

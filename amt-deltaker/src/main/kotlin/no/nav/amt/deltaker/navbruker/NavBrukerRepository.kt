@@ -12,7 +12,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class NavBrukerRepository {
-    fun upsert(bruker: NavBruker) = runCatching {
+    suspend fun upsert(bruker: NavBruker) = runCatching {
         val sql =
             """
             INSERT INTO nav_bruker (
@@ -88,7 +88,7 @@ class NavBrukerRepository {
         }
     }
 
-    fun get(personId: UUID): Result<NavBruker> = runCatching {
+    suspend fun get(personId: UUID): Result<NavBruker> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -99,7 +99,7 @@ class NavBrukerRepository {
         }
     }
 
-    fun get(personident: String): Result<NavBruker> = runCatching {
+    suspend fun get(personident: String): Result<NavBruker> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(

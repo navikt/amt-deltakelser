@@ -43,7 +43,7 @@ class DeltakerEndringService(
         }
     }
 
-    fun upsertEndring(
+    suspend fun upsertEndring(
         endringRequest: EndringRequest,
         endringResultat: VellykketEndring,
         endretAvNavAnsatt: NavAnsatt,
@@ -85,7 +85,7 @@ class DeltakerEndringService(
         return deltakerEndring
     }
 
-    fun behandleLagretDeltakelsesmengde(
+    suspend fun behandleLagretDeltakelsesmengde(
         deltakerEndring: DeltakerEndring,
         deltaker: Deltaker,
     ): Result<VellykketEndring> {

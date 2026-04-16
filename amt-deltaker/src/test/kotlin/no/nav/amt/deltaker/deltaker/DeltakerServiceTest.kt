@@ -10,6 +10,7 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_V1_TOPIC
@@ -68,8 +69,10 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
     @BeforeEach
     fun setup() {
-        navEnhetRepository.upsert(navEnhetInTest)
-        navAnsattRepository.upsert(navAnsattInTest)
+        runBlocking {
+            navEnhetRepository.upsert(navEnhetInTest)
+            navAnsattRepository.upsert(navAnsattInTest)
+        }
     }
 
     @Nested
@@ -80,7 +83,9 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
         @BeforeEach
         fun setup() {
-            TestRepository.insert(opprinneligDeltaker)
+            runBlocking {
+                TestRepository.insert(opprinneligDeltaker)
+            }
         }
 
         @Test
@@ -1688,7 +1693,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `oppdaterSistBesokt - produserer hendelse`() {
+    fun `oppdaterSistBesokt - produserer hendelse`() = runTest {
         // Arrange
         val deltaker = lagDeltaker()
         TestRepository.insert(deltaker)

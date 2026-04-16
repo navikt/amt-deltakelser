@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.deltaker.vurdering
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagVurdering
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
@@ -18,7 +19,7 @@ class VurderingRepositoryTest {
     }
 
     @Test
-    fun `getForDeltaker - vurdering finnes - returnerer vurdering`() {
+    fun `getForDeltaker - vurdering finnes - returnerer vurdering`() = runTest {
         val deltaker = lagDeltaker()
         val vurdering = lagVurdering(deltakerId = deltaker.id)
 
@@ -35,7 +36,7 @@ class VurderingRepositoryTest {
     }
 
     @Test
-    fun `getForDeltaker - vurderinger finnes - returnerer alle vurdering`() {
+    fun `getForDeltaker - vurderinger finnes - returnerer alle vurdering`() = runTest {
         val deltaker1 = lagDeltaker()
         val deltaker2 = lagDeltaker()
         val vurdering1 = lagVurdering(deltakerId = deltaker1.id, vurderingstype = Vurderingstype.OPPFYLLER_IKKE_KRAVENE)

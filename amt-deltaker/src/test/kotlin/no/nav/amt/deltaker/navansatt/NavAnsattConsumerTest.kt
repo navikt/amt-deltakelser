@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.navansatt
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -38,8 +39,10 @@ class NavAnsattConsumerTest {
 
     @BeforeEach
     fun setup() {
-        navEnhetRepository.upsert(navEnhet)
-        navAnsattRepository.upsert(navAnsatt)
+        runBlocking {
+            navEnhetRepository.upsert(navEnhet)
+            navAnsattRepository.upsert(navAnsatt)
+        }
     }
 
     @Test

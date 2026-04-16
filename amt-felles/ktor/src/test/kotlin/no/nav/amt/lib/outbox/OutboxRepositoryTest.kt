@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -20,7 +21,7 @@ class OutboxRepositoryTest {
     private val outboxRepository = OutboxRepository()
 
     @Test
-    fun `insertNewRecord returns record with non-null id`() {
+    fun `insertNewRecord returns record with non-null id`() = runTest {
         // Arrange
         val record = NewOutboxRecord(
             key = "test-key",
@@ -43,7 +44,7 @@ class OutboxRepositoryTest {
     }
 
     @Test
-    fun `findUnprocessedRecords returns pending and failed records`() {
+    fun `findUnprocessedRecords returns pending and failed records`() = runTest {
         // Arrange
         val pendingRecord = NewOutboxRecord(
             key = "key-1",
@@ -80,7 +81,7 @@ class OutboxRepositoryTest {
     }
 
     @Test
-    fun `deleteOutboxRecord deletes record`() {
+    fun `deleteOutboxRecord deletes record`() = runTest {
         // Arrange
         val record = NewOutboxRecord(
             key = "key-4",
@@ -98,7 +99,7 @@ class OutboxRepositoryTest {
     }
 
     @Test
-    fun `markAsFailed updates record status, error message, and retry count`() {
+    fun `markAsFailed updates record status, error message, and retry count`() = runTest {
         // Arrange
         val record = NewOutboxRecord(
             key = "key-5",

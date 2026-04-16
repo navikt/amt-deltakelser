@@ -4,6 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test
 
 class EndreSluttarsakExtensionsTest {
     @Test
-    fun `endret sluttarsak`() {
+    fun `endret sluttarsak`() = runTest {
         val resultat = endringsrequest
             .toEndring()
             .oppdaterDeltaker(

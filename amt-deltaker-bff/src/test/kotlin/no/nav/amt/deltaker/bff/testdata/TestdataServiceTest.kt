@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.testdata
 
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
@@ -88,7 +87,7 @@ class TestdataServiceTest {
     }
 
     @Test
-    fun `opprettDeltakelse - deltaker finnes ikke, gyldig request - oppretter ny deltaker`() {
+    fun `opprettDeltakelse - deltaker finnes ikke, gyldig request - oppretter ny deltaker`() = runTest {
         val arrangor = lagArrangor()
         val deltakerliste = TestData.lagDeltakerliste(
             arrangor = arrangor,
@@ -148,34 +147,32 @@ class TestdataServiceTest {
 
         coEvery { paameldingClient.utkast(any()) } returns godkjentUtkast.toUtkastResponse()
 
-        runTest {
-            val deltaker = testdataService.opprettDeltakelse(opprettTestDeltakelseRequest)
+        val deltaker = testdataService.opprettDeltakelse(opprettTestDeltakelseRequest)
 
-            val deltakerFraDb = deltakerRepository.getMany(navBruker.personident, deltakerliste.id).first()
-            deltakerFraDb.id shouldBe deltaker.id
-            deltakerFraDb.deltakerliste.id shouldBe deltakerliste.id
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-            deltakerFraDb.startdato shouldBe null
-            deltakerFraDb.sluttdato shouldBe null
-            deltakerFraDb.dagerPerUke shouldBe opprettTestDeltakelseRequest.dagerPerUke?.toFloat()
-            deltakerFraDb.deltakelsesprosent shouldBe opprettTestDeltakelseRequest.deltakelsesprosent.toFloat()
-            deltakerFraDb.bakgrunnsinformasjon shouldBe null
-            deltakerFraDb.deltakelsesinnhold?.ledetekst shouldBe deltakerliste.tiltak.innhold!!.ledetekst
-            deltakerFraDb.deltakelsesinnhold?.innhold?.size shouldBe 1
+        val deltakerFraDb = deltakerRepository.getMany(navBruker.personident, deltakerliste.id).first()
+        deltakerFraDb.id shouldBe deltaker.id
+        deltakerFraDb.deltakerliste.id shouldBe deltakerliste.id
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        deltakerFraDb.startdato shouldBe null
+        deltakerFraDb.sluttdato shouldBe null
+        deltakerFraDb.dagerPerUke shouldBe opprettTestDeltakelseRequest.dagerPerUke?.toFloat()
+        deltakerFraDb.deltakelsesprosent shouldBe opprettTestDeltakelseRequest.deltakelsesprosent.toFloat()
+        deltakerFraDb.bakgrunnsinformasjon shouldBe null
+        deltakerFraDb.deltakelsesinnhold?.ledetekst shouldBe deltakerliste.tiltak.innhold!!.ledetekst
+        deltakerFraDb.deltakelsesinnhold?.innhold?.size shouldBe 1
 
-            every {
-                arrangorMeldingProducer.produce(
-                    match {
-                        it is EndringFraArrangor &&
-                            it.deltakerId == deltaker.id &&
-                            it.opprettetAvArrangorAnsattId.toString() == TESTARRANGORANSATT &&
-                            it.endring == EndringFraArrangor.LeggTilOppstartsdato(
-                                startdato = opprettTestDeltakelseRequest.startdato,
-                                sluttdato = opprettTestDeltakelseRequest.startdato.plusMonths(3),
-                            )
-                    },
-                )
-            }
+        coEvery {
+            arrangorMeldingProducer.produce(
+                match {
+                    it is EndringFraArrangor &&
+                        it.deltakerId == deltaker.id &&
+                        it.opprettetAvArrangorAnsattId.toString() == TESTARRANGORANSATT &&
+                        it.endring == EndringFraArrangor.LeggTilOppstartsdato(
+                            startdato = opprettTestDeltakelseRequest.startdato,
+                            sluttdato = opprettTestDeltakelseRequest.startdato.plusMonths(3),
+                        )
+                },
+            )
         }
     }
 }

@@ -7,7 +7,7 @@ import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.verify
+import io.mockk.coVerify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
@@ -34,7 +34,7 @@ class VarselServiceTest : IntegrationTestBase() {
     @Nested
     inner class HandleHendelseTests {
         @Test
-        fun `navGodkjennUtkast - innbyggers distribusjonskanal er ikke digital - oppretter ikke varsel`() {
+        fun `navGodkjennUtkast - innbyggers distribusjonskanal er ikke digital - oppretter ikke varsel`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 payload = HendelseTypeData.navGodkjennUtkast(),
@@ -55,7 +55,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `navGodkjennUtkast - nnbyggers er under manuell oppfolging - oppretter ikke varsel`() {
+        fun `navGodkjennUtkast - nnbyggers er under manuell oppfolging - oppretter ikke varsel`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 HendelseTypeData.navGodkjennUtkast(),
@@ -78,7 +78,7 @@ class VarselServiceTest : IntegrationTestBase() {
 
         //  stopper revarsling av tidligere varsel
         @Test
-        fun `avsluttDeltakelse - nytt varsel med ekstern varsling, tidligere varsel skal revarsles`() {
+        fun `avsluttDeltakelse - nytt varsel med ekstern varsling, tidligere varsel skal revarsles`() = runTest {
             // Arrange
             val deltakerId = UUID.randomUUID()
             val hendelse = Hendelsesdata.hendelse(
@@ -108,7 +108,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `deltakerSistBesokt - siste besøk er før beskjed var sendt - inaktiverer ikke`() {
+        fun `deltakerSistBesokt - siste besøk er før beskjed var sendt - inaktiverer ikke`() = runTest {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 payload = HendelseTypeData.sistBesokt(sistBesokt = ZonedDateTime.now().minusMinutes(10)),
@@ -165,7 +165,7 @@ class VarselServiceTest : IntegrationTestBase() {
             val oppdatertVarsel = varselRepository.get(varsel.id).shouldBeSuccess()
             oppdatertVarsel.aktivFra shouldBeCloseTo nowUTC()
 
-            verify { outboxService.insertRecord(varsel.id, any(), any(), any()) }
+            coVerify { outboxService.insertRecord(varsel.id, any(), any(), any()) }
         }
 
         @Test
@@ -227,8 +227,8 @@ class VarselServiceTest : IntegrationTestBase() {
                 val oppdatertVarsel = varselRepository.get(nyttVarsel.id).shouldBeSuccess()
                 oppdatertVarsel.aktivFra shouldBeCloseTo nowUTC()
 
-                verify { outboxService.insertRecord(aktivtVarsel.id, any(), any(), any()) }
-                verify { outboxService.insertRecord(nyttVarsel.id, any(), any(), any()) }
+                coVerify { outboxService.insertRecord(aktivtVarsel.id, any(), any(), any()) }
+                coVerify { outboxService.insertRecord(nyttVarsel.id, any(), any(), any()) }
             }
 
         @Nested
@@ -269,7 +269,7 @@ class VarselServiceTest : IntegrationTestBase() {
                     revarselForVarsel shouldBe skalRevarsles.id
                 }
 
-                verify { outboxService.insertRecord(revarsel.id, any(), any(), any()) }
+                coVerify { outboxService.insertRecord(revarsel.id, any(), any(), any()) }
             }
 
             @Test
@@ -301,7 +301,7 @@ class VarselServiceTest : IntegrationTestBase() {
                     aktivTil.shouldNotBeNull() shouldBeCloseTo nowUTC()
                 }
 
-                verify { outboxService.insertRecord(oppdatertVarsel.id, any(), any()) }
+                coVerify { outboxService.insertRecord(oppdatertVarsel.id, any(), any()) }
 
                 val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
                 assertSoftly(revarsel) {
@@ -312,7 +312,7 @@ class VarselServiceTest : IntegrationTestBase() {
                     revarselForVarsel shouldBe skalRevarsles.id
                 }
 
-                verify { outboxService.insertRecord(revarsel.id, any(), any(), any()) }
+                coVerify { outboxService.insertRecord(revarsel.id, any(), any(), any()) }
             }
 
             @Test
@@ -341,7 +341,7 @@ class VarselServiceTest : IntegrationTestBase() {
         @Nested
         inner class UtlopBeskjedTests {
             @Test
-            fun `utlopBeskjed - varsler kan ikke utløpes - feiler`() {
+            fun `utlopBeskjed - varsler kan ikke utløpes - feiler`() = runTest {
                 // Arrange
                 val ugyldigeVarsler = listOf(
                     Varselsdata.varsel(Varsel.Type.OPPGAVE),
@@ -358,7 +358,7 @@ class VarselServiceTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `utlopBeskjed - varsel er utløpt - utløper`() {
+            fun `utlopBeskjed - varsel er utløpt - utløper`() = runTest {
                 // Arrange
                 val utloptBeskjed = Varselsdata.beskjed(
                     Varsel.Status.AKTIV,

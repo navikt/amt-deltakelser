@@ -11,7 +11,6 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -183,11 +182,11 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 navEnhetRepository.getMany(setOf(deltakerInTest.navBruker.navEnhetId.shouldNotBeNull()))
             } returns listOf(lagNavEnhet(id = deltakerInTest.navBruker.navEnhetId.shouldNotBeNull()))
 
-            every {
+            coEvery {
                 innsokPaaFellesOppstartRepository.getForDeltaker(deltakerInTest.id)
             } returns Result.success(TestData.lagInnsok(deltakerInTest))
 
-            every {
+            coEvery {
                 deltakerRepository.getFlereForPerson(
                     personIdent = deltakerInTest.navBruker.personident,
                     deltakerlisteId = deltakerInTest.deltakerliste.id,
@@ -196,12 +195,12 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             coEvery { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
             coEvery { distribusjonClient.digitalBruker(any()) } returns true
-            every { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
-            every { vedtakRepository.getForDeltaker(deltakerInTest.id) } returns null
-            every { vurderingRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
-            every { endringFraArrangorRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
-            every { importertFraArenaRepository.getForDeltaker(deltakerInTest.id) } returns null
-            every { endringFraTiltakskoordinatorRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+            coEvery { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+            coEvery { vedtakRepository.getForDeltaker(deltakerInTest.id) } returns null
+            coEvery { vurderingRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+            coEvery { endringFraArrangorRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+            coEvery { importertFraArenaRepository.getForDeltaker(deltakerInTest.id) } returns null
+            coEvery { endringFraTiltakskoordinatorRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
 
             // Act
             val response = withTestApplicationContext { client ->

@@ -10,7 +10,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class VedtakRepository {
-    fun upsert(vedtak: Vedtak): Vedtak {
+    suspend fun upsert(vedtak: Vedtak): Vedtak {
         val sql =
             """
             INSERT INTO vedtak (
@@ -67,7 +67,7 @@ class VedtakRepository {
         }
     }
 
-    fun get(id: UUID): Vedtak? = Database.query { session ->
+    suspend fun get(id: UUID): Vedtak? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM vedtak WHERE id = :id",
@@ -76,7 +76,7 @@ class VedtakRepository {
         )
     }
 
-    fun getForDeltaker(deltakerId: UUID): Vedtak? = Database.query { session ->
+    suspend fun getForDeltaker(deltakerId: UUID): Vedtak? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM vedtak WHERE deltaker_id = :deltaker_id",
@@ -85,7 +85,7 @@ class VedtakRepository {
         )
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) {
+    suspend fun deleteForDeltaker(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(

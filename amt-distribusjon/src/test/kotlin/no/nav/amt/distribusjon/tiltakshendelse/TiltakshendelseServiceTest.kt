@@ -4,7 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.verify
+import io.mockk.coVerify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.IntegrationTestBase
@@ -51,7 +51,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 tiltakskode shouldBe hendelse.deltaker.deltakerliste.tiltak.tiltakskode
             }
 
-            verify {
+            coVerify {
                 outboxService.insertRecord(
                     key = tiltakshendelse.id,
                     value = any(),
@@ -77,7 +77,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `handleHendelse - utkast er håndtert - håndterer ikke på nytt`() {
+        fun `handleHendelse - utkast er håndtert - håndterer ikke på nytt`() = runTest {
             // Arrange
             val opprettHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
             tiltakshendelseRepository.upsert(opprettHendelse.toTiltakshendelse().copy(aktiv = false))
@@ -89,7 +89,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(opprettHendelse.id).shouldBeSuccess()
             tiltakshendelse.aktiv shouldBe false
 
-            verify(exactly = 0) { outboxService.insertRecord(tiltakshendelse.id, any(), any(), any()) }
+            coVerify(exactly = 0) { outboxService.insertRecord(tiltakshendelse.id, any(), any(), any()) }
         }
 
         @Nested
@@ -227,7 +227,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(godkjennHendelse.id).shouldBeSuccess()
         tiltakshendelse.aktiv shouldBe false
 
-        verify {
+        coVerify {
             outboxService.insertRecord(
                 key = tiltakshendelse.id,
                 value = any(),

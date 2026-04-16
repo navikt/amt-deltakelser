@@ -35,7 +35,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
 
 object TestRepository {
-    fun insert(navAnsatt: NavAnsatt) {
+    suspend fun insert(navAnsatt: NavAnsatt) {
         navAnsatt.navEnhetId?.let { navEnhetId ->
             NavEnhetRepository().upsert(lagNavEnhet(navEnhetId))
         }
@@ -43,14 +43,14 @@ object TestRepository {
         NavAnsattRepository().upsert(navAnsatt)
     }
 
-    fun insert(bruker: NavBruker) {
+    suspend fun insert(bruker: NavBruker) {
         bruker.navEnhetId?.let { NavEnhetRepository().upsert(lagNavEnhet(it)) }
         bruker.navVeilederId?.let { NavAnsattRepository().upsert(lagNavAnsatt(id = it, navEnhetId = bruker.navEnhetId)) }
 
         NavBrukerRepository().upsert(bruker)
     }
 
-    fun insert(
+    suspend fun insert(
         deltakerliste: Deltakerliste,
         overordnetArrangor: Arrangor? = null,
     ) {
@@ -60,7 +60,7 @@ object TestRepository {
         DeltakerlisteRepository().upsert(deltakerliste)
     }
 
-    fun insert(vedtak: Vedtak) {
+    suspend fun insert(vedtak: Vedtak) {
         VedtakRepository().upsert(vedtak)
 
         Database.query { session ->
@@ -77,7 +77,7 @@ object TestRepository {
         }
     }
 
-    fun insert(
+    suspend fun insert(
         deltaker: Deltaker,
         vedtak: Vedtak? = null,
     ) {
@@ -88,7 +88,7 @@ object TestRepository {
         vedtak?.let { insert(vedtak) }
     }
 
-    fun <T> insertAll(vararg values: T) {
+    suspend fun <T> insertAll(vararg values: T) {
         values.forEach {
             when (it) {
                 is NavAnsatt -> insert(it)

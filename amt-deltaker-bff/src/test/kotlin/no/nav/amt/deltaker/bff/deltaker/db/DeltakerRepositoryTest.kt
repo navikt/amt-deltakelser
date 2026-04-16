@@ -12,6 +12,7 @@ import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils.sammenlignDeltakere
@@ -40,14 +41,14 @@ class DeltakerRepositoryTest {
     @Nested
     inner class SettKanEndresTests {
         @Test
-        fun `deltaker finnes ikke - kaster ikke feil`() {
+        fun `deltaker finnes ikke - kaster ikke feil`() = runTest {
             shouldNotThrowAny {
                 deltakerRepository.settKanEndres(UUID.randomUUID(), true)
             }
         }
 
         @Test
-        fun `deltaker finnes - oppdaterer deltaker`() {
+        fun `deltaker finnes - oppdaterer deltaker`() = runTest {
             val deltaker = lagDeltaker()
             deltaker.kanEndres.shouldBeTrue()
             TestRepository.insert(deltaker)
@@ -65,21 +66,21 @@ class DeltakerRepositoryTest {
     @Nested
     inner class DisableKanEndresManyTests {
         @Test
-        fun `tom liste med ider - kaster ikke feil`() {
+        fun `tom liste med ider - kaster ikke feil`() = runTest {
             shouldNotThrowAny {
                 deltakerRepository.disableKanEndresMany(emptyList())
             }
         }
 
         @Test
-        fun `tom database - kaster ikke feil`() {
+        fun `tom database - kaster ikke feil`() = runTest {
             shouldNotThrowAny {
                 deltakerRepository.disableKanEndresMany(listOf(UUID.randomUUID()))
             }
         }
 
         @Test
-        fun `deltakere finnes - oppdaterer deltakere`() {
+        fun `deltakere finnes - oppdaterer deltakere`() = runTest {
             val firstDeltaker = lagDeltaker()
             firstDeltaker.kanEndres.shouldBeTrue()
             TestRepository.insert(firstDeltaker)
@@ -109,14 +110,14 @@ class DeltakerRepositoryTest {
         val deltakerlisteInTest = lagDeltakerliste()
 
         @Test
-        fun `skal returnere 0 hvis ingen deltakere`() {
+        fun `skal returnere 0 hvis ingen deltakere`() = runTest {
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteInTest.id)
 
             antallDeltakere shouldBe 0
         }
 
         @Test
-        fun `skal returnere antall deltaker hvis deltakerliste inneholder deltakere`() {
+        fun `skal returnere antall deltaker hvis deltakerliste inneholder deltakere`() = runTest {
             TestRepository.insert(lagDeltaker(deltakerliste = deltakerlisteInTest))
 
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteInTest.id)
@@ -126,7 +127,7 @@ class DeltakerRepositoryTest {
     }
 
     @Test
-    fun `get - deltaker har flere vedtak, et aktivt - returnerer deltaker med aktivt vedtak`() {
+    fun `get - deltaker har flere vedtak, et aktivt - returnerer deltaker med aktivt vedtak`() = runTest {
         val baseDeltaker = lagDeltaker()
         val deltakerInTest = leggTilHistorikk(baseDeltaker, 2)
 
@@ -144,7 +145,7 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetTidligereAvsluttedeDeltakelserTests {
         @Test
-        fun `getTidligereAvsluttedeDeltakelser - har ingen tidligere deltakelse - returnerer tom liste`() {
+        fun `getTidligereAvsluttedeDeltakelser - har ingen tidligere deltakelse - returnerer tom liste`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
@@ -154,7 +155,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `getTidligereAvsluttedeDeltakelser - har aktiv tidligere deltakelse - returnerer tom liste`() {
+        fun `getTidligereAvsluttedeDeltakelser - har aktiv tidligere deltakelse - returnerer tom liste`() = runTest {
             val avsluttetDeltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
@@ -170,7 +171,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `getTidligereAvsluttedeDeltakelser - har tidligere avsluttet deltakelse - returnerer id`() {
+        fun `getTidligereAvsluttedeDeltakelser - har tidligere avsluttet deltakelse - returnerer id`() = runTest {
             val avsluttetDeltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             )
@@ -186,7 +187,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `getTidligereAvsluttedeDeltakelser - har tidligere avsluttet deltakelse, er avsluttet deltakelse - returnerer id`() {
+        fun `getTidligereAvsluttedeDeltakelser - har tidligere avsluttet deltakelse, er avsluttet deltakelse - returnerer id`() = runTest {
             val avsluttetDeltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             )
@@ -203,7 +204,7 @@ class DeltakerRepositoryTest {
     }
 
     @Test
-    fun `getUtdaterteKladder - finnes en utdatert kladd - returnerer utdatert kladd`() {
+    fun `getUtdaterteKladder - finnes en utdatert kladd - returnerer utdatert kladd`() = runTest {
         val kladd = lagDeltakerKladd(sistEndret = LocalDateTime.now().minusDays(2))
         TestRepository.insert(kladd)
         val utdatertKladd = lagDeltakerKladd(sistEndret = LocalDateTime.now().minusDays(20))
@@ -216,7 +217,7 @@ class DeltakerRepositoryTest {
     }
 
     @Test
-    fun `oppdaterSistBesokt - oppdaterer sistBesokt - skal ikke feile`() {
+    fun `oppdaterSistBesokt - oppdaterer sistBesokt - skal ikke feile`() = runTest {
         val deltaker = lagDeltaker()
         TestRepository.insert(deltaker)
 
@@ -232,7 +233,7 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetForDeltakerlisteTests {
         @Test
-        fun `getForDeltakerliste - flere deltakere pa samme liste - returnerer liste med deltakere`() {
+        fun `getForDeltakerliste - flere deltakere pa samme liste - returnerer liste med deltakere`() = runTest {
             val deltakerliste = lagDeltakerliste()
             val deltakere = (0..10).map {
                 lagDeltaker(
@@ -252,7 +253,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `getForDeltakerliste - deltakerliste finnes ikke - returnerer tom liste`() {
+        fun `getForDeltakerliste - deltakerliste finnes ikke - returnerer tom liste`() = runTest {
             val deltakereFraDb = deltakerRepository.getForDeltakerliste(UUID.randomUUID())
 
             deltakereFraDb shouldBe emptyList()
@@ -262,12 +263,12 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetManyByIdList {
         @Test
-        fun `getMany - ingen deltakere - returnerer tom liste`() {
+        fun `getMany - ingen deltakere - returnerer tom liste`() = runTest {
             deltakerRepository.getMany(emptyList()).shouldBeEmpty()
         }
 
         @Test
-        fun `getMany - henter flere deltakere`() {
+        fun `getMany - henter flere deltakere`() = runTest {
             val deltaker1 = lagDeltaker()
             val deltaker2 = lagDeltaker()
 
@@ -281,12 +282,12 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetManyByPersonIdentAndDeltakerlisteIdTests {
         @Test
-        fun `getMany - ingen deltakere - returnerer tom liste`() {
+        fun `getMany - ingen deltakere - returnerer tom liste`() = runTest {
             deltakerRepository.getMany("~personident~", UUID.randomUUID()).shouldBeEmpty()
         }
 
         @Test
-        fun `getMany - henter flere deltakere`() {
+        fun `getMany - henter flere deltakere`() = runTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 
@@ -306,12 +307,12 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetManyByPersonIdentTests {
         @Test
-        fun `getMany - ingen deltakere - returnerer tom liste`() {
+        fun `getMany - ingen deltakere - returnerer tom liste`() = runTest {
             deltakerRepository.getMany("~personident~").shouldBeEmpty()
         }
 
         @Test
-        fun `getMany - henter flere deltakere`() {
+        fun `getMany - henter flere deltakere`() = runTest {
             val deltakerInTest = lagDeltaker()
             TestRepository.insert(deltakerInTest)
 
@@ -324,14 +325,14 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetKladdForDeltakerlisteTests {
         @Test
-        fun `getKladderForDeltakerliste - ingen deltakere - returnerer tom liste`() {
+        fun `getKladderForDeltakerliste - ingen deltakere - returnerer tom liste`() = runTest {
             deltakerRepository
                 .getKladderForDeltakerliste(UUID.randomUUID())
                 .shouldBeEmpty()
         }
 
         @Test
-        fun `getKladderForDeltakerliste - henter flere deltakere`() {
+        fun `getKladderForDeltakerliste - henter flere deltakere`() = runTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 
@@ -349,7 +350,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `getKladdForDeltakerliste - ingen deltakere - returnerer null`() {
+        fun `getKladdForDeltakerliste - ingen deltakere - returnerer null`() = runTest {
             deltakerRepository
                 .getKladdForDeltakerliste(
                     deltakerlisteId = UUID.randomUUID(),
@@ -358,7 +359,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `getKladdForDeltakerliste - henter deltaker`() {
+        fun `getKladdForDeltakerliste - henter deltaker`() = runTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 

@@ -22,40 +22,34 @@ class NavAnsattConsumerTest {
     }
 
     @Test
-    fun `consumeNavAnsatt - ny navansatt - upserter`() {
+    fun `consumeNavAnsatt - ny navansatt - upserter`() = runTest {
         val navAnsatt = lagNavAnsatt()
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
 
-        runTest {
-            navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(navAnsatt.toDto()))
-        }
+        navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(navAnsatt.toDto()))
 
         navAnsattRepository.get(navAnsatt.id) shouldBe navAnsatt
     }
 
     @Test
-    fun `consumeNavAnsatt - oppdatert navansatt - upserter`() {
+    fun `consumeNavAnsatt - oppdatert navansatt - upserter`() = runTest {
         val navAnsatt = lagNavAnsatt()
         navAnsattRepository.upsert(navAnsatt)
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
 
-        runTest {
-            navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(oppdatertNavAnsatt.toDto()))
-        }
+        navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(oppdatertNavAnsatt.toDto()))
 
         navAnsattRepository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
     }
 
     @Test
-    fun `consumeNavAnsatt - tombstonet navansatt - sletter`() {
+    fun `consumeNavAnsatt - tombstonet navansatt - sletter`() = runTest {
         val navAnsatt = lagNavAnsatt()
         navAnsattRepository.upsert(navAnsatt)
         val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(navAnsattRepository, amtPersonServiceClient))
 
-        runTest {
-            navAnsattConsumer.consume(navAnsatt.id, null)
-        }
+        navAnsattConsumer.consume(navAnsatt.id, null)
 
         navAnsattRepository.get(navAnsatt.id) shouldBe null
     }

@@ -29,7 +29,7 @@ object DeltakerStatusRepository {
      * @param deltakerId ID-en til deltakeren statusen tilhører.
      * @return en ferdig parametrisert [Query] som kan kjøres mot databasen.
      */
-    fun lagreStatus(
+    suspend fun lagreStatus(
         deltakerId: UUID,
         deltakerStatus: DeltakerStatus,
     ) {
@@ -92,7 +92,7 @@ object DeltakerStatusRepository {
      * @param erDeltakerSluttdatoEndret Angir om deltakerens sluttdato er endret,
      * og dermed om alle aktive statuser skal deaktiveres uavhengig av øvrige vilkår.
      */
-    fun deaktiverTidligereStatuser(
+    suspend fun deaktiverTidligereStatuser(
         deltakerId: UUID,
         excludeStatusId: UUID,
         erDeltakerSluttdatoEndret: Boolean,
@@ -133,7 +133,7 @@ object DeltakerStatusRepository {
     private val IKKE_AVSLUTTENDE_STATUSER_AS_DELIMITED_STRING = IKKE_AVSLUTTENDE_STATUSER
         .joinToString { "'${it.name}'" }
 
-    fun slettTidligereFremtidigeStatuser(
+    suspend fun slettTidligereFremtidigeStatuser(
         deltakerId: UUID,
         excludeStatusId: UUID,
     ) {
@@ -160,7 +160,7 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun slettStatus(deltakerId: UUID) {
+    suspend fun slettStatus(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -185,7 +185,7 @@ object DeltakerStatusRepository {
      * @return en liste av [DeltakerStatusMedDeltakerId] som inneholder både deltaker-id og
      *         den tilhørende avsluttende statusen som bør oppdateres.
      */
-    fun getAvsluttendeDeltakerStatuserForOppdatering(deltakerIder: Set<UUID>): List<DeltakerStatusMedDeltakerId> {
+    suspend fun getAvsluttendeDeltakerStatuserForOppdatering(deltakerIder: Set<UUID>): List<DeltakerStatusMedDeltakerId> {
         if (deltakerIder.isEmpty()) return emptyList()
 
         val sql =
@@ -221,7 +221,7 @@ object DeltakerStatusRepository {
     }
 
     // benyttes kun i tester
-    internal fun get(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
+    internal suspend fun get(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM deltaker_status WHERE id = ?",
@@ -231,7 +231,7 @@ object DeltakerStatusRepository {
     }
 
     // benyttes kun i tester
-    internal fun getFremtidige(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
+    internal suspend fun getFremtidige(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM deltaker_status WHERE deltaker_id = ? AND gyldig_fra > CURRENT_TIMESTAMP",

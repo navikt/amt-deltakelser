@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.innsok
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerContext
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData
@@ -21,7 +22,7 @@ class InnsokPaaFellesOppstartRepositoryTest {
     }
 
     @Test
-    fun `insert - ny innsok - inserter`() {
+    fun `insert - ny innsok - inserter`() = runTest {
         with(DeltakerContext()) {
             medVedtak()
             val innsok = TestData.lagInnsok(deltaker)

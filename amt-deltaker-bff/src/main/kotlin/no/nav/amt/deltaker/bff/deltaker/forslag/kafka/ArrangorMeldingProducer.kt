@@ -7,7 +7,7 @@ import no.nav.amt.lib.outbox.OutboxService
 class ArrangorMeldingProducer(
     private val outboxService: OutboxService,
 ) {
-    fun produce(melding: Melding) {
+    suspend fun produce(melding: Melding) {
         outboxService.insertRecord(
             topic = Environment.ARRANGOR_MELDING_TOPIC,
             key = melding.id,

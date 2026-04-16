@@ -5,6 +5,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
@@ -17,7 +18,7 @@ import org.junit.jupiter.api.Test
 
 class DeltakerEndringExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - reaktiver deltakelse lopende oppstart`() {
+    fun `oppdaterDeltaker - reaktiver deltakelse lopende oppstart`() = runTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
@@ -38,7 +39,7 @@ class DeltakerEndringExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - reaktiver deltakelse felles oppstart`() {
+    fun `oppdaterDeltaker - reaktiver deltakelse felles oppstart`() = runTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
@@ -59,7 +60,7 @@ class DeltakerEndringExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - ikke aktuell fra har sluttet - returnerer ikke aktuell`() {
+    fun `oppdaterDeltaker - ikke aktuell fra har sluttet - returnerer ikke aktuell`() = runTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
@@ -82,7 +83,7 @@ class DeltakerEndringExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - ikke aktuell naar allerede ikke aktuell med samme aarsak - returnerer feil`() {
+    fun `oppdaterDeltaker - ikke aktuell naar allerede ikke aktuell med samme aarsak - returnerer feil`() = runTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.IKKE_AKTUELL,

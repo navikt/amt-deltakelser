@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.deltaker.forslag
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
 import no.nav.amt.lib.testing.DatabaseTestExtension
@@ -21,17 +22,17 @@ class ForslagRepositoryTest {
     @Nested
     inner class GetForDeltakereTests {
         @Test
-        fun `tom id-liste - returnerer tom liste`() {
+        fun `tom id-liste - returnerer tom liste`() = runTest {
             sut.getForDeltakere(emptyList()).shouldBeEmpty()
         }
 
         @Test
-        fun `tom database - returnerer tom liste`() {
+        fun `tom database - returnerer tom liste`() = runTest {
             sut.getForDeltakere(listOf(UUID.randomUUID())).shouldBeEmpty()
         }
 
         @Test
-        fun `henter forslag`() {
+        fun `henter forslag`() = runTest {
             val deltaker = TestData.lagDeltaker()
             TestRepository.insert(deltaker)
 

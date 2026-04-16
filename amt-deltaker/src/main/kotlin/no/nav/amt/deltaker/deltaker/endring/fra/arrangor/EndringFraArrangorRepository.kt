@@ -10,7 +10,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class EndringFraArrangorRepository {
-    fun getForDeltaker(deltakerId: UUID): List<EndringFraArrangor> {
+    suspend fun getForDeltaker(deltakerId: UUID): List<EndringFraArrangor> {
         val sql =
             """
             SELECT 
@@ -33,7 +33,7 @@ class EndringFraArrangorRepository {
         }
     }
 
-    fun insert(endring: EndringFraArrangor) {
+    suspend fun insert(endring: EndringFraArrangor) {
         val sql =
             """
             INSERT INTO endring_fra_arrangor (
@@ -63,7 +63,7 @@ class EndringFraArrangorRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+    suspend fun deleteForDeltaker(deltakerId: UUID) = Database.query {
         it.update(
             queryOf(
                 "DELETE FROM endring_fra_arrangor WHERE deltaker_id = :deltaker_id",

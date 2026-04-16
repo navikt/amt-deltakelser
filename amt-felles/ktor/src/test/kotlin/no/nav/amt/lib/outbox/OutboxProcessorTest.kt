@@ -5,6 +5,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.prometheus.metrics.model.registry.PrometheusRegistry
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.outbox.metrics.PrometheusOutboxMeter
@@ -42,7 +43,7 @@ class OutboxProcessorTest {
     private val failingTestTopic = "INVALID TOPIC NAME!"
 
     @Test
-    fun `processRecords - new record - gets_processed`() {
+    fun `processRecords - new record - gets_processed`() = runTest {
         val record = newRecord()
         outboxProcessor.processRecords()
 
@@ -52,7 +53,7 @@ class OutboxProcessorTest {
     }
 
     @Test
-    fun `processRecords - producer fails - marks record as FAILED`() {
+    fun `processRecords - producer fails - marks record as FAILED`() = runTest {
         val record = newRecord(topic = failingTestTopic)
 
         outboxProcessor.processRecords()
@@ -62,7 +63,7 @@ class OutboxProcessorTest {
     }
 
     @Test
-    fun `processRecords - previous record failed - skips new record for same aggregate`() {
+    fun `processRecords - previous record failed - skips new record for same aggregate`() = runTest {
         val key = UUID.randomUUID()
 
         val recordToFail = newRecord(key = key, topic = failingTestTopic)
@@ -74,7 +75,7 @@ class OutboxProcessorTest {
     }
 
     @Test
-    fun `processRecords - multiple records - all processRecords successfully`() {
+    fun `processRecords - multiple records - all processRecords successfully`() = runTest {
         val records = newRecords(5)
 
         outboxProcessor.processRecords()
@@ -86,7 +87,7 @@ class OutboxProcessorTest {
     }
 
     @Test
-    fun `processRecords - mixed success and failure - handles both correctly`() {
+    fun `processRecords - mixed success and failure - handles both correctly`() = runTest {
         val successRecords = newRecords(3, testTopic)
         val failRecords = newRecords(2, failingTestTopic)
 
@@ -103,7 +104,7 @@ class OutboxProcessorTest {
     }
 
     @Test
-    fun `processRecords - failed records are retried on next run`() {
+    fun `processRecords - failed records are retried on next run`() = runTest {
         val record = newRecord(topic = failingTestTopic)
 
         outboxProcessor.processRecords()
@@ -118,7 +119,7 @@ class OutboxProcessorTest {
     }
 
     @Test
-    fun `process - same aggregate different topics - processRecords independently`() {
+    fun `process - same aggregate different topics - processRecords independently`() = runTest {
         val key = UUID.randomUUID()
 
         val failingRecord = newRecord(key = key, topic = failingTestTopic)
@@ -136,7 +137,7 @@ class OutboxProcessorTest {
         val values: List<Int> = listOf(1, 2, 3),
     )
 
-    private fun newRecord(
+    private suspend fun newRecord(
         value: Any = Value(),
         key: UUID = UUID.randomUUID(),
         topic: String = testTopic,
@@ -146,7 +147,7 @@ class OutboxProcessorTest {
         topic = topic,
     )
 
-    private fun newRecords(
+    private suspend fun newRecords(
         count: Int,
         topic: String = testTopic,
         key: UUID? = null,

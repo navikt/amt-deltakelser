@@ -4,8 +4,9 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
@@ -28,11 +29,11 @@ class GjennomforingApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get gjennomforing - gjennomforing finnes - returnerer 200 med gjennomforing`() {
+    fun `get gjennomforing - gjennomforing finnes - returnerer 200 med gjennomforing`() = runTest {
         val deltakerliste = lagDeltakerliste()
 
-        every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
-        every { arrangorService.getArrangorNavn(deltakerliste.arrangor!!) } returns "Arrangor Navn"
+        coEvery { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
+        coEvery { arrangorService.getArrangorNavn(deltakerliste.arrangor!!) } returns "Arrangor Navn"
 
         val expectedResponse = ResponseBuilder(
             arrangorService = arrangorService,
@@ -55,7 +56,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
 
     @Test
     fun `get gjennomforing - gjennomforing finnes ikke - returnerer 404`() {
-        every {
+        coEvery {
             deltakerlisteRepository.get(any())
         } returns Result.failure(NoSuchElementException("Fant ikke deltakerliste"))
 

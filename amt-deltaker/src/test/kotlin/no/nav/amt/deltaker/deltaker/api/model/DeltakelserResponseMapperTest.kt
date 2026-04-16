@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.deltaker.api.model
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
@@ -66,12 +68,14 @@ class DeltakelserResponseMapperTest {
 
     @BeforeEach
     fun beforeEach() {
-        navEnhetRepository.upsert(navEnhet)
-        navAnsattRepository.upsert(navAnsatt)
+        runBlocking {
+            navEnhetRepository.upsert(navEnhet)
+            navAnsattRepository.upsert(navAnsatt)
+        }
     }
 
     @Test
-    fun `toDeltakelserResponse - kladd - returnerer riktig aktiv deltakelse`() {
+    fun `toDeltakelserResponse - kladd - returnerer riktig aktiv deltakelse`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -104,7 +108,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - utkast, har overordnet arrangor - returnerer riktig aktiv deltakelse`() {
+    fun `toDeltakelserResponse - utkast, har overordnet arrangor - returnerer riktig aktiv deltakelse`() = runTest {
         val overordnetArrangor = lagArrangor(navn = "OVERORDNET ARRANGØR")
         arrangorRepository.upsert(overordnetArrangor)
 
@@ -148,7 +152,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - venter pa oppstart - returnerer riktig aktiv deltakelse`() {
+    fun `toDeltakelserResponse - venter pa oppstart - returnerer riktig aktiv deltakelse`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -191,7 +195,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - deltar - returnerer riktig aktiv deltakelse`() {
+    fun `toDeltakelserResponse - deltar - returnerer riktig aktiv deltakelse`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -232,7 +236,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - ikke aktuell - returnerer riktig historisk deltakelse`() {
+    fun `toDeltakelserResponse - ikke aktuell - returnerer riktig historisk deltakelse`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -277,7 +281,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - har sluttet - returnerer riktig historisk deltakelse`() {
+    fun `toDeltakelserResponse - har sluttet - returnerer riktig historisk deltakelse`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -322,7 +326,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - avbrutt utkast - returnerer riktig historisk deltakelse`() {
+    fun `toDeltakelserResponse - avbrutt utkast - returnerer riktig historisk deltakelse`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -367,7 +371,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - har sluttet og ikke aktuell - returnerer nyeste historiske deltakelse forst`() {
+    fun `toDeltakelserResponse - har sluttet og ikke aktuell - returnerer nyeste historiske deltakelse forst`() = runTest {
         val deltakerliste = lagDeltakerliste(
             arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
@@ -424,7 +428,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - pabegynt registrering - returnerer tomme lister`() {
+    fun `toDeltakelserResponse - pabegynt registrering - returnerer tomme lister`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),

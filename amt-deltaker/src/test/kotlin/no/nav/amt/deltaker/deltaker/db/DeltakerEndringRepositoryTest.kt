@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignDeltakerEndring
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -30,51 +31,52 @@ class DeltakerEndringRepositoryTest {
     }
 
     @Test
-    fun `getForDeltaker - to endringer for deltaker, navansatt og enhet finnes - returnerer endring med navn for ansatt og enhet`() {
-        val navEnhet1 = lagNavEnhet()
-        navEnhetRepository.upsert(navEnhet1)
+    fun `getForDeltaker - to endringer for deltaker, navansatt og enhet finnes - returnerer endring med navn for ansatt og enhet`() =
+        runTest {
+            val navEnhet1 = lagNavEnhet()
+            navEnhetRepository.upsert(navEnhet1)
 
-        val navAnsatt1 = lagNavAnsatt(navEnhetId = navEnhet1.id)
-        navAnsattRepository.upsert(navAnsatt1)
+            val navAnsatt1 = lagNavAnsatt(navEnhetId = navEnhet1.id)
+            navAnsattRepository.upsert(navAnsatt1)
 
-        val navEnhet2 = lagNavEnhet()
-        navEnhetRepository.upsert(navEnhet2)
+            val navEnhet2 = lagNavEnhet()
+            navEnhetRepository.upsert(navEnhet2)
 
-        val navAnsatt2 = lagNavAnsatt(navEnhetId = navEnhet2.id)
-        navAnsattRepository.upsert(navAnsatt2)
+            val navAnsatt2 = lagNavAnsatt(navEnhetId = navEnhet2.id)
+            navAnsattRepository.upsert(navAnsatt2)
 
-        val deltaker = lagDeltaker()
-        val deltakerEndring = lagDeltakerEndring(
-            deltakerId = deltaker.id,
-            endretAv = navAnsatt1.id,
-            endretAvEnhet = navEnhet1.id,
-        )
-        val deltakerEndring2 = lagDeltakerEndring(
-            deltakerId = deltaker.id,
-            endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
-            endretAv = navAnsatt2.id,
-            endretAvEnhet = navEnhet2.id,
-        )
-        TestRepository.insert(deltaker)
+            val deltaker = lagDeltaker()
+            val deltakerEndring = lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = navAnsatt1.id,
+                endretAvEnhet = navEnhet1.id,
+            )
+            val deltakerEndring2 = lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
+                endretAv = navAnsatt2.id,
+                endretAvEnhet = navEnhet2.id,
+            )
+            TestRepository.insert(deltaker)
 
-        deltakerEndringRepository.upsert(deltakerEndring)
-        deltakerEndringRepository.upsert(deltakerEndring2)
+            deltakerEndringRepository.upsert(deltakerEndring)
+            deltakerEndringRepository.upsert(deltakerEndring2)
 
-        val endringFraDb = deltakerEndringRepository.getForDeltaker(deltaker.id)
+            val endringFraDb = deltakerEndringRepository.getForDeltaker(deltaker.id)
 
-        endringFraDb.size shouldBe 2
-        sammenlignDeltakerEndring(
-            endringFraDb.find { it.id == deltakerEndring.id }!!,
-            deltakerEndring.copy(endretAv = navAnsatt1.id, endretAvEnhet = navEnhet1.id),
-        )
-        sammenlignDeltakerEndring(
-            endringFraDb.find { it.id == deltakerEndring2.id }!!,
-            deltakerEndring2.copy(endretAv = navAnsatt2.id, endretAvEnhet = navEnhet2.id),
-        )
-    }
+            endringFraDb.size shouldBe 2
+            sammenlignDeltakerEndring(
+                endringFraDb.find { it.id == deltakerEndring.id }!!,
+                deltakerEndring.copy(endretAv = navAnsatt1.id, endretAvEnhet = navEnhet1.id),
+            )
+            sammenlignDeltakerEndring(
+                endringFraDb.find { it.id == deltakerEndring2.id }!!,
+                deltakerEndring2.copy(endretAv = navAnsatt2.id, endretAvEnhet = navEnhet2.id),
+            )
+        }
 
     @Test
-    fun `getForDeltaker - deltaker er feilregistrert - returnerer tom liste`() {
+    fun `getForDeltaker - deltaker er feilregistrert - returnerer tom liste`() = runTest {
         val navEnhet1 = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet1)
 
@@ -112,7 +114,7 @@ class DeltakerEndringRepositoryTest {
     }
 
     @Test
-    fun `getUbehandletDeltakelsesmengder - returnerer endringer som skal behandles i dag`() {
+    fun `getUbehandletDeltakelsesmengder - returnerer endringer som skal behandles i dag`() = runTest {
         val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 

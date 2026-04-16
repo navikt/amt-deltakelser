@@ -10,7 +10,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class ImportertFraArenaRepository {
-    fun upsert(importertFraArena: ImportertFraArena) {
+    suspend fun upsert(importertFraArena: ImportertFraArena) {
         val sql =
             """
             INSERT INTO importert_fra_arena (
@@ -42,7 +42,7 @@ class ImportertFraArenaRepository {
         }
     }
 
-    fun getForDeltaker(deltakerId: UUID): ImportertFraArena? = Database.query { session ->
+    suspend fun getForDeltaker(deltakerId: UUID): ImportertFraArena? = Database.query { session ->
         val sql =
             """
             SELECT
@@ -61,7 +61,7 @@ class ImportertFraArenaRepository {
         )
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
+    suspend fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
         session.update(
             queryOf(
                 "DELETE FROM importert_fra_arena WHERE deltaker_id = :deltaker_id",

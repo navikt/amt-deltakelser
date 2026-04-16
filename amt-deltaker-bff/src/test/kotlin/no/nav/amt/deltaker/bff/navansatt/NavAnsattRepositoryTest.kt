@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.navansatt
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import org.junit.jupiter.api.Test
@@ -16,7 +17,7 @@ class NavAnsattRepositoryTest {
     }
 
     @Test
-    fun `getMany - flere navidenter - returnerer flere ansatte`() {
+    fun `getMany - flere navidenter - returnerer flere ansatte`() = runTest {
         val ansatte = listOf(
             lagNavAnsatt(),
             lagNavAnsatt(),
@@ -33,7 +34,7 @@ class NavAnsattRepositoryTest {
     }
 
     @Test
-    fun `getMany - ingen navidenter - returnerer tom list`() {
+    fun `getMany - ingen navidenter - returnerer tom list`() = runTest {
         navAnsattRepository.getMany(emptyList()) shouldBe emptyList()
     }
 }

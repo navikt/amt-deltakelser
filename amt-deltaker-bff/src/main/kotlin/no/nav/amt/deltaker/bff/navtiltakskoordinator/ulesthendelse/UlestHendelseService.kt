@@ -11,7 +11,7 @@ class UlestHendelseService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun lagreUlestHendelse(hendelse: Hendelse) {
+    suspend fun lagreUlestHendelse(hendelse: Hendelse) {
         hendelse
             .toUlestHendelse()
             ?.also { ulestHendelse ->
@@ -20,9 +20,9 @@ class UlestHendelseService(
             } ?: { log.warn("Ikke lagret ulest hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}") }
     }
 
-    fun getUlesteHendelserForDeltaker(deltakerId: UUID): List<UlestHendelse> = ulestHendelseRepository.getForDeltaker(deltakerId)
+    suspend fun getUlesteHendelserForDeltaker(deltakerId: UUID): List<UlestHendelse> = ulestHendelseRepository.getForDeltaker(deltakerId)
 
-    fun delete(hendelseId: UUID) {
+    suspend fun delete(hendelseId: UUID) {
         ulestHendelseRepository.delete(hendelseId)
         log.info("Slettet ulest hendelse $hendelseId")
     }

@@ -15,7 +15,7 @@ class DeltakerProducerService(
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
 
-    fun produce(
+    suspend fun produce(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         publiserTilDeltakerV1: Boolean = true,
@@ -40,21 +40,21 @@ class DeltakerProducerService(
         }
     }
 
-    private fun produceDeltakerV1Topic(deltaker: Deltaker) {
+    private suspend fun produceDeltakerV1Topic(deltaker: Deltaker) {
         val deltakerV1Record = deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker)
         if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
             deltakerV1Producer.produce(deltakerV1Record)
         }
     }
 
-    private fun produceDeltakerEksternV1Topic(deltaker: Deltaker) {
+    private suspend fun produceDeltakerEksternV1Topic(deltaker: Deltaker) {
         val deltakerEksternV1Record = deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker)
         if (unleashToggle.skalProdusereTilDeltakerEksternTopic()) {
             deltakerEksternV1Producer.produce(deltakerEksternV1Record)
         }
     }
 
-    private fun produceDeltakerV2Topic(
+    private suspend fun produceDeltakerV2Topic(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
     ) {

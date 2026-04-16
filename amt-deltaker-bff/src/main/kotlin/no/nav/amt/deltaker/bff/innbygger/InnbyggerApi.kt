@@ -45,7 +45,7 @@ fun Routing.registerInnbyggerApi(
     val scope = CoroutineScope(Dispatchers.IO)
 
     // Denne skal fases ut når når vi alltid kan hente data fra amt-deltaker
-    fun komplettInnbyggerDeltakerResponse(deltaker: Deltaker): InnbyggerDeltakerResponse = deltaker.toInnbyggerDeltakerResponse(
+    suspend fun komplettInnbyggerDeltakerResponse(deltaker: Deltaker): InnbyggerDeltakerResponse = deltaker.toInnbyggerDeltakerResponse(
         ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
         vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
         forslag = forslageRepository.getForDeltaker(deltaker.id),

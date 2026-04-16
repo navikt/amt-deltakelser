@@ -33,15 +33,13 @@ class NavEnhetServiceTest {
     fun setup() = clearAllMocks()
 
     @Test
-    fun `hentEllerOpprettNavEnhet - navenhet finnes i db - henter fra db`() {
+    fun `hentEllerOpprettNavEnhet - navenhet finnes i db - henter fra db`() = runTest {
         val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
         val navEnhetService = NavEnhetService(navEnhetRepository, mockk())
 
-        runTest {
-            val navEnhetFraDb = navEnhetService.hentEllerOpprettNavEnhet(navEnhet.enhetsnummer)
-            navEnhetFraDb shouldBe navEnhet
-        }
+        val navEnhetFraDb = navEnhetService.hentEllerOpprettNavEnhet(navEnhet.enhetsnummer)
+        navEnhetFraDb shouldBe navEnhet
     }
 
     @Test

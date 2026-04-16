@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -60,7 +61,7 @@ class DeltakerHistorikkServiceTest {
     }
 
     @Test
-    fun `getForDeltaker - ett vedtak flere endringer og forslag - returner liste riktig sortert`() {
+    fun `getForDeltaker - ett vedtak flere endringer og forslag - returner liste riktig sortert`() = runTest {
         val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
@@ -126,7 +127,7 @@ class DeltakerHistorikkServiceTest {
     }
 
     @Test
-    fun `getForDeltaker - ingen endringer - returner tom liste`() {
+    fun `getForDeltaker - ingen endringer - returner tom liste`() = runTest {
         val deltaker = lagDeltaker()
         TestRepository.insert(deltaker)
 

@@ -20,7 +20,7 @@ class DeltakelserResponseMapper(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val arrangorService: ArrangorService,
 ) {
-    fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
+    suspend fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
         val aktive = deltakelser
             .filter { it.status.type in AKTIVE_STATUSER }
             .sortedByDescending { it.sistEndret }
@@ -34,7 +34,7 @@ class DeltakelserResponseMapper(
         return DeltakelserResponse(aktive, historikk)
     }
 
-    private fun toDeltakerKort(deltaker: Deltaker) = DeltakerKort(
+    private suspend fun toDeltakerKort(deltaker: Deltaker) = DeltakerKort(
         deltakerId = deltaker.id,
         deltakerlisteId = deltaker.deltakerliste.id,
         tittel = lagTittel(
@@ -47,7 +47,7 @@ class DeltakelserResponseMapper(
         periode = deltaker.getPeriode(),
     )
 
-    private fun Deltaker.getInnsoktDato(): LocalDate? = if (status.type in skalViseInnsoktDatoStatuser) {
+    private suspend fun Deltaker.getInnsoktDato(): LocalDate? = if (status.type in skalViseInnsoktDatoStatuser) {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(id)
         deltakerhistorikk.getInnsoktDato()?.toLocalDate()
     } else {
@@ -89,7 +89,7 @@ class DeltakelserResponseMapper(
         else -> this.getStatustekst()
     }
 
-    private fun lagTittel(deltaker: Deltaker): String {
+    private suspend fun lagTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.arrangor
             ?.let { arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor) }
             ?: "Ukjent arrangør"

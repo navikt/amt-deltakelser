@@ -20,7 +20,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class DeltakerRepository {
-    fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
+    suspend fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT COUNT(*) FROM deltaker WHERE deltakerliste_id = :deltakerliste_id",
@@ -29,7 +29,7 @@ class DeltakerRepository {
         ) ?: 0
     }
 
-    fun opprettKladd(kladd: OpprettKladdResponse) {
+    suspend fun opprettKladd(kladd: OpprettKladdResponse) {
         val sql =
             """
             INSERT INTO deltaker (
@@ -71,7 +71,7 @@ class DeltakerRepository {
         Database.query { session -> session.update(queryOf(sql, parameters)) }
     }
 
-    fun upsert(deltaker: Deltaker) {
+    suspend fun upsert(deltaker: Deltaker) {
         val sql =
             """
             INSERT INTO deltaker (
@@ -139,7 +139,7 @@ class DeltakerRepository {
         }
     }
 
-    fun get(id: UUID): Result<Deltaker> = runCatching {
+    suspend fun get(id: UUID): Result<Deltaker> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -150,7 +150,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getMany(ider: List<UUID>): List<Deltaker> {
+    suspend fun getMany(ider: List<UUID>): List<Deltaker> {
         if (ider.isEmpty()) return emptyList()
 
         return Database.query { session ->
@@ -163,7 +163,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getMany(
+    suspend fun getMany(
         personident: String,
         deltakerlisteId: UUID,
     ): List<Deltaker> = Database.query { session ->
@@ -178,7 +178,7 @@ class DeltakerRepository {
         )
     }
 
-    fun getMany(personident: String): List<Deltaker> = Database.query { session ->
+    suspend fun getMany(personident: String): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
                 getDeltakerSql("nb.personident = :personident"),
@@ -187,7 +187,7 @@ class DeltakerRepository {
         )
     }
 
-    fun getKladderForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
+    suspend fun getKladderForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
                 getDeltakerSql("d.deltakerliste_id = :deltakerliste_id AND ds.type = 'KLADD'"),
@@ -196,7 +196,7 @@ class DeltakerRepository {
         )
     }
 
-    fun getKladdForDeltakerliste(
+    suspend fun getKladdForDeltakerliste(
         deltakerlisteId: UUID,
         personident: String,
     ): Result<Deltaker> = runCatching {
@@ -221,7 +221,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getTidligereAvsluttedeDeltakelser(deltakerId: UUID): List<UUID> {
+    suspend fun getTidligereAvsluttedeDeltakelser(deltakerId: UUID): List<UUID> {
         val sql =
             """
             SELECT d2.id
@@ -247,7 +247,7 @@ class DeltakerRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun getUtdaterteKladder(sistEndret: LocalDateTime): List<Deltaker> = Database.query { session ->
+    suspend fun getUtdaterteKladder(sistEndret: LocalDateTime): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
                 getDeltakerSql("ds.type = 'KLADD' AND d.modified_at < :sist_endret"),
@@ -256,7 +256,7 @@ class DeltakerRepository {
         )
     }
 
-    fun slettDeltaker(deltakerId: UUID) {
+    suspend fun slettDeltaker(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -267,7 +267,7 @@ class DeltakerRepository {
         }
     }
 
-    fun settKanEndres(
+    suspend fun settKanEndres(
         deltakerId: UUID,
         kanEndres: Boolean,
     ) {
@@ -288,7 +288,7 @@ class DeltakerRepository {
         Database.query { session -> session.update(queryOf(sql, parameters)) }
     }
 
-    fun disableKanEndresMany(ider: List<UUID>) {
+    suspend fun disableKanEndresMany(ider: List<UUID>) {
         if (ider.isEmpty()) return
 
         val sql =
@@ -305,7 +305,7 @@ class DeltakerRepository {
         Database.query { session -> session.update(queryOf(sql, parameters)) }
     }
 
-    fun update(deltaker: Deltakeroppdatering) {
+    suspend fun update(deltaker: Deltakeroppdatering) {
         val params = mapOf(
             "id" to deltaker.id,
             "startdato" to deltaker.startdato,
@@ -328,7 +328,7 @@ class DeltakerRepository {
         }
     }
 
-    fun updateBatch(deltakere: List<Deltakeroppdatering>) {
+    suspend fun updateBatch(deltakere: List<Deltakeroppdatering>) {
         Database.query { session ->
             session.batchPreparedNamedStatement(
                 updateDeltakerSql(true),
@@ -337,7 +337,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
+    suspend fun getForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
                 getDeltakerSql("dl.id = :deltakerliste_id"),
@@ -346,7 +346,7 @@ class DeltakerRepository {
         )
     }
 
-    fun oppdaterSistBesokt(
+    suspend fun oppdaterSistBesokt(
         deltakerId: UUID,
         sistBesokt: ZonedDateTime,
     ) {

@@ -10,7 +10,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class InnsokPaaFellesOppstartRepository {
-    fun insert(innsok: InnsokPaaFellesOppstart) {
+    suspend fun insert(innsok: InnsokPaaFellesOppstart) {
         val sql =
             """
             INSERT INTO innsok_paa_felles_oppstart (
@@ -49,7 +49,7 @@ class InnsokPaaFellesOppstartRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun get(id: UUID): Result<InnsokPaaFellesOppstart> = runCatching {
+    suspend fun get(id: UUID): Result<InnsokPaaFellesOppstart> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -60,7 +60,7 @@ class InnsokPaaFellesOppstartRepository {
         }
     }
 
-    fun getForDeltaker(deltakerId: UUID): Result<InnsokPaaFellesOppstart> = runCatching {
+    suspend fun getForDeltaker(deltakerId: UUID): Result<InnsokPaaFellesOppstart> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -71,7 +71,7 @@ class InnsokPaaFellesOppstartRepository {
         }
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
+    suspend fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
         session.update(
             queryOf(
                 "DELETE FROM innsok_paa_felles_oppstart WHERE deltaker_id = :deltaker_id",

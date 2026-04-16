@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.endring.extensions
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
@@ -16,7 +17,7 @@ import java.time.LocalDate
 
 class EndreStartdatoExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir har sluttet`() {
+    fun `oppdaterDeltaker - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir har sluttet`() = runTest {
         val deltaker =
             TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endringsrequest = StartdatoRequest(
@@ -43,7 +44,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret sluttdato i fortid, startdato mangler, venter pa oppstart - blir ikke aktuell`() {
+    fun `oppdaterDeltaker - endret sluttdato i fortid, startdato mangler, venter pa oppstart - blir ikke aktuell`() = runTest {
         val deltaker =
             TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endringsrequest = StartdatoRequest(
@@ -70,7 +71,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret start- og sluttdato i fortid, deltar - deltaker blir har sluttet`() {
+    fun `oppdaterDeltaker - endret start- og sluttdato i fortid, deltar - deltaker blir har sluttet`() = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val endringsrequest = StartdatoRequest(
             endretAv = randomNavIdent(),
@@ -96,7 +97,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, fullfort - deltaker blir venter pa oppstart`() {
+    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, fullfort - deltaker blir venter pa oppstart`() = runTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             startdato = LocalDate.now().minusWeeks(10),
@@ -126,7 +127,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, deltar - deltaker blir venter pa oppstart`() {
+    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, deltar - deltaker blir venter pa oppstart`() = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val endringsrequest = StartdatoRequest(
             endretAv = randomNavIdent(),
@@ -152,7 +153,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, har sluttet - deltaker blir deltar`() {
+    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, har sluttet - deltaker blir deltar`() = runTest {
         val deltaker = TestData.lagDeltaker(
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().minusDays(1),
@@ -183,7 +184,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endre oppstart når avbrutt endrer ikke status til fullført`() {
+    fun `oppdaterDeltaker - endre oppstart når avbrutt endrer ikke status til fullført`() = runTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             startdato = LocalDate.now().minusMonths(1),

@@ -7,7 +7,7 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class NavEnhetRepository {
-    fun upsert(navEnhet: NavEnhet): NavEnhet {
+    suspend fun upsert(navEnhet: NavEnhet): NavEnhet {
         val sql =
             """
             INSERT INTO nav_enhet (
@@ -42,10 +42,10 @@ class NavEnhetRepository {
         }
     }
 
-    fun getOrThrow(enhetsnummer: String): NavEnhet =
+    suspend fun getOrThrow(enhetsnummer: String): NavEnhet =
         get(enhetsnummer) ?: throw NoSuchElementException("Fant ikke Nav-enhet med enhetsnummer $enhetsnummer")
 
-    fun get(enhetsnummer: String): NavEnhet? = Database.query { session ->
+    suspend fun get(enhetsnummer: String): NavEnhet? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
@@ -54,9 +54,9 @@ class NavEnhetRepository {
         )
     }
 
-    fun getOrThrow(id: UUID): NavEnhet = get(id) ?: throw NoSuchElementException("Fant ikke Nav-enhet med id $id")
+    suspend fun getOrThrow(id: UUID): NavEnhet = get(id) ?: throw NoSuchElementException("Fant ikke Nav-enhet med id $id")
 
-    fun get(id: UUID): NavEnhet? = Database.query { session ->
+    suspend fun get(id: UUID): NavEnhet? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM nav_enhet WHERE id = :id",
@@ -65,7 +65,7 @@ class NavEnhetRepository {
         )
     }
 
-    fun getMany(ider: Set<UUID>): List<NavEnhet> = if (ider.isEmpty()) {
+    suspend fun getMany(ider: Set<UUID>): List<NavEnhet> = if (ider.isEmpty()) {
         emptyList()
     } else {
         Database.query { session ->

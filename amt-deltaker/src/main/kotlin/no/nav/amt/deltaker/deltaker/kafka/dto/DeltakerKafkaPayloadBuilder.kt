@@ -34,7 +34,7 @@ class DeltakerKafkaPayloadBuilder(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val vurderingRepository: VurderingRepository,
 ) {
-    fun buildDeltakerV1Record(deltaker: Deltaker): DeltakerV1Dto {
+    suspend fun buildDeltakerV1Record(deltaker: Deltaker): DeltakerV1Dto {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
         val innsoktDato = deltakerhistorikk.getInnsoktDato()
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
@@ -66,7 +66,7 @@ class DeltakerKafkaPayloadBuilder(
         )
     }
 
-    fun buildDeltakerEksternV1Record(deltaker: Deltaker): DeltakerEksternV1Dto {
+    suspend fun buildDeltakerEksternV1Record(deltaker: Deltaker): DeltakerEksternV1Dto {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
         val innsoktDato = deltakerhistorikk.getInnsoktDato()
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
@@ -111,7 +111,7 @@ class DeltakerKafkaPayloadBuilder(
         )
     }
 
-    fun buildDeltakerV2Record(
+    suspend fun buildDeltakerV2Record(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
     ): DeltakerKafkaPayload {

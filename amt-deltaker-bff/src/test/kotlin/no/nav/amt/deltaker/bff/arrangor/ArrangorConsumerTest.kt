@@ -17,19 +17,17 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - ny arrangor - upserter`() {
+    fun `consumeArrangor - ny arrangor - upserter`() = runTest {
         val arrangor = lagArrangor()
         val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
-        runTest {
-            arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
-        }
+        arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
 
         arrangorRepository.get(arrangor.id) shouldBe arrangor
     }
 
     @Test
-    fun `consumeArrangor - oppdatert arrangor - upserter`() {
+    fun `consumeArrangor - oppdatert arrangor - upserter`() = runTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
@@ -37,23 +35,19 @@ class ArrangorConsumerTest {
 
         val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
-        runTest {
-            arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
-        }
+        arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
 
         arrangorRepository.get(arrangor.id) shouldBe oppdatertArrangor
     }
 
     @Test
-    fun `consumeArrangor - tombstonet arrangor - sletter`() {
+    fun `consumeArrangor - tombstonet arrangor - sletter`() = runTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
         val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
-        runTest {
-            arrangorConsumer.consume(arrangor.id, null)
-        }
+        arrangorConsumer.consume(arrangor.id, null)
 
         arrangorRepository.get(arrangor.id) shouldBe null
     }

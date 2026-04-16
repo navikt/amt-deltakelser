@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignHistorikk
@@ -73,8 +74,10 @@ class DeltakerResponseMapperServiceTest {
 
     @BeforeEach
     fun setup() {
-        navEnhetRepository.upsert(sistEndretAvNavEnhet)
-        navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+        runBlocking {
+            navEnhetRepository.upsert(sistEndretAvNavEnhet)
+            navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+        }
     }
 
     @Test

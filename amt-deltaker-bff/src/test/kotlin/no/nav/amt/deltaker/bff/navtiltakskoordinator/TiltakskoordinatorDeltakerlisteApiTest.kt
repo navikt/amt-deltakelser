@@ -8,6 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
@@ -52,8 +53,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `skal teste autentisering - mangler AD rolle - returnerer 401`() {
-        every { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
+    fun `skal teste autentisering - mangler AD rolle - returnerer 401`() = runTest {
+        coEvery { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
 
         withTestApplicationContext { client ->
             client
@@ -84,11 +85,11 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
     @Test
     fun `get deltakerliste - liste finnes ikke, toggle av - returnerer 404`() {
-        every {
+        coEvery {
             deltakerlisteService.get(any())
         } returns Result.failure(NoSuchElementException())
-        every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
-        every { tiltakskoordinatorTilgangRepository.hentKoordinatorer(any(), any()) } returns emptyList()
+        coEvery { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
+        coEvery { tiltakskoordinatorTilgangRepository.hentKoordinatorer(any(), any()) } returns emptyList()
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
 
         val response = withTestApplicationContext { client ->
@@ -105,8 +106,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         coEvery {
             gjennomforingClient.getGjennomforing(any())
         } throws NoSuchElementException()
-        every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
-        every { tiltakskoordinatorTilgangRepository.hentKoordinatorer(any(), any()) } returns emptyList()
+        coEvery { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
+        coEvery { tiltakskoordinatorTilgangRepository.hentKoordinatorer(any(), any()) } returns emptyList()
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
 
         val response = withTestApplicationContext { client ->
@@ -123,9 +124,9 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         // Arrange
         val expectedResponse = deltakerlisteInTest.toResponse(listOf(tiltakskoordinatorInTest))
 
-        every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
-        every { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
-        every {
+        coEvery { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
+        coEvery { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
+        coEvery {
             tiltakskoordinatorTilgangRepository.hentKoordinatorer(
                 deltakerlisteId = any(),
                 paaloggetNavAnsattId = any(),
@@ -151,11 +152,11 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         // Arrange
         val gjennomforing = lagGjennomforingResponse()
         val expected = ResponseBuilder.buildGjennomforing(gjennomforing, listOf(tiltakskoordinatorInTest))
-        every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
-        every { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
+        coEvery { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
+        coEvery { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
         coEvery { gjennomforingClient.getGjennomforing(deltakerlisteInTest.id) } returns gjennomforing
 
-        every {
+        coEvery {
             tiltakskoordinatorTilgangRepository.hentKoordinatorer(
                 deltakerlisteId = any(),
                 paaloggetNavAnsattId = any(),
@@ -178,7 +179,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
     @Test
     fun `get deltakere - mangler tilgang til deltakerliste - returnerer 403`() {
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
+        coEvery { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         coEvery { tilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } throws AuthorizationException("")
 
         val response = withTestApplicationContext { client ->
@@ -194,7 +195,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `get deltakere - deltakerliste finnes ikke - returnerer 404`() {
         mockTilgangTilDeltakerliste()
 
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
+        coEvery { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
         coEvery { tiltakskoordinatorService.hentDeltakereForDeltakerliste(any()) } returns emptyList()
 
         val response = withTestApplicationContext { client ->
@@ -210,7 +211,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `get deltakere - deltakerliste er stengt - returnerer 410`() {
         mockTilgangTilDeltakerliste()
 
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws DeltakerlisteStengtException()
+        coEvery { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws DeltakerlisteStengtException()
 
         val response = withTestApplicationContext { client ->
             client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere") {
@@ -236,8 +237,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             deltaker.toDeltakerResponse(true)
         }
 
-        every { navEnhetService.hentEnheter(any()) } returns navEnheter
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
+        coEvery { navEnhetService.hentEnheter(any()) } returns navEnheter
+        coEvery { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         coEvery { tiltakskoordinatorService.hentDeltakereForDeltakerliste(deltakerlisteInTest.id) } returns deltakere
 
         deltakere.forEach {
@@ -300,7 +301,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
     @Test
     fun `post del-med-arrangor - mangler tilgang til deltakerliste - returnerer 403`() {
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
+        coEvery { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         coEvery { tilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws AuthorizationException("")
 
         val response = withTestApplicationContext { client ->
@@ -333,7 +334,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         mockTilgangTilDeltakerliste()
 
         coEvery { tilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
+        coEvery { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
 
         val response = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {

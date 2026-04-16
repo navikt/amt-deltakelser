@@ -5,7 +5,6 @@ import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
@@ -422,7 +421,7 @@ class DeltakerServiceTest {
                     ),
                 ).toDeltakerEndringResponse()
 
-            every { forslagRepository.deleteForDeltaker(deltakerKladd.id) } returns Unit
+            coEvery { forslagRepository.deleteForDeltaker(deltakerKladd.id) } returns Unit
 
             deltakerRepository.get(deltakerKladd.id).shouldBeSuccess()
 
@@ -623,7 +622,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterDeltakerLaas - ny deltaker - beholder låsing`() {
+    fun `oppdaterDeltakerLaas - ny deltaker - beholder låsing`() = runTest {
         val deltaker = lagDeltaker()
         TestRepository.insert(deltaker)
         deltakerRepository.get(deltaker.id).getOrThrow().kanEndres shouldBe true
@@ -632,7 +631,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterDeltakerLaas - importerte deltakere med samme innsøktDato, endring på nyeste deltaker - beholder låsing`() {
+    fun `oppdaterDeltakerLaas - importerte deltakere med samme innsøktDato, endring på nyeste deltaker - beholder låsing`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
@@ -668,7 +667,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterDeltakerLaas - importerte deltakere med samme innsøktDato, endring på historisert deltaker - beholder låsing`() {
+    fun `oppdaterDeltakerLaas - importerte deltakere med samme innsøktDato, endring på historisert deltaker - beholder låsing`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
@@ -703,7 +702,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterDeltakerLaas - låst, unik deltaker på deltakerliste - låser opp`() {
+    fun `oppdaterDeltakerLaas - låst, unik deltaker på deltakerliste - låser opp`() = runTest {
         val deltaker = lagDeltaker(
             kanEndres = false,
             status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
@@ -720,7 +719,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste - låser den eldste`() {
+    fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste - låser den eldste`() = runTest {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
         val deltaker2 = lagDeltaker(navBruker = deltaker.navBruker, deltakerliste = deltaker.deltakerliste)
         TestRepository.insert(deltaker)
@@ -733,7 +732,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste, nyeste er feilregistrert - låser begge`() {
+    fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste, nyeste er feilregistrert - låser begge`() = runTest {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
         val deltaker2 = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
@@ -750,29 +749,30 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste med samme reg dato - låser den med avsluttende status`() {
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-            historikk = true,
-        )
-        val deltaker2 = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            navBruker = deltaker.navBruker,
-            deltakerliste = deltaker.deltakerliste,
-            historikk = true,
-        ).copy(historikk = deltaker.historikk)
+    fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste med samme reg dato - låser den med avsluttende status`() =
+        runTest {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+                historikk = true,
+            )
+            val deltaker2 = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                navBruker = deltaker.navBruker,
+                deltakerliste = deltaker.deltakerliste,
+                historikk = true,
+            ).copy(historikk = deltaker.historikk)
 
-        TestRepository.insert(deltaker)
-        TestRepository.insert(deltaker2)
+            TestRepository.insert(deltaker)
+            TestRepository.insert(deltaker2)
 
-        deltakerService.oppdaterDeltakerLaas(deltaker.id, deltaker.navBruker.personident, deltaker.deltakerliste.id)
+            deltakerService.oppdaterDeltakerLaas(deltaker.id, deltaker.navBruker.personident, deltaker.deltakerliste.id)
 
-        deltakerRepository.get(deltaker.id).getOrThrow().kanEndres shouldBe false
-        deltakerRepository.get(deltaker2.id).getOrThrow().kanEndres shouldBe true
-    }
+            deltakerRepository.get(deltaker.id).getOrThrow().kanEndres shouldBe false
+            deltakerRepository.get(deltaker2.id).getOrThrow().kanEndres shouldBe true
+        }
 
     @Test
-    fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste med samme reg dato - kaster exception`() {
+    fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste med samme reg dato - kaster exception`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             historikk = true,

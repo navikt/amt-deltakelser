@@ -11,6 +11,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -101,10 +102,9 @@ class ExternalApiTest : IntegrationTestBase() {
                 ),
             )
 
-            every { arrangorService.getArrangorNavn(any()) } returns deltaker.deltakerliste.arrangor!!.navn
-
-            every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltaker)
-            every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+            coEvery { arrangorService.getArrangorNavn(any()) } returns deltaker.deltakerliste.arrangor!!.navn
+            coEvery { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltaker)
+            coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
             val forventetRespons = DeltakelserResponse(
                 aktive = listOf(
@@ -154,7 +154,7 @@ class ExternalApiTest : IntegrationTestBase() {
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
 
-            every { arrangorService.getArrangorNavn(any()) } returns deltakerKladd.deltakerliste.arrangor!!.navn
+            coEvery { arrangorService.getArrangorNavn(any()) } returns deltakerKladd.deltakerliste.arrangor!!.navn
             every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
             val avsluttetDeltaker = lagDeltaker(
@@ -180,9 +180,9 @@ class ExternalApiTest : IntegrationTestBase() {
                 ),
             )
 
-            every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltakerKladd, avsluttetDeltaker)
-            every { deltakerHistorikkService.getForDeltaker(deltakerKladd.id) } returns emptyList()
-            every { deltakerHistorikkService.getForDeltaker(avsluttetDeltaker.id) } returns deltakerhistorikk
+            coEvery { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltakerKladd, avsluttetDeltaker)
+            coEvery { deltakerHistorikkService.getForDeltaker(deltakerKladd.id) } returns emptyList()
+            coEvery { deltakerHistorikkService.getForDeltaker(avsluttetDeltaker.id) } returns deltakerhistorikk
 
             val forventetRespons = DeltakelserResponse(
                 aktive = listOf(
@@ -239,7 +239,7 @@ class ExternalApiTest : IntegrationTestBase() {
         @Test
         fun `post deltakelser - har tilgang, ingen deltakelser - returnerer 200`() {
             every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-            every { deltakerRepository.getFlereForPerson(any()) } returns emptyList()
+            coEvery { deltakerRepository.getFlereForPerson(any()) } returns emptyList()
 
             val forventetRespons = DeltakelserResponse(
                 aktive = emptyList(),
@@ -395,8 +395,8 @@ class ExternalApiTest : IntegrationTestBase() {
         deltakere: List<Deltaker>,
         navEnheter: Map<UUID, NavEnhet> = emptyMap(),
     ) {
-        every { deltakerRepository.getMany(any()) } returns deltakere
-        every { navEnhetService.getEnheter(any()) } returns navEnheter
+        coEvery { deltakerRepository.getMany(any()) } returns deltakere
+        coEvery { navEnhetService.getEnheter(any()) } returns navEnheter
     }
 
     companion object {

@@ -13,7 +13,6 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.spyk
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -97,42 +96,41 @@ class EnkeltplassDeltakerConsumerTest {
     fun setup() {
         clearAllMocks()
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
-        every { deltakerProducer.produce(any()) } just Runs
-        every { deltakerEksternV1Producer.produce(any()) } just Runs
-        every { deltakerEksternV1Producer.produce(any()) } just Runs
-        every { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
-        every { deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(any()) } returns mockk()
-        every { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
+        coEvery { deltakerProducer.produce(any()) } just Runs
+        coEvery { deltakerEksternV1Producer.produce(any()) } just Runs
+        coEvery { deltakerEksternV1Producer.produce(any()) } just Runs
+        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
+        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(any()) } returns mockk()
+        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
     }
 
     @Test
-    fun `consumeDeltaker - skalLeseArenaDataForTiltakstype=false - lagrer ikke enkeltplasser og produserer ikke til deltaker-v2 topic`() {
-        val deltakerListe = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
-        )
-        TestRepository.insert(deltakerListe)
-        val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker = lagDeltaker(
-            kilde = Kilde.ARENA,
-            deltakerliste = deltakerListe,
-            innhold = null,
-            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = sistEndret),
-            sistEndret = sistEndret,
-        )
-
-        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
-
+    fun `consumeDeltaker - skalLeseArenaDataForTiltakstype=false - lagrer ikke enkeltplasser og produserer ikke til deltaker-v2 topic`() =
         runTest {
+            val deltakerListe = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+            )
+            TestRepository.insert(deltakerListe)
+            val sistEndret = LocalDateTime.now().minusDays(1)
+            val deltaker = lagDeltaker(
+                kilde = Kilde.ARENA,
+                deltakerliste = deltakerListe,
+                innhold = null,
+                navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = sistEndret),
+                sistEndret = sistEndret,
+            )
+
+            every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
+
             consumer.consumeDeltaker(toPayload(deltaker))
+
+            coVerify(exactly = 0) { deltakerService.upsertAndProduceDeltaker(any(), true) }
+            coVerify(exactly = 0) { deltakerProducer.produce(any()) }
         }
 
-        coVerify(exactly = 0) { deltakerService.upsertAndProduceDeltaker(any(), true) }
-        verify(exactly = 0) { deltakerProducer.produce(any()) }
-    }
-
     @Test
-    fun `consumeDeltaker - gjennomforing er allerede lagret - lagrer enkeltplasser og produserer til deltaker-v2`() {
+    fun `consumeDeltaker - gjennomforing er allerede lagret - lagrer enkeltplasser og produserer til deltaker-v2`() = runTest {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
@@ -160,12 +158,10 @@ class EnkeltplassDeltakerConsumerTest {
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
 
-        every { deltakerProducer.produce(any()) } just Runs
+        coEvery { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
 
-        runTest {
-            consumer.consumeDeltaker(toPayload(deltaker))
-        }
+        consumer.consumeDeltaker(toPayload(deltaker))
 
         coVerify(exactly = 1) {
             deltakerService.transactionalDeltakerUpsert(
@@ -185,7 +181,7 @@ class EnkeltplassDeltakerConsumerTest {
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
         }
-        verify { deltakerProducer.produce(any()) }
+        coVerify { deltakerProducer.produce(any()) }
 
         val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
         deltakerFromDb.shouldNotBeNull()
@@ -207,7 +203,7 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - gjennomforing eksisterer ikke i db - kaster exception`() {
+    fun `consumeDeltaker - gjennomforing eksisterer ikke i db - kaster exception`() = runTest {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
             oppmoteSted = null,
@@ -227,19 +223,17 @@ class EnkeltplassDeltakerConsumerTest {
         tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
         TestRepository.insert(deltaker.navBruker)
 
-        every { deltakerProducer.produce(any()) } just Runs
+        coEvery { deltakerProducer.produce(any()) } just Runs
 
-        runTest {
-            val thrown = shouldThrow<IllegalStateException> {
-                consumer.consumeDeltaker(toPayload(deltaker))
-            }
-
-            thrown.message shouldBe "Deltakerliste ${deltakerListe.id} ikke mottatt fra Mulighetsrommet ennå"
+        val thrown = shouldThrow<IllegalStateException> {
+            consumer.consumeDeltaker(toPayload(deltaker))
         }
+
+        thrown.message shouldBe "Deltakerliste ${deltakerListe.id} ikke mottatt fra Mulighetsrommet ennå"
     }
 
     @Test
-    fun `consumeDeltaker - Deltaker eksisterer allerede - lagrer deltaker og importertFraArenaData med ny status`() {
+    fun `consumeDeltaker - Deltaker eksisterer allerede - lagrer deltaker og importertFraArenaData med ny status`() = runTest {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
@@ -273,12 +267,10 @@ class EnkeltplassDeltakerConsumerTest {
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
 
-        every { deltakerProducer.produce(any()) } just Runs
+        coEvery { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
 
-        runTest {
-            consumer.consumeDeltaker(toPayload(deltakerMedNyStatus))
-        }
+        consumer.consumeDeltaker(toPayload(deltakerMedNyStatus))
 
         coVerify(exactly = 1) {
             deltakerService.transactionalDeltakerUpsert(
@@ -292,7 +284,7 @@ class EnkeltplassDeltakerConsumerTest {
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
         }
-        verify { deltakerProducer.produce(any()) }
+        coVerify { deltakerProducer.produce(any()) }
 
         val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
         deltakerFromDb.shouldNotBeNull()
@@ -319,7 +311,7 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - Deltaker eksisterer, lik status, andre endringer pa deltaker - lagrer deltaker`() {
+    fun `consumeDeltaker - Deltaker eksisterer, lik status, andre endringer pa deltaker - lagrer deltaker`() = runTest {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
@@ -352,12 +344,10 @@ class EnkeltplassDeltakerConsumerTest {
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
 
-        every { deltakerProducer.produce(any()) } just Runs
+        coEvery { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
 
-        runTest {
-            consumer.consumeDeltaker(toPayload(endretDeltaker))
-        }
+        consumer.consumeDeltaker(toPayload(endretDeltaker))
 
         coVerify(exactly = 1) {
             deltakerService.transactionalDeltakerUpsert(
@@ -372,7 +362,7 @@ class EnkeltplassDeltakerConsumerTest {
             deltakerProducerService.produce(any(), any(), any())
         }
 
-        verify { deltakerProducer.produce(any()) }
+        coVerify { deltakerProducer.produce(any()) }
 
         val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
         deltakerFromDb.shouldNotBeNull()

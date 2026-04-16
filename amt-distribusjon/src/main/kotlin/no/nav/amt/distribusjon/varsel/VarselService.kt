@@ -20,7 +20,7 @@ class VarselService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun handleHendelse(hendelse: Hendelse) {
+    suspend fun handleHendelse(hendelse: Hendelse) {
         if (skalIkkeVarsles(hendelse)) return
 
         when (hendelse.payload) {
@@ -65,14 +65,14 @@ class VarselService(
         }
     }
 
-    private fun skalIkkeVarsles(hendelse: Hendelse): Boolean = if (varselRepository.getByHendelseId(hendelse.id).isSuccess) {
+    private suspend fun skalIkkeVarsles(hendelse: Hendelse): Boolean = if (varselRepository.getByHendelseId(hendelse.id).isSuccess) {
         log.info("Varsel for hendelse ${hendelse.id} er allerede opprettet. Oppretter ikke nytt varsel.")
         true
     } else {
         !DigitalBrukerService.skalDistribueresDigitalt(hendelse.distribusjonskanal, hendelse.manuellOppfolging)
     }
 
-    private fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel {
+    private suspend fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel {
         val varsel = varselRepository.getVentendeVarsel(nyttVarsel.deltakerId).fold(
             onSuccess = { it.merge(nyttVarsel) },
             onFailure = { nyttVarsel },
@@ -81,7 +81,7 @@ class VarselService(
         return varsel
     }
 
-    private fun handleNyttVarsel(
+    private suspend fun handleNyttVarsel(
         varsel: Varsel,
         sendUmiddelbart: Boolean = false,
     ) {
@@ -97,7 +97,7 @@ class VarselService(
         }
     }
 
-    private fun sendVarsel(varsel: Varsel) {
+    private suspend fun sendVarsel(varsel: Varsel) {
         inaktiverTidligereBeskjed(varsel.deltakerId)
 
         val oppdatertVarsel = varsel.copy(aktivFra = nowUTC(), status = Varsel.Status.AKTIV)
@@ -115,7 +115,7 @@ class VarselService(
         log.info("Sendte varsel ${varsel.id} for deltaker ${varsel.deltakerId}")
     }
 
-    private fun ferdigstillSendtVarsel(
+    private suspend fun ferdigstillSendtVarsel(
         varsel: Varsel,
         nyStatus: Varsel.Status,
     ) {
@@ -128,7 +128,7 @@ class VarselService(
         }
     }
 
-    private fun inaktiverTidligereBeskjed(deltakerId: UUID) {
+    private suspend fun inaktiverTidligereBeskjed(deltakerId: UUID) {
         val varsel = varselRepository.getAktivt(deltakerId).getOrNull()
         require(varsel?.type != Varsel.Type.OPPGAVE) {
             "deltaker-id $deltakerId: Kan ikke inaktivere oppgave ${varsel?.id} som om den var en beskjed"
@@ -139,19 +139,19 @@ class VarselService(
         }
     }
 
-    private fun inaktiverOppgave(deltaker: HendelseDeltaker) {
+    private suspend fun inaktiverOppgave(deltaker: HendelseDeltaker) {
         varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE).onSuccess { varsel ->
             ferdigstillSendtVarsel(varsel, Varsel.Status.INAKTIVERT)
         }
     }
 
-    private fun utforOppgave(deltaker: HendelseDeltaker) {
+    private suspend fun utforOppgave(deltaker: HendelseDeltaker) {
         varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE).onSuccess { varsel ->
             ferdigstillSendtVarsel(varsel, Varsel.Status.UTFORT)
         }
     }
 
-    private fun utforBeskjed(
+    private suspend fun utforBeskjed(
         deltaker: HendelseDeltaker,
         sistBesokt: ZonedDateTime,
     ) {
@@ -185,7 +185,7 @@ class VarselService(
         varselRepository.stoppRevarsler(deltaker.id)
     }
 
-    fun utlopBeskjed(varsel: Varsel) {
+    suspend fun utlopBeskjed(varsel: Varsel) {
         require(varsel.type == Varsel.Type.BESKJED && varsel.erAktiv) {
             "Varsel må være en aktiv beskjed for å kunne utløpe. Varsel: ${varsel.id}"
         }
@@ -232,7 +232,7 @@ class VarselService(
         }
     }
 
-    private fun skalViseHistorikkModal(hendelseIder: List<UUID>): Boolean {
+    private suspend fun skalViseHistorikkModal(hendelseIder: List<UUID>): Boolean {
         val hendelser = hendelseRepository.getHendelser(hendelseIder)
         return hendelser.firstOrNull { it.payload !is HendelseType.NavGodkjennUtkast && it.payload !is HendelseType.TildelPlass } != null
     }

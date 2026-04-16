@@ -52,7 +52,7 @@ class EndringsvedtakJob(
         log.info("Ferdig med å behandle ${ikkeJournalforteEndringsvedtak.size} endringsvedtak")
     }
 
-    internal fun getIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> {
+    internal suspend fun getIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> {
         val ikkeJournalforte = hendelseRepository.hentIkkeJournalforteHendelser()
         val ikkeDistribuerte = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 

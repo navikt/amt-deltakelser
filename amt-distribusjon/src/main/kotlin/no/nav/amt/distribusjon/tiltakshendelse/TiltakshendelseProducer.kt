@@ -8,7 +8,7 @@ import no.nav.amt.lib.outbox.OutboxService
 class TiltakshendelseProducer(
     private val outboxService: OutboxService,
 ) {
-    fun produce(tiltakshendelse: Tiltakshendelse) {
+    suspend fun produce(tiltakshendelse: Tiltakshendelse) {
         outboxService.insertRecord(
             key = tiltakshendelse.id,
             value = tiltakshendelse.toDto(),

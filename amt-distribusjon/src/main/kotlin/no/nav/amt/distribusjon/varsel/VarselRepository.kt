@@ -8,7 +8,7 @@ import java.time.ZoneId
 import java.util.UUID
 
 class VarselRepository {
-    fun upsert(varsel: Varsel) {
+    suspend fun upsert(varsel: Varsel) {
         val sql =
             """
             INSERT INTO varsel (
@@ -70,7 +70,7 @@ class VarselRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun getSisteVarsel(
+    suspend fun getSisteVarsel(
         deltakerId: UUID,
         type: Varsel.Type,
     ): Result<Varsel> = runCatching {
@@ -98,7 +98,7 @@ class VarselRepository {
         }
     }
 
-    fun getAktiveEllerVentendeBeskjeder(deltakerId: UUID): List<Varsel> {
+    suspend fun getAktiveEllerVentendeBeskjeder(deltakerId: UUID): List<Varsel> {
         val sql =
             """
             SELECT * 
@@ -122,7 +122,7 @@ class VarselRepository {
         }
     }
 
-    fun getAktivt(deltakerId: UUID): Result<Varsel> = runCatching {
+    suspend fun getAktivt(deltakerId: UUID): Result<Varsel> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -133,7 +133,7 @@ class VarselRepository {
         }
     }
 
-    fun get(id: UUID): Result<Varsel> = runCatching {
+    suspend fun get(id: UUID): Result<Varsel> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -144,7 +144,7 @@ class VarselRepository {
         }
     }
 
-    fun getByHendelseId(hendelseId: UUID): Result<Varsel> = runCatching {
+    suspend fun getByHendelseId(hendelseId: UUID): Result<Varsel> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -155,7 +155,7 @@ class VarselRepository {
         }
     }
 
-    fun getVentendeVarsel(deltakerId: UUID): Result<Varsel> = runCatching {
+    suspend fun getVentendeVarsel(deltakerId: UUID): Result<Varsel> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -166,7 +166,7 @@ class VarselRepository {
         }
     }
 
-    fun getVarslerSomSkalSendes(): List<Varsel> = Database.query { session ->
+    suspend fun getVarslerSomSkalSendes(): List<Varsel> = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM varsel WHERE status = 'VENTER_PA_UTSENDELSE' AND aktiv_fra < CURRENT_TIMESTAMP",
@@ -174,7 +174,7 @@ class VarselRepository {
         )
     }
 
-    fun getVarslerSomSkalRevarsles(): List<Varsel> = Database.query { session ->
+    suspend fun getVarslerSomSkalRevarsles(): List<Varsel> = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM varsel WHERE revarsles < CURRENT_TIMESTAMP",
@@ -182,7 +182,7 @@ class VarselRepository {
         )
     }
 
-    fun stoppRevarsler(deltakerId: UUID) {
+    suspend fun stoppRevarsler(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(

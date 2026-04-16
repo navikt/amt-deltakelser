@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
@@ -73,13 +72,13 @@ class TiltakskoordinatorServiceIntegrationTest {
         val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
-        every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
-        every { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
-        every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
+        coEvery { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
+        coEvery { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
+        coEvery { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        coEvery { forslagRepository.getForDeltakere(any()) } returns emptyList()
+        coEvery { forslagRepository.getForDeltaker(any()) } returns emptyList()
+        coEvery { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
 
         val nyStatus =
             DeltakerStatus(UUID.randomUUID(), DeltakerStatus.Type.VENTER_PA_OPPSTART, null, LocalDateTime.now(), null, LocalDateTime.now())
@@ -99,7 +98,7 @@ class TiltakskoordinatorServiceIntegrationTest {
         resultDeltaker.status.trimMss().copy(id = nyStatus.id) shouldBe nyStatus.trimMss()
 
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.id) } returns navAnsatt
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
+        coEvery { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
 
         val deltakerFraDb = tiltakskoordinatorService.getDeltaker(deltaker.id)
         deltakerFraDb shouldBeCloseTo deltaker
@@ -122,13 +121,13 @@ class TiltakskoordinatorServiceIntegrationTest {
         val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
-        every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
-        every { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
-        every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
+        coEvery { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
+        coEvery { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
+        coEvery { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        coEvery { forslagRepository.getForDeltakere(any()) } returns emptyList()
+        coEvery { forslagRepository.getForDeltaker(any()) } returns emptyList()
+        coEvery { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
 
         val nyStatus = DeltakerStatus(
             id = UUID.randomUUID(),
@@ -154,7 +153,7 @@ class TiltakskoordinatorServiceIntegrationTest {
         resultDeltaker.status.trimMss().copy(id = nyStatus.id) shouldBe nyStatus.trimMss()
 
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.id) } returns navAnsatt
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
+        coEvery { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
 
         val deltakerFraDb = tiltakskoordinatorService.getDeltaker(deltaker.id)
         deltakerFraDb shouldBeCloseTo deltaker
@@ -169,12 +168,12 @@ class TiltakskoordinatorServiceIntegrationTest {
         val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
-        every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
-        every { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
-        every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
-        every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        coEvery { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
+        coEvery { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
+        coEvery { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
+        coEvery { forslagRepository.getForDeltakere(any()) } returns emptyList()
+        coEvery { forslagRepository.getForDeltaker(any()) } returns emptyList()
+        coEvery { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
 
         val nyStatus =
             DeltakerStatus(UUID.randomUUID(), DeltakerStatus.Type.VENTELISTE, null, LocalDateTime.now(), null, LocalDateTime.now())
@@ -201,7 +200,7 @@ class TiltakskoordinatorServiceIntegrationTest {
         resultDeltaker.status.trimMss().copy(id = nyStatus.id) shouldBe nyStatus.trimMss()
 
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.id) } returns navAnsatt
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
+        coEvery { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
 
         val deltakerFraDb = tiltakskoordinatorService.getDeltaker(deltaker.id)
         deltakerFraDb shouldBeCloseTo deltaker

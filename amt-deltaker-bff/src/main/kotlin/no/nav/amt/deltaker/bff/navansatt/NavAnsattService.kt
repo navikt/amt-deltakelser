@@ -13,7 +13,7 @@ class NavAnsattService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun hentNavAnsatt(navIdent: String): NavAnsatt =
+    suspend fun hentNavAnsatt(navIdent: String): NavAnsatt =
         repository.get(navIdent) ?: throw NoSuchElementException("Fant ikke Nav-ansatt med ident $navIdent")
 
     suspend fun hentEllerOpprettNavAnsatt(navIdent: String): NavAnsatt {
@@ -32,14 +32,14 @@ class NavAnsattService(
         return oppdaterNavAnsatt(navAnsatt)
     }
 
-    fun oppdaterNavAnsatt(navAnsatt: NavAnsatt): NavAnsatt = repository.upsert(navAnsatt)
+    suspend fun oppdaterNavAnsatt(navAnsatt: NavAnsatt): NavAnsatt = repository.upsert(navAnsatt)
 
-    fun slettNavAnsatt(navAnsattId: UUID) {
+    suspend fun slettNavAnsatt(navAnsattId: UUID) {
         repository.delete(navAnsattId)
     }
 
     // Flyttes til amt-deltaker
-    fun hentAnsatteForDeltaker(deltaker: Deltaker): Map<UUID, NavAnsatt> {
+    suspend fun hentAnsatteForDeltaker(deltaker: Deltaker): Map<UUID, NavAnsatt> {
         val veilederIder = listOfNotNull(
             deltaker.vedtaksinformasjon?.opprettetAv,
             deltaker.vedtaksinformasjon?.sistEndretAv,
@@ -48,10 +48,10 @@ class NavAnsattService(
         return hentAnsatte(veilederIder)
     }
 
-    fun hentAnsatteForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavAnsatt> {
+    suspend fun hentAnsatteForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavAnsatt> {
         val ider = historikk.flatMap { it.navAnsatte() }.distinct()
         return hentAnsatte(ider)
     }
 
-    fun hentAnsatte(veilederIder: List<UUID>) = repository.getMany(veilederIder).associateBy { it.id }
+    suspend fun hentAnsatte(veilederIder: List<UUID>) = repository.getMany(veilederIder).associateBy { it.id }
 }

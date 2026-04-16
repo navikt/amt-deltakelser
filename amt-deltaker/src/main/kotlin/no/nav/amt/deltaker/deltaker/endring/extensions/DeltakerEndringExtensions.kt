@@ -8,9 +8,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import java.util.UUID
 
-fun DeltakerEndring.Endring.oppdaterDeltaker(
+suspend fun DeltakerEndring.Endring.oppdaterDeltaker(
     deltaker: Deltaker,
-    getDeltakelsemengder: (deltakerId: UUID) -> Deltakelsesmengder,
+    getDeltakelsemengder: suspend (deltakerId: UUID) -> Deltakelsesmengder,
 ): Result<VellykketEndring> = runCatching {
     when (this) {
         is DeltakerEndring.Endring.AvsluttDeltakelse ->

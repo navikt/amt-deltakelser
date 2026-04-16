@@ -16,6 +16,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.DeltakerHistorikkData
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
@@ -76,8 +77,8 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
-        every { deltakerRepository.get(any()) } returns Result.success(deltaker)
-        every { forslagRepository.get(any()) } returns Result.success(lagForslag())
+        coEvery { deltakerRepository.get(any()) } returns Result.success(deltaker)
+        coEvery { forslagRepository.get(any()) } returns Result.success(lagForslag())
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns PersonIdentResponse(deltaker.navBruker.personident)
 
@@ -464,14 +465,14 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     fun `getDeltakerHistorikk - toggle er av - returnerer lokal historikk`() {
         val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         val historikk = deltaker.getDeltakerHistorikkForVisning()
         val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
-        every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
+        coEvery { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
         coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
 
         withTestApplicationContext { httpClient ->
@@ -815,7 +816,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `avvis forslag - har tilgang - returnerer oppdatert deltaker`() {
+    fun `avvis forslag - har tilgang - returnerer oppdatert deltaker`() = runTest {
         // Arrange
         val deltaker = lagDeltaker()
         val forslag = lagForslag(deltakerId = deltaker.id)
@@ -824,7 +825,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             forslagService.avvisForslag(forslag, any(), any(), any())
         } just Runs
 
-        every { forslagRepository.get(forslag.id) } returns Result.success(forslag)
+        coEvery { forslagRepository.get(forslag.id) } returns Result.success(forslag)
 
         val expectedDeltakerResponse = deltakerResponseInTest(deltaker, setupMocks(deltaker, deltaker))
 
@@ -885,10 +886,10 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     ): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        every { deltakerRepository.getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id) } returns listOf(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id) } returns listOf(deltaker)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
+        coEvery { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
@@ -910,8 +911,8 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
         val enheter = lagNavEnheterForHistorikk(deltaker.historikk).associateBy { it.id }
 
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
-        enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
+        coEvery { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
+        enhet?.let { coEvery { navEnhetService.hentEnhet(it.id) } returns it }
         coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns enheter
 
         return Pair(ansatte, enhet)

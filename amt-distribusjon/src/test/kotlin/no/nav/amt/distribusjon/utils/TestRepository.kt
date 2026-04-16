@@ -6,7 +6,7 @@ import no.nav.amt.distribusjon.utils.DbUtils.toPGObject
 import no.nav.amt.lib.utils.database.Database
 
 object TestRepository {
-    fun insertHendelse(hendelse: Hendelse) {
+    suspend fun insertHendelse(hendelse: Hendelse) {
         val sql =
             """
             INSERT INTO hendelse (

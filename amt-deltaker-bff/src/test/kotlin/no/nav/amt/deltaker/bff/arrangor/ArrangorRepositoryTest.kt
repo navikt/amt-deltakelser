@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.arrangor
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.Test
@@ -15,7 +16,7 @@ class ArrangorRepositoryTest {
     }
 
     @Test
-    fun `upsert - ny arrangor - inserter`() {
+    fun `upsert - ny arrangor - inserter`() = runTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
@@ -23,7 +24,7 @@ class ArrangorRepositoryTest {
     }
 
     @Test
-    fun `upsert - eksisterende arrangor - oppdaterer`() {
+    fun `upsert - eksisterende arrangor - oppdaterer`() = runTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
@@ -34,7 +35,7 @@ class ArrangorRepositoryTest {
     }
 
     @Test
-    fun `delete - eksisterende arrangor - sletter`() {
+    fun `delete - eksisterende arrangor - sletter`() = runTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 

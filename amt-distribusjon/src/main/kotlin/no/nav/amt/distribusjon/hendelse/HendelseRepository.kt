@@ -13,7 +13,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class HendelseRepository {
-    fun insert(hendelse: Hendelse) {
+    suspend fun insert(hendelse: Hendelse) {
         val sql =
             """
             INSERT INTO hendelse (
@@ -50,7 +50,7 @@ class HendelseRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun hentIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> {
+    suspend fun hentIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> {
         val where =
             """
             js.journalpost_id IS NULL
@@ -66,7 +66,7 @@ class HendelseRepository {
      * Vi ekskluderer "digitale" distribusjonskanaler (DITT_NAV/SDP), og ekskluderer samtidig
      * rader som allerede blir plukket opp av [hentIkkeJournalforteHendelser].
      */
-    fun hentHendelserSomSkalDistribueresSomBrev(): List<HendelseMedJournalforingstatus> {
+    suspend fun hentHendelserSomSkalDistribueresSomBrev(): List<HendelseMedJournalforingstatus> {
         val where =
             """
             js.bestillingsid IS NULL
@@ -81,7 +81,7 @@ class HendelseRepository {
         return queryIkkeJournalforteHendelser(where)
     }
 
-    private fun queryIkkeJournalforteHendelser(whereClause: String): List<HendelseMedJournalforingstatus> {
+    private suspend fun queryIkkeJournalforteHendelser(whereClause: String): List<HendelseMedJournalforingstatus> {
         val sql =
             """
             $ikkeJournalforteHendelserBaseSql
@@ -98,7 +98,7 @@ class HendelseRepository {
         }
     }
 
-    fun getHendelser(hendelseIder: List<UUID>): List<Hendelse> {
+    suspend fun getHendelser(hendelseIder: List<UUID>): List<Hendelse> {
         if (hendelseIder.isEmpty()) return emptyList()
 
         return Database.query { session ->

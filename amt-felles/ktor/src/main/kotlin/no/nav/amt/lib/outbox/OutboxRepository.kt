@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 internal class OutboxRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    internal fun insertNewRecord(
+    internal suspend fun insertNewRecord(
         record: NewOutboxRecord,
         suppressOutsideTxWarning: Boolean = true,
     ): OutboxRecord {
@@ -60,7 +60,7 @@ internal class OutboxRepository {
         }
     }
 
-    fun findUnprocessedRecords(limit: Int): List<OutboxRecord> {
+    suspend fun findUnprocessedRecords(limit: Int): List<OutboxRecord> {
         val sql =
             """
             SELECT * 
@@ -78,7 +78,7 @@ internal class OutboxRepository {
         }
     }
 
-    fun deleteOutboxRecord(recordId: OutboxRecordId) {
+    suspend fun deleteOutboxRecord(recordId: OutboxRecordId) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -89,7 +89,7 @@ internal class OutboxRepository {
         }
     }
 
-    fun markAsFailed(
+    suspend fun markAsFailed(
         recordId: OutboxRecordId,
         errorMessage: String,
     ) {
@@ -115,7 +115,7 @@ internal class OutboxRepository {
         }
     }
 
-    fun get(id: OutboxRecordId): OutboxRecord? = Database.query { session ->
+    suspend fun get(id: OutboxRecordId): OutboxRecord? = Database.query { session ->
         session.single(
             queryOf(
                 "SELECT * FROM outbox_record WHERE id = :id",

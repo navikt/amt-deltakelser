@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.navtiltakskoordinator.endring
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -31,12 +32,12 @@ class EndringFraTiltakskoordinatorRepositoryTest {
     }
 
     @Test
-    fun `insert - ingen endring - feiler ikke`() {
+    fun `insert - ingen endring - feiler ikke`() = runTest {
         endringFraTiltakskoordinatorRepository.insert(emptyList()) shouldBe Unit
     }
 
     @Test
-    fun `insert - en endring - inserter`() {
+    fun `insert - en endring - inserter`() = runTest {
         with(EndringFraTiltakskoordinatorCtx()) {
             endringFraTiltakskoordinatorRepository.insert(listOf(endring))
             assertEndringLagret(this)
@@ -44,7 +45,7 @@ class EndringFraTiltakskoordinatorRepositoryTest {
     }
 
     @Test
-    fun `insert - flere endringer - inserter`() {
+    fun `insert - flere endringer - inserter`() = runTest {
         val endring1Ctx = EndringFraTiltakskoordinatorCtx()
         val endring2Ctx = EndringFraTiltakskoordinatorCtx()
 
@@ -54,7 +55,7 @@ class EndringFraTiltakskoordinatorRepositoryTest {
         assertEndringLagret(endring2Ctx)
     }
 
-    private fun assertEndringLagret(ctx: EndringFraTiltakskoordinatorCtx) {
+    private suspend fun assertEndringLagret(ctx: EndringFraTiltakskoordinatorCtx) {
         val lagretEndring1 = endringFraTiltakskoordinatorRepository.getForDeltaker(ctx.deltaker.id).first()
         sammenlignEndringFraTiltakskoordinator(ctx.endring, lagretEndring1)
     }
@@ -95,10 +96,12 @@ data class EndringFraTiltakskoordinatorCtx(
     private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
 
     init {
-        TestRepository.insertAll(navEnhet, navAnsatt, deltakerliste, deltaker)
+        runTest {
+            TestRepository.insertAll(navEnhet, navAnsatt, deltakerliste, deltaker)
+        }
     }
 
-    fun medStatusDeltar() {
+    suspend fun medStatusDeltar() {
         deltaker = deltaker.copy(
             id = UUID.randomUUID(),
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -106,7 +109,7 @@ data class EndringFraTiltakskoordinatorCtx(
         TestRepository.insert(deltaker)
     }
 
-    fun medInnsok() {
+    suspend fun medInnsok() {
         val innsok = TestData.lagInnsoktPaaKurs(
             deltakerId = deltaker.id,
             innsoktAv = navAnsatt.id,

@@ -1,8 +1,9 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import io.kotest.matchers.shouldBe
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
@@ -65,13 +66,13 @@ class DeltakerKafkaPayloadBuilderTest {
 
     @BeforeEach
     fun init() {
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
-        every { navAnsattRepository.getOrThrow(veileder.id) } returns veileder
-        every { navEnhetRepository.getOrThrow(navEnhet.id) } returns navEnhet
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        coEvery { navAnsattRepository.getOrThrow(veileder.id) } returns veileder
+        coEvery { navEnhetRepository.getOrThrow(navEnhet.id) } returns navEnhet
     }
 
     @Test
-    fun `buildDeltakerV1Record - deltaker med deltakelsesmengder - v1 har deltakelsesmengder`() {
+    fun `buildDeltakerV1Record - deltaker med deltakelsesmengder - v1 har deltakelsesmengder`() = runTest {
         deltakerKafkaPayloadBuilder
             .buildDeltakerV1Record(deltaker)
             .deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
@@ -85,7 +86,7 @@ class DeltakerKafkaPayloadBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerV1Record - deltaker med pa tiltak som ikke skal ha deltakelsesmengder - v1 har ikke deltakelsesmengder`(): Unit =
+    fun `buildDeltakerV1Record - deltaker med pa tiltak som ikke skal ha deltakelsesmengder - v1 har ikke deltakelsesmengder`() = runTest {
         Tiltakskode.entries
             .filter {
                 it !in setOf(
@@ -103,9 +104,10 @@ class DeltakerKafkaPayloadBuilderTest {
                 )
                 deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
             }
+    }
 
     @Test
-    fun `buildDeltakerV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() {
+    fun `buildDeltakerV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() = runTest {
         val nyStartdato = deltaker.startdato!!.plusMonths(1)
         val deltakerMedStartDatoFrem = deltaker
             .copy(startdato = nyStartdato)
@@ -121,7 +123,7 @@ class DeltakerKafkaPayloadBuilderTest {
             endretAvEnhet = navEnhet.id,
         )
         historikk.add(DeltakerHistorikk.Endring(endring))
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         deltakerKafkaPayloadBuilder
             .buildDeltakerV1Record(deltakerMedStartDatoFrem)
@@ -131,7 +133,7 @@ class DeltakerKafkaPayloadBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerEksternV1Record - deltaker med veileder - eksternv1 har veileder`() {
+    fun `buildDeltakerEksternV1Record - deltaker med veileder - eksternv1 har veileder`() = runTest {
         deltakerKafkaPayloadBuilder
             .buildDeltakerEksternV1Record(deltaker)
             .navVeileder shouldBe DeltakerEksternV1Dto.NavVeilederDto(
@@ -141,7 +143,7 @@ class DeltakerKafkaPayloadBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerEksternV1Record - deltaker med deltakelsesmengder - eksternV1 har deltakelsesmengder`() {
+    fun `buildDeltakerEksternV1Record - deltaker med deltakelsesmengder - eksternV1 har deltakelsesmengder`() = runTest {
         deltakerKafkaPayloadBuilder
             .buildDeltakerEksternV1Record(deltaker)
             .deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
@@ -155,26 +157,28 @@ class DeltakerKafkaPayloadBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerEksternV1Record - tiltak uten deltakelsesmengder - har ikke deltakelsesmengder`(): Unit = Tiltakskode.entries
-        .filter {
-            it !in setOf(
-                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                Tiltakskode.STUDIESPESIALISERING,
-                Tiltakskode.FAG_OG_YRKESOPPLAERING,
-                Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-            )
-        }.forEach {
-            val deltaker2 = deltaker.copy(
-                deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
-            )
-            deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
-        }
+    fun `buildDeltakerEksternV1Record - tiltak uten deltakelsesmengder - har ikke deltakelsesmengder`() = runTest {
+        Tiltakskode.entries
+            .filter {
+                it !in setOf(
+                    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                    Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                    Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                    Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                    Tiltakskode.STUDIESPESIALISERING,
+                    Tiltakskode.FAG_OG_YRKESOPPLAERING,
+                    Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+                )
+            }.forEach {
+                val deltaker2 = deltaker.copy(
+                    deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
+                )
+                deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
+            }
+    }
 
     @Test
-    fun `buildDeltakerEksternV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() {
+    fun `buildDeltakerEksternV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() = runTest {
         val nyStartdato = deltaker.startdato!!.plusMonths(1)
         val deltakerMedStartDatoFrem = deltaker
             .copy(startdato = nyStartdato)
@@ -190,7 +194,7 @@ class DeltakerKafkaPayloadBuilderTest {
             endretAvEnhet = navEnhet.id,
         )
         historikk.add(DeltakerHistorikk.Endring(endring))
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         deltakerKafkaPayloadBuilder
             .buildDeltakerEksternV1Record(deltakerMedStartDatoFrem)

@@ -33,7 +33,7 @@ class NavAnsattServiceTest {
     @Nested
     inner class HentNavAnsatt {
         @Test
-        fun `skal returnere Nav-ansatt nar den finnes i db`() {
+        fun `skal returnere Nav-ansatt nar den finnes i db`() = runTest {
             val navAnsatt = lagNavAnsatt()
             navAnsattRepository.upsert(navAnsatt)
 
@@ -42,7 +42,7 @@ class NavAnsattServiceTest {
         }
 
         @Test
-        fun `skal kaste exception nar Nav-ansatt ikke finnes i db`() {
+        fun `skal kaste exception nar Nav-ansatt ikke finnes i db`() = runTest {
             shouldThrow<NoSuchElementException> {
                 navAnsattService.hentNavAnsatt("~nav-ident~")
             }
@@ -75,7 +75,7 @@ class NavAnsattServiceTest {
     }
 
     @Test
-    fun `oppdaterNavAnsatt - Nav-ansatt finnes - blir oppdatert`() {
+    fun `oppdaterNavAnsatt - Nav-ansatt finnes - blir oppdatert`() = runTest {
         val navAnsatt = lagNavAnsatt()
         navAnsattRepository.upsert(navAnsatt)
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
@@ -86,7 +86,7 @@ class NavAnsattServiceTest {
     }
 
     @Test
-    fun `slettNavAnsatt - Nav-ansatt blir slettet`() {
+    fun `slettNavAnsatt - Nav-ansatt blir slettet`() = runTest {
         val navAnsatt = lagNavAnsatt()
         navAnsattRepository.upsert(navAnsatt)
 
@@ -96,7 +96,7 @@ class NavAnsattServiceTest {
     }
 
     @Test
-    fun `hentAnsatteForDeltaker - deltaker endret av flere ansatte - returnerer alle ansatte`() {
+    fun `hentAnsatteForDeltaker - deltaker endret av flere ansatte - returnerer alle ansatte`() = runTest {
         val deltaker = TestData.lagDeltaker()
 
         assertSoftly(deltaker.vedtaksinformasjon.shouldNotBeNull()) {
@@ -117,7 +117,7 @@ class NavAnsattServiceTest {
     }
 
     @Test
-    fun `hentAnsatteForHistorikk - historikk endret av flere ansatte - returnerer alle ansatte`() {
+    fun `hentAnsatteForHistorikk - historikk endret av flere ansatte - returnerer alle ansatte`() = runTest {
         val deltaker = TestData.lagDeltaker()
 
         val vedtak = TestData.lagVedtak(

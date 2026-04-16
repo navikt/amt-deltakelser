@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.endring.extensions
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
@@ -14,7 +15,7 @@ import java.time.LocalDate
 
 class EndreSluttdatoExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - endret sluttdato`() {
+    fun `oppdaterDeltaker - endret sluttdato`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val endringsrequest = SluttdatoRequest(
             endretAv = randomNavIdent(),
@@ -38,7 +39,7 @@ class EndreSluttdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret sluttdato frem i tid - endrer status og sluttdato`() {
+    fun `oppdaterDeltaker - endret sluttdato frem i tid - endrer status og sluttdato`() = runTest {
         val deltaker = TestData.lagDeltaker()
         val endringsrequest = SluttdatoRequest(
             endretAv = randomNavIdent(),

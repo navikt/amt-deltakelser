@@ -29,7 +29,7 @@ class NavEnhetService(
         return repository.upsert(navEnhet)
     }
 
-    fun getEnheter(ider: Set<UUID>) = repository.getMany(ider).associateBy { it.id }
+    suspend fun getEnheter(ider: Set<UUID>) = repository.getMany(ider).associateBy { it.id }
 
     suspend fun hentNavEnheterForDeltaker(
         deltaker: Deltaker,

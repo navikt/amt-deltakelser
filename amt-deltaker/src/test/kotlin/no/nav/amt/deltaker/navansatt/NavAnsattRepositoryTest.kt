@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -23,18 +25,20 @@ class NavAnsattRepositoryTest {
 
     @BeforeEach
     fun setup() {
-        navEnhetRepository.upsert(navEnhet)
+        runBlocking {
+            navEnhetRepository.upsert(navEnhet)
+        }
     }
 
     @Nested
     inner class GetManyByIdTests {
         @Test
-        fun `tomt sett med ider - returnerer tom liste`() {
+        fun `tomt sett med ider - returnerer tom liste`() = runTest {
             navAnsattRepository.getManyById(emptySet()) shouldBe emptyList()
         }
 
         @Test
-        fun `flere ider - returnerer flere ansatte`() {
+        fun `flere ider - returnerer flere ansatte`() = runTest {
             // Arrange
             val ansatteInTest = List(3) { lagNavAnsatt(navEnhetId = navEnhet.id) }
             ansatteInTest.forEach { navAnsattRepository.upsert(it) }
@@ -50,12 +54,12 @@ class NavAnsattRepositoryTest {
     @Nested
     inner class GetManyByNavIdentTests {
         @Test
-        fun `tomt sett med Nav-identer - returnerer tom liste`() {
+        fun `tomt sett med Nav-identer - returnerer tom liste`() = runTest {
             navAnsattRepository.getManyByNavIdent(emptySet()) shouldBe emptyList()
         }
 
         @Test
-        fun `flere Nav-identer - returnerer flere ansatte`() {
+        fun `flere Nav-identer - returnerer flere ansatte`() = runTest {
             // Arrange
             val ansatteInTest = List(3) { lagNavAnsatt(navEnhetId = navEnhet.id) }
             ansatteInTest.forEach { navAnsattRepository.upsert(it) }
@@ -69,7 +73,7 @@ class NavAnsattRepositoryTest {
     }
 
     @Test
-    fun `slettNavAnsatt - navansatt blir slettet`() {
+    fun `slettNavAnsatt - navansatt blir slettet`() = runTest {
         val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
         navAnsattRepository.upsert(navAnsatt)
 

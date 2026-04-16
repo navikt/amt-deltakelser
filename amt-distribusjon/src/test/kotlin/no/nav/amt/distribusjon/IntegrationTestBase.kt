@@ -6,7 +6,6 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerClient
 import no.nav.amt.distribusjon.application.plugins.configureAuthentication
@@ -105,7 +104,7 @@ abstract class IntegrationTestBase {
             dokdistkanalClient.bestemDistribusjonskanal(any(), any())
         } returns Distribusjonskanal.DITT_NAV
 
-        every { outboxService.insertRecord(any(), any(), any()) } returns mockk()
+        coEvery { outboxService.insertRecord(any(), any(), any()) } returns mockk()
     }
 
     protected fun <T : Any> withTestApplicationContext(

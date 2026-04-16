@@ -43,7 +43,7 @@ class OutboxProcessor(
         ) { processRecords() }
     }
 
-    internal fun processRecords() {
+    internal suspend fun processRecords() {
         try {
             val unprocessedRecords = outboxService.findUnprocessedRecords(DEFAULT_BATCH_SIZE)
             if (unprocessedRecords.isEmpty()) return
@@ -61,7 +61,7 @@ class OutboxProcessor(
                     }
                     process(record)
                 } catch (e: Exception) {
-                    outboxService.markAsFailed(record, e.message ?: e::class.java.name)
+                    outboxService.markAsFailed(record = record, errorMessage = e.message ?: e::class.java.name)
                     log.error("Failed to process outbox-record ${record.id}", e)
                     failedKeys.add(KeyTopicPair(record.key, record.topic))
                 }
@@ -71,7 +71,7 @@ class OutboxProcessor(
         }
     }
 
-    private fun process(record: OutboxRecord) {
+    private suspend fun process(record: OutboxRecord) {
         producer.produce(
             topic = record.topic,
             key = record.key,

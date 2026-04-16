@@ -68,7 +68,7 @@ class TestdataService(
         return deltakerRepository.get(deltakerId).getOrThrow()
     }
 
-    private fun deltakerFinnesAllerede(opprettTestDeltakelseRequest: OpprettTestDeltakelseRequest) {
+    private suspend fun deltakerFinnesAllerede(opprettTestDeltakelseRequest: OpprettTestDeltakelseRequest) {
         val eksisterendeDeltaker = deltakerRepository
             .getMany(opprettTestDeltakelseRequest.personident, opprettTestDeltakelseRequest.deltakerlisteId)
             .firstOrNull { !it.harSluttet() }

@@ -12,7 +12,7 @@ import java.util.UUID
 object DeltakerProgresjonHandler {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getAvsluttendeStatusUtfall(deltakere: List<Deltaker>): List<Deltaker> {
+    suspend fun getAvsluttendeStatusUtfall(deltakere: List<Deltaker>): List<Deltaker> {
         if (deltakere.isEmpty()) {
             return emptyList()
         }

@@ -80,7 +80,7 @@ class ResponseBuilder(
         )
     }
 
-    internal fun buildGjennomforingResponse(deltakerliste: Deltakerliste) = GjennomforingResponse(
+    internal suspend fun buildGjennomforingResponse(deltakerliste: Deltakerliste) = GjennomforingResponse(
         id = deltakerliste.id,
         tiltakstype = deltakerliste.tiltakstype,
         navn = deltakerliste.navn,

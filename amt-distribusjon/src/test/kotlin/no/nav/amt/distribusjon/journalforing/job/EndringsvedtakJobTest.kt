@@ -2,7 +2,6 @@ package no.nav.amt.distribusjon.journalforing.job
 
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
@@ -145,8 +144,8 @@ class EndringsvedtakJobTest {
         val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
 
-        every { hendelseRepository.hentIkkeJournalforteHendelser() } returns hendelser
-        every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
+        coEvery { hendelseRepository.hentIkkeJournalforteHendelser() } returns hendelser
+        coEvery { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
 
         return TestSetup(
             job = EndringsvedtakJob(jobManager, hendelseRepository, journalforingService),

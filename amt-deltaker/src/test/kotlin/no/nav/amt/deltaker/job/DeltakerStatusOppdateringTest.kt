@@ -4,7 +4,9 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_V1_TOPIC
@@ -40,8 +42,10 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
 
     @BeforeEach
     fun setup() {
-        navEnhetRepository.upsert(sistEndretAvNavEnhet)
-        navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+        runBlocking {
+            navEnhetRepository.upsert(sistEndretAvNavEnhet)
+            navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+        }
     }
 
     @Test
@@ -457,7 +461,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         )
         TestRepository.insert(deltaker2, vedtak2)
 
-        every {
+        coEvery {
             outboxService.insertRecord(
                 key = deltaker1.id,
                 value = any(),

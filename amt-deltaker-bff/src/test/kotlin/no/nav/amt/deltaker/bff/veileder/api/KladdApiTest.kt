@@ -49,9 +49,9 @@ class KladdApiTest : IntegrationTestBase() {
         val navEnhet = lagNavEnhet(id = deltakerInTest.vedtaksinformasjon!!.sistEndretAvEnhet)
 
         coEvery { pameldingService.opprettKladd(any(), any()) } returns deltakerInTest
-        every { navAnsattService.hentAnsatteForDeltaker(deltakerInTest) } returns ansatte
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
-        every { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+        coEvery { navAnsattService.hentAnsatteForDeltaker(deltakerInTest) } returns ansatte
+        coEvery { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
+        coEvery { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
         withTestApplicationContext { httpClient ->
@@ -78,7 +78,7 @@ class KladdApiTest : IntegrationTestBase() {
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
-        every { deltakerRepository.get(any()) } returns Result.success(
+        coEvery { deltakerRepository.get(any()) } returns Result.success(
             deltakerInTest.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             ),
@@ -106,7 +106,7 @@ class KladdApiTest : IntegrationTestBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
         )
 
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
         coEvery { pameldingService.upsertKladd(any()) } returns deltaker
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         coEvery { paameldingClient.oppdaterKladd(deltakerInTest.id, any()) } returns mockk<HttpResponse>()
@@ -124,7 +124,7 @@ class KladdApiTest : IntegrationTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         coEvery { pameldingService.upsertKladd(any()) } throws IllegalArgumentException()
 
@@ -140,7 +140,7 @@ class KladdApiTest : IntegrationTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         coEvery { pameldingService.slettKladd(deltaker.id) } returns false
 
@@ -156,7 +156,7 @@ class KladdApiTest : IntegrationTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
         coEvery { pameldingService.slettKladd(deltaker.id) } returns true
 

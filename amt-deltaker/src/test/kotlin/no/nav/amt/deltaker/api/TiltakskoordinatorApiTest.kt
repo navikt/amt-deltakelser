@@ -6,8 +6,8 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -39,9 +39,9 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `del-med-arrangor - har tilgang - returnerer 200`() {
+    fun `del-med-arrangor - har tilgang - returnerer 200`() = runTest {
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
@@ -54,7 +54,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),
@@ -72,7 +72,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),

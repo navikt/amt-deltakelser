@@ -7,7 +7,7 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class NavEnhetRepository {
-    fun upsert(navEnhet: NavEnhet): NavEnhetDbo {
+    suspend fun upsert(navEnhet: NavEnhet): NavEnhetDbo {
         val sql =
             """
             INSERT INTO nav_enhet (
@@ -41,7 +41,7 @@ class NavEnhetRepository {
         }
     }
 
-    fun get(enhetsnummer: String): NavEnhetDbo? = Database.query { session ->
+    suspend fun get(enhetsnummer: String): NavEnhetDbo? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
@@ -50,7 +50,7 @@ class NavEnhetRepository {
         )
     }
 
-    fun get(id: UUID): NavEnhetDbo? = Database.query { session ->
+    suspend fun get(id: UUID): NavEnhetDbo? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM nav_enhet WHERE id = :id",
@@ -59,7 +59,7 @@ class NavEnhetRepository {
         )
     }
 
-    fun getMany(enhetIder: List<UUID>): List<NavEnhetDbo> {
+    suspend fun getMany(enhetIder: List<UUID>): List<NavEnhetDbo> {
         if (enhetIder.isEmpty()) return emptyList()
 
         return Database.query { session ->

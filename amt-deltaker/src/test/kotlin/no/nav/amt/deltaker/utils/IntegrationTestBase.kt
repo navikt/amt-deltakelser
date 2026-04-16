@@ -10,6 +10,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
@@ -369,7 +370,7 @@ abstract class IntegrationTestBase {
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
 
         val mockOutboxRecord = mockk<OutboxRecord>()
-        every {
+        coEvery {
             outboxService.insertRecord(any(), any(), any(), any())
         } returns mockOutboxRecord
     }

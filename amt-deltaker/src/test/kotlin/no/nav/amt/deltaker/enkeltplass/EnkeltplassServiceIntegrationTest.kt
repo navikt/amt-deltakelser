@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -48,9 +49,12 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
     @BeforeEach
     fun setup() {
-        navEnhetRepository.upsert(sistEndretAvNavEnhet)
-        navAnsattRepository.upsert(sistEndretAvNavAnsatt)
-        navBrukerRepository.upsert(navBrukerInTest)
+        runBlocking {
+            navEnhetRepository.upsert(sistEndretAvNavEnhet)
+            navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+            navBrukerRepository.upsert(navBrukerInTest)
+            TiltakstypeRepository().upsert(tiltakInTest)
+        }
 
         sistEndretAvNavAnsatt.navEnhetId?.let {
             coEvery { personServiceClient.hentNavEnhet(it) } returns lagNavEnhet(it)
@@ -59,8 +63,6 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         coEvery { personServiceClient.hentNavEnhet(sistEndretAvNavEnhet.id) } returns sistEndretAvNavEnhet
         coEvery { personServiceClient.hentNavAnsatt(sistEndretAvNavAnsatt.id) } returns sistEndretAvNavAnsatt
         coEvery { personServiceClient.hentNavBruker(navBrukerInTest.personident) } returns navBrukerInTest
-
-        TiltakstypeRepository().upsert(tiltakInTest)
     }
 
     @Nested

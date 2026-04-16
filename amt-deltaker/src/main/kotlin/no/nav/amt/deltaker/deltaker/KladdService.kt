@@ -50,7 +50,7 @@ class KladdService(
             }
     }
 
-    fun oppdaterKladd(
+    suspend fun oppdaterKladd(
         deltaker: Deltaker,
         innhold: List<Innhold>,
         bakgrunnsinformasjon: String?,

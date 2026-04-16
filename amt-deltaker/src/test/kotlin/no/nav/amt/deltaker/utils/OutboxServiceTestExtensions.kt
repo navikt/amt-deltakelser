@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.utils
 
-import io.mockk.verify
+import io.mockk.coVerify
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.hendelse.Hendelse
@@ -12,7 +12,7 @@ inline fun <reified T : Any> OutboxService.assertProduced(
     expectedDeltakerId: UUID,
     expectedTopic: String,
 ) {
-    verify {
+    coVerify {
         insertRecord(
             key = expectedDeltakerId,
             value = ofType<T>(),
@@ -23,7 +23,7 @@ inline fun <reified T : Any> OutboxService.assertProduced(
 }
 
 inline fun <reified T : HendelseType> OutboxService.assertProducedHendelse(expectedDeltakerId: UUID) {
-    verify {
+    coVerify {
         insertRecord(
             key = expectedDeltakerId,
             value = match {
@@ -36,7 +36,7 @@ inline fun <reified T : HendelseType> OutboxService.assertProducedHendelse(expec
 }
 
 inline fun <reified T : Forslag.Status> OutboxService.assertProducedForslag(expectedForslagId: UUID) {
-    verify {
+    coVerify {
         insertRecord(
             key = expectedForslagId,
             value = match {

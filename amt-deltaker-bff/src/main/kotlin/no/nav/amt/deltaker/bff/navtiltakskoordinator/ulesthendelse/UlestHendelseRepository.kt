@@ -10,7 +10,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class UlestHendelseRepository {
-    fun getForDeltaker(deltakerId: UUID): List<UlestHendelse> {
+    suspend fun getForDeltaker(deltakerId: UUID): List<UlestHendelse> {
         val query = queryOf(
             """
             SELECT 
@@ -28,7 +28,7 @@ class UlestHendelseRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun get(id: UUID): Result<UlestHendelse> = runCatching {
+    suspend fun get(id: UUID): Result<UlestHendelse> = runCatching {
         val query = queryOf(
             """
             SELECT 
@@ -49,7 +49,7 @@ class UlestHendelseRepository {
         }
     }
 
-    fun upsert(ulestHendelse: UlestHendelse) {
+    suspend fun upsert(ulestHendelse: UlestHendelse) {
         val sql =
             """
             INSERT INTO ulest_hendelse(
@@ -85,7 +85,7 @@ class UlestHendelseRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun delete(id: UUID) = Database.query { session ->
+    suspend fun delete(id: UUID) = Database.query { session ->
         session.update(
             queryOf(
                 "DELETE FROM ulest_hendelse WHERE id = :id",

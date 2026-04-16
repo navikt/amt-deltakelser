@@ -2,6 +2,7 @@ package no.nav.amt.lib.utils.database
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -9,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotliquery.TransactionalSession
 import no.nav.amt.lib.testing.TestPostgresContainer
+import no.nav.amt.lib.utils.database.Database.TxContext
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.milliseconds
@@ -21,18 +23,17 @@ class DatabaseTransactionalSessionTest {
     }
 
     @Test
-    fun `transactionalSession skal være null uten en transaksjonsblokk`() {
-        Database.transactionalSession shouldBe null
+    fun `transactionalSession skal være null uten en transaksjonsblokk`() = runTest {
+        currentCoroutineContext()[TxContext]?.tx shouldBe null
     }
 
     @Test
     fun `transactionalSession skal ikke være null i en transaksjonsblokk og fjernes etter blokken`() = runTest {
         var insideSession: TransactionalSession?
         Database.transaction {
-            insideSession = Database.transactionalSession
-            insideSession shouldNotBe null
+            currentCoroutineContext()[TxContext]?.tx shouldNotBe null
         }
-        Database.transactionalSession shouldBe null
+        currentCoroutineContext()[TxContext]?.tx shouldBe null
     }
 
     @Test
@@ -41,10 +42,10 @@ class DatabaseTransactionalSessionTest {
         var secondSession: TransactionalSession? = null
 
         Database.transaction {
-            firstSession = Database.transactionalSession
+            firstSession = Database.currentTx().session
         }
         Database.transaction {
-            secondSession = Database.transactionalSession
+            secondSession = Database.currentTx().session
         }
 
         firstSession shouldNotBe null
@@ -62,7 +63,7 @@ class DatabaseTransactionalSessionTest {
                 launch {
                     delay(1000.milliseconds)
                     Database.transaction {
-                        sessions.add(Database.transactionalSession)
+                        sessions.add(Database.currentTx().session)
                     }
                 }
             }

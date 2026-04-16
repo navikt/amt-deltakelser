@@ -48,13 +48,13 @@ class EndringFraArrangorService(
         return eksisterendeDeltaker
     }
 
-    private fun endretDeltaker(
+    private suspend fun endretDeltaker(
         deltaker: Deltaker,
         endring: EndringFraArrangor.Endring,
     ): Result<Deltaker> {
-        fun endreDeltaker(
+        suspend fun endreDeltaker(
             erEndret: Boolean,
-            block: () -> Deltaker,
+            block: suspend () -> Deltaker,
         ) = if (erEndret) {
             Result.success(block())
         } else {

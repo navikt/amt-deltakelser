@@ -3,6 +3,7 @@ package no.nav.amt.lib.outbox
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.prometheus.metrics.model.registry.PrometheusRegistry
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.outbox.metrics.PrometheusOutboxMeter
 import no.nav.amt.lib.testing.TestPostgresContainer
 import org.junit.jupiter.api.BeforeAll
@@ -35,7 +36,7 @@ class OutboxServiceTest {
     )
 
     @Test
-    fun `insertRecord creates and persists an record with correct fields`() {
+    fun `insertRecord creates and persists an record with correct fields`() = runTest {
         val value = TestValue("hello", 42)
         val key = UUID.randomUUID()
         val topic = "test-topic"
@@ -58,7 +59,7 @@ class OutboxServiceTest {
     }
 
     @Test
-    fun `insertRecord handles special characters in value fields`() {
+    fun `insertRecord handles special characters in value fields`() = runTest {
         data class SpecialCharValue(
             val foo: String,
         )
@@ -73,7 +74,7 @@ class OutboxServiceTest {
     }
 
     @Test
-    fun `insertRecord works with large and nested values`() {
+    fun `insertRecord works with large and nested values`() = runTest {
         val value = LargeValue(List(1000) { it }, Nested("deep"))
         val key = UUID.randomUUID()
         val topic = "large-topic"

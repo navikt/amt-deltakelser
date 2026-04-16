@@ -21,7 +21,7 @@ class TiltakstypeConsumerTest {
     }
 
     @Test
-    fun `consumeTiltakstype - ny, aktiv tiltakstype - lagrer tiltakstype`() {
+    fun `consumeTiltakstype - ny, aktiv tiltakstype - lagrer tiltakstype`() = runTest {
         val tiltakstype = TestData.lagTiltakstype()
         val tiltakstypeDto = TiltakstypeDto(
             id = tiltakstype.id,
@@ -32,12 +32,10 @@ class TiltakstypeConsumerTest {
         )
         val consumer = TiltakstypeConsumer(tiltakstypeRepository)
 
-        runTest {
-            consumer.consume(
-                tiltakstype.id,
-                objectMapper.writeValueAsString(tiltakstypeDto),
-            )
-        }
+        consumer.consume(
+            tiltakstype.id,
+            objectMapper.writeValueAsString(tiltakstypeDto),
+        )
 
         tiltakstypeRepository.get(tiltakstype.tiltakskode).shouldBeSuccess() shouldBe tiltakstype
     }

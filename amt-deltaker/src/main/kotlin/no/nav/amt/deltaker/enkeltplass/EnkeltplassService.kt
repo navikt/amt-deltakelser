@@ -174,7 +174,7 @@ class EnkeltplassService(
                 fattetDato = LocalDateTime.now(),
             )
             gjennomforingRequestProducer.produce(
-                GjennomforingRequestPayload.OpprettEnkeltplass(
+                payload = GjennomforingRequestPayload.OpprettEnkeltplass(
                     gjennomforingId = deltaker.deltakerliste.id,
                     tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
                     prisinformasjon = decoratedRequest.wrappedRequest.prisinformasjon,
@@ -190,7 +190,7 @@ class EnkeltplassService(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
         nyDeltakerStatus: DeltakerStatus.Type? = null,
-        doInTxBlock: (Deltaker) -> Unit = { _ -> },
+        doInTxBlock: suspend (Deltaker) -> Unit = { _ -> },
     ): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         val gjennomforing = deltaker.deltakerliste

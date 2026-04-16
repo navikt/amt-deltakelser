@@ -31,7 +31,7 @@ class NavEnhetService(
         return upsert(navEnhet)
     }
 
-    fun hentEnhet(id: UUID) = repository.get(id)?.toNavEnhet()
+    suspend fun hentEnhet(id: UUID) = repository.get(id)?.toNavEnhet()
 
     suspend fun hentEnheterForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavEnhet> {
         val ider = historikk.flatMap { it.navEnheter() }.distinct()
@@ -52,7 +52,7 @@ class NavEnhetService(
         return manglendeEnheter.map { hentEllerOpprettEnhet(it) }
     }
 
-    fun hentEnheter(enhetIder: List<UUID>) = repository.getMany(enhetIder).map { it.toNavEnhet() }.associateBy { it.id }
+    suspend fun hentEnheter(enhetIder: List<UUID>) = repository.getMany(enhetIder).map { it.toNavEnhet() }.associateBy { it.id }
 
-    fun upsert(enhet: NavEnhet) = repository.upsert(enhet).toNavEnhet()
+    suspend fun upsert(enhet: NavEnhet) = repository.upsert(enhet).toNavEnhet()
 }

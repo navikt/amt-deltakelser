@@ -8,10 +8,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
@@ -65,7 +65,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
         )
 
-        private fun arrange(isHappyPathTest: Boolean = true) {
+        private suspend fun arrange(isHappyPathTest: Boolean = true) {
             if (isHappyPathTest) {
                 lagVedtak(deltakerVedVedtak = deltakerInTest).let { vedtak ->
                     TestRepository.insertAll(
@@ -82,7 +82,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
         @BeforeEach
         fun setup() {
-            every {
+            coEvery {
                 deltakerProducerService.produce(any(), any(), any(), any(), any())
             } just Runs
         }
@@ -124,7 +124,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            verify {
+            coVerify {
                 deltakerProducerService.produce(
                     deltaker = match { it.id == deltakerInTest.id },
                     forcedUpdate = any(),
@@ -151,7 +151,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            verify(exactly = 0) {
+            coVerify(exactly = 0) {
                 deltakerProducerService.produce(
                     deltaker = any(),
                     forcedUpdate = any(),
@@ -180,7 +180,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
             TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
 
-            every {
+            coEvery {
                 deltakerProducerService.produce(any(), any(), any(), any(), any())
             } just Runs
 
@@ -492,7 +492,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             )
             TestRepository.insert(deltaker2, vedtak2)
 
-            every {
+            coEvery {
                 deltakerProducerService.produce(any(), any(), any(), any(), any())
             } just Runs
 

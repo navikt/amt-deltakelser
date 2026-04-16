@@ -17,7 +17,7 @@ class VurderingRepositoryTest {
     }
 
     @Test
-    fun `upsert - ny vurdering - inserter`() {
+    suspend fun `upsert - ny vurdering - inserter`() {
         val deltaker = TestData.lagDeltaker()
         val vurdering = TestData.lagVurdering(deltakerId = deltaker.id)
         TestRepository.insert(deltaker)

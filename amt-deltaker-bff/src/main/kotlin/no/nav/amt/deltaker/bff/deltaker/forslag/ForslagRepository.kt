@@ -13,7 +13,7 @@ import java.util.UUID
 class ForslagRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getForDeltaker(deltakerId: UUID): List<Forslag> {
+    suspend fun getForDeltaker(deltakerId: UUID): List<Forslag> {
         val query = queryOf(
             """
             SELECT 
@@ -35,7 +35,7 @@ class ForslagRepository {
         }
     }
 
-    fun getForDeltakere(deltakerIder: List<UUID>): List<Forslag> {
+    suspend fun getForDeltakere(deltakerIder: List<UUID>): List<Forslag> {
         if (deltakerIder.isEmpty()) return emptyList()
 
         val query = queryOf(
@@ -59,7 +59,7 @@ class ForslagRepository {
         }
     }
 
-    fun get(id: UUID): Result<Forslag> = runCatching {
+    suspend fun get(id: UUID): Result<Forslag> = runCatching {
         val query = queryOf(
             """
             SELECT 
@@ -81,7 +81,7 @@ class ForslagRepository {
         }
     }
 
-    fun upsert(forslag: Forslag) {
+    suspend fun upsert(forslag: Forslag) {
         val sql =
             """
             INSERT INTO forslag (
@@ -125,7 +125,7 @@ class ForslagRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun delete(id: UUID) {
+    suspend fun delete(id: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -137,7 +137,7 @@ class ForslagRepository {
         log.info("Slettet godkjent forslag $id")
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) {
+    suspend fun deleteForDeltaker(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(
@@ -148,7 +148,7 @@ class ForslagRepository {
         }
     }
 
-    fun kanLagres(deltakerId: UUID): Boolean = Database.query { session ->
+    suspend fun kanLagres(deltakerId: UUID): Boolean = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT id FROM deltaker WHERE id = :id",

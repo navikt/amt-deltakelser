@@ -7,9 +7,9 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.Runs
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers
@@ -41,11 +41,11 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post pamelding utkast - har tilgang - returnerer 200`() {
+    fun `post pamelding utkast - har tilgang - returnerer 200`() = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
 
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
         coEvery { pameldingService.upsertUtkast(deltaker.id, any()) } returns deltaker
 
         withTestApplicationContext { client ->

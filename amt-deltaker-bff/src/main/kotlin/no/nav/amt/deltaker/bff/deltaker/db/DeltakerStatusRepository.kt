@@ -11,7 +11,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 object DeltakerStatusRepository {
-    fun insertIfNotExists(
+    suspend fun insertIfNotExists(
         deltakerId: UUID,
         deltakerStatus: DeltakerStatus,
     ) {
@@ -25,7 +25,7 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun batchInsert(deltakere: List<Deltakeroppdatering>) {
+    suspend fun batchInsert(deltakere: List<Deltakeroppdatering>) {
         Database.query { session ->
             session.batchPreparedNamedStatement(
                 insertStatusSql,
@@ -34,7 +34,7 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun slettTidligereStatuser(
+    suspend fun slettTidligereStatuser(
         deltakerId: UUID,
         deltakerStatus: DeltakerStatus,
     ) {
@@ -48,7 +48,7 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun batchSlettTidligereStatuser(deltakere: List<Deltakeroppdatering>) {
+    suspend fun batchSlettTidligereStatuser(deltakere: List<Deltakeroppdatering>) {
         val slettTidligereStatuserParams = deltakere
             .map { buildSlettTidligereStatuserParams(it.status, it.id) }
 
@@ -57,7 +57,7 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun getAktivDeltakerStatus(deltakerId: UUID): DeltakerStatus? = Database.query { session ->
+    suspend fun getAktivDeltakerStatus(deltakerId: UUID): DeltakerStatus? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM deltaker_status WHERE deltaker_id = :deltaker_id",
@@ -66,7 +66,7 @@ object DeltakerStatusRepository {
         )
     }
 
-    fun slettStatus(deltakerId: UUID) {
+    suspend fun slettStatus(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(

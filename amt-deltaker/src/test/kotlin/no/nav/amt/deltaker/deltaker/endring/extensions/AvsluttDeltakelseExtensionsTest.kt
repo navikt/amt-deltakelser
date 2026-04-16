@@ -5,6 +5,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
@@ -18,7 +19,7 @@ import java.util.UUID
 
 class AvsluttDeltakelseExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - avslutt deltakelse`() {
+    fun `oppdaterDeltaker - avslutt deltakelse`() = runTest {
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
@@ -44,7 +45,7 @@ class AvsluttDeltakelseExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`() {
+    fun `oppdaterDeltaker - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`() = runTest {
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
@@ -70,7 +71,7 @@ class AvsluttDeltakelseExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`() {
+    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`() = runTest {
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
@@ -103,7 +104,7 @@ class AvsluttDeltakelseExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`() {
+    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`() = runTest {
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),

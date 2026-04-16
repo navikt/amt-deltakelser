@@ -11,7 +11,7 @@ class ArrangorService(
 ) {
     suspend fun hentArrangor(orgnr: String): Arrangor = arrangorRepository.get(orgnr) ?: opprettArrangor(orgnr)
 
-    fun hentArrangor(id: UUID): Arrangor? = arrangorRepository.get(id)
+    suspend fun hentArrangor(id: UUID): Arrangor? = arrangorRepository.get(id)
 
     private suspend fun opprettArrangor(orgnr: String): Arrangor {
         val arrangor = amtArrangorClient.hentArrangor(orgnr)
@@ -22,7 +22,7 @@ class ArrangorService(
         return arrangor.toModel()
     }
 
-    fun getArrangorNavn(arrangor: Arrangor): String {
+    suspend fun getArrangorNavn(arrangor: Arrangor): String {
         val arrangor = arrangor.overordnetArrangorId?.let { arrangorRepository.get(it) } ?: arrangor
         return arrangor.navn.toTitleCase()
     }

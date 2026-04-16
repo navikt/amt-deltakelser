@@ -7,7 +7,7 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class JournalforingstatusRepository {
-    fun upsert(journalforingstatus: Journalforingstatus) {
+    suspend fun upsert(journalforingstatus: Journalforingstatus) {
         val sql =
             """
             INSERT INTO journalforingstatus (
@@ -43,7 +43,7 @@ class JournalforingstatusRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun get(hendelseId: UUID): Journalforingstatus? = Database.query { session ->
+    suspend fun get(hendelseId: UUID): Journalforingstatus? = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM journalforingstatus WHERE hendelse_id = :hendelse_id",

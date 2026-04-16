@@ -1,7 +1,7 @@
 package no.nav.amt.lib.utils.database
 
 import com.zaxxer.hikari.HikariDataSource
-import kotlinx.coroutines.asContextElement
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotliquery.Session
 import kotliquery.TransactionalSession
@@ -9,11 +9,57 @@ import kotliquery.sessionOf
 import kotliquery.using
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
 
 object Database {
+    class Tx internal constructor(
+        internal val session: TransactionalSession,
+    )
+
+    class TxContext(
+        val tx: Tx,
+    ) : AbstractCoroutineContextElement(Key) {
+        companion object Key : CoroutineContext.Key<TxContext>
+    }
+
+    suspend fun currentTx(): Tx = currentCoroutineContext()[TxContext]?.tx
+        ?: error("No active transaction")
+
+    suspend fun <T> query(block: (Session) -> T): T {
+        val tx = currentCoroutineContext()[TxContext]?.tx
+
+        return if (tx != null) {
+            block(tx.session)
+        } else {
+            queryWithNewSession(block)
+        }
+    }
+
+    suspend fun <T> transaction(block: suspend (Tx) -> T): T {
+        check(currentCoroutineContext()[TxContext] == null) {
+            "Nested transactions are not supported"
+        }
+
+        val session = sessionOf(dataSource)
+
+        return session.use {
+            session.transaction { tx ->
+                val wrapped = Tx(tx)
+                val ctx = TxContext(wrapped)
+
+                withContext(ctx) {
+                    block(wrapped)
+                }
+            }
+        }
+    }
+
+    private fun <T> queryWithNewSession(block: (Session) -> T): T = using(sessionOf(dataSource)) { session ->
+        block(session)
+    }
+
     private lateinit var dataSource: DataSource
-    private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
-    internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
     fun init(config: DatabaseConfig) {
         dataSource = HikariDataSource().apply {
@@ -34,44 +80,6 @@ object Database {
         }
 
         runMigration()
-    }
-
-    fun <A> query(block: (Session) -> A): A = if (transactionalSession != null) {
-        block(transactionalSession!!)
-    } else {
-        queryWithNewSession(block)
-    }
-
-    /**
-     * Kjør synkron kode innenfor en database-transaksjon.
-     *
-     * Blokken må ikke suspendere eller bytte coroutine dispatcher.
-     * Transaksjonen er tråd-bundet og basert på JDBC.
-     *
-     * @param block Kode som skal kjøres i transaksjon
-     * @return Resultatet fra blokken
-     * @throws IllegalStateException hvis funksjonen kalles mens en annen transaksjon er aktiv
-     * @throws [org.postgresql.util.PSQLException] hvis en utilsiktet prøver å committe direkte via session.transaction innenfor aktiv transaksjon
-     */
-    suspend fun <T> transaction(block: () -> T): T {
-        check(transactionalSession == null) { "Nested transactions are not supported" }
-
-        return sessionOf(dataSource).use { session ->
-            session.transaction { tx ->
-                val txContext = transactionalSessionThreadLocal.asContextElement(tx)
-                withContext(txContext) {
-                    try {
-                        block()
-                    } finally {
-                        transactionalSessionThreadLocal.remove()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun <A> queryWithNewSession(block: (Session) -> A): A = using(sessionOf(dataSource)) { session ->
-        block(session)
     }
 
     fun close() {

@@ -2,9 +2,10 @@ package no.nav.amt.deltaker.job
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -32,13 +33,13 @@ class DeltakerProgresjonTest {
     fun teardown() = unmockkObject(DeltakerStatusRepository)
 
     @Test
-    fun `getAvsluttendeStatusUtfall - ingen deltakere - returnerer tom liste`() {
+    fun `getAvsluttendeStatusUtfall - ingen deltakere - returnerer tom liste`() = runTest {
         val oppdatertDeltakere = DeltakerProgresjonHandler.getAvsluttendeStatusUtfall(emptyList())
         oppdatertDeltakere shouldBe emptyList()
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - deltaker deltatt paa opplaering - status fullfort`() {
+    fun `getAvsluttendeStatusUtfall - deltaker deltatt paa opplaering - status fullfort`() = runTest {
         val yesterday = LocalDate.now().minusDays(1)
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(
@@ -52,7 +53,7 @@ class DeltakerProgresjonTest {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
-        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
+        coEvery { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
         val oppdatertDeltaker = DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
@@ -67,7 +68,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - deltaker deltatt paa lopende oppstart - status har sluttet`() {
+    fun `getAvsluttendeStatusUtfall - deltaker deltatt paa lopende oppstart - status har sluttet`() = runTest {
         val yesterday = LocalDate.now().minusDays(1)
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(
@@ -82,7 +83,7 @@ class DeltakerProgresjonTest {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
-        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
+        coEvery { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
         val oppdatertDeltaker = DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
@@ -97,7 +98,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() {
+    fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() = runTest {
         val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
@@ -106,7 +107,7 @@ class DeltakerProgresjonTest {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
-        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
+        coEvery { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
         val oppdatertDeltaker = DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
@@ -120,7 +121,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - venter avbrutt deltakerliste - far riktig status og arsak`() {
+    fun `getAvsluttendeStatusUtfall - venter avbrutt deltakerliste - far riktig status og arsak`() = runTest {
         val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
@@ -129,7 +130,7 @@ class DeltakerProgresjonTest {
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
 
-        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
+        coEvery { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
         val oppdatertDeltaker = DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
@@ -144,7 +145,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - fremtig avsluttende status - returnerer deltaker med neste status`() {
+    fun `getAvsluttendeStatusUtfall - fremtig avsluttende status - returnerer deltaker med neste status`() = runTest {
         val deltakerliste = lagDeltakerlisteMedDirekteVedtak().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
@@ -163,7 +164,7 @@ class DeltakerProgresjonTest {
                 opprettet = LocalDateTime.now().minusDays(2),
             )
 
-        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns listOf(
+        coEvery { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns listOf(
             DeltakerStatusMedDeltakerId(fremtidigStatus, deltaker.id),
         )
 

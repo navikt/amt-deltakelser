@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -48,8 +49,10 @@ data class DeltakerContext(
 
     init {
         TestPostgresContainer.bootstrap()
-        NavEnhetRepository().upsert(navEnhet)
-        NavAnsattRepository().upsert(veileder)
+        runBlocking {
+            NavEnhetRepository().upsert(navEnhet)
+            NavAnsattRepository().upsert(veileder)
+        }
     }
 
     fun withTiltakstype(tiltakskode: Tiltakskode) {
@@ -58,7 +61,7 @@ data class DeltakerContext(
         )
     }
 
-    fun medVedtak(fattet: Boolean = true) {
+    suspend fun medVedtak(fattet: Boolean = true) {
         vedtak = vedtak.copy(fattet = if (fattet) deltaker.sistEndret.minusMonths(3) else null)
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)

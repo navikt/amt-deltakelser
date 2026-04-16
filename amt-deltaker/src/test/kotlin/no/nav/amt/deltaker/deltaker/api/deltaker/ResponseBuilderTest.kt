@@ -130,7 +130,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `buildGjennomforingResponse - skal mappe deltakerliste korrekt`() {
+    fun `buildGjennomforingResponse - skal mappe deltakerliste korrekt`() = runTest {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             status = GjennomforingStatusType.GJENNOMFORES,
@@ -142,7 +142,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
             pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
-        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
+        coEvery { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
 
         // Act
         val gjennomforingResponse = responseBuilder.buildGjennomforingResponse(deltakerliste)
@@ -246,10 +246,10 @@ class ResponseBuilderTest : IntegrationTestBase() {
         )
 
         coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
-        every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
-        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
-        every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
+        coEvery { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
+        coEvery { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
+        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
+        coEvery { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
         val expectedForslag = listOf(
             Forslag(
@@ -275,7 +275,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
             idSelector = { it.id },
         )
 
-        every { forslagRepository.getForDeltaker(any()) } returns expectedForslag
+        coEvery { forslagRepository.getForDeltaker(any()) } returns expectedForslag
 
         // Act
         val deltakerResponse = responseBuilder.buildDeltakerResponse(deltaker)

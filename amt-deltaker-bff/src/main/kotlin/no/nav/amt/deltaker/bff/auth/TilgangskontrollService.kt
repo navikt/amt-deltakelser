@@ -187,7 +187,7 @@ class TilgangskontrollService(
         return stengTiltakskoordinatorTilgang(tilgang)
     }
 
-    private fun upsertTilgang(
+    private suspend fun upsertTilgang(
         navIdent: String,
         tilgang: TiltakskoordinatorDeltakerlisteTilgang,
     ): Result<TiltakskoordinatorDeltakerlisteTilgang> = tiltakskoordinatorTilgangRepository
@@ -201,13 +201,13 @@ class TilgangskontrollService(
             )
         }
 
-    fun stengTiltakskoordinatorTilgang(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> {
+    suspend fun stengTiltakskoordinatorTilgang(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> {
         val tilgang = tiltakskoordinatorTilgangRepository.get(id).getOrThrow()
 
         return stengTiltakskoordinatorTilgang(tilgang)
     }
 
-    private fun stengTiltakskoordinatorTilgang(
+    private suspend fun stengTiltakskoordinatorTilgang(
         tilgang: TiltakskoordinatorDeltakerlisteTilgang,
     ): Result<TiltakskoordinatorDeltakerlisteTilgang> = if (tilgang.gyldigTil == null) {
         tiltakskoordinatorTilgangRepository
@@ -235,10 +235,10 @@ class TilgangskontrollService(
         }
     }
 
-    fun getUtdaterteTiltakskoordinatorTilganger(): List<TiltakskoordinatorDeltakerlisteTilgang> =
+    suspend fun getUtdaterteTiltakskoordinatorTilganger(): List<TiltakskoordinatorDeltakerlisteTilgang> =
         tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger()
 
-    fun stengTilgangerTilDeltakerliste(deltakerlisteId: UUID) {
+    suspend fun stengTilgangerTilDeltakerliste(deltakerlisteId: UUID) {
         val tilganger = tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerlisteId)
 
         log.info("Stenger ${tilganger.size} aktive tiltakskoordinatortilganger til deltakerliste $deltakerlisteId")

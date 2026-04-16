@@ -10,7 +10,7 @@ class DeltakerProducer(
     private val outboxService: OutboxService,
     private val producer: Producer<String, String>,
 ) {
-    fun produce(deltakerV2Dto: DeltakerKafkaPayload) {
+    suspend fun produce(deltakerV2Dto: DeltakerKafkaPayload) {
         outboxService.insertRecord(
             topic = Environment.DELTAKER_V2_TOPIC,
             key = deltakerV2Dto.id,
