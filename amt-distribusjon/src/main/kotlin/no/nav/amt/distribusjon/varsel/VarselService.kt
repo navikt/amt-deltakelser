@@ -212,7 +212,7 @@ class VarselService(
         return besokForSendt || besokForIkkeSendt
     }
 
-    fun sendVentendeVarsler() {
+    suspend fun sendVentendeVarsler() {
         val varsler = varselRepository.getVarslerSomSkalSendes()
         require(varsler.size == varsler.distinctBy { it.deltakerId }.size) {
             "Det finnes flere enn et ventende varsel for en eller flere deltakere"
@@ -223,7 +223,7 @@ class VarselService(
         }
     }
 
-    fun sendRevarsler() {
+    suspend fun sendRevarsler() {
         val varsler = varselRepository.getVarslerSomSkalRevarsles()
         val revarsler = varsler.map { slaSammenMedVentendeVarsel(Varsel.revarsel(it)) }
 

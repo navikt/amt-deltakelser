@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotliquery.TransactionalSession
 import no.nav.amt.lib.testing.TestPostgresContainer
@@ -25,7 +26,7 @@ class DatabaseTransactionalSessionTest {
     }
 
     @Test
-    fun `transactionalSession skal ikke være null i en transaksjonsblokk og fjernes etter blokken`() {
+    fun `transactionalSession skal ikke være null i en transaksjonsblokk og fjernes etter blokken`() = runTest {
         var insideSession: TransactionalSession?
         Database.transaction {
             insideSession = Database.transactionalSession
@@ -35,7 +36,7 @@ class DatabaseTransactionalSessionTest {
     }
 
     @Test
-    fun `transaksjoner skal ikke gjenbruke session`() {
+    fun `transaksjoner skal ikke gjenbruke session`() = runTest {
         var firstSession: TransactionalSession? = null
         var secondSession: TransactionalSession? = null
 
@@ -52,7 +53,7 @@ class DatabaseTransactionalSessionTest {
     }
 
     @Test
-    fun `sessions skal ikke gjenbrukes på tvers av coroutines og skal lukkes etter ferdig bruk`() = runTest {
+    fun `sessions skal ikke gjenbrukes på tvers av coroutines og skal lukkes etter ferdig bruk`(): Unit = runBlocking {
         val sessions = mutableListOf<TransactionalSession?>()
         val maxConnectionPoolSize = 10
 

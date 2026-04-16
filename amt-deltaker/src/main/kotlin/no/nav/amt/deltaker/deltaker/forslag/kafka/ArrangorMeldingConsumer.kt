@@ -63,11 +63,11 @@ class ArrangorMeldingConsumer(
         }
     }
 
-    private fun handleForslag(forslag: Forslag) = Database.transaction {
+    private suspend fun handleForslag(forslag: Forslag) = Database.transaction {
         forslagService.upsertAndProduce(forslag)
     }
 
-    private fun handleVurdering(vurdering: Vurdering) {
+    private suspend fun handleVurdering(vurdering: Vurdering) {
         Database.transaction {
             vurderingRepository.upsert(vurdering.toVurdering())
             val deltaker = deltakerRepository.get(vurdering.deltakerId).getOrThrow()

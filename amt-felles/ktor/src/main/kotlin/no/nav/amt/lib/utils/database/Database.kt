@@ -1,6 +1,8 @@
 package no.nav.amt.lib.utils.database
 
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.coroutines.asContextElement
+import kotlinx.coroutines.withContext
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
@@ -34,9 +36,10 @@ object Database {
         runMigration()
     }
 
-    fun <A> query(block: (Session) -> A): A {
-        val tx = transactionalSession
-        return if (tx != null) block(tx) else queryWithNewSession(block)
+    fun <A> query(block: (Session) -> A): A = if (transactionalSession != null) {
+        block(transactionalSession!!)
+    } else {
+        queryWithNewSession(block)
     }
 
     /**
@@ -50,15 +53,18 @@ object Database {
      * @throws IllegalStateException hvis funksjonen kalles mens en annen transaksjon er aktiv
      * @throws [org.postgresql.util.PSQLException] hvis en utilsiktet prøver å committe direkte via session.transaction innenfor aktiv transaksjon
      */
-    fun <T> transaction(block: () -> T): T {
+    suspend fun <T> transaction(block: () -> T): T {
         check(transactionalSession == null) { "Nested transactions are not supported" }
+
         return sessionOf(dataSource).use { session ->
             session.transaction { tx ->
-                transactionalSessionThreadLocal.set(tx)
-                try {
-                    block()
-                } finally {
-                    transactionalSessionThreadLocal.remove()
+                val txContext = transactionalSessionThreadLocal.asContextElement(tx)
+                withContext(txContext) {
+                    try {
+                        block()
+                    } finally {
+                        transactionalSessionThreadLocal.remove()
+                    }
                 }
             }
         }

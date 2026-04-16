@@ -40,7 +40,7 @@ class DeltakelsesmengdeUpdateJob(
         }
     }
 
-    private fun behandleDeltakelsesmengder() {
+    private suspend fun behandleDeltakelsesmengder() {
         var offset = 0
         var endringer: List<DeltakerEndring>
 

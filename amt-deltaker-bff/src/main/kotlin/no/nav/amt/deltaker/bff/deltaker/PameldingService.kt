@@ -56,7 +56,7 @@ class PameldingService(
         return deltaker
     }
 
-    fun upsertKladd(kladd: Kladd): Deltaker? {
+    suspend fun upsertKladd(kladd: Kladd): Deltaker? {
         if (kladd.opprinneligDeltaker.status.type !== DeltakerStatus.Type.KLADD) {
             // Dette kan skje når to brukere er inne på samme deltakelse samtidig
             // eller når samme bruker har flere faner med samme deltakelse

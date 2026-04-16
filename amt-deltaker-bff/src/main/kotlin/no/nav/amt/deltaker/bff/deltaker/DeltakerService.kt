@@ -192,7 +192,7 @@ class DeltakerService(
         DeltakerStatusRepository.insertIfNotExists(deltakerId, deltakerStatus)
     }
 
-    fun oppdaterDeltaker(
+    suspend fun oppdaterDeltaker(
         deltakeroppdatering: Deltakeroppdatering,
         beforeUpsert: () -> Unit = {},
         afterUpsert: () -> Unit = {},
@@ -231,7 +231,7 @@ class DeltakerService(
     }
 
     // benyttes av TiltakskoordinatorService
-    fun oppdaterDeltakere(oppdaterteDeltakere: List<Deltakeroppdatering>) {
+    suspend fun oppdaterDeltakere(oppdaterteDeltakere: List<Deltakeroppdatering>) {
         Database.transaction {
             deltakerRepository.updateBatch(oppdaterteDeltakere)
             DeltakerStatusRepository.batchSlettTidligereStatuser(oppdaterteDeltakere)

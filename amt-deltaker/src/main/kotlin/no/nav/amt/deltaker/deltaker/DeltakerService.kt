@@ -55,7 +55,7 @@ class DeltakerService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun upsertAndProduceDeltaker(
+    suspend fun upsertAndProduceDeltaker(
         deltaker: Deltaker,
         erDeltakerSluttdatoEndret: Boolean,
         forceProduce: Boolean? = false,
@@ -88,7 +88,7 @@ class DeltakerService(
         deltakerRepository.slettDeltaker(deltakerId)
     }
 
-    fun feilregistrerDeltaker(deltakerId: UUID) {
+    suspend fun feilregistrerDeltaker(deltakerId: UUID) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke feilregistrere deltaker-kladd, id $deltakerId")
@@ -160,7 +160,7 @@ class DeltakerService(
             ).onSuccess { deltaker -> deleteDeltaker(deltaker.id) }
     }
 
-    fun transactionalDeltakerUpsert(
+    suspend fun transactionalDeltakerUpsert(
         deltaker: Deltaker,
         erDeltakerSluttdatoEndret: Boolean,
         nesteStatus: DeltakerStatus? = null,
@@ -206,7 +206,7 @@ class DeltakerService(
         }
     }
 
-    private fun upsertSingleDeltaker(
+    private suspend fun upsertSingleDeltaker(
         deltaker: Deltaker,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAv: NavAnsatt,
@@ -334,7 +334,7 @@ class DeltakerService(
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 
-    fun oppdaterDeltakerStatuser() {
+    suspend fun oppdaterDeltakerStatuser() {
         val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository
             .getDeltakereHvorSluttdatoHarPassert()
             .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())

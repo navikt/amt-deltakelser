@@ -60,13 +60,13 @@ fun Routing.registerInternalApi(
         if (!isInternal(remoteAddress)) throw AuthorizationException("Ikke tilgang til api")
     }
 
-    fun slettDeltaker(deltakerId: UUID) = Database.transaction {
+    suspend fun slettDeltaker(deltakerId: UUID) = Database.transaction {
         innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
         vurderingRepository.deleteForDeltaker(deltakerId)
         deltakerService.deleteDeltaker(deltakerId)
     }
 
-    fun republiserDeltakere(
+    suspend fun republiserDeltakere(
         deltakerIder: List<UUID>,
         request: RepubliserRequest,
     ) {

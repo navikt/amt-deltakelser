@@ -52,7 +52,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsattInTest.navIdent) } returns navAnsattInTest
 
         mockkObject(Database)
-        every { transaction<Any>(any()) } answers {
+        coEvery { transaction<Any>(any()) } answers {
             val block = firstArg<() -> Any>()
             block()
         }
