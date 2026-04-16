@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
 import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.apiclients.TiltaksKoordinatorClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
@@ -180,6 +181,13 @@ fun Application.module() {
     )
 
     val enkeltplassClient = EnkeltplassClient(
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
+
+    val gjennomforingClient = GjennomforingClient(
         baseUrl = environment.amtDeltakerUrl,
         scope = environment.amtDeltakerScope,
         httpClient = httpClient,
@@ -365,6 +373,7 @@ fun Application.module() {
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
         ulestHendelseService = ulestHendelseService,
         testdataService = testdataService,
+        gjennomforingClient = gjennomforingClient,
     )
     configureMonitoring()
 

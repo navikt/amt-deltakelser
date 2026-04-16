@@ -8,6 +8,7 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
@@ -21,12 +22,15 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerRespon
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerStatusAarsakResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerStatusResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteResponse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
@@ -35,22 +39,34 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     navAnsattService: NavAnsattService,
+    gjennomforingClient: GjennomforingClient,
+    unleashToggle: CommonUnleashToggle,
 ) {
     val apiPath = "/tiltakskoordinator/deltakerliste/{id}"
 
     authenticate(AuthLevel.TILTAKSKOORDINATOR.name) {
         get(apiPath) {
             val deltakerlisteId = getDeltakerlisteId()
-            val deltakerliste = deltakerlisteService.get(deltakerlisteId).getOrThrow()
-
             val paaloggetNavAnsatt = navAnsattService.hentNavAnsatt(call.getNavIdent())
 
+            // Bør nav ansatt bli igjen i bff database?
             val koordinatorer = tiltakskoordinatorTilgangRepository.hentKoordinatorer(
                 deltakerlisteId = deltakerlisteId,
                 paaloggetNavAnsattId = paaloggetNavAnsatt.id,
             )
 
-            call.respond(deltakerliste.toResponse(koordinatorer))
+            val gjennomforingResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                gjennomforingClient
+                    .getGjennomforing(deltakerlisteId)
+                    .let { ResponseBuilder.buildGjennomforing(it, koordinatorer) }
+            } else {
+                deltakerlisteService
+                    .get(deltakerlisteId)
+                    .getOrThrow()
+                    .toResponse(koordinatorer)
+            }
+
+            call.respond(gjennomforingResponse)
         }
 
         get("$apiPath/deltakere") {
@@ -270,4 +286,10 @@ fun Deltakerliste.toResponse(koordinatorer: List<Tiltakskoordinator>) = Deltaker
     antallPlasser = antallPlasser,
     pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
     koordinatorer = koordinatorer,
+    /*
+        Denne mapperen fases ut når vi henter data amt-deltaker
+        som må gjøres for å få på plass ny løsning for enkeltplasser
+        derfor er en forenklet definisjon av erEnkeltplass
+     */
+    erEnkeltplass = tiltak.tiltakskode in Tiltakstype.arenaEnkeltplassTiltakskoder,
 )

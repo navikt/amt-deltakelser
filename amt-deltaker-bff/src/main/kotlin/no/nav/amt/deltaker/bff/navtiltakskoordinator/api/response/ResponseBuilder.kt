@@ -2,11 +2,14 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.getDeltakelsesinnholdAnnet
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
+import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 
 class ResponseBuilder {
     companion object {
@@ -56,6 +59,25 @@ class ResponseBuilder {
                 // Hvorfor er denne optional?
                 pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
                 deltakelsesinnhold = getDeltakelsesinnholdAnnet(tilgangTilBruker, gjennomforing.pameldingstype, deltakelsesinnhold),
+            )
+        }
+
+        fun buildGjennomforing(
+            gjennomforingResponse: GjennomforingResponse,
+            koordinatortilganger: List<Tiltakskoordinator>,
+        ) = with(gjennomforingResponse) {
+            DeltakerlisteResponse(
+                id = id,
+                navn = navn,
+                tiltakskode = tiltakstype.tiltakskode,
+                startdato = startDato,
+                sluttdato = sluttDato,
+                oppstartstype = oppstart,
+                apentForPamelding = apentForPamelding,
+                antallPlasser = antallPlasser,
+                pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+                koordinatorer = koordinatortilganger,
+                erEnkeltplass = type == GjennomforingType.Enkeltplass,
             )
         }
     }

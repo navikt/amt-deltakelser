@@ -424,6 +424,7 @@ fun Application.module() {
         pameldingService = pameldingService,
         deltakerService = deltakerService,
         deltakerRepository = deltakerRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         tilgangskontrollService = tilgangskontrollService,
         deltakelserResponseMapper = deltakelserResponseMapper,

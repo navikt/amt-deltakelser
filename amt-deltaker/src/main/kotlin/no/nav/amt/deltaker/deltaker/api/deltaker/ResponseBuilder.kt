@@ -87,6 +87,7 @@ class ResponseBuilder(
         status = deltakerliste.status,
         startDato = deltakerliste.startDato,
         sluttDato = deltakerliste.sluttDato,
+        antallPlasser = deltakerliste.antallPlasser,
         oppstart = deltakerliste.oppstart,
         apentForPamelding = deltakerliste.apentForPamelding,
         oppmoteSted = deltakerliste.oppmoteSted,

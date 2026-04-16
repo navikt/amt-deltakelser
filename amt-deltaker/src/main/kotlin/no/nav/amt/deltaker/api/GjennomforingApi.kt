@@ -1,0 +1,28 @@
+package no.nav.amt.deltaker.api
+
+import io.ktor.server.auth.authenticate
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
+import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.extensions.getGjennomforingId
+
+fun Routing.registerGjennomforingApi(
+    deltakerlisteRepository: DeltakerlisteRepository,
+    responseBuilder: ResponseBuilder,
+) {
+    val apiPath = "/gjennomforing"
+
+    authenticate("SYSTEM") {
+        get("$apiPath/{gjennomforingId}") {
+            val gjennomforingId = call.getGjennomforingId()
+            val gjennomforingResponse = deltakerlisteRepository
+                .get(gjennomforingId)
+                .getOrThrow()
+                .let { responseBuilder.buildGjennomforingResponse(it) }
+
+            call.respond(gjennomforingResponse)
+        }
+    }
+}

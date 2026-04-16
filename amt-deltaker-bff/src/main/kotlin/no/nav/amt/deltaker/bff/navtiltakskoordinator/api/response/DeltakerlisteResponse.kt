@@ -18,4 +18,5 @@ data class DeltakerlisteResponse(
     val antallPlasser: Int?,
     val pameldingstype: GjennomforingPameldingType,
     val koordinatorer: List<Tiltakskoordinator>,
+    val erEnkeltplass: Boolean,
 )

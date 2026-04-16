@@ -17,6 +17,7 @@ data class Deltakerliste(
     val status: GjennomforingStatusType?, // i GjennomforingV2KafkaPayload er status ikke nullable lenger
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
+    val antallPlasser: Int?, // midlertidig optional til relast
     val oppstart: Oppstartstype?,
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,

@@ -11,6 +11,7 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
 import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
@@ -50,6 +51,7 @@ abstract class IntegrationTestBase {
     protected val arrangorsokClient = mockk<ArrangorsokClient>()
     protected val enkeltplassClient = mockk<EnkeltplassClient>()
     protected val paameldingClient: PaameldingClient = mockk()
+    protected val gjennomforingClient: GjennomforingClient = mockk()
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
 
     protected val deltakerRepository: DeltakerRepository = mockk()
@@ -131,6 +133,7 @@ abstract class IntegrationTestBase {
                     ulestHendelseService = ulestHendelseService,
                     testdataService = testdataService,
                     paameldingClient = paameldingClient,
+                    gjennomforingClient = gjennomforingClient,
                 )
 
                 attributes.put(isReadyKey, appIsReady)
