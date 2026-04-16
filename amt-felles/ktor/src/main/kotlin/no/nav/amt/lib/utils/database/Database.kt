@@ -34,9 +34,10 @@ object Database {
         runMigration()
     }
 
-    fun <A> query(block: (Session) -> A): A = transactionalSession
-        ?.let(block)
-        ?: queryWithNewSession(block)
+    fun <A> query(block: (Session) -> A): A {
+        val tx = transactionalSession
+        return if (tx != null) block(tx) else queryWithNewSession(block)
+    }
 
     /**
      * Kjør synkron kode innenfor en database-transaksjon.
