@@ -7,8 +7,8 @@ dependencies {
 
     // --- Metrics ---
     api(libs.micrometer.prometheus)
-    implementation(libs.prometheus.metrics.instrumentation)
-    implementation(libs.prometheus.metrics.exporter)
+    api(libs.prometheus.metrics.instrumentation)
+    api(libs.prometheus.metrics.exporter)
 
     // --- Ktor ---
     implementation(platform(libs.ktor.bom))
