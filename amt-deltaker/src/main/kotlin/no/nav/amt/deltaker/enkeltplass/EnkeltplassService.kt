@@ -26,8 +26,6 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -131,51 +129,32 @@ class EnkeltplassService(
     suspend fun delUtkastMedInnbygger(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
-    ): Deltaker {
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
-
-        return lagreOgPubliser(
-            deltakerId = deltakerId,
-            decoratedRequest = decoratedRequest,
-            nyStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-            navAnsatt = navAnsatt,
-            navEnhet = navEnhet,
-            fattetAvNav = false,
-        )
-    }
+    ): Deltaker = lagreOgPubliser(
+        deltakerId = deltakerId,
+        decoratedRequest = decoratedRequest,
+        nyStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        fattetAvNav = false,
+    )
 
     /** Oppdaterer innholdet i utkastet uten å endre status. */
     suspend fun oppdaterUtkast(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
-    ): Deltaker {
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
-
-        return lagreOgPubliser(
-            deltakerId = deltakerId,
-            decoratedRequest = decoratedRequest,
-            nyStatus = null,
-            navAnsatt = navAnsatt,
-            navEnhet = navEnhet,
-            fattetAvNav = false,
-        )
-    }
+    ): Deltaker = lagreOgPubliser(
+        deltakerId = deltakerId,
+        decoratedRequest = decoratedRequest,
+        nyStatus = null,
+        fattetAvNav = false,
+    )
 
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
     ) {
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
-
         lagreOgPubliser(
             deltakerId = deltakerId,
             decoratedRequest = decoratedRequest,
             nyStatus = DeltakerStatus.Type.SOKT_INN,
-            navAnsatt = navAnsatt,
-            navEnhet = navEnhet,
             fattetAvNav = true,
         )
     }
@@ -191,8 +170,6 @@ class EnkeltplassService(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
         nyStatus: DeltakerStatus.Type?,
-        navAnsatt: NavAnsatt,
-        navEnhet: NavEnhet,
         fattetAvNav: Boolean,
     ): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
@@ -207,6 +184,8 @@ class EnkeltplassService(
         }
 
         val arrangor = arrangorService.hentArrangor(decoratedRequest.wrappedRequest.arrangorUnderenhet)
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
 
         return Database.transaction {
             if (nyStatus != null) {
