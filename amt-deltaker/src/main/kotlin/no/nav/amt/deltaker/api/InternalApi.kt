@@ -314,6 +314,8 @@ fun Routing.registerInternalApi(
                 val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforingId).getOrThrow()
                 val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
                     ?: throw IllegalStateException("Enkeltplass deltaker ${deltaker.id} må ha vedtak for å kunne opprette gjennomføring")
+                val opprettetAv = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv).navIdent
+                val ansvarligEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet).enhetsnummer
                 gjennomforingRequestProducer.produce(
                     GjennomforingRequestPayload.OpprettEnkeltplass(
                         gjennomforingId = deltaker.deltakerliste.id,
@@ -322,8 +324,8 @@ fun Routing.registerInternalApi(
                             ?: throw IllegalStateException("Enkeltplass må ha prisinformasjon"),
                         organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
                             ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),
-                        ansvarligEnhet = vedtak.sistEndretAvEnhet.toString(),
-                        opprettetAv = vedtak.sistEndretAv.toString(),
+                        ansvarligEnhet = ansvarligEnhet,
+                        opprettetAv = opprettetAv,
                     ),
                 )
             }
