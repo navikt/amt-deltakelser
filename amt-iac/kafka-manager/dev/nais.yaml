@@ -14,12 +14,17 @@ spec:
   prometheus:
     enabled: true
     path: /internal/prometheus
+
+  startup:
+    path: /internal/health/liveness
+    initialDelay: 5
+    periodSeconds: 5
+    failureThreshold: 15
   readiness:
     path: /internal/health/readiness
-    initialDelay: 20
   liveness:
     path: /internal/health/liveness
-    initialDelay: 20
+
   replicas:
     min: 1
     max: 1 # 1 instance is required since in-memory session management is used

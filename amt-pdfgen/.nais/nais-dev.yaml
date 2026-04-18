@@ -11,12 +11,17 @@ spec:
   prometheus:
     enabled: true
     path: /internal/prometheus
+
+  startup:
+    path: /internal/is_alive
+    initialDelay: 5
+    periodSeconds: 5
+    failureThreshold: 15
   readiness:
     path: /internal/is_alive
-    initialDelay: 30
   liveness:
     path: /internal/is_alive
-    initialDelay: 30
+
   replicas:
     disableAutoScaling: true
     min: 1
