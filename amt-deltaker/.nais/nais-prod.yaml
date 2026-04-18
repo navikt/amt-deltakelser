@@ -69,7 +69,7 @@ spec:
     pool: nav-prod
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=80.0"
+      value: "-XX:MaxRAMPercentage=80.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_PERSONSERVICE_SCOPE
       value: api://prod-gcp.amt.amt-person-service/.default
     - name: AMT_PERSONSERVICE_URL
