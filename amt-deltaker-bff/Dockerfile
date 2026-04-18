@@ -3,7 +3,6 @@ WORKDIR /app
 COPY build/install/amt-deltaker-bff /app
 
 ENV TZ="Europe/Oslo"
-ENV JAVA_TOOL_OPTIONS="--enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/java"]
