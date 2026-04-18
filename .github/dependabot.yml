@@ -18,6 +18,9 @@ updates:
       default-days: 7
     open-pull-requests-limit: 10
     groups:
+      nav-dependencies:
+        patterns:
+          - "no.nav*"
       minor-and-patch:
         patterns:
           - "*"
@@ -25,7 +28,7 @@ updates:
           - "minor"
           - "patch"
 
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: "github-actions  "
     directory: "/"
     schedule:
       interval: weekly
