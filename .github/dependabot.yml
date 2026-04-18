@@ -15,7 +15,7 @@ updates:
       time: "03:00"
       timezone: Europe/Oslo
     cooldown:
-      default-days: 7
+      default-days: 6
     open-pull-requests-limit: 10
     groups:
       nav-dependencies:
