@@ -8,7 +8,7 @@ metadata:
 spec:
   image: {{image}}
   port: 8080
-  terminationGracePeriodSeconds: 60
+  terminationGracePeriodSeconds: 30
   prometheus:
     enabled: true
     path: /internal/prometheus

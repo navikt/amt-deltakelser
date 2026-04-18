@@ -21,7 +21,7 @@ spec:
         insights:
           enabled: true
   port: 8080
-  terminationGracePeriodSeconds: 60
+  terminationGracePeriodSeconds: 30
   ingresses:
     - https://amt-tiltaksarrangor-bff.intern.nav.no
   prometheus:

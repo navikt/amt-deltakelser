@@ -8,7 +8,7 @@ metadata:
 spec:
   image: {{image}}
   port: 8080
-  terminationGracePeriodSeconds: 60
+  terminationGracePeriodSeconds: 30
   ingresses:
     - https://amt-deltaker.intern.nav.no
   prometheus:
