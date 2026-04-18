@@ -61,8 +61,6 @@ application {
     applicationDefaultJvmArgs = listOf(
         "-Dio.ktor.development=$isDevelopment",
         "-Xshare:off",
-        "--enable-native-access=ALL-UNNAMED",
-        "--sun-misc-unsafe-memory-access=allow",
     )
 }
 

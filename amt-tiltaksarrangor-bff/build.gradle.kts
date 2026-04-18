@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("jvm")
@@ -81,13 +80,6 @@ kotlin {
 
 ktlint {
     version = libs.versions.ktlint.cli.version
-}
-
-tasks.named<BootRun>("bootRun") {
-    jvmArgs(
-        "--enable-native-access=ALL-UNNAMED",
-        "--sun-misc-unsafe-memory-access=allow",
-    )
 }
 
 tasks.named<Jar>("jar") {
