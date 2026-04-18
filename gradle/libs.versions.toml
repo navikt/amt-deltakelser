@@ -1,5 +1,5 @@
 [versions]
-kotlin-version = "2.3.10"
+kotlin-version = "2.3.20"
 ktor-version = "3.4.2"
 logback-version = "1.5.32"
 logstash-encoder-version = "9.0"
@@ -18,7 +18,7 @@ caffeine-version = "3.2.3"
 mockk-version = "1.14.9"
 nimbus-version = "10.9"
 unleash-version = "12.2.0"
-tms-varsel-kotlin-builder-version = "2.1.1"
+tms-varsel-kotlin-builder-version = "2.2.0"
 
 # amt-lib spesifikt
 kafka-clients-version = "4.2.0"
@@ -32,7 +32,7 @@ testcontainers-version = "2.0.4"
 spring-boot-version = "4.0.5"
 spring-dependency-management-version = "1.1.7"
 tools-jackson-version = "3.1.1"
-token-support-version = "6.0.1"
+token-support-version = "6.0.5"
 shedlock-spring-version = "7.7.0"
 springmockk-version = "5.0.1"
 
