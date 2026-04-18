@@ -30,3 +30,8 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+
+  - package-ecosystem: "docker"
+    directory: "/amt-pdfgen"
+    schedule:
+      interval: weekly
