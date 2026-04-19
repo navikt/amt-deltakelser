@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.navbruker
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -11,6 +10,7 @@ import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class NavBrukerConsumer(

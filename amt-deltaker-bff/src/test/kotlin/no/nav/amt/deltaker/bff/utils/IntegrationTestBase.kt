@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.utils
 import io.getunleash.Unleash
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.jackson3.jackson
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -37,7 +37,6 @@ import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
-import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
@@ -141,7 +140,7 @@ abstract class IntegrationTestBase {
 
             result = block(
                 createClient {
-                    install(ContentNegotiation) { jackson { applicationConfig() } }
+                    install(ContentNegotiation) { jackson() }
                 },
             )
         }

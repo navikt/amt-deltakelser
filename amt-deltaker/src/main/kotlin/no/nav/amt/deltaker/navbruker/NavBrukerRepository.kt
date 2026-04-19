@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.navbruker
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.toPGObject
@@ -9,6 +8,7 @@ import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class NavBrukerRepository {

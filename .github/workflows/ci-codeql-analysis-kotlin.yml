@@ -68,6 +68,7 @@ jobs:
           ./gradlew assemble \
             -x test \
             --no-daemon \
+            --no-build-cache \
             --no-configuration-cache
 
       - name: Perform CodeQL Analysis

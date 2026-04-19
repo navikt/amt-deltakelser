@@ -16,6 +16,10 @@ dependencies {
         implementation(libsWrapper.getLibrary("tools.jackson.core")) {
             because("Misc Dependabot alerts")
         }
+
+        implementation(libsWrapper.getLibrary("jackson.core")) {
+            because("GHSA-72hv-8253-57qq")
+        }
     }
 
     // --- Ktor ---
@@ -69,5 +73,6 @@ tasks.named<Test>("test") {
     jvmArgs(
         "-Xshare:off",
         "-XX:+EnableDynamicAgentLoading",
+        "--sun-misc-unsafe-memory-access=allow",
     )
 }

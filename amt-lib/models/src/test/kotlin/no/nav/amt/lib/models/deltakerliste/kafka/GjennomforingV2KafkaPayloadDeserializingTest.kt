@@ -1,7 +1,5 @@
 package no.nav.amt.lib.models.deltakerliste.kafka
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -11,6 +9,8 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.Year

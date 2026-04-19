@@ -2,7 +2,7 @@ package no.nav.amt.distribusjon
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.jackson3.jackson
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -33,7 +33,6 @@ import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.DatabaseTestExtension
-import no.nav.amt.lib.utils.applicationConfig
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 
@@ -125,7 +124,7 @@ abstract class IntegrationTestBase {
 
             result = block(
                 createClient {
-                    install(ContentNegotiation) { jackson { applicationConfig() } }
+                    install(ContentNegotiation) { jackson() }
                 },
             )
         }

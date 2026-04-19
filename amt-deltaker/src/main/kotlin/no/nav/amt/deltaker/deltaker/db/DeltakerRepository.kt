@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker.db
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
@@ -20,6 +19,7 @@ import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class DeltakerRepository {

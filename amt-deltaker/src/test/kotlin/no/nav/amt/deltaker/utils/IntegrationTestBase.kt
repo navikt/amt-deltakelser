@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.utils
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.jackson3.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respondText
@@ -71,7 +71,6 @@ import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.outbox.OutboxRecord
 import no.nav.amt.lib.outbox.OutboxService
-import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import org.junit.jupiter.api.BeforeEach
@@ -418,7 +417,7 @@ abstract class IntegrationTestBase {
 
             result = block(
                 createClient {
-                    install(ContentNegotiation) { jackson { applicationConfig() } }
+                    install(ContentNegotiation) { jackson() }
                 },
             )
         }
