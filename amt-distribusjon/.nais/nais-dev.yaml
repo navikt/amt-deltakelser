@@ -89,8 +89,6 @@ spec:
       value: api://dev-gcp.amt.amt-deltaker/.default
     - name: AMT_DELTAKER_URL
       value: http://amt-deltaker
-    - name: AMT_PDFGEN_SCOPE
-      value: api://dev-gcp.amt.amt-pdfgen/.default
     - name: AMT_PDFGEN
       value: http://amt-pdfgen
     - name: VEILARBOPPFOLGING_SCOPE
