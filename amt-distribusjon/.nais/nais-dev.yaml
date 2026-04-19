@@ -54,6 +54,8 @@ spec:
           cluster: dev-gcp
       external:
         - host: dokarkiv-q2.dev-fss-pub.nais.io
+        - host: dokdistkanal-q2.dev-fss-pub.nais.io
+        - host: dokdistfordeling.dev-fss-pub.nais.io
   gcp:
     sqlInstances:
       - name: amt-distribusjon-2
