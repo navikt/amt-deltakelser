@@ -39,7 +39,6 @@ spec:
   azure:
     application:
       enabled: true
-      allowAllUsers: true
   accessPolicy:
     inbound:
       rules:
