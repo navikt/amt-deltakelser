@@ -8,7 +8,6 @@ metadata:
 spec:
   image: {{image}}
   port: 8080
-  terminationGracePeriodSeconds: 30
   prometheus:
     enabled: true
     path: /internal/prometheus
@@ -20,6 +19,7 @@ spec:
     failureThreshold: 30
   readiness:
     path: /internal/health/readiness
+    failureThreshold: 1
   liveness:
     path: /internal/health/liveness
     timeout: 3

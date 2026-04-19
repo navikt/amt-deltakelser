@@ -8,7 +8,6 @@ metadata:
 spec:
   image: {{image}}
   port: 8080
-  terminationGracePeriodSeconds: 30
   ingresses:
     - https://amt-deltaker.intern.nav.no
   prometheus:
@@ -22,6 +21,7 @@ spec:
     failureThreshold: 30
   readiness:
     path: /internal/health/readiness
+    failureThreshold: 1
   liveness:
     path: /internal/health/liveness
 

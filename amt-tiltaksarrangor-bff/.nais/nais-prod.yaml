@@ -21,7 +21,6 @@ spec:
         insights:
           enabled: true
   port: 8080
-  terminationGracePeriodSeconds: 30
   ingresses:
     - https://amt-tiltaksarrangor-bff.intern.nav.no
   prometheus:
@@ -35,6 +34,7 @@ spec:
     failureThreshold: 30
   readiness:
     path: /internal/health/readiness
+    failureThreshold: 1
   liveness:
     path: /internal/health/liveness
     timeout: 3
