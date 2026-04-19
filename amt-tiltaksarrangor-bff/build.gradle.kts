@@ -14,12 +14,17 @@ repositories {
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
-dependencies {
-    constraints {
-        implementation(libs.tools.jackson.core) {
-            because("Misc Dependabot alerts")
-        }
+dependencyManagement {
+    imports {
+        mavenBom(
+            libs.tools.jackson.bom
+                .get()
+                .toString(),
+        )
     }
+}
+
+dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
