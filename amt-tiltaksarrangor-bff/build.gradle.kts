@@ -15,6 +15,12 @@ repositories {
 }
 
 dependencies {
+    constraints {
+        implementation(libs.tools.jackson.core) {
+            because("Misc Dependabot alerts")
+        }
+    }
+
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
