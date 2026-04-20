@@ -29,10 +29,11 @@ import kotlin.reflect.KClass
 class PaameldingClientTest {
     @Nested
     inner class OpprettKladd {
+        val deltakerlisteId: UUID = UUID.randomUUID()
         val expectedUrl = "$DELTAKER_BASE_URL/kladd"
-        val expectedErrorMessage = "Kunne ikke opprette kladd i amt-deltaker."
+        val expectedErrorMessage = "Kunne ikke opprette kladd i amt-deltaker i deltakerliste $deltakerlisteId"
         val opprettKladdLambda: suspend (PaameldingClient) -> OpprettKladdResponse =
-            { client -> client.opprettKladd(deltakerlisteId = UUID.randomUUID(), personIdent = "~personident~") }
+            { client -> client.opprettKladd(deltakerlisteId = deltakerlisteId, personIdent = "~personident~") }
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
@@ -54,7 +55,7 @@ class PaameldingClientTest {
     @Nested
     inner class Utkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}"
-        val expectedErrorMessage = "Kunne ikke oppdatere utkast i amt-deltaker."
+        val expectedErrorMessage = "Kunne ikke oppdatere utkast i amt-deltaker for deltaker ${deltakerInTest.id}"
 
         val navBruker = lagNavBruker(deltakerInTest.id, navEnhetId = UUID.randomUUID())
         val deltakerListe = TestData.lagDeltakerliste()
@@ -107,7 +108,7 @@ class PaameldingClientTest {
     @Nested
     inner class AvbrytUtkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}/avbryt"
-        val expectedErrorMessage = "Kunne ikke avbryte utkast i amt-deltaker."
+        val expectedErrorMessage = "Kunne ikke avbryte utkast i amt-deltaker for deltaker ${deltakerInTest.id}"
         val avbrytUtkastLambda: suspend (PaameldingClient) -> Unit =
             { client ->
                 client.avbrytUtkast(
@@ -133,7 +134,7 @@ class PaameldingClientTest {
     @Nested
     inner class InnbyggerGodkjennUtkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}/innbygger/godkjenn-utkast"
-        val expectedErrorMessage = "Kunne ikke fatte vedtak i amt-deltaker."
+        val expectedErrorMessage = "Kunne ikke fatte vedtak i amt-deltaker for deltaker ${deltakerInTest.id}"
         val innbyggerGodkjennUtkastLambda: suspend (PaameldingClient) -> Deltakeroppdatering =
             { client -> client.innbyggerGodkjennUtkast(deltakerInTest.id) }
 
