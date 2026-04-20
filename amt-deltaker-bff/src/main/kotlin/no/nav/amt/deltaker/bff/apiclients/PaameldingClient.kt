@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.apiclients
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
@@ -63,7 +62,7 @@ class PaameldingClient(
         ).failIfNotSuccess("Kunne ikke avbryte utkast i amt-deltaker for deltaker $deltakerId")
     }
 
-    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltakeroppdatering = performPost(
+    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): UtkastResponse = performPost(
         urlSubPath = "pamelding/$deltakerId/innbygger/godkjenn-utkast",
         requestBody = null,
     ).failIfNotSuccess("Kunne ikke fatte vedtak i amt-deltaker for deltaker $deltakerId").body()

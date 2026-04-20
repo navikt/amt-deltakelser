@@ -6,11 +6,9 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.opprettKladdResponseFromDeltaker
-import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
 import no.nav.amt.deltaker.bff.testdata.TestdataService.Companion.lagUtkast
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toUtkastResponse
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.internapi.paamelding.response.UtkastResponse
@@ -135,7 +133,7 @@ class PaameldingClientTest {
     inner class InnbyggerGodkjennUtkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}/innbygger/godkjenn-utkast"
         val expectedErrorMessage = "Kunne ikke fatte vedtak i amt-deltaker for deltaker ${deltakerInTest.id}"
-        val innbyggerGodkjennUtkastLambda: suspend (PaameldingClient) -> Deltakeroppdatering =
+        val innbyggerGodkjennUtkastLambda: suspend (PaameldingClient) -> UtkastResponse =
             { client -> client.innbyggerGodkjennUtkast(deltakerInTest.id) }
 
         @ParameterizedTest
@@ -147,14 +145,13 @@ class PaameldingClientTest {
 
         @Test
         fun `skal returnere Deltakeroppdatering`() {
-            runHappyPathTest(expectedUrl, deltakerOppdateringInTest, innbyggerGodkjennUtkastLambda)
+            runHappyPathTest(expectedUrl, utkastResponseInTest, innbyggerGodkjennUtkastLambda)
         }
     }
 
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
         private val deltakerInTest = TestData.lagDeltaker()
-        private val deltakerOppdateringInTest = deltakerInTest.toDeltakeroppdatering()
         private val utkastResponseInTest = deltakerInTest.toUtkastResponse()
 
         private fun runFailureTest(
