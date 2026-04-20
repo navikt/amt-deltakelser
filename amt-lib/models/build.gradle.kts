@@ -3,7 +3,8 @@ plugins {
 }
 
 dependencies {
-    api(libs.tools.jackson.module.kotlin)
+    api(libs.jackson.datatype.jsr310)
 
     testImplementation(project(":amt-lib:testing"))
+    testImplementation(libs.jackson.module.kotlin)
 }

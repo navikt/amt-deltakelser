@@ -1,5 +1,6 @@
 package no.nav.amt.distribusjon.varsel.model
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.varsel.nowUTC
@@ -11,7 +12,6 @@ import no.nav.tms.varsel.action.Sensitivitet
 import no.nav.tms.varsel.action.Tekst
 import no.nav.tms.varsel.action.Varseltype
 import no.nav.tms.varsel.builder.VarselActionBuilder
-import tools.jackson.databind.JsonNode
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.UUID
