@@ -21,7 +21,6 @@ spec:
     failureThreshold: 30
   readiness:
     path: /internal/health/readiness
-    failureThreshold: 1
   liveness:
     path: /internal/health/liveness
 
