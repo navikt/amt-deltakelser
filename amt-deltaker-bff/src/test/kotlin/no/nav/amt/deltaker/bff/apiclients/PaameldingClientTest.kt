@@ -144,8 +144,12 @@ class PaameldingClientTest {
         }
 
         @Test
-        fun `skal returnere Deltakeroppdatering`() {
-            runHappyPathTest(expectedUrl, utkastResponseInTest, innbyggerGodkjennUtkastLambda)
+        fun `skal returnere UtkastResponse`() {
+            runHappyPathTest(
+                expectedUrl = expectedUrl,
+                expectedResponse = utkastResponseInTest,
+                block = innbyggerGodkjennUtkastLambda,
+            )
         }
     }
 
