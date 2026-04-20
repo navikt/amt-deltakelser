@@ -6,11 +6,9 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.apiclients.DtoMappers.opprettKladdResponseFromDeltaker
-import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
 import no.nav.amt.deltaker.bff.testdata.TestdataService.Companion.lagUtkast
 import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toUtkastResponse
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.internapi.paamelding.response.UtkastResponse
@@ -29,10 +27,11 @@ import kotlin.reflect.KClass
 class PaameldingClientTest {
     @Nested
     inner class OpprettKladd {
+        val deltakerlisteId: UUID = UUID.randomUUID()
         val expectedUrl = "$DELTAKER_BASE_URL/kladd"
-        val expectedErrorMessage = "Kunne ikke opprette kladd i amt-deltaker."
+        val expectedErrorMessage = "Kunne ikke opprette kladd i amt-deltaker i deltakerliste $deltakerlisteId"
         val opprettKladdLambda: suspend (PaameldingClient) -> OpprettKladdResponse =
-            { client -> client.opprettKladd(deltakerlisteId = UUID.randomUUID(), personIdent = "~personident~") }
+            { client -> client.opprettKladd(deltakerlisteId = deltakerlisteId, personIdent = "~personident~") }
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
@@ -54,7 +53,7 @@ class PaameldingClientTest {
     @Nested
     inner class Utkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}"
-        val expectedErrorMessage = "Kunne ikke oppdatere utkast i amt-deltaker."
+        val expectedErrorMessage = "Kunne ikke oppdatere utkast i amt-deltaker for deltaker ${deltakerInTest.id}"
 
         val navBruker = lagNavBruker(deltakerInTest.id, navEnhetId = UUID.randomUUID())
         val deltakerListe = TestData.lagDeltakerliste()
@@ -107,7 +106,7 @@ class PaameldingClientTest {
     @Nested
     inner class AvbrytUtkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}/avbryt"
-        val expectedErrorMessage = "Kunne ikke avbryte utkast i amt-deltaker."
+        val expectedErrorMessage = "Kunne ikke avbryte utkast i amt-deltaker for deltaker ${deltakerInTest.id}"
         val avbrytUtkastLambda: suspend (PaameldingClient) -> Unit =
             { client ->
                 client.avbrytUtkast(
@@ -133,8 +132,8 @@ class PaameldingClientTest {
     @Nested
     inner class InnbyggerGodkjennUtkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}/innbygger/godkjenn-utkast"
-        val expectedErrorMessage = "Kunne ikke fatte vedtak i amt-deltaker."
-        val innbyggerGodkjennUtkastLambda: suspend (PaameldingClient) -> Deltakeroppdatering =
+        val expectedErrorMessage = "Kunne ikke fatte vedtak i amt-deltaker for deltaker ${deltakerInTest.id}"
+        val innbyggerGodkjennUtkastLambda: suspend (PaameldingClient) -> UtkastResponse =
             { client -> client.innbyggerGodkjennUtkast(deltakerInTest.id) }
 
         @ParameterizedTest
@@ -145,15 +144,18 @@ class PaameldingClientTest {
         }
 
         @Test
-        fun `skal returnere Deltakeroppdatering`() {
-            runHappyPathTest(expectedUrl, deltakerOppdateringInTest, innbyggerGodkjennUtkastLambda)
+        fun `skal returnere UtkastResponse`() {
+            runHappyPathTest(
+                expectedUrl = expectedUrl,
+                expectedResponse = utkastResponseInTest,
+                block = innbyggerGodkjennUtkastLambda,
+            )
         }
     }
 
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
         private val deltakerInTest = TestData.lagDeltaker()
-        private val deltakerOppdateringInTest = deltakerInTest.toDeltakeroppdatering()
         private val utkastResponseInTest = deltakerInTest.toUtkastResponse()
 
         private fun runFailureTest(

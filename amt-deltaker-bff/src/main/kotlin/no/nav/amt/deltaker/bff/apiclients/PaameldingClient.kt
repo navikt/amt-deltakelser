@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.apiclients
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.model.Utkast
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
@@ -31,7 +30,7 @@ class PaameldingClient(
     ): OpprettKladdResponse = performPost(
         urlSubPath = "kladd",
         requestBody = OpprettKladdRequest(deltakerlisteId, personIdent),
-    ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker.")
+    ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker i deltakerliste $deltakerlisteId")
         .body()
 
     suspend fun oppdaterKladd(
@@ -40,7 +39,7 @@ class PaameldingClient(
     ) = performPost(
         urlSubPath = "oppdater-kladd/$deltakerId",
         requestBody = request,
-    ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker.")
+    ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker for deltaker $deltakerId")
 
     suspend fun slettKladd(deltakerId: UUID) {
         performDelete("kladd/$deltakerId")
@@ -50,8 +49,7 @@ class PaameldingClient(
     suspend fun utkast(utkast: Utkast): UtkastResponse = performPost(
         urlSubPath = "pamelding/${utkast.deltakerId}",
         requestBody = DtoMappers.utkastRequestFromUtkast(utkast),
-    ).failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker.")
-        .body()
+    ).failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker for deltaker ${utkast.deltakerId}").body()
 
     suspend fun avbrytUtkast(
         deltakerId: UUID,
@@ -61,12 +59,11 @@ class PaameldingClient(
         performPost(
             urlSubPath = "pamelding/$deltakerId/avbryt",
             requestBody = AvbrytUtkastRequest(avbruttAv, avbruttAvEnhet),
-        ).failIfNotSuccess("Kunne ikke avbryte utkast i amt-deltaker.")
+        ).failIfNotSuccess("Kunne ikke avbryte utkast i amt-deltaker for deltaker $deltakerId")
     }
 
-    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltakeroppdatering = performPost(
+    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): UtkastResponse = performPost(
         urlSubPath = "pamelding/$deltakerId/innbygger/godkjenn-utkast",
         requestBody = null,
-    ).failIfNotSuccess("Kunne ikke fatte vedtak i amt-deltaker.")
-        .body()
+    ).failIfNotSuccess("Kunne ikke fatte vedtak i amt-deltaker for deltaker $deltakerId").body()
 }

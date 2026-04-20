@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.innbygger
 
+import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
@@ -14,10 +15,11 @@ class InnbyggerService(
             "Deltaker ${deltaker.id} har ikke status ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}"
         }
 
-        val oppdatering = paameldingClient.innbyggerGodkjennUtkast(deltaker.id)
+        val utkastResponse = paameldingClient.innbyggerGodkjennUtkast(deltaker.id)
+        val deltakeroppdatering = utkastResponse.toDeltakeroppdatering()
 
-        deltakerService.oppdaterDeltaker(oppdatering)
+        deltakerService.oppdaterDeltaker(deltakeroppdatering)
 
-        return deltaker.oppdater(oppdatering)
+        return deltaker.oppdater(deltakeroppdatering)
     }
 }

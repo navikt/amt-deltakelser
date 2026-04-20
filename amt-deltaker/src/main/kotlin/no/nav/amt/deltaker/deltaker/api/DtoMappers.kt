@@ -21,6 +21,7 @@ object DtoMappers {
             deltakelsesinnhold = deltakelsesinnhold,
             status = status,
             historikk = historikk,
+            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
         )
     }
 

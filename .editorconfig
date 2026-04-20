@@ -7,6 +7,3 @@ ktlint_standard_multiline-expression-wrapping = disabled
 ktlint_standard_blank-line-between-when-conditions = disabled
 ktlint_standard_when-entry-bracing = disabled
 ktlint_function_signature_body_expression_wrapping = default
-
-[*.kts]
-ktlint_standard_chain-method-continuation = disabled

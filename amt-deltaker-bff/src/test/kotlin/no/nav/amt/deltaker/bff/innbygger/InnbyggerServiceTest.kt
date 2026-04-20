@@ -17,7 +17,7 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils.sammenlignDeltakere
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.utils.data.TestRepository
-import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
+import no.nav.amt.deltaker.bff.utils.toUtkastResponse
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.DatabaseTestExtension
@@ -71,7 +71,7 @@ class InnbyggerServiceTest {
 
         val deltakerMedFattetVedtak = deltaker.fattVedtak()
 
-        coEvery { paameldingClient.innbyggerGodkjennUtkast(deltaker.id) } returns deltakerMedFattetVedtak.toDeltakeroppdatering()
+        coEvery { paameldingClient.innbyggerGodkjennUtkast(deltaker.id) } returns deltakerMedFattetVedtak.toUtkastResponse()
 
         val oppdatertDeltaker = innbyggerService.godkjennUtkast(deltaker)
 
