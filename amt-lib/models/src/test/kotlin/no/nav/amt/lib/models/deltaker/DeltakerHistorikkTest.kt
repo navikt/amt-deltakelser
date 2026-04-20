@@ -239,7 +239,7 @@ class DeltakerHistorikkTest {
         val historikk = DeltakerHistorikk.EndringFraTiltakskoordinator(endringFraTiltakskoordinator)
 
         objectMapper.writeValueAsString(historikk) shouldContain
-            """"type" : "EndringFraTiltakskoordinator""""
+            "\"type\":\"EndringFraTiltakskoordinator\""
     }
 
     companion object {

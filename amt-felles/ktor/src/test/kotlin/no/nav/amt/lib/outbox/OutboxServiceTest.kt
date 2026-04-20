@@ -46,14 +46,14 @@ class OutboxServiceTest {
         record.key shouldBe key.toString()
         record.valueType shouldBe TestValue::class.simpleName
         record.topic shouldBe topic
-        record.value["foo"].asText() shouldBe value.foo
+        record.value["foo"].asString() shouldBe value.foo
         record.value["bar"].asInt() shouldBe value.bar
 
         val persisted = repository.get(record.id)!!
         persisted.key shouldBe key.toString()
         persisted.valueType shouldBe TestValue::class.simpleName
         persisted.topic shouldBe topic
-        persisted.value.get("foo")?.asText() shouldBe value.foo
+        persisted.value.get("foo")?.asString() shouldBe value.foo
         persisted.value.get("bar")?.asInt() shouldBe value.bar
     }
 
@@ -69,7 +69,7 @@ class OutboxServiceTest {
         val topic = "special-char-topic"
 
         val record = service.insertRecord(key, value, topic)
-        record.value["foo"].asText() shouldBe specialString
+        record.value["foo"].asString() shouldBe specialString
     }
 
     @Test
@@ -80,6 +80,6 @@ class OutboxServiceTest {
 
         val record = service.insertRecord(key, value, topic)
         record.value["list"].size() shouldBe 1000
-        record.value["nested"]["inner"].asText() shouldBe "deep"
+        record.value["nested"]["inner"].asString() shouldBe "deep"
     }
 }
