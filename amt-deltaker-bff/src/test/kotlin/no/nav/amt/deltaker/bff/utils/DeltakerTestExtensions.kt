@@ -47,13 +47,14 @@ fun Deltaker.toDeltakeroppdateringResponse() = DeltakerOppdateringResponse(
 )
 
 fun Deltaker.toUtkastResponse() = UtkastResponse(
-    id,
-    startdato,
-    sluttdato,
-    dagerPerUke,
-    deltakelsesprosent,
-    bakgrunnsinformasjon,
-    deltakelsesinnhold,
-    status,
-    historikk,
+    id = id,
+    startdato = startdato,
+    sluttdato = sluttdato,
+    dagerPerUke = dagerPerUke,
+    deltakelsesprosent = deltakelsesprosent,
+    bakgrunnsinformasjon = bakgrunnsinformasjon,
+    deltakelsesinnhold = deltakelsesinnhold,
+    status = status,
+    historikk = historikk,
+    erManueltDeltMedArrangor = erManueltDeltMedArrangor,
 )

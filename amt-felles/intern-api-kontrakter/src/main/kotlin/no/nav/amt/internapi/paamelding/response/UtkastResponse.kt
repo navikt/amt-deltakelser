@@ -16,4 +16,5 @@ data class UtkastResponse(
     val deltakelsesinnhold: Deltakelsesinnhold?,
     val status: DeltakerStatus,
     val historikk: List<DeltakerHistorikk>,
+    val erManueltDeltMedArrangor: Boolean,
 )
