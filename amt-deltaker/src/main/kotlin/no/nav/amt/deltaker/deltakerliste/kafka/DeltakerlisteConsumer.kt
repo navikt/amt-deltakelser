@@ -56,6 +56,11 @@ class DeltakerlisteConsumer(
             return
         }
 
+        // enkelte gjennomforinger skal ikke bli lest grunnet feil
+        if (GjennomforingV2KafkaPayload.gjennomforingBlacklist.contains(deltakerlistePayload.id)) {
+            return
+        }
+
         deltakerlistePayload.assertPameldingstypeIsValid()
 
         val arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
