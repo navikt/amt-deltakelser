@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.navtiltakskoordinator.endring
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class EndringFraTiltakskoordinatorRepository {

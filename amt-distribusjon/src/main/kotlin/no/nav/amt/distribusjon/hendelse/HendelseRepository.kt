@@ -1,6 +1,5 @@
 package no.nav.amt.distribusjon.hendelse
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
@@ -10,6 +9,7 @@ import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.DbUtils.toPGObject
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class HendelseRepository {

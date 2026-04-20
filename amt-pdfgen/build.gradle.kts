@@ -17,8 +17,8 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.assertions.table)
 
-    testImplementation(libs.jackson.datatype.jsr310)
     testImplementation(libs.jackson.module.kotlin)
+    testImplementation(libs.jackson.datatype.jsr310)
 
     testImplementation(libs.kotest.runner.junit5)
 }

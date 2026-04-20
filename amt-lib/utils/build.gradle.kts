@@ -7,8 +7,7 @@ dependencies {
 
     api(libs.logback.classic)
 
-    api(libs.jackson.module.kotlin)
-    api(libs.jackson.datatype.jsr310)
+    api(libs.tools.jackson.module.kotlin)
 
     implementation(libs.kotlinx.coroutines.core)
 

@@ -1,9 +1,9 @@
 package no.nav.amt.distribusjon
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.lib.ktor.auth.PreAuthorizedApp
 import no.nav.amt.lib.utils.database.DatabaseConfig
 import no.nav.amt.lib.utils.objectMapper
+import tools.jackson.module.kotlin.readValue
 
 data class Environment(
     val databaseConfig: DatabaseConfig = DatabaseConfig(),

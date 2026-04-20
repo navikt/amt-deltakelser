@@ -9,12 +9,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.jackson3.jackson
 import io.ktor.utils.io.ByteReadChannel
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
-import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.objectMapper
 
 object ClientTestUtils {
@@ -33,7 +32,7 @@ object ClientTestUtils {
         statusCode: HttpStatusCode = HttpStatusCode.OK,
         expectAuthHeader: Boolean = true,
     ) = HttpClient(MockEngine) {
-        install(ContentNegotiation) { jackson { applicationConfig() } }
+        install(ContentNegotiation) { jackson() }
         engine {
             addHandler { request ->
                 request.url.toString() shouldBe expectedUrl

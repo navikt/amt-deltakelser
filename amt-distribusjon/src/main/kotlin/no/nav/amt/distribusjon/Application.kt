@@ -9,7 +9,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.http.isSuccess
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.jackson3.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.application.ApplicationStopped
@@ -55,7 +55,6 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
-import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.leaderelection.Leader
@@ -90,7 +89,7 @@ fun Application.module() {
         }
 
         install(ContentNegotiation) {
-            jackson { applicationConfig() }
+            jackson()
         }
 
         install(HttpTimeout) {

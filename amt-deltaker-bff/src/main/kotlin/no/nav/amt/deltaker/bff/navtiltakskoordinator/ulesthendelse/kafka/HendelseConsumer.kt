@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.kafka
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory.AUTO_OFFSET_RESET_LATEST
@@ -11,6 +10,7 @@ import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class HendelseConsumer(
