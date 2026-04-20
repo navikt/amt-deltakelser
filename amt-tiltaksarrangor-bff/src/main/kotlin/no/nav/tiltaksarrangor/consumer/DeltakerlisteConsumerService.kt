@@ -43,6 +43,11 @@ class DeltakerlisteConsumerService(
 
         val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = objectMapper.readValue(value)
 
+        // enkelte gjennomforinger skal ikke bli lest grunnet feil
+        if (GjennomforingV2KafkaPayload.gjennomforingBlacklist.contains(deltakerlistePayload.id)) {
+            return
+        }
+
         if (deltakerlistePayload.skalLagres()) {
             deltakerlistePayload.assertPameldingstypeIsValid()
 
