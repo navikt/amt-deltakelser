@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.deltakerliste.kafka
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.arrangor.ArrangorService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
@@ -14,7 +15,6 @@ import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class DeltakerlisteConsumer(

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.kafka.utils
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -11,7 +12,6 @@ import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorsDeltakerlisteDto
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.objectMapper
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 fun assertProduced(forslag: Forslag) = runTest {

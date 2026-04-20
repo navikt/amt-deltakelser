@@ -1,10 +1,10 @@
 package no.nav.amt.internapi.deltaker.request
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
-import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 
 class AvsluttDeltakelseRequestTest {
@@ -23,7 +23,10 @@ class AvsluttDeltakelseRequestTest {
 
         val json = objectMapper.writeValueAsString(request)
 
-        json shouldContain "\"type\":\"AvsluttDeltakelseRequest\""
+        json shouldContain
+            """
+            "type" : "AvsluttDeltakelseRequest"
+            """.trimIndent()
 
         val deserialized = objectMapper.readValue<AvsluttDeltakelseRequest>(json)
         deserialized shouldBe request

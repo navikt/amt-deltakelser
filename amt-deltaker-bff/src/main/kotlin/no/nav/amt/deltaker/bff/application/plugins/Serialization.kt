@@ -1,12 +1,13 @@
 package no.nav.amt.deltaker.bff.application.plugins
 
-import io.ktor.serialization.jackson3.jackson
+import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import no.nav.amt.lib.utils.applicationConfig
 
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
-        jackson()
+        jackson { applicationConfig() }
     }
 }

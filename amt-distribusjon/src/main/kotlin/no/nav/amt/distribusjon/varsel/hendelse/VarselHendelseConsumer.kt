@@ -1,5 +1,6 @@
 package no.nav.amt.distribusjon.varsel.hendelse
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.varsel.VarselRepository
 import no.nav.amt.distribusjon.varsel.VarselService
@@ -14,7 +15,6 @@ import no.nav.amt.lib.utils.database.Database.transaction
 import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.LoggerFactory
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class VarselHendelseConsumer(

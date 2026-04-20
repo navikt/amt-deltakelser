@@ -386,7 +386,7 @@ class ExternalApiTest : IntegrationTestBase() {
         withTestApplicationContext { client ->
             client.postPersonalia(deltakerIds).apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe "[]"
+                bodyAsText() shouldBe "[ ]"
             }
         }
     }

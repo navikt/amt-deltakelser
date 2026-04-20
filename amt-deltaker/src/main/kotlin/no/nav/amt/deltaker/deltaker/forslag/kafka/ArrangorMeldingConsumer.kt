@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.forslag.kafka
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
@@ -17,7 +18,6 @@ import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class ArrangorMeldingConsumer(

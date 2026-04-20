@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.arrangor
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class ArrangorConsumer(

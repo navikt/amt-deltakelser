@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.utils.data.TestData
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
@@ -13,7 +14,6 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
-import tools.jackson.module.kotlin.readValue
 
 class InnholdDtoTest {
     @Test

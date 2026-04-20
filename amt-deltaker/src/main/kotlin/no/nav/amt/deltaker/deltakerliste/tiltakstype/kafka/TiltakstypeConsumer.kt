@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka.TiltakstypeDto
 import no.nav.amt.lib.utils.objectMapper
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class TiltakstypeConsumer(
