@@ -59,10 +59,8 @@ data class Tiltakstype(
         val tiltakUtenDeltakerAdresseDeling = setOf(
             DIGITALT_OPPFOLGINGSTILTAK,
             JOBBKLUBB,
-            GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            GRUPPE_FAG_OG_YRKESOPPLAERING,
             Tiltakskode.TILPASSET_JOBBSTOTTE,
-        )
+        ) + opplaeringsTiltak
     }
 
     @Deprecated("Utrygg sjekk av kurstiltak. Må erstattes med å sjekke oppstartstype på tiltak")
