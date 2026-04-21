@@ -1,6 +1,11 @@
 ---
 name: observability-setup
 description: Sett opp Prometheus-metrikker, OpenTelemetry-tracing og health check-endepunkter for Nais-applikasjoner
+license: MIT
+compatibility: Application deployed on Nais
+metadata:
+  domain: observability
+  tags: prometheus opentelemetry health metrics
 ---
 
 # Observability Setup Skill

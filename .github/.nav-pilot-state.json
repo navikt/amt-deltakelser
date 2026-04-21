@@ -1,7 +1,7 @@
 {
   "collection": "kotlin-backend",
-  "version": "2025.07",
-  "source_sha": "4cd2a10",
+  "version": "2026.04.20-194821-8b2cb9f",
+  "source_sha": "8b2cb9f",
   "installed_at": "2026-04-13T19:38:21Z",
   "files": [
     {
@@ -22,7 +22,7 @@
     },
     {
       "path": ".github/agents/nais.agent.md",
-      "hash": "396a51def78b3f38"
+      "hash": "fa07ad8cfdf54a4a"
     },
     {
       "path": ".github/agents/nais.metadata.json",
@@ -38,7 +38,7 @@
     },
     {
       "path": ".github/agents/security-champion.agent.md",
-      "hash": "d3fd3160fc2152c9"
+      "hash": "3081dcf0ddde695d"
     },
     {
       "path": ".github/agents/security-champion.metadata.json",
@@ -46,7 +46,7 @@
     },
     {
       "path": ".github/agents/nav-pilot.agent.md",
-      "hash": "a27c3d1ffee76b0a"
+      "hash": "3179adb5db9ae3af"
     },
     {
       "path": ".github/agents/nav-pilot.metadata.json",
@@ -54,51 +54,51 @@
     },
     {
       "path": ".github/skills/api-design/",
-      "hash": "2760ab46cc8b8993"
+      "hash": "a353aded69a4bd4c"
     },
     {
       "path": ".github/skills/flyway-migration/",
-      "hash": "4e04be57f47a8fbe"
+      "hash": "ebb952121b180fac"
     },
     {
       "path": ".github/skills/kotlin-app-config/",
-      "hash": "a7f564fa07377a83"
+      "hash": "9168a07cc0b620c3"
     },
     {
       "path": ".github/skills/observability-setup/",
-      "hash": "7cfbbd31f8793a0b"
+      "hash": "533cfb6d1dd88af3"
     },
     {
       "path": ".github/skills/security-review/",
-      "hash": "dd9e871d55b4ecc6"
+      "hash": "c74a83a4e61fbf58"
     },
     {
       "path": ".github/skills/tokenx-auth/",
-      "hash": "820c38611e471ff3"
+      "hash": "7afa1c42b4e8e859"
     },
     {
       "path": ".github/skills/nav-plan/",
-      "hash": "2925082d080c712e"
+      "hash": "0849265460ea23e2"
     },
     {
       "path": ".github/skills/nav-deep-interview/",
-      "hash": "db67aa1434fb4610"
+      "hash": "42e9aab52e591ef0"
     },
     {
       "path": ".github/skills/nav-architecture-review/",
-      "hash": "3210c935f870aa0a"
+      "hash": "4618dec566442509"
     },
     {
       "path": ".github/skills/nav-troubleshoot/",
-      "hash": "a836d38dbcabe99e"
+      "hash": "ce043cf29ce427b1"
     },
     {
       "path": ".github/instructions/kotlin-ktor.instructions.md",
-      "hash": "32ca1c5ff40db124"
+      "hash": "aacb5351ab3f2799"
     },
     {
       "path": ".github/instructions/kotlin-spring.instructions.md",
-      "hash": "7b7d55ac22e314cc"
+      "hash": "0a6fca898f27e2d6"
     },
     {
       "path": ".github/instructions/testing.instructions.md",
@@ -118,7 +118,7 @@
     },
     {
       "path": ".github/instructions/database.instructions.md",
-      "hash": "aa0f7bd2de1e3d64"
+      "hash": "5b4639fd54c7b4f3"
     },
     {
       "path": ".github/prompts/spring-boot-endpoint.prompt.md",

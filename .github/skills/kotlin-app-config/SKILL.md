@@ -1,6 +1,11 @@
 ---
 name: kotlin-app-config
 description: Sealed class-konfigurasjon for Kotlin-applikasjoner med miljøspesifikke innstillinger
+license: MIT
+compatibility: Kotlin application
+metadata:
+  domain: backend
+  tags: kotlin configuration sealed-class environment
 ---
 
 # Kotlin Application Configuration Skill

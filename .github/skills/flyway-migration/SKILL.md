@@ -1,6 +1,11 @@
 ---
 name: flyway-migration
 description: Databasemigrasjonsmønstre med Flyway og versjonerte SQL-skript
+license: MIT
+compatibility: Kotlin or Java with Flyway
+metadata:
+  domain: backend
+  tags: database flyway sql migration
 ---
 
 # Flyway Migration Skill

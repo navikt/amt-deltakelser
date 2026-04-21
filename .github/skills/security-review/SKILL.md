@@ -1,6 +1,10 @@
 ---
 name: security-review
 description: Bruk før commit, push eller pull request for å sjekke at koden er trygg å merge
+license: MIT
+metadata:
+  domain: auth
+  tags: security pre-commit vulnerability-scanning code-review
 ---
 
 # Security Review Skill
