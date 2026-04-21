@@ -54,6 +54,71 @@ class DeltakerTest {
     }
 
     @Test
+    fun `getDeltakerHistorikkForVisning - pameldingstype TRENGER_GODKJENNING - filtrerer bort vedtak`() {
+        val deltakerliste = TestData.lagDeltakerliste(
+            pameldingType = no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType.TRENGER_GODKJENNING,
+        )
+        val baseDeltaker = TestData.lagDeltaker(historikk = false, deltakerliste = deltakerliste)
+        val vedtak = TestData.lagVedtak(
+            deltakerId = baseDeltaker.id,
+            fattet = LocalDateTime.now().minusMonths(1),
+            sistEndret = LocalDateTime.now().minusMonths(1),
+        )
+        val endring = TestData.lagDeltakerEndring(
+            deltakerId = baseDeltaker.id,
+            endret = LocalDateTime.now().minusDays(1),
+        )
+        val deltaker = TestData.leggTilHistorikk(baseDeltaker, listOf(vedtak), listOf(endring), emptyList())
+
+        val historikk = deltaker.getDeltakerHistorikkForVisning()
+
+        historikk.size shouldBe 1
+        historikk[0] shouldBe DeltakerHistorikk.Endring(endring)
+        historikk.none { it is DeltakerHistorikk.Vedtak } shouldBe true
+    }
+
+    @Test
+    fun `getDeltakerHistorikkForVisning - pameldingstype DIREKTE_VEDTAK - inkluderer vedtak`() {
+        val deltakerliste = TestData.lagDeltakerliste(
+            pameldingType = no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
+        val baseDeltaker = TestData.lagDeltaker(historikk = false, deltakerliste = deltakerliste)
+        val vedtak = TestData.lagVedtak(
+            deltakerId = baseDeltaker.id,
+            fattet = LocalDateTime.now().minusMonths(1),
+            sistEndret = LocalDateTime.now().minusMonths(1),
+        )
+        val endring = TestData.lagDeltakerEndring(
+            deltakerId = baseDeltaker.id,
+            endret = LocalDateTime.now().minusDays(1),
+        )
+        val deltaker = TestData.leggTilHistorikk(baseDeltaker, listOf(vedtak), listOf(endring), emptyList())
+
+        val historikk = deltaker.getDeltakerHistorikkForVisning()
+
+        historikk.size shouldBe 2
+        historikk.any { it is DeltakerHistorikk.Vedtak } shouldBe true
+        historikk.any { it is DeltakerHistorikk.Endring } shouldBe true
+    }
+
+    @Test
+    fun `getDeltakerHistorikkForVisning - pameldingstype null - inkluderer vedtak`() {
+        val deltakerliste = TestData.lagDeltakerliste(pameldingType = null)
+        val baseDeltaker = TestData.lagDeltaker(historikk = false, deltakerliste = deltakerliste)
+        val vedtak = TestData.lagVedtak(
+            deltakerId = baseDeltaker.id,
+            fattet = LocalDateTime.now().minusMonths(1),
+            sistEndret = LocalDateTime.now().minusMonths(1),
+        )
+        val deltaker = TestData.leggTilHistorikk(baseDeltaker, listOf(vedtak), emptyList(), emptyList())
+
+        val historikk = deltaker.getDeltakerHistorikkForVisning()
+
+        historikk.size shouldBe 1
+        historikk[0] shouldBe DeltakerHistorikk.Vedtak(vedtak)
+    }
+
+    @Test
     fun `fattetVedtak - flere vedtak - henter vedtaket som er gyldig og fattet`() {
         val deltaker = TestData.lagDeltaker(historikk = false)
         val fattet = TestData.lagVedtak(

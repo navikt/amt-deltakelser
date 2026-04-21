@@ -67,8 +67,13 @@ fun Routing.registerVeilederApi(
                 historikk = historikk,
                 arrangornavn = deltaker.deltakerliste.arrangor?.let { arrangorService.getArrangorNavn(it) } ?: "",
                 oppstartstype = deltaker.deltakerliste.oppstart,
-                ansatte = navAnsattService.getMany(ansatteIder),
-                enheter = navEnhetService.getEnheter(enheterIder).values.toList(),
+                pameldingstype = deltaker.deltakerliste.pameldingstype,
+                ansatte = navAnsattService.getMany(ansatteIder).associateBy { it.id },
+                enheter = navEnhetService
+                    .getEnheter(enheterIder)
+                    .values
+                    .toList()
+                    .associateBy { it.id },
             )
             call.respond(response)
         }

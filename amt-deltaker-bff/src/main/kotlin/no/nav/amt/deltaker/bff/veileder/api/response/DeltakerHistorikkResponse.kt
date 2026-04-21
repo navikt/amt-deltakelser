@@ -14,6 +14,7 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
@@ -39,13 +40,15 @@ sealed interface DeltakerHistorikkResponse {
             models: List<DeltakerHistorikk>,
             arrangornavn: String,
             oppstartstype: Oppstartstype?,
+            pameldingstype: GjennomforingPameldingType?,
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
-        ) = models.map {
+        ) = models.mapNotNull {
             fromModel(
                 model = it,
                 arrangornavn = arrangornavn,
                 oppstartstype = oppstartstype,
+                pameldingstype = pameldingstype,
                 enheter = enheter,
                 ansatte = ansatte,
             )
@@ -55,6 +58,7 @@ sealed interface DeltakerHistorikkResponse {
             model: DeltakerHistorikk,
             arrangornavn: String,
             oppstartstype: Oppstartstype?,
+            pameldingstype: GjennomforingPameldingType?,
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
         ) = when (model) {
@@ -66,11 +70,17 @@ sealed interface DeltakerHistorikkResponse {
                 ansatte = ansatte,
             )
 
-            is DeltakerHistorikk.Vedtak -> VedtakResponse.fromModel(
-                model = model.vedtak,
-                enheter = enheter,
-                ansatte = ansatte,
-            )
+            is DeltakerHistorikk.Vedtak -> {
+                if (pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK) {
+                    VedtakResponse.fromModel(
+                        model = model.vedtak,
+                        enheter = enheter,
+                        ansatte = ansatte,
+                    )
+                } else {
+                    null
+                }
+            }
 
             is DeltakerHistorikk.Forslag -> model.forslag.let {
                 ForslagResponse.fromForslag(
