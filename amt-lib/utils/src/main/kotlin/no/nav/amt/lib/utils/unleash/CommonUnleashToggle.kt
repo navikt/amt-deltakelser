@@ -56,6 +56,6 @@ class CommonUnleashToggle(
             Tiltakskode.HOYERE_UTDANNING,
         )
 
-        private val tiltakstyperKometKanskjeErMasterFor = emptySet<Tiltakskode>()
+        private val tiltakstyperKometKanskjeErMasterFor = setOf<Tiltakskode>(Tiltakskode.TILPASSET_JOBBSTOTTE)
     }
 }

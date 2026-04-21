@@ -82,10 +82,12 @@ private fun maxVarighet(deltakerliste: DeltakerlisteDbo): Duration? = when (delt
     Tiltakskode.HOYERE_UTDANNING,
     Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
     -> years(4)
+
     Tiltakskode.FAG_OG_YRKESOPPLAERING,
     -> years(5)
 
     Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+    Tiltakskode.TILPASSET_JOBBSTOTTE,
     Tiltakskode.JOBBKLUBB,
     -> null
 

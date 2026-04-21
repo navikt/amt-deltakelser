@@ -25,7 +25,8 @@ import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.EndringsmeldingDbo
 import org.springframework.stereotype.Service
 
-val tiltakMedDeltakelsesmengder = setOf(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING, Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET)
+val tiltakMedDeltakelsesmengder =
+    setOf(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING, Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET, Tiltakskode.TILPASSET_JOBBSTOTTE)
 
 @Service
 class DeltakerMapper(

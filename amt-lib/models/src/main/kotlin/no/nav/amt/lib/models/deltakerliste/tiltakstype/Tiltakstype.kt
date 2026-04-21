@@ -68,6 +68,10 @@ data class Tiltakstype(
     fun erKurs() = this.tiltakskode in kursTiltak
 
     val erOpplaeringstiltak = tiltakskode in opplaeringsTiltak
-    val harDeltakelsesmengde = tiltakskode in setOf(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING, Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET)
+    val harDeltakelsesmengde = tiltakskode in setOf(
+        Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+        Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+        Tiltakskode.TILPASSET_JOBBSTOTTE,
+    )
     val adresseKanDelesMedArrangor = tiltakskode !in tiltakUtenDeltakerAdresseDeling
 }

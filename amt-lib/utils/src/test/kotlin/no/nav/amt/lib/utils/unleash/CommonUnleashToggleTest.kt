@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import kotlin.test.Ignore
 
 class CommonUnleashToggleTest {
     private val unleashClient: Unleash = mockk(relaxed = true)
@@ -45,11 +44,12 @@ class CommonUnleashToggleTest {
             sut.erKometMasterForTiltakstype(kode) shouldBe true
         }
 
-        @Ignore("Når vi kanskje er master for enkeltplasser; fjern ignore og fyll name-listen med enkeltplass-koder")
         @ParameterizedTest
         @EnumSource(
             value = Tiltakskode::class,
-            names = [],
+            names = [
+                "TILPASSET_JOBBSTOTTE",
+            ],
         )
         fun `returnerer true hvis toggle ENABLE_KOMET_DELTAKERE er pa for kanskje-master-typer`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) } returns true
@@ -62,6 +62,7 @@ class CommonUnleashToggleTest {
         @EnumSource(
             value = Tiltakskode::class,
             names = [
+                "TILPASSET_JOBBSTOTTE",
                 "ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING",
                 "ENKELTPLASS_FAG_OG_YRKESOPPLAERING",
                 "HOYERE_UTDANNING",
@@ -111,6 +112,7 @@ class CommonUnleashToggleTest {
                 "ARBEIDSRETTET_REHABILITERING",
                 "DIGITALT_OPPFOLGINGSTILTAK",
                 "VARIG_TILRETTELAGT_ARBEID_SKJERMET",
+                "TILPASSET_JOBBSTOTTE",
                 "GRUPPE_ARBEIDSMARKEDSOPPLAERING",
                 "JOBBKLUBB",
                 "GRUPPE_FAG_OG_YRKESOPPLAERING",

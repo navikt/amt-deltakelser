@@ -21,8 +21,13 @@
         {{#eq deltakerliste.tiltakskode "VARIG_TILRETTELAGT_ARBEID_SKJERMET"}}
             {{> sections/overskrift-med-ingress-vta}}
         {{/eq}}
+        {{#eq deltakerliste.tiltakskode "TILPASSET_JOBBSTOTTE"}}
+            {{> sections/overskrift-med-ingress-vta}}
+        {{/eq}}
         {{#not_eq deltakerliste.tiltakskode "VARIG_TILRETTELAGT_ARBEID_SKJERMET"}}
-            {{> sections/overskrift-med-ingress}}
+            {{#not_eq deltakerliste.tiltakskode "TILPASSET_JOBBSTOTTE"}}
+                {{> sections/overskrift-med-ingress}}
+            {{/not_eq}}
         {{/not_eq}}
 
         {{> sections/innhold}}
