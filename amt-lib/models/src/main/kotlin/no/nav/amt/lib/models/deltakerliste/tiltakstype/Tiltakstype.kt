@@ -61,6 +61,7 @@ data class Tiltakstype(
             JOBBKLUBB,
             GRUPPE_ARBEIDSMARKEDSOPPLAERING,
             GRUPPE_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
         )
     }
 

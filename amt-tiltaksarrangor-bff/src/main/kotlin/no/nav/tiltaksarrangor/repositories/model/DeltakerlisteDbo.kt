@@ -41,7 +41,6 @@ data class DeltakerlisteDbo(
             Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             Tiltakskode.AVKLARING,
             Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-            Tiltakskode.TILPASSET_JOBBSTOTTE,
             Tiltakskode.ARBEIDSRETTET_REHABILITERING,
         )
 }
