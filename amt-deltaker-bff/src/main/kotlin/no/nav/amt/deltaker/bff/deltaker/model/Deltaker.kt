@@ -149,6 +149,7 @@ data class Deltaker(
             Tiltakskode.STUDIESPESIALISERING,
             Tiltakskode.FAG_OG_YRKESOPPLAERING,
             Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
             -> null
         }
 
@@ -198,6 +199,7 @@ data class Deltaker(
             Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
             Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
             Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
             -> null
         }
 

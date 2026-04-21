@@ -45,6 +45,9 @@ enum class Tiltakskode {
     STUDIESPESIALISERING, // Tidligere GruppeAMO/EnkelAMO
     FAG_OG_YRKESOPPLAERING, // Tidligere GruppeFagYrk/EnkelFagYrk
     HOYERE_YRKESFAGLIG_UTDANNING, // Tidligere GruppeFagYrk/EnkelFagYrk
+
+    // ny
+    TILPASSET_JOBBSTOTTE,
     ;
 
     // Ved lansering av ny forskrift/påmelding av nye typer må vi bruke type feltet GRUPPE/ENKELPLASS istedet for tiltakskode

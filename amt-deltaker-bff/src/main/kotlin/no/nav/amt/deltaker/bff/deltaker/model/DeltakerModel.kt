@@ -87,6 +87,7 @@ data class DeltakerModel(
             Tiltakskode.STUDIESPESIALISERING,
             Tiltakskode.FAG_OG_YRKESOPPLAERING,
             Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
             -> null
         }
 
@@ -118,6 +119,7 @@ data class DeltakerModel(
             Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
             Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
             Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
             -> years(4)
 
             Tiltakskode.FAG_OG_YRKESOPPLAERING,

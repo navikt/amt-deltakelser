@@ -48,6 +48,7 @@ class DeltakerTest {
                 Tiltakskode.JOBBKLUBB,
                 Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+                Tiltakskode.TILPASSET_JOBBSTOTTE,
                 -> it.maxVarighet shouldBe null
 
                 Tiltakskode.OPPFOLGING -> when (it.navBruker.innsatsgruppe) {
@@ -161,6 +162,7 @@ class DeltakerTest {
                 Tiltakskode.STUDIESPESIALISERING,
                 Tiltakskode.FAG_OG_YRKESOPPLAERING,
                 Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+                Tiltakskode.TILPASSET_JOBBSTOTTE,
                 -> it.softMaxVarighet shouldBe null
             }
         }
