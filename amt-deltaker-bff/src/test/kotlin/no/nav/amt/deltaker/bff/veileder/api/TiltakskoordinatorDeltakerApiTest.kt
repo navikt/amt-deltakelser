@@ -15,7 +15,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
-import no.nav.amt.deltaker.bff.apiclients.DeltakerHistorikkData
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
@@ -48,6 +47,7 @@ import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -434,10 +434,11 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
-        coEvery { amtDeltakerClient.getDeltakerHistorikkData(any()) } returns DeltakerHistorikkData(
+        coEvery { amtDeltakerClient.getDeltakerHistorikkData(any()) } returns DeltakerHistorikkDataResponse(
             historikk = historikk,
             arrangornavn = arrangornavn,
             oppstartstype = oppstartstype,
+            pameldingstype = null,
             ansatte = ansatte,
             enheter = enheter,
         )
@@ -451,6 +452,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                         models = historikk,
                         arrangornavn = arrangornavn,
                         oppstartstype = oppstartstype,
+                        pameldingstype = null,
                         enheter = enheter,
                         ansatte = ansatte,
                     ),
@@ -483,6 +485,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                         models = historikk,
                         arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                         oppstartstype = deltaker.deltakerliste.oppstart,
+                        pameldingstype = null,
                         enheter = enheter,
                         ansatte = ansatte,
                     ),

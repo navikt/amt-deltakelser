@@ -13,7 +13,6 @@ import io.mockk.every
 import io.mockk.just
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.apiclients.DeltakerHistorikkData
 import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerTestUtils.fattVedtak
@@ -31,6 +30,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.leggTilHistorikk
 import no.nav.amt.deltaker.bff.utils.tokenXToken
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.internapi.PersonIdentResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -190,10 +190,11 @@ class InnbyggerApiTest : IntegrationTestBase() {
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
-        coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltaker.id) } returns DeltakerHistorikkData(
+        coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltaker.id) } returns DeltakerHistorikkDataResponse(
             historikk = historikk,
             arrangornavn = arrangornavn,
             oppstartstype = oppstartstype,
+            pameldingstype = null,
             ansatte = ansatte,
             enheter = enheter,
         )
@@ -206,6 +207,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
                         models = historikk,
                         arrangornavn = arrangornavn,
                         oppstartstype = oppstartstype,
+                        pameldingstype = null,
                         enheter = enheter,
                         ansatte = ansatte,
                     ),
@@ -236,6 +238,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
                         models = historikk,
                         arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                         oppstartstype = deltaker.deltakerliste.oppstart,
+                        pameldingstype = null,
                         enheter = enheter,
                         ansatte = ansatte,
                     ),

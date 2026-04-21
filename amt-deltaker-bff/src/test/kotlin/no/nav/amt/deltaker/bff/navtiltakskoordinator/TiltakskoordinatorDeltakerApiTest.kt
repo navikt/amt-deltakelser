@@ -8,7 +8,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import no.nav.amt.deltaker.bff.apiclients.DeltakerHistorikkData
 import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
@@ -18,6 +17,7 @@ import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
@@ -161,6 +161,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                     models = historikk,
                     arrangornavn = arrangornavn,
                     oppstartstype = oppstartstype,
+                    pameldingstype = null,
                     enheter = navEnhetMap,
                     ansatte = navAnsattMap,
                 ),
@@ -168,10 +169,11 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
             coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltakerResponse
-            coEvery { amtDeltakerClient.getDeltakerHistorikkData(any()) } returns DeltakerHistorikkData(
+            coEvery { amtDeltakerClient.getDeltakerHistorikkData(any()) } returns DeltakerHistorikkDataResponse(
                 historikk = historikk,
                 arrangornavn = arrangornavn,
                 oppstartstype = oppstartstype,
+                pameldingstype = null,
                 ansatte = navAnsattMap,
                 enheter = navEnhetMap,
             )
@@ -209,6 +211,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                     models = historikk,
                     arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                     oppstartstype = deltaker.deltakerliste.oppstart,
+                    pameldingstype = null,
                     enheter = navEnhetMap,
                     ansatte = navAnsattMap,
                 ),

@@ -12,21 +12,9 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
 import org.slf4j.LoggerFactory
 import java.time.ZonedDateTime
 import java.util.UUID
-
-data class DeltakerHistorikkData(
-    val historikk: List<DeltakerHistorikk>,
-    val arrangornavn: String,
-    val oppstartstype: Oppstartstype?,
-    val ansatte: Map<UUID, NavAnsatt>,
-    val enheter: Map<UUID, NavEnhet>,
-)
 
 class AmtDeltakerClient(
     baseUrl: String,
@@ -49,18 +37,9 @@ class AmtDeltakerClient(
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
         .body()
 
-    suspend fun getDeltakerHistorikkData(deltakerId: UUID): DeltakerHistorikkData {
-        val response = performGet("deltaker/$deltakerId/historikk")
-            .failIfNotSuccess("Fant ikke historikkdata for $deltakerId i amt-deltaker.")
-            .body<DeltakerHistorikkDataResponse>()
-        return DeltakerHistorikkData(
-            historikk = response.historikk,
-            arrangornavn = response.arrangornavn,
-            oppstartstype = response.oppstartstype,
-            ansatte = response.ansatte.associateBy { it.id },
-            enheter = response.enheter.associateBy { it.id },
-        )
-    }
+    suspend fun getDeltakerHistorikkData(deltakerId: UUID): DeltakerHistorikkDataResponse = performGet("deltaker/$deltakerId/historikk")
+        .failIfNotSuccess("Fant ikke historikkdata for $deltakerId i amt-deltaker.")
+        .body()
 
     suspend fun sistBesokt(
         deltakerId: UUID,

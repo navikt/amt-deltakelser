@@ -122,6 +122,7 @@ fun Routing.registerInnbyggerApi(
                     models = data.historikk,
                     arrangornavn = data.arrangornavn,
                     oppstartstype = data.oppstartstype,
+                    pameldingstype = data.pameldingstype,
                     enheter = data.enheter,
                     ansatte = data.ansatte,
                 )
@@ -136,6 +137,7 @@ fun Routing.registerInnbyggerApi(
                     models = historikk,
                     arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                     oppstartstype = deltaker.deltakerliste.oppstart,
+                    pameldingstype = deltaker.deltakerliste.pameldingstype,
                     enheter = navEnhetService.hentEnheterForHistorikk(historikk),
                     ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
                 )

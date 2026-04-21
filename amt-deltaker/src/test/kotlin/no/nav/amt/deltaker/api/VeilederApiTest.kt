@@ -40,6 +40,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -381,8 +382,73 @@ class VeilederApiTest : IntegrationTestBase() {
             body.historikk shouldBe historikk
             body.arrangornavn shouldBe arrangor.navn
             body.oppstartstype shouldBe deltakerliste.oppstart
-            body.ansatte shouldBe navAnsatte
-            body.enheter shouldBe navEnheter
+            body.ansatte shouldBe navAnsatte.associateBy { it.id }
+            body.enheter shouldBe navEnheter.associateBy { it.id }
+        }
+    }
+
+    @Test
+    fun `get historikk - deltakerliste med TRENGER_GODKJENNING - returnerer pameldingstype TRENGER_GODKJENNING`() {
+        val arrangor = lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(
+            arrangor = arrangor,
+            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+        )
+        val vedtak = TestData.lagVedtak()
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val historikk = listOf(
+            DeltakerHistorikk.Vedtak(vedtak),
+            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(deltakerId = deltaker.id)),
+        )
+        val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
+        val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
+
+        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        every { navAnsattRepository.getManyById(any()) } returns navAnsatte
+        every { navEnhetRepository.getMany(any()) } returns navEnheter
+        every { arrangorRepository.get(arrangor.id) } returns arrangor
+
+        withTestApplicationContext { client ->
+            val response = client.get("/deltaker/${deltaker.id}/historikk") { noBodyRequest() }
+
+            response.status shouldBe HttpStatusCode.OK
+            val body = objectMapper.readValue(response.bodyAsText(), DeltakerHistorikkDataResponse::class.java)
+            body.pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
+            body.historikk.size shouldBe 2
+            body.historikk.any { it is DeltakerHistorikk.Vedtak } shouldBe true
+        }
+    }
+
+    @Test
+    fun `get historikk - deltakerliste med DIREKTE_VEDTAK - returnerer pameldingstype DIREKTE_VEDTAK`() {
+        val arrangor = lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(
+            arrangor = arrangor,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
+        val vedtak = TestData.lagVedtak()
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val historikk = listOf(
+            DeltakerHistorikk.Vedtak(vedtak),
+            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(deltakerId = deltaker.id)),
+        )
+        val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
+        val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
+
+        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        every { navAnsattRepository.getManyById(any()) } returns navAnsatte
+        every { navEnhetRepository.getMany(any()) } returns navEnheter
+        every { arrangorRepository.get(arrangor.id) } returns arrangor
+
+        withTestApplicationContext { client ->
+            val response = client.get("/deltaker/${deltaker.id}/historikk") { noBodyRequest() }
+
+            response.status shouldBe HttpStatusCode.OK
+            val body = objectMapper.readValue(response.bodyAsText(), DeltakerHistorikkDataResponse::class.java)
+            body.pameldingstype shouldBe GjennomforingPameldingType.DIREKTE_VEDTAK
+            body.historikk.size shouldBe 2
         }
     }
 

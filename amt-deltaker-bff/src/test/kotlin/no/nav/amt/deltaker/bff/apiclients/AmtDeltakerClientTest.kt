@@ -605,8 +605,9 @@ class AmtDeltakerClientTest {
                 historikk = historikk,
                 arrangornavn = "Test Arrangør",
                 oppstartstype = Oppstartstype.LOPENDE,
-                ansatte = listOf(navAnsatt),
-                enheter = listOf(navEnhet),
+                ansatte = mapOf(navAnsatt.id to navAnsatt),
+                enheter = mapOf(navEnhet.id to navEnhet),
+                pameldingstype = null,
             )
 
             val amtDeltakerClient = createDeltakerClient(
