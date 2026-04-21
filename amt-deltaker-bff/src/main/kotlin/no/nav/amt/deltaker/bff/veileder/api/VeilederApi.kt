@@ -196,6 +196,7 @@ fun Routing.registerVeilederApi(
                     models = data.historikk,
                     arrangornavn = data.arrangornavn,
                     oppstartstype = data.oppstartstype,
+                    pameldingstype = data.pameldingstype,
                     enheter = data.enheter,
                     ansatte = data.ansatte,
                 )
@@ -211,6 +212,7 @@ fun Routing.registerVeilederApi(
                     models = historikk,
                     arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                     oppstartstype = deltaker.deltakerliste.oppstart,
+                    pameldingstype = deltaker.deltakerliste.pameldingstype,
                     enheter = navEnhetService.hentEnheterForHistorikk(historikk),
                     ansatte = navAnsattService.hentAnsatteForHistorikk(historikk),
                 )
