@@ -128,7 +128,9 @@ sealed interface GjennomforingV2KafkaPayload {
 
         // dette er gjenomføringene som har blitt opprettet med feil påmeldingstype,
         // og som derfor må ignoreres av consumere
-        val gjennomforingBlacklist = emptySet<UUID>()
+        val gjennomforingBlacklist = setOf(
+            UUID.fromString("0287fb58-b0aa-47d7-bb85-49e36b86e117"),
+        )
 
         val direktetiltak =
             setOf(
