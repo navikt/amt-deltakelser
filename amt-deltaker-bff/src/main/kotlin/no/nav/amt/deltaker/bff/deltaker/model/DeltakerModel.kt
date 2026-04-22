@@ -78,6 +78,7 @@ data class DeltakerModel(
             Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
             Tiltakskode.JOBBKLUBB,
             Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
             Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
             Tiltakskode.HOYERE_UTDANNING,
             Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
@@ -136,6 +137,7 @@ data class DeltakerModel(
 
             Tiltakskode.JOBBKLUBB,
             Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
             -> null
         }
 }

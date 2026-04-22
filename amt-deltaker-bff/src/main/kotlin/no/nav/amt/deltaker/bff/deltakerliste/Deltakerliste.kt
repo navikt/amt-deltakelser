@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.bff.deltakerliste
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
@@ -40,14 +39,5 @@ data class Deltakerliste(
         }
     }
 
-    // Flyttet til lib
-    fun deltakerAdresseDeles() = tiltakUtenDeltakerAdresset.none { it == this.tiltak.tiltakskode }
+    fun deltakerAdresseDeles() = Tiltakstype.tiltakUtenDeltakerAdresseDeling.none { it == this.tiltak.tiltakskode }
 }
-
-// Flyttet til lib
-private val tiltakUtenDeltakerAdresset = setOf(
-    Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
-    Tiltakskode.JOBBKLUBB,
-    Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-    Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-)

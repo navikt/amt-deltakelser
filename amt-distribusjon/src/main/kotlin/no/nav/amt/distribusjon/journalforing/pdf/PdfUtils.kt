@@ -251,6 +251,7 @@ private fun fjernEldreHendelserAvSammeType(hendelser: List<Hendelse>): List<Hend
 
 private fun skalViseDeltakelsesmengde(tiltakstype: HendelseDeltaker.Deltakerliste.Tiltak): Boolean =
     tiltakstype.tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET ||
+        tiltakstype.tiltakskode == Tiltakskode.TILPASSET_JOBBSTOTTE ||
         tiltakstype.tiltakskode == Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
 
 fun HendelseDeltaker.Deltakerliste.forskriftskapittel() = when (this.tiltak.tiltakskode) {
@@ -266,7 +267,7 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel() = when (this.tiltak.tilt
 
     Tiltakskode.OPPFOLGING -> 4
 
-    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> 14
+    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET, Tiltakskode.TILPASSET_JOBBSTOTTE -> 14
 
     Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
     Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
@@ -281,7 +282,8 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel() = when (this.tiltak.tilt
 }
 
 fun HendelseDeltaker.Deltakerliste.tittelVisningsnavn() = when (this.tiltak.tiltakskode) {
-    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "Varig tilrettelagt arbeid hos ${this.arrangor.visningsnavn()}"
+    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET, Tiltakskode.TILPASSET_JOBBSTOTTE,
+    -> "Varig tilrettelagt arbeid hos ${this.arrangor.visningsnavn()}"
 
     Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos ${arrangor.visningsnavn()}"
 
@@ -494,7 +496,10 @@ private fun tilEndringDto(
 
     is HendelseType.EndreInnhold -> EndringDto.EndreInnhold(
         innhold = hendelseType.innhold.map { it.visningsnavn() },
-        innholdBeskrivelse = if (tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET || tiltakskode.erOpplaeringstiltak()) {
+        innholdBeskrivelse = if (tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET ||
+            tiltakskode == Tiltakskode.TILPASSET_JOBBSTOTTE ||
+            tiltakskode.erOpplaeringstiltak()
+        ) {
             hendelseType.innhold.firstOrNull { it.innholdskode == "annet" }?.beskrivelse
         } else {
             null

@@ -45,6 +45,14 @@ enum class Tiltakskode {
     STUDIESPESIALISERING, // Tidligere GruppeAMO/EnkelAMO
     FAG_OG_YRKESOPPLAERING, // Tidligere GruppeFagYrk/EnkelFagYrk
     HOYERE_YRKESFAGLIG_UTDANNING, // Tidligere GruppeFagYrk/EnkelFagYrk
+
+    /*
+        TILPASSET_JOBBSTOTTE,
+        tidligere Varig tilrettelagt arbeid i ordinær virksomhet (VTA-O) som eies av Team Tiltak.
+        Tilpasset jobbstotte er et nytt tiltak etter ny forskrift som Team Komet
+        og fungerer som et tillegg til VARIG_TILRETTELAGT_ARBEID_SKJERMET.
+     */
+    TILPASSET_JOBBSTOTTE,
     ;
 
     // Ved lansering av ny forskrift/påmelding av nye typer må vi bruke type feltet GRUPPE/ENKELPLASS istedet for tiltakskode

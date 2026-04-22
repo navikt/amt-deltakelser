@@ -39,6 +39,27 @@ class HovedvedtakIndividuellOppfolgingTest :
                 doc.getElementById("ledetekst")?.text() shouldBe innhold.ledetekst.shouldNotBeNull()
             }
 
+            it("TILPASSET_JOBBSTOTTE") {
+                val innhold =
+                    InnholdPdfDto(
+                        valgteInnholdselementer = emptyList(),
+                        fritekstBeskrivelse = "Dette er en beskrivelse av annet for tilpasset jobbstøtte",
+                        ledetekst = "Dette er ledeteksten",
+                    )
+                val doc =
+                    renderHovedvedtak(
+                        hovedvedtak(
+                            Tiltakskode.TILPASSET_JOBBSTOTTE,
+                            innhold,
+                        ),
+                    )
+                doc.text() shouldContain "sidetittel: TILPASSET_JOBBSTOTTE"
+                doc.text() shouldContain "avgjør om du tilbys plass. Ved tilbud om plass vil du bli ansatt."
+
+                doc.text() shouldContain innhold.fritekstBeskrivelse.shouldNotBeNull()
+                doc.getElementById("ledetekst")?.text() shouldBe innhold.ledetekst.shouldNotBeNull()
+            }
+
             it("GRUPPE_ARBEIDSMARKEDSOPPLAERING") {
                 val innhold =
                     InnholdPdfDto(

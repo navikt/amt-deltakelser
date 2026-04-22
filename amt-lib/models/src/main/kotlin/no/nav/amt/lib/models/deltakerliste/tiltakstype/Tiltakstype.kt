@@ -59,15 +59,18 @@ data class Tiltakstype(
         val tiltakUtenDeltakerAdresseDeling = setOf(
             DIGITALT_OPPFOLGINGSTILTAK,
             JOBBKLUBB,
-            GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            GRUPPE_FAG_OG_YRKESOPPLAERING,
-        )
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
+        ) + opplaeringsTiltak
     }
 
     @Deprecated("Utrygg sjekk av kurstiltak. Må erstattes med å sjekke oppstartstype på tiltak")
     fun erKurs() = this.tiltakskode in kursTiltak
 
     val erOpplaeringstiltak = tiltakskode in opplaeringsTiltak
-    val harDeltakelsesmengde = tiltakskode in setOf(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING, Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET)
+    val harDeltakelsesmengde = tiltakskode in setOf(
+        Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+        Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+        Tiltakskode.TILPASSET_JOBBSTOTTE,
+    )
     val adresseKanDelesMedArrangor = tiltakskode !in tiltakUtenDeltakerAdresseDeling
 }

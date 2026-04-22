@@ -219,6 +219,41 @@ class PdfUtilsTest {
         }
 
         @Test
+        fun `lagEndringsvedtakPdfDto - EndreInnhold, TILPASSET_JOBBSTOTTE - inneholder innholdsbeskrivelse`() {
+            val deltaker =
+                Hendelsesdata.lagDeltaker(
+                    deltakerliste = Hendelsesdata.lagDeltakerliste(
+                        tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.TILPASSET_JOBBSTOTTE),
+                    ),
+                )
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+            val innhold = listOf(
+                InnholdDto("annet tekst", "annet", "beskrivelse"),
+            )
+            val hendelser: List<Hendelse> = listOf(
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.endreInnhold(innhold),
+                    deltaker = deltaker,
+                    ansvarlig = ansvarligNavVeileder,
+                    opprettet = LocalDateTime.now().minusMinutes(20),
+                ),
+            )
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = hendelser,
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.endringer.size shouldBe 1
+            (pdfDto.endringer.first() as EndringDto.EndreInnhold).innhold shouldBe listOf("beskrivelse")
+            (pdfDto.endringer.first() as EndringDto.EndreInnhold).innholdBeskrivelse shouldBe "beskrivelse"
+        }
+
+        @Test
         fun `lagEndringsvedtakPdfDto - Avslutt deltakelse, opplæringstiltak, har fullført - tar med fullført og deltatt `() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
                 oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
