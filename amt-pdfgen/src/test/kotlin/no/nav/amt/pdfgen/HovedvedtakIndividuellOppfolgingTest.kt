@@ -54,7 +54,8 @@ class HovedvedtakIndividuellOppfolgingTest :
                         ),
                     )
                 doc.text() shouldContain "sidetittel: TILPASSET_JOBBSTOTTE"
-                doc.text() shouldContain "avgjør om du tilbys plass. Ved tilbud om plass vil du bli ansatt."
+                doc.text() shouldContain "Nav eller arrangøren tar kontakt med deg for å avtale når skal begynne."
+                doc.text() shouldNotContain "avgjør om du tilbys plass. Ved tilbud om plass vil du bli ansatt."
 
                 doc.text() shouldContain innhold.fritekstBeskrivelse.shouldNotBeNull()
                 doc.getElementById("ledetekst")?.text() shouldBe innhold.ledetekst.shouldNotBeNull()
