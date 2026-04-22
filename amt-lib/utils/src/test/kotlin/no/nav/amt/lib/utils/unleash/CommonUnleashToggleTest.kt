@@ -1,12 +1,14 @@
 package no.nav.amt.lib.utils.unleash
 
 import io.getunleash.Unleash
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.ENABLE_KOMET_DELTAKERE
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.LES_ARENA_DELTAKERE
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.tiltakstyperKometKanskjeErMasterFor
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -44,6 +46,12 @@ class CommonUnleashToggleTest {
         fun `returnerer true for tiltakstyper som Komet alltid er master for`(kode: Tiltakskode) {
             sut.erKometMasterForTiltakstype(kode.name) shouldBe true
             sut.erKometMasterForTiltakstype(kode) shouldBe true
+        }
+
+        // midlertidig test for tom tiltakstyperKometKanskjeErMasterFor
+        @Test
+        fun `tiltakstyperKometKanskjeErMasterFor skal være tom`() {
+            tiltakstyperKometKanskjeErMasterFor.shouldBeEmpty()
         }
 
         @Disabled("tiltakstyperKometKanskjeErMasterFor er for øyeblikket tom")
