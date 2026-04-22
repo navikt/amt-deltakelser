@@ -20,9 +20,9 @@ jobs:
       iac_folders: ${{ steps.filter.outputs.changes }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: dorny/paths-filter@v4
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         id: filter
         with:
           filters: |
@@ -52,14 +52,14 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: List resource files
         run: echo "RESOURCE_FILES=$(find amt-iac/${{ matrix.iac_folder }} -type f -name '*.yaml' -printf '%p,' | sed 's/,$//')" >> $GITHUB_ENV
 
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ endsWith(matrix.iac_folder, '/dev') }}
-        uses: nais/deploy/actions/deploy@v2
+        uses: nais/deploy/actions/deploy@fa754451577294aae42872a69b888b3470478ec1 # v2
         env:
           CLUSTER: dev-gcp
           RESOURCE: ${{ env.RESOURCE_FILES }}
@@ -67,7 +67,7 @@ jobs:
 
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ github.ref == 'refs/heads/main' && endsWith(matrix.iac_folder, '/prod') }}
-        uses: nais/deploy/actions/deploy@v2
+        uses: nais/deploy/actions/deploy@fa754451577294aae42872a69b888b3470478ec1 # v2
         env:
           CLUSTER: prod-gcp
           RESOURCE: ${{ env.RESOURCE_FILES }}
