@@ -126,15 +126,8 @@ sealed interface GjennomforingV2KafkaPayload {
         const val GRUPPE_V2_TYPE = "TiltaksgjennomforingV2.Gruppe"
         const val ENKELTPLASS_V2_TYPE = "TiltaksgjennomforingV2.Enkeltplass"
 
-        // dette er gjenomføringene som har blitt opprettet med feil påmeldingstype,
-        // og som derfor må ignoreres av consumere
-        val gjennomforingBlacklist = setOf(
-            UUID.fromString("0287fb58-b0aa-47d7-bb85-49e36b86e117"),
-            UUID.fromString("5c14c2bc-c73d-4948-ad86-8ce8930d4181"),
-            UUID.fromString("3bd1906a-68e7-47d4-aaa8-2a34f43e5f1e"),
-            UUID.fromString("585ef079-1c79-48b1-8639-ce36283f9f91"),
-            UUID.fromString("031e2a95-f58d-4204-ae1c-49f46548df12"),
-        )
+        // I tilfellet vi har noen gjennomføringer som feiler
+        val gjennomforingBlacklist = emptySet<UUID>()
 
         val direktetiltak =
             setOf(
