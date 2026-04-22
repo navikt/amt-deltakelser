@@ -48,6 +48,7 @@ class CommonUnleashToggle(
             Tiltakskode.STUDIESPESIALISERING,
             Tiltakskode.FAG_OG_YRKESOPPLAERING,
             Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+            Tiltakskode.TILPASSET_JOBBSTOTTE,
         )
 
         private val tiltakstyperKometKanLese = setOf(
@@ -56,6 +57,6 @@ class CommonUnleashToggle(
             Tiltakskode.HOYERE_UTDANNING,
         )
 
-        private val tiltakstyperKometKanskjeErMasterFor = setOf<Tiltakskode>(Tiltakskode.TILPASSET_JOBBSTOTTE)
+        private val tiltakstyperKometKanskjeErMasterFor = emptySet<Tiltakskode>()
     }
 }
