@@ -1,6 +1,11 @@
 ---
 name: api-design
 description: REST API-designmønstre, versjonering, feilhåndtering (RFC 7807) og OpenAPI-konvensjoner for Nav-tjenester
+license: MIT
+compatibility: Go or Kotlin backend on Nais
+metadata:
+  domain: backend
+  tags: api rest design openapi error-handling
 ---
 
 # API Design Skill
@@ -55,6 +60,29 @@ class ErrorHandler {
                 mapOf("field" to it.field, "message" to it.defaultMessage)
             })
         }
+}
+```
+
+For Ktor, use the `StatusPages` plugin:
+
+```kotlin
+install(StatusPages) {
+    exception<ResourceNotFoundException> { call, cause ->
+        call.respond(HttpStatusCode.NotFound, ProblemResponse(
+            title = "Resource not found",
+            status = 404,
+            detail = cause.message ?: "Resource not found",
+            instance = call.request.uri,
+        ))
+    }
+    exception<ValidationException> { call, cause ->
+        call.respond(HttpStatusCode.BadRequest, ProblemResponse(
+            title = "Invalid request",
+            status = 400,
+            detail = "Validation failed",
+            errors = cause.errors,
+        ))
+    }
 }
 ```
 

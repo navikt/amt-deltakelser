@@ -1,6 +1,11 @@
 ---
 name: tokenx-auth
 description: Tjeneste-til-tjeneste-autentisering med TokenX token exchange i Nais
+license: MIT
+compatibility: Application on Nais with TokenX
+metadata:
+  domain: auth
+  tags: tokenx auth service-to-service nais
 ---
 
 # TokenX Authentication Skill

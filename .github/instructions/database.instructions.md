@@ -180,7 +180,7 @@ object PostgresDataSourceBuilder {
     val dataSource by lazy {
         HikariDataSource().apply {
             jdbcUrl = getOrThrow(DB_URL_KEY)
-            maximumPoolSize = 40
+            maximumPoolSize = 5 // Start low in K8s; scale up if needed
             minimumIdle = 1
         }
     }
@@ -311,3 +311,11 @@ class MigrationTest {
 - Use single underscore in naming
 - Deploy untested migrations to production
 - Commit migration files without testing
+
+## Related
+
+| Resource | Use For |
+|----------|---------|
+| `flyway-migration` skill | Flyway migration patterns and best practices |
+| `@nais-agent` | GCP Cloud SQL configuration in Nais manifests |
+| `postgresql-review` skill | Query optimization and indexing strategy |
