@@ -33,6 +33,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -464,6 +465,36 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 utkastGodkjentAvNav shouldBe false
                 utkastDelt shouldNotBe null
                 innsokt shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertProduced(deltaker.id)
+        }
+
+        @Test
+        fun `innbyggerGodkjennUtkast - enkeltplass - vedtak fattes og gjennomforing publiseres`() = runTest {
+            // Arrange
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerlisteMedTrengerGodkjenning()
+                    .copy(
+                        gjennomforingstype = GjennomforingType.Enkeltplass,
+                        prisinformasjon = "Dette tiltaket koster 100 kr/mnd",
+                    ),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = null)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+
+            // Act
+            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+
+            // Assert
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+                status.type shouldBe DeltakerStatus.Type.SOKT_INN
+                vedtaksinformasjon.shouldNotBeNull()
+                vedtaksinformasjon.fattetAvNav shouldBe false
+                vedtaksinformasjon.fattet shouldBe null
             }
 
             assertProduced(deltaker.id)

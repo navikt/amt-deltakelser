@@ -31,7 +31,7 @@ data class DeltakerResponse(
         historikken blir brukt i frontend vha get /historikk endepunket, så vi kan vurdere om dette responsobjektet eller
         en eget historikk endepunkt med respons skal lages
      */
-    val historikk: List<DeltakerHistorikk>,
+    val historikk: List<DeltakerHistorikk>, // eget endepunkt
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
     val prisinformasjon: String?,

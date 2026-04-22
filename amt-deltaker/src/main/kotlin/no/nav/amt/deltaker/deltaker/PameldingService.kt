@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -25,6 +26,7 @@ class PameldingService(
     private val vedtakService: VedtakService,
     private val hendelseService: HendelseService,
     private val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
+    private val enkeltplassService: EnkeltplassService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -94,7 +96,7 @@ class PameldingService(
         return deltaker
     }
 
-    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker = deltakerService.upsertAndProduceDeltaker(
+    fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker = deltakerService.upsertAndProduceDeltaker(
         deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
         erDeltakerSluttdatoEndret = false,
         beforeUpsert = { deltaker ->
@@ -117,6 +119,9 @@ class PameldingService(
         },
         afterUpsert = { deltaker ->
             hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
+            if (deltaker.erEnkeltplass) {
+                enkeltplassService.publiserGjennomforing(deltaker)
+            }
         },
     )
 

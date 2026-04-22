@@ -333,8 +333,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             }
 
             assertSoftly(oppdatertDeltaker.vedtaksinformasjon) {
-                this.shouldNotBeNull().fattet shouldBeCloseTo LocalDateTime.now()
-                fattetAvNav shouldBe true
+                this.shouldNotBeNull().fattet shouldBeCloseTo null
+                fattetAvNav shouldBe false
                 opprettet shouldBeCloseTo LocalDateTime.now()
             }
 

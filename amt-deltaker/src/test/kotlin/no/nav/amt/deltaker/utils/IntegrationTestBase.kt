@@ -141,6 +141,7 @@ abstract class IntegrationTestBase {
             vedtakService = vedtakService,
             hendelseService = hendelseService,
             innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+            enkeltplassService = enkeltplassService,
         )
     }
 
@@ -299,6 +300,8 @@ abstract class IntegrationTestBase {
             navAnsattService = navAnsattService,
             vedtakService = vedtakService,
             arrangorService = arrangorService,
+            navEnhetRepository = navEnhetRepository,
+            navAnsattRepository = navAnsattRepository,
         )
     }
 

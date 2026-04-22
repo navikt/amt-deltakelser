@@ -269,17 +269,16 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             every {
                 vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = true,
+                    fattetAvNav = false,
                     endretAv = navAnsattInTest,
                     endretAvEnhet = navEnhetInTest,
                     deltaker = any(),
-                    fattetDato = any(),
+                    fattetDato = null,
                 )
             } returns lagVedtak(
                 deltakerId = deltakerInTest.id,
                 deltakerVedVedtak = deltakerInTest,
             )
-
             every { arrangorRepository.get(any<String>()) } returns arrangorInTest
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
             every { deltakerlisteRepository.update(any()) } just Runs
@@ -300,11 +299,11 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             }
             verify {
                 vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = true,
+                    fattetAvNav = false,
                     endretAv = navAnsattInTest,
                     endretAvEnhet = navEnhetInTest,
                     deltaker = any(),
-                    fattetDato = any(),
+                    fattetDato = null,
                 )
             }
             verify {
