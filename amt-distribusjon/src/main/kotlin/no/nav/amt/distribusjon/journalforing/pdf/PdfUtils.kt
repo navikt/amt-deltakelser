@@ -1,7 +1,7 @@
 package no.nav.amt.distribusjon.journalforing.pdf
 
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
-import no.nav.amt.distribusjon.hendelse.model.deltakerAdresseDeles
+import no.nav.amt.distribusjon.hendelse.model.deltakerAdresseDelesMedArrangor
 import no.nav.amt.distribusjon.hendelse.model.visningsnavn
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.distribusjon.utils.formatDate
@@ -345,7 +345,7 @@ fun List<Innhold>.toInnholdPdfDto(ledetekst: String?): InnholdPdfDto? {
 private fun adresseDelesMedArrangor(
     deltaker: HendelseDeltaker,
     navBruker: NavBruker,
-): Boolean = navBruker.adressebeskyttelse == null && deltaker.deltakerliste.deltakerAdresseDeles()
+): Boolean = navBruker.adressebeskyttelse == null && deltaker.deltakerliste.deltakerAdresseDelesMedArrangor()
 
 private fun List<Innhold>.toVisingstekster() = this.map { innhold ->
     "${innhold.tekst}${innhold.beskrivelse?.let { ": $it" } ?: ""}"
