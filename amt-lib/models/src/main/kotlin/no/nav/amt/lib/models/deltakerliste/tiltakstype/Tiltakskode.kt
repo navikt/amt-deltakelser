@@ -47,9 +47,10 @@ enum class Tiltakskode {
     HOYERE_YRKESFAGLIG_UTDANNING, // Tidligere GruppeFagYrk/EnkelFagYrk
 
     /*
-        TILPASSET_JOBBSTOTTE
-        Tiltak etter ny forskrift fungerer som et tillegg tilVARIG_TILRETTELAGT_ARBEID_SKJERMET
-        Varig tilrettelagt arbeid i ordinær virksomhet(tidligere VTA-O som eies av team-tiltak)
+        TILPASSET_JOBBSTOTTE,
+        tidligere Varig tilrettelagt arbeid i ordinær virksomhet (VTA-O) som eies av Team Tiltak.
+        Tilpasset jobbstotte er et nytt tiltak etter ny forskrift som Team Komet
+        og fungerer som et tillegg til VARIG_TILRETTELAGT_ARBEID_SKJERMET.
      */
     TILPASSET_JOBBSTOTTE,
     ;
