@@ -1,12 +1,15 @@
 package no.nav.amt.lib.utils.unleash
 
 import io.getunleash.Unleash
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.ENABLE_KOMET_DELTAKERE
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.LES_ARENA_DELTAKERE
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.tiltakstyperKometKanskjeErMasterFor
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -37,6 +40,7 @@ class CommonUnleashToggleTest {
                 "STUDIESPESIALISERING",
                 "FAG_OG_YRKESOPPLAERING",
                 "HOYERE_YRKESFAGLIG_UTDANNING",
+                "TILPASSET_JOBBSTOTTE",
             ],
         )
         fun `returnerer true for tiltakstyper som Komet alltid er master for`(kode: Tiltakskode) {
@@ -44,12 +48,17 @@ class CommonUnleashToggleTest {
             sut.erKometMasterForTiltakstype(kode) shouldBe true
         }
 
+        // midlertidig test for tom tiltakstyperKometKanskjeErMasterFor
+        @Test
+        fun `tiltakstyperKometKanskjeErMasterFor skal være tom`() {
+            tiltakstyperKometKanskjeErMasterFor.shouldBeEmpty()
+        }
+
+        @Disabled("tiltakstyperKometKanskjeErMasterFor er for øyeblikket tom")
         @ParameterizedTest
         @EnumSource(
             value = Tiltakskode::class,
-            names = [
-                "TILPASSET_JOBBSTOTTE",
-            ],
+            names = [],
         )
         fun `returnerer true hvis toggle ENABLE_KOMET_DELTAKERE er pa for kanskje-master-typer`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) } returns true
@@ -62,7 +71,6 @@ class CommonUnleashToggleTest {
         @EnumSource(
             value = Tiltakskode::class,
             names = [
-                "TILPASSET_JOBBSTOTTE",
                 "ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING",
                 "ENKELTPLASS_FAG_OG_YRKESOPPLAERING",
                 "HOYERE_UTDANNING",
