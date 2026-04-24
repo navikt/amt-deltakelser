@@ -15,6 +15,7 @@ spec:
     minimumInSyncReplicas: 2
     partitions: 4
     replication: 2
+    minCompactionLagMs: 172800000 # 48 timer
   acl:
     - team: amt
       application: amt-deltaker
