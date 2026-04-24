@@ -88,7 +88,7 @@ sealed interface GjennomforingV2KafkaPayload {
         override val oppdatertTidspunkt: OffsetDateTime,
         override val tiltakskode: Tiltakskode,
         override val arrangor: Arrangor,
-        override val pameldingType: GjennomforingPameldingType? = null,
+        override val pameldingType: GjennomforingPameldingType,
         override val status: GjennomforingStatusType,
         override val gjennomforingType: GjennomforingType = GjennomforingType.Gruppe,
         val navn: String,

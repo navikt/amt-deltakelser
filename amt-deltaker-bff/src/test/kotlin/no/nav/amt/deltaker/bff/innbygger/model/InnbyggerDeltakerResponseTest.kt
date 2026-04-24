@@ -38,7 +38,7 @@ class InnbyggerDeltakerResponseTest {
 
         result.deltakelsesinnhold shouldNotBe null
         result.deltakelsesinnhold!!.ledetekst shouldBe model.deltakelsesinnhold!!.ledetekst
-        result.deltakelsesinnhold.innhold shouldBe model.deltakelsesinnhold!!.innhold
+        result.deltakelsesinnhold.innhold shouldBe model.deltakelsesinnhold.innhold
     }
 
     @Test

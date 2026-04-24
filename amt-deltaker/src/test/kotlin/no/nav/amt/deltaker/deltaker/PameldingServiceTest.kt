@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatu
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
@@ -397,17 +398,17 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             outboxService.assertProducedHendelse<HendelseType.InnbyggerGodkjennUtkast>(deltakerId)
 
             outboxService.assertProduced<DeltakerKafkaPayload>(
-                expectedDeltakerId = deltakerId,
+                expectedKey = deltakerId,
                 expectedTopic = Environment.DELTAKER_V2_TOPIC,
             )
 
             outboxService.assertProduced<DeltakerV1Dto>(
-                expectedDeltakerId = deltakerId,
+                expectedKey = deltakerId,
                 expectedTopic = Environment.DELTAKER_V1_TOPIC,
             )
 
             outboxService.assertProduced<DeltakerEksternV1Dto>(
-                expectedDeltakerId = deltakerId,
+                expectedKey = deltakerId,
                 expectedTopic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
@@ -497,7 +498,10 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 vedtaksinformasjon.fattet shouldBe null
             }
 
-            assertProduced(deltaker.id)
+            outboxService.assertProduced<GjennomforingRequestPayload>(
+                expectedKey = deltaker.deltakerliste.id,
+                expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
+            )
         }
 
         @Test

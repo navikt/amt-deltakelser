@@ -151,7 +151,7 @@ object TestData {
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
-        pameldingType = deltakerliste.pameldingstype,
+        pameldingType = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
     )
 
     fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(

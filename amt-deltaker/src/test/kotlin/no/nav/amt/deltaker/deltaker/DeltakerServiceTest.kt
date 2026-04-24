@@ -1129,15 +1129,15 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             // deltaker2
             outboxService.assertProduced<DeltakerKafkaPayload>(
-                expectedDeltakerId = deltaker2.id,
+                expectedKey = deltaker2.id,
                 expectedTopic = DELTAKER_V2_TOPIC,
             )
             outboxService.assertProduced<DeltakerV1Dto>(
-                expectedDeltakerId = deltaker2.id,
+                expectedKey = deltaker2.id,
                 expectedTopic = DELTAKER_V1_TOPIC,
             )
             outboxService.assertProduced<DeltakerEksternV1Dto>(
-                expectedDeltakerId = deltaker2.id,
+                expectedKey = deltaker2.id,
                 expectedTopic = DELTAKER_EKSTERN_V1_TOPIC,
             )
         }

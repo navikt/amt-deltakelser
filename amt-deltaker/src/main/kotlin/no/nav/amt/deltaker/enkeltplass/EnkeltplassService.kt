@@ -162,9 +162,6 @@ class EnkeltplassService(
     /**
      * Lagrer oppdateringer til deltaker og gjennomføring i én transaksjon,
      * oppretter/oppdaterer vedtak og publiserer gjennomføringsrequest til Kafka.
-     *
-     * Vedtaket fattes av Nav når [fattetAvNav] er `true` (direktepåmelding),
-     * og ikke-fattet når [fattetAvNav] er `false` (utkast til innbygger).
      */
     private suspend fun lagreOgPubliser(
         deltakerId: UUID,
@@ -240,8 +237,12 @@ class EnkeltplassService(
         val payload = GjennomforingRequestPayload.OpprettEnkeltplass(
             gjennomforingId = deltaker.deltakerliste.id,
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            prisinformasjon = gjennomforing.prisinformasjon!!,
-            organisasjonsnummer = gjennomforing.arrangor!!.organisasjonsnummer,
+            prisinformasjon = requireNotNull(gjennomforing.prisinformasjon) {
+                "Kan ikke publisere gjennomføring ${gjennomforing.id}: prisinformasjon mangler"
+            },
+            organisasjonsnummer = requireNotNull(gjennomforing.arrangor) {
+                "Kan ikke publisere gjennomføring ${gjennomforing.id}: arrangør mangler"
+            }.organisasjonsnummer,
             ansvarligEnhet = ansvarligEnhet.enhetsnummer,
             opprettetAv = ansvarligNavAnsatt.navIdent,
         )
