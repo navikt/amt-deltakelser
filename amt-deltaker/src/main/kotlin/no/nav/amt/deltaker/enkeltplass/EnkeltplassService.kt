@@ -25,6 +25,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -67,7 +68,7 @@ class EnkeltplassService(
             status = GjennomforingStatusType.KLADD,
             apentForPamelding = false,
             oppstart = null,
-            pameldingstype = null,
+            pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
         val kladdDbo = DeltakerKladdUpsertDbo(

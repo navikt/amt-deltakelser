@@ -21,6 +21,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -100,7 +101,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 apentForPamelding shouldBe false
                 oppmoteSted shouldBe null
                 arrangor shouldBe null
-                pameldingstype shouldBe null
+                pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
                 status shouldBe GjennomforingStatusType.KLADD
             }
         }
