@@ -122,6 +122,7 @@ sealed interface GjennomforingV2KafkaPayload {
         is Enkeltplass -> enkeltplassMapper(this)
     }
 
+    // TODO: Require at påmeldingstype er TRENGER_GODKJENNING hvis enkeltplass
     companion object {
         const val GRUPPE_V2_TYPE = "TiltaksgjennomforingV2.Gruppe"
         const val ENKELTPLASS_V2_TYPE = "TiltaksgjennomforingV2.Enkeltplass"
