@@ -282,8 +282,7 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel() = when (this.tiltak.tilt
 }
 
 fun HendelseDeltaker.Deltakerliste.tittelVisningsnavn() = when (this.tiltak.tiltakskode) {
-    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-    -> "Varig tilrettelagt arbeid hos ${this.arrangor.visningsnavn()}"
+    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "Varig tilrettelagt arbeid hos ${this.arrangor.visningsnavn()}"
 
     Tiltakskode.TILPASSET_JOBBSTOTTE -> "Tilpasset jobbstøtte hos ${this.arrangor.visningsnavn()}"
 

@@ -49,7 +49,7 @@ enum class Tiltakskode {
     /*
         TILPASSET_JOBBSTOTTE,
         tidligere Varig tilrettelagt arbeid i ordinær virksomhet (VTA-O) som eies av Team Tiltak.
-        Tilpasset jobbstotte er et nytt tiltak etter ny forskrift som Team Komet
+        Tilpasset jobbstotte er et nytt tiltak etter ny forskrift som eies av Team Komet
         og fungerer som et tillegg til VARIG_TILRETTELAGT_ARBEID_SKJERMET.
      */
     TILPASSET_JOBBSTOTTE,
