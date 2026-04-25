@@ -8,6 +8,7 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
@@ -42,164 +43,164 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     gjennomforingClient: GjennomforingClient,
     unleashToggle: CommonUnleashToggle,
 ) {
-    val apiPath = "/tiltakskoordinator/deltakerliste/{id}"
-
     authenticate(AuthLevel.TILTAKSKOORDINATOR.name) {
-        get(apiPath) {
-            val deltakerlisteId = getDeltakerlisteId()
-            val paaloggetNavAnsatt = navAnsattService.hentNavAnsatt(call.getNavIdent())
+        route("/tiltakskoordinator/deltakerliste/{id}") {
+            get {
+                val deltakerlisteId = getDeltakerlisteId()
+                val paaloggetNavAnsatt = navAnsattService.hentNavAnsatt(call.getNavIdent())
 
-            // Bør nav ansatt bli igjen i bff database?
-            val koordinatorer = tiltakskoordinatorTilgangRepository.hentKoordinatorer(
-                deltakerlisteId = deltakerlisteId,
-                paaloggetNavAnsattId = paaloggetNavAnsatt.id,
-            )
+                // Bør nav ansatt bli igjen i bff database?
+                val koordinatorer = tiltakskoordinatorTilgangRepository.hentKoordinatorer(
+                    deltakerlisteId = deltakerlisteId,
+                    paaloggetNavAnsattId = paaloggetNavAnsatt.id,
+                )
 
-            val gjennomforingResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                gjennomforingClient
-                    .getGjennomforing(deltakerlisteId)
-                    .let { ResponseBuilder.buildGjennomforing(it, koordinatorer) }
-            } else {
-                deltakerlisteService
-                    .get(deltakerlisteId)
-                    .getOrThrow()
-                    .toResponse(koordinatorer)
+                val gjennomforingResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                    gjennomforingClient
+                        .getGjennomforing(deltakerlisteId)
+                        .let { ResponseBuilder.buildGjennomforing(it, koordinatorer) }
+                } else {
+                    deltakerlisteService
+                        .get(deltakerlisteId)
+                        .getOrThrow()
+                        .toResponse(koordinatorer)
+                }
+
+                call.respond(gjennomforingResponse)
             }
 
-            call.respond(gjennomforingResponse)
-        }
-
-        get("$apiPath/deltakere") {
-            val deltakerlisteId = getDeltakerlisteId()
-            deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
-            tilgangskontrollService.verifiserTiltakskoordinatorTilgang(
-                navIdent = call.getNavIdent(),
-                deltakerlisteId = deltakerlisteId,
-            )
-
-            val deltakere = tiltakskoordinatorService
-                .hentDeltakereForDeltakerliste(deltakerlisteId)
-                .toDeltakerResponses(
-                    tilgangskontrollService = tilgangskontrollService,
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                )
-
-            call.respond(deltakere)
-        }
-
-        post("$apiPath/deltakere/tildel-plass") {
-            val navIdent = call.getNavIdent()
-            val deltakerIder = call.receive<List<UUID>>()
-
-            tilgangskontrollService.tilgangTilDeltakereGuard(
-                deltakerIder = deltakerIder,
-                deltakerlisteId = getDeltakerlisteId(),
-                navIdent = navIdent,
-            )
-
-            val oppdaterteDeltakere = tiltakskoordinatorService.endreDeltakere(
-                deltakerIder = deltakerIder,
-                endring = EndringFraTiltakskoordinator.TildelPlass,
-                endretAv = navIdent,
-            )
-
-            val deltakereResponse = oppdaterteDeltakere.toDeltakerResponses(
-                tilgangskontrollService = tilgangskontrollService,
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-            )
-
-            call.respond(deltakereResponse)
-        }
-
-        post("$apiPath/deltakere/sett-paa-venteliste") {
-            val navIdent = call.getNavIdent()
-            val deltakerIder = call.receive<List<UUID>>()
-
-            tilgangskontrollService.tilgangTilDeltakereGuard(
-                deltakerIder = deltakerIder,
-                deltakerlisteId = getDeltakerlisteId(),
-                navIdent = navIdent,
-            )
-
-            val oppdaterteDeltakere = tiltakskoordinatorService.endreDeltakere(
-                deltakerIder = deltakerIder,
-                endring = EndringFraTiltakskoordinator.SettPaaVenteliste,
-                endretAv = navIdent,
-            )
-
-            val deltakereResponse = oppdaterteDeltakere.toDeltakerResponses(
-                tilgangskontrollService = tilgangskontrollService,
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-            )
-
-            call.respond(deltakereResponse)
-        }
-
-        post("$apiPath/deltakere/del-med-arrangor") {
-            val navIdent = call.getNavIdent()
-            val deltakerIder = call.receive<List<UUID>>()
-
-            tilgangskontrollService.tilgangTilDeltakereGuard(
-                deltakerIder = deltakerIder,
-                deltakerlisteId = getDeltakerlisteId(),
-                navIdent = navIdent,
-            )
-
-            val oppdaterteDeltakere = tiltakskoordinatorService
-                .endreDeltakere(
-                    deltakerIder = deltakerIder,
-                    endring = EndringFraTiltakskoordinator.DelMedArrangor,
-                    endretAv = navIdent,
-                ).toDeltakerResponses(
-                    tilgangskontrollService = tilgangskontrollService,
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                )
-
-            call.respond(oppdaterteDeltakere)
-        }
-
-        post("$apiPath/deltakere/gi-avslag") {
-            val navIdent = call.getNavIdent()
-            val request = call.receive<AvslagRequest>()
-
-            tilgangskontrollService.tilgangTilDeltakereGuard(
-                deltakerIder = listOf(request.deltakerId),
-                deltakerlisteId = getDeltakerlisteId(),
-                navIdent = navIdent,
-            )
-
-            val oppdatertDeltaker = tiltakskoordinatorService.giAvslag(
-                request = request,
-                endretAv = navIdent,
-            )
-
-            val harTilgang = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-                erSkjermet = oppdatertDeltaker.navBruker.erSkjermet,
-                adressebeskyttelse = oppdatertDeltaker.navBruker.adressebeskyttelse,
-            )
-
-            call.respond(oppdatertDeltaker.toDeltakerResponse(harTilgang))
-        }
-
-        post("$apiPath/tilgang/legg-til") {
-            tilgangskontrollService
-                .leggTilTiltakskoordinatorTilgang(
+            get("/deltakere") {
+                val deltakerlisteId = getDeltakerlisteId()
+                deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
+                tilgangskontrollService.verifiserTiltakskoordinatorTilgang(
                     navIdent = call.getNavIdent(),
+                    deltakerlisteId = deltakerlisteId,
+                )
+
+                val deltakere = tiltakskoordinatorService
+                    .hentDeltakereForDeltakerliste(deltakerlisteId)
+                    .toDeltakerResponses(
+                        tilgangskontrollService = tilgangskontrollService,
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                    )
+
+                call.respond(deltakere)
+            }
+
+            post("/deltakere/tildel-plass") {
+                val navIdent = call.getNavIdent()
+                val deltakerIder = call.receive<List<UUID>>()
+
+                tilgangskontrollService.tilgangTilDeltakereGuard(
+                    deltakerIder = deltakerIder,
                     deltakerlisteId = getDeltakerlisteId(),
-                ).getOrThrow()
+                    navIdent = navIdent,
+                )
 
-            call.respond(HttpStatusCode.OK)
-        }
+                val oppdaterteDeltakere = tiltakskoordinatorService.endreDeltakere(
+                    deltakerIder = deltakerIder,
+                    endring = EndringFraTiltakskoordinator.TildelPlass,
+                    endretAv = navIdent,
+                )
 
-        post("$apiPath/tilgang/fjern") {
-            tilgangskontrollService
-                .fjernTiltakskoordinatorTilgang(
-                    call.getNavIdent(),
-                    getDeltakerlisteId(),
-                ).getOrThrow()
+                val deltakereResponse = oppdaterteDeltakere.toDeltakerResponses(
+                    tilgangskontrollService = tilgangskontrollService,
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                )
 
-            call.respond(HttpStatusCode.OK)
+                call.respond(deltakereResponse)
+            }
+
+            post("/deltakere/sett-paa-venteliste") {
+                val navIdent = call.getNavIdent()
+                val deltakerIder = call.receive<List<UUID>>()
+
+                tilgangskontrollService.tilgangTilDeltakereGuard(
+                    deltakerIder = deltakerIder,
+                    deltakerlisteId = getDeltakerlisteId(),
+                    navIdent = navIdent,
+                )
+
+                val oppdaterteDeltakere = tiltakskoordinatorService.endreDeltakere(
+                    deltakerIder = deltakerIder,
+                    endring = EndringFraTiltakskoordinator.SettPaaVenteliste,
+                    endretAv = navIdent,
+                )
+
+                val deltakereResponse = oppdaterteDeltakere.toDeltakerResponses(
+                    tilgangskontrollService = tilgangskontrollService,
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                )
+
+                call.respond(deltakereResponse)
+            }
+
+            post("/deltakere/del-med-arrangor") {
+                val navIdent = call.getNavIdent()
+                val deltakerIder = call.receive<List<UUID>>()
+
+                tilgangskontrollService.tilgangTilDeltakereGuard(
+                    deltakerIder = deltakerIder,
+                    deltakerlisteId = getDeltakerlisteId(),
+                    navIdent = navIdent,
+                )
+
+                val oppdaterteDeltakere = tiltakskoordinatorService
+                    .endreDeltakere(
+                        deltakerIder = deltakerIder,
+                        endring = EndringFraTiltakskoordinator.DelMedArrangor,
+                        endretAv = navIdent,
+                    ).toDeltakerResponses(
+                        tilgangskontrollService = tilgangskontrollService,
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                    )
+
+                call.respond(oppdaterteDeltakere)
+            }
+
+            post("/deltakere/gi-avslag") {
+                val navIdent = call.getNavIdent()
+                val request = call.receive<AvslagRequest>()
+
+                tilgangskontrollService.tilgangTilDeltakereGuard(
+                    deltakerIder = listOf(request.deltakerId),
+                    deltakerlisteId = getDeltakerlisteId(),
+                    navIdent = navIdent,
+                )
+
+                val oppdatertDeltaker = tiltakskoordinatorService.giAvslag(
+                    request = request,
+                    endretAv = navIdent,
+                )
+
+                val harTilgang = tilgangskontrollService.harKoordinatorTilgangTilPerson(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    erSkjermet = oppdatertDeltaker.navBruker.erSkjermet,
+                    adressebeskyttelse = oppdatertDeltaker.navBruker.adressebeskyttelse,
+                )
+
+                call.respond(oppdatertDeltaker.toDeltakerResponse(harTilgang))
+            }
+
+            post("/tilgang/legg-til") {
+                tilgangskontrollService
+                    .leggTilTiltakskoordinatorTilgang(
+                        navIdent = call.getNavIdent(),
+                        deltakerlisteId = getDeltakerlisteId(),
+                    ).getOrThrow()
+
+                call.respond(HttpStatusCode.OK)
+            }
+
+            post("/tilgang/fjern") {
+                tilgangskontrollService
+                    .fjernTiltakskoordinatorTilgang(
+                        call.getNavIdent(),
+                        getDeltakerlisteId(),
+                    ).getOrThrow()
+
+                call.respond(HttpStatusCode.OK)
+            }
         }
     }
 }
