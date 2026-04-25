@@ -18,6 +18,7 @@ data class TiltakskoordinatorsDeltaker(
     val id: UUID,
     val navBruker: NavBruker,
     val status: DeltakerStatus,
+    val soktInnDato: LocalDate?,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val navEnhet: String?,

@@ -22,6 +22,7 @@ data class DeltakerResponse(
     val harOppdateringFraNav: Boolean,
     val erNyDeltaker: Boolean,
     val kanEndres: Boolean,
+    val soktInnDato: LocalDate?,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
 )

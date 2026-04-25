@@ -7,6 +7,8 @@ import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 
@@ -18,27 +20,41 @@ fun Deltaker.toTiltakskoordinatorsDeltaker(
     ikkeDigitalOgManglerAdresse: Boolean,
     forslag: List<Forslag>,
     ulesteHendelser: List<UlestHendelse>,
-) = TiltakskoordinatorsDeltaker(
-    id = id,
-    navBruker = navBruker,
-    status = status,
-    startdato = startdato,
-    sluttdato = sluttdato,
-    navEnhet = navEnhet?.navn,
-    navVeileder = NavVeilederResponse(
-        navn = navVeileder?.navn,
-        telefonnummer = navVeileder?.telefon,
-        epost = navVeileder?.epost,
-    ),
-    beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
-    vurdering = sisteVurdering,
-    innsatsgruppe = navBruker.innsatsgruppe,
-    deltakerliste = deltakerliste,
-    erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-    kanEndres = kanEndres,
-    feilkode = feilkode,
-    ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
-    forslag = forslag,
-    ulesteHendelser = ulesteHendelser,
-    deltakelsesinnhold = deltakelsesinnhold,
-)
+): TiltakskoordinatorsDeltaker {
+    val soktInnDato = if (this.deltakerliste.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK) {
+        this.vedtaksinformasjon?.fattet?.toLocalDate()
+    } else {
+        this.historikk
+            .filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>()
+            .firstOrNull()
+            ?.data
+            ?.innsokt
+            ?.toLocalDate()
+    }
+
+    return TiltakskoordinatorsDeltaker(
+        id = id,
+        navBruker = navBruker,
+        status = status,
+        soktInnDato = soktInnDato,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        navEnhet = navEnhet?.navn,
+        navVeileder = NavVeilederResponse(
+            navn = navVeileder?.navn,
+            telefonnummer = navVeileder?.telefon,
+            epost = navVeileder?.epost,
+        ),
+        beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
+        vurdering = sisteVurdering,
+        innsatsgruppe = navBruker.innsatsgruppe,
+        deltakerliste = deltakerliste,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        kanEndres = kanEndres,
+        feilkode = feilkode,
+        ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
+        forslag = forslag,
+        ulesteHendelser = ulesteHendelser,
+        deltakelsesinnhold = deltakelsesinnhold,
+    )
+}
