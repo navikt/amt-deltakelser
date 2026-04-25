@@ -13,19 +13,15 @@ import no.nav.amt.lib.models.person.NavEnhet
 import java.time.LocalDate
 
 fun Deltaker.soktInnDato(): LocalDate? = this.historikk
-    .filter {
-        it is DeltakerHistorikk.InnsokPaaFellesOppstart ||
-            it is DeltakerHistorikk.Vedtak ||
-            it is DeltakerHistorikk.ImportertFraArena
-    }.maxByOrNull { it.sistEndret }
-    ?.let {
-        when (it) {
-            is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.innsokt.toLocalDate()
-            is DeltakerHistorikk.Vedtak -> it.vedtak.fattet?.toLocalDate()
-            is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.deltakerVedImport.innsoktDato
+    .mapNotNull { entry ->
+        when (entry) {
+            is DeltakerHistorikk.InnsokPaaFellesOppstart -> entry.sistEndret to entry.data.innsokt.toLocalDate()
+            is DeltakerHistorikk.Vedtak -> entry.sistEndret to entry.vedtak.fattet?.toLocalDate()
+            is DeltakerHistorikk.ImportertFraArena -> entry.sistEndret to entry.importertFraArena.deltakerVedImport.innsoktDato
             else -> null
         }
-    }
+    }.maxByOrNull { it.first }
+    ?.second
 
 fun Deltaker.toTiltakskoordinatorsDeltaker(
     sisteVurdering: Vurdering?,
