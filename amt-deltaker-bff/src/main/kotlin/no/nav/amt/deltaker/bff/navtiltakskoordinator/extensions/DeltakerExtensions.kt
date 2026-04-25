@@ -31,7 +31,7 @@ fun Deltaker.toTiltakskoordinatorsDeltaker(
     ikkeDigitalOgManglerAdresse: Boolean,
     forslag: List<Forslag>,
     ulesteHendelser: List<UlestHendelse>,
-): TiltakskoordinatorsDeltaker = TiltakskoordinatorsDeltaker(
+) = TiltakskoordinatorsDeltaker(
     id = id,
     navBruker = navBruker,
     status = status,
