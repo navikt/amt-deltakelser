@@ -378,17 +378,27 @@ class DeltakerRepository {
     }
 
     fun getDeltakereHvorSluttdatoHarPassert(): List<Deltaker> {
-        val sql = buildDeltakerSql(
-            "getSluttdatoHarPassert",
+        // 2-stegs spørring: finn IDer via deltaker_status-indeks først,
+        // deretter hydrater med getMany. Unngår seq scan på 1.66M deltaker-rader.
+        val idsSql =
             """
-            ds.type IN ($SLUTTDATO_PASSERT_STATUSER_DELIMITED)
-            AND d.sluttdato < CURRENT_DATE
-            """.trimIndent(),
-        )
+            SELECT DISTINCT d.id
+            FROM 
+                deltaker d
+                JOIN deltaker_status ds ON d.id = ds.deltaker_id
+                    AND ds.gyldig_til IS NULL
+                    AND ds.gyldig_fra <= CURRENT_TIMESTAMP
+                    AND ds.type IN ($SLUTTDATO_PASSERT_STATUSER_DELIMITED)
+            WHERE 
+                d.sluttdato < CURRENT_DATE
+            """.trimIndent()
 
-        return Database.query { session ->
-            session.run(queryOf(sql).map(::deltakerRowMapper).asList)
-        }
+        val ids = Database
+            .query { session ->
+                session.run(queryOf(idsSql).map { it.uuid("id") }.asList)
+            }.toSet()
+
+        return getMany(ids)
     }
 
     fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
