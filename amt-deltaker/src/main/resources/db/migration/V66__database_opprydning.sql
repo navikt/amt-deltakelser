@@ -4,7 +4,14 @@ ALTER TABLE innsok_paa_felles_oppstart
     ALTER COLUMN innsokt TYPE timestamptz USING innsokt AT TIME ZONE 'Europe/Oslo',
     ALTER COLUMN utkast_delt TYPE timestamptz USING utkast_delt AT TIME ZONE 'Europe/Oslo';
 
--- Funn 21: getForDeltaker bruker .asSingle men mangler UNIQUE constraint.
+-- Funn 21: Duplikate innsøkinger (retry-bug fra 2026-01-08). Behold nyeste per deltaker, slett resten.
+DELETE FROM innsok_paa_felles_oppstart
+WHERE id NOT IN (
+    SELECT DISTINCT ON (deltaker_id) id
+    FROM innsok_paa_felles_oppstart
+    ORDER BY deltaker_id, innsokt DESC
+);
+
 ALTER TABLE innsok_paa_felles_oppstart
     ADD CONSTRAINT innsok_paa_felles_oppstart_deltaker_id_key UNIQUE (deltaker_id);
 
