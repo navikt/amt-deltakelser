@@ -692,13 +692,7 @@ object TestData {
                 ),
                 startdato = deltaker.deltakerliste.startDato,
                 sluttdato = deltaker.deltakerliste.sluttDato,
-                oppstartstype = if (deltaker.deltakerliste.oppstart ==
-                    Oppstartstype.FELLES
-                ) {
-                    HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES
-                } else {
-                    HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE
-                },
+                oppstartstype = deltaker.deltakerliste.oppstart,
             ),
             forsteVedtakFattet = LocalDate.now(),
             opprettetDato = LocalDate.now(),

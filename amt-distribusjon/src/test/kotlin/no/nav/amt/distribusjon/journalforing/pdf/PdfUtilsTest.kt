@@ -13,8 +13,8 @@ import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.utils.formatDateWithMonthName
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
 import no.nav.amt.lib.models.hendelse.InnholdDto
 import no.nav.amt.lib.models.journalforing.pdf.EndringDto
 import org.junit.jupiter.api.Nested
@@ -256,7 +256,7 @@ class PdfUtilsTest {
         @Test
         fun `lagEndringsvedtakPdfDto - Avslutt deltakelse, opplæringstiltak, har fullført - tar med fullført og deltatt `() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                oppstartstype = Oppstartstype.LOPENDE,
                 tiltak = Hendelsesdata.tiltak(
                     tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 ),
@@ -290,7 +290,7 @@ class PdfUtilsTest {
         @Test
         fun `lagEndringsvedtakPdfDto - Avslutt deltakelse, opplæringstiltak, har ikke fullført - tar med fullført og deltatt `() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                oppstartstype = Oppstartstype.LOPENDE,
                 tiltak = Hendelsesdata.tiltak(
                     tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 ),
@@ -325,7 +325,7 @@ class PdfUtilsTest {
     @Test
     fun `lagEndringsvedtakPdfDto - Avslutt deltakelse, individuelle tiltak - tar ikke med om deltaker har fullført og deltatt `() {
         val deltakerliste = Hendelsesdata.lagDeltakerliste(
-            oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+            oppstartstype = Oppstartstype.LOPENDE,
             tiltak = Hendelsesdata.tiltak(
                 tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
             ),
@@ -359,7 +359,7 @@ class PdfUtilsTest {
     @Test
     fun `lagEndringsvedtakPdfDto - Endre avslutning, harFullført - tar med om deltaker har fullført og deltatt `() {
         val deltakerliste = Hendelsesdata.lagDeltakerliste(
-            oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+            oppstartstype = Oppstartstype.LOPENDE,
             tiltak = Hendelsesdata.tiltak(
                 tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
             ),
@@ -392,7 +392,7 @@ class PdfUtilsTest {
     @Test
     fun `lagEndringsvedtakPdfDto - Endre avslutning, harFullført=false - tar med om deltaker har fullført og deltatt `() {
         val deltakerliste = Hendelsesdata.lagDeltakerliste(
-            oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+            oppstartstype = Oppstartstype.LOPENDE,
             tiltak = Hendelsesdata.tiltak(
                 tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
             ),

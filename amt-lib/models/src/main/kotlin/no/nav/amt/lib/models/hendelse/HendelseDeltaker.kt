@@ -1,6 +1,7 @@
 package no.nav.amt.lib.models.hendelse
 
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
@@ -35,10 +36,5 @@ data class HendelseDeltaker(
             val ledetekst: String?,
             val tiltakskode: Tiltakskode,
         )
-
-        enum class Oppstartstype {
-            LOPENDE,
-            FELLES,
-        }
     }
 }

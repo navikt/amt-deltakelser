@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
 import no.nav.amt.lib.models.hendelse.HendelseDeltaker
@@ -86,9 +87,9 @@ object Hendelsesdata {
         tiltak: HendelseDeltaker.Deltakerliste.Tiltak = tiltak(),
         startdato: LocalDate = LocalDate.now(),
         sluttdato: LocalDate? = LocalDate.now().plusDays(1),
-        oppstartstype: HendelseDeltaker.Deltakerliste.Oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+        oppstartstype: Oppstartstype = Oppstartstype.LOPENDE,
         pameldingType: GjennomforingPameldingType = if (oppstartstype ==
-            HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE
+            Oppstartstype.LOPENDE
         ) {
             GjennomforingPameldingType.DIREKTE_VEDTAK
         } else {

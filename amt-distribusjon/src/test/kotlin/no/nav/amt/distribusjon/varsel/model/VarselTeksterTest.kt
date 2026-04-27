@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.distribusjon.journalforing.pdf.visningsnavn
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import org.junit.jupiter.api.Test
 
 class VarselTeksterTest {
@@ -26,7 +26,7 @@ class VarselTeksterTest {
             HendelseTypeData.opprettUtkast(),
             deltaker = Hendelsesdata.lagDeltaker(
                 deltakerliste = Hendelsesdata.lagDeltakerliste(
-                    oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES,
+                    oppstartstype = Oppstartstype.FELLES,
                 ),
             ),
         )
@@ -57,7 +57,7 @@ class VarselTeksterTest {
             HendelseTypeData.navGodkjennUtkast(),
             deltaker = Hendelsesdata.lagDeltaker(
                 deltakerliste = Hendelsesdata.lagDeltakerliste(
-                    oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES,
+                    oppstartstype = Oppstartstype.FELLES,
                 ),
             ),
         )
@@ -83,7 +83,7 @@ class VarselTeksterTest {
             HendelseTypeData.endreDeltakelsesmengde(),
             deltaker = Hendelsesdata.lagDeltaker(
                 deltakerliste = Hendelsesdata.lagDeltakerliste(
-                    oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                    oppstartstype = Oppstartstype.LOPENDE,
                 ),
             ),
         )
@@ -92,7 +92,7 @@ class VarselTeksterTest {
             HendelseTypeData.endreDeltakelsesmengde(),
             deltaker = Hendelsesdata.lagDeltaker(
                 deltakerliste = Hendelsesdata.lagDeltakerliste(
-                    oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES,
+                    oppstartstype = Oppstartstype.FELLES,
                 ),
             ),
         )
@@ -118,7 +118,7 @@ class VarselTeksterTest {
             HendelseTypeData.navGodkjennUtkast(),
             deltaker = Hendelsesdata.lagDeltaker(
                 deltakerliste = Hendelsesdata.lagDeltakerliste(
-                    oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
+                    oppstartstype = Oppstartstype.LOPENDE,
                 ),
             ),
         )

@@ -30,9 +30,7 @@ fun Deltaker.toHendelseDeltaker(
         arrangor = deltakerliste.arrangor!!.toHendelseArrangor(overordnetArrangor?.toHendelseArrangor()),
         startdato = deltakerliste.startDato,
         sluttdato = deltakerliste.sluttDato,
-        oppstartstype = deltakerliste.oppstart
-            ?.let { HendelseDeltaker.Deltakerliste.Oppstartstype.valueOf(it.name) }
-            ?: HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE, // opplæringstiltak uten rammeavtale mangler oppstartstype
+        oppstartstype = deltakerliste.oppstart,
         tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
             navn = deltakerliste.tiltakstype.visningsnavn,
             ledetekst = deltakerliste.tiltakstype.innhold?.ledetekst,

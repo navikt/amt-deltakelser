@@ -20,6 +20,7 @@ import no.nav.amt.distribusjon.journalforing.person.model.DokumentType
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
 import no.nav.amt.lib.models.hendelse.HendelseDeltaker
@@ -150,7 +151,7 @@ class JournalforingService(
         )
 
         val pdf: suspend () -> ByteArray = {
-            if (hendelse.deltaker.deltakerliste.oppstartstype == HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES) {
+            if (hendelse.deltaker.deltakerliste.oppstartstype == Oppstartstype.FELLES) {
                 pdfgenClient.genererHovedvedtakTildeltPlassFellesOppstart(hovedvedtakInput)
             } else {
                 pdfgenClient.genererHovedvedtakTildeltPlassLoependeOppstart(hovedvedtakInput)

@@ -217,7 +217,7 @@ fun lagEndringsvedtakPdfDto(
             tilEndringDto(
                 it,
                 deltaker.deltakerliste.tiltak.tiltakskode,
-                deltaker.deltakerliste.oppstartstype == HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES ||
+                deltaker.deltakerliste.oppstartstype == Oppstartstype.FELLES ||
                     deltaker.deltakerliste.tiltak.tiltakskode
                         .erOpplaeringstiltak(),
             )
@@ -306,7 +306,7 @@ fun HendelseDeltaker.Deltakerliste.Arrangor.visningsnavn(): String = with(overor
 
 private fun HendelseDeltaker.Deltakerliste.harKlagerett() = !(
     this.tiltak.tiltakskode in setOf(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING, Tiltakskode.ARBEIDSMARKEDSOPPLAERING) &&
-        this.oppstartstype == HendelseDeltaker.Deltakerliste.Oppstartstype.FELLES
+        this.oppstartstype == Oppstartstype.FELLES
 )
 
 private fun InnholdDto.toInnhold() = Innhold(
