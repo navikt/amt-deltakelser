@@ -33,7 +33,8 @@ class DeltakerlisteRepository {
                 oppstart,
                 apent_for_pamelding,
                 oppmote_sted,
-                pameldingstype
+                pameldingstype,
+                prisinformasjon
             )
             VALUES (
                 :id,
@@ -48,7 +49,8 @@ class DeltakerlisteRepository {
                 :oppstart,
                 :apent_for_pamelding,
                 :oppmote_sted,
-                :pameldingstype
+                :pameldingstype,
+                :prisinformasjon
             )
             ON CONFLICT (id) DO UPDATE SET
                 navn     				= :navn,
@@ -63,6 +65,7 @@ class DeltakerlisteRepository {
                 apent_for_pamelding     = :apent_for_pamelding,
                 oppmote_sted            = :oppmote_sted,
                 pameldingstype          = :pameldingstype,
+                prisinformasjon         = :prisinformasjon,
                 modified_at             = CURRENT_TIMESTAMP
             """.trimIndent()
 
@@ -79,6 +82,7 @@ class DeltakerlisteRepository {
             "oppstart" to deltakerliste.oppstart?.name,
             "apent_for_pamelding" to deltakerliste.apentForPamelding,
             "oppmote_sted" to deltakerliste.oppmoteSted,
+            "prisinformasjon" to deltakerliste.prisinformasjon,
             "pameldingstype" to deltakerliste.pameldingstype?.name,
         )
 

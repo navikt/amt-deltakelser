@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.bff.utils.data.TestData.lagEnkeltplassDeltakerlistePa
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagGruppeDeltakerlistePayload
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.Test
@@ -51,6 +52,7 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
             navn = tiltakstypeInTest.tiltakskode.name,
             tiltakstype = tiltakstypeInTest,
             arrangor = arrangorInTest,
+            oppstart = Oppstartstype.ENKELTPLASS,
             status = GjennomforingStatusType.GJENNOMFORES,
         ).copy(navn = tiltakstypeInTest.tiltakskode.name)
 
@@ -72,7 +74,7 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
             status shouldBe deltakerListeInTest.status
             startDato.shouldBeNull()
             sluttDato.shouldBeNull()
-            oppstart.shouldBeNull()
+            oppstart shouldBe deltakerListeInTest.oppstart
             apentForPamelding.shouldBeTrue()
             antallPlasser.shouldBeNull()
         }

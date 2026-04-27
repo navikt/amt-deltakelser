@@ -130,6 +130,8 @@ object TestData {
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
         pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        oppstart = Oppstartstype.ENKELTPLASS,
+        prisinformasjon = deltakerliste.prisinformasjon,
     )
 
     fun lagDeltakerlistePayload(
@@ -312,6 +314,10 @@ object TestData {
         Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
         Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
         -> Oppstartstype.FELLES
+        Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+        Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+        Tiltakskode.HOYERE_UTDANNING,
+        -> Oppstartstype.ENKELTPLASS
 
         else -> Oppstartstype.LOPENDE
     }

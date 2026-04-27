@@ -36,7 +36,7 @@ fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(
     status = status,
     startDato = null,
     sluttDato = null,
-    oppstart = null,
+    oppstart = oppstart,
     apentForPamelding = true,
     oppmoteSted = null,
     antallPlasser = null,

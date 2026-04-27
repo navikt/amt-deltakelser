@@ -29,7 +29,8 @@ sealed interface GjennomforingV2KafkaPayload {
     val oppdatertTidspunkt: OffsetDateTime
     val tiltakskode: Tiltakskode
     val arrangor: Arrangor
-    val pameldingType: GjennomforingPameldingType?
+    val pameldingType: GjennomforingPameldingType
+    val oppstart: Oppstartstype
     val status: GjennomforingStatusType
 
     @get:JsonIgnore
@@ -91,10 +92,10 @@ sealed interface GjennomforingV2KafkaPayload {
         override val pameldingType: GjennomforingPameldingType,
         override val status: GjennomforingStatusType,
         override val gjennomforingType: GjennomforingType = GjennomforingType.Gruppe,
+        override val oppstart: Oppstartstype,
         val navn: String,
         val startDato: LocalDate,
         val sluttDato: LocalDate?,
-        val oppstart: Oppstartstype,
         val tilgjengeligForArrangorFraOgMedDato: LocalDate?,
         val apentForPamelding: Boolean,
         val antallPlasser: Int,
@@ -108,10 +109,12 @@ sealed interface GjennomforingV2KafkaPayload {
         override val oppdatertTidspunkt: OffsetDateTime,
         override val tiltakskode: Tiltakskode,
         override val arrangor: Arrangor,
-        override val pameldingType: GjennomforingPameldingType? = null,
+        override val pameldingType: GjennomforingPameldingType,
         override val gjennomforingType: GjennomforingType = GjennomforingType.Enkeltplass,
         // TODO: Default bør fjernes etter neste relast
         override val status: GjennomforingStatusType = GjennomforingStatusType.KLADD,
+        override val oppstart: Oppstartstype,
+        val prisinformasjon: String?,
     ) : GjennomforingV2KafkaPayload
 
     fun <T : Any> toModel(
