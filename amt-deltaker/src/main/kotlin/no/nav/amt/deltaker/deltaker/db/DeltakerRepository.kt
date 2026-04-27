@@ -268,19 +268,17 @@ class DeltakerRepository {
     fun getMany(deltakerIder: Set<UUID>): List<Deltaker> {
         if (deltakerIder.isEmpty()) return emptyList()
 
-        return deltakerIder.chunked(500).flatMap { chunk ->
-            Database.query { session ->
-                session.run(
-                    queryOf(
-                        buildDeltakerSql(
-                            methodName = "getMany",
-                            whereClause = "d.id IN (${sqlPlaceholders(chunk.size)})",
-                            limit = chunk.size,
-                        ),
-                        *chunk.toTypedArray(),
-                    ).map(::deltakerRowMapper).asList,
-                )
-            }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    buildDeltakerSql(
+                        methodName = "getMany",
+                        whereClause = "d.id IN (${sqlPlaceholders(deltakerIder.size)})",
+                        limit = deltakerIder.size,
+                    ),
+                    *deltakerIder.toTypedArray(),
+                ).map(::deltakerRowMapper).asList,
+            )
         }
     }
 
@@ -380,27 +378,17 @@ class DeltakerRepository {
     }
 
     fun getDeltakereHvorSluttdatoHarPassert(): List<Deltaker> {
-        // 2-stegs spørring: finn IDer via deltaker_status-indeks først,
-        // deretter hydrater med getMany. Unngår seq scan på 1.66M deltaker-rader.
-        val idsSql =
+        val sql = buildDeltakerSql(
+            "getSluttdatoHarPassert",
             """
-            SELECT DISTINCT d.id
-            FROM 
-                deltaker d
-                JOIN deltaker_status ds ON d.id = ds.deltaker_id
-                    AND ds.gyldig_til IS NULL
-                    AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                    AND ds.type IN ($SLUTTDATO_PASSERT_STATUSER_DELIMITED)
-            WHERE 
-                d.sluttdato < CURRENT_DATE
-            """.trimIndent()
+            ds.type IN ($SLUTTDATO_PASSERT_STATUSER_DELIMITED)
+            AND d.sluttdato < CURRENT_DATE
+            """.trimIndent(),
+        )
 
-        val ids = Database
-            .query { session ->
-                session.run(queryOf(idsSql).map { it.uuid("id") }.asList)
-            }.toSet()
-
-        return getMany(ids)
+        return Database.query { session ->
+            session.run(queryOf(sql).map(::deltakerRowMapper).asList)
+        }
     }
 
     fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
@@ -408,7 +396,7 @@ class DeltakerRepository {
         // deretter hydrater med getMany. Unngår seq scan på 1.66M deltaker-rader.
         val idsSql =
             """
-            SELECT DISTINCT d.id
+            SELECT d.id
             FROM 
                 deltakerliste dl
                 JOIN deltaker d ON d.deltakerliste_id = dl.id
