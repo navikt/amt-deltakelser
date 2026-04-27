@@ -42,13 +42,13 @@ sealed interface GjennomforingV2KafkaPayload {
     ) {
         if (antallDeltakere == 0) return
 
-        require(pameldingType == eksisterendePameldingstype) {
+        require(pameldingType == eksisterendePameldingstype || eksisterendePameldingstype == null) {
             "Påmeldingstype kan ikke endres for deltakerliste $id med deltakere"
         }
 
         if (this !is Gruppe) return
 
-        require(oppstart == eksisterendeOppstartstype) {
+        require(oppstart == eksisterendeOppstartstype || eksisterendeOppstartstype == null) {
             "Oppstartstype kan ikke endres for deltakerliste $id med deltakere"
         }
     }
