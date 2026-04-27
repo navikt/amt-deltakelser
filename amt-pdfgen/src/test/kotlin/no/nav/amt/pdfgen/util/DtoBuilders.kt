@@ -26,7 +26,7 @@ object DtoBuilders {
     fun hovedvedtakDeltaker(
         innholdPdfDto: InnholdPdfDto? = null,
         bakgrunnsinfo: String = "Bakgrunnsinfo",
-        deltakelsesmengde: String = "deltakelsesmengde",
+        deltakelsesmengde: String? = "deltakelsesmengde",
     ) = HovedvedtakPdfDto.DeltakerDto(
         fornavn = "Ola",
         mellomnavn = null,
