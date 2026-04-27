@@ -90,7 +90,6 @@ class DeltakerKafkaPayloadBuilderTest {
             .filter {
                 it !in setOf(
                     Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                    Tiltakskode.TILPASSET_JOBBSTOTTE,
                     Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                     Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                     Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
@@ -160,7 +159,6 @@ class DeltakerKafkaPayloadBuilderTest {
         .filter {
             it !in setOf(
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                Tiltakskode.TILPASSET_JOBBSTOTTE,
                 Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                 Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,

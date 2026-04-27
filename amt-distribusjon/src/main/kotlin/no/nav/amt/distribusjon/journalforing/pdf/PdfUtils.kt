@@ -14,6 +14,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
 import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
 import no.nav.amt.lib.models.hendelse.HendelseDeltaker
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -48,7 +49,7 @@ fun lagHovedvedtakPdfDto(
         personident = deltaker.personident,
         innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
         bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
-        deltakelsesmengdeTekst = if (skalViseDeltakelsesmengde(deltaker.deltakerliste.tiltak)) {
+        deltakelsesmengdeTekst = if (deltaker.deltakerliste.tiltak.tiltakskode in tiltakMedDeltakelsesmengder) {
             utkast.deltakelsesprosent?.let {
                 deltakelsesmengdeTekst(
                     deltakelsesprosent = it.toInt(),
@@ -248,11 +249,6 @@ private fun HendelseAnsvarlig.getAvsendernavn() = when (this) {
 private fun fjernEldreHendelserAvSammeType(hendelser: List<Hendelse>): List<Hendelse> = hendelser
     .sortedByDescending { it.opprettet }
     .distinctBy { it.payload.javaClass }
-
-private fun skalViseDeltakelsesmengde(tiltakstype: HendelseDeltaker.Deltakerliste.Tiltak): Boolean =
-    tiltakstype.tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET ||
-        tiltakstype.tiltakskode == Tiltakskode.TILPASSET_JOBBSTOTTE ||
-        tiltakstype.tiltakskode == Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
 
 fun HendelseDeltaker.Deltakerliste.forskriftskapittel() = when (this.tiltak.tiltakskode) {
     Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> 13

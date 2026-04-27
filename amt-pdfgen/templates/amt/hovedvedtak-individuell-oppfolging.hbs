@@ -34,7 +34,12 @@
 
         {{> sections/bakgrunnsinfo}}
 
-        {{> sections/deltakelsesmengde}}
+        {{#eq deltakerliste.tiltakskode "VARIG_TILRETTELAGT_ARBEID_SKJERMET"}}
+            {{> sections/deltakelsesmengde}}
+        {{/eq}}
+        {{#eq deltakerliste.tiltakskode "ARBEIDSFORBEREDENDE_TRENING"}}
+            {{> sections/deltakelsesmengde}}
+        {{/eq}}
 
         {{> sections/dette-er-et-vedtak}}
 
