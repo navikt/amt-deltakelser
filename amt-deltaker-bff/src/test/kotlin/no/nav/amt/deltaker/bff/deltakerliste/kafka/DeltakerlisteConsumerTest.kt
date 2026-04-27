@@ -200,6 +200,7 @@ class DeltakerlisteConsumerTest {
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             tiltakstype = tiltakstype,
+            oppstart = Oppstartstype.ENKELTPLASS,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
 
@@ -220,7 +221,6 @@ class DeltakerlisteConsumerTest {
             status = deltakerliste.status,
             startDato = null,
             sluttDato = null,
-            oppstart = null,
             antallPlasser = null,
             apentForPamelding = true,
             oppmoteSted = null,

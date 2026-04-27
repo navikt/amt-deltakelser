@@ -59,7 +59,9 @@ class GjennomforingV2KafkaPayloadDeserializingTest {
               "oppdatertTidspunkt": "$oppdatert",
               "tiltakskode": "ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING",
               "arrangor": { "organisasjonsnummer": "987654321" },
-              "pameldingType": "DIREKTE_VEDTAK"
+              "pameldingType": "DIREKTE_VEDTAK",
+              "oppstart": "ENKELTPLASS",
+              "prisinformasjon": "100kr"
             }
             """.trimIndent()
 
@@ -72,6 +74,8 @@ class GjennomforingV2KafkaPayloadDeserializingTest {
         payload.tiltakskode shouldBe Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING
         payload.arrangor.organisasjonsnummer shouldBe "987654321"
         payload.gjennomforingType shouldBe GjennomforingType.Enkeltplass
+        payload.oppstart shouldBe Oppstartstype.ENKELTPLASS
+        payload.prisinformasjon shouldBe "100kr"
         payload.pameldingType shouldBe GjennomforingPameldingType.DIREKTE_VEDTAK
     }
 

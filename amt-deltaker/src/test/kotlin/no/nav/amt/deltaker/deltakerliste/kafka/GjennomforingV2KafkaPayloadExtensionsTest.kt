@@ -51,7 +51,7 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
                 status shouldBe deltakerliste.status
                 startDato shouldBe null
                 sluttDato shouldBe null
-                oppstart shouldBe null
+                oppstart shouldBe Oppstartstype.ENKELTPLASS
                 apentForPamelding.shouldBeTrue()
                 arrangor shouldBe arrangorInTest
             }

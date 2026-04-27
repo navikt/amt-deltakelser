@@ -37,10 +37,10 @@ fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(
     startDato = null,
     sluttDato = null,
     antallPlasser = null,
-    oppstart = null,
+    oppstart = oppstart,
     apentForPamelding = true,
     oppmoteSted = null,
     arrangor = arrangor,
     pameldingstype = pameldingType,
-    prisinformasjon = null, // TODO: Vi skal få prisinformasjon på enkeltplass også
+    prisinformasjon = prisinformasjon,
 )
