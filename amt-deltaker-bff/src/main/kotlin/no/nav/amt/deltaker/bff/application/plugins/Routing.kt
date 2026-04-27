@@ -171,6 +171,7 @@ fun Application.configureRouting(
             innbyggerService = innbyggerService,
             forslageRepository = forslagRepository,
             unleashToggle = commonUnleashToggle,
+            pameldingClient = paameldingClient,
         )
 
         registerUnleashApi(unleash)

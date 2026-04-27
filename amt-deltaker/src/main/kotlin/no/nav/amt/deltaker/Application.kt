@@ -332,16 +332,6 @@ fun Application.module() {
         isOppfolgingsTilfelleClient = isOppfolgingsTilfelleClient,
     )
 
-    val pameldingService = PameldingService(
-        deltakerRepository = deltakerRepository,
-        deltakerService = deltakerService,
-        navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
-        vedtakService = vedtakService,
-        hendelseService = hendelseService,
-        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
-    )
-
     val kladdService = KladdService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
@@ -357,9 +347,22 @@ fun Application.module() {
         navBrukerService = navBrukerService,
         tiltakstypeRepository = tiltakstypeRepository,
         navEnhetService = navEnhetService,
+        navEnhetRepository = navEnhetRepository,
         navAnsattService = navAnsattService,
+        navAnsattRepository = navAnsattRepository,
         vedtakService = vedtakService,
         arrangorService = arrangorService,
+    )
+
+    val pameldingService = PameldingService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        enkeltplassService = enkeltplassService,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(

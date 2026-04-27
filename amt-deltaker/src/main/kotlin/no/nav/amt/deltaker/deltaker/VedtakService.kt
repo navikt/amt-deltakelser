@@ -77,7 +77,7 @@ class VedtakService(
         vedtakRepository.upsert(fattetVedtak)
     }
 
-    private fun hentIkkeFattetVedtakOrThrow(deltakerId: UUID): Vedtak {
+    fun hentIkkeFattetVedtakOrThrow(deltakerId: UUID): Vedtak {
         val vedtak = vedtakRepository.getForDeltaker(deltakerId)
 
         when {

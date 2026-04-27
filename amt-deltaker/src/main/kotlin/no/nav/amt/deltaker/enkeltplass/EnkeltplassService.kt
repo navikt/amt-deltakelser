@@ -13,8 +13,10 @@ import no.nav.amt.deltaker.deltakerliste.GjennomforingInsertDbo
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
@@ -23,12 +25,13 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 class EnkeltplassService(
@@ -39,7 +42,9 @@ class EnkeltplassService(
     private val navBrukerService: NavBrukerService,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val navEnhetService: NavEnhetService,
+    private val navEnhetRepository: NavEnhetRepository,
     private val navAnsattService: NavAnsattService,
+    private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val arrangorService: ArrangorService,
 ) {
@@ -63,8 +68,8 @@ class EnkeltplassService(
             navn = tiltakstype.navn,
             status = GjennomforingStatusType.KLADD,
             apentForPamelding = false,
-            oppstart = null,
-            pameldingstype = null,
+            oppstart = Oppstartstype.ENKELTPLASS,
+            pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
         val kladdDbo = DeltakerKladdUpsertDbo(
@@ -133,7 +138,6 @@ class EnkeltplassService(
         deltakerId = deltakerId,
         decoratedRequest = decoratedRequest,
         nyStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-        fattetAvNav = false,
     )
 
     /** Oppdaterer innholdet i utkastet uten å endre status. */
@@ -144,7 +148,6 @@ class EnkeltplassService(
         deltakerId = deltakerId,
         decoratedRequest = decoratedRequest,
         nyStatus = null,
-        fattetAvNav = false,
     )
 
     suspend fun meldPaaDirekte(
@@ -155,22 +158,17 @@ class EnkeltplassService(
             deltakerId = deltakerId,
             decoratedRequest = decoratedRequest,
             nyStatus = DeltakerStatus.Type.SOKT_INN,
-            fattetAvNav = true,
         )
     }
 
     /**
      * Lagrer oppdateringer til deltaker og gjennomføring i én transaksjon,
      * oppretter/oppdaterer vedtak og publiserer gjennomføringsrequest til Kafka.
-     *
-     * Vedtaket fattes av Nav når [fattetAvNav] er `true` (direktepåmelding),
-     * og ikke-fattet når [fattetAvNav] er `false` (utkast til innbygger).
      */
     private suspend fun lagreOgPubliser(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
         nyStatus: DeltakerStatus.Type?,
-        fattetAvNav: Boolean,
     ): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         val gjennomforing = deltaker.deltakerliste
@@ -216,11 +214,11 @@ class EnkeltplassService(
             val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
             vedtakService.opprettEllerOppdaterVedtak(
-                fattetAvNav = fattetAvNav,
+                fattetAvNav = false,
                 endretAv = navAnsatt,
                 endretAvEnhet = navEnhet,
                 deltaker = oppdatertDeltaker.toDeltakerVedVedtak(),
-                fattetDato = if (fattetAvNav) LocalDateTime.now() else null,
+                fattetDato = null,
             )
 
             val deltakerMedVedtak = deltakerRepository.get(deltakerId).getOrThrow()
@@ -233,7 +231,27 @@ class EnkeltplassService(
         }
     }
 
-    private fun byggGjennomforingRequest(
+    fun publiserGjennomforing(deltaker: Deltaker) {
+        val vedtak = vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id)
+        val ansvarligEnhet = navEnhetRepository.getOrThrow(vedtak.opprettetAvEnhet)
+        val ansvarligNavAnsatt = navAnsattRepository.getOrThrow(vedtak.opprettetAv)
+        val gjennomforing = deltaker.deltakerliste
+        val payload = GjennomforingRequestPayload.OpprettEnkeltplass(
+            gjennomforingId = deltaker.deltakerliste.id,
+            tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+            prisinformasjon = requireNotNull(gjennomforing.prisinformasjon) {
+                "Kan ikke publisere gjennomføring ${gjennomforing.id}: prisinformasjon mangler"
+            },
+            organisasjonsnummer = requireNotNull(gjennomforing.arrangor) {
+                "Kan ikke publisere gjennomføring ${gjennomforing.id}: arrangør mangler"
+            }.organisasjonsnummer,
+            ansvarligEnhet = ansvarligEnhet.enhetsnummer,
+            opprettetAv = ansvarligNavAnsatt.navIdent,
+        )
+        gjennomforingRequestProducer.produce(payload)
+    }
+
+    fun byggGjennomforingRequest(
         deltaker: Deltaker,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
     ) = GjennomforingRequestPayload.OpprettEnkeltplass(

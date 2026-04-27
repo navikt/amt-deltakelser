@@ -13,7 +13,9 @@ import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.GjennomforingInsertDbo
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassGjennomforingUpdateDbo
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -25,6 +27,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
@@ -57,7 +60,13 @@ object TestRepository {
         TiltakstypeRepository().upsert(deltakerliste.tiltakstype)
         overordnetArrangor?.let { ArrangorRepository().upsert(it) }
         ArrangorRepository().upsert(deltakerliste.arrangor!!)
-        DeltakerlisteRepository().upsert(deltakerliste)
+
+        if (deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+            DeltakerlisteRepository().upsert(deltakerliste.toGjennomforingInsertDbo())
+            DeltakerlisteRepository().update(deltakerliste.toEnkeltplassUpdateDbo())
+        } else {
+            DeltakerlisteRepository().upsert(deltakerliste)
+        }
     }
 
     fun insert(vedtak: Vedtak) {
@@ -109,4 +118,21 @@ object TestRepository {
             }
         }
     }
+
+    private fun Deltakerliste.toGjennomforingInsertDbo(): GjennomforingInsertDbo = GjennomforingInsertDbo(
+        id = this.id,
+        type = this.gjennomforingstype,
+        tiltakId = this.tiltakstype.id,
+        navn = this.navn,
+        status = this.status,
+        oppstart = this.oppstart,
+        apentForPamelding = this.apentForPamelding,
+        pameldingstype = this.pameldingstype,
+    )
 }
+
+private fun Deltakerliste.toEnkeltplassUpdateDbo() = EnkeltplassGjennomforingUpdateDbo(
+    id = this.id,
+    arrangorId = this.arrangor?.id,
+    prisinformasjon = this.prisinformasjon,
+)

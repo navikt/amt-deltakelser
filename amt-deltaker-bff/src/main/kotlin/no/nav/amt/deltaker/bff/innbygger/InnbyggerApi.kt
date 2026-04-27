@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.apiclients.ModelMapper
+import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getPersonIdent
@@ -26,7 +27,6 @@ import no.nav.amt.deltaker.bff.innbygger.model.toInnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -41,6 +41,7 @@ fun Routing.registerInnbyggerApi(
     innbyggerService: InnbyggerService,
     forslageRepository: ForslagRepository,
     unleashToggle: CommonUnleashToggle,
+    pameldingClient: PaameldingClient,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
@@ -87,23 +88,35 @@ fun Routing.registerInnbyggerApi(
             gjør synkronkall til amt-deltaker med dataene som returnerer et mindre "Deltakeroppdatering" objekt
          */
         post("/innbygger/{deltakerId}/godkjenn-utkast") {
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val deltakerId = call.getDeltakerId()
 
-            tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
-                rekvirentPersonident = call.getPersonIdent(),
-                ressursPersonident = deltaker.navBruker.personident,
-            )
+            val deltakerResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
+                    rekvirentPersonident = call.getPersonIdent(),
+                    ressursPersonident = personident,
+                )
+                pameldingClient.innbyggerGodkjennUtkast(deltakerId)
+                amtDeltakerClient
+                    .getDeltaker(deltakerId)
+                    .let { ModelMapper.toDeltaker(it) }
+                    .let { deltaker -> InnbyggerDeltakerResponse.fromModel(deltaker) }
+            } else {
+                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
-            // duplikatkode i InnbyggerService
-            require(deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
-                "Deltaker ${deltaker.id} har ikke status ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}"
+                tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
+                    rekvirentPersonident = call.getPersonIdent(),
+                    ressursPersonident = deltaker.navBruker.personident,
+                )
+
+                innbyggerService
+                    .godkjennUtkast(deltaker)
+                    .let { oppdatertDeltaker -> komplettInnbyggerDeltakerResponse(oppdatertDeltaker) }
             }
-
-            val oppdatertDeltaker = innbyggerService.godkjennUtkast(deltaker)
 
             MetricRegister.GODKJENT_UTKAST.inc()
 
-            call.respond(komplettInnbyggerDeltakerResponse(oppdatertDeltaker))
+            call.respond(deltakerResponse)
         }
 
         // henter all historikkdata fra amt-deltaker når prioriterSynkronKommunikasjon-toggle er aktiv,

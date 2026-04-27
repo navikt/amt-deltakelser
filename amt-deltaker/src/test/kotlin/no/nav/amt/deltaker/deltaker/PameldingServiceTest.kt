@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatu
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
@@ -33,6 +34,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -396,17 +398,17 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             outboxService.assertProducedHendelse<HendelseType.InnbyggerGodkjennUtkast>(deltakerId)
 
             outboxService.assertProduced<DeltakerKafkaPayload>(
-                expectedDeltakerId = deltakerId,
+                expectedKey = deltakerId,
                 expectedTopic = Environment.DELTAKER_V2_TOPIC,
             )
 
             outboxService.assertProduced<DeltakerV1Dto>(
-                expectedDeltakerId = deltakerId,
+                expectedKey = deltakerId,
                 expectedTopic = Environment.DELTAKER_V1_TOPIC,
             )
 
             outboxService.assertProduced<DeltakerEksternV1Dto>(
-                expectedDeltakerId = deltakerId,
+                expectedKey = deltakerId,
                 expectedTopic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
@@ -467,6 +469,39 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             }
 
             assertProduced(deltaker.id)
+        }
+
+        @Test
+        fun `innbyggerGodkjennUtkast - enkeltplass - vedtak fattes og gjennomforing publiseres`() = runTest {
+            // Arrange
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerlisteMedTrengerGodkjenning()
+                    .copy(
+                        gjennomforingstype = GjennomforingType.Enkeltplass,
+                        prisinformasjon = "Dette tiltaket koster 100 kr/mnd",
+                    ),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = null)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+
+            // Act
+            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+
+            // Assert
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+                status.type shouldBe DeltakerStatus.Type.SOKT_INN
+                vedtaksinformasjon.shouldNotBeNull()
+                vedtaksinformasjon.fattetAvNav shouldBe false
+                vedtaksinformasjon.fattet shouldBe null
+            }
+
+            outboxService.assertProduced<GjennomforingRequestPayload>(
+                expectedKey = deltaker.deltakerliste.id,
+                expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
+            )
         }
 
         @Test

@@ -9,12 +9,12 @@ import no.nav.amt.lib.outbox.OutboxService
 import java.util.UUID
 
 inline fun <reified T : Any> OutboxService.assertProduced(
-    expectedDeltakerId: UUID,
+    expectedKey: UUID,
     expectedTopic: String,
 ) {
     verify {
         insertRecord(
-            key = expectedDeltakerId,
+            key = expectedKey,
             value = ofType<T>(),
             topic = expectedTopic,
             suppressOutsideTxWarning = any(),
