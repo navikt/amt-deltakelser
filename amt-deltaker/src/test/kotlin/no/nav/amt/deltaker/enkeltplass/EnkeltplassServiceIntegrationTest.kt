@@ -24,6 +24,7 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -97,7 +98,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 navn shouldBe tiltakInTest.navn
                 startDato shouldBe null
                 sluttDato shouldBe null
-                oppstart shouldBe null
+                oppstart shouldBe Oppstartstype.ENKELTPLASS
                 apentForPamelding shouldBe false
                 oppmoteSted shouldBe null
                 arrangor shouldBe null

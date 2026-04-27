@@ -28,6 +28,7 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
@@ -67,7 +68,7 @@ class EnkeltplassService(
             navn = tiltakstype.navn,
             status = GjennomforingStatusType.KLADD,
             apentForPamelding = false,
-            oppstart = null,
+            oppstart = Oppstartstype.ENKELTPLASS,
             pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
