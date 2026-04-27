@@ -29,7 +29,7 @@ sealed interface GjennomforingV2KafkaPayload {
     val oppdatertTidspunkt: OffsetDateTime
     val tiltakskode: Tiltakskode
     val arrangor: Arrangor
-    val pameldingType: GjennomforingPameldingType?
+    val pameldingType: GjennomforingPameldingType
     val oppstart: Oppstartstype
     val status: GjennomforingStatusType
 
