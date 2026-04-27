@@ -5,23 +5,16 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? = filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-    .firstOrNull()
-    ?.importertFraArena
-    ?.deltakerVedImport
-    ?.innsoktDato
+    .minOfOrNull { it.importertFraArena.deltakerVedImport.innsoktDato }
 
 private fun List<DeltakerHistorikk>.getInnsoktDatoFraInnsok(): LocalDateTime? =
     filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>()
-        .firstOrNull()
-        ?.data
-        ?.innsokt
+        .minOfOrNull { it.data.innsokt }
 
 fun List<DeltakerHistorikk>.getInnsoktDato(): LocalDateTime? {
     getInnsoktDatoFraImportertDeltaker()?.let { return it.atStartOfDay() }
     getInnsoktDatoFraInnsok()?.let { return it }
 
     return filterIsInstance<DeltakerHistorikk.Vedtak>()
-        .map { it.vedtak }
-        .minByOrNull { it.opprettet }
-        ?.opprettet
+        .minOfOrNull { it.vedtak.opprettet }
 }

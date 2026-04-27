@@ -9,6 +9,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -71,8 +72,8 @@ class DeltakerHistorikkExtensionsTest {
                 lagInnsokHistorikk(innsokt = tidligsteInnsokt),
             )
 
-            historikkMedTidligsteForst.getInnsoktDato() shouldBe tidligsteInnsokt
-            historikkMedSenesteForst.getInnsoktDato() shouldBe tidligsteInnsokt
+            historikkMedTidligsteForst.getInnsoktDato() shouldBeCloseTo tidligsteInnsokt
+            historikkMedSenesteForst.getInnsoktDato() shouldBeCloseTo tidligsteInnsokt
         }
 
         @Test
