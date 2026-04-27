@@ -58,15 +58,20 @@ class DeltakerHistorikkExtensionsTest {
         }
 
         @Test
-        fun `flere InnsokPaaFellesOppstart - returnerer innsokt fra forste`() {
-            val forsteInnsokt = LocalDateTime.now().minusDays(30)
-            val andreInnsokt = LocalDateTime.now().minusDays(2)
-            val historikk = listOf(
-                lagInnsokHistorikk(innsokt = forsteInnsokt),
-                lagInnsokHistorikk(innsokt = andreInnsokt),
+        fun `flere InnsokPaaFellesOppstart - returnerer tidligste innsokt uavhengig av rekkefolge`() {
+            val tidligsteInnsokt = LocalDateTime.now().minusDays(30)
+            val senesteInnsokt = LocalDateTime.now().minusDays(2)
+            val historikkMedTidligsteForst = listOf(
+                lagInnsokHistorikk(innsokt = tidligsteInnsokt),
+                lagInnsokHistorikk(innsokt = senesteInnsokt),
+            )
+            val historikkMedSenesteForst = listOf(
+                lagInnsokHistorikk(innsokt = senesteInnsokt),
+                lagInnsokHistorikk(innsokt = tidligsteInnsokt),
             )
 
-            historikk.getInnsoktDato() shouldBe forsteInnsokt
+            historikkMedTidligsteForst.getInnsoktDato() shouldBe tidligsteInnsokt
+            historikkMedSenesteForst.getInnsoktDato() shouldBe tidligsteInnsokt
         }
 
         @Test
