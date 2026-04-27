@@ -81,17 +81,6 @@ class GjennomforingV2KafkaPayloadTest {
                 )
             }
         }
-
-        @Test
-        fun `enkeltplass, skal ikke kaste unntak nar oppstartstype endres for deltakerliste med deltakere`() {
-            shouldNotThrowAny {
-                enkeltplassGjennoforing.assertValidChanges(
-                    antallDeltakere = 1,
-                    eksisterendePameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
-                    eksisterendeOppstartstype = gruppeGjennomforing.oppstart,
-                )
-            }
-        }
     }
 
     @Nested

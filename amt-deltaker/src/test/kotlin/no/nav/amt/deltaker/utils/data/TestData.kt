@@ -129,7 +129,7 @@ object TestData {
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
-        pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         oppstart = Oppstartstype.ENKELTPLASS,
         prisinformasjon = deltakerliste.prisinformasjon,
     )
