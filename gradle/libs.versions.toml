@@ -17,7 +17,7 @@ postgres-version = "42.7.10"
 caffeine-version = "3.2.3"
 mockk-version = "1.14.9"
 nimbus-version = "10.9"
-unleash-version = "12.2.0"
+unleash-version = "12.2.1"
 tms-varsel-kotlin-builder-version = "2.2.0"
 
 # amt-lib spesifikt
@@ -37,7 +37,7 @@ shedlock-spring-version = "7.7.0"
 springmockk-version = "5.0.1"
 
 # amt-pdfgen spesifikt
-jsoup-version = "1.22.1"
+jsoup-version = "1.22.2"
 pdfgen-core-version = "1.1.79"
 
 
