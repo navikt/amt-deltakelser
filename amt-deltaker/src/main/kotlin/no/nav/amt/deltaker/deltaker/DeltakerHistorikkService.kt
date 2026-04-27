@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.deltaker.deltaker.extensions.skalInkluderesIHistorikk
 import no.nav.amt.deltaker.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
@@ -77,7 +76,13 @@ class DeltakerHistorikkService(
 
     fun getForsteVedtakFattet(deltakerId: UUID): LocalDate? {
         val deltakerhistorikk = getForDeltaker(deltakerId)
-        deltakerhistorikk.getInnsoktDatoFraImportertDeltaker()?.let { return it }
+        deltakerhistorikk
+            .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
+            .firstOrNull()
+            ?.importertFraArena
+            ?.deltakerVedImport
+            ?.innsoktDato
+            ?.let { return it }
 
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         val forsteVedtak = vedtak.minByOrNull { it.opprettet }
