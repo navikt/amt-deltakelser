@@ -7,6 +7,7 @@ import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
+import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 
@@ -22,6 +23,7 @@ fun Deltaker.toTiltakskoordinatorsDeltaker(
     id = id,
     navBruker = navBruker,
     status = status,
+    soktInnDato = this.historikk.getInnsoktDato()?.toLocalDate(),
     startdato = startdato,
     sluttdato = sluttdato,
     navEnhet = navEnhet?.navn,

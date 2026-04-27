@@ -1,8 +1,6 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDato
-import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.deltaker.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -24,6 +22,8 @@ import no.nav.amt.lib.models.deltaker.SisteEndring
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
+import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import java.time.LocalDate
 import java.util.UUID

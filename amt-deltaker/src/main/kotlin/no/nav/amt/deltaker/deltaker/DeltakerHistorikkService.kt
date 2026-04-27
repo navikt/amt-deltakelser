@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.deltaker.deltaker.extensions.skalInkluderesIHistorikk
 import no.nav.amt.deltaker.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
@@ -12,6 +11,7 @@ import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import java.time.LocalDate
 import java.util.UUID
 

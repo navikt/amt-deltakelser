@@ -209,12 +209,11 @@ private fun List<TiltakskoordinatorsDeltaker>.toDeltakerResponses(
     tilgangskontrollService: TilgangskontrollService,
     navAnsattAzureId: UUID,
 ) = map { deltaker ->
-    val harTilgangTilAASeNavn =
-        tilgangskontrollService.harKoordinatorTilgangTilPerson(
-            navAnsattAzureId = navAnsattAzureId,
-            erSkjermet = deltaker.navBruker.erSkjermet,
-            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-        )
+    val harTilgangTilAASeNavn = tilgangskontrollService.harKoordinatorTilgangTilPerson(
+        navAnsattAzureId = navAnsattAzureId,
+        erSkjermet = deltaker.navBruker.erSkjermet,
+        adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+    )
 
     deltaker.toDeltakerResponse(harTilgangTilAASeNavn)
 }
@@ -254,6 +253,7 @@ fun TiltakskoordinatorsDeltaker.toDeltakerResponse(harTilgang: Boolean): Deltake
                 it.hendelse is UlestHendelseType.ReaktiverDeltakelse
         },
         kanEndres = kanEndres,
+        soktInnDato = soktInnDato,
         startdato = startdato,
         sluttdato = sluttdato,
     )
