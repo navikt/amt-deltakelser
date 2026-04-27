@@ -38,15 +38,16 @@ class DeltakerHistorikkExtensionsTest {
         }
 
         @Test
-        fun `flere ImportertFraArena - returnerer innsoktDato fra forste`() {
-            val forsteInnsokt = LocalDate.now().minusMonths(3)
-            val andreInnsokt = LocalDate.now().minusMonths(1)
+        fun `flere ImportertFraArena med samme innsoktDato - returnerer samme resultat uavhengig av rekkefolge`() {
+            val innsoktDato = LocalDate.now().minusMonths(2)
             val historikk = listOf(
-                lagArenaHistorikk(innsoktDato = forsteInnsokt),
-                lagArenaHistorikk(innsoktDato = andreInnsokt),
+                lagArenaHistorikk(innsoktDato = innsoktDato),
+                lagArenaHistorikk(innsoktDato = innsoktDato),
             )
+            val historikkMedOmvendtRekkefolge = historikk.reversed()
 
-            historikk.getInnsoktDato() shouldBe forsteInnsokt.atStartOfDay()
+            historikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
+            historikkMedOmvendtRekkefolge.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
         }
 
         @Test
