@@ -119,7 +119,7 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() {
-        val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest)
+        val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING)
         val deltaker = lagDeltaker(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
