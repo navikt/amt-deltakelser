@@ -4,12 +4,11 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-private fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? =
-    filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-        .firstOrNull()
-        ?.importertFraArena
-        ?.deltakerVedImport
-        ?.innsoktDato
+fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? = filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
+    .firstOrNull()
+    ?.importertFraArena
+    ?.deltakerVedImport
+    ?.innsoktDato
 
 private fun List<DeltakerHistorikk>.getInnsoktDatoFraInnsok(): LocalDateTime? =
     filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>()

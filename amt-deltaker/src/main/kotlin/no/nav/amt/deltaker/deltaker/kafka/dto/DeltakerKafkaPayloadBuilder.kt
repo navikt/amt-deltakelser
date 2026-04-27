@@ -23,6 +23,7 @@ import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
+import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import java.time.LocalDate
 import java.util.UUID
@@ -265,12 +266,7 @@ class DeltakerKafkaPayloadBuilder(
     }
 
     private fun List<DeltakerHistorikk>.getForsteVedtakFattet(): LocalDate? {
-        filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-            .firstOrNull()
-            ?.importertFraArena
-            ?.deltakerVedImport
-            ?.innsoktDato
-            ?.let { return it }
+        getInnsoktDatoFraImportertDeltaker()?.let { return it }
 
         val vedtak = filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         val forsteVedtak = vedtak.minByOrNull { it.opprettet }

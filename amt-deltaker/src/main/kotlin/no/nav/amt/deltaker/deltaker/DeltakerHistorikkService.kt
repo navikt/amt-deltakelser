@@ -11,6 +11,7 @@ import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import java.time.LocalDate
 import java.util.UUID
 
@@ -76,13 +77,7 @@ class DeltakerHistorikkService(
 
     fun getForsteVedtakFattet(deltakerId: UUID): LocalDate? {
         val deltakerhistorikk = getForDeltaker(deltakerId)
-        deltakerhistorikk
-            .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-            .firstOrNull()
-            ?.importertFraArena
-            ?.deltakerVedImport
-            ?.innsoktDato
-            ?.let { return it }
+        deltakerhistorikk.getInnsoktDatoFraImportertDeltaker()?.let { return it }
 
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         val forsteVedtak = vedtak.minByOrNull { it.opprettet }
