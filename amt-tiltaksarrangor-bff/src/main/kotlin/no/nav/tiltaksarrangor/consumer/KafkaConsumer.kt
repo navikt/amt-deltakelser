@@ -47,10 +47,17 @@ class KafkaConsumer(
                 consumerRecord.value()?.let { objectMapper.readValue(it) },
             )
 
-            DELTAKERLISTE_V2_TOPIC -> deltakerlisteConsumerService.lagreDeltakerliste(
-                deltakerlisteId = UUID.fromString(consumerRecord.key()),
-                value = consumerRecord.value(),
-            )
+            DELTAKERLISTE_V2_TOPIC -> {
+                if (consumerRecord.key() in setOf("88d50e17-a2a5-465a-8dd3-09f63df317f6", "e1be2f30-bb71-4938-86fb-582f4bc8a8c7") &&
+                    consumerRecord.offset() <= 127229
+                ) {
+                    return
+                }
+                deltakerlisteConsumerService.lagreDeltakerliste(
+                    deltakerlisteId = UUID.fromString(consumerRecord.key()),
+                    value = consumerRecord.value(),
+                )
+            }
 
             TILTAKSTYPE_TOPIC ->
                 objectMapper
