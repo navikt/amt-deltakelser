@@ -13,7 +13,7 @@ spec:
     minimumInSyncReplicas: 2
     partitions: 4
     replication: 3
-    minCompactionLagMs: 259200000 # 72 timer, slik at datavarehus rekker å hente ut data før compaction
+    minCompactionLagMs: 604800000 # 7 dager, slik at datavarehus rekker å hente ut data før compaction
   acl:
     - team: amt
       application: amt-deltaker
