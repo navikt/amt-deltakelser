@@ -367,16 +367,16 @@ class DeltakerService(
         deltakereMedStatusDeltar.forEach { deltaker ->
             runCatching {
                 Database.transaction {
-                    val oppdatertDeltaker = deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                    val nyStatus = nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
 
                     // kun status er endret, skipper upsert av deltaker
-                    lagreDeltakerStatus(
-                        deltakerId = oppdatertDeltaker.id,
-                        nyDeltakerStatus = oppdatertDeltaker.status,
+                    val gjeldendeStatus = lagreDeltakerStatus(
+                        deltakerId = deltaker.id,
+                        nyDeltakerStatus = nyStatus,
                         erDeltakerSluttdatoEndret = true,
                     )
 
-                    deltakerProducerService.produce(oppdatertDeltaker)
+                    deltakerProducerService.produce(deltaker.copy(status = gjeldendeStatus))
                 }
             }.onSuccess {
                 antallOppdatert++
