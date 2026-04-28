@@ -32,16 +32,34 @@ class DeltakerStatusRepositoryTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    gyldigFra = LocalDateTime.now().minusDays(2),
+                    gyldigTil = LocalDateTime.now(),
+                ),
+            )
+            val expectedStatus = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now(),
+                gyldigTil = null,
+            )
+
+            TestRepository.insert(deltaker)
+            DeltakerStatusRepository.lagreStatus(deltakerId = deltaker.id, expectedStatus)
+
+            // fremtidig status
+            DeltakerStatusRepository.lagreStatus(
+                deltaker.id,
+                lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.FULLFORT,
+                    gyldigFra = LocalDateTime.now().plusDays(1),
                     gyldigTil = null,
                 ),
             )
-            TestRepository.insert(deltaker)
 
             // Act
             val status = DeltakerStatusRepository.getGjeldendeDeltakerStatus(deltaker.id)
 
             // Assert
-            status.shouldNotBeNull()
+            status.shouldNotBeNull().id shouldBe expectedStatus.id
         }
 
         @Test
