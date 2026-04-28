@@ -233,6 +233,10 @@ object DeltakerStatusRepository {
                         deltaker_id = ? 
                         AND gyldig_til IS NULL 
                         AND gyldig_fra <= CURRENT_TIMESTAMP
+                    ORDER BY 
+                        gyldig_fra DESC,
+                        created_at DESC
+                    LIMIT 1
                     """,
                 deltakerId,
             ).map(::deltakerStatusRowMapper).asSingle,

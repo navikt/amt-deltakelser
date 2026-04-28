@@ -171,7 +171,7 @@ class DeltakerService(
             val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
 
             deltakerRepository.upsert(deltakerToUpsert)
-            lagreDeltakerStatus(
+            val gjeldendeDeltakerStatus = lagreDeltakerStatus(
                 deltakerId = deltakerToUpsert.id,
                 nyDeltakerStatus = deltakerToUpsert.status,
                 erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
@@ -181,7 +181,9 @@ class DeltakerService(
                 DeltakerStatusRepository.lagreStatus(deltakerToUpsert.id, it)
             }
 
-            afterDeltakerUpsert(deltakerToUpsert)
+            afterDeltakerUpsert(
+                deltakerToUpsert.copy(status = gjeldendeDeltakerStatus),
+            )
         }
     }
 
@@ -189,16 +191,16 @@ class DeltakerService(
         deltakerId: UUID,
         nyDeltakerStatus: DeltakerStatus,
         erDeltakerSluttdatoEndret: Boolean,
-    ) {
+    ): DeltakerStatus {
         val eksisterendeStatus = DeltakerStatusRepository.getGjeldendeDeltakerStatus(deltakerId)
         val statusErUendret = eksisterendeStatus?.harLiktInnholdSom(nyDeltakerStatus) == true
 
-        val excludeStatusId = if (statusErUendret) {
+        val gjeldendeStatus = if (statusErUendret) {
             log.info("Ny deltakerstatus for deltaker $deltakerId er lik eksisterende status, hopper over insert")
-            eksisterendeStatus.id
+            eksisterendeStatus
         } else {
             DeltakerStatusRepository.lagreStatus(deltakerId, nyDeltakerStatus)
-            nyDeltakerStatus.id
+            nyDeltakerStatus
         }
 
         val erInnkommendeStatusAktiv = nyDeltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()
@@ -206,13 +208,18 @@ class DeltakerService(
         if (erInnkommendeStatusAktiv) {
             DeltakerStatusRepository.deaktiverTidligereStatuser(
                 deltakerId = deltakerId,
-                excludeStatusId = excludeStatusId,
+                excludeStatusId = gjeldendeStatus.id,
                 erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
             )
         } else {
             // Dette skal aldri skje for Arena-deltakelser
-            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(deltakerId, excludeStatusId)
+            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(
+                deltakerId = deltakerId,
+                excludeStatusId = gjeldendeStatus.id,
+            )
         }
+
+        return gjeldendeStatus
     }
 
     private suspend fun upsertSingleDeltaker(
