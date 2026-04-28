@@ -53,6 +53,8 @@ data class DeltakerStatus(
         PABEGYNT_REGISTRERING,
     }
 
+    fun harLiktInnholdSom(other: DeltakerStatus): Boolean = type == other.type && aarsak == other.aarsak
+
     companion object {
         val avsluttendeStatuser =
             setOf(

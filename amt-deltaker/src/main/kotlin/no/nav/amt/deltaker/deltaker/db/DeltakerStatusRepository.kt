@@ -220,6 +220,29 @@ object DeltakerStatusRepository {
         return Database.query { session -> session.run(query) }
     }
 
+    /**
+     * Henter gjeldende deltakerstatus for en deltaker.
+     */
+    fun getGjeldendeDeltakerStatus(deltakerId: UUID): DeltakerStatus? = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                    SELECT *
+                    FROM deltaker_status 
+                    WHERE 
+                        deltaker_id = ? 
+                        AND gyldig_til IS NULL 
+                        AND gyldig_fra <= CURRENT_TIMESTAMP
+                    ORDER BY 
+                        gyldig_fra DESC,
+                        created_at DESC
+                    LIMIT 1
+                    """,
+                deltakerId,
+            ).map(::deltakerStatusRowMapper).asSingle,
+        )
+    }
+
     // benyttes kun i tester
     internal fun get(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
         session.run(

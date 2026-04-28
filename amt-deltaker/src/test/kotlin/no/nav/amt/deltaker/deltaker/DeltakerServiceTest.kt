@@ -148,7 +148,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `har fremtidig status, mottar ny status - inserter ny status, deaktiverer fremtidig status`() = runTest {
+        fun `har fremtidig status, mottar ny status med likt innhold - beholder eksisterende, deaktiverer fremtidig`() = runTest {
             // Arrange
             val fremtidigGyldigFra = LocalDateTime.now().plusDays(3)
 
@@ -183,25 +183,21 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             // Assert
             assertDeltakereAreEqual(
                 first = deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
-                second = oppdatertDeltakerForlenget,
+                // status er uendret pga dedup — bruk opprinnelig status, men oppdatert sluttdato
+                second = oppdatertDeltakerForlenget.copy(status = opprinneligDeltaker.status),
             )
 
-            // forrige status deaktivert
+            // opprinnelig DELTAR-status er fortsatt aktiv (innkommende status hadde likt innhold,
+            // så ingen ny rad ble insertet)
             assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
-                gyldigTil.shouldNotBeNull()
-                type shouldBe DeltakerStatus.Type.DELTAR
-            }
-
-            // nåv@rende status aktiv
-            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerForlenget.status.id)) {
                 gyldigTil.shouldBeNull()
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            // fremtidig status deaktivert
+            // fremtidig HAR_SLUTTET er deaktivert
             assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerFremtidigHarSluttet.status.id)) {
                 gyldigTil.shouldNotBeNull()
-                fremtidigGyldigFra shouldBeCloseTo fremtidigGyldigFra
+                gyldigFra.toLocalDate() shouldBe fremtidigGyldigFra.toLocalDate()
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             }
         }

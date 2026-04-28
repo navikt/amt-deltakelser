@@ -25,6 +25,64 @@ class DeltakerStatusRepositoryTest {
     }
 
     @Nested
+    inner class GetGjeldendeDeltakerStatusTests {
+        @Test
+        fun `returnerer deltakerstatus`() {
+            // Arrange
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    gyldigFra = LocalDateTime.now().minusDays(2),
+                    gyldigTil = LocalDateTime.now(),
+                ),
+            )
+            val expectedStatus = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now(),
+                gyldigTil = null,
+            )
+
+            TestRepository.insert(deltaker)
+            DeltakerStatusRepository.lagreStatus(deltakerId = deltaker.id, expectedStatus)
+
+            // fremtidig status
+            DeltakerStatusRepository.lagreStatus(
+                deltaker.id,
+                lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.FULLFORT,
+                    gyldigFra = LocalDateTime.now().plusDays(1),
+                    gyldigTil = null,
+                ),
+            )
+
+            // Act
+            val status = DeltakerStatusRepository.getGjeldendeDeltakerStatus(deltaker.id)
+
+            // Assert
+            status.shouldNotBeNull().id shouldBe expectedStatus.id
+        }
+
+        @Test
+        fun `historisk deltakerstatus - returnerer null`() {
+            // Arrange
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    gyldigFra = LocalDateTime.now().minusDays(2),
+                    gyldigTil = LocalDateTime.now().minusDays(1),
+                ),
+            )
+            TestRepository.insert(deltaker)
+
+            // Act
+            val status = DeltakerStatusRepository.getGjeldendeDeltakerStatus(deltaker.id)
+
+            // Assert
+            status.shouldBeNull()
+        }
+    }
+
+    @Nested
     inner class GetAvsluttendeDeltakerStatuserForOppdatering {
         @Test
         fun `returnerer tom liste nar ingen deltaker har aktiv DELTAR-status`() {

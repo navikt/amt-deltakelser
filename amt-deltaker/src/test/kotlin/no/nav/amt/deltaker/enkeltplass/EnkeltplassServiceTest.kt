@@ -112,7 +112,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING },
                     erDeltakerSluttdatoEndret = any(),
                 )
-            } just Runs
+            } returns deltakerInTest.status
 
             every {
                 vedtakService.opprettEllerOppdaterVedtak(
