@@ -190,26 +190,28 @@ class DeltakerService(
         nyDeltakerStatus: DeltakerStatus,
         erDeltakerSluttdatoEndret: Boolean,
     ) {
-        val eksisterendeStatus = DeltakerStatusRepository.getGjeldendeStatusForDeltaker(deltakerId)
+        val eksisterendeStatus = DeltakerStatusRepository.getGjeldendeDeltakerStatus(deltakerId)
+        val statusErUendret = eksisterendeStatus?.harLiktInnholdSom(nyDeltakerStatus) == true
 
-        if (eksisterendeStatus.type == nyDeltakerStatus.type && eksisterendeStatus.aarsak == nyDeltakerStatus.aarsak) {
-            log.info("Ny deltakerstatus for deltaker $deltakerId er lik eksisterende status, ingen oppdatering nødvendig")
-            return
+        val excludeStatusId = if (statusErUendret) {
+            log.info("Ny deltakerstatus for deltaker $deltakerId er lik eksisterende status, hopper over insert")
+            eksisterendeStatus.id
+        } else {
+            DeltakerStatusRepository.lagreStatus(deltakerId, nyDeltakerStatus)
+            nyDeltakerStatus.id
         }
 
-        DeltakerStatusRepository.lagreStatus(deltakerId, nyDeltakerStatus)
+        val erInnkommendeStatusAktiv = nyDeltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()
 
-        val erNyStatusAktiv = nyDeltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()
-
-        if (erNyStatusAktiv) {
+        if (erInnkommendeStatusAktiv) {
             DeltakerStatusRepository.deaktiverTidligereStatuser(
                 deltakerId = deltakerId,
-                excludeStatusId = nyDeltakerStatus.id,
+                excludeStatusId = excludeStatusId,
                 erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
             )
         } else {
             // Dette skal aldri skje for Arena-deltakelser
-            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(deltakerId, nyDeltakerStatus.id)
+            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(deltakerId, excludeStatusId)
         }
     }
 
