@@ -124,6 +124,17 @@ class TilgangskontrollService(
             Decision.Permit
         }
 
+        if (tilgangTilAdressebeskyttelse.isDeny || tilgangTilSkjerming.isDeny) {
+            log.warn(
+                "Nektet koordinator-tilgang: ansatt={} adressebeskyttelse={} (decision={}) erSkjermet={} (decision={})",
+                navAnsattAzureId,
+                adressebeskyttelse,
+                tilgangTilAdressebeskyttelse,
+                erSkjermet,
+                tilgangTilSkjerming,
+            )
+        }
+
         return tilgangTilAdressebeskyttelse.isPermit && tilgangTilSkjerming.isPermit
     }
 
