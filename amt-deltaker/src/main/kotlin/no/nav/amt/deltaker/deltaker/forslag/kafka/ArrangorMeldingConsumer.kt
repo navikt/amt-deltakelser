@@ -68,9 +68,13 @@ class ArrangorMeldingConsumer(
     }
 
     private fun handleVurdering(vurdering: Vurdering) {
+        val deltaker = deltakerRepository.get(vurdering.deltakerId).getOrNull()
+        if (deltaker == null) {
+            log.warn("Fant ikke deltaker ${vurdering.deltakerId} for vurdering ${vurdering.id}, ignorerer")
+            return
+        }
         Database.transaction {
             vurderingRepository.upsert(vurdering.toVurdering())
-            val deltaker = deltakerRepository.get(vurdering.deltakerId).getOrThrow()
             deltakerProducerService.produce(deltaker, publiserTilDeltakerV1 = false, publiserTilDeltakerEksternV1 = false)
         }
     }
