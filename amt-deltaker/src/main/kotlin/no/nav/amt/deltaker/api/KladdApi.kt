@@ -7,10 +7,10 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.deltaker.KladdService
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.api.response.ResponseMapper
 import no.nav.amt.deltaker.extensions.getDeltakerId
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -28,7 +28,7 @@ fun Routing.registerKladdApi(
                 personIdent = opprettKladdRequest.personident,
             )
 
-            call.respond(opprettKladdResponseFromDeltaker(deltaker))
+            call.respond(ResponseMapper.opprettKladdResponseFromDeltaker(deltaker))
         }
 
         post("/oppdater-kladd/{deltakerId}") {

@@ -5,8 +5,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

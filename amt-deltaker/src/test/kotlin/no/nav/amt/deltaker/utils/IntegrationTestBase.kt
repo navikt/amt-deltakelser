@@ -13,56 +13,57 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
+import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
-import no.nav.amt.deltaker.arrangor.ArrangorRepository
-import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.KladdService
-import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
-import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagService
-import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
-import no.nav.amt.deltaker.external.DeltakelserResponseMapper
-import no.nav.amt.deltaker.hendelse.HendelseProducer
-import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.innbygger.DistribuerEndringProducer
+import no.nav.amt.deltaker.innbygger.DistribuerEndringService
+import no.nav.amt.deltaker.innbygger.NavBrukerRepository
+import no.nav.amt.deltaker.innbygger.NavBrukerService
+import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
+import no.nav.amt.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.kafka.DeltakerV1Producer
+import no.nav.amt.deltaker.kafka.DeltakerlisteConsumer
+import no.nav.amt.deltaker.kafka.payload.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navbruker.NavBrukerRepository
-import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.deltaker.tiltak.TiltakRepository
+import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
+import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
+import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingService
+import no.nav.amt.deltaker.veileder.DeltakerLaaseService
+import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.veileder.KladdService
+import no.nav.amt.deltaker.veileder.PameldingService
+import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
+import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
@@ -93,7 +94,7 @@ abstract class IntegrationTestBase {
     protected open val navAnsattRepository: NavAnsattRepository = mockk()
     protected open val navBrukerRepository: NavBrukerRepository = mockk()
     protected open val navEnhetRepository: NavEnhetRepository = mockk()
-    protected open val tiltakstypeRepository: TiltakstypeRepository = mockk()
+    protected open val tiltakRepository: TiltakRepository = mockk()
     protected open val vedtakRepository = mockk<VedtakRepository>()
     protected open val vurderingRepository: VurderingRepository = mockk()
 
@@ -139,7 +140,7 @@ abstract class IntegrationTestBase {
             navEnhetService = navEnhetService,
             navAnsattService = navAnsattService,
             vedtakService = vedtakService,
-            hendelseService = hendelseService,
+            distribuerEndringService = distribuerEndringService,
             innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
             enkeltplassService = enkeltplassService,
         )
@@ -162,12 +163,12 @@ abstract class IntegrationTestBase {
         VurderingService(vurderingRepository = vurderingRepository)
     }
 
-    protected open val hendelseProducer: HendelseProducer by lazy {
-        HendelseProducer(outboxService = outboxService)
+    protected open val hendelseProducer: DistribuerEndringProducer by lazy {
+        DistribuerEndringProducer(outboxService = outboxService)
     }
 
-    protected open val hendelseService: HendelseService by lazy {
-        HendelseService(
+    protected open val distribuerEndringService: DistribuerEndringService by lazy {
+        DistribuerEndringService(
             hendelseProducer = hendelseProducer,
             navAnsattRepository = navAnsattRepository,
             navAnsattService = navAnsattService,
@@ -263,7 +264,7 @@ abstract class IntegrationTestBase {
             deltakerEndringRepository = deltakerEndringRepository,
             navAnsattRepository = navAnsattRepository,
             navEnhetRepository = navEnhetRepository,
-            hendelseService = hendelseService,
+            distribuerEndringService = distribuerEndringService,
             forslagService = forslagService,
             deltakerHistorikkService = deltakerHistorikkService,
         )
@@ -278,13 +279,24 @@ abstract class IntegrationTestBase {
             vedtakService = vedtakService,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             deltakerEndringRepository = deltakerEndringRepository,
-            hendelseService = hendelseService,
+            distribuerEndringService = distribuerEndringService,
             deltakerEndringService = deltakerEndringService,
-            navEnhetService = navEnhetService,
             navAnsattService = navAnsattService,
             forslagRepository = forslagRepository,
             endringFraArrangorRepository = endringFraArrangorRepository,
             importertFraArenaRepository = importertFraArenaRepository,
+        )
+    }
+    protected open val tiltaksansvarligService: TiltaksansvarligService by lazy {
+        TiltaksansvarligService(
+            deltakerRepository = deltakerRepository,
+            deltakerProducerService = deltakerProducerService,
+            vedtakService = vedtakService,
+            endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+            distribuerEndringService = distribuerEndringService,
+            navEnhetService = navEnhetService,
+            navAnsattService = navAnsattService,
+            deltakerService = deltakerService,
         )
     }
 
@@ -295,7 +307,7 @@ abstract class IntegrationTestBase {
             gjennomforingRequestProducer = gjennomforingRequestProducer,
             deltakerlisteRepository = deltakerlisteRepository,
             navBrukerService = navBrukerService,
-            tiltakstypeRepository = tiltakstypeRepository,
+            tiltakRepository = tiltakRepository,
             navEnhetService = navEnhetService,
             navAnsattService = navAnsattService,
             vedtakService = vedtakService,
@@ -310,7 +322,7 @@ abstract class IntegrationTestBase {
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
             endringFraArrangorRepository = endringFraArrangorRepository,
-            hendelseService = hendelseService,
+            distribuerEndringService = distribuerEndringService,
             deltakerHistorikkService = deltakerHistorikkService,
         )
     }
@@ -330,7 +342,7 @@ abstract class IntegrationTestBase {
         DeltakerlisteConsumer(
             deltakerlisteRepository = deltakerlisteRepository,
             deltakerRepository = deltakerRepository,
-            tiltakstypeRepository = tiltakstypeRepository,
+            tiltakRepository = tiltakRepository,
             arrangorService = arrangorService,
             deltakerService = deltakerService,
             unleashToggle = unleashToggle,
@@ -403,7 +415,7 @@ abstract class IntegrationTestBase {
                     unleashToggle = unleashToggle,
                     innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
                     vurderingRepository = vurderingRepository,
-                    hendelseService = hendelseService,
+                    distribuerEndringService = distribuerEndringService,
                     endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
                     navEnhetService = navEnhetService,
                     vedtakRepository = vedtakRepository,
@@ -412,6 +424,7 @@ abstract class IntegrationTestBase {
                     deltakerlisteRepository = deltakerlisteRepository,
                     arrangorService = arrangorService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,
+                    tiltaksansvarligService = tiltaksansvarligService,
                 )
                 setUpTestRoute()
 

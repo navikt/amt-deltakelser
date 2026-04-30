@@ -11,23 +11,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
-import no.nav.amt.deltaker.deltaker.KladdService
-import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
+import no.nav.amt.deltaker.innbygger.DistribuerEndringService
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
+import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
+import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -46,7 +46,7 @@ fun Routing.registerInternalApi(
     vedtakService: VedtakService,
     innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
     vurderingRepository: VurderingRepository,
-    hendelseService: HendelseService,
+    distribuerEndringService: DistribuerEndringService,
     endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     vedtakRepository: VedtakRepository,
     navAnsattService: NavAnsattService,
@@ -288,7 +288,7 @@ fun Routing.registerInternalApi(
                 }
                 log.info("Ferdig relastet deltaker ${deltaker.id}")
             }
-            hendelseService.produserHendelseFraTiltaksansvarlig(deltaker, endring)
+            distribuerEndringService.produserHendelseFraTiltaksansvarlig(deltaker, endring)
             log.info("Ferdig relastet hendelse med endringId ${request.endringId},")
         }
         call.respond(HttpStatusCode.OK)
@@ -369,7 +369,7 @@ fun Routing.registerInternalApi(
                         return@forEach
                     }
                     log.info("ProduserUtkast: Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
-                    hendelseService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { HendelseType.NavGodkjennUtkast(it) }
+                    distribuerEndringService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { HendelseType.NavGodkjennUtkast(it) }
                     log.info("ProduserUtkast: Done: Produserte hendelse NavGodkjennUtkast for $deltakerId")
                 } else {
                     if (request.dryRun) {
@@ -377,7 +377,7 @@ fun Routing.registerInternalApi(
                         return@forEach
                     }
                     log.info("ProduserUtkast: Produserer hendelse InnbyggerGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
-                    hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
+                    distribuerEndringService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
                     log.info("ProduserUtkast: Done: Produserte hendelse InnbyggerGodkjennUtkast for $deltakerId")
                 }
             }

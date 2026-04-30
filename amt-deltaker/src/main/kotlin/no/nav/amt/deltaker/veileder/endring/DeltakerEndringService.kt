@@ -1,0 +1,121 @@
+package no.nav.amt.deltaker.veileder.endring
+
+import no.nav.amt.deltaker.extensions.getForslagId
+import no.nav.amt.deltaker.innbygger.DistribuerEndringService
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
+import no.nav.amt.internapi.deltaker.request.EndringRequest
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.utils.database.Database
+import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
+import java.util.UUID
+
+class DeltakerEndringService(
+    private val deltakerEndringRepository: DeltakerEndringRepository,
+    private val navAnsattRepository: NavAnsattRepository,
+    private val navEnhetRepository: NavEnhetRepository,
+    private val distribuerEndringService: DistribuerEndringService,
+    private val forslagService: ForslagService,
+    private val deltakerHistorikkService: DeltakerHistorikkService,
+) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    fun godkjennForslagForUendretDeltaker(endringRequest: EndringRequest) {
+        endringRequest.getForslagId()?.let { forslagId ->
+            val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
+            val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
+
+            Database.transaction {
+                forslagService.godkjennForslag(
+                    forslagId = forslagId,
+                    godkjentAvAnsattId = ansatt.id,
+                    godkjentAvEnhetId = enhet.id,
+                )
+            }
+        }
+    }
+
+    fun upsertEndring(
+        endringRequest: EndringRequest,
+        endringResultat: VellykketEndring,
+        endretAvNavAnsatt: NavAnsatt,
+    ): DeltakerEndring {
+        val navEnhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
+
+        val godkjentForslag = endringRequest.getForslagId()?.let { forslagId ->
+            forslagService.godkjennForslag(
+                forslagId = forslagId,
+                godkjentAvAnsattId = endretAvNavAnsatt.id,
+                godkjentAvEnhetId = navEnhet.id,
+            )
+        }
+
+        val deltakerEndring = DeltakerEndring(
+            id = UUID.randomUUID(),
+            deltakerId = endringResultat.deltaker.id,
+            endring = endringRequest.toEndring(),
+            endretAv = endretAvNavAnsatt.id,
+            endretAvEnhet = navEnhet.id,
+            endret = LocalDateTime.now(),
+            forslag = godkjentForslag,
+        )
+
+        val behandletTidspunkt = if (endringResultat.erFremtidigEndring) null else LocalDateTime.now()
+
+        deltakerEndringRepository.upsert(
+            deltakerEndring = deltakerEndring,
+            behandletTidspunkt = behandletTidspunkt,
+        )
+
+        distribuerEndringService.hendelseForDeltakerEndring(
+            deltakerEndring = deltakerEndring,
+            deltaker = endringResultat.deltaker,
+            navAnsatt = endretAvNavAnsatt,
+            navEnhet = navEnhet,
+        )
+
+        return deltakerEndring
+    }
+
+    fun behandleLagretDeltakelsesmengde(
+        deltakerEndring: DeltakerEndring,
+        deltaker: Deltaker,
+    ): Result<VellykketEndring> {
+        val deltakelsesmengde = deltakerEndring.toDeltakelsesmengde()
+            ?: throw IllegalStateException("Endring ${deltakerEndring.id} er ikke en EndreDeltakelsesmengde")
+
+        val gyldigeDeltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
+
+        val endringenErIkkeUtfort = deltaker.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
+            deltaker.dagerPerUke != deltakelsesmengde.dagerPerUke
+
+        val logMessage = "Behandler endring: ${deltakerEndring.id}, deltaker: ${deltaker.id}"
+
+        val utfall =
+            if (deltakelsesmengde == gyldigeDeltakelsesmengder.gjeldende && endringenErIkkeUtfort) {
+                log.info("$logMessage, utfall: Vellykket")
+                Result.success(
+                    VellykketEndring(
+                        deltaker.copy(
+                            deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
+                            dagerPerUke = deltakelsesmengde.dagerPerUke,
+                        ),
+                    ),
+                )
+            } else {
+                log.info("$logMessage, utfall: Ikke vellykket")
+                Result.failure(IllegalStateException("Endringen er ikke lenger gyldig"))
+            }
+
+        deltakerEndringRepository.upsert(deltakerEndring, LocalDateTime.now())
+
+        return utfall
+    }
+}

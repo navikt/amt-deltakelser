@@ -13,7 +13,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangorResponse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -245,7 +245,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
     fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() = runTest {
         // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
-        tiltakstypeRepository.upsert(tiltakstype)
+        tiltakRepository.upsert(tiltakstype)
 
         val expectedDeltakerliste = lagDeltakerliste(arrangor = arrangorInTest, tiltakstype = tiltakstype)
 
@@ -273,7 +273,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
     fun `ny liste v2 gruppe - lagrer deltakerliste`() = runTest {
         // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
-        tiltakstypeRepository.upsert(tiltakstype)
+        tiltakRepository.upsert(tiltakstype)
 
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
@@ -302,7 +302,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
     fun `ny liste v2 enkeltplass - lagrer deltakerliste`() = runTest {
         // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
-        tiltakstypeRepository.upsert(tiltakstype)
+        tiltakRepository.upsert(tiltakstype)
 
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
@@ -338,7 +338,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
     fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() = runTest {
         // Arrange
         val tiltakstype = lagTiltakstype()
-        tiltakstypeRepository.upsert(tiltakstype)
+        tiltakRepository.upsert(tiltakstype)
 
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,

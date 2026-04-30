@@ -7,15 +7,15 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
-import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.response.ResponseMapper
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
@@ -54,7 +54,7 @@ fun Routing.registerVeilederApi(
             )
             val historikk = historikkService.getForDeltaker(deltaker.id)
 
-            call.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))
+            call.respond(ResponseMapper.deltakerEndringResponseFromDeltaker(deltaker, historikk))
         }
 
         get("/deltaker/{deltakerId}/historikk") {

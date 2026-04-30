@@ -1,20 +1,20 @@
 package no.nav.amt.deltaker.utils
 
-import no.nav.amt.deltaker.arrangor.ArrangorRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
+import no.nav.amt.deltaker.tiltak.TiltakRepository
+import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
+import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.extension.RegisterExtension
 
@@ -31,7 +31,7 @@ abstract class IntegrationTestWithDbBase : IntegrationTestBase() {
     override val navAnsattRepository: NavAnsattRepository = NavAnsattRepository()
     override val navBrukerRepository: NavBrukerRepository = NavBrukerRepository()
     override val navEnhetRepository: NavEnhetRepository = NavEnhetRepository()
-    override val tiltakstypeRepository: TiltakstypeRepository = TiltakstypeRepository()
+    override val tiltakRepository: TiltakRepository = TiltakRepository()
     override val vedtakRepository: VedtakRepository = VedtakRepository()
     override val vurderingRepository: VurderingRepository = VurderingRepository()
 

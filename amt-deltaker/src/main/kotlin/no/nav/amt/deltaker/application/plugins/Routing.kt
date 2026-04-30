@@ -13,36 +13,36 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.amt.deltaker.api.external.registerExternalApi
+import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
 import no.nav.amt.deltaker.api.registerEnkeltplassApi
-import no.nav.amt.deltaker.api.registerExternalApi
 import no.nav.amt.deltaker.api.registerGjennomforingApi
 import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
 import no.nav.amt.deltaker.api.registerPameldingApi
-import no.nav.amt.deltaker.api.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.api.registerVeilederApi
-import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.tiltaksansvarlig.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.KladdService
-import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
-import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
-import no.nav.amt.deltaker.external.DeltakelserResponseMapper
-import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.innbygger.DistribuerEndringService
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
+import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.KladdService
+import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
@@ -64,6 +64,7 @@ fun Application.configureRouting(
     kladdService: KladdService,
     enkeltplassService: EnkeltplassService,
     deltakerService: DeltakerService,
+    tiltaksansvarligService: TiltaksansvarligService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteRepository: DeltakerlisteRepository,
     deltakerHistorikkService: DeltakerHistorikkService,
@@ -74,7 +75,7 @@ fun Application.configureRouting(
     unleashToggle: CommonUnleashToggle,
     innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
     vurderingRepository: VurderingRepository,
-    hendelseService: HendelseService,
+    distribuerEndringService: DistribuerEndringService,
     endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     navEnhetService: NavEnhetService,
     vedtakRepository: VedtakRepository,
@@ -142,14 +143,15 @@ fun Application.configureRouting(
             vedtakService,
             innsokPaaFellesOppstartRepository,
             vurderingRepository,
-            hendelseService,
+            distribuerEndringService,
             endringFraTiltakskoordinatorRepository,
             vedtakRepository,
             navAnsattService,
             navEnhetService,
             gjennomforingRequestProducer,
         )
-        registerTiltakskoordinatorApi(deltakerService, deltakerHistorikkService)
+
+        registerTiltakskoordinatorApi(tiltaksansvarligService, deltakerHistorikkService)
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 
         val catchAllRoute = "{...}"

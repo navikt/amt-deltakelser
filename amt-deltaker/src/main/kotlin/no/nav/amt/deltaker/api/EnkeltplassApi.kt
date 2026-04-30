@@ -7,7 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
+import no.nav.amt.deltaker.api.response.ResponseBuilder
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.internapi.DeltakerIdResponse

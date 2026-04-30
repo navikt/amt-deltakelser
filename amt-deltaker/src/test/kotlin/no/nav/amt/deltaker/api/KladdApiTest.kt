@@ -12,13 +12,11 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
 import io.mockk.mockk
-import no.nav.amt.deltaker.deltaker.KladdService
-import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
-import no.nav.amt.deltaker.deltaker.api.DtoMappers
-import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
-import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.api.response.ResponseMapper
+import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -66,7 +64,7 @@ class KladdApiTest : IntegrationTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe objectMapper.writeValueAsString(
-                DtoMappers.opprettKladdResponseFromDeltaker(
+                ResponseMapper.opprettKladdResponseFromDeltaker(
                     deltaker,
                 ),
             )

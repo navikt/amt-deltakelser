@@ -1,23 +1,23 @@
 package no.nav.amt.deltaker.enkeltplass
 
-import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
-import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.db.DeltakerKladdUpsertDbo
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.GjennomforingInsertDbo
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.innbygger.NavBrukerService
+import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
+import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
+import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.deltaker.tiltak.TiltakRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.models.deltaker.Arrangor
@@ -40,7 +40,7 @@ class EnkeltplassService(
     private val deltakerService: DeltakerService,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
-    private val tiltakstypeRepository: TiltakstypeRepository,
+    private val tiltakRepository: TiltakRepository,
     private val navEnhetService: NavEnhetService,
     private val navEnhetRepository: NavEnhetRepository,
     private val navAnsattService: NavAnsattService,
@@ -59,7 +59,7 @@ class EnkeltplassService(
             ?.let { return it }
 
         val navBruker = navBrukerService.get(personident).getOrThrow()
-        val tiltakstype = tiltakstypeRepository.get(tiltakskode).getOrThrow()
+        val tiltakstype = tiltakRepository.get(tiltakskode).getOrThrow()
 
         val gjennomforing = GjennomforingInsertDbo(
             id = UUID.randomUUID(),

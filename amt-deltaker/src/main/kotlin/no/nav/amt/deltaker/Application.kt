@@ -19,67 +19,68 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
-import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
+import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
 import no.nav.amt.deltaker.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
-import no.nav.amt.deltaker.arrangor.ArrangorConsumer
-import no.nav.amt.deltaker.arrangor.ArrangorRepository
-import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.DeltakerLaaseService
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.KladdService
-import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
-import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.api.deltaker.ResponseBuilder
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.DeltakelsesmengdeUpdateJob
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagService
-import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingConsumer
-import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.EnkeltplassDeltakerConsumer
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
+import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
+import no.nav.amt.deltaker.enkeltplass.kafka.EnkeltplassDeltakerConsumer
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
-import no.nav.amt.deltaker.external.DeltakelserResponseMapper
-import no.nav.amt.deltaker.hendelse.HendelseProducer
-import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.innbygger.DistribuerEndringProducer
+import no.nav.amt.deltaker.innbygger.DistribuerEndringService
+import no.nav.amt.deltaker.innbygger.NavBrukerConsumer
+import no.nav.amt.deltaker.innbygger.NavBrukerRepository
+import no.nav.amt.deltaker.innbygger.NavBrukerService
+import no.nav.amt.deltaker.job.DeltakelsesmengdeUpdateJob
 import no.nav.amt.deltaker.job.StatusUpdateJob
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
+import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
+import no.nav.amt.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.kafka.DeltakerV1Producer
+import no.nav.amt.deltaker.kafka.DeltakerlisteConsumer
+import no.nav.amt.deltaker.kafka.payload.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
-import no.nav.amt.deltaker.navbruker.NavBrukerRepository
-import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetConsumer
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.deltaker.tiltak.TiltakConsumer
+import no.nav.amt.deltaker.tiltak.TiltakRepository
+import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorConsumer
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingConsumer
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
+import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
+import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingService
+import no.nav.amt.deltaker.veileder.DeltakerLaaseService
+import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.veileder.KladdService
+import no.nav.amt.deltaker.veileder.PameldingService
+import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
+import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
@@ -185,7 +186,7 @@ fun Application.module() {
     val navAnsattRepository = NavAnsattRepository()
     val navEnhetRepository = NavEnhetRepository()
     val navBrukerRepository = NavBrukerRepository()
-    val tiltakstypeRepository = TiltakstypeRepository()
+    val tiltakRepository = TiltakRepository()
     val deltakerlisteRepository = DeltakerlisteRepository()
     val deltakerRepository = DeltakerRepository()
     val deltakerEndringRepository = DeltakerEndringRepository()
@@ -241,8 +242,8 @@ fun Application.module() {
     )
     val unleashToggle = CommonUnleashToggle(unleash)
 
-    val hendelseProducer = HendelseProducer(outboxService)
-    val hendelseService = HendelseService(
+    val hendelseProducer = DistribuerEndringProducer(outboxService)
+    val distribuerEndringService = DistribuerEndringService(
         hendelseProducer = hendelseProducer,
         navAnsattRepository = navAnsattRepository,
         navAnsattService = navAnsattService,
@@ -293,7 +294,7 @@ fun Application.module() {
             deltakerEndringRepository,
             navAnsattRepository,
             navEnhetRepository,
-            hendelseService,
+            distribuerEndringService,
             forslagService,
             deltakerHistorikkService,
         )
@@ -307,13 +308,12 @@ fun Application.module() {
         deltakerProducerService = deltakerProducerService,
         vedtakRepository = vedtakRepository,
         vedtakService = vedtakService,
-        hendelseService = hendelseService,
+        distribuerEndringService = distribuerEndringService,
         endringFraArrangorRepository = endringFraArrangorRepository,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
     )
 
@@ -321,7 +321,7 @@ fun Application.module() {
         deltakerRepository,
         deltakerService,
         endringFraArrangorRepository,
-        hendelseService,
+        distribuerEndringService,
         deltakerHistorikkService,
     )
 
@@ -345,7 +345,7 @@ fun Application.module() {
         gjennomforingRequestProducer = gjennomforingRequestProducer,
         deltakerlisteRepository = deltakerlisteRepository,
         navBrukerService = navBrukerService,
-        tiltakstypeRepository = tiltakstypeRepository,
+        tiltakRepository = tiltakRepository,
         navEnhetService = navEnhetService,
         navEnhetRepository = navEnhetRepository,
         navAnsattService = navAnsattService,
@@ -360,7 +360,7 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         vedtakService = vedtakService,
-        hendelseService = hendelseService,
+        distribuerEndringService = distribuerEndringService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
         enkeltplassService = enkeltplassService,
     )
@@ -368,6 +368,16 @@ fun Application.module() {
     val deltakerLaaseService = DeltakerLaaseService(
         deltakerRepository = deltakerRepository,
         importertFraArenaRepository = importertFraArenaRepository,
+    )
+    val tiltaksansvarligService = TiltaksansvarligService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        deltakerProducerService = deltakerProducerService,
+        distribuerEndringService = distribuerEndringService,
+        vedtakService = vedtakService,
     )
 
     val responseBuilder = ResponseBuilder(
@@ -385,11 +395,11 @@ fun Application.module() {
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattRepository, navAnsattService),
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
-        TiltakstypeConsumer(tiltakstypeRepository),
+        TiltakConsumer(tiltakRepository),
         DeltakerlisteConsumer(
             deltakerlisteRepository = deltakerlisteRepository,
             deltakerRepository = deltakerRepository,
-            tiltakstypeRepository = tiltakstypeRepository,
+            tiltakRepository = tiltakRepository,
             arrangorService = arrangorService,
             deltakerService = deltakerService,
             deltakerProducerService = deltakerProducerService,
@@ -435,7 +445,7 @@ fun Application.module() {
         unleashToggle = unleashToggle,
         innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
         vurderingRepository = vurderingRepository,
-        hendelseService = hendelseService,
+        distribuerEndringService = distribuerEndringService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navEnhetService = navEnhetService,
         navAnsattService = navAnsattService,
@@ -445,6 +455,7 @@ fun Application.module() {
         enkeltplassService = enkeltplassService,
         arrangorService = arrangorService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
+        tiltaksansvarligService = tiltaksansvarligService,
     )
     configureMonitoring()
 

@@ -1,25 +1,25 @@
 package no.nav.amt.deltaker.utils.data
 
 import kotliquery.queryOf
-import no.nav.amt.deltaker.arrangor.ArrangorRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.GjennomforingInsertDbo
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassGjennomforingUpdateDbo
+import no.nav.amt.deltaker.innbygger.NavBrukerRepository
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navtiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
+import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
+import no.nav.amt.deltaker.tiltak.TiltakRepository
+import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Arrangor
@@ -57,7 +57,7 @@ object TestRepository {
         deltakerliste: Deltakerliste,
         overordnetArrangor: Arrangor? = null,
     ) {
-        TiltakstypeRepository().upsert(deltakerliste.tiltakstype)
+        TiltakRepository().upsert(deltakerliste.tiltakstype)
         overordnetArrangor?.let { ArrangorRepository().upsert(it) }
         ArrangorRepository().upsert(deltakerliste.arrangor!!)
 
@@ -104,7 +104,7 @@ object TestRepository {
                 is NavBruker -> insert(it)
                 is NavEnhet -> NavEnhetRepository().upsert(it)
                 is Arrangor -> ArrangorRepository().upsert(it)
-                is Tiltakstype -> TiltakstypeRepository().upsert(it)
+                is Tiltakstype -> TiltakRepository().upsert(it)
                 is Deltakerliste -> insert(it)
                 is Deltaker -> insert(it)
                 is Vedtak -> insert(it)

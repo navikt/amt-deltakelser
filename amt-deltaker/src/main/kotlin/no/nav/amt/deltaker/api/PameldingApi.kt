@@ -6,10 +6,10 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
+import no.nav.amt.deltaker.api.response.ResponseMapper
 import no.nav.amt.deltaker.extensions.getDeltakerId
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 
@@ -33,7 +33,7 @@ fun Routing.registerPameldingApi(
             )
 
             call.respond(
-                utkastResponseFromDeltaker(
+                ResponseMapper.utkastResponseFromDeltaker(
                     deltaker = deltaker,
                     historikk = historikkService.getForDeltaker(deltaker.id),
                 ),
@@ -44,7 +44,7 @@ fun Routing.registerPameldingApi(
             val oppdatertDeltaker = pameldingService.innbyggerGodkjennUtkast(call.getDeltakerId())
 
             call.respond(
-                utkastResponseFromDeltaker(
+                ResponseMapper.utkastResponseFromDeltaker(
                     deltaker = oppdatertDeltaker,
                     historikk = historikkService.getForDeltaker(oppdatertDeltaker.id),
                 ),

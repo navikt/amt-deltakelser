@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.api
 
-import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest

@@ -7,8 +7,8 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -62,7 +62,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         coEvery { personServiceClient.hentNavAnsatt(sistEndretAvNavAnsatt.id) } returns sistEndretAvNavAnsatt
         coEvery { personServiceClient.hentNavBruker(navBrukerInTest.personident) } returns navBrukerInTest
 
-        TiltakstypeRepository().upsert(tiltakInTest)
+        TiltakRepository().upsert(tiltakInTest)
     }
 
     @Nested

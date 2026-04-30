@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.utils.data
 
-import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag

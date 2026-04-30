@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.navansatt
 
-import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavAnsatt
