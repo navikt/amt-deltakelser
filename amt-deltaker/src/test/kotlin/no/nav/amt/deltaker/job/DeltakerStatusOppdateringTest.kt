@@ -9,9 +9,9 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_V1_TOPIC
 import no.nav.amt.deltaker.Environment.Companion.DELTAKER_V2_TOPIC
-import no.nav.amt.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse

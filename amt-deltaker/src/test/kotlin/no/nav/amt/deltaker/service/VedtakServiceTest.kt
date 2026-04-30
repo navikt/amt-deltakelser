@@ -7,10 +7,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold

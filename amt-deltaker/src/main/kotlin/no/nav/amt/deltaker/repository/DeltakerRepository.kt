@@ -1,13 +1,13 @@
-package no.nav.amt.deltaker.db
+package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.db.DbUtils.sqlPlaceholders
-import no.nav.amt.deltaker.db.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
+import no.nav.amt.deltaker.repository.DbUtils.sqlPlaceholders
+import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe

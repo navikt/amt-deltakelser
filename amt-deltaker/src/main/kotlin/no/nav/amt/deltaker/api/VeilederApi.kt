@@ -9,10 +9,10 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.api.response.ResponseBuilder
 import no.nav.amt.deltaker.api.response.ResponseMapper
-import no.nav.amt.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService

@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.utils
 
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
-import no.nav.amt.deltaker.db.ImportertFraArenaRepository
-import no.nav.amt.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository

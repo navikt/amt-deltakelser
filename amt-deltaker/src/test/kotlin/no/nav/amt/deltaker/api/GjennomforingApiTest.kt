@@ -7,7 +7,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.api.response.ResponseBuilder
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste

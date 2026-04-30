@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import no.nav.amt.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.db.dbo.DeltakerStatusMedDeltakerId
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.dbo.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste

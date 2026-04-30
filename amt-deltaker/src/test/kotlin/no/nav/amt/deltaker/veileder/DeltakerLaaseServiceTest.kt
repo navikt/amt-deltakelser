@@ -5,9 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.ImportertFraArenaRepository
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak

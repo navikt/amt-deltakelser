@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
-import no.nav.amt.deltaker.db.dbo.GjennomforingInsertDbo
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste

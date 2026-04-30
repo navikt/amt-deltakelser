@@ -1,16 +1,16 @@
 package no.nav.amt.deltaker.service
 
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.db.ImportertFraArenaRepository
-import no.nav.amt.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.extensions.getForslagId
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
-import no.nav.amt.deltaker.innbygger.hendelsedistribuering.DistribuerEndringService
+import no.nav.amt.deltaker.innbygger.DistribuerEndringService
 import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository

@@ -1,13 +1,13 @@
 package no.nav.amt.deltaker.enkeltplass.kafka
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
-import no.nav.amt.deltaker.db.ImportertFraArenaRepository
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.kafka.payload.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer

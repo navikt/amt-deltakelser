@@ -2,9 +2,9 @@ package no.nav.amt.deltaker.application.plugins
 
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe

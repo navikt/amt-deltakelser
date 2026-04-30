@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.veileder
 
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
-import no.nav.amt.deltaker.db.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.DeltakerUtils
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold

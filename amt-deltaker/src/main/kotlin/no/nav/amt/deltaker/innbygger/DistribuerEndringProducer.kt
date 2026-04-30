@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.innbygger.hendelsedistribuering
+package no.nav.amt.deltaker.innbygger
 
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.lib.models.hendelse.Hendelse

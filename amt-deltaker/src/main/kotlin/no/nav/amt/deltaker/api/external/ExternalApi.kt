@@ -11,9 +11,9 @@ import no.nav.amt.deltaker.api.external.response.HarAktiveDeltakelserResponse
 import no.nav.amt.deltaker.api.external.response.erAktiv
 import no.nav.amt.deltaker.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import java.util.UUID
 

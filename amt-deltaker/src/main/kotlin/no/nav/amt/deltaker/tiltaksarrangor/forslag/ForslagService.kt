@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.tiltaksarrangor.forslag
 
-import no.nav.amt.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.slf4j.LoggerFactory

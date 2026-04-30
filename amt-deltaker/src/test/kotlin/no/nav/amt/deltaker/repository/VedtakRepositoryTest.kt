@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.db
+package no.nav.amt.deltaker.repository
 
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository

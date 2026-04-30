@@ -9,8 +9,8 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
 import no.nav.amt.deltaker.innbygger.NavBrukerService
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient

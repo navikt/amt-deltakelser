@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.tiltaksansvarlig
 
 import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.innbygger.hendelsedistribuering.DistribuerEndringService
+import no.nav.amt.deltaker.innbygger.DistribuerEndringService
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.DeltakerUtils.sjekkEndringUtfall

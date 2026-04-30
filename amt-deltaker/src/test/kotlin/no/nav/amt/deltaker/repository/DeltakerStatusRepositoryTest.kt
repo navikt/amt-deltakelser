@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.db
+package no.nav.amt.deltaker.repository
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty

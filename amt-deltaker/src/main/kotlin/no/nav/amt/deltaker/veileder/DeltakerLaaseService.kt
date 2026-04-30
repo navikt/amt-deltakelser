@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.veileder
 
 import no.nav.amt.deltaker.AKTIVE_STATUSER
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.ImportertFraArenaRepository
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 

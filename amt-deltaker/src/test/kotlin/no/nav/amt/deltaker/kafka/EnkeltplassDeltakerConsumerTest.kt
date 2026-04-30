@@ -15,14 +15,14 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
-import no.nav.amt.deltaker.db.ImportertFraArenaRepository
 import no.nav.amt.deltaker.enkeltplass.kafka.EnkeltplassDeltakerConsumer
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.kafka.payload.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.kafka.payload.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker

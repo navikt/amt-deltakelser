@@ -1,12 +1,12 @@
-package no.nav.amt.deltaker.db
+package no.nav.amt.deltaker.repository
 
 import kotliquery.Query
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.db.DbUtils.nullWhenNearNow
-import no.nav.amt.deltaker.db.DbUtils.sqlPlaceholders
-import no.nav.amt.deltaker.db.dbo.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
+import no.nav.amt.deltaker.repository.DbUtils.nullWhenNearNow
+import no.nav.amt.deltaker.repository.DbUtils.sqlPlaceholders
+import no.nav.amt.deltaker.repository.dbo.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
@@ -183,7 +183,7 @@ object DeltakerStatusRepository {
      *   - har startet (`gyldig_fra <= dagens dato`),
      *   - og er en av de avsluttende statusene (`AVBRUTT`, `FULLFORT`, `HAR_SLUTTET`).
      *
-     * @return en liste av [no.nav.amt.deltaker.db.dbo.DeltakerStatusMedDeltakerId] som inneholder både deltaker-id og
+     * @return en liste av [no.nav.amt.deltaker.repository.dbo.DeltakerStatusMedDeltakerId] som inneholder både deltaker-id og
      *         den tilhørende avsluttende statusen som bør oppdateres.
      */
     fun getAvsluttendeDeltakerStatuserForOppdatering(deltakerIder: Set<UUID>): List<DeltakerStatusMedDeltakerId> {

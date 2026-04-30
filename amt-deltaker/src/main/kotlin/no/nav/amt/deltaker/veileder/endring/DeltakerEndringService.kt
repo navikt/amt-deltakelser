@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.veileder.endring
 
 import no.nav.amt.deltaker.extensions.getForslagId
-import no.nav.amt.deltaker.innbygger.hendelsedistribuering.DistribuerEndringService
+import no.nav.amt.deltaker.innbygger.DistribuerEndringService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository

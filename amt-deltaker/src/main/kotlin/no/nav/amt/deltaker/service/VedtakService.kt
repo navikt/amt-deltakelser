@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.service
 
-import no.nav.amt.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.person.NavAnsatt

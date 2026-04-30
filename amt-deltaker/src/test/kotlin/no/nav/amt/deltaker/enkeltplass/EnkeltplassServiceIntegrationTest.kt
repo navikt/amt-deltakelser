@@ -7,7 +7,7 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.db.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.data.TestData

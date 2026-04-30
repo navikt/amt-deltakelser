@@ -1,10 +1,10 @@
-package no.nav.amt.deltaker.db
+package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.db.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassGjennomforingUpdateDbo
 import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.lib.models.deltaker.Arrangor

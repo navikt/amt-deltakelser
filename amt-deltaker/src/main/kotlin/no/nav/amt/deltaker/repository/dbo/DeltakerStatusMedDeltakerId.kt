@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.db.dbo
+package no.nav.amt.deltaker.repository.dbo
 
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.util.UUID

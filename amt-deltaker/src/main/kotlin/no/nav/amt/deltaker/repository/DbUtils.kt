@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.db
+package no.nav.amt.deltaker.repository
 
 import java.time.Duration
 import java.time.LocalDateTime

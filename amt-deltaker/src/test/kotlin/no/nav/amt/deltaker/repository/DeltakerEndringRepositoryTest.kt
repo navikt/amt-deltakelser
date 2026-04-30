@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.db
+package no.nav.amt.deltaker.repository
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository

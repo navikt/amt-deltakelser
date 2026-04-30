@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.service
 
-import no.nav.amt.deltaker.db.ImportertFraArenaRepository
-import no.nav.amt.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.extensions.skalInkluderesIHistorikk
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository

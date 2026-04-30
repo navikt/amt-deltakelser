@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.service
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.db.ImportertFraArenaRepository
-import no.nav.amt.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository

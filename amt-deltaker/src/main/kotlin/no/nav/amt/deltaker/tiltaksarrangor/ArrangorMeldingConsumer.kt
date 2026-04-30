@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.tiltaksarrangor
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.extensions.toVurdering
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService

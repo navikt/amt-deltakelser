@@ -1,10 +1,5 @@
 package no.nav.amt.deltaker.enkeltplass
 
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
-import no.nav.amt.deltaker.db.dbo.DeltakerKladdUpsertDbo
-import no.nav.amt.deltaker.db.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.innbygger.NavBrukerService
@@ -13,6 +8,11 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
+import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltak.TiltakRepository

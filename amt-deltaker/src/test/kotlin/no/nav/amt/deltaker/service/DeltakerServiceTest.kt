@@ -12,13 +12,13 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.db.DeltakerRepositoryTest
-import no.nav.amt.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.db.dbo.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.repository.DeltakerRepositoryTest
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.dbo.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.tiltaksansvarlig.endring.EndringFraTiltakskoordinatorCtx
 import no.nav.amt.deltaker.utils.DeltakerUtils
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase

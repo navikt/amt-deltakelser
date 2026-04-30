@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.job
 
-import no.nav.amt.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.extensions.harIkkeStartet
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.LoggerFactory
 import java.time.LocalDate

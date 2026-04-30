@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.kafka
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.db.DeltakerlisteRepository
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.toModel
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
