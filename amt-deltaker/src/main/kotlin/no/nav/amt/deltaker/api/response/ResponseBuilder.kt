@@ -76,7 +76,7 @@ class ResponseBuilder(
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
             endringsforslagFraArrangor = endringsforslagForDeltaker,
             prisinformasjon = deltaker.deltakerliste.prisinformasjon,
-            sisteVurdering = sisteVurdering?.let { VurderingResponse.Companion.fromVurdering(it) },
+            sisteVurdering = sisteVurdering?.let { VurderingResponse.fromVurdering(it) },
         )
     }
 
