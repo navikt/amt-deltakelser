@@ -297,7 +297,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
             erLaastForEndringer shouldBe true
             endringsforslagFraArrangor shouldBe expectedForslag
             prisinformasjon shouldBe deltaker.deltakerliste.prisinformasjon
-            sisteVurdering shouldBe VurderingResponse.Companion.fromVurdering(vurdering)
+            sisteVurdering shouldBe VurderingResponse.fromVurdering(vurdering)
         }
     }
 }

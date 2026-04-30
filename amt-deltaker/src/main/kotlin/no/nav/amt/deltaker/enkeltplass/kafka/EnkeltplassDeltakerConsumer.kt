@@ -31,7 +31,7 @@ class EnkeltplassDeltakerConsumer(
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.Companion.ENKELTPLASS_DELTAKER_TOPIC,
+        topic = Environment.ENKELTPLASS_DELTAKER_TOPIC,
         consumeFunc = ::consume,
     )
 
@@ -68,7 +68,7 @@ class EnkeltplassDeltakerConsumer(
         val navBruker = navBrukerService.get(deltakerPayload.personIdent)
 
         // Work-around for falsk identitet i dev sånn at consumeren ikke blir stuck på noen deltakere
-        if (navBruker.isFailure && Environment.Companion.isDev()) {
+        if (navBruker.isFailure && Environment.isDev()) {
             log.error(
                 "Klarte ikke hente nav-bruker med ident ${deltakerPayload.personIdent} for deltaker ${deltakerPayload.id}. Feilen var: ${navBruker.exceptionOrNull()}",
             )
