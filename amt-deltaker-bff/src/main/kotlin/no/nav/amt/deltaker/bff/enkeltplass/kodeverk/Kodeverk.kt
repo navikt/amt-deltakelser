@@ -16,11 +16,12 @@ import java.util.UUID
  * som inneholder de konkrete [Alternativ.Verdi]-ene brukeren kan velge mellom.
  *
  * @property tiltakskode Tiltakskoden kodeverket gjelder for.
- * @property alternativer Toppnivå-alternativer i kodeverket.
+ * @property alternativer Toppnivå-containere i kodeverket — enten [Alternativ.Gruppe]
+ *   eller [Alternativ.Verdigruppe]. Kan ikke inneholde [Alternativ.Verdi] direkte.
  */
 data class Kodeverk(
     val tiltakskode: Tiltakskode,
-    val alternativer: List<Alternativ>,
+    val alternativer: List<Alternativ.Container>,
 ) {
     /**
      * Angir hvordan brukeren kan velge blant verdiene i en [Alternativ.Verdigruppe].
