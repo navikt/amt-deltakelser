@@ -8,11 +8,10 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.utils.postRequest
-import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
@@ -25,7 +24,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorApiTest : IntegrationTestBase() {
-    override val deltakerService = mockk<DeltakerService>()
+    override val tiltaksansvarligService = mockk<TiltaksansvarligService>()
     override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
 
     @Test
@@ -40,7 +39,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `del-med-arrangor - har tilgang - returnerer 200`() {
-        coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
+        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
 
         withTestApplicationContext { client ->
@@ -53,7 +52,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
-        coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
+        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         val request = DeltakereRequest(
@@ -71,7 +70,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
-        coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
+        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         val request = DeltakereRequest(

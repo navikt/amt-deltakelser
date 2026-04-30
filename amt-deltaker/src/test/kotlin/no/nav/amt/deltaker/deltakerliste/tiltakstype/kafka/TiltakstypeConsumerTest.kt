@@ -3,7 +3,8 @@ package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.tiltak.TiltakConsumer
+import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.toV2
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka.TiltakstypeDto
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 class TiltakstypeConsumerTest {
-    private val tiltakstypeRepository = TiltakstypeRepository()
+    private val tiltakRepository = TiltakRepository()
 
     companion object {
         @RegisterExtension
@@ -30,7 +31,7 @@ class TiltakstypeConsumerTest {
             innsatsgrupper = tiltakstype.innsatsgrupper.map { it.toV2() }.toSet(),
             deltakerRegistreringInnhold = tiltakstype.innhold,
         )
-        val consumer = TiltakstypeConsumer(tiltakstypeRepository)
+        val consumer = TiltakConsumer(tiltakRepository)
 
         runTest {
             consumer.consume(
@@ -39,6 +40,6 @@ class TiltakstypeConsumerTest {
             )
         }
 
-        tiltakstypeRepository.get(tiltakstype.tiltakskode).shouldBeSuccess() shouldBe tiltakstype
+        tiltakRepository.get(tiltakstype.tiltakskode).shouldBeSuccess() shouldBe tiltakstype
     }
 }

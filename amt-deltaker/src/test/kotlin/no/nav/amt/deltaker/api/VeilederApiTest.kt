@@ -13,12 +13,10 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.DtoMappers
-import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
-import no.nav.amt.deltaker.deltaker.api.utils.postRequest
-import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.api.response.ResponseMapper
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
@@ -467,7 +465,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe
-                objectMapper.writeValueAsString(DtoMappers.deltakerEndringResponseFromDeltaker(deltaker, historikk))
+                objectMapper.writeValueAsString(ResponseMapper.deltakerEndringResponseFromDeltaker(deltaker, historikk))
         }
 
         coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }

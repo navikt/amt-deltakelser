@@ -10,12 +10,11 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.api.DtoMappers
-import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.api.response.ResponseMapper
+import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -55,7 +54,7 @@ class PameldingApiTest : IntegrationTestBase() {
                 }.apply {
                     status shouldBe HttpStatusCode.OK
                     bodyAsText() shouldBe objectMapper.writeValueAsString(
-                        DtoMappers.utkastResponseFromDeltaker(
+                        ResponseMapper.utkastResponseFromDeltaker(
                             deltaker,
                             historikk,
                         ),

@@ -15,11 +15,11 @@ class NavEnhetConsumer(
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.AMT_NAV_ENHET_TOPIC,
+        topic = Environment.Companion.AMT_NAV_ENHET_TOPIC,
         consumeFunc = ::consume,
     )
 
-    suspend fun consume(
+    fun consume(
         key: UUID,
         value: String?,
     ) {
