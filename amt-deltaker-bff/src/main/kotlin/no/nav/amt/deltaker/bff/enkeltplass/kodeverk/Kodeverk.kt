@@ -1,0 +1,120 @@
+package no.nav.amt.deltaker.bff.enkeltplass.kodeverk
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import java.util.UUID
+
+/**
+ * Representerer kodeverket knyttet til en bestemt [Tiltakskode].
+ *
+ * Kodeverket består av et hierarki av [Alternativ]-er som beskriver de relaterte
+ * valgene som er aktuelle for tiltaket — for eksempel bransjer, førerkortklasser
+ * eller sertifiseringer.
+ *
+ * Hierarkiet kan inneholde flere nivåer: rene grupperingsnoder ([Alternativ.Gruppe])
+ * for å organisere innholdet, og innerste valgbare grupper ([Alternativ.Verdigruppe])
+ * som inneholder de konkrete [Alternativ.Verdi]-ene brukeren kan velge mellom.
+ *
+ * @property tiltakskode Tiltakskoden kodeverket gjelder for.
+ * @property alternativer Toppnivå-alternativer i kodeverket.
+ */
+data class Kodeverk(
+    val tiltakskode: Tiltakskode,
+    val alternativer: List<Alternativ>,
+) {
+    /**
+     * Angir hvordan brukeren kan velge blant verdiene i en [Alternativ.Verdigruppe].
+     */
+    enum class Seleksjonstype {
+        /** Brukeren kan velge nøyaktig én verdi. */
+        ENKELTVALG,
+
+        /** Brukeren kan velge flere verdier samtidig. */
+        FLERVALG,
+    }
+
+    /**
+     * Et element i kodeverk-hierarkiet.
+     *
+     * Et alternativ er enten en [Container] som inneholder andre alternativer
+     * ([Gruppe] eller [Verdigruppe]), eller en konkret valgbar [Verdi].
+     *
+     * @property id Unik identifikator for alternativet.
+     * @property visningsnavn Navnet som vises i UI.
+     */
+    @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    sealed interface Alternativ {
+        val id: UUID
+        val visningsnavn: String
+
+        /**
+         * Et alternativ som kan inneholde andre alternativer — enten en ren
+         * grupperingsnode ([Gruppe]) eller en valgbar gruppe med [Verdi]-er
+         * ([Verdigruppe]).
+         *
+         * En [Verdi] er ikke en [Container] og kan derfor ikke inneholde andre
+         * alternativer.
+         */
+        sealed interface Container : Alternativ
+
+        /**
+         * En valgbar gruppe — det innerste nivået i hierarkiet som inneholder
+         * direkte valgbare [Verdi]-er.
+         *
+         * Eksempler på verdigrupper:
+         * - "Bransje" med verdier "Bygg og anlegg", "Helse og omsorg"
+         * - "Førerkortklasse" med verdier "B", "C1", "CE"
+         *
+         * @property id Unik identifikator for verdigruppen.
+         * @property visningsnavn Navnet som vises i UI (f.eks. "Bransje").
+         * @property seleksjonstype Hvordan brukeren kan velge blant verdiene
+         *   (ett enkelt valg eller flere samtidig).
+         * @property alternativer Verdiene brukeren kan velge mellom.
+         */
+        data class Verdigruppe(
+            override val id: UUID,
+            override val visningsnavn: String,
+            val seleksjonstype: Seleksjonstype,
+            val alternativer: List<Verdi>,
+        ) : Container
+
+        /**
+         * En konkret valgbar verdi i en [Verdigruppe].
+         *
+         * Eksempler på verdier:
+         * - Bransje: "Bygg og anlegg", "Helse og omsorg"
+         * - Førerkortklasse: "B", "C1", "CE"
+         * - Sertifisering: "Truckførerbevis", "Varmt arbeid"
+         *
+         * @property id Unik identifikator for verdien.
+         * @property visningsnavn Navnet som vises i UI.
+         * @property valgt Om verdien er aktivert for denne gjennomføringen. Dette feltet
+         *   er internt hos Komet og er ikke en del av selve kodeverket.
+         */
+        data class Verdi(
+            override val id: UUID,
+            override val visningsnavn: String,
+            val valgt: Boolean = false, // kun internt hos Komet, ikke i kodeverket
+        ) : Alternativ
+
+        /**
+         * En ren grupperingsnode som inneholder andre [Container]-er.
+         *
+         * Brukes for å støtte mer enn to nivåer i hierarkiet — f.eks. en
+         * overordnet kategori som inneholder flere [Verdigruppe]-r eller
+         * nestede [Gruppe]-r. En [Gruppe] har ingen [Seleksjonstype] siden
+         * brukeren ikke velger direkte fra den; valgene skjer i de underliggende
+         * [Verdigruppe]-ene.
+         *
+         * @property id Unik identifikator for gruppen.
+         * @property visningsnavn Navnet som vises i UI.
+         * @property alternativer Underliggende containere — kan ikke inneholde
+         *   [Verdi]-er direkte.
+         */
+        data class Gruppe(
+            override val id: UUID,
+            override val visningsnavn: String,
+            val alternativer: List<Container>,
+        ) : Container
+    }
+}
