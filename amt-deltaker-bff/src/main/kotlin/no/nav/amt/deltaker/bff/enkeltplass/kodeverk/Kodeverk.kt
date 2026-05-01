@@ -59,6 +59,26 @@ data class Kodeverk(
         sealed interface Container : Alternativ
 
         /**
+         * En ren grupperingsnode som inneholder andre [Container]-er.
+         *
+         * Brukes for å støtte mer enn to nivåer i hierarkiet — f.eks. en
+         * overordnet kategori som inneholder flere [Verdigruppe]-r eller
+         * nestede [Gruppe]-r. En [Gruppe] har ingen [Seleksjonstype] siden
+         * brukeren ikke velger direkte fra den; valgene skjer i de underliggende
+         * [Verdigruppe]-ene.
+         *
+         * @property id Unik identifikator for gruppen.
+         * @property visningsnavn Navnet som vises i UI.
+         * @property alternativer Underliggende containere — kan ikke inneholde
+         *   [Verdi]-er direkte.
+         */
+        data class Gruppe(
+            override val id: UUID,
+            override val visningsnavn: String,
+            val alternativer: List<Container>,
+        ) : Container
+
+        /**
          * En valgbar gruppe — det innerste nivået i hierarkiet som inneholder
          * direkte valgbare [Verdi]-er.
          *
@@ -97,25 +117,5 @@ data class Kodeverk(
             override val visningsnavn: String,
             val valgt: Boolean = false, // kun internt hos Komet, ikke i kodeverket
         ) : Alternativ
-
-        /**
-         * En ren grupperingsnode som inneholder andre [Container]-er.
-         *
-         * Brukes for å støtte mer enn to nivåer i hierarkiet — f.eks. en
-         * overordnet kategori som inneholder flere [Verdigruppe]-r eller
-         * nestede [Gruppe]-r. En [Gruppe] har ingen [Seleksjonstype] siden
-         * brukeren ikke velger direkte fra den; valgene skjer i de underliggende
-         * [Verdigruppe]-ene.
-         *
-         * @property id Unik identifikator for gruppen.
-         * @property visningsnavn Navnet som vises i UI.
-         * @property alternativer Underliggende containere — kan ikke inneholde
-         *   [Verdi]-er direkte.
-         */
-        data class Gruppe(
-            override val id: UUID,
-            override val visningsnavn: String,
-            val alternativer: List<Container>,
-        ) : Container
     }
 }
