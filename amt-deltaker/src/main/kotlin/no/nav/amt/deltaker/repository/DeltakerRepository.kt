@@ -392,28 +392,17 @@ class DeltakerRepository {
     }
 
     fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
-        // 2-stegs spørring: finn IDer via avsluttede deltakerlister først (liten mengde),
-        // deretter hydrater med getMany. Unngår seq scan på 1.66M deltaker-rader.
-        val idsSql =
+        val sql = buildDeltakerSql(
+            "getDeltakereSomDeltar",
             """
-            SELECT d.id
-            FROM 
-                deltakerliste dl
-                JOIN deltaker d ON d.deltakerliste_id = dl.id
-                JOIN deltaker_status ds ON d.id = ds.deltaker_id
-                    AND ds.gyldig_til IS NULL
-                    AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                    AND ds.type IN ($IKKE_AVSLUTTENDE_STATUSER_DELIMITED)
-            WHERE 
-                dl.status IN ($AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED)
-            """.trimIndent()
+            ds.type IN ($IKKE_AVSLUTTENDE_STATUSER_DELIMITED)
+            AND dl.status IN ($AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED)
+            """.trimIndent(),
+        )
 
-        val ids = Database
-            .query { session ->
-                session.run(queryOf(idsSql).map { it.uuid("id") }.asList)
-            }.toSet()
-
-        return getMany(ids)
+        return Database.query { session ->
+            session.run(queryOf(sql).map(::deltakerRowMapper).asList)
+        }
     }
 
     fun getDeltakereMedStatus(statusType: DeltakerStatus.Type): List<UUID> {
