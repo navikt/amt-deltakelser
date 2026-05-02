@@ -27,7 +27,7 @@ object Database {
                 addDataSourceProperty("password", config.dbPassword)
             }
 
-            maximumPoolSize = 15
+            maximumPoolSize = 10
             minimumIdle = 1
             leakDetectionThreshold = 15_000
         }
