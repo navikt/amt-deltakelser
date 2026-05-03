@@ -9,8 +9,11 @@ Monorepo for Team Komet sine Ktor-applikasjoner og fellesmodulen amt-lib.
     - [amt-deltaker](#amt-deltaker)
     - [amt-deltaker-bff](#amt-deltaker-bff)
     - [amt-distribusjon](#amt-distribusjon)
+    - [amt-tiltaksarrangor-bff](#amt-tiltaksarrangor-bff)
 - [Fellesmoduler](#fellesmoduler)
     - [amt-lib](#amt-lib)
+- [Infrastruktur](#infrastruktur)
+    - [amt-iac](#amt-iac)
 - [Bygg](#bygg)
 - [CI/CD](#cicd)
 - [Avhengigheter](#avhengigheter)
@@ -52,6 +55,11 @@ Backend-for-frontend for flere flate-applikasjoner.
 Denne applikasjonen håndterer også Kafka-meldinger og asynkrone prosesser for å sikre at varsler og journalføring 
 skjer på en pålitelig måte.
 
+### amt-tiltaksarrangor-bff
+
+**amt-tiltaksarrangor-bff** er backend-for-frontend for **amt-tiltaksarrangor-flate**, som gir tiltaksarrangører
+en deltakeroversikt og lar dem følge opp deltakere på sine tiltak.
+
 ---
 
 ## Fellesmoduler
@@ -64,6 +72,21 @@ Felleskode for alle applikasjonene:
 - Databaseintegrasjon
 - Kafka-produsenter og -konsumenter
 - Generell hjelpekode og utilities
+
+---
+
+## Infrastruktur
+
+### amt-iac
+
+**amt-iac** (Infrastructure as Code) inneholder konfigurasjon for plattform-ressurser brukt av Komet-applikasjonene
+i Nais (GCP). Strukturen er delt opp etter ressurstype og miljø (`dev`/`prod`):
+
+- **`alerts/`** – Prometheus alert-regler og varslingskonfigurasjon.
+- **`kafka-manager/`** – Konfigurasjon av Kafka-brukere og tilganger (Aiven).
+- **`kafka-topic/`** – Definisjoner av Kafka-topics som eies av Team Komet.
+
+Endringer her rulles ut via egne workflows i `amt-iac`-katalogen.
 
 ---
 
