@@ -10,8 +10,10 @@ Monorepo for Team Komet sine Ktor-applikasjoner og fellesmodulen amt-lib.
     - [amt-deltaker-bff](#amt-deltaker-bff)
     - [amt-distribusjon](#amt-distribusjon)
     - [amt-tiltaksarrangor-bff](#amt-tiltaksarrangor-bff)
+    - [amt-pdfgen](#amt-pdfgen)
 - [Fellesmoduler](#fellesmoduler)
     - [amt-lib](#amt-lib)
+    - [amt-felles](#amt-felles)
 - [Infrastruktur](#infrastruktur)
     - [amt-iac](#amt-iac)
 - [Bygg](#bygg)
@@ -23,8 +25,8 @@ Monorepo for Team Komet sine Ktor-applikasjoner og fellesmodulen amt-lib.
 
 ## Oversikt
 
-Dette monorepoet inneholder tre Ktor-applikasjoner som benytter en felles modul for modeller, 
-databasekode og Kafka-integrasjon.
+Dette monorepoet samler Team Komets backend-kode på ett sted: fire Ktor-applikasjoner og en PDF-generator,
+i tillegg til delte moduler for modeller, database- og Kafka-integrasjon, samt infrastruktur-konfigurasjon for Nais.
 
 ---
 
@@ -60,18 +62,35 @@ skjer på en pålitelig måte.
 **amt-tiltaksarrangor-bff** er backend-for-frontend for **amt-tiltaksarrangor-flate**, som gir tiltaksarrangører
 en deltakeroversikt og lar dem følge opp deltakere på sine tiltak.
 
+### amt-pdfgen
+
+**amt-pdfgen** genererer PDF-er av vedtak, endringsvedtak og brev som **amt-distribusjon** journalfører og distribuerer.
+
+- Bygger på [pdfgen-core](https://github.com/navikt/pdfgen-core) og bruker Handlebars-maler.
+- Maler ligger under `templates/amt/` og testdata under `data/amt/`.
+- En standardmal dekker de fleste tiltakstypene, mens enkelte tiltak (f.eks. VTA og kurs) har egne maler.
+- Eksponerer endepunkter pr. mal som kan brukes både av andre applikasjoner og til lokal forhåndsvisning under utvikling.
+
 ---
 
 ## Fellesmoduler
 
 ### amt-lib
 
-Felleskode for alle applikasjonene:
+Felleskode publisert som Maven-pakke til GitHub Packages, og brukt av applikasjoner også utenfor dette monorepoet:
 
 - Datamodeller
-- Databaseintegrasjon
-- Kafka-produsenter og -konsumenter
 - Generell hjelpekode og utilities
+- Teststøtte
+
+### amt-felles
+
+Intern felleskode brukt av applikasjonene i dette monorepoet (publiseres ikke som Maven-pakke):
+
+- **`intern-api-kontrakter/`** – Delte request/response-modeller for intern-API mellom applikasjonene.
+- **`kafka/`** – Felles Kafka-produsenter, -konsumenter og outbox-mønster.
+- **`ktor/`** – Felles Ktor-oppsett, plugins og hjelpekode for HTTP-server og -klient.
+- **`ktor-test/`** – Teststøtte for Ktor-applikasjoner, inkludert Testcontainers-oppsett for Postgres og Kafka.
 
 ---
 
