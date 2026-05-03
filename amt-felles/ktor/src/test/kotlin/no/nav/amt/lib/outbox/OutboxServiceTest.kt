@@ -43,7 +43,7 @@ class OutboxServiceTest {
         val topicInTest = "test-topic"
 
         val record = service.insertRecord(keyInTest, valueInTest, topicInTest)
-        assertSoftly(service.insertRecord(keyInTest, valueInTest, topicInTest)) {
+        assertSoftly(record) {
             id shouldNotBe null
             key shouldBe keyInTest.toString()
             valueType shouldBe TestValue::class.simpleName

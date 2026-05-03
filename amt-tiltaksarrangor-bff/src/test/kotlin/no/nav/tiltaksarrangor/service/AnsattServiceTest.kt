@@ -75,8 +75,8 @@ class AnsattServiceTest(
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId))
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId2))
         val ansattId = UUID.randomUUID()
-        val personIdent = "12345678910"
-        val ansatt = getAnsatt(ansattId, personIdent, deltakerId, deltakerId2)
+        val personIdentInTest = "12345678910"
+        val ansatt = getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2)
         tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
 
         getSistInnlogget(ansattId) shouldBe null
@@ -92,9 +92,9 @@ class AnsattServiceTest(
             )
         coEvery {
             amtArrangorClient.getAnsatt(any())
-        } returns getAnsatt(ansattId, personIdent, deltakerId, deltakerId2).copy(arrangorer = oppdaterteArrangorer)
+        } returns getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2).copy(arrangorer = oppdaterteArrangorer)
 
-        val rollerInTest = ansattService.oppdaterOgHentMineRoller(personIdent)
+        val rollerInTest = ansattService.oppdaterOgHentMineRoller(personIdentInTest)
 
         rollerInTest.size shouldBe 1
         rollerInTest.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
@@ -102,7 +102,7 @@ class AnsattServiceTest(
         val oppdatertAnsatt = tiltaksarrangorAnsattRepository.getAnsatt(ansattId).shouldNotBeNull()
 
         assertSoftly(oppdatertAnsatt) {
-            it.personIdent shouldBe personIdent
+            personIdent shouldBe personIdentInTest
             roller.size shouldBe 1
             deltakerlister.size shouldBe 1
             veilederDeltakere.size shouldBe 0
