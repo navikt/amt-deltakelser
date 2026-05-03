@@ -1,6 +1,6 @@
 # amt-deltakelser
 
-Monorepo for Team Komet sine Ktor-applikasjoner og fellesmodulen amt-lib.
+Monorepo for Team Komet sine backend-applikasjoner (Ktor og Spring Boot) og fellesmodulen amt-lib.
 
 ## Innhold
 
@@ -25,8 +25,7 @@ Monorepo for Team Komet sine Ktor-applikasjoner og fellesmodulen amt-lib.
 
 ## Oversikt
 
-Dette monorepoet samler Team Komets backend-kode på ett sted: fire Ktor-applikasjoner og en PDF-generator,
-i tillegg til delte moduler for modeller, database- og Kafka-integrasjon, samt infrastruktur-konfigurasjon for Nais.
+Dette monorepoet samler koden Team Komet jobber mest med — applikasjoner, fellesmoduler og infrastruktur.
 
 ---
 
@@ -60,7 +59,8 @@ skjer på en pålitelig måte.
 ### amt-tiltaksarrangor-bff
 
 **amt-tiltaksarrangor-bff** er backend-for-frontend for **amt-tiltaksarrangor-flate**, som gir tiltaksarrangører
-en deltakeroversikt og lar dem følge opp deltakere på sine tiltak.
+en deltakeroversikt og lar dem følge opp deltakere på sine tiltak. I motsetning til de andre applikasjonene i
+monorepoet er denne bygget på **Spring Boot**.
 
 ### amt-pdfgen
 
