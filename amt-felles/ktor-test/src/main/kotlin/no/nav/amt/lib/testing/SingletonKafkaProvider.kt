@@ -9,7 +9,7 @@ import org.testcontainers.utility.DockerImageName
 
 object SingletonKafkaProvider {
     private val log = LoggerFactory.getLogger(javaClass)
-    private var kafkaContainer: KafkaContainer? = null
+    private lateinit var kafkaContainer: KafkaContainer
 
     private val reuseConfig = ContainerReuseConfig()
 
@@ -18,7 +18,7 @@ object SingletonKafkaProvider {
     }
 
     fun start() {
-        if (kafkaContainer != null) return
+        if (::kafkaContainer.isInitialized) return
 
         log.info("Starting new Kafka Instance...")
 
@@ -26,19 +26,19 @@ object SingletonKafkaProvider {
             KafkaContainer(DockerImageName.parse("apache/kafka"))
                 // workaround for https://github.com/testcontainers/testcontainers-java/issues/9506
                 .withEnv("KAFKA_LISTENERS", "PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094")
-        kafkaContainer!!.withReuse(reuseConfig.reuse)
-        kafkaContainer!!.withLabel("reuse.UUID", reuseConfig.reuseLabel)
-        kafkaContainer!!.start()
+        kafkaContainer.withReuse(reuseConfig.reuse)
+        kafkaContainer.withLabel("reuse.UUID", reuseConfig.reuseLabel)
+        kafkaContainer.start()
 
         setupShutdownHook()
-        log.info("Kafka setup finished listening on ${kafkaContainer!!.bootstrapServers}.")
+        log.info("Kafka setup finished listening on ${kafkaContainer.bootstrapServers}.")
     }
 
     fun getHost(): String {
-        if (kafkaContainer == null) {
+        if (!::kafkaContainer.isInitialized) {
             start()
         }
-        return kafkaContainer!!.bootstrapServers
+        return kafkaContainer.bootstrapServers
     }
 
     private fun setupShutdownHook() {
@@ -48,7 +48,7 @@ object SingletonKafkaProvider {
                 if (reuseConfig.reuse) {
                     cleanup()
                 } else {
-                    kafkaContainer?.stop()
+                    kafkaContainer.stop()
                 }
             },
         )

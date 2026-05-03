@@ -1,5 +1,6 @@
 package no.nav.tiltaksarrangor.repositories
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltaksarrangor.RepositoryTestBase
 import no.nav.tiltaksarrangor.testutils.getNavAnsatt
@@ -25,7 +26,7 @@ class NavAnsattRepositoryTest(
         val nyEpost = "foo@bar.baz"
         ansattRepository.upsert(ansatt.copy(epost = "foo@bar.baz"))
 
-        val insertedAnsatt = ansattRepository.get(ansatt.id)
-        insertedAnsatt!!.epost shouldBe nyEpost
+        val insertedAnsatt = ansattRepository.get(ansatt.id).shouldNotBeNull()
+        insertedAnsatt.epost shouldBe nyEpost
     }
 }

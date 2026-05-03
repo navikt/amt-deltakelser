@@ -155,7 +155,7 @@ fun <T : Forslag.Endring> assertProducedForslag(
     consumer.start()
 
     await().untilAsserted {
-        val cachedForslag = cache[forslagId]!! as Forslag
+        val cachedForslag = cache[forslagId] as Forslag
         cachedForslag.id shouldBe forslagId
         cachedForslag.endring::class shouldBe endringstype
     }
@@ -178,5 +178,5 @@ fun getProducedForslag(id: UUID): Forslag {
 
     runBlocking { consumer.close() }
 
-    return cache[id]!! as Forslag
+    return cache[id] as Forslag
 }

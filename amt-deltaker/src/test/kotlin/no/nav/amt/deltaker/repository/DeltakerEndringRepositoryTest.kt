@@ -65,11 +65,11 @@ class DeltakerEndringRepositoryTest {
 
         endringFraDb.size shouldBe 2
         sammenlignDeltakerEndring(
-            endringFraDb.find { it.id == deltakerEndring.id }!!,
+            endringFraDb.first { it.id == deltakerEndring.id },
             deltakerEndring.copy(endretAv = navAnsatt1.id, endretAvEnhet = navEnhet1.id),
         )
         sammenlignDeltakerEndring(
-            endringFraDb.find { it.id == deltakerEndring2.id }!!,
+            endringFraDb.first { it.id == deltakerEndring2.id },
             deltakerEndring2.copy(endretAv = navAnsatt2.id, endretAvEnhet = navEnhet2.id),
         )
     }

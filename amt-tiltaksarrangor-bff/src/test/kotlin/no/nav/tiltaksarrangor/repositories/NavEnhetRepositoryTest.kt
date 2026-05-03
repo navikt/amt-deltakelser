@@ -1,5 +1,6 @@
 package no.nav.tiltaksarrangor.repositories
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltaksarrangor.RepositoryTestBase
 import no.nav.tiltaksarrangor.testutils.getNavEnhet
@@ -14,8 +15,9 @@ class NavEnhetRepositoryTest(
     fun `upsert - ny enhet - inserter`() {
         val enhet = getNavEnhet()
         enhetRepository.upsert(enhet)
-        val insertedEnhet = enhetRepository.get(enhet.id)
-        insertedEnhet!!.enhetsnummer shouldBe enhet.enhetsnummer
+
+        val insertedEnhet = enhetRepository.get(enhet.id).shouldNotBeNull()
+        insertedEnhet.enhetsnummer shouldBe enhet.enhetsnummer
     }
 
     @Test
@@ -26,6 +28,6 @@ class NavEnhetRepositoryTest(
         val navn = "Nytt Navn"
         enhetRepository.upsert(enhet.copy(navn = navn))
 
-        enhetRepository.get(enhet.id)!!.navn shouldBe navn
+        enhetRepository.get(enhet.id).shouldNotBeNull().navn shouldBe navn
     }
 }

@@ -183,6 +183,8 @@ fun Routing.registerVeilederApi(
         get("/deltaker/{deltakerId}/historikk") {
             val deltakerId = call.getDeltakerId()
 
+            log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id $deltakerId")
+
             val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
                 val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
                 tilgangskontrollService.verifiserLesetilgang(
@@ -190,7 +192,6 @@ fun Routing.registerVeilederApi(
                     norskIdent = personident,
                 )
 
-                log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id $deltakerId")
                 val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
                 DeltakerHistorikkResponse.fromModels(
                     models = data.historikk,
@@ -206,7 +207,6 @@ fun Routing.registerVeilederApi(
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     norskIdent = deltaker.navBruker.personident,
                 )
-                log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id $deltakerId")
                 val historikk = deltaker.getDeltakerHistorikkForVisning()
                 DeltakerHistorikkResponse.fromModels(
                     models = historikk,

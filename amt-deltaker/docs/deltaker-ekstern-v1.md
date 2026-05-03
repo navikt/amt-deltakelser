@@ -3,13 +3,13 @@
 ## Innhold
 
 1. [Beskrivelse](#beskrivelse)
-1. [Meldinger](#meldinger)
+2. [Meldinger](#meldinger)
     1. [Key](#key)
-    1. [Deltaker](#deltaker)
-    1. [NavVeileder](#navveileder)
-    1. [DeltakerStatus](#status)
-    1. [Aarsak](#aarsak)
-    1. [Skjema](#skjema)
+    2. [Deltaker](#deltaker)
+    3. [NavVeileder](#navveileder)
+    4. [DeltakerStatus](#status)
+    5. [Aarsak](#aarsak)
+    6. [Skjema](#skjema)
 
 ## Beskrivelse
 

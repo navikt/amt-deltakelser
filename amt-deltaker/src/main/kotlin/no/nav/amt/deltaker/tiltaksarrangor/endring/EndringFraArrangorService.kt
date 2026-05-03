@@ -21,7 +21,7 @@ class EndringFraArrangorService(
 
     fun upsertEndretDeltaker(endringFraArrangor: EndringFraArrangor): Deltaker {
         val eksisterendeDeltaker = deltakerRepository.get(endringFraArrangor.deltakerId).getOrThrow()
-        DeltakerService.Companion.validerIkkeFeilregistrert(eksisterendeDeltaker)
+        DeltakerService.validerIkkeFeilregistrert(eksisterendeDeltaker)
 
         val endretDeltaker = when (endringFraArrangor.endring) {
             is EndringFraArrangor.LeggTilOppstartsdato ->

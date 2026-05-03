@@ -1,6 +1,8 @@
 package no.nav.tiltaksarrangor.service
 
 import com.ninjasquad.springmockk.MockkBean
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -45,24 +47,25 @@ class AnsattServiceTest(
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId))
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId2))
         val ansattId = UUID.randomUUID()
-        val personIdent = "12345678910"
-        coEvery { amtArrangorClient.getAnsatt(any()) } returns getAnsatt(ansattId, personIdent, deltakerId, deltakerId2)
+        val personIdentInTest = "12345678910"
+        coEvery { amtArrangorClient.getAnsatt(any()) } returns getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2)
 
-        val roller = ansattService.oppdaterOgHentMineRoller(personIdent)
+        val rollerInTest = ansattService.oppdaterOgHentMineRoller(personIdentInTest)
 
-        roller.size shouldBe 2
-        roller.find { it == AnsattRolle.VEILEDER.name } shouldNotBe null
-        roller.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
+        rollerInTest.size shouldBe 2
+        rollerInTest.find { it == AnsattRolle.VEILEDER.name } shouldNotBe null
+        rollerInTest.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
 
-        val ansatt = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
-        ansatt!!.personIdent shouldBe personIdent
-        ansatt.roller.size shouldBe 4
-        ansatt.deltakerlister.size shouldBe 2
-        ansatt.veilederDeltakere.size shouldBe 2
+        val ansatt = tiltaksarrangorAnsattRepository.getAnsatt(ansattId).shouldNotBeNull()
+        assertSoftly(ansatt) {
+            personIdent shouldBe personIdentInTest
+            roller.size shouldBe 4
+            deltakerlister.size shouldBe 2
+            veilederDeltakere.size shouldBe 2
+        }
 
-        val sistInnlogget = getSistInnlogget(ansattId)
-        sistInnlogget shouldNotBe null
-        sistInnlogget!! shouldBeCloseTo LocalDateTime.now()
+        val sistInnlogget = getSistInnlogget(ansattId).shouldNotBeNull()
+        sistInnlogget shouldBeCloseTo LocalDateTime.now()
     }
 
     @Test
@@ -91,20 +94,22 @@ class AnsattServiceTest(
             amtArrangorClient.getAnsatt(any())
         } returns getAnsatt(ansattId, personIdent, deltakerId, deltakerId2).copy(arrangorer = oppdaterteArrangorer)
 
-        val roller = ansattService.oppdaterOgHentMineRoller(personIdent)
+        val rollerInTest = ansattService.oppdaterOgHentMineRoller(personIdent)
 
-        roller.size shouldBe 1
-        roller.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
+        rollerInTest.size shouldBe 1
+        rollerInTest.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
 
-        val oppdatertAnsatt = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
-        oppdatertAnsatt!!.personIdent shouldBe personIdent
-        oppdatertAnsatt.roller.size shouldBe 1
-        oppdatertAnsatt.deltakerlister.size shouldBe 1
-        oppdatertAnsatt.veilederDeltakere.size shouldBe 0
+        val oppdatertAnsatt = tiltaksarrangorAnsattRepository.getAnsatt(ansattId).shouldNotBeNull()
 
-        val oppdatertSistInnlogget = getSistInnlogget(ansattId)
-        oppdatertSistInnlogget shouldNotBe null
-        oppdatertSistInnlogget!! shouldBeCloseTo LocalDateTime.now()
+        assertSoftly(oppdatertAnsatt) {
+            it.personIdent shouldBe personIdent
+            roller.size shouldBe 1
+            deltakerlister.size shouldBe 1
+            veilederDeltakere.size shouldBe 0
+        }
+
+        val oppdatertSistInnlogget = getSistInnlogget(ansattId).shouldNotBeNull()
+        oppdatertSistInnlogget shouldBeCloseTo LocalDateTime.now()
     }
 
     @Test

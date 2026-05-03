@@ -88,7 +88,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            DeltakerRepositoryTest.Companion.assertDeltakereAreEqual(
+            DeltakerRepositoryTest.assertDeltakereAreEqual(
                 deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
                 oppdatertDeltaker,
             )
@@ -124,7 +124,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            DeltakerRepositoryTest.Companion.assertDeltakereAreEqual(
+            DeltakerRepositoryTest.assertDeltakereAreEqual(
                 deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
                 opprinneligDeltaker,
             )
@@ -175,7 +175,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            DeltakerRepositoryTest.Companion.assertDeltakereAreEqual(
+            DeltakerRepositoryTest.assertDeltakereAreEqual(
                 first = deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
                 // status er uendret pga dedup — bruk opprinnelig status, men oppdatert sluttdato
                 second = oppdatertDeltakerForlenget.copy(status = opprinneligDeltaker.status),
@@ -230,7 +230,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            DeltakerRepositoryTest.Companion.assertDeltakereAreEqual(
+            DeltakerRepositoryTest.assertDeltakereAreEqual(
                 first = deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
                 second = opprinneligDeltaker.copy(sluttdato = oppdatertDeltakerHarSluttetNyArsak.sluttdato),
             )
@@ -285,7 +285,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            DeltakerRepositoryTest.Companion.assertDeltakereAreEqual(
+            DeltakerRepositoryTest.assertDeltakereAreEqual(
                 deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
                 oppdatertDeltakerDeltar,
             )
@@ -526,12 +526,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             outboxService.assertProduced<DeltakerKafkaPayload>(
                 deltakerFraDb.id,
-                Environment.Companion.DELTAKER_V2_TOPIC,
+                Environment.DELTAKER_V2_TOPIC,
             )
-            outboxService.assertProduced<DeltakerV1Dto>(deltakerFraDb.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltakerFraDb.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltakerFraDb.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
 
@@ -901,11 +901,11 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             }
 
             outboxService.assertProducedHendelse<HendelseType.EndreDeltakelsesmengde>(deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
 
@@ -996,8 +996,8 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             }
 
             outboxService.assertProducedHendelse<HendelseType.EndreStartdato>(deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
         }
 
         @Test
@@ -1057,11 +1057,11 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             }
 
             outboxService.assertProducedHendelse<HendelseType.EndreStartdato>(deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
 
@@ -1163,25 +1163,25 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
             outboxService.assertProducedHendelse<HendelseType.SettPaaVenteliste>(deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
 
             // deltaker2
             outboxService.assertProduced<DeltakerKafkaPayload>(
                 expectedKey = deltaker2.id,
-                expectedTopic = Environment.Companion.DELTAKER_V2_TOPIC,
+                expectedTopic = Environment.DELTAKER_V2_TOPIC,
             )
             outboxService.assertProduced<DeltakerV1Dto>(
                 expectedKey = deltaker2.id,
-                expectedTopic = Environment.Companion.DELTAKER_V1_TOPIC,
+                expectedTopic = Environment.DELTAKER_V1_TOPIC,
             )
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 expectedKey = deltaker2.id,
-                expectedTopic = Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                expectedTopic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
 
@@ -1262,11 +1262,11 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 0
 
             outboxService.assertProducedHendelse<HendelseType.TildelPlass>(deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
 
@@ -1355,21 +1355,21 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
             outboxService.assertProducedHendelse<HendelseType.TildelPlass>(deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
 
             outboxService.assertProduced<DeltakerKafkaPayload>(
                 deltaker2.id,
-                Environment.Companion.DELTAKER_V2_TOPIC,
+                Environment.DELTAKER_V2_TOPIC,
             )
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker2.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker2.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker2.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
 
@@ -1458,21 +1458,21 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
             outboxService.assertProducedHendelse<HendelseType.TildelPlass>(deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
 
             outboxService.assertProduced<DeltakerKafkaPayload>(
                 deltaker2.id,
-                Environment.Companion.DELTAKER_V2_TOPIC,
+                Environment.DELTAKER_V2_TOPIC,
             )
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker2.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker2.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker2.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
 
@@ -1549,12 +1549,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             outboxService.assertProducedHendelse<HendelseType.TildelPlass>(deltakerInsert.id)
             outboxService.assertProduced<DeltakerKafkaPayload>(
                 deltakerInsert.id,
-                Environment.Companion.DELTAKER_V2_TOPIC,
+                Environment.DELTAKER_V2_TOPIC,
             )
-            outboxService.assertProduced<DeltakerV1Dto>(deltakerInsert.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltakerInsert.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltakerInsert.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
 
@@ -1626,18 +1626,18 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
             historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
 
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker2.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker2.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker2.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker2.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker2.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
     }
@@ -1661,7 +1661,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             result.isSuccess.shouldBeTrue()
 
             val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).shouldBeSuccess()
-            DeltakerRepositoryTest.Companion.assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
+            DeltakerRepositoryTest.assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
         }
 
         @Test
@@ -1780,11 +1780,11 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             }
 
             outboxService.assertProducedHendelse<HendelseType.Avslag>(deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
+            outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
                 deltaker.id,
-                Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
     }
@@ -1811,9 +1811,9 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         deltakerService.produserDeltakereForPerson(personident = deltaker.navBruker.personident)
 
         // Assert
-        outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-        outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
-        outboxService.assertProduced<DeltakerEksternV1Dto>(deltaker.id, Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC)
+        outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+        outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
+        outboxService.assertProduced<DeltakerEksternV1Dto>(deltaker.id, Environment.DELTAKER_EKSTERN_V1_TOPIC)
     }
 
     @Test
@@ -1867,13 +1867,13 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             deltakelsesinnhold shouldBe null
         }
 
-        outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.Companion.DELTAKER_V2_TOPIC)
-        outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.Companion.DELTAKER_V1_TOPIC)
-        outboxService.assertProduced<DeltakerEksternV1Dto>(deltaker.id, Environment.Companion.DELTAKER_EKSTERN_V1_TOPIC)
+        outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
+        outboxService.assertProduced<DeltakerV1Dto>(deltaker.id, Environment.DELTAKER_V1_TOPIC)
+        outboxService.assertProduced<DeltakerEksternV1Dto>(deltaker.id, Environment.DELTAKER_EKSTERN_V1_TOPIC)
     }
 
     companion object {
-        infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
+        infix fun Deltaker.shouldBeComparableWith(expected: Deltaker) {
             val statusOpprettetDay = this.status.opprettet
                 .toLocalDate()
                 .atStartOfDay()
@@ -1887,11 +1887,11 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             val now = LocalDateTime.now()
             this.copy(
                 sistEndret = sistEndret,
-                status = status.copy(id = expected!!.status.id, opprettet = statusOpprettetDay, gyldigFra = gyldigFra),
+                status = status.copy(id = expected.status.id, opprettet = statusOpprettetDay, gyldigFra = gyldigFra),
                 opprettet = now,
                 vedtaksinformasjon = vedtaksinformasjon?.copy(
                     fattet = this.vedtaksinformasjon.fattet?.atStartOfDay(),
-                    sistEndret = this.vedtaksinformasjon.sistEndret.atStartOfDay()!!,
+                    sistEndret = this.vedtaksinformasjon.sistEndret.atStartOfDay(),
                 ),
             ) shouldBe expected.copy(
                 sistEndret = expected.sistEndret.atStartOfDay(),
@@ -1901,10 +1901,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                     gyldigFra = expected.status.gyldigFra.atStartOfDay(),
                 ),
                 opprettet = now,
-                vedtaksinformasjon = vedtaksinformasjon?.copy(
-                    fattet = expected.vedtaksinformasjon?.fattet?.atStartOfDay(),
-                    sistEndret = expected.vedtaksinformasjon?.sistEndret?.atStartOfDay()!!,
-                ),
+                vedtaksinformasjon = expected.vedtaksinformasjon?.let { ev ->
+                    vedtaksinformasjon?.copy(
+                        fattet = ev.fattet?.atStartOfDay(),
+                        sistEndret = ev.sistEndret.atStartOfDay(),
+                    )
+                },
             )
         }
     }

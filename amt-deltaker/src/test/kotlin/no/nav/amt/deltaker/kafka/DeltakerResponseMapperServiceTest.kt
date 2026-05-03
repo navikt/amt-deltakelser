@@ -100,7 +100,7 @@ class DeltakerResponseMapperServiceTest {
         // Her kan vi legge inn flere assertions på deltakerliste
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        sammenlignHistorikk(deltakerV2Dto.historikk?.first()!!, DeltakerHistorikk.Vedtak(vedtak))
+        sammenlignHistorikk(deltakerV2Dto.historikk?.first().shouldNotBeNull(), DeltakerHistorikk.Vedtak(vedtak))
 
         val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
         val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
@@ -120,7 +120,10 @@ class DeltakerResponseMapperServiceTest {
             navVeileder shouldBe brukersVeileder
             deltarPaKurs shouldBe deltaker.deltarPaKurs()
             kilde shouldBe Kilde.KOMET
-            innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
+            innhold shouldBe Deltakelsesinnhold(
+                deltaker.deltakelsesinnhold.shouldNotBeNull().ledetekst,
+                deltaker.deltakelsesinnhold.innhold,
+            )
             historikk?.size shouldBe 1
             sistEndret shouldBeCloseTo deltaker.sistEndret
             sistEndretAv shouldBe sistEndretAvNavAnsatt.id
@@ -183,10 +186,13 @@ class DeltakerResponseMapperServiceTest {
 
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
-        sammenlignHistorikk(deltakerV2Dto.historikk!![1], DeltakerHistorikk.Forslag(forslag))
-        sammenlignHistorikk(deltakerV2Dto.historikk!![2], DeltakerHistorikk.Endring(endring))
-        sammenlignHistorikk(deltakerV2Dto.historikk!![3], DeltakerHistorikk.Vedtak(vedtak))
+
+        assertSoftly(deltakerV2Dto.historikk.shouldNotBeNull()) {
+            sammenlignHistorikk(it[0], DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
+            sammenlignHistorikk(it[1], DeltakerHistorikk.Forslag(forslag))
+            sammenlignHistorikk(it[2], DeltakerHistorikk.Endring(endring))
+            sammenlignHistorikk(it[3], DeltakerHistorikk.Vedtak(vedtak))
+        }
 
         val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
         val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
@@ -203,7 +209,10 @@ class DeltakerResponseMapperServiceTest {
             navVeileder shouldBe brukersVeileder
             deltarPaKurs shouldBe deltaker.deltarPaKurs()
             kilde shouldBe Kilde.KOMET
-            innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
+            innhold shouldBe Deltakelsesinnhold(
+                deltaker.deltakelsesinnhold.shouldNotBeNull().ledetekst,
+                deltaker.deltakelsesinnhold.innhold,
+            )
             historikk?.size shouldBe 4
             sistEndret shouldBeCloseTo deltaker.sistEndret
             sistEndretAv shouldBe brukersVeileder.id
@@ -236,7 +245,7 @@ class DeltakerResponseMapperServiceTest {
         importertFraArenaRepository.upsert(importertFraArena)
 
         val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.ImportertFraArena(importertFraArena))
+        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0).shouldNotBeNull(), DeltakerHistorikk.ImportertFraArena(importertFraArena))
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
 
@@ -301,7 +310,7 @@ class DeltakerResponseMapperServiceTest {
 
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.Endring(endring))
+        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0).shouldNotBeNull(), DeltakerHistorikk.Endring(endring))
 
         val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
         val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()

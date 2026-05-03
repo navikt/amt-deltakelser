@@ -68,7 +68,7 @@ fun Application.configureAuthentication(environment: Environment) {
 
             validate { credentials ->
                 credentials["NAVident"] ?: run {
-                    application.log.warn("Ikke tilgang. Mangler claim 'NAVident'.")
+                    application.log.warn("Veileder-autentisering feilet: Mangler claim 'NAVident'.")
                     return@validate null
                 }
                 JWTPrincipal(credentials.payload)
@@ -81,7 +81,7 @@ fun Application.configureAuthentication(environment: Environment) {
 
             validate { credentials ->
                 credentials["NAVident"] ?: run {
-                    application.log.warn("Ikke tilgang. Mangler claim 'NAVident'.")
+                    application.log.warn("Tiltakskoordinator-autentisering feilet: Mangler claim 'NAVident'.")
                     return@validate null
                 }
 

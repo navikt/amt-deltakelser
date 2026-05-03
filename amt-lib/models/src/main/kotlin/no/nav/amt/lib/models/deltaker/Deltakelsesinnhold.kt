@@ -10,6 +10,6 @@ data class Deltakelsesinnhold(
     fun getAnnetFritekstBeskrivelse(): String? = innhold
         .filter { it.valgt }
         .firstOrNull { it.erFritekstInnholdsElement }
-        ?.takeIf { it.beskrivelse != null && it.beskrivelse.isNotBlank() }
+        ?.takeUnless { it.beskrivelse.isNullOrBlank() }
         ?.beskrivelse
 }

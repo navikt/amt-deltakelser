@@ -167,7 +167,7 @@ class JournalforingService(
             DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
         )
 
-        log.info("Journalførte hovedvedtak for deltaker ${hendelse.deltaker.id}")
+        log.info("Journalførte hovedvedtak (tildelt plass) for deltaker ${hendelse.deltaker.id}")
     }
 
     private suspend fun journalforOgSendInnsokingsbrev(
@@ -259,7 +259,7 @@ class JournalforingService(
             distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
         )
 
-        log.info("Journalførte hovedvedtak for deltaker ${hendelse.deltaker.id}")
+        log.info("Journalførte hovedvedtak (individuell oppfølging) for deltaker ${hendelse.deltaker.id}")
     }
 
     private suspend fun journalforOgSend(

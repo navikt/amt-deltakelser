@@ -127,7 +127,7 @@ fun Routing.registerInternalApi(
         requireInternal(call.request.local.remoteAddress)
         val deltakerId = call.getDeltakerId()
         val request = call.receive<RepubliserRequest>()
-        log.info("Relaster deltaker $deltakerId")
+        log.info("relast/{deltakerId}: Starter relast av deltaker $deltakerId")
         Database.transaction {
             deltakerProducerService.produce(
                 deltakerRepository.get(deltakerId).getOrThrow(),
@@ -137,7 +137,7 @@ fun Routing.registerInternalApi(
                 publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
             )
         }
-        log.info("Ferdig relastet deltaker $deltakerId")
+        log.info("relast/{deltakerId}: Fullført relast av deltaker $deltakerId")
         call.respond(HttpStatusCode.OK)
     }
 
@@ -172,9 +172,9 @@ fun Routing.registerInternalApi(
         val request = call.receive<RepubliserRequest>()
         scope.launch {
             val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
-            log.info("Relaster ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
+            log.info("relast/tiltakstype: Starter relast av ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
             republiserDeltakere(deltakerIder, request)
-            log.info("Ferdig relastet ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
+            log.info("relast/tiltakstype: Fullført relast av ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
         }
         call.respond(HttpStatusCode.OK)
     }
@@ -184,12 +184,12 @@ fun Routing.registerInternalApi(
         val requestBody = call.receive<RepubliserTiltakskoderRequest>()
         scope.launch {
             val tiltakskodeNavn = requestBody.tiltakskoder.map { it.name }
-            log.info("Relaster alle deltakere for tiltakskoder $tiltakskodeNavn")
+            log.info("relast/tiltakstyper: Starter relast for tiltakskoder $tiltakskodeNavn")
             requestBody.tiltakskoder.forEach { tiltakskode ->
                 val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                 republiserDeltakere(deltakerIder, requestBody.request)
             }
-            log.info("Ferdig relastet alle deltakere for tiltakskoder $tiltakskodeNavn")
+            log.info("relast/tiltakstyper: Fullført relast for tiltakskoder $tiltakskodeNavn")
         }
         call.respond(HttpStatusCode.OK)
     }
@@ -198,14 +198,14 @@ fun Routing.registerInternalApi(
         requireInternal(call.request.local.remoteAddress)
         val request = call.receive<RepubliserRequest>()
         scope.launch {
-            log.info("Relaster alle deltakere komet er master for")
+            log.info("relast/alle-deltakere: Starter relast av alle deltakere komet er master for")
             for (tiltakskode in Tiltakskode.entries) {
                 val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
-                log.info("Relaster ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
+                log.info("relast/alle-deltakere: Relaster ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
                 republiserDeltakere(deltakerIder, request)
-                log.info("Ferdig relastet ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
+                log.info("relast/alle-deltakere: Fullført ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
             }
-            log.info("Ferdig relastet alle deltakere Team Komet er master for")
+            log.info("relast/alle-deltakere: Fullført relast av alle deltakere")
         }
         call.respond(HttpStatusCode.OK)
     }
@@ -214,9 +214,9 @@ fun Routing.registerInternalApi(
         requireInternal(call.request.local.remoteAddress)
         val request = call.receive<RelastDeltakereRequest>()
         scope.launch {
-            log.info("Relaster ${request.deltakere.size} deltakere")
+            log.info("relast/deltakere: Starter relast av ${request.deltakere.size} deltakere")
             republiserDeltakere(request.deltakere, request.republiserRequest)
-            log.info("Ferdig relastet ${request.deltakere.size} deltakere")
+            log.info("relast/deltakere: Fullført relast av ${request.deltakere.size} deltakere")
         }
         call.respond(HttpStatusCode.OK)
     }
@@ -226,12 +226,12 @@ fun Routing.registerInternalApi(
         if (!Environment.isDev()) throw IllegalStateException("Kan kun slette deltaker i dev")
         val request = call.receive<DeleteDeltakereRequest>()
         scope.launch {
-            log.info("Sletter ${request.deltakere.size} deltakere")
+            log.info("slett-deltakere: Starter sletting av ${request.deltakere.size} deltakere")
             request.deltakere.forEach { deltakerId ->
                 deltakerProducerService.tombstone(deltakerId)
                 slettDeltaker(deltakerId)
             }
-            log.info("Slettet ${request.deltakere.size} deltakere")
+            log.info("slett-deltakere: Fullført sletting av ${request.deltakere.size} deltakere")
         }
         call.respond(HttpStatusCode.OK)
     }
@@ -240,9 +240,9 @@ fun Routing.registerInternalApi(
         requireInternal(call.request.local.remoteAddress)
         val request = call.receive<DeleteDeltakereRequest>()
         scope.launch {
-            log.info("Sletter ${request.deltakere.size} deltakere med status KLADD")
+            log.info("slett-kladd: Starter sletting av ${request.deltakere.size} kladder")
             request.deltakere.forEach { deltakerId -> kladdService.slettKladd(deltakerId) }
-            log.info("Slettet ${request.deltakere.size} deltakere med status KLADD")
+            log.info("slett-kladd: Fullført sletting av ${request.deltakere.size} kladder")
         }
         call.respond(HttpStatusCode.OK)
     }
@@ -309,7 +309,7 @@ fun Routing.registerInternalApi(
         requireInternal(call.request.local.remoteAddress)
         val request = call.receive<OpprettEnkeltplassGjennomforingerInternalRequest>()
         scope.launch {
-            log.info("Oppretter ${request.gjennomforingIder.size} gjennomføringer")
+            log.info("opprett-gjennomforinger-for-enkeltplass: Starter opprettelse av ${request.gjennomforingIder.size} gjennomføringer")
             request.gjennomforingIder.forEach { gjennomforingId ->
                 val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforingId).getOrThrow()
                 val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
@@ -329,7 +329,7 @@ fun Routing.registerInternalApi(
                     ),
                 )
             }
-            log.info("Ferdig opprettet ${request.gjennomforingIder.size} gjennomføringer")
+            log.info("opprett-gjennomforinger-for-enkeltplass: Fullført opprettelse av ${request.gjennomforingIder.size} gjennomføringer")
         }
         call.respond(HttpStatusCode.OK)
     }

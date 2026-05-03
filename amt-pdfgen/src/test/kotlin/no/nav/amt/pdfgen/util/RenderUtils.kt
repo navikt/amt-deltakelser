@@ -1,7 +1,6 @@
 package no.nav.amt.pdfgen.util
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -27,25 +26,23 @@ object RenderUtils {
         templateName: String,
         payload: Any,
         templateDir: String = DEFAULT_TEMPLATE_DIR,
-    ): Document =
-        Jsoup.parse(
-            createHtml(
-                template = templateName,
-                directoryName = templateDir,
-                jsonPayload = objectMapper.valueToTree<JsonNode>(payload),
-            ).shouldNotBeNull(),
-        )
+    ): Document = Jsoup.parse(
+        createHtml(
+            template = templateName,
+            directoryName = templateDir,
+            jsonPayload = objectMapper.valueToTree(payload),
+        ).shouldNotBeNull(),
+    )
 
     fun renderSection(
         templateName: String,
         payload: Any,
         templateDir: String = SECTIONS_TEMPLATE_DIR,
-    ): Document =
-        render(
-            templateName = templateName,
-            payload = payload,
-            templateDir = templateDir,
-        )
+    ): Document = render(
+        templateName = templateName,
+        payload = payload,
+        templateDir = templateDir,
+    )
 
     fun Document.sectionText(): String = select("section").joinToString(" ") { it.text() }
 
