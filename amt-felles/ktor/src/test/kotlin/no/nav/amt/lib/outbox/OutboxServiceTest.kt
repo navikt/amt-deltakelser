@@ -1,5 +1,7 @@
 package no.nav.amt.lib.outbox
 
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.prometheus.metrics.model.registry.PrometheusRegistry
@@ -36,25 +38,28 @@ class OutboxServiceTest {
 
     @Test
     fun `insertRecord creates and persists an record with correct fields`() {
-        val value = TestValue("hello", 42)
-        val key = UUID.randomUUID()
-        val topic = "test-topic"
+        val valueInTest = TestValue("hello", 42)
+        val keyInTest = UUID.randomUUID()
+        val topicInTest = "test-topic"
 
-        val record = service.insertRecord(key, value, topic)
+        val record = service.insertRecord(keyInTest, valueInTest, topicInTest)
+        assertSoftly(record) {
+            id shouldNotBe null
+            key shouldBe keyInTest.toString()
+            valueType shouldBe TestValue::class.simpleName
+            topic shouldBe topicInTest
+            value["foo"].asString() shouldBe valueInTest.foo
+            value["bar"].asInt() shouldBe valueInTest.bar
+        }
 
-        record.id shouldNotBe null
-        record.key shouldBe key.toString()
-        record.valueType shouldBe TestValue::class.simpleName
-        record.topic shouldBe topic
-        record.value["foo"].asString() shouldBe value.foo
-        record.value["bar"].asInt() shouldBe value.bar
-
-        val persisted = repository.get(record.id)!!
-        persisted.key shouldBe key.toString()
-        persisted.valueType shouldBe TestValue::class.simpleName
-        persisted.topic shouldBe topic
-        persisted.value.get("foo")?.asString() shouldBe value.foo
-        persisted.value.get("bar")?.asInt() shouldBe value.bar
+        val persisted = repository.get(record.id)
+        assertSoftly(persisted.shouldNotBeNull()) {
+            key shouldBe keyInTest.toString()
+            valueType shouldBe TestValue::class.simpleName
+            topic shouldBe topicInTest
+            value.get("foo")?.asString() shouldBe valueInTest.foo
+            value.get("bar")?.asInt() shouldBe valueInTest.bar
+        }
     }
 
     @Test

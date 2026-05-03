@@ -57,7 +57,7 @@ class OutboxProcessorTest {
 
         outboxProcessor.processRecords()
 
-        val failedRecord = outboxRepository.get(record.id)!!
+        val failedRecord = outboxRepository.get(record.id).shouldNotBeNull()
         failedRecord.status shouldBe OutboxRecordStatus.FAILED
     }
 
@@ -69,8 +69,8 @@ class OutboxProcessorTest {
         val recordToIgnore = newRecord(key = key, topic = failingTestTopic)
 
         outboxProcessor.processRecords()
-        outboxRepository.get(recordToFail.id)!!.status shouldBe OutboxRecordStatus.FAILED
-        outboxRepository.get(recordToIgnore.id)!!.status shouldBe OutboxRecordStatus.PENDING
+        outboxRepository.get(recordToFail.id).shouldNotBeNull().status shouldBe OutboxRecordStatus.FAILED
+        outboxRepository.get(recordToIgnore.id).shouldNotBeNull().status shouldBe OutboxRecordStatus.PENDING
     }
 
     @Test
@@ -97,7 +97,7 @@ class OutboxProcessorTest {
         }
 
         failRecords.forEach { record ->
-            val failedRecord = outboxRepository.get(record.id)!!
+            val failedRecord = outboxRepository.get(record.id).shouldNotBeNull()
             failedRecord.status shouldBe OutboxRecordStatus.FAILED
         }
     }
@@ -107,12 +107,12 @@ class OutboxProcessorTest {
         val record = newRecord(topic = failingTestTopic)
 
         outboxProcessor.processRecords()
-        val firstResult = outboxRepository.get(record.id)!!
+        val firstResult = outboxRepository.get(record.id).shouldNotBeNull()
         firstResult.status shouldBe OutboxRecordStatus.FAILED
         val firstRetryCount = firstResult.retryCount
 
         outboxProcessor.processRecords()
-        val secondResult = outboxRepository.get(record.id)!!
+        val secondResult = outboxRepository.get(record.id).shouldNotBeNull()
         secondResult.status shouldBe OutboxRecordStatus.FAILED
         secondResult.retryCount shouldBe (firstRetryCount + 1)
     }

@@ -173,8 +173,8 @@ class EndringsvedtakJobTest {
                 hendelseId = hendelse.id,
                 journalpostId = null,
                 bestillingsId = null,
-                kanIkkeDistribueres = null,
-                kanIkkeJournalfores = null,
+                kanIkkeDistribueres = false,
+                kanIkkeJournalfores = false,
             ),
         )
     }

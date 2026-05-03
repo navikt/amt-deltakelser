@@ -119,7 +119,9 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 dagerPerUke shouldBe null
                 deltakelsesprosent shouldBe null
                 bakgrunnsinformasjon shouldBe null
-                deltakelsesinnhold?.ledetekst shouldBe deltakerListe.tiltakstype.innhold!!.ledetekst
+                deltakelsesinnhold?.ledetekst shouldBe deltakerListe.tiltakstype.innhold
+                    .shouldNotBeNull()
+                    .ledetekst
                 deltakelsesinnhold?.innhold shouldBe emptyList()
             }
         }
@@ -164,7 +166,9 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 dagerPerUke shouldBe null
                 deltakelsesprosent shouldBe null
                 bakgrunnsinformasjon shouldBe null
-                deltakelsesinnhold?.ledetekst shouldBe deltakerListe.tiltakstype.innhold!!.ledetekst
+                deltakelsesinnhold?.ledetekst shouldBe deltakerListe.tiltakstype.innhold
+                    .shouldNotBeNull()
+                    .ledetekst
                 deltakelsesinnhold?.innhold shouldBe emptyList()
             }
         }

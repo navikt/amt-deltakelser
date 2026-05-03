@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltakerliste
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
@@ -146,6 +147,6 @@ class DeltakerlisteRepositoryTest {
         val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
 
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
-        deltakerlisteMedArrangor.arrangor!!.navn shouldBe arrangor.navn
+        deltakerlisteMedArrangor.arrangor.shouldNotBeNull().navn shouldBe arrangor.navn
     }
 }

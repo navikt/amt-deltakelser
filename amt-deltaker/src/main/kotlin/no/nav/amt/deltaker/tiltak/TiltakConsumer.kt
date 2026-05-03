@@ -12,7 +12,7 @@ class TiltakConsumer(
     private val repository: TiltakRepository,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.Companion.TILTAKSTYPE_TOPIC,
+        topic = Environment.TILTAKSTYPE_TOPIC,
         consumeFunc = ::consume,
     )
 

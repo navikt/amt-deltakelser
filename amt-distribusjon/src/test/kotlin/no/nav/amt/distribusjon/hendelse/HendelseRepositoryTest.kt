@@ -55,8 +55,8 @@ class HendelseRepositoryTest {
                     hendelseId = hendelse.id,
                     journalpostId = null,
                     bestillingsId = null,
-                    kanIkkeDistribueres = null,
-                    kanIkkeJournalfores = null,
+                    kanIkkeDistribueres = false,
+                    kanIkkeJournalfores = false,
                 ),
             )
 
@@ -78,7 +78,7 @@ class HendelseRepositoryTest {
                     hendelseId = hendelse.id,
                     journalpostId = null,
                     bestillingsId = null,
-                    kanIkkeDistribueres = null,
+                    kanIkkeDistribueres = false,
                     kanIkkeJournalfores = true,
                 ),
             )
@@ -104,7 +104,7 @@ class HendelseRepositoryTest {
                     hendelseId = hendelse.id,
                     journalpostId = "12345",
                     bestillingsId = null,
-                    kanIkkeDistribueres = null,
+                    kanIkkeDistribueres = false,
                     kanIkkeJournalfores = false,
                 ),
             )
@@ -150,8 +150,8 @@ class HendelseRepositoryTest {
                     hendelseId = hendelse.id,
                     journalpostId = "test",
                     bestillingsId = null,
-                    kanIkkeDistribueres = null,
-                    kanIkkeJournalfores = null,
+                    kanIkkeDistribueres = false,
+                    kanIkkeJournalfores = false,
                 ),
             )
 
@@ -205,7 +205,7 @@ class HendelseRepositoryTest {
                     hendelseId = hendelse.id,
                     journalpostId = "12345",
                     bestillingsId = null,
-                    kanIkkeDistribueres = null,
+                    kanIkkeDistribueres = false,
                     kanIkkeJournalfores = false,
                 ),
             )

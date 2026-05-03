@@ -145,7 +145,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         // Assert
         val expectedArrangor = ArrangorResponse(
             navn = "~arrangor-navn~",
-            deltakerliste.arrangor!!.organisasjonsnummer,
+            deltakerliste.arrangor.shouldNotBeNull().organisasjonsnummer,
         )
 
         assertSoftly(gjennomforingResponse) {

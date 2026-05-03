@@ -129,7 +129,7 @@ class DeltakerEndringRepository {
             endretAv = row.uuid("de.endret_av"),
             endretAvEnhet = row.uuid("de.endret_av_enhet"),
             endret = row.localDateTime("de.endret"),
-            forslag = row.uuidOrNull("f.id")?.let { ForslagRepository.Companion.rowMapper(row) },
+            forslag = row.uuidOrNull("f.id")?.let { ForslagRepository.rowMapper(row) },
         )
 
         private fun selectDeltakerEndring(

@@ -908,10 +908,11 @@ class KoordinatorServiceTest(
             val koordinatorsDeltakerliste = koordinatorService.getDeltakerliste(deltakerlisteId, personIdent)
 
             koordinatorsDeltakerliste.deltakere
-                .find { d -> d.id == deltaker.id }!!
+                .first { d -> d.id == deltaker.id }
                 .soktInnDato shouldBe LocalDate.now().atStartOfDay()
+
             koordinatorsDeltakerliste.deltakere
-                .find { d -> d.id == deltakerUtenForsteVedtakFattet.id }!!
+                .first { d -> d.id == deltakerUtenForsteVedtakFattet.id }
                 .soktInnDato shouldBe LocalDate.now().minusDays(2).atStartOfDay()
         }
 
@@ -1018,10 +1019,11 @@ class KoordinatorServiceTest(
             val koordinatorsDeltakerliste = koordinatorService.getDeltakerliste(deltakerlisteId, personIdent)
 
             koordinatorsDeltakerliste.deltakere
-                .find { d -> d.id == deltaker.id }!!
+                .first { d -> d.id == deltaker.id }
                 .svarFraNav shouldBe true
+
             koordinatorsDeltakerliste.deltakere
-                .find { d -> d.id == deltaker2.id }!!
+                .first { d -> d.id == deltaker2.id }
                 .svarFraNav shouldBe true
         }
 
@@ -1101,7 +1103,8 @@ class KoordinatorServiceTest(
             val koordinatorsDeltakerliste = koordinatorService.getDeltakerliste(deltakerlisteId, personIdent)
 
             val minDeltaker = koordinatorsDeltakerliste.deltakere
-                .find { d -> d.id == deltaker.id }!!
+                .first { d -> d.id == deltaker.id }
+
             minDeltaker.oppdateringFraNav shouldBe true
             minDeltaker.svarFraNav shouldBe false
         }
@@ -1163,7 +1166,8 @@ class KoordinatorServiceTest(
             val koordinatorsDeltakerliste = koordinatorService.getDeltakerliste(deltakerlisteId, personIdent)
 
             val minDeltaker = koordinatorsDeltakerliste.deltakere
-                .find { d -> d.id == deltaker.id }!!
+                .first { d -> d.id == deltaker.id }
+
             minDeltaker.oppdateringFraNav shouldBe true
             minDeltaker.svarFraNav shouldBe false
         }

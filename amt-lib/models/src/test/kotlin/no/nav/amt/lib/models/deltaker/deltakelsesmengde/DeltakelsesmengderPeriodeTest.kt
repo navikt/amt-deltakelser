@@ -1,5 +1,7 @@
 package no.nav.amt.lib.models.deltaker.deltakelsesmengde
 
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.utils.TestData
 import org.junit.jupiter.api.Test
@@ -16,10 +18,12 @@ class DeltakelsesmengderPeriodeTest {
         val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(fraDato, tilDato)
 
         deltakelsesmengder.size shouldBe 1
-        deltakelsesmengder[0].deltakelsesprosent shouldBe vedtak.deltakerVedVedtak.deltakelsesprosent
-        deltakelsesmengder[0].dagerPerUke shouldBe vedtak.deltakerVedVedtak.dagerPerUke
-        deltakelsesmengder[0].gyldigFra shouldBe vedtak.fattet!!.toLocalDate()
-        deltakelsesmengder[0].opprettet shouldBe vedtak.fattet
+        assertSoftly(deltakelsesmengder.first()) {
+            deltakelsesprosent shouldBe vedtak.deltakerVedVedtak.deltakelsesprosent
+            dagerPerUke shouldBe vedtak.deltakerVedVedtak.dagerPerUke
+            gyldigFra shouldBe vedtak.fattet.shouldNotBeNull().toLocalDate()
+            opprettet shouldBe vedtak.fattet
+        }
     }
 
     @Test
@@ -33,10 +37,13 @@ class DeltakelsesmengderPeriodeTest {
         val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(fraDato, tilDato)
 
         deltakelsesmengder.size shouldBe 1
-        deltakelsesmengder[0].deltakelsesprosent shouldBe importertFraArena.deltakerVedImport.deltakelsesprosent
-        deltakelsesmengder[0].dagerPerUke shouldBe importertFraArena.deltakerVedImport.dagerPerUke
-        deltakelsesmengder[0].gyldigFra shouldBe importertFraArena.deltakerVedImport.innsoktDato
-        deltakelsesmengder[0].opprettet shouldBe importertFraArena.deltakerVedImport.innsoktDato.atStartOfDay()
+
+        assertSoftly(deltakelsesmengder.first()) {
+            deltakelsesprosent shouldBe importertFraArena.deltakerVedImport.deltakelsesprosent
+            dagerPerUke shouldBe importertFraArena.deltakerVedImport.dagerPerUke
+            gyldigFra shouldBe importertFraArena.deltakerVedImport.innsoktDato
+            opprettet shouldBe importertFraArena.deltakerVedImport.innsoktDato.atStartOfDay()
+        }
     }
 
     @Test

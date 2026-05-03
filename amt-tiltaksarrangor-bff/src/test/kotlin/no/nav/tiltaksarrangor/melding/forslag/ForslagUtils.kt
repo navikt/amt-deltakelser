@@ -1,7 +1,10 @@
 package no.nav.tiltaksarrangor.melding.forslag
 
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Melding
@@ -155,9 +158,13 @@ fun <T : Forslag.Endring> assertProducedForslag(
     consumer.start()
 
     await().untilAsserted {
-        val cachedForslag = cache[forslagId]!! as Forslag
-        cachedForslag.id shouldBe forslagId
-        cachedForslag.endring::class shouldBe endringstype
+        val cachedMelding = cache[forslagId]
+        cachedMelding.shouldNotBeNull()
+
+        assertSoftly(cachedMelding.shouldBeInstanceOf<Forslag>()) {
+            id shouldBe forslagId
+            endring::class shouldBe endringstype
+        }
     }
 
     runBlocking { consumer.close() }
@@ -178,5 +185,5 @@ fun getProducedForslag(id: UUID): Forslag {
 
     runBlocking { consumer.close() }
 
-    return cache[id]!! as Forslag
+    return cache[id] as Forslag
 }

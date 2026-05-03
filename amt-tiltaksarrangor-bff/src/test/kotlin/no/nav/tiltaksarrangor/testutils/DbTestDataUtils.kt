@@ -1,7 +1,7 @@
 package no.nav.tiltaksarrangor.testutils
 
 import io.kotest.matchers.date.shouldBeWithin
-import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.nulls.shouldNotBeNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
@@ -17,8 +17,7 @@ object DbTestDataUtils {
     inline fun <reified T : Any> loggerFor(): Logger = LoggerFactory.getLogger(T::class.java)
 
     infix fun LocalDateTime.shouldBeCloseTo(expected: LocalDateTime?) {
-        expected shouldNotBe null
-        expected!!.shouldBeWithin(Duration.ofSeconds(2), this)
+        expected.shouldNotBeNull().shouldBeWithin(Duration.ofSeconds(2), this)
     }
 
     fun cleanDatabase(dataSource: DataSource) {

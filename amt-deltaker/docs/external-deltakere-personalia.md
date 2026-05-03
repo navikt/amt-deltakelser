@@ -55,5 +55,5 @@ Krever client credentials token fra appen `mulighetsrommet-api`.
 - Hvis en eller flere Deltaker-IDer ikke finnes, vil de bli ignorert i responsen.
 
 ## Se også
-- [Kildekode for endepunktet](../src/main/kotlin/no/nav/amt/deltaker/external/api/SystemApi.kt)
-- [Kildekode for response](../src/main/kotlin/no/nav/amt/deltaker/external/data/DeltakerPersonaliaResponse.kt)
+- [Kildekode for endepunktet](../src/main/kotlin/no/nav/amt/deltaker/api/external/ExternalApi.kt)
+- [Kildekode for response](../src/main/kotlin/no/nav/amt/deltaker/api/external/response/DeltakerPersonaliaResponse.kt)
