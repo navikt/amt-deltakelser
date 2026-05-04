@@ -32,7 +32,7 @@ import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.kafka.DeltakerlisteConsumer
+import no.nav.amt.deltaker.kafka.GjennomforingConsumer
 import no.nav.amt.deltaker.kafka.payload.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -338,8 +338,8 @@ abstract class IntegrationTestBase {
         )
     }
 
-    protected open val deltakerlisteConsumer: DeltakerlisteConsumer by lazy {
-        DeltakerlisteConsumer(
+    protected open val gjennomforingConsumer: GjennomforingConsumer by lazy {
+        GjennomforingConsumer(
             deltakerlisteRepository = deltakerlisteRepository,
             deltakerRepository = deltakerRepository,
             tiltakRepository = tiltakRepository,
