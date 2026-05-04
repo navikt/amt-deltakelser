@@ -47,10 +47,17 @@ sealed interface GjennomforingV2KafkaPayload {
             "Påmeldingstype kan ikke endres for deltakerliste $id med deltakere"
         }
 
-        if (this !is Gruppe) return
-
         require(oppstart == eksisterendeOppstartstype || eksisterendeOppstartstype == null) {
             "Oppstartstype kan ikke endres for deltakerliste $id med deltakere"
+        }
+
+        if (this is Enkeltplass) {
+            require(pameldingType == GjennomforingPameldingType.TRENGER_GODKJENNING) {
+                "Enkeltplass gjennomføring $id må ha påmeldingstype ${GjennomforingPameldingType.TRENGER_GODKJENNING}"
+            }
+            require(oppstart == Oppstartstype.ENKELTPLASS) {
+                "Enkeltplass gjennomføring $id må ha oppstartstype ${Oppstartstype.ENKELTPLASS}"
+            }
         }
     }
 

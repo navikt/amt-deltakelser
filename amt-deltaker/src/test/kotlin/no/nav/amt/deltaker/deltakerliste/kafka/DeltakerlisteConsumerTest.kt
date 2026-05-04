@@ -54,9 +54,11 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
     @Nested
     inner class EnkeltplassTests {
         private val deltakerlisteInTest = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
             gjennomforingstype = GjennomforingType.Enkeltplass,
+            oppstart = Oppstartstype.ENKELTPLASS,
             status = GjennomforingStatusType.KLADD,
-            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
             arrangor = arrangorInTest,
         )
 
@@ -308,7 +310,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             arrangor = arrangorInTest,
             tiltakstype = tiltakstype,
             gjennomforingstype = GjennomforingType.Enkeltplass,
-            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
             prisinformasjon = "100kr",
         )
 
