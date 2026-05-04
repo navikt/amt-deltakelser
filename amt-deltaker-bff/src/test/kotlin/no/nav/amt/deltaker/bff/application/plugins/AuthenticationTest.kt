@@ -102,6 +102,7 @@ class AuthenticationTest {
                 testdataService = mockk(),
                 paameldingClient = mockk(),
                 gjennomforingClient = mockk(),
+                kodeverkClient = mockk(),
                 selfServiceTilgangService = mockk(),
             )
             setUpTestRoute()

@@ -35,6 +35,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.Decision
@@ -51,6 +52,7 @@ abstract class IntegrationTestBase {
     protected val paameldingClient: PaameldingClient = mockk()
     protected val gjennomforingClient: GjennomforingClient = mockk()
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
+    protected val kodeverkClient = mockk<KodeverkClient>()
 
     protected val deltakerRepository: DeltakerRepository = mockk()
     protected val forslagRepository: ForslagRepository = mockk()
@@ -125,6 +127,7 @@ abstract class IntegrationTestBase {
                     testdataService = testdataService,
                     paameldingClient = paameldingClient,
                     gjennomforingClient = gjennomforingClient,
+                    kodeverkClient = kodeverkClient,
                     selfServiceTilgangService = selfServiceTilgangskontrollService,
                 )
 

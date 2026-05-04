@@ -1,8 +1,5 @@
-@file:Suppress("ktlint:standard:no-wildcard-imports")
+package no.nav.amt.lib.ktor.clients.kodeverk
 
-package no.nav.amt.deltaker.bff.enkeltplass.kodeverk
-
-import no.nav.amt.deltaker.bff.enkeltplass.kodeverk.Kodeverk.Alternativ
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -11,42 +8,42 @@ import java.util.UUID
 class KodeverkTest {
     @Test
     fun renderJsonTest() {
-        val sut = Kodeverk(
+        val sut = KodeverkResponse(
             tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
             alternativer = listOf(
-                Alternativ.Verdigruppe(
+                KodeverkResponse.Alternativ.Verdigruppe(
                     id = UUID.randomUUID(),
                     visningsnavn = "Førerkortklasser",
-                    seleksjonstype = Kodeverk.Seleksjonstype.FLERVALG,
+                    seleksjonstype = KodeverkResponse.Seleksjonstype.FLERVALG,
                     alternativer = listOf(
-                        Alternativ.Verdi(
+                        KodeverkResponse.Alternativ.Verdi(
                             id = UUID.randomUUID(),
                             visningsnavn = "B",
                         ),
-                        Alternativ.Verdi(
+                        KodeverkResponse.Alternativ.Verdi(
                             id = UUID.randomUUID(),
                             visningsnavn = "C",
                         ),
                     ),
                 ),
-                Alternativ.Gruppe(
+                KodeverkResponse.Alternativ.Gruppe(
                     id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     alternativer = listOf(
-                        Alternativ.Verdigruppe(
+                        KodeverkResponse.Alternativ.Verdigruppe(
                             id = UUID.randomUUID(),
                             visningsnavn = "Frisør, blomster, interiør og ekspomeringsdesign",
-                            seleksjonstype = Kodeverk.Seleksjonstype.ENKELTVALG,
+                            seleksjonstype = KodeverkResponse.Seleksjonstype.ENKELTVALG,
                             alternativer = listOf(
-                                Alternativ.Verdi(
+                                KodeverkResponse.Alternativ.Verdi(
                                     id = UUID.randomUUID(),
                                     visningsnavn = "Blomsterdekoratørfaget",
                                 ),
-                                Alternativ.Verdi(
+                                KodeverkResponse.Alternativ.Verdi(
                                     id = UUID.randomUUID(),
                                     visningsnavn = "Frisørfaget",
                                 ),
-                                Alternativ.Verdi(
+                                KodeverkResponse.Alternativ.Verdi(
                                     id = UUID.randomUUID(),
                                     visningsnavn = "Interiør",
                                 ),

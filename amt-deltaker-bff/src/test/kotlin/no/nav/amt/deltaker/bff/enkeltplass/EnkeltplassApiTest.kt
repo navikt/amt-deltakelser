@@ -21,6 +21,7 @@ import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -84,6 +85,12 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             @Test
             fun `skal returnere OK nar kladd er opprettet`() = runTest {
+                // Arrange
+                coEvery { kodeverkClient.hentKodeverk(any()) } returns KodeverkResponse(
+                    tiltakskode = requestInTest.tiltakskode,
+                    alternativer = emptyList(),
+                )
+
                 // Act
                 val response = withTestApplicationContext { client ->
                     client.post(url) {

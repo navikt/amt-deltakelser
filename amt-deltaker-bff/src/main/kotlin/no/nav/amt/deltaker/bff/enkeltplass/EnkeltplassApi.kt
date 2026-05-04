@@ -21,11 +21,13 @@ import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 
 fun Routing.registerEnkeltplassApi(
     amtDeltakerClient: AmtDeltakerClient,
     enkeltplassClient: EnkeltplassClient,
     tilgangskontrollService: TilgangskontrollService,
+    kodeverkClient: KodeverkClient,
 ) {
     authenticate(AuthLevel.VEILEDER.name) {
         route("/enkeltplass") {
@@ -42,6 +44,8 @@ fun Routing.registerEnkeltplassApi(
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     norskIdent = request.personident,
                 )
+
+                val kodeverk = kodeverkClient.hentKodeverk(request.tiltakskode)
 
                 val response = enkeltplassClient
                     .opprettKladd(request.tiltakskode, request.personident)

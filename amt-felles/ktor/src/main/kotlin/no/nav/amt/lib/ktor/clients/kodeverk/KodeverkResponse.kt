@@ -1,11 +1,11 @@
-package no.nav.amt.deltaker.bff.enkeltplass.kodeverk
+package no.nav.amt.lib.ktor.clients.kodeverk
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.util.UUID
 
 /**
- * Representerer kodeverket knyttet til en bestemt [Tiltakskode].
+ * Representerer kodeverket knyttet til en bestemt [no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode].
  *
  * Kodeverket består av et hierarki av [Alternativ]-er som beskriver de relaterte
  * valgene som er aktuelle for tiltaket — for eksempel bransjer, førerkortklasser
@@ -19,7 +19,7 @@ import java.util.UUID
  * @property alternativer Toppnivå-containere i kodeverket — enten [Alternativ.Gruppe]
  *   eller [Alternativ.Verdigruppe]. Kan ikke inneholde [Alternativ.Verdi] direkte.
  */
-data class Kodeverk(
+data class KodeverkResponse(
     val tiltakskode: Tiltakskode,
     val alternativer: List<Alternativ.Container>,
 ) {

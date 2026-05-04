@@ -52,6 +52,7 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.registerHealthApi
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
@@ -88,6 +89,7 @@ fun Application.configureRouting(
     ulestHendelseService: UlestHendelseService,
     testdataService: TestdataService,
     gjennomforingClient: GjennomforingClient,
+    kodeverkClient: KodeverkClient,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -123,6 +125,7 @@ fun Application.configureRouting(
             amtDeltakerClient = amtDeltakerClient,
             tilgangskontrollService = tilgangskontrollService,
             enkeltplassClient = enkeltplassClient,
+            kodeverkClient = kodeverkClient,
         )
 
         registerVeilederApi(
