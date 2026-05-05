@@ -392,7 +392,6 @@ class DeltakerRepository {
     }
 
     fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
-        // Unntak for arena-enkeltplasser slik at vi ikke avslutter deltakelsen når gjennomføringen blir avsluttet
         val sql = buildDeltakerSql(
             "getDeltakereSomDeltar",
             """
