@@ -14,15 +14,15 @@ data class Deltakerliste(
     val gjennomforingstype: GjennomforingType,
     val tiltakstype: Tiltakstype,
     val navn: String,
-    val status: GjennomforingStatusType?, // i GjennomforingV2KafkaPayload er status ikke nullable lenger
+    val status: GjennomforingStatusType,
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
-    val antallPlasser: Int?, // midlertidig optional til relast
-    val oppstart: Oppstartstype?,
+    val antallPlasser: Int?,
+    val oppstart: Oppstartstype,
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,
     val arrangor: Arrangor?,
-    val pameldingstype: GjennomforingPameldingType?,
+    val pameldingstype: GjennomforingPameldingType,
     val prisinformasjon: String?,
 ) {
     fun erAvlystEllerAvbrutt(): Boolean = status == GjennomforingStatusType.AVLYST ||

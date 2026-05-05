@@ -44,7 +44,7 @@ import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.kafka.DeltakerlisteConsumer
+import no.nav.amt.deltaker.kafka.GjennomforingConsumer
 import no.nav.amt.deltaker.kafka.payload.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -396,7 +396,7 @@ fun Application.module() {
         NavAnsattConsumer(navAnsattRepository, navAnsattService),
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakConsumer(tiltakRepository),
-        DeltakerlisteConsumer(
+        GjennomforingConsumer(
             deltakerlisteRepository = deltakerlisteRepository,
             deltakerRepository = deltakerRepository,
             tiltakRepository = tiltakRepository,

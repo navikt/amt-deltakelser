@@ -22,7 +22,7 @@ import tools.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
 import java.util.UUID
 
-class DeltakerlisteConsumer(
+class GjennomforingConsumer(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val deltakerRepository: DeltakerRepository,
     private val tiltakRepository: TiltakRepository,
@@ -50,53 +50,53 @@ class DeltakerlisteConsumer(
         handterDeltakerliste(objectMapper.readValue(value))
     }
 
-    private suspend fun handterDeltakerliste(deltakerlistePayload: GjennomforingV2KafkaPayload) {
-        if (!unleashToggle.skalLeseGjennomforing(deltakerlistePayload.tiltakskode.name)) {
+    private suspend fun handterDeltakerliste(gjennomforingPayload: GjennomforingV2KafkaPayload) {
+        if (!unleashToggle.skalLeseGjennomforing(gjennomforingPayload.tiltakskode.name)) {
             return
         }
 
         // enkelte gjennomforinger skal ikke bli lest grunnet feil
-        if (GjennomforingV2KafkaPayload.gjennomforingBlacklist.contains(deltakerlistePayload.id)) {
+        if (GjennomforingV2KafkaPayload.gjennomforingBlacklist.contains(gjennomforingPayload.id)) {
             return
         }
 
-        deltakerlistePayload.assertPameldingstypeIsValid()
+        gjennomforingPayload.assertPameldingstypeIsValid()
 
-        val arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
-        val tiltakstype = tiltakRepository.get(deltakerlistePayload.tiltakskode).getOrThrow()
+        val arrangor = arrangorService.hentArrangor(gjennomforingPayload.arrangor.organisasjonsnummer)
+        val tiltakstype = tiltakRepository.get(gjennomforingPayload.tiltakskode).getOrThrow()
 
-        val deltakerliste = deltakerlistePayload.toModel(
+        val gjennomforing = gjennomforingPayload.toModel(
             { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
             { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
         )
 
-        val eksisterendeDeltakerliste = deltakerlisteRepository.get(deltakerlistePayload.id).getOrNull()
+        val eksisterendeDeltakerliste = deltakerlisteRepository.get(gjennomforingPayload.id).getOrNull()
 
         if (eksisterendeDeltakerliste != null) {
-            if (eksisterendeDeltakerliste == deltakerliste) {
-                log.info("Deltakerliste med id ${deltakerliste.id} er uendret.")
+            if (eksisterendeDeltakerliste == gjennomforing) {
+                log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")
                 return
             }
 
             // deltakerliste med deltakere kan ikke endre pameldingstype eller oppstartstype
-            deltakerlistePayload.assertValidChanges(
+            gjennomforingPayload.assertValidChanges(
                 antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(eksisterendeDeltakerliste.id),
                 eksisterendePameldingstype = eksisterendeDeltakerliste.pameldingstype,
                 eksisterendeOppstartstype = eksisterendeDeltakerliste.oppstart,
             )
 
             Database.transaction {
-                deltakerlisteRepository.upsert(deltakerliste)
+                deltakerlisteRepository.upsert(gjennomforing)
 
                 handterDeltakere(
-                    deltakerlisteFromPayload = deltakerliste,
+                    deltakerlisteFromPayload = gjennomforing,
                     eksisterendeDeltakerliste = eksisterendeDeltakerliste,
                 )
 
                 // hvis deltakerliste er for enkeltplass, publiser deltaker
                 if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
                     eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
-                    deltakerliste.status != GjennomforingStatusType.KLADD
+                    gjennomforing.status != GjennomforingStatusType.KLADD
                 ) {
                     deltakerProducerService.produce(
                         deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
@@ -104,7 +104,7 @@ class DeltakerlisteConsumer(
                 }
             }
         } else {
-            deltakerlisteRepository.upsert(deltakerliste)
+            deltakerlisteRepository.upsert(gjennomforing)
         }
     }
 

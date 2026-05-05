@@ -55,6 +55,7 @@ class GjennomforingV2KafkaPayloadDeserializingTest {
             {
               "type": "TiltaksgjennomforingV2.Enkeltplass",
               "id": "$idInTest",
+              "status": "GJENNOMFORES",
               "opprettetTidspunkt": "$opprettet",
               "oppdatertTidspunkt": "$oppdatert",
               "tiltakskode": "ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING",

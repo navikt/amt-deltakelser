@@ -42,10 +42,8 @@ class DeltakerlisteRepositoryTest {
                 arrangor = arrangor,
                 tiltakstype = tiltakstype,
             ).copy(
-                status = null,
                 startDato = null,
                 sluttDato = null,
-                oppstart = null,
             )
 
             deltakerlisteRepository.upsert(deltakerliste)

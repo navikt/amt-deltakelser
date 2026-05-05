@@ -86,7 +86,7 @@ object TestData {
         oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
         oppmoteSted: String? = "~oppmoteSted~",
         apentForPamelding: Boolean = true,
-        pameldingType: GjennomforingPameldingType? = GjennomforingPameldingType.TRENGER_GODKJENNING,
+        pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         prisinformasjon: String? = null,
     ) = Deltakerliste(
         id = id,
@@ -124,7 +124,7 @@ object TestData {
         deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
     ) = GjennomforingV2KafkaPayload.Enkeltplass(
         id = deltakerliste.id,
-        status = deltakerliste.status ?: GjennomforingStatusType.KLADD,
+        status = deltakerliste.status,
         tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
@@ -143,8 +143,8 @@ object TestData {
         tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         startDato = deltakerliste.startDato!!,
         sluttDato = deltakerliste.sluttDato,
-        status = deltakerliste.status!!,
-        oppstart = deltakerliste.oppstart!!,
+        status = deltakerliste.status,
+        oppstart = deltakerliste.oppstart,
         apentForPamelding = deltakerliste.apentForPamelding,
         oppmoteSted = deltakerliste.oppmoteSted,
         tilgjengeligForArrangorFraOgMedDato = null,
@@ -153,7 +153,7 @@ object TestData {
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
-        pameldingType = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+        pameldingType = deltakerliste.pameldingstype,
     )
 
     fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(
