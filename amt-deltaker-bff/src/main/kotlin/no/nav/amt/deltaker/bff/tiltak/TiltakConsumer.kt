@@ -12,8 +12,8 @@ class TiltakConsumer(
     private val repository: TiltakRepository,
 ) : Consumer<UUID, String?> {
     private val consumer = KafkaConsumerFactory.buildManagedKafkaConsumer(
-        topic = Environment.Companion.TILTAKSTYPE_TOPIC,
-        consumerGroupId = Environment.Companion.KAFKA_CONSUMER_GROUP_ID + "tiltakstyper",
+        topic = Environment.TILTAKSTYPE_TOPIC,
+        consumerGroupId = Environment.KAFKA_CONSUMER_GROUP_ID + "tiltakstyper",
         consumeFunc = ::consume,
     )
 

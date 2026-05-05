@@ -13,7 +13,7 @@ class DeltakerResponseUtilsTest {
         medFortroligDeltaker()
         val (fornavn, mellomnavn, etternavn) = deltaker.navBruker.getVisningsnavn(false)
 
-        fornavn shouldBe DeltakerResponseUtils.Companion.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
+        fornavn shouldBe DeltakerResponseUtils.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
         mellomnavn shouldBe null
         etternavn shouldBe ""
     }
@@ -48,7 +48,7 @@ class DeltakerResponseUtilsTest {
 
         val (fornavn, mellomnavn, etternavn) = deltaker.navBruker.getVisningsnavn(false)
 
-        fornavn shouldBe DeltakerResponseUtils.Companion.SKJERMET_PERSON_PLACEHOLDER_NAVN
+        fornavn shouldBe DeltakerResponseUtils.SKJERMET_PERSON_PLACEHOLDER_NAVN
         mellomnavn shouldBe null
         etternavn shouldBe ""
     }

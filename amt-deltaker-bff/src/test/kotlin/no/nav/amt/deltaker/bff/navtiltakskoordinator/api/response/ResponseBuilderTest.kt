@@ -4,8 +4,8 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.Companion.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.Companion.SKJERMET_PERSON_PLACEHOLDER_NAVN
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJERMET_PERSON_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType

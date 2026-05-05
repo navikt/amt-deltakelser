@@ -494,7 +494,7 @@ class DeltakerRepository {
                 telefon = null,
                 epost = null,
             ),
-            deltakerliste = DeltakerlisteRepository.Companion.rowMapper(row),
+            deltakerliste = DeltakerlisteRepository.rowMapper(row),
             startdato = row.localDateOrNull("d.startdato"),
             sluttdato = row.localDateOrNull("d.sluttdato"),
             dagerPerUke = row.floatOrNull("d.dager_per_uke"),

@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.model
 
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.Companion.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.Companion.SKJERMET_PERSON_PLACEHOLDER_NAVN
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJERMET_PERSON_PLACEHOLDER_NAVN
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.person.Beskyttelsesmarkering
