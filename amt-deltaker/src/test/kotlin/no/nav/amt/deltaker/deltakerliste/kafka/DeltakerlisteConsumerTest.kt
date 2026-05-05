@@ -103,7 +103,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
             // Act & Assert
             shouldThrow<NoSuchElementException> {
-                deltakerlisteConsumer.consume(
+                gjennomforingConsumer.consume(
                     key = enkeltplassPayloadInTest.id,
                     value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
                 )
@@ -120,7 +120,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             )
 
             // Act
-            deltakerlisteConsumer.consume(
+            gjennomforingConsumer.consume(
                 key = enkeltplassPayloadInTest.id,
                 value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
             )
@@ -147,7 +147,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             )
 
             // Act
-            deltakerlisteConsumer.consume(
+            gjennomforingConsumer.consume(
                 key = enkeltplassPayloadInTest.id,
                 value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
             )
@@ -187,7 +187,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             } just Runs
 
             // Act
-            deltakerlisteConsumer.avgrensSluttdatoerTil(deltakerliste)
+            gjennomforingConsumer.avgrensSluttdatoerTil(deltakerliste)
 
             // Assert
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
@@ -210,7 +210,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
 
             // Act
-            deltakerlisteConsumer.avgrensSluttdatoerTil(deltakerliste)
+            gjennomforingConsumer.avgrensSluttdatoerTil(deltakerliste)
 
             // Assert
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
@@ -232,7 +232,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
         // Act
         val thrown = shouldThrow<IllegalArgumentException> {
-            deltakerlisteConsumer.consume(
+            gjennomforingConsumer.consume(
                 key = deltakerlistePayload.id,
                 value = objectMapper.writeValueAsString(deltakerlistePayload),
             )
@@ -259,7 +259,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
         // Act
-        deltakerlisteConsumer.consume(
+        gjennomforingConsumer.consume(
             key = deltakerlistePayload.id,
             value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
@@ -291,7 +291,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
         // Act
-        deltakerlisteConsumer.consume(
+        gjennomforingConsumer.consume(
             key = deltakerlistePayload.id,
             value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
@@ -321,7 +321,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
         // Act
-        deltakerlisteConsumer.consume(
+        gjennomforingConsumer.consume(
             key = deltakerlistePayload.id,
             value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
@@ -352,7 +352,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         coEvery { arrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns lagArrangorResponse(arrangorInTest)
 
         // Act
-        deltakerlisteConsumer.consume(
+        gjennomforingConsumer.consume(
             key = deltakerliste.id,
             value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, deltakerliste)),
         )
@@ -374,7 +374,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
         // Act
-        deltakerlisteConsumer.consume(
+        gjennomforingConsumer.consume(
             key = deltakerliste.id,
             value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
         )
@@ -399,7 +399,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Act
-        deltakerlisteConsumer.consume(
+        gjennomforingConsumer.consume(
             key = deltakerliste.id,
             value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
         )
@@ -415,7 +415,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         TestRepository.insert(deltakerliste)
 
         // Act
-        deltakerlisteConsumer.consume(
+        gjennomforingConsumer.consume(
             key = deltakerliste.id,
             value = null,
         )
@@ -437,7 +437,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
         // Act
-        deltakerlisteConsumer.consume(
+        gjennomforingConsumer.consume(
             key = deltakerliste.id,
             value = objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
         )
@@ -499,7 +499,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             } just Runs
 
             // Act
-            deltakerlisteConsumer.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
+            gjennomforingConsumer.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
 
             // Assert
             assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {

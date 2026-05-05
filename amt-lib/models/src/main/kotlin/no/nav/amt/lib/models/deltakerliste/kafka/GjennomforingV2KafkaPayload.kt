@@ -118,8 +118,7 @@ sealed interface GjennomforingV2KafkaPayload {
         override val arrangor: Arrangor,
         override val pameldingType: GjennomforingPameldingType,
         override val gjennomforingType: GjennomforingType = GjennomforingType.Enkeltplass,
-        // TODO: Default bør fjernes etter neste relast
-        override val status: GjennomforingStatusType = GjennomforingStatusType.KLADD,
+        override val status: GjennomforingStatusType,
         override val oppstart: Oppstartstype,
         val prisinformasjon: String?,
     ) : GjennomforingV2KafkaPayload
@@ -132,7 +131,6 @@ sealed interface GjennomforingV2KafkaPayload {
         is Enkeltplass -> enkeltplassMapper(this)
     }
 
-    // TODO: Require at påmeldingstype er TRENGER_GODKJENNING hvis enkeltplass
     companion object {
         const val GRUPPE_V2_TYPE = "TiltaksgjennomforingV2.Gruppe"
         const val ENKELTPLASS_V2_TYPE = "TiltaksgjennomforingV2.Enkeltplass"

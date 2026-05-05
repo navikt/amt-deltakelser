@@ -225,6 +225,7 @@ class GjennomforingV2KafkaPayloadTest {
                 id = UUID.randomUUID(),
                 opprettetTidspunkt = OffsetDateTime.now(),
                 oppdatertTidspunkt = OffsetDateTime.now(),
+                status = GjennomforingStatusType.GJENNOMFORES,
                 tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
                 arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = "123456789"),
                 pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
