@@ -397,6 +397,7 @@ class DeltakerRepository {
             """
             ds.type IN ($IKKE_AVSLUTTENDE_STATUSER_DELIMITED)
             AND dl.status IN ($AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED)
+            AND NOT (dl.gjennomforingstype = 'Enkeltplass' AND t.tiltakskode IN ($ARENA_ENKELTPLASS_TILTAKSKODER_DELIMITED))
             """.trimIndent(),
         )
 
@@ -451,6 +452,14 @@ class DeltakerRepository {
             GjennomforingStatusType.AVSLUTTET,
             GjennomforingStatusType.AVBRUTT,
             GjennomforingStatusType.AVLYST,
+        ).joinToString { "'${it.name}'" }
+
+        // Arena-enkeltplasstiltakene har 1-1 mellom gjennomforing og deltaker.
+        // Statusen på gjennomforingen i Arena skal ikke styre deltakerstatus.
+        private val ARENA_ENKELTPLASS_TILTAKSKODER_DELIMITED = setOf(
+            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.HOYERE_UTDANNING,
         ).joinToString { "'${it.name}'" }
 
         private fun deltakerRowMapper(row: Row): Deltaker {

@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.veileder.KladdService.Companion.lagKladdUpsertDbo
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -19,6 +20,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.BeforeEach
@@ -432,6 +434,63 @@ class DeltakerRepositoryTest {
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now(),
                 deltakerliste = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
+            )
+            TestRepository.insert(deltaker)
+
+            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste()
+
+            deltakerePaAvsluttetDeltakerliste.shouldBeEmpty()
+        }
+
+        @Test
+        fun `deltar, enkeltplass-dl avsluttet - returnerer ikke deltaker`() {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                startdato = LocalDate.now().minusDays(10),
+                sluttdato = LocalDate.now().plusDays(2),
+                deltakerliste = lagDeltakerliste(
+                    gjennomforingstype = GjennomforingType.Enkeltplass,
+                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+                    status = GjennomforingStatusType.AVSLUTTET,
+                ),
+            )
+            TestRepository.insert(deltaker)
+
+            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste()
+
+            deltakerePaAvsluttetDeltakerliste.shouldBeEmpty()
+        }
+
+        @Test
+        fun `deltar, enkeltplass-dl avbrutt - returnerer ikke deltaker`() {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                startdato = LocalDate.now().minusDays(10),
+                sluttdato = LocalDate.now().plusDays(2),
+                deltakerliste = lagDeltakerliste(
+                    gjennomforingstype = GjennomforingType.Enkeltplass,
+                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING),
+                    status = GjennomforingStatusType.AVBRUTT,
+                ),
+            )
+            TestRepository.insert(deltaker)
+
+            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste()
+
+            deltakerePaAvsluttetDeltakerliste.shouldBeEmpty()
+        }
+
+        @Test
+        fun `deltar, enkeltplass-dl avlyst - returnerer ikke deltaker`() {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                startdato = LocalDate.now().minusDays(10),
+                sluttdato = LocalDate.now().plusDays(2),
+                deltakerliste = lagDeltakerliste(
+                    gjennomforingstype = GjennomforingType.Enkeltplass,
+                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.HOYERE_UTDANNING),
+                    status = GjennomforingStatusType.AVLYST,
+                ),
             )
             TestRepository.insert(deltaker)
 
