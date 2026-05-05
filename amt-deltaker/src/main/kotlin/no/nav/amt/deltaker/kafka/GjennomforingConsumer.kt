@@ -88,10 +88,12 @@ class GjennomforingConsumer(
             Database.transaction {
                 deltakerlisteRepository.upsert(gjennomforing)
 
-                handterDeltakere(
-                    deltakerlisteFromPayload = gjennomforing,
-                    eksisterendeDeltakerliste = eksisterendeDeltakerliste,
-                )
+                if (!tiltakstype.tiltakskode.erEnkeltplass()) {
+                    handterDeltakere(
+                        deltakerlisteFromPayload = gjennomforing,
+                        eksisterendeDeltakerliste = eksisterendeDeltakerliste,
+                    )
+                }
 
                 // hvis deltakerliste er for enkeltplass, publiser deltaker
                 if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&

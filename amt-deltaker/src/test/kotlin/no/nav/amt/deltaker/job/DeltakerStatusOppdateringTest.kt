@@ -18,12 +18,14 @@ import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -480,4 +482,107 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             .shouldBeSuccess()
             .status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
     }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - enkeltplass-deltakerliste avsluttet, status DELTAR - beholder status DELTAR`() = runTest {
+        // Arrange
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusDays(2),
+            deltakerliste = lagDeltakerliste(
+                gjennomforingstype = GjennomforingType.Enkeltplass,
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = GjennomforingStatusType.AVSLUTTET,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+
+        // Act
+        deltakerService.oppdaterDeltakerStatuser()
+
+        // Assert
+        deltakerRepository
+            .get(deltaker.id)
+            .shouldBeSuccess()
+            .status.type shouldBe DeltakerStatus.Type.DELTAR
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - enkeltplass-deltakerliste avbrutt, status DELTAR - beholder status DELTAR`() = runTest {
+        // Arrange
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusDays(2),
+            deltakerliste = lagDeltakerliste(
+                gjennomforingstype = GjennomforingType.Enkeltplass,
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING),
+                oppstart = Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = GjennomforingStatusType.AVBRUTT,
+            ),
+        )
+        val vedtak = lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+
+        // Act
+        deltakerService.oppdaterDeltakerStatuser()
+
+        // Assert
+        deltakerRepository
+            .get(deltaker.id)
+            .shouldBeSuccess()
+            .status.type shouldBe DeltakerStatus.Type.DELTAR
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - enkeltplass-deltakerliste avlyst, status VENTER_PA_OPPSTART - beholder status VENTER_PA_OPPSTART`() =
+        runTest {
+            // Arrange
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                startdato = null,
+                sluttdato = null,
+                deltakerliste = lagDeltakerliste(
+                    gjennomforingstype = GjennomforingType.Enkeltplass,
+                    tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.HOYERE_UTDANNING),
+                    oppstart = Oppstartstype.LOPENDE,
+                    sluttDato = LocalDate.now().minusDays(2),
+                    status = GjennomforingStatusType.AVLYST,
+                ),
+            )
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = sistEndretAvNavAnsatt,
+                opprettetAvEnhet = sistEndretAvNavEnhet,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insert(deltaker, vedtak)
+
+            // Act
+            deltakerService.oppdaterDeltakerStatuser()
+
+            // Assert
+            deltakerRepository
+                .get(deltaker.id)
+                .shouldBeSuccess()
+                .status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        }
 }
