@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
-import no.nav.amt.deltaker.bff.deltaker.model.GjennomforingModel
+import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype

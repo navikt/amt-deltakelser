@@ -6,19 +6,19 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
-import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.ModelMapper
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.clients.ModelMapper
+import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.SporbarhetOgTilgangskontrollSvc
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
@@ -27,7 +27,7 @@ import no.nav.amt.lib.utils.writePolymorphicListAsString
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerApi(
-    sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc,
+    tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     tiltakskoordinatorService: TiltakskoordinatorService,
     deltakerRepository: DeltakerRepository,
     amtDeltakerClient: AmtDeltakerClient,
@@ -47,7 +47,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     .getDeltaker(deltakerId)
                     .let { ModelMapper.toDeltaker(it) }
 
-                val harTilgangTilBruker = sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                val harTilgangTilBruker = tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
                     navIdent = call.getNavIdent(),
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     personident = deltaker.navBruker.personident,
@@ -60,7 +60,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
             } else {
                 // Skal slettes etter hvert
                 val tiltakskoordinatorsDeltaker = tiltakskoordinatorService.getDeltaker(deltakerId)
-                val harTilgangTilBruker = sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                val harTilgangTilBruker = tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
                     navIdent = call.getNavIdent(),
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     personident = tiltakskoordinatorsDeltaker.navBruker.personident,
@@ -84,7 +84,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
 
             val historikkResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
                 val deltakerResponse = amtDeltakerClient.getDeltaker(deltakerId)
-                sporbarhetOgTilgangskontrollSvc
+                tiltakskoordinatorTilgangskontrollService
                     .kontrollerTilgangTilBruker(
                         navIdent = call.getNavIdent(),
                         navAnsattAzureId = call.getNavAnsattAzureId(),
@@ -108,7 +108,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                 )
             } else {
                 val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-                sporbarhetOgTilgangskontrollSvc
+                tiltakskoordinatorTilgangskontrollService
                     .kontrollerTilgangTilBruker(
                         navIdent = call.getNavIdent(),
                         navAnsattAzureId = call.getNavAnsattAzureId(),

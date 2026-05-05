@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.service
 
 import no.nav.amt.deltaker.extensions.getForslagId
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
-import no.nav.amt.deltaker.innbygger.DistribuerEndringService
 import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker

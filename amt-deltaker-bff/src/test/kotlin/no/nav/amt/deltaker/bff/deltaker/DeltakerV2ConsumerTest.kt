@@ -4,20 +4,18 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.bff.deltaker.kafka.DeltakerV2Consumer
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
+import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.utils.data.TestRepository
+import no.nav.amt.deltaker.bff.utils.TestData
+import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
@@ -302,7 +300,7 @@ class DeltakerV2ConsumerTest {
         private fun Deltaker.toKafkaPayload(
             kilde: Kilde,
             vurderinger: List<Vurdering> = emptyList(),
-            deltakerliste: no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste,
+            deltakerliste: no.nav.amt.deltaker.bff.model.Deltakerliste,
         ) = DeltakerKafkaPayload(
             id = id,
             deltakerlisteId = deltakerliste.id,

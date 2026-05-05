@@ -6,7 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import java.util.UUID
 
 fun Routing.registerUlestHendelseApi(ulestHendelseService: UlestHendelseService) {

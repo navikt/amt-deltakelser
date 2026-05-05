@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_ANNET_INNHOLD_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_BAKGRUNNSINFORMASJON_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DAGER_PER_UKE

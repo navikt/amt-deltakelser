@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.veileder.endring
 
 import no.nav.amt.deltaker.extensions.getForslagId
-import no.nav.amt.deltaker.innbygger.DistribuerEndringService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.lib.models.deltaker.DeltakerEndring

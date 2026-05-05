@@ -1,13 +1,12 @@
 package no.nav.amt.deltaker.bff.deltaker
 
-import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakeroppdatering
-import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.deltaker.model.Kladd
-import no.nav.amt.deltaker.bff.deltaker.model.Utkast
+import no.nav.amt.deltaker.bff.clients.DtoMappers.toDeltakeroppdatering
+import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Kladd
+import no.nav.amt.deltaker.bff.model.Utkast
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database

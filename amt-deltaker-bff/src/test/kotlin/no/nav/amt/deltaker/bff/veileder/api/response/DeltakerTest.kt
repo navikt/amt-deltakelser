@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.utils.data.TestData
+import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.months
 import no.nav.amt.deltaker.bff.utils.weeks
 import no.nav.amt.deltaker.bff.utils.years

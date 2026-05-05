@@ -7,20 +7,18 @@ import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.mockk
-import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.toDeltakerResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.toResponse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder.toDeltakerResponse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder.toResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagGjennomforingResponse
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakskoordinatorDeltaker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakskoordinatorTilgang
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorTilgang
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostTiltakskoordinatorRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
@@ -33,8 +31,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
-    override val tilgangskontrollService: TilgangskontrollService = mockk()
-
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
@@ -179,7 +175,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @Test
     fun `get deltakere - mangler tilgang til deltakerliste - returnerer 403`() {
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-        coEvery { tilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } throws AuthorizationException("")
+        coEvery { selfServiceTilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } throws AuthorizationException("")
 
         val response = withTestApplicationContext { client ->
             client.get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere") {
@@ -242,7 +238,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
         deltakere.forEach {
             every {
-                tilgangskontrollService.harKoordinatorTilgangTilPerson(
+                tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
                     any(),
                     adressebeskyttelse = it.navBruker.adressebeskyttelse,
                     erSkjermet = it.navBruker.erSkjermet,
@@ -265,7 +261,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @Test
     fun `legg til tilgang - har ikke tilgang fra for - returnerer 200`() {
         coEvery {
-            tilgangskontrollService.leggTilTiltakskoordinatorTilgang(
+            selfServiceTilgangskontrollService.leggTilTiltakskoordinatorTilgang(
                 any(),
                 deltakerlisteInTest.id,
             )
@@ -283,11 +279,15 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @Test
     fun `legg til tilgang - har tilgang fra for - returnerer 400`() {
         coEvery {
-            tilgangskontrollService.leggTilTiltakskoordinatorTilgang(
+            selfServiceTilgangskontrollService.leggTilTiltakskoordinatorTilgang(
                 any(),
                 any(),
             )
         } returns Result.failure(IllegalArgumentException())
+
+        coEvery {
+            tiltakskoordinatorTilgangRepository.hentAktivTilgang(any(), any())
+        } returns Result.success(lagTiltakskoordinatorTilgang())
 
         val response = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/tilgang/legg-til") {
@@ -301,7 +301,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @Test
     fun `post del-med-arrangor - mangler tilgang til deltakerliste - returnerer 403`() {
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-        coEvery { tilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws AuthorizationException("")
+        coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws
+            AuthorizationException("")
 
         val response = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/del-med-arrangor") {
@@ -317,7 +318,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         mockTilgangTilDeltakerliste()
 
         coEvery { tiltakskoordinatorService.hentDeltakereForDeltakerliste(any()) } returns emptyList()
-        coEvery { tilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws NoSuchElementException()
+        coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws NoSuchElementException()
 
         val response = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
@@ -332,7 +333,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `post sett-paa-venteliste - deltakerliste er feil type - returnerer unauthorized`() {
         mockTilgangTilDeltakerliste()
 
-        coEvery { tilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
+        coEvery { selfServiceTilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
 
         val response = withTestApplicationContext { client ->
@@ -366,7 +367,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
      */
 
     private fun mockTilgangTilDeltakerliste() {
-        coEvery { tilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
+        coEvery { selfServiceTilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
     }
 
     companion object {

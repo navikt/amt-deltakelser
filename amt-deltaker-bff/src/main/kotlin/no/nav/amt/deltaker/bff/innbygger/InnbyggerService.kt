@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.bff.innbygger
 
-import no.nav.amt.deltaker.bff.apiclients.DtoMappers.toDeltakeroppdatering
-import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
+import no.nav.amt.deltaker.bff.clients.DtoMappers.toDeltakeroppdatering
+import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 class InnbyggerService(

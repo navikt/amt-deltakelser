@@ -11,7 +11,7 @@
     </appender>
     <logger name="no.nav" level="DEBUG"/>
     <logger name="org.apache.kafka.clients" level="ERROR"/>
-    <logger name="no.nav.amt.deltaker.bff.utils.data.TestRepository" level="ERROR"/>
+    <logger name="no.nav.amt.deltaker.bff.utils.TestRepository" level="ERROR"/>
     <root level="WARN">
         <appender-ref ref="consoleAppender"/>
     </root>

@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.commonresponse
 
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
+import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
 

@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.model
 
-import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
+import no.nav.amt.deltaker.bff.model.Deltakerliste
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.arrangor.melding.Forslag

@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanReaktiveres
 

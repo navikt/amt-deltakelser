@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.utils.data.TestRepository
+import no.nav.amt.deltaker.bff.utils.TestData
+import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk

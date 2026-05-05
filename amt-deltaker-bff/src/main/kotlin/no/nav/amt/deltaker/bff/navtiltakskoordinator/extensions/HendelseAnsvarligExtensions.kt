@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions
 
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.AnsvarligNavnOgEnhet
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
 import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
 
 fun HendelseAnsvarlig.toAnsvarligNavnOgEnhet(): AnsvarligNavnOgEnhet? = when (this) {

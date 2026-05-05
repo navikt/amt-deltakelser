@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.bff.veileder.api.utils
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
-import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.utils.data.TestData.input
+import no.nav.amt.deltaker.bff.utils.TestData
+import no.nav.amt.deltaker.bff.utils.TestData.input
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
