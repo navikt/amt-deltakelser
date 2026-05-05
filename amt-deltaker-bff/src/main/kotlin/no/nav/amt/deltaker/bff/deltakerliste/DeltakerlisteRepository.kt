@@ -64,16 +64,16 @@ class DeltakerlisteRepository {
         val params = mapOf(
             "id" to deltakerliste.id,
             "navn" to deltakerliste.navn,
-            "status" to deltakerliste.status?.name,
+            "status" to deltakerliste.status.name,
             "arrangor_id" to deltakerliste.arrangor.arrangor.id,
             "tiltakstype_id" to deltakerliste.tiltak.id,
             "start_dato" to deltakerliste.startDato,
             "slutt_dato" to deltakerliste.sluttDato,
-            "oppstart" to deltakerliste.oppstart?.name,
+            "oppstart" to deltakerliste.oppstart.name,
             "apent_for_pamelding" to deltakerliste.apentForPamelding,
             "antall_plasser" to deltakerliste.antallPlasser,
             "oppmote_sted" to deltakerliste.oppmoteSted,
-            "pameldingstype" to deltakerliste.pameldingstype?.name,
+            "pameldingstype" to deltakerliste.pameldingstype.name,
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
@@ -136,10 +136,10 @@ class DeltakerlisteRepository {
             id = row.uuid(col("id")),
             tiltak = TiltakstypeRepository.rowMapper(row, "t"),
             navn = row.string(col("navn")),
-            status = row.stringOrNull(col("status"))?.let { GjennomforingStatusType.valueOf(it) },
+            status = row.string(col("status")).let { GjennomforingStatusType.valueOf(it) },
             startDato = row.localDateOrNull(col("start_dato")),
             sluttDato = row.localDateOrNull(col("slutt_dato")),
-            oppstart = row.stringOrNull(col("oppstart"))?.let { Oppstartstype.valueOf(it) },
+            oppstart = row.string(col("oppstart")).let { Oppstartstype.valueOf(it) },
             arrangor = Deltakerliste.Arrangor(
                 arrangor = Arrangor(
                     id = row.uuid("a.id"),
@@ -154,7 +154,7 @@ class DeltakerlisteRepository {
             antallPlasser = row.intOrNull(col("antall_plasser")),
             apentForPamelding = row.boolean(col("apent_for_pamelding")),
             oppmoteSted = row.stringOrNull(col("oppmote_sted")),
-            pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
+            pameldingstype = row.string(col("pameldingstype")).let { GjennomforingPameldingType.valueOf(it) },
         )
     }
 }

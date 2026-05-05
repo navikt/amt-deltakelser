@@ -485,7 +485,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                         models = historikk,
                         arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
                         oppstartstype = deltaker.deltakerliste.oppstart,
-                        pameldingstype = null,
+                        pameldingstype = deltaker.deltakerliste.pameldingstype,
                         enheter = enheter,
                         ansatte = ansatte,
                     ),

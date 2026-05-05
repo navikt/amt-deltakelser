@@ -103,7 +103,7 @@ class DeltakerTest {
 
     @Test
     fun `getDeltakerHistorikkForVisning - pameldingstype null - inkluderer vedtak`() {
-        val deltakerliste = TestData.lagDeltakerliste(pameldingType = null)
+        val deltakerliste = TestData.lagDeltakerliste()
         val baseDeltaker = TestData.lagDeltaker(historikk = false, deltakerliste = deltakerliste)
         val vedtak = TestData.lagVedtak(
             deltakerId = baseDeltaker.id,

@@ -12,15 +12,15 @@ data class Deltakerliste(
     val id: UUID,
     val tiltak: Tiltakstype,
     val navn: String,
-    val status: GjennomforingStatusType?,
+    val status: GjennomforingStatusType,
     val startDato: LocalDate?,
     val sluttDato: LocalDate? = null,
-    val oppstart: Oppstartstype?,
+    val oppstart: Oppstartstype,
     val arrangor: Arrangor,
     val apentForPamelding: Boolean,
     val antallPlasser: Int?,
     val oppmoteSted: String?,
-    val pameldingstype: GjennomforingPameldingType?,
+    val pameldingstype: GjennomforingPameldingType,
 ) {
     // Merkelig datastruktur som lager behov for å joine samme tabell flere ganger
     // Erstattet i GjennomforingModel og utledes i amt-deltaker

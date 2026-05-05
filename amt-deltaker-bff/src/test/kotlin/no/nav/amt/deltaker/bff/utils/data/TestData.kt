@@ -110,7 +110,7 @@ object TestData {
         apentForPamelding: Boolean = true,
         antallPlasser: Int = 42,
         oppmoteSted: String = "~oppmoteSted~",
-        pameldingType: GjennomforingPameldingType? = null,
+        pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     ) = Deltakerliste(
         id = id,
         tiltak = tiltakstype,
@@ -203,7 +203,7 @@ object TestData {
     ) = GjennomforingV2KafkaPayload.Enkeltplass(
         id = deltakerliste.id,
         tiltakskode = deltakerliste.tiltak.tiltakskode,
-        status = deltakerliste.status ?: GjennomforingStatusType.KLADD,
+        status = deltakerliste.status,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
@@ -222,8 +222,8 @@ object TestData {
         tiltakskode = deltakerliste.tiltak.tiltakskode,
         startDato = deltakerliste.startDato!!,
         sluttDato = deltakerliste.sluttDato,
-        status = deltakerliste.status!!,
-        oppstart = deltakerliste.oppstart!!,
+        status = deltakerliste.status,
+        oppstart = deltakerliste.oppstart,
         apentForPamelding = deltakerliste.apentForPamelding,
         oppmoteSted = deltakerliste.oppmoteSted,
         tilgjengeligForArrangorFraOgMedDato = null,
