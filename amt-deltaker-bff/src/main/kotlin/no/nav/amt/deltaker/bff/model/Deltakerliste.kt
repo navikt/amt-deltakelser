@@ -39,5 +39,5 @@ data class Deltakerliste(
         }
     }
 
-    fun deltakerAdresseDeles() = Tiltakstype.Companion.tiltakUtenDeltakerAdresseDeling.none { it == this.tiltak.tiltakskode }
+    fun deltakerAdresseDeles() = Tiltakstype.tiltakUtenDeltakerAdresseDeling.none { it == this.tiltak.tiltakskode }
 }

@@ -32,7 +32,7 @@ class DeltakerV2Consumer(
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val consumer = KafkaConsumerFactory.buildManagedKafkaConsumer(
-        topic = Environment.Companion.AMT_DELTAKERV2_TOPIC,
+        topic = Environment.AMT_DELTAKERV2_TOPIC,
         consumeFunc = ::consume,
     )
 

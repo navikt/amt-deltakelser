@@ -53,7 +53,7 @@ class GjennomforingConsumer(
         }
 
         // enkelte gjennomforinger skal ikke bli lest grunnet feil
-        if (GjennomforingV2KafkaPayload.Companion.gjennomforingBlacklist.contains(deltakerlistePayload.id)) {
+        if (GjennomforingV2KafkaPayload.gjennomforingBlacklist.contains(deltakerlistePayload.id)) {
             return
         }
 
