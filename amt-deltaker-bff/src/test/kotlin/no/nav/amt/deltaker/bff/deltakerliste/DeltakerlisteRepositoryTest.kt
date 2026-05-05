@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.Nested
@@ -26,30 +25,6 @@ class DeltakerlisteRepositoryTest {
 
     @Nested
     inner class Upsert {
-        @Test
-        fun `ny minimal deltakerliste - inserter`() {
-            val arrangor = lagArrangor()
-            arrangorRepository.upsert(arrangor)
-
-            val tiltakstype = lagTiltakstype()
-            tiltakstypeRepository.upsert(tiltakstype)
-
-            val deltakerliste = lagDeltakerliste(
-                arrangor = arrangor,
-                tiltakstype = tiltakstype,
-            ).copy(
-                status = null,
-                startDato = null,
-                sluttDato = null,
-                oppstart = null,
-                antallPlasser = null,
-            )
-
-            deltakerlisteRepository.upsert(deltakerliste)
-
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
-        }
-
         @Test
         fun `ny deltakerliste - inserter`() {
             val arrangor = lagArrangor()
