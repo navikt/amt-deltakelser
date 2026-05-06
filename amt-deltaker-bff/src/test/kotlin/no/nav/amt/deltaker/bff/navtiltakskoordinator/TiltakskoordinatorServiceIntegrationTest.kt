@@ -6,20 +6,19 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.DtoMappers.deltakerOppdateringResponseFromDeltaker
-import no.nav.amt.deltaker.bff.apiclients.TiltaksKoordinatorClient
+import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.clients.DtoMappers.deltakerOppdateringResponseFromDeltaker
+import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.data.TestRepository
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -34,7 +33,7 @@ import java.util.UUID
 
 class TiltakskoordinatorServiceIntegrationTest {
     private val amtDeltakerClient = mockk<AmtDeltakerClient>()
-    private val tiltaksKoordinatorClient = mockk<TiltaksKoordinatorClient>()
+    private val tiltaksKoordinatorClient = mockk<TiltakskoordinatorClient>()
 
     private val navEnhetService = mockk<NavEnhetService>()
     private val navAnsattService = mockk<NavAnsattService>()

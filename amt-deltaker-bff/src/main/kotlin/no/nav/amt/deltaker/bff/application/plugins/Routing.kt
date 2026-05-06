@@ -14,39 +14,40 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
-import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
-import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
-import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
+import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
+import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.clients.GjennomforingClient
+import no.nav.amt.deltaker.bff.clients.PaameldingClient
+import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
+import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
 import no.nav.amt.deltaker.bff.enkeltplass.validate
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
-import no.nav.amt.deltaker.bff.innbygger.registerInnbyggerApi
+import no.nav.amt.deltaker.bff.innbygger.api.registerInnbyggerApi
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.SporbarhetOgTilgangskontrollSvc
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerlisteApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerUlestHendelseApi
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.deltaker.bff.testdata.registerTestdataApi
-import no.nav.amt.deltaker.bff.unleash.registerUnleashApi
 import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
 import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi
+import no.nav.amt.deltaker.bff.veileder.api.registerUnleashApi
 import no.nav.amt.deltaker.bff.veileder.api.registerVeilederApi
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
@@ -65,6 +66,7 @@ fun Application.configureRequestValidation() {
 
 fun Application.configureRouting(
     tilgangskontrollService: TilgangskontrollService,
+    selfServiceTilgangService: SelfServiceTilgangService,
     deltakerService: DeltakerService,
     pameldingService: PameldingService,
     paameldingClient: PaameldingClient,
@@ -82,7 +84,7 @@ fun Application.configureRouting(
     deltakerlisteService: DeltakerlisteService,
     unleash: Unleash,
     commonUnleashToggle: CommonUnleashToggle,
-    sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc,
+    tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     ulestHendelseService: UlestHendelseService,
@@ -177,7 +179,7 @@ fun Application.configureRouting(
         registerUnleashApi(unleash)
 
         registerTiltakskoordinatorDeltakerApi(
-            sporbarhetOgTilgangskontrollSvc = sporbarhetOgTilgangskontrollSvc,
+            tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
             tiltakskoordinatorService = tiltakskoordinatorService,
             deltakerRepository = deltakerRepository,
             amtDeltakerClient = amtDeltakerClient,
@@ -189,12 +191,13 @@ fun Application.configureRouting(
 
         registerTiltakskoordinatorDeltakerlisteApi(
             deltakerlisteService = deltakerlisteService,
-            tilgangskontrollService = tilgangskontrollService,
             tiltakskoordinatorService = tiltakskoordinatorService,
             tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
             navAnsattService = navAnsattService,
             gjennomforingClient = gjennomforingClient,
             unleashToggle = commonUnleashToggle,
+            tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
+            selfServiceTilgang = selfServiceTilgangService,
         )
 
         registerUlestHendelseApi(ulestHendelseService)

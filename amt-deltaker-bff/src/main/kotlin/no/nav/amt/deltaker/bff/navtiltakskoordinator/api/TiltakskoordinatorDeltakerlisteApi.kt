@@ -9,34 +9,27 @@ import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
-import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
-import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
+import no.nav.amt.deltaker.bff.clients.GjennomforingClient
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerStatusAarsakResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerStatusResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelseType
-import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder.toDeltakerResponse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder.toResponse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     deltakerlisteService: DeltakerlisteService,
-    tilgangskontrollService: TilgangskontrollService,
+    tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
+    selfServiceTilgang: SelfServiceTilgangService,
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     navAnsattService: NavAnsattService,
@@ -72,17 +65,22 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
             get("/deltakere") {
                 val deltakerlisteId = getDeltakerlisteId()
                 deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
-                tilgangskontrollService.verifiserTiltakskoordinatorTilgang(
+                selfServiceTilgang.verifiserTiltakskoordinatorTilgang(
                     navIdent = call.getNavIdent(),
                     deltakerlisteId = deltakerlisteId,
                 )
 
                 val deltakere = tiltakskoordinatorService
                     .hentDeltakereForDeltakerliste(deltakerlisteId)
-                    .toDeltakerResponses(
-                        tilgangskontrollService = tilgangskontrollService,
-                        navAnsattAzureId = call.getNavAnsattAzureId(),
-                    )
+                    .map { deltaker ->
+                        deltaker.toDeltakerResponse(
+                            tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                                navAnsattAzureId = call.getNavAnsattAzureId(),
+                                erSkjermet = deltaker.navBruker.erSkjermet,
+                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                            ),
+                        )
+                    }
 
                 call.respond(deltakere)
             }
@@ -91,7 +89,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navIdent = call.getNavIdent()
                 val deltakerIder = call.receive<List<UUID>>()
 
-                tilgangskontrollService.tilgangTilDeltakereGuard(
+                tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(
                     deltakerIder = deltakerIder,
                     deltakerlisteId = getDeltakerlisteId(),
                     navIdent = navIdent,
@@ -103,10 +101,16 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     endretAv = navIdent,
                 )
 
-                val deltakereResponse = oppdaterteDeltakere.toDeltakerResponses(
-                    tilgangskontrollService = tilgangskontrollService,
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                )
+                val deltakereResponse = oppdaterteDeltakere
+                    .map { deltaker ->
+                        deltaker.toDeltakerResponse(
+                            kanSeInnbyggersNavn = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                                navAnsattAzureId = call.getNavAnsattAzureId(),
+                                erSkjermet = deltaker.navBruker.erSkjermet,
+                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                            ),
+                        )
+                    }
 
                 call.respond(deltakereResponse)
             }
@@ -115,7 +119,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navIdent = call.getNavIdent()
                 val deltakerIder = call.receive<List<UUID>>()
 
-                tilgangskontrollService.tilgangTilDeltakereGuard(
+                tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(
                     deltakerIder = deltakerIder,
                     deltakerlisteId = getDeltakerlisteId(),
                     navIdent = navIdent,
@@ -127,10 +131,15 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     endretAv = navIdent,
                 )
 
-                val deltakereResponse = oppdaterteDeltakere.toDeltakerResponses(
-                    tilgangskontrollService = tilgangskontrollService,
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                )
+                val deltakereResponse = oppdaterteDeltakere.map { deltaker ->
+                    deltaker.toDeltakerResponse(
+                        kanSeInnbyggersNavn = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                            navAnsattAzureId = call.getNavAnsattAzureId(),
+                            erSkjermet = deltaker.navBruker.erSkjermet,
+                            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                        ),
+                    )
+                }
 
                 call.respond(deltakereResponse)
             }
@@ -139,7 +148,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navIdent = call.getNavIdent()
                 val deltakerIder = call.receive<List<UUID>>()
 
-                tilgangskontrollService.tilgangTilDeltakereGuard(
+                tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(
                     deltakerIder = deltakerIder,
                     deltakerlisteId = getDeltakerlisteId(),
                     navIdent = navIdent,
@@ -150,10 +159,15 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                         deltakerIder = deltakerIder,
                         endring = EndringFraTiltakskoordinator.DelMedArrangor,
                         endretAv = navIdent,
-                    ).toDeltakerResponses(
-                        tilgangskontrollService = tilgangskontrollService,
-                        navAnsattAzureId = call.getNavAnsattAzureId(),
-                    )
+                    ).map { deltaker ->
+                        deltaker.toDeltakerResponse(
+                            kanSeInnbyggersNavn = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                                navAnsattAzureId = call.getNavAnsattAzureId(),
+                                erSkjermet = deltaker.navBruker.erSkjermet,
+                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                            ),
+                        )
+                    }
 
                 call.respond(oppdaterteDeltakere)
             }
@@ -162,7 +176,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navIdent = call.getNavIdent()
                 val request = call.receive<AvslagRequest>()
 
-                tilgangskontrollService.tilgangTilDeltakereGuard(
+                tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(
                     deltakerIder = listOf(request.deltakerId),
                     deltakerlisteId = getDeltakerlisteId(),
                     navIdent = navIdent,
@@ -173,7 +187,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     endretAv = navIdent,
                 )
 
-                val harTilgang = tilgangskontrollService.harKoordinatorTilgangTilPerson(
+                val harTilgang = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
                     navAnsattAzureId = call.getNavAnsattAzureId(),
                     erSkjermet = oppdatertDeltaker.navBruker.erSkjermet,
                     adressebeskyttelse = oppdatertDeltaker.navBruker.adressebeskyttelse,
@@ -183,7 +197,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
             }
 
             post("/tilgang/legg-til") {
-                tilgangskontrollService
+                selfServiceTilgang
                     .leggTilTiltakskoordinatorTilgang(
                         navIdent = call.getNavIdent(),
                         deltakerlisteId = getDeltakerlisteId(),
@@ -193,7 +207,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
             }
 
             post("/tilgang/fjern") {
-                tilgangskontrollService
+                selfServiceTilgang
                     .fjernTiltakskoordinatorTilgang(
                         call.getNavIdent(),
                         getDeltakerlisteId(),
@@ -205,66 +219,6 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     }
 }
 
-private fun List<TiltakskoordinatorsDeltaker>.toDeltakerResponses(
-    tilgangskontrollService: TilgangskontrollService,
-    navAnsattAzureId: UUID,
-) = map { deltaker ->
-    val harTilgangTilAASeNavn = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-        navAnsattAzureId = navAnsattAzureId,
-        erSkjermet = deltaker.navBruker.erSkjermet,
-        adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-    )
-
-    deltaker.toDeltakerResponse(harTilgangTilAASeNavn)
-}
-
-fun TiltakskoordinatorsDeltaker.toDeltakerResponse(harTilgang: Boolean): DeltakerResponse {
-    val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(harTilgang)
-
-    return DeltakerResponse(
-        id = id,
-        fornavn = fornavn,
-        mellomnavn = mellomnavn,
-        etternavn = etternavn,
-        status = DeltakerStatusResponse(
-            type = status.type,
-            aarsak = status.aarsak?.let {
-                DeltakerStatusAarsakResponse(
-                    it.type,
-                    it.beskrivelse,
-                )
-            },
-        ),
-        vurdering = vurdering?.vurderingstype,
-        beskyttelsesmarkering = beskyttelsesmarkering,
-        navEnhet = navEnhet,
-        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-        feilkode = feilkode,
-        ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
-        harAktiveForslag = forslag.any { f -> f.status == Forslag.Status.VenterPaSvar },
-        erNyDeltaker = ulesteHendelser.any {
-            it.hendelse is UlestHendelseType.InnbyggerGodkjennUtkast ||
-                it.hendelse is UlestHendelseType.NavGodkjennUtkast
-        },
-        harOppdateringFraNav = ulesteHendelser.any {
-            it.hendelse is UlestHendelseType.IkkeAktuell ||
-                it.hendelse is UlestHendelseType.AvsluttDeltakelse ||
-                it.hendelse is UlestHendelseType.AvbrytDeltakelse ||
-                it.hendelse is UlestHendelseType.ReaktiverDeltakelse
-        },
-        kanEndres = kanEndres,
-        soktInnDato = soktInnDato,
-        startdato = startdato,
-        sluttdato = sluttdato,
-    )
-}
-
-data class AvslagRequest(
-    val deltakerId: UUID,
-    val aarsak: EndringFraTiltakskoordinator.Avslag.Aarsak,
-    val begrunnelse: String?,
-)
-
 fun RoutingContext.getDeltakerlisteId(): UUID {
     val id =
         call.parameters["id"] ?: throw IllegalArgumentException("Påkrevd URL parameter 'deltakerlisteId' mangler.")
@@ -275,22 +229,3 @@ fun RoutingContext.getDeltakerlisteId(): UUID {
         throw IllegalArgumentException("URL parameter 'deltakerlisteId' er ikke formattert riktig.")
     }
 }
-
-fun Deltakerliste.toResponse(koordinatorer: List<Tiltakskoordinator>) = DeltakerlisteResponse(
-    id = id,
-    navn = navn,
-    tiltakskode = tiltak.tiltakskode,
-    startdato = startDato,
-    sluttdato = sluttDato,
-    oppstartstype = oppstart,
-    apentForPamelding = apentForPamelding,
-    antallPlasser = antallPlasser,
-    pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-    koordinatorer = koordinatorer,
-    /*
-        Denne mapperen fases ut når vi henter data amt-deltaker
-        som må gjøres for å få på plass ny løsning for enkeltplasser
-        derfor er en forenklet definisjon av erEnkeltplass
-     */
-    erEnkeltplass = tiltak.tiltakskode in Tiltakstype.arenaEnkeltplassTiltakskoder,
-)

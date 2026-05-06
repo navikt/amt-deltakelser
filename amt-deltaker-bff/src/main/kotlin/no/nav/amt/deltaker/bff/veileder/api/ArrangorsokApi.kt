@@ -6,8 +6,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
+import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 
 private const val TERMS_PARAM = "term"
 

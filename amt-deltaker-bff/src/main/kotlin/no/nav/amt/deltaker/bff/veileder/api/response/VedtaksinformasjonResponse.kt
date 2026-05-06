@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
-import no.nav.amt.deltaker.bff.deltaker.model.VedtaksinformasjonModel
+import no.nav.amt.deltaker.bff.model.VedtaksinformasjonModel
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet

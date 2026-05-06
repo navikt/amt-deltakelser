@@ -19,12 +19,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
-import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
-import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
-import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
-import no.nav.amt.deltaker.bff.apiclients.TiltaksKoordinatorClient
-import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureMonitoring
 import no.nav.amt.deltaker.bff.application.plugins.configureRequestValidation
@@ -33,44 +27,51 @@ import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
 import no.nav.amt.deltaker.bff.arrangor.ArrangorConsumer
 import no.nav.amt.deltaker.bff.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.arrangor.ArrangorService
+import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorStengTilgangJob
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorsDeltakerlisteProducer
+import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.clients.GjennomforingClient
+import no.nav.amt.deltaker.bff.clients.PaameldingClient
+import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
+import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
+import no.nav.amt.deltaker.bff.deltaker.DeltakerV2Consumer
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.deltaker.forslag.kafka.ArrangorMeldingConsumer
 import no.nav.amt.deltaker.bff.deltaker.forslag.kafka.ArrangorMeldingProducer
-import no.nav.amt.deltaker.bff.deltaker.job.SlettUtdatertKladdJob
-import no.nav.amt.deltaker.bff.deltaker.job.leaderelection.LeaderElection
-import no.nav.amt.deltaker.bff.deltaker.kafka.DeltakerV2Consumer
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
-import no.nav.amt.deltaker.bff.deltakerliste.kafka.DeltakerlisteConsumer
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.TiltakstypeRepository
-import no.nav.amt.deltaker.bff.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
+import no.nav.amt.deltaker.bff.gjennomforing.GjennomforingConsumer
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
+import no.nav.amt.deltaker.bff.job.LeaderElection
+import no.nav.amt.deltaker.bff.job.SlettUtdatertKladdJob
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetConsumer
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.SporbarhetOgTilgangskontrollSvc
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseRepository
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.kafka.HendelseConsumer
-import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltakerlisteProducer
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorStengTilgangJob
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.DeltakerEndringHendelseConsumer
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.testdata.TestdataService
+import no.nav.amt.deltaker.bff.tiltak.TiltakConsumer
+import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
@@ -158,7 +159,7 @@ fun Application.module() {
         azureAdTokenClient = azureAdTokenClient,
     )
 
-    val tiltakskoordinatorClient = TiltaksKoordinatorClient(
+    val tiltakskoordinatorClient = TiltakskoordinatorClient(
         baseUrl = environment.amtDeltakerUrl,
         scope = environment.amtDeltakerScope,
         httpClient = httpClient,
@@ -295,20 +296,22 @@ fun Application.module() {
 
     val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient,
-        navAnsattService,
-        tiltakskoordinatorTilgangRepository,
-        tiltakskoordinatorsDeltakerlisteProducer,
-        tiltakskoordinatorService,
-        deltakerlisteService,
+    )
+    val selfServiceTilgangService = SelfServiceTilgangService(
+        navAnsattService = navAnsattService,
+        tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
+        tiltakskoordinatorsDeltakerlisteProducer = tiltakskoordinatorsDeltakerlisteProducer,
     )
 
-    val sporbarhetOgTilgangskontrollSvc = SporbarhetOgTilgangskontrollSvc(
+    val tiltakskoordinatorTilgangskontrollService = TiltakskoordinatorTilgangskontrollService(
         sporbarhetsloggService = sporbarhetsloggService,
-        tilgangskontrollService,
-        deltakerlisteService,
+        tilgangskontrollService = tilgangskontrollService,
+        deltakerlisteService = deltakerlisteService,
+        selfServiceTilgangService = selfServiceTilgangService,
+        tiltakskoordinatorService = tiltakskoordinatorService,
     )
 
-    val tiltakstypeRepository = TiltakstypeRepository()
+    val tiltakRepository = TiltakRepository()
 
     val testdataService = TestdataService(
         pameldingService = pameldingService,
@@ -320,18 +323,18 @@ fun Application.module() {
     val unleashToggle = CommonUnleashToggle(unleash)
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
-        DeltakerlisteConsumer(
+        GjennomforingConsumer(
             deltakerRepository = deltakerRepository,
             deltakerlisteRepository = deltakerlisteRepository,
             arrangorService = arrangorService,
-            tiltakstypeRepository = tiltakstypeRepository,
+            tiltakRepository = tiltakRepository,
             pameldingService = pameldingService,
-            tilgangskontrollService = tilgangskontrollService,
             unleashToggle = unleashToggle,
+            selfServiceTilgangService = selfServiceTilgangService,
         ),
         NavAnsattConsumer(navAnsattService),
         NavBrukerConsumer(navBrukerService, pameldingService),
-        TiltakstypeConsumer(tiltakstypeRepository),
+        TiltakConsumer(tiltakRepository),
         DeltakerV2Consumer(
             deltakerRepository,
             deltakerService,
@@ -341,7 +344,7 @@ fun Application.module() {
             unleashToggle,
         ),
         ArrangorMeldingConsumer(forslagRepository),
-        HendelseConsumer(ulestHendelseService),
+        DeltakerEndringHendelseConsumer(ulestHendelseService),
         NavEnhetConsumer(navEnhetService),
     )
     consumers.forEach { it.start() }
@@ -367,19 +370,20 @@ fun Application.module() {
         deltakerlisteService = deltakerlisteService,
         unleash = unleash,
         commonUnleashToggle = commonUnleashToggle,
-        sporbarhetOgTilgangskontrollSvc = sporbarhetOgTilgangskontrollSvc,
+        tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
         tiltakskoordinatorService = tiltakskoordinatorService,
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
         ulestHendelseService = ulestHendelseService,
         testdataService = testdataService,
         gjennomforingClient = gjennomforingClient,
+        selfServiceTilgangService = selfServiceTilgangService,
     )
     configureMonitoring()
 
     val slettUtdatertKladdJob = SlettUtdatertKladdJob(leaderElection, attributes, deltakerRepository, pameldingService)
     slettUtdatertKladdJob.startJob()
 
-    val tiltakskoordinatorStengTilgangJob = TiltakskoordinatorStengTilgangJob(leaderElection, attributes, tilgangskontrollService)
+    val tiltakskoordinatorStengTilgangJob = TiltakskoordinatorStengTilgangJob(leaderElection, attributes, selfServiceTilgangService)
     tiltakskoordinatorStengTilgangJob.startJob()
 
     attributes.put(isReadyKey, true)

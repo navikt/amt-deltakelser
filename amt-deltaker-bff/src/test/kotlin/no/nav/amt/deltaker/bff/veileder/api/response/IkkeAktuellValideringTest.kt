@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
-import no.nav.amt.deltaker.bff.utils.data.TestData
+import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

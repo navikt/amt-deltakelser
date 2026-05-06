@@ -7,7 +7,7 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.apiclients.arrangorsok.EnhetResponse
+import no.nav.amt.deltaker.bff.clients.arrangorsok.EnhetResponse
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

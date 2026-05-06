@@ -4,20 +4,10 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
-import no.nav.amt.deltaker.bff.kafka.utils.assertProduced
-import no.nav.amt.deltaker.bff.kafka.utils.assertProducedTombstone
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.testing.DatabaseTestExtension
-import no.nav.amt.lib.testing.SingletonKafkaProvider
-import no.nav.amt.lib.testing.TestOutboxEnvironment
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NavAnsattBehandleFortroligBrukerePolicyInput
 import no.nav.poao_tilgang.client.NavAnsattBehandleSkjermedePersonerPolicyInput
@@ -27,28 +17,22 @@ import no.nav.poao_tilgang.client.PolicyInput
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID
 
 class TilgangskontrollServiceTest {
     private val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
 
-    private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
-    private val tiltakskoordinatorsDeltakerlisteProducer = TiltakskoordinatorsDeltakerlisteProducer(
-        TestOutboxEnvironment.outboxService,
-        kafkaProducer,
-    )
-
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockk())
-    private val tiltakskoordinatorTilgangRepository = TiltakskoordinatorTilgangRepository()
     private val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient,
-        navAnsattService,
-        tiltakskoordinatorTilgangRepository,
-        tiltakskoordinatorsDeltakerlisteProducer,
-        mockk<TiltakskoordinatorService>(),
-        mockk<DeltakerlisteService>(),
+    )
+
+    private val tiltakskoordinatorTilgangskontrollService = TiltakskoordinatorTilgangskontrollService(
+        sporbarhetsloggService = mockk(relaxed = true),
+        tilgangskontrollService = tilgangskontrollService,
+        selfServiceTilgangService = mockk(relaxed = true),
+        deltakerlisteService = mockk(relaxed = true),
+        tiltakskoordinatorService = mockk(relaxed = true),
     )
 
     companion object {
@@ -89,218 +73,93 @@ class TilgangskontrollServiceTest {
     }
 
     @Nested
-    inner class LeggTilTiltakskoordinatorTilgang {
+    inner class KoordinatorTilgangTilDeltaker {
         @Test
-        fun `har ikke tilgang fra for - returnerer success`() = runTest {
-            with(TiltakskoordinatorTilgangContext()) {
-                val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+        fun `koordinatorTilgangTilDeltaker - mangler tilgang - deltaker er kode 7 - tilgang er false`() {
+            val navAnsattAzureId = UUID.randomUUID()
+            mockPoaoTilgangDeny(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId))
 
-                actual.isSuccess shouldBe true
-
-                val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(actual.getOrThrow(), navAnsatt.navIdent)
-                assertProduced(expected)
-            }
-        }
-
-        @Test
-        fun `med inaktiv tilgang fra for - returnerer success`() = runTest {
-            with(TiltakskoordinatorTilgangContext()) {
-                medInaktivTilgang()
-
-                val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-                actual.isSuccess shouldBe true
-
-                val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(actual.getOrThrow(), navAnsatt.navIdent)
-                assertProduced(expected)
-            }
+            val tilgangTilDeltaker = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                navAnsattAzureId = navAnsattAzureId,
+                adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
+                erSkjermet = false,
+            )
+            tilgangTilDeltaker shouldBe false
         }
 
         @Test
-        fun `har tilgang fra for - returnerer failure`() = runTest {
-            with(TiltakskoordinatorTilgangContext()) {
-                medAktivTilgang()
-                val actual = tilgangskontrollService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-                actual.isFailure shouldBe true
-            }
-        }
-    }
+        fun `koordinatorTilgangTilDeltaker - mangler tilgang - deltaker er kode 6 - tilgang er false`() {
+            val navAnsattAzureId = UUID.randomUUID()
+            mockPoaoTilgangDeny(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId))
 
-    @Nested
-    inner class FjernTiltakskoordinatorTilgang {
-        @Test
-        fun `har tilgang fra for - returnerer success`() = runTest {
-            with(TiltakskoordinatorTilgangContext()) {
-                medAktivTilgang()
-                val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-                actual.isSuccess shouldBe true
-
-                val expected = TiltakskoordinatorsDeltakerlisteDto.fromModel(model = actual.getOrThrow(), navIdent = navAnsatt.navIdent)
-                assertProduced(tilgang = expected, tombstoneExpected = true)
-            }
+            val tilgangTilDeltaker = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                navAnsattAzureId,
+                adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
+                erSkjermet = false,
+            )
+            tilgangTilDeltaker shouldBe false
         }
 
         @Test
-        fun `har ikke tilgang fra for - returnerer failure`() = runTest {
-            with(TiltakskoordinatorTilgangContext()) {
-                val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(
-                    navIdent = navAnsatt.navIdent,
-                    deltakerlisteId = deltakerliste.id,
-                )
-                actual.isFailure shouldBe true
-            }
+        fun `koordinatorTilgangTilDeltaker - har tilgang - deltaker er kode 7 - tilgang er true`() {
+            val navAnsattAzureId = UUID.randomUUID()
+            mockPoaoTilgangPermit(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId))
+            val tilgangTilDeltaker = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                navAnsattAzureId,
+                adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
+                erSkjermet = false,
+            )
+            tilgangTilDeltaker shouldBe true
         }
 
         @Test
-        fun `med inaktiv tilgang fra for - returnerer failure`() = runTest {
-            with(TiltakskoordinatorTilgangContext()) {
-                medInaktivTilgang()
-                val actual = tilgangskontrollService.fjernTiltakskoordinatorTilgang(
-                    navIdent = navAnsatt.navIdent,
-                    deltakerlisteId = deltakerliste.id,
-                )
-                actual.isFailure shouldBe true
-            }
+        fun `koordinatorTilgangTilDeltaker - har tilgang - deltaker er kode 6 - tilgang er true`() {
+            val navAnsattAzureId = UUID.randomUUID()
+            mockPoaoTilgangPermit(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId))
+
+            val tilgangTilDeltaker = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                navAnsattAzureId,
+                adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
+                erSkjermet = false,
+            )
+            tilgangTilDeltaker shouldBe true
         }
-    }
 
-    @Test
-    fun `verifiserTiltakskoordinatorTilgang - har tilgang - kaster ikke exception`() = runTest {
-        with(TiltakskoordinatorTilgangContext()) {
-            medAktivTilgang()
-            tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+        @Test
+        fun `koordinatorTilgangTilDeltaker - deltaker er skjermet, ansatt har tilgang - tilgang er true`() {
+            val navAnsattAzureId = UUID.randomUUID()
+
+            mockPoaoTilgangPermit(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId))
+            val tilgangTilDeltaker = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                navAnsattAzureId,
+                adressebeskyttelse = null,
+                erSkjermet = true,
+            )
+            tilgangTilDeltaker shouldBe true
         }
-    }
 
-    @Test
-    fun `verifiserTiltakskoordinatorTilgang - har ingen tilgang - kaster exception`() = runTest {
-        with(TiltakskoordinatorTilgangContext()) {
-            assertThrows<AuthorizationException> {
-                tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-            }
+        @Test
+        fun `koordinatorTilgangTilDeltaker - deltaker er skjermet, har ikke tilgang - tilgang er false`() {
+            val navAnsattAzureId = UUID.randomUUID()
+            mockPoaoTilgangDeny(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId))
+            val tilgangTilDeltaker = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                navAnsattAzureId,
+                adressebeskyttelse = null,
+                erSkjermet = true,
+            )
+            tilgangTilDeltaker shouldBe false
         }
-    }
 
-    @Test
-    fun `verifiserTiltakskoordinatorTilgang - har inaktiv tilgang - kaster exception`() = runTest {
-        with(TiltakskoordinatorTilgangContext()) {
-            medInaktivTilgang()
-            assertThrows<AuthorizationException> {
-                tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-            }
-        }
-    }
+        @Test
+        fun `koordinatorTilgangTilDeltaker - deltaker er ikke adressebeskyttet eller skjermet - tilgang er true`() {
+            val navAnsattAzureId = UUID.randomUUID()
 
-    @Test
-    fun `koordinatorTilgangTilDeltaker - mangler tilgang - deltaker er kode 7 - tilgang er false`() {
-        val navAnsattAzureId = UUID.randomUUID()
-        mockPoaoTilgangDeny(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId))
-
-        val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-            navAnsattAzureId = navAnsattAzureId,
-            adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
-            erSkjermet = false,
-        )
-        tilgangTilDeltaker shouldBe false
-    }
-
-    @Test
-    fun `koordinatorTilgangTilDeltaker - mangler tilgang - deltaker er kode 6 - tilgang er false`() {
-        val navAnsattAzureId = UUID.randomUUID()
-        mockPoaoTilgangDeny(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId))
-
-        val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-            navAnsattAzureId,
-            adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
-            erSkjermet = false,
-        )
-        tilgangTilDeltaker shouldBe false
-    }
-
-    @Test
-    fun `koordinatorTilgangTilDeltaker - har tilgang - deltaker er kode 7 - tilgang er true`() {
-        val navAnsattAzureId = UUID.randomUUID()
-        mockPoaoTilgangPermit(NavAnsattBehandleFortroligBrukerePolicyInput(navAnsattAzureId))
-        val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-            navAnsattAzureId,
-            adressebeskyttelse = Adressebeskyttelse.FORTROLIG,
-            erSkjermet = false,
-        )
-        tilgangTilDeltaker shouldBe true
-    }
-
-    @Test
-    fun `koordinatorTilgangTilDeltaker - har tilgang - deltaker er kode 6 - tilgang er true`() {
-        val navAnsattAzureId = UUID.randomUUID()
-        mockPoaoTilgangPermit(NavAnsattBehandleStrengtFortroligBrukerePolicyInput(navAnsattAzureId))
-
-        val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-            navAnsattAzureId,
-            adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
-            erSkjermet = false,
-        )
-        tilgangTilDeltaker shouldBe true
-    }
-
-    @Test
-    fun `koordinatorTilgangTilDeltaker - deltaker er skjermet, ansatt har tilgang - tilgang er true`() {
-        val navAnsattAzureId = UUID.randomUUID()
-
-        mockPoaoTilgangPermit(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId))
-        val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-            navAnsattAzureId,
-            adressebeskyttelse = null,
-            erSkjermet = true,
-        )
-        tilgangTilDeltaker shouldBe true
-    }
-
-    @Test
-    fun `koordinatorTilgangTilDeltaker - deltaker er skjermet, har ikke tilgang - tilgang er false`() {
-        val navAnsattAzureId = UUID.randomUUID()
-        mockPoaoTilgangDeny(NavAnsattBehandleSkjermedePersonerPolicyInput(navAnsattAzureId))
-        val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-            navAnsattAzureId,
-            adressebeskyttelse = null,
-            erSkjermet = true,
-        )
-        tilgangTilDeltaker shouldBe false
-    }
-
-    @Test
-    fun `koordinatorTilgangTilDeltaker - deltaker er ikke adressebeskyttet eller skjermet - tilgang er true`() {
-        val navAnsattAzureId = UUID.randomUUID()
-
-        val tilgangTilDeltaker = tilgangskontrollService.harKoordinatorTilgangTilPerson(
-            navAnsattAzureId,
-            adressebeskyttelse = null,
-            erSkjermet = false,
-        )
-        tilgangTilDeltaker shouldBe true
-    }
-
-    @Test
-    fun `stengTiltakskoordinatorTilgang - aktiv tilgang - tilgang stenges`() {
-        with(TiltakskoordinatorTilgangContext()) {
-            medAktivTilgang()
-            val stengtTilgang = tilgangskontrollService.stengTiltakskoordinatorTilgang(tilgang.id)
-
-            runTest {
-                assertThrows<AuthorizationException> {
-                    tilgangskontrollService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
-                }
-            }
-
-            assertProducedTombstone(stengtTilgang.getOrThrow())
-        }
-    }
-
-    @Test
-    fun `stengTiltakskoordinatorTilgang - ikke aktiv tilgang - tilgang stenges ikke pa nytt`() {
-        with(TiltakskoordinatorTilgangContext()) {
-            medInaktivTilgang()
-            val resultat = tilgangskontrollService.stengTiltakskoordinatorTilgang(secondTilgang.id)
-
-            resultat.isFailure shouldBe true
+            val tilgangTilDeltaker = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                navAnsattAzureId,
+                adressebeskyttelse = null,
+                erSkjermet = false,
+            )
+            tilgangTilDeltaker shouldBe true
         }
     }
 

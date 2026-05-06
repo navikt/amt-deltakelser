@@ -1,0 +1,6 @@
+package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
+
+object DeltakerResponseUtils {
+    const val ADRESSEBESKYTTET_PLACEHOLDER_NAVN = "Adressebeskyttet"
+    const val SKJERMET_PERSON_PLACEHOLDER_NAVN = "Skjermet person"
+}

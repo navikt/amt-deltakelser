@@ -25,7 +25,6 @@ import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClie
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.innbygger.DistribuerEndringProducer
-import no.nav.amt.deltaker.innbygger.DistribuerEndringService
 import no.nav.amt.deltaker.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
@@ -44,6 +43,7 @@ import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository

@@ -15,10 +15,6 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.bff.utils.generateJWT
 import no.nav.poao_tilgang.client.Decision
@@ -31,15 +27,8 @@ import java.util.UUID
 
 class AuthenticationTest {
     private val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
-    private val navAnsattService = mockk<NavAnsattService>()
-    private val tiltakskoordinatorTilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
     private val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient,
-        navAnsattService,
-        tiltakskoordinatorTilgangRepository,
-        mockk(relaxed = true),
-        mockk<TiltakskoordinatorService>(),
-        mockk<DeltakerlisteService>(),
     )
 
     @BeforeEach
@@ -107,13 +96,14 @@ class AuthenticationTest {
                 deltakerlisteService = mockk(),
                 unleash = mockk(),
                 commonUnleashToggle = mockk(),
-                sporbarhetOgTilgangskontrollSvc = mockk(),
+                tiltakskoordinatorTilgangskontrollService = mockk(),
                 tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
                 ulestHendelseService = mockk(),
                 testdataService = mockk(),
                 paameldingClient = mockk(),
                 gjennomforingClient = mockk(),
+                selfServiceTilgangService = mockk(),
             )
             setUpTestRoute()
         }

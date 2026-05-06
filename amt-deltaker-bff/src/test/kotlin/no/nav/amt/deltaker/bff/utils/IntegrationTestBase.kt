@@ -9,31 +9,32 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.apiclients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.apiclients.EnkeltplassClient
-import no.nav.amt.deltaker.bff.apiclients.GjennomforingClient
-import no.nav.amt.deltaker.bff.apiclients.PaameldingClient
-import no.nav.amt.deltaker.bff.apiclients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
 import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
+import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorTilgangRepository
-import no.nav.amt.deltaker.bff.auth.TiltakskoordinatorsDeltakerlisteProducer
+import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
+import no.nav.amt.deltaker.bff.clients.GjennomforingClient
+import no.nav.amt.deltaker.bff.clients.PaameldingClient
+import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
+import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.SporbarhetOgTilgangskontrollSvc
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.sporbarhet.SporbarhetsloggService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltakerlisteProducer
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
@@ -66,18 +67,14 @@ abstract class IntegrationTestBase {
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk()
     protected val deltakerlisteService: DeltakerlisteService = mockk()
 
-    protected val sporbarhetOgTilgangskontrollSvc: SporbarhetOgTilgangskontrollSvc = mockk()
+    protected val tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService = mockk()
     protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk()
     protected val ulestHendelseService: UlestHendelseService = mockk()
     protected val testdataService: TestdataService = mockk()
     protected val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
+    protected val selfServiceTilgangskontrollService: SelfServiceTilgangService = mockk()
     protected open val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient = poaoTilgangCachedClient,
-        navAnsattService = navAnsattService,
-        tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
-        tiltakskoordinatorsDeltakerlisteProducer = tiltakskoordinatorsDeltakerlisteProducer,
-        tiltakskoordinatorService = tiltakskoordinatorService,
-        deltakerlisteService = deltakerlisteService,
     )
 
     protected val unleash: Unleash = mockk()
@@ -126,13 +123,14 @@ abstract class IntegrationTestBase {
                     deltakerlisteService = deltakerlisteService,
                     unleash = unleash,
                     commonUnleashToggle = commonUnleashToggle,
-                    sporbarhetOgTilgangskontrollSvc = sporbarhetOgTilgangskontrollSvc,
+                    tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
                     tiltakskoordinatorService = tiltakskoordinatorService,
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
                     ulestHendelseService = ulestHendelseService,
                     testdataService = testdataService,
                     paameldingClient = paameldingClient,
                     gjennomforingClient = gjennomforingClient,
+                    selfServiceTilgangService = selfServiceTilgangskontrollService,
                 )
 
                 attributes.put(isReadyKey, appIsReady)

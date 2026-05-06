@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.utils
 
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.deltaker.model.Deltakeroppdatering
+import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.internapi.paamelding.response.UtkastResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse

@@ -4,8 +4,8 @@ import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengdeResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengderResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.deltaker.model.DeltakerModel
+import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

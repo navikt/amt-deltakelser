@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions
 
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.arrangor.melding.Forslag

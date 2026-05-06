@@ -11,9 +11,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse

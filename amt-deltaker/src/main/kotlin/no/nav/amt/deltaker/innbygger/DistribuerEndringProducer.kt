@@ -12,7 +12,7 @@ class DistribuerEndringProducer(
         suppressOutsideTxWarning: Boolean = false,
     ) {
         outboxService.insertRecord(
-            topic = Environment.DELTAKER_HENDELSE_TOPIC,
+            topic = Environment.Companion.DELTAKER_HENDELSE_TOPIC,
             key = hendelse.deltaker.id,
             value = hendelse,
             suppressOutsideTxWarning = suppressOutsideTxWarning,

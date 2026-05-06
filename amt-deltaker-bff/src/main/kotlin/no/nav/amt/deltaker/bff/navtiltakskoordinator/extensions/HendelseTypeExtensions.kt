@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions
 
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulesthendelse.model.UlestHendelseType
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.lib.models.hendelse.HendelseType
 
 fun HendelseType.toUlestHendelseType() = when (val hendelseType = this) {

@@ -8,14 +8,14 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import no.nav.amt.deltaker.bff.apiclients.ModelMapper
+import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerResponse
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -53,7 +53,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
 
             coEvery {
-                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
                     personident = any(),
@@ -84,7 +84,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
 
             coEvery {
-                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
                     personident = any(),
@@ -125,7 +125,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
             every { deltakerRepository.get(any()) } returns Result.success(deltaker)
             coEvery {
-                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
                     deltakerlisteId = any(),
@@ -178,7 +178,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 enheter = navEnhetMap,
             )
             coEvery {
-                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
                     personident = any(),
@@ -220,7 +220,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
             every { deltakerRepository.get(any()) } returns Result.success(deltaker)
             coEvery {
-                sporbarhetOgTilgangskontrollSvc.kontrollerTilgangTilBruker(
+                tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
                     navIdent = any(),
                     navAnsattAzureId = any(),
                     personident = any(),

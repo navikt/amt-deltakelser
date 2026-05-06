@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.bff.utils
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.lib.testing.shouldBeCloseTo
 
 object DeltakerTestUtils {

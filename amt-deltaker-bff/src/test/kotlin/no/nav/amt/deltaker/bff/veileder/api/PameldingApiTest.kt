@@ -7,11 +7,11 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagNavAnsatteForDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse

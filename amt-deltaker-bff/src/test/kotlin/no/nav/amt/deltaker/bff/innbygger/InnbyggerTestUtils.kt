@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.bff.innbygger
 
 import io.kotest.matchers.nulls.shouldNotBeNull
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.utils.data.TestData
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagVedtak
+import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.utils.TestData
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagVedtak
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDateTime

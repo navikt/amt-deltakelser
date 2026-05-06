@@ -1,14 +1,14 @@
 package no.nav.amt.deltaker.bff.testdata
 
 import kotlinx.coroutines.delay
+import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.kafka.ArrangorMeldingProducer
-import no.nav.amt.deltaker.bff.deltaker.model.Deltaker
-import no.nav.amt.deltaker.bff.deltaker.model.Pamelding
-import no.nav.amt.deltaker.bff.deltaker.model.Utkast
-import no.nav.amt.deltaker.bff.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.bff.deltakerliste.DeltakerlisteService
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
+import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.Deltakerliste
+import no.nav.amt.deltaker.bff.model.Pamelding
+import no.nav.amt.deltaker.bff.model.Utkast
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold

@@ -7,10 +7,10 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.bff.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.deltaker.bff.veileder.api.utils.systemPostRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode

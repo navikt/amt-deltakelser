@@ -26,7 +26,6 @@ import no.nav.amt.deltaker.api.tiltaksansvarlig.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
-import no.nav.amt.deltaker.innbygger.DistribuerEndringService
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -35,6 +34,7 @@ import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService

@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.utils.data.TestData.input
+import no.nav.amt.deltaker.bff.utils.TestData.input
 import no.nav.amt.deltaker.bff.veileder.api.request.sanitize
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_ANNET_INNHOLD_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_BAKGRUNNSINFORMASJON_LENGDE
