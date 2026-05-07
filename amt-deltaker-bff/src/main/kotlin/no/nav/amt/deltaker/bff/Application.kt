@@ -89,6 +89,7 @@ import no.nav.common.audit_log.log.AuditLoggerImpl
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import kotlin.time.Duration.Companion.seconds
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder as TiltakskoordinatorResponseBuilder
 
 fun main() {
     embeddedServer(
@@ -382,6 +383,8 @@ fun Application.module() {
         gjennomforingClient = gjennomforingClient,
         selfServiceTilgangService = selfServiceTilgangService,
         kodeverkClient = kodeverkClient,
+        tiltakskoordinatorClient = tiltakskoordinatorClient,
+        tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(ulestHendelseService),
     )
     configureMonitoring()
 

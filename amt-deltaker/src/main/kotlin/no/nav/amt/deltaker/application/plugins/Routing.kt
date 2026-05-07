@@ -151,7 +151,7 @@ fun Application.configureRouting(
             gjennomforingRequestProducer,
         )
 
-        registerTiltakskoordinatorApi(tiltaksansvarligService, deltakerHistorikkService)
+        registerTiltakskoordinatorApi(tiltaksansvarligService, deltakerHistorikkService, deltakerRepository, responseBuilder)
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 
         val catchAllRoute = "{...}"

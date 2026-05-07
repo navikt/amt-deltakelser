@@ -32,7 +32,7 @@ class ResponseBuilderTest {
         @Test
         fun `mapper grunnleggende felter korrekt`() {
             val deltaker = lagDeltakerModel()
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.id shouldBe deltaker.id
             response.startdato shouldBe deltaker.startdato
@@ -50,7 +50,7 @@ class ResponseBuilderTest {
                     aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
                 ),
             )
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             response.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
@@ -61,7 +61,7 @@ class ResponseBuilderTest {
             val deltaker = lagDeltakerModel(
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.status.type shouldBe DeltakerStatus.Type.DELTAR
             response.status.aarsak shouldBe null
@@ -76,7 +76,7 @@ class ResponseBuilderTest {
                 personident = "12345678901",
             )
             val deltaker = lagDeltakerModel(navBrukerResponse = navBruker)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.fornavn shouldBe "Ola"
             response.mellomnavn shouldBe null
@@ -88,7 +88,7 @@ class ResponseBuilderTest {
         @Test
         fun `tilgangTilBruker false - skjuler fodselsnummer`() {
             val deltaker = lagDeltakerModel()
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
 
             response.fodselsnummer shouldBe null
             response.tilgangTilBruker shouldBe false
@@ -98,7 +98,7 @@ class ResponseBuilderTest {
         fun `adressebeskyttet bruker uten tilgang - viser placeholder navn`() {
             val navBruker = lagNavBrukerResponse(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG)
             val deltaker = lagDeltakerModel(navBrukerResponse = navBruker)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
 
             response.fornavn shouldBe ADRESSEBESKYTTET_PLACEHOLDER_NAVN
             response.etternavn shouldBe ""
@@ -110,7 +110,7 @@ class ResponseBuilderTest {
         fun `skjermet bruker uten tilgang - viser placeholder navn`() {
             val navBruker = lagNavBrukerResponse(erSkjermet = true)
             val deltaker = lagDeltakerModel(navBrukerResponse = navBruker)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
 
             response.fornavn shouldBe SKJERMET_PERSON_PLACEHOLDER_NAVN
             response.etternavn shouldBe ""
@@ -121,7 +121,7 @@ class ResponseBuilderTest {
         fun `mapper beskyttelsesmarkering for adressebeskyttet bruker`() {
             val navBruker = lagNavBrukerResponse(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG)
             val deltaker = lagDeltakerModel(navBrukerResponse = navBruker)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.beskyttelsesmarkering shouldBe listOf(Beskyttelsesmarkering.STRENGT_FORTROLIG)
         }
@@ -130,7 +130,7 @@ class ResponseBuilderTest {
         fun `mapper beskyttelsesmarkering for skjermet bruker`() {
             val navBruker = lagNavBrukerResponse(erSkjermet = true)
             val deltaker = lagDeltakerModel(navBrukerResponse = navBruker)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.beskyttelsesmarkering shouldBe listOf(Beskyttelsesmarkering.SKJERMET)
         }
@@ -139,7 +139,7 @@ class ResponseBuilderTest {
         fun `mapper navEnhet og navVeileder`() {
             val navBruker = lagNavBrukerResponse()
             val deltaker = lagDeltakerModel(navBrukerResponse = navBruker)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
             val navVeileder = deltaker.navBruker.navVeileder
 
             response.navEnhet shouldBe deltaker.navBruker.navEnhet
@@ -152,7 +152,7 @@ class ResponseBuilderTest {
         @Test
         fun `mapper innsatsgruppe`() {
             val deltaker = lagDeltakerModel()
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.innsatsgruppe shouldBe deltaker.navBruker.innsatsgruppe
         }
@@ -169,7 +169,7 @@ class ResponseBuilderTest {
                 ),
             )
             val deltaker = lagDeltakerModel()
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, ulesteHendelser)
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, ulesteHendelser)
 
             response.ulesteHendelser shouldHaveSize 1
             response.ulesteHendelser shouldBe ulesteHendelser
@@ -193,7 +193,7 @@ class ResponseBuilderTest {
             val deltaker = lagDeltakerModel(
                 endringsforslagFraArrangor = listOf(aktivtForslag, godkjentForslag, tilbakekaltForslag),
             )
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.aktiveForslag shouldHaveSize 1
             response.aktiveForslag.first().id shouldBe aktivtForslag.id
@@ -202,7 +202,7 @@ class ResponseBuilderTest {
         @Test
         fun `ingen forslag gir tom liste`() {
             val deltaker = lagDeltakerModel(endringsforslagFraArrangor = emptyList())
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.aktiveForslag.shouldBeEmpty()
         }
@@ -217,7 +217,7 @@ class ResponseBuilderTest {
             )
             val gjennomforing = lagGjennomforingResponse(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING)
             val deltaker = lagDeltakerModel(gjennomforingResponse = gjennomforing, deltakelsesinnhold = innhold)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.deltakelsesinnhold shouldBe "Spesiell tilrettelegging"
         }
@@ -232,7 +232,7 @@ class ResponseBuilderTest {
             )
             val gjennomforing = lagGjennomforingResponse(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
             val deltaker = lagDeltakerModel(gjennomforingResponse = gjennomforing, deltakelsesinnhold = innhold)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.deltakelsesinnhold shouldBe null
         }
@@ -247,7 +247,7 @@ class ResponseBuilderTest {
             )
             val gjennomforing = lagGjennomforingResponse(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING)
             val deltaker = lagDeltakerModel(gjennomforingResponse = gjennomforing, deltakelsesinnhold = innhold)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
 
             response.deltakelsesinnhold shouldBe null
         }
@@ -256,7 +256,7 @@ class ResponseBuilderTest {
         fun `deltakelsesinnhold - null innhold - returnerer null`() {
             val gjennomforing = lagGjennomforingResponse(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING)
             val deltaker = lagDeltakerModel(gjennomforingResponse = gjennomforing, deltakelsesinnhold = null)
-            val response = ResponseBuilder.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
+            val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, emptyList())
 
             response.deltakelsesinnhold shouldBe null
         }
@@ -269,7 +269,7 @@ class ResponseBuilderTest {
             val gjennomforing = lagGjennomforingResponse()
             val koordinatorer = listOf(lagTiltakskoordinator())
 
-            val response = ResponseBuilder.buildGjennomforing(gjennomforing, koordinatorer)
+            val response = ResponseMapper.buildGjennomforing(gjennomforing, koordinatorer)
 
             response.id shouldBe gjennomforing.id
             response.navn shouldBe gjennomforing.navn
@@ -288,7 +288,7 @@ class ResponseBuilderTest {
             val koordinator2 = lagTiltakskoordinator(navn = "Koordinator 2")
             val gjennomforing = lagGjennomforingResponse()
 
-            val response = ResponseBuilder.buildGjennomforing(gjennomforing, listOf(koordinator1, koordinator2))
+            val response = ResponseMapper.buildGjennomforing(gjennomforing, listOf(koordinator1, koordinator2))
 
             response.koordinatorer shouldHaveSize 2
             response.koordinatorer[0].navn shouldBe "Koordinator 1"
@@ -299,7 +299,7 @@ class ResponseBuilderTest {
         fun `tom koordinatorliste gir tom liste`() {
             val gjennomforing = lagGjennomforingResponse()
 
-            val response = ResponseBuilder.buildGjennomforing(gjennomforing, emptyList())
+            val response = ResponseMapper.buildGjennomforing(gjennomforing, emptyList())
 
             response.koordinatorer.shouldBeEmpty()
         }
@@ -308,7 +308,7 @@ class ResponseBuilderTest {
         fun `pameldingstype null - bruker TRENGER_GODKJENNING som default`() {
             val gjennomforing = lagGjennomforingResponse(pameldingType = null)
 
-            val response = ResponseBuilder.buildGjennomforing(gjennomforing, emptyList())
+            val response = ResponseMapper.buildGjennomforing(gjennomforing, emptyList())
 
             response.pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
         }

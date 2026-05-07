@@ -10,7 +10,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerDetaljerResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
@@ -104,7 +104,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             responseBody shouldBe ModelMapper
                 .toDeltaker(deltaker)
                 .let {
-                    ResponseBuilder.buildDeltakerDetaljerResponse(it, harTilgangTilBruker, emptyList())
+                    ResponseMapper.buildDeltakerDetaljerResponse(it, harTilgangTilBruker, emptyList())
                 }
         }
     }

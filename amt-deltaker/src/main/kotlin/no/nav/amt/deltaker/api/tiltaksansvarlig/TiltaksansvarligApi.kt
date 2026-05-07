@@ -4,8 +4,12 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.api.response.ResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
+import no.nav.amt.deltaker.extensions.getGjennomforingId
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
@@ -16,6 +20,8 @@ import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 fun Routing.registerTiltakskoordinatorApi(
     tiltaksansvarligService: TiltaksansvarligService,
     deltakerHistorikkService: DeltakerHistorikkService,
+    deltakerRepository: DeltakerRepository,
+    responseBuilder: ResponseBuilder,
 ) {
     val apiPath = "/tiltakskoordinator/deltakere"
 
@@ -27,6 +33,14 @@ fun Routing.registerTiltakskoordinatorApi(
     }
 
     authenticate("SYSTEM") {
+        get("$apiPath/{gjennomforingId}") {
+            val deltakereResponse = deltakerRepository
+                .getForGjennomforing(gjennomforingId = call.getGjennomforingId())
+                .let { responseBuilder.buildDeltakereResponse(it) }
+
+            call.respond(deltakereResponse)
+        }
+
         post("$apiPath/del-med-arrangor") {
             val request = call.receive<DelMedArrangorRequest>()
 
