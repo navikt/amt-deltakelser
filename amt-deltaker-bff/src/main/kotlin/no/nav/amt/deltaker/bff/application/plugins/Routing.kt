@@ -30,7 +30,6 @@ import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
 import no.nav.amt.deltaker.bff.enkeltplass.validate
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
-import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.innbygger.api.registerInnbyggerApi
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
@@ -72,7 +71,6 @@ fun Application.configureRouting(
     paameldingClient: PaameldingClient,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
-    innbyggerService: InnbyggerService,
     forslagRepository: ForslagRepository,
     forslagService: ForslagService,
     amtDistribusjonClient: AmtDistribusjonClient,
@@ -164,15 +162,9 @@ fun Application.configureRouting(
         )
 
         registerInnbyggerApi(
-            deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
             amtDeltakerClient = amtDeltakerClient,
             tilgangskontrollService = tilgangskontrollService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            innbyggerService = innbyggerService,
-            forslageRepository = forslagRepository,
-            unleashToggle = commonUnleashToggle,
             pameldingClient = paameldingClient,
         )
 
