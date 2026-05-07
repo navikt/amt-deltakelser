@@ -43,16 +43,15 @@ object DtoBuilders {
             navn = "Tiltaksliste",
             ledetekst = "Dette er ledeteksten",
             arrangor = HovedvedtakPdfDto.ArrangorDto("Arrangør AS"),
-            forskriftskapittel = 42,
+            forskriftskapittel = "42",
             tiltakskode = tiltakskode,
             oppmoteSted = "Her og der",
         )
 
-    fun hovedvedtakAvsender() =
-        HovedvedtakPdfDto.AvsenderDto(
-            navn = "Nav Saksbehandler",
-            enhet = "Nav Oslo",
-        )
+    fun hovedvedtakAvsender() = HovedvedtakPdfDto.AvsenderDto(
+        navn = "Nav Saksbehandler",
+        enhet = "Nav Oslo",
+    )
 
     fun endringsvedtak(
         endringer: List<EndringDto> = listOf(defaultEndring()),
@@ -70,14 +69,13 @@ object DtoBuilders {
         opprettetDato = fixedDate.minusMonths(1),
     )
 
-    fun endringsvedtakDeltaker() =
-        EndringsvedtakPdfDto.DeltakerDto(
-            fornavn = "Ola",
-            mellomnavn = null,
-            etternavn = "Nordmann",
-            personident = "12345678910",
-            opprettetDato = fixedDate,
-        )
+    fun endringsvedtakDeltaker() = EndringsvedtakPdfDto.DeltakerDto(
+        fornavn = "Ola",
+        mellomnavn = null,
+        etternavn = "Nordmann",
+        personident = "12345678910",
+        opprettetDato = fixedDate,
+    )
 
     fun endringsvedtakDeltakerliste(
         klagerett: Boolean,
@@ -86,22 +84,20 @@ object DtoBuilders {
         navn = "Tiltaksliste",
         ledetekst = "Dette er ledeteksten",
         arrangor = EndringsvedtakPdfDto.ArrangorDto("Arrangør AS"),
-        forskriftskapittel = 42,
+        forskriftskapittel = "42",
         harKlagerett = klagerett,
         pameldingstype = pameldingstype,
     )
 
-    fun defaultEndring() =
-        EndringDto.EndreDeltakelsesmengde(
-            tittel = "Deltakelsesmengde er endret",
-            begrunnelseFraNav = "Begrunnelse",
-            forslagFraArrangor = null,
-            gyldigFra = fixedDate,
-        )
+    fun defaultEndring() = EndringDto.EndreDeltakelsesmengde(
+        tittel = "Deltakelsesmengde er endret",
+        begrunnelseFraNav = "Begrunnelse",
+        forslagFraArrangor = null,
+        gyldigFra = fixedDate,
+    )
 
-    fun endringsvedtakAvsender() =
-        EndringsvedtakPdfDto.AvsenderDto(
-            navn = "Nav Saksbehandler",
-            enhet = "Nav Oslo",
-        )
+    fun endringsvedtakAvsender() = EndringsvedtakPdfDto.AvsenderDto(
+        navn = "Nav Saksbehandler",
+        enhet = "Nav Oslo",
+    )
 }

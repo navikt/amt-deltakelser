@@ -1,39 +1,41 @@
 {
-    "deltaker": {
-        "fornavn": "Navn",
-        "mellomnavn": null,
-        "etternavn": "Navnersen",
-        "innhold": {
-            "fritekstBeskrivelse": "",
-            "valgteInnholdselementer": ["Arbeidspraksis",
-                "Hjelp til å tilpasse arbeidsoppgaver og arbeidsplassen",
-                "Karriereveiledning",
-                "Kartlegge hvordan helsen din påvirker muligheten din til å jobbe",
-                "Oppfølging på arbeidsplassen"],
-            "ledetekst": "Du får oppfølging og støtte til jobbsøkingen. På kurset får du karriereveiledning, hjelp til å orientere deg på\narbeidsmarkedet, skrive CV og jobbsøknad og trene på jobbintervju."
-        },
-        "bakgrunnsinformasjon": "3 barn under 5 år kan påvirke deltakelsen. \nNy linje.",
-        "deltakelsesmengdeTekst": "70 % fordelt på 3 dager i uka",
-        "personident": "12345678910",
-        "adresseDelesMedArrangor": true
+  "deltaker": {
+    "fornavn": "Navn",
+    "mellomnavn": null,
+    "etternavn": "Navnersen",
+    "innhold": {
+      "fritekstBeskrivelse": "",
+      "valgteInnholdselementer": [
+        "Arbeidspraksis",
+        "Hjelp til å tilpasse arbeidsoppgaver og arbeidsplassen",
+        "Karriereveiledning",
+        "Kartlegge hvordan helsen din påvirker muligheten din til å jobbe",
+        "Oppfølging på arbeidsplassen"
+      ],
+      "ledetekst": "Du får oppfølging og støtte til jobbsøkingen. På kurset får du karriereveiledning, hjelp til å orientere deg på\narbeidsmarkedet, skrive CV og jobbsøknad og trene på jobbintervju."
     },
-    "deltakerliste": {
-        "tiltakskode": "ARBEIDSFORBEREDENDE_TRENING",
-        "navn": "Arbeidsforberedende trening hos Muligheter AS",
-        "ledetekst": "Arbeidsforberedende trening er et tilbud for deg som først ønsker å jobbe i et tilrettelagt arbeidsmiljø. Du får veiledning og støtte av en veileder. Sammen kartlegger dere hvordan din kompetanse, interesser og ferdigheter påvirker muligheten din til å jobbe.",
-        "arrangor": {
-            "navn": "Muligheter AS"
-        },
-        "forskriftskapittel": 13,
-        "oppmoteSted": "Dronning Frederikkes gate 66. Gå rundt hjørnet til inngang B2. Oppmøte første dagen er klokken 09:30"
+    "bakgrunnsinformasjon": "3 barn under 5 år kan påvirke deltakelsen. \nNy linje.",
+    "deltakelsesmengdeTekst": "70 % fordelt på 3 dager i uka",
+    "personident": "12345678910",
+    "adresseDelesMedArrangor": true
+  },
+  "deltakerliste": {
+    "tiltakskode": "ARBEIDSFORBEREDENDE_TRENING",
+    "navn": "Arbeidsforberedende trening hos Muligheter AS",
+    "ledetekst": "Arbeidsforberedende trening er et tilbud for deg som først ønsker å jobbe i et tilrettelagt arbeidsmiljø. Du får veiledning og støtte av en veileder. Sammen kartlegger dere hvordan din kompetanse, interesser og ferdigheter påvirker muligheten din til å jobbe.",
+    "arrangor": {
+      "navn": "Muligheter AS"
     },
-    "avsender": {
-        "navn": "Veileder Veiledersen",
-        "enhet": "Nav Fyrstikkaleen"
-    },
-    "sidetittel": "Arbeidsforberedende trening hos Muligheter AS",
-    "ingressnavn": "Arbeidsforberedende trening hos Muligheter AS",
-    "opprettetDato": "2024-04-30",
-    "vedtaksdato": "2024-04-30",
-    "begrunnelseFraNav": "Det er riktig å delta på dette tiltaket likevel"
+    "forskriftskapittel": "13",
+    "oppmoteSted": "Dronning Frederikkes gate 66. Gå rundt hjørnet til inngang B2. Oppmøte første dagen er klokken 09:30"
+  },
+  "avsender": {
+    "navn": "Veileder Veiledersen",
+    "enhet": "Nav Fyrstikkaleen"
+  },
+  "sidetittel": "Arbeidsforberedende trening hos Muligheter AS",
+  "ingressnavn": "Arbeidsforberedende trening hos Muligheter AS",
+  "opprettetDato": "2024-04-30",
+  "vedtaksdato": "2024-04-30",
+  "begrunnelseFraNav": "Det er riktig å delta på dette tiltaket likevel"
 }
