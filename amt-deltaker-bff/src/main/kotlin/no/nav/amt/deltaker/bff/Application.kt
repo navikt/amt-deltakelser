@@ -50,7 +50,6 @@ import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.gjennomforing.GjennomforingConsumer
-import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.job.LeaderElection
 import no.nav.amt.deltaker.bff.job.SlettUtdatertKladdJob
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattConsumer
@@ -277,8 +276,6 @@ fun Application.module() {
         paameldingClient = paameldingClient,
     )
 
-    val innbyggerService = InnbyggerService(deltakerService, paameldingClient)
-
     val ulestHendelseRepository = UlestHendelseRepository()
     val ulestHendelseService = UlestHendelseService(ulestHendelseRepository)
 
@@ -358,7 +355,6 @@ fun Application.module() {
         paameldingClient = paameldingClient,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
-        innbyggerService = innbyggerService,
         forslagRepository = forslagRepository,
         forslagService = forslagService,
         amtDistribusjonClient = amtDistribusjonClient,

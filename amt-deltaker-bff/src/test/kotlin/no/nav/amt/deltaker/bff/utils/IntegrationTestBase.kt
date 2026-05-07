@@ -26,11 +26,9 @@ import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
-import no.nav.amt.deltaker.bff.innbygger.InnbyggerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltakerlisteProducer
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
@@ -62,7 +60,6 @@ abstract class IntegrationTestBase {
     protected val pameldingService: PameldingService = mockk()
     protected val navAnsattService: NavAnsattService = mockk()
     protected val navEnhetService: NavEnhetService = mockk()
-    protected val innbyggerService: InnbyggerService = mockk()
     protected val forslagService: ForslagService = mockk()
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk()
     protected val deltakerlisteService: DeltakerlisteService = mockk()
@@ -71,7 +68,6 @@ abstract class IntegrationTestBase {
     protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk()
     protected val ulestHendelseService: UlestHendelseService = mockk()
     protected val testdataService: TestdataService = mockk()
-    protected val tiltakskoordinatorsDeltakerlisteProducer = mockk<TiltakskoordinatorsDeltakerlisteProducer>()
     protected val selfServiceTilgangskontrollService: SelfServiceTilgangService = mockk()
     protected open val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient = poaoTilgangCachedClient,
@@ -111,7 +107,6 @@ abstract class IntegrationTestBase {
                     pameldingService = pameldingService,
                     navAnsattService = navAnsattService,
                     navEnhetService = navEnhetService,
-                    innbyggerService = innbyggerService,
                     forslagRepository = forslagRepository,
                     forslagService = forslagService,
                     amtDistribusjonClient = amtDistribusjonClient,
