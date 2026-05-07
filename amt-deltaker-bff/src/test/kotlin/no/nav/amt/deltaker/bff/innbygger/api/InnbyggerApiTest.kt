@@ -37,7 +37,6 @@ class InnbyggerApiTest : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns PersonIdentResponse("123")
-        coEvery { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
     }
 
     @Test

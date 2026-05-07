@@ -79,8 +79,6 @@ fun Routing.registerInnbyggerApi(
             call.respond(deltakerResponse)
         }
 
-        // henter all historikkdata fra amt-deltaker når prioriterSynkronKommunikasjon-toggle er aktiv,
-        // ellers brukes lokal historikk fra deltaker
         get("/innbygger/{deltakerId}/historikk") {
             val deltakerId = call.getDeltakerId()
 
