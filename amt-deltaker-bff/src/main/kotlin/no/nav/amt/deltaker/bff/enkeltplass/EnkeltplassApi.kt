@@ -45,6 +45,8 @@ fun Routing.registerEnkeltplassApi(
                     norskIdent = request.personident,
                 )
 
+                // TODO: Legge til felt for kodeverk i no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+                // og legge til parameter i fromDeltakerModel for å mappe til kodeverkResponse i ModelMapper
                 val kodeverk = kodeverkClient.hentKodeverk(request.tiltakskode)
 
                 val response = enkeltplassClient
