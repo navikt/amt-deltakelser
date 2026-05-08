@@ -250,20 +250,20 @@ private fun fjernEldreHendelserAvSammeType(hendelser: List<Hendelse>): List<Hend
     .sortedByDescending { it.opprettet }
     .distinctBy { it.payload.javaClass }
 
-fun HendelseDeltaker.Deltakerliste.forskriftskapittel() = when (this.tiltak.tiltakskode) {
-    Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> 13
+fun HendelseDeltaker.Deltakerliste.forskriftskapittel(): String = when (this.tiltak.tiltakskode) {
+    Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> "13"
 
-    Tiltakskode.ARBEIDSRETTET_REHABILITERING -> 12
+    Tiltakskode.ARBEIDSRETTET_REHABILITERING -> "12"
 
-    Tiltakskode.AVKLARING -> 2
+    Tiltakskode.AVKLARING -> "2"
 
-    Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> 4
+    Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
+    Tiltakskode.JOBBKLUBB,
+    Tiltakskode.OPPFOLGING,
+    -> "4"
 
-    Tiltakskode.JOBBKLUBB -> 4
-
-    Tiltakskode.OPPFOLGING -> 4
-
-    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET, Tiltakskode.TILPASSET_JOBBSTOTTE -> 14
+    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "14"
+    Tiltakskode.TILPASSET_JOBBSTOTTE -> "14A"
 
     Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
     Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
@@ -272,7 +272,7 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel() = when (this.tiltak.tilt
     Tiltakskode.STUDIESPESIALISERING,
     Tiltakskode.FAG_OG_YRKESOPPLAERING,
     Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-    -> 7
+    -> "7"
 
     else -> throw IllegalArgumentException("Ukjent tiltakstype: ${this.tiltak.tiltakskode}")
 }
