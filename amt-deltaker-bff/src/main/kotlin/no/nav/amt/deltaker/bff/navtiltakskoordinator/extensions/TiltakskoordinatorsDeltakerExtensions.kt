@@ -47,7 +47,7 @@ fun TiltakskoordinatorsDeltaker.toResponse(
         innsatsgruppe = innsatsgruppe,
         tiltakskode = deltakerliste.tiltak.tiltakskode,
         oppstartstype = deltakerliste.oppstart,
-        pameldingstype = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+        pameldingstype = deltakerliste.pameldingstype,
         tilgangTilBruker = harTilgangTilBruker,
         aktiveForslag = aktiveForslag,
         ulesteHendelser = ulesteHendelser,

@@ -3,8 +3,6 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 import no.nav.amt.deltaker.bff.clients.DtoMappers.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
@@ -12,6 +10,8 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

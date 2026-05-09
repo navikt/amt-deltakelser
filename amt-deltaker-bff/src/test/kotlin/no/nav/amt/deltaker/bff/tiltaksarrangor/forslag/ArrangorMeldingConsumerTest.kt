@@ -2,8 +2,7 @@ package no.nav.amt.deltaker.bff.tiltaksarrangor.forslag
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.deltaker.forslag.kafka.ArrangorMeldingConsumer
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka.ArrangorMeldingConsumer
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag

@@ -1,16 +1,16 @@
 package no.nav.amt.deltaker.bff.utils
 
 import kotliquery.queryOf
-import no.nav.amt.deltaker.bff.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerStatusRepository
-import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
+import no.nav.amt.deltaker.bff.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
+import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet

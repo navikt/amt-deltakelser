@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.tiltaksarrangor.forslag
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.testing.DatabaseTestExtension

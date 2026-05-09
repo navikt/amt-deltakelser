@@ -134,7 +134,7 @@ object ResponseBuilder {
         oppstartstype = oppstart,
         apentForPamelding = apentForPamelding,
         antallPlasser = antallPlasser,
-        pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+        pameldingstype = pameldingstype,
         koordinatorer = koordinatorer,
             /*
                 Denne mapperen fases ut når vi henter data amt-deltaker

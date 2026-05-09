@@ -10,10 +10,10 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils.sammenlignDeltakere
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker

@@ -1,8 +1,8 @@
-package no.nav.amt.deltaker.bff.deltaker.forslag
+package no.nav.amt.deltaker.bff.tiltaksarrangor.forslag
 
-import no.nav.amt.deltaker.bff.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory

@@ -3,10 +3,9 @@ package no.nav.amt.deltaker.bff.gjennomforing
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.amt.deltaker.bff.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
+import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.Nested

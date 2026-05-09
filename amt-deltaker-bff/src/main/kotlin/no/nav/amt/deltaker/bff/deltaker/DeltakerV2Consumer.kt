@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.bff.deltaker
 
 import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
-import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
+import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
+import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload

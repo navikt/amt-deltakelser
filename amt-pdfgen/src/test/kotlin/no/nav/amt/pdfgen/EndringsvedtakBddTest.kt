@@ -36,8 +36,8 @@ class EndringsvedtakBddTest :
                 And("vises forklarende tekst for vedtaket") {
                     val body = doc.selectFirst("p").shouldNotBeNull()
                     body.text() shouldBe
-                            "Dette er et vedtak etter arbeidsmarkedsloven § 12 og forskrift om arbeidsmarkedstiltak " +
-                            "kapittel ${endringsvedtak.deltakerliste.forskriftskapittel}."
+                        "Dette er et vedtak etter arbeidsmarkedsloven § 12 og forskrift om arbeidsmarkedstiltak " +
+                        "kapittel ${endringsvedtak.deltakerliste.forskriftskapittel}."
                 }
             }
         }
@@ -241,22 +241,20 @@ class EndringsvedtakBddTest :
     companion object {
         private fun renderEndringsvedtak(payload: EndringsvedtakPdfDto): Document = render("endringsvedtak", payload)
 
-        private fun defaultEndring() =
-            EndringDto.EndreDeltakelsesmengde(
-                tittel = "Deltakelsesmengde er endret",
-                begrunnelseFraNav = "Begrunnelse",
-                forslagFraArrangor = null,
-                gyldigFra = fixedDate,
-            )
+        private fun defaultEndring() = EndringDto.EndreDeltakelsesmengde(
+            tittel = "Deltakelsesmengde er endret",
+            begrunnelseFraNav = "Begrunnelse",
+            forslagFraArrangor = null,
+            gyldigFra = fixedDate,
+        )
 
-        private fun baseDeltaker() =
-            EndringsvedtakPdfDto.DeltakerDto(
-                fornavn = "Ola",
-                mellomnavn = null,
-                etternavn = "Nordmann",
-                personident = "12345678910",
-                opprettetDato = fixedDate,
-            )
+        private fun baseDeltaker() = EndringsvedtakPdfDto.DeltakerDto(
+            fornavn = "Ola",
+            mellomnavn = null,
+            etternavn = "Nordmann",
+            personident = "12345678910",
+            opprettetDato = fixedDate,
+        )
 
         private fun baseDeltakerliste(
             pameldingstype: GjennomforingPameldingType,
@@ -265,16 +263,15 @@ class EndringsvedtakBddTest :
             navn = "Tiltaksliste",
             ledetekst = "Dette er ledeteksten",
             arrangor = EndringsvedtakPdfDto.ArrangorDto("Arrangør AS"),
-            forskriftskapittel = 42,
+            forskriftskapittel = "42",
             harKlagerett = klagerett,
             pameldingstype = pameldingstype,
         )
 
-        private fun baseAvsender() =
-            EndringsvedtakPdfDto.AvsenderDto(
-                navn = "Nav Saksbehandler",
-                enhet = "Nav Oslo",
-            )
+        private fun baseAvsender() = EndringsvedtakPdfDto.AvsenderDto(
+            navn = "Nav Saksbehandler",
+            enhet = "Nav Oslo",
+        )
 
         private fun endringsvedtak(
             endringer: List<EndringDto> = listOf(defaultEndring()),

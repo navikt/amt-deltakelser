@@ -135,7 +135,7 @@ class TiltakskoordinatorTilgangRepository {
     }
 
     fun hentUtdaterteTilganger(): List<TiltakskoordinatorDeltakerlisteTilgang> {
-        val grense = LocalDate.now().minus(DeltakerlisteService.Companion.tiltakskoordinatorGraceperiode)
+        val grense = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode)
         val sql =
             """
             SELECT

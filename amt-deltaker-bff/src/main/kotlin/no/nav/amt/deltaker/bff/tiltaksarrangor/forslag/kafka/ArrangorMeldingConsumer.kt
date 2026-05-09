@@ -1,7 +1,7 @@
-package no.nav.amt.deltaker.bff.deltaker.forslag.kafka
+package no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka
 
 import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.arrangor.melding.Forslag

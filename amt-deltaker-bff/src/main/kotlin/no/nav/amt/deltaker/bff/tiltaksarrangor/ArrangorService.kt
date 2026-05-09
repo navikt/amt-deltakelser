@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.arrangor
+package no.nav.amt.deltaker.bff.tiltaksarrangor
 
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltaker.Arrangor

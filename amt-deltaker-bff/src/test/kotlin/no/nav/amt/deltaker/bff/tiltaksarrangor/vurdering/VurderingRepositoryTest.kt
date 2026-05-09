@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.TestData.lagVurdering
 import no.nav.amt.deltaker.bff.utils.TestRepository

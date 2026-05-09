@@ -23,8 +23,6 @@ import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
@@ -34,6 +32,8 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.testdata.TestdataService
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
