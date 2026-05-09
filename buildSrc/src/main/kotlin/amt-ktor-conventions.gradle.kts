@@ -22,13 +22,11 @@ dependencies {
         }
     }
 
+    // Netty BOM — holder alle io.netty-moduler på samme versjon og fikser CVE-er samlet
+    implementation(platform(libsWrapper.getLibrary("netty.bom")))
+
     // --- Ktor ---
     implementation(platform(libsWrapper.getLibrary("ktor.bom")))
-    constraints {
-        implementation(libsWrapper.getLibrary("netty.codec.http2")) {
-            because("CVE-2026-33870")
-        }
-    }
     libsWrapper.getBundle("ktor.server").forEach { implementation(it) }
     libsWrapper.getBundle("ktor.client").forEach { implementation(it) }
 

@@ -42,14 +42,14 @@ pdfgen-core-version = "1.1.79"
 
 
 # CVE-fixes
-netty-codec-http2-version = "4.2.13.Final"
+netty-version = "4.2.13.Final"
 
 [libraries]
 
 # CVE-fixes
 # fikser CVE-2023-3635 ved å gjøre en oppgradering av okhttp som er en transitive dependency av unleash
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp-version" }
-netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty-codec-http2-version" }
+netty-bom = { module = "io.netty:netty-bom", version.ref = "netty-version" }
 tools-jackson-core = { module = "tools.jackson.core:jackson-core", version.ref = "tools-jackson-version" }
 
 # amt-pdfgen spesifikt (bruker Jackson 2 via pdfgen-core)

@@ -3,6 +3,12 @@ plugins {
 }
 
 dependencies {
+    constraints {
+        implementation(libs.jackson.core) {
+            because("GHSA-72hv-8253-57qq")
+        }
+    }
+
     api(project(":amt-felles:kafka"))
 
     // --- Metrics ---
@@ -12,11 +18,7 @@ dependencies {
 
     // --- Ktor ---
     implementation(platform(libs.ktor.bom))
-    constraints {
-        implementation(libs.netty.codec.http2) {
-            because("CVE-2026-33870")
-        }
-    }
+    implementation(platform(libs.netty.bom))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.server.core)
