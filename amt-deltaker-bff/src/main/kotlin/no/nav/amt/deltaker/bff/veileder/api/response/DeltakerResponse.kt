@@ -9,7 +9,6 @@ import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import java.time.LocalDate
@@ -78,7 +77,7 @@ data class DeltakerResponse(
                     erEnkeltplassUtenRammeavtale = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
                     erEnkeltplass = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
                     oppmoteSted = deltakerliste.oppmoteSted,
-                    pameldingstype = deltakerliste.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+                    pameldingstype = deltakerliste.pameldingstype,
                 ),
                 status = status,
                 startdato = startdato,
