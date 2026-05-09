@@ -48,11 +48,11 @@ class InnbyggerApiTest : IntegrationTestBase() {
         every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
 
         withTestApplicationContext { httpClient ->
-            httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Companion.Forbidden
+            httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
             httpClient.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast") { noBodyRequest() }.status shouldBe
-                HttpStatusCode.Companion.Forbidden
+                HttpStatusCode.Forbidden
             httpClient.get("/innbygger/${UUID.randomUUID()}/historikk") { noBodyRequest() }.status shouldBe
-                HttpStatusCode.Companion.Forbidden
+                HttpStatusCode.Forbidden
         }
     }
 
@@ -61,9 +61,9 @@ class InnbyggerApiTest : IntegrationTestBase() {
         every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
 
         withTestApplicationContext { httpClient ->
-            httpClient.get("/innbygger/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Companion.Unauthorized
-            httpClient.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast").status shouldBe HttpStatusCode.Companion.Unauthorized
-            httpClient.get("/innbygger/${UUID.randomUUID()}/historikk").status shouldBe HttpStatusCode.Companion.Unauthorized
+            httpClient.get("/innbygger/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+            httpClient.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast").status shouldBe HttpStatusCode.Unauthorized
+            httpClient.get("/innbygger/${UUID.randomUUID()}/historikk").status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -82,9 +82,9 @@ class InnbyggerApiTest : IntegrationTestBase() {
         }
 
         // Assert
-        httpResponse.status shouldBe HttpStatusCode.Companion.OK
+        httpResponse.status shouldBe HttpStatusCode.OK
         httpResponse.bodyAsText() shouldBe objectMapper.writeValueAsString(
-            ModelMapper.Companion
+            ModelMapper
                 .toDeltaker(deltaker)
                 .let { InnbyggerDeltakerResponse.fromModel(it) },
         )
@@ -95,7 +95,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
         every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
         coEvery { amtDeltakerClient.getDeltaker(any()) } throws NoSuchElementException()
         withTestApplicationContext { httpClient ->
-            httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Companion.NotFound
+            httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.NotFound
         }
     }
 
@@ -106,7 +106,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
         withTestApplicationContext { httpClient ->
             httpClient.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast") { noBodyRequest() }.status shouldBe
-                HttpStatusCode.Companion.NotFound
+                HttpStatusCode.NotFound
         }
     }
 
@@ -118,12 +118,12 @@ class InnbyggerApiTest : IntegrationTestBase() {
         coEvery { paameldingClient.innbyggerGodkjennUtkast(deltakerId) } returns mockk()
         coEvery { amtDeltakerClient.getDeltaker(deltakerId) } returns deltakerResponse
 
-        val expected = InnbyggerDeltakerResponse.fromModel(ModelMapper.Companion.toDeltaker(deltakerResponse))
+        val expected = InnbyggerDeltakerResponse.fromModel(ModelMapper.toDeltaker(deltakerResponse))
 
         withTestApplicationContext { httpClient ->
             val httpResponse = httpClient.post("/innbygger/$deltakerId/godkjenn-utkast") { noBodyRequest() }
 
-            httpResponse.status shouldBe HttpStatusCode.Companion.OK
+            httpResponse.status shouldBe HttpStatusCode.OK
             httpResponse.bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
         }
     }
@@ -153,9 +153,9 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
-                    DeltakerHistorikkResponse.Companion.fromModels(
+                    DeltakerHistorikkResponse.fromModels(
                         models = historikk,
                         arrangornavn = arrangornavn,
                         oppstartstype = oppstartstype,

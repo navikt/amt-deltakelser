@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.deltaker.vurdering
+package no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering
 
 import kotliquery.Row
 import kotliquery.queryOf

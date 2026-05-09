@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.bff.gjennomforing
 
 import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.arrangor.ArrangorService
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
+import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -28,7 +28,7 @@ class GjennomforingConsumer(
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val consumer = KafkaConsumerFactory.buildManagedKafkaConsumer(
-        topic = Environment.Companion.DELTAKERLISTE_V2_TOPIC,
+        topic = Environment.DELTAKERLISTE_V2_TOPIC,
         consumeFunc = ::consume,
     )
 

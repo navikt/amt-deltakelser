@@ -20,14 +20,14 @@ import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getForslagId
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.bff.veileder.api.request.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.AvvisForslagRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.DeltakerRequest

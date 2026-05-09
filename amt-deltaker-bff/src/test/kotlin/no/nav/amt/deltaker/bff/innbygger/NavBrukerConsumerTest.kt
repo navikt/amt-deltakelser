@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.deltaker.navbruker
+package no.nav.amt.deltaker.bff.innbygger
 
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery

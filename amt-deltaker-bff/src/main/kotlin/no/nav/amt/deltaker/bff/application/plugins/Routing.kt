@@ -24,8 +24,6 @@ import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
 import no.nav.amt.deltaker.bff.enkeltplass.validate
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
@@ -43,6 +41,8 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.deltaker.bff.testdata.registerTestdataApi
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
 import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi

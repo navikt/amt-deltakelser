@@ -17,7 +17,7 @@ class DeltakerEndringHendelseConsumer(
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val consumer = KafkaConsumerFactory.buildManagedKafkaConsumer(
-        topic = Environment.Companion.DELTAKER_HENDELSE_TOPIC,
+        topic = Environment.DELTAKER_HENDELSE_TOPIC,
         kafkaAutoOffsetReset = KafkaConsumerFactory.AUTO_OFFSET_RESET_LATEST,
         consumeFunc = ::consume,
     )

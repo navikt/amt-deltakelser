@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.deltaker
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.clients.DtoMappers.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
-import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Kladd
 import no.nav.amt.deltaker.bff.model.Utkast

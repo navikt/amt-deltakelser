@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.deltaker.navbruker
+package no.nav.amt.deltaker.bff.innbygger
 
 import kotliquery.Row
 import kotliquery.queryOf

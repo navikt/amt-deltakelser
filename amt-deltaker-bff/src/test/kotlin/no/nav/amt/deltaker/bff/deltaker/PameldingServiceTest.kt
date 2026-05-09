@@ -9,8 +9,8 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
-import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerRepository
-import no.nav.amt.deltaker.bff.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.bff.innbygger.NavBrukerRepository
+import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.model.Kladd
 import no.nav.amt.deltaker.bff.model.Pamelding

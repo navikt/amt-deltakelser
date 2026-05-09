@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.deltaker.forslag.kafka
+package no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka
 
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.lib.models.arrangor.melding.Melding
