@@ -25,14 +25,13 @@ data class KodeverkResponse(
     val alternativer: List<Alternativ.Container>,
 ) {
     /**
-     * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true`
-     * for alle verdier med `id` i [kodeverkValg].
+     * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true` for alle
+     * verdier med `id` i [kodeverkValg], og `false` for alle øvrige.
+     *
+     * Synkroniserer hele treet — kildedataens initiale `valgt`-verdier overskrives
+     * alltid, slik at resultatet kun reflekterer [kodeverkValg].
      */
-    fun settValgt(kodeverkValg: Set<UUID>): KodeverkResponse {
-        if (kodeverkValg.isEmpty()) return this
-        val ider = kodeverkValg.toSet()
-        return copy(alternativer = alternativer.map { it.settValgt(ider) })
-    }
+    fun settValgt(kodeverkValg: Set<UUID>): KodeverkResponse = copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })
 
     private fun Alternativ.Container.settValgt(kodeverkValg: Set<UUID>): Alternativ.Container = when (this) {
         is Alternativ.Gruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })
@@ -40,7 +39,7 @@ data class KodeverkResponse(
         is Alternativ.VerdigruppeSok -> this
     }
 
-    private fun Alternativ.Verdi.settValgt(kodeverkValg: Set<UUID>): Alternativ.Verdi = if (id in kodeverkValg) copy(valgt = true) else this
+    private fun Alternativ.Verdi.settValgt(kodeverkValg: Set<UUID>): Alternativ.Verdi = copy(valgt = id in kodeverkValg)
 
     /**
      * Angir hvordan brukeren kan velge blant verdiene i en [Alternativ.Verdigruppe].
