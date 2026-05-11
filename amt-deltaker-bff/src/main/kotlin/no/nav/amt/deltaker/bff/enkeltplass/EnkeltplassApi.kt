@@ -112,7 +112,14 @@ fun Routing.registerEnkeltplassApi(
                             endretAv = call.getNavIdent(),
                         ),
                     ).let { ModelMapper.toDeltaker(it) }
-                    .let { DeltakerResponse.fromDeltakerModel(it) }
+                    .let {
+                        val kodeverk = kodeverkClient.hentKodeverk(it.gjennomforing.tiltak.tiltakskode)
+
+                        DeltakerResponse.fromDeltakerModel(
+                            deltaker = it,
+                            kodeverkResponse = kodeverk,
+                        )
+                    }
 
                 call.respond(deltakerResponse)
             }

@@ -10,7 +10,7 @@ data class OppdaterEnkeltplassKladdRequest(
     val arrangorUnderenhet: String?,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
-    val kodeverkValg: List<UUID>? = null,
+    val kodeverkValg: Set<UUID>? = null,
 ) {
     fun sanitized() = copy(
         beskrivelse = beskrivelse.trimToNull()?.sanitizeBeskrivelse(),

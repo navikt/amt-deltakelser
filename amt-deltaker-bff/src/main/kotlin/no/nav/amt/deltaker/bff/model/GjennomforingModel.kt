@@ -21,6 +21,7 @@ data class GjennomforingModel(
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType?,
+    val kodeverkValg: Set<UUID> = emptySet(),
 ) {
     val erEnkeltplass = type == GjennomforingType.Enkeltplass
 }

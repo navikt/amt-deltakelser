@@ -7,7 +7,7 @@ import java.util.UUID
 object KodeverkValgRepository {
     fun lagreKodeverkValg(
         deltakerlisteId: UUID,
-        valg: List<UUID>,
+        valg: Set<UUID>,
     ) {
         val sql =
             """
@@ -29,7 +29,7 @@ object KodeverkValgRepository {
         }
     }
 
-    fun hentKodeverkValg(deltakerlisteId: UUID): List<UUID> {
+    fun hentKodeverkValg(deltakerlisteId: UUID): Set<UUID> {
         val sql =
             """
             SELECT kodeverk_valg 
@@ -43,9 +43,20 @@ object KodeverkValgRepository {
                     .map { row ->
                         val array = row.anyOrNull("kodeverk_valg") as? java.sql.Array
                         val uuids = array?.array as? Array<*>
-                        uuids?.filterIsInstance<UUID>() ?: emptyList()
+                        uuids?.filterIsInstance<UUID>()?.toSet() ?: emptySet()
                     }.asSingle,
-            ) ?: emptyList()
+            ) ?: emptySet()
+        }
+    }
+
+    fun deleteForGjennomforing(gjennomforingId: UUID) {
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "DELETE FROM deltakerliste_kodeverk_valg WHERE deltakerliste_id = ?",
+                    gjennomforingId,
+                ),
+            )
         }
     }
 }
