@@ -60,7 +60,9 @@ class KodeverkClientTest {
 
     companion object {
         private const val KODEVERK_BASE_URL = "http://mulighetsrommet/"
-        private val EXPECTED_URL = "$KODEVERK_BASE_URL/api/v1/kodeverk/${Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING}"
+        private const val EXPECTED_URL =
+            "$KODEVERK_BASE_URL/api/tiltaksadministrasjon/kodeverk/opplaring/kategorisering?tiltakskode=ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING"
+
         private val tiltakskodeInTest = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING
 
         private fun runFailureTest(

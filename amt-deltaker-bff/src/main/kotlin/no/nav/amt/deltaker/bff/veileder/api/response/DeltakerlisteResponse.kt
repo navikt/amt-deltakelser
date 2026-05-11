@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -24,6 +25,7 @@ data class DeltakerlisteResponse(
     val erEnkeltplass: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
+    val kodeverkResponse: KodeverkResponse? = null,
 ) {
     data class ArrangorResponse(
         val navn: String,
@@ -31,7 +33,10 @@ data class DeltakerlisteResponse(
     )
 
     companion object {
-        fun fromModel(gjennomforingModel: GjennomforingModel) = with(gjennomforingModel) {
+        fun fromModel(
+            gjennomforingModel: GjennomforingModel,
+            kodeverkResponse: KodeverkResponse? = null,
+        ) = with(gjennomforingModel) {
             DeltakerlisteResponse(
                 deltakerlisteId = id,
                 deltakerlisteNavn = navn,
@@ -55,6 +60,7 @@ data class DeltakerlisteResponse(
                 erEnkeltplass = erEnkeltplass,
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
+                kodeverkResponse = kodeverkResponse,
             )
         }
     }
