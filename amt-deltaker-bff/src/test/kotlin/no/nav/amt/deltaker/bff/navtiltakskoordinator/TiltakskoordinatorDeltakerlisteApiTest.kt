@@ -150,8 +150,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         mockTilgangTilDeltakerliste()
 
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
-        coEvery { tiltakskoordinatorService.hentDeltakereForDeltakerliste(any()) } returns emptyList()
 
+        // every { (any()) } returns emptyList()
         val response = withTestApplicationContext { client ->
             client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere") {
                 noBodyTiltakskoordinatorRequest()
@@ -337,7 +337,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `post del-med-arrangor - deltakerliste finnes ikke - returnerer 404`() {
         mockTilgangTilDeltakerliste()
 
-        coEvery { tiltakskoordinatorService.hentDeltakereForDeltakerliste(any()) } returns emptyList()
         coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws NoSuchElementException()
 
         val response = withTestApplicationContext { client ->

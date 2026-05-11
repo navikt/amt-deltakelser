@@ -337,15 +337,6 @@ class DeltakerRepository {
         }
     }
 
-    fun getForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
-        session.run(
-            queryOf(
-                getDeltakerSql("dl.id = :deltakerliste_id"),
-                mapOf("deltakerliste_id" to deltakerlisteId),
-            ).map(::rowMapper).asList,
-        )
-    }
-
     fun oppdaterSistBesokt(
         deltakerId: UUID,
         sistBesokt: ZonedDateTime,

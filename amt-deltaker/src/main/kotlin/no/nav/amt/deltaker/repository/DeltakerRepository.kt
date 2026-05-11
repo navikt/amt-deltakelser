@@ -28,7 +28,7 @@ class DeltakerRepository {
     fun getForGjennomforing(gjennomforingId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
-                buildDeltakerSql("getForGjennomforing", "d.deltakerliste_id = :deltakerliste_id"),
+                buildDeltakerSql("getForGjennomforing", "d.deltakerliste_id = :deltakerliste_id", limit = null),
                 mapOf("deltakerliste_id" to gjennomforingId),
             ).map(::deltakerRowMapper).asList,
         )
