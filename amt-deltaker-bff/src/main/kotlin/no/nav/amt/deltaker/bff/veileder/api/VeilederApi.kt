@@ -55,6 +55,7 @@ import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
@@ -75,6 +76,7 @@ fun Routing.registerVeilederApi(
     amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
     unleashToggle: CommonUnleashToggle,
+    kodeverkClient: KodeverkClient,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -165,9 +167,14 @@ fun Routing.registerVeilederApi(
                 if (unleashToggle.prioriterSynkronKommunikasjon()) {
                     amtDeltakerClient
                         .getDeltaker(deltakerId)
-                        .let {
+                        .let { deltakerResponse ->
+                            val kodeverk = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
+                                .takeIf { tiltakskode -> tiltakskode.erOpplaeringstiltak() } // TODO: Kan vi spisse denne mer?
+                                ?.let { tiltakskode -> kodeverkClient.hentKodeverk(tiltakskode) }
+
                             DeltakerResponse.fromDeltakerModel(
-                                deltaker = ModelMapper.toDeltaker(it),
+                                deltaker = ModelMapper.toDeltaker(deltakerResponse),
+                                kodeverkResponse = kodeverk,
                             )
                         }
                 } else {
