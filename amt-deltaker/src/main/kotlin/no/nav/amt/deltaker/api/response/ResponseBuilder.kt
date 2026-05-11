@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.KodeverkValgRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -99,6 +100,8 @@ class ResponseBuilder(
         },
         pameldingstype = deltakerliste.pameldingstype,
         type = deltakerliste.gjennomforingstype,
+        // TODO: Kalles kun for spesifikke tiltakskoder
+        kodeverkValg = KodeverkValgRepository.hentKodeverkValg(deltakerliste.id),
     )
 
     internal fun buildVedtaksinformasjonResponse(
