@@ -25,7 +25,7 @@ data class DeltakerlisteResponse(
     val erEnkeltplass: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
-    val kodeverkResponse: KodeverkResponse? = null,
+    val kodeverk: KodeverkResponse? = null,
 ) {
     data class ArrangorResponse(
         val navn: String,
@@ -35,7 +35,7 @@ data class DeltakerlisteResponse(
     companion object {
         fun fromModel(
             gjennomforingModel: GjennomforingModel,
-            kodeverkResponse: KodeverkResponse? = null,
+            kodeverk: KodeverkResponse? = null,
         ) = with(gjennomforingModel) {
             DeltakerlisteResponse(
                 deltakerlisteId = id,
@@ -60,7 +60,7 @@ data class DeltakerlisteResponse(
                 erEnkeltplass = erEnkeltplass,
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-                kodeverkResponse = kodeverkResponse,
+                kodeverk = kodeverk,
             )
         }
     }

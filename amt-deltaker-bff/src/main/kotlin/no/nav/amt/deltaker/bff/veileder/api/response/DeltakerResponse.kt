@@ -138,7 +138,7 @@ data class DeltakerResponse(
                 etternavn = navBruker.etternavn,
                 deltakerliste = DeltakerlisteResponse.fromModel(
                     gjennomforingModel = gjennomforing,
-                    kodeverkResponse = kodeverkResponse,
+                    kodeverk = kodeverkResponse,
                 ),
                 status = status,
                 startdato = startdato,
