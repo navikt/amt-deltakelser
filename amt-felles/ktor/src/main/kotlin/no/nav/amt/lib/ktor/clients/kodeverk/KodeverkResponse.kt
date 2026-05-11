@@ -1,5 +1,6 @@
 package no.nav.amt.lib.ktor.clients.kodeverk
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.util.UUID
@@ -43,9 +44,15 @@ data class KodeverkResponse(
      * @property id Unik identifikator for alternativet.
      * @property visningsnavn Navnet som vises i UI.
      */
-    @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = Alternativ.Gruppe::class, name = "Gruppe"),
+        JsonSubTypes.Type(value = Alternativ.Verdigruppe::class, name = "Verdigruppe"),
+        JsonSubTypes.Type(value = Alternativ.VerdigruppeSok::class, name = "VerdigruppeSok"),
+        JsonSubTypes.Type(value = Alternativ.Verdi::class, name = "Verdi"),
+    )
     sealed interface Alternativ {
-        val id: UUID
+        val id: UUID?
         val visningsnavn: String
 
         /**
@@ -73,7 +80,7 @@ data class KodeverkResponse(
          *   [Verdi]-er direkte.
          */
         data class Gruppe(
-            override val id: UUID,
+            override val id: UUID?,
             override val visningsnavn: String,
             val alternativer: List<Container>,
         ) : Container
@@ -88,16 +95,45 @@ data class KodeverkResponse(
          *
          * @property id Unik identifikator for verdigruppen.
          * @property visningsnavn Navnet som vises i UI (f.eks. "Bransje").
+         * @property representerer Hva verdigruppen representerer (f.eks. "bransje").
          * @property seleksjonstype Hvordan brukeren kan velge blant verdiene
          *   (ett enkelt valg eller flere samtidig).
          * @property alternativer Verdiene brukeren kan velge mellom.
          */
         data class Verdigruppe(
-            override val id: UUID,
+            override val id: UUID?,
             override val visningsnavn: String,
+            val representerer: String? = null,
             val seleksjonstype: Seleksjonstype,
             val alternativer: List<Verdi>,
         ) : Container
+
+        /**
+         * Representerer en Verdigruppe, hvor verdiene må søkes etter i en gitt kilde.
+         * Siden søk er mer omfattende, og har sin egen responsstruktur, dekkes ikke
+         * integrasjonsdetaljene her.
+         *
+         * Eksempler på VerdigruppeSok:
+         * - Janzz sertifisering
+         *
+         * @property id Unik identifikator for verdigruppen.
+         * @property visningsnavn Navnet som vises i UI (f.eks. "Sertifiseringer").
+         * @property representerer Hva verdigruppen representerer.
+         * @property seleksjonstype Hvordan brukeren kan velge blant verdiene
+         *   (ett enkelt valg eller flere samtidig).
+         * @property kilde Opphavet til verdiene som kan velges.
+         */
+        data class VerdigruppeSok(
+            override val id: UUID?,
+            override val visningsnavn: String,
+            val representerer: String? = null,
+            val seleksjonstype: Seleksjonstype,
+            val kilde: Kilde,
+        ) : Container {
+            enum class Kilde {
+                JANZZ_SERTIFISERING,
+            }
+        }
 
         /**
          * En konkret valgbar verdi i en [Verdigruppe].
@@ -112,6 +148,7 @@ data class KodeverkResponse(
          * @property valgt Om verdien er aktivert for denne gjennomføringen. Dette feltet
          *   er internt hos Komet og er ikke en del av selve kodeverket.
          */
+        @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
         data class Verdi(
             override val id: UUID,
             override val visningsnavn: String,
