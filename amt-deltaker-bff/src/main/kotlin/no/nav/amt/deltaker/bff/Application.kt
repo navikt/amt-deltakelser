@@ -78,6 +78,7 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
@@ -189,6 +190,13 @@ fun Application.module() {
     val gjennomforingClient = GjennomforingClient(
         baseUrl = environment.amtDeltakerUrl,
         scope = environment.amtDeltakerScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
+
+    val kodeverkClient = KodeverkClient(
+        baseUrl = environment.mulighetsrommetApiUrl,
+        scope = environment.mulighetsrommetApiScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
@@ -373,6 +381,7 @@ fun Application.module() {
         testdataService = testdataService,
         gjennomforingClient = gjennomforingClient,
         selfServiceTilgangService = selfServiceTilgangService,
+        kodeverkClient = kodeverkClient,
     )
     configureMonitoring()
 

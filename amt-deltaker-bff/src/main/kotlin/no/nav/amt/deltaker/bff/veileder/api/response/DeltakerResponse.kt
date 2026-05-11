@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.getInnholdselementer
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -126,13 +127,19 @@ data class DeltakerResponse(
             )
         }
 
-        fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
+        fun fromDeltakerModel(
+            deltaker: DeltakerModel,
+            kodeverkResponse: KodeverkResponse? = null,
+        ) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste = DeltakerlisteResponse.fromModel(gjennomforing),
+                deltakerliste = DeltakerlisteResponse.fromModel(
+                    gjennomforingModel = gjennomforing,
+                    kodeverk = kodeverkResponse,
+                ),
                 status = status,
                 startdato = startdato,
                 sluttdato = sluttdato,
