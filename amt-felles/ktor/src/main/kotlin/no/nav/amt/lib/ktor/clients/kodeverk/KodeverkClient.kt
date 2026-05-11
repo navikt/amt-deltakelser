@@ -27,7 +27,7 @@ class KodeverkClient(
         azureAdTokenClient = azureAdTokenClient,
     ) {
     suspend fun hentKodeverk(tiltakskode: Tiltakskode): KodeverkResponse = kodeverkCache.getIfPresent(tiltakskode)
-        ?: performGet("api/tiltaksadministrasjon/kodeverk/opplaring/kategorisering") {
+        ?: performGet("api/kodeverk/opplaring/kategorisering") {
             parameter("tiltakskode", tiltakskode)
         }.failIfNotSuccess("Kunne ikke hente kodeverk for tiltakskode $tiltakskode fra Mulighetsrommet")
             .body<KodeverkResponse>()
