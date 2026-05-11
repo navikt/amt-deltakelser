@@ -19,6 +19,7 @@ import java.util.UUID
 class DeltakerlisteRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    // blir brukt av GjennomforingConsumer
     fun upsert(deltakerliste: Deltakerliste) {
         val sql =
             """
@@ -92,6 +93,7 @@ class DeltakerlisteRepository {
         log.info("Upsertet deltakerliste med id ${deltakerliste.id}")
     }
 
+    // blir brukt av EnkeltplassService
     fun upsert(gjennomforing: GjennomforingInsertDbo) {
         val sql =
             """
