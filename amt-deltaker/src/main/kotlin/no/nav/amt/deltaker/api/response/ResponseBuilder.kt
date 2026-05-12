@@ -1,5 +1,10 @@
 package no.nav.amt.deltaker.api.response
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
@@ -25,6 +30,7 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class ResponseBuilder(
@@ -37,6 +43,18 @@ class ResponseBuilder(
     private val deltakerLaaseService: DeltakerLaaseService,
     private val vurderingRepository: VurderingRepository,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    companion object {
+        // Maks samtidige buildDeltakerResponse-kall — bevisst lavere enn HikariCP poolStørrelse (10)
+        // for å la andre forespørsler få DB-connections samtidig.
+        private const val MAX_CONCURRENT_DELTAKER_BUILDS = 8
+
+        // Logger advarsel når antall deltakere overstiger denne grensen — gir oss synlighet
+        // på problematiske gjennomføringer som risikerer timeout.
+        private const val LARGE_LIST_WARNING_THRESHOLD = 200
+    }
+
     suspend fun buildDeltakerResponse(
         deltaker: Deltaker,
         kodeverkValg: Set<UUID>? = null,
@@ -86,7 +104,19 @@ class ResponseBuilder(
         )
     }
 
-    suspend fun buildDeltakereResponse(deltakere: List<Deltaker>): DeltakereResponse {
+    suspend fun buildDeltakereResponse(deltakere: List<Deltaker>): DeltakereResponse = coroutineScope {
+        val startTime = System.currentTimeMillis()
+
+        if (deltakere.size >= LARGE_LIST_WARNING_THRESHOLD) {
+            log.warn(
+                "Bygger respons for {} deltakere — risiko for timeout. " +
+                    "Vurder batch-fetching eller paginering. " +
+                    "TODO: DeltakerHistorikkService.getForDeltaker gjør 8 separate DB-queries per deltaker, " +
+                    "og amtDistribusjonClient.digitalBruker gjør 1 HTTP-kall per deltaker (cachet 15min).",
+                deltakere.size,
+            )
+        }
+
         // Hoist kodeverkValg-oppslag ut av loopen — alle deltakere på samme gjennomføring deler kodeverkValg.
         // Tabellen er nøklet på deltakerliste_id, så vi henter én gang per unik deltakerliste.
         val kodeverkValgPerDeltakerliste = deltakere
@@ -95,14 +125,32 @@ class ResponseBuilder(
             .filter { it.tiltakstype.tiltakskode.erOpplaeringstiltak() }
             .associate { it.id to KodeverkValgRepository.hentKodeverkValg(it.id) }
 
-        return DeltakereResponse(
-            deltakere.map {
-                buildDeltakerResponse(
-                    deltaker = it,
-                    kodeverkValg = kodeverkValgPerDeltakerliste[it.deltakerliste.id] ?: emptySet(),
-                )
-            },
+        // Parallelliser per-deltaker arbeid med begrenset samtidighet.
+        // Permit-grensen er satt under HikariCP poolStørrelse (10) for å unngå å sulte
+        // andre forespørsler. Hver buildDeltakerResponse gjør ~14 sekvensielle DB/HTTP-kall,
+        // så for store gjennomføringer (500+ deltakere) gir parallellisering 6-8x speedup.
+        val semaphore = Semaphore(MAX_CONCURRENT_DELTAKER_BUILDS)
+
+        val response = DeltakereResponse(
+            deltakere
+                .map { deltaker ->
+                    async {
+                        semaphore.withPermit {
+                            buildDeltakerResponse(
+                                deltaker = deltaker,
+                                kodeverkValg = kodeverkValgPerDeltakerliste[deltaker.deltakerliste.id] ?: emptySet(),
+                            )
+                        }
+                    }
+                }.awaitAll(),
         )
+
+        val elapsed = System.currentTimeMillis() - startTime
+        if (deltakere.size >= LARGE_LIST_WARNING_THRESHOLD || elapsed > 5_000) {
+            log.info("Bygde respons for {} deltakere på {}ms", deltakere.size, elapsed)
+        }
+
+        response
     }
 
     internal fun buildGjennomforingResponse(
