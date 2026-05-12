@@ -25,6 +25,7 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
+import java.util.UUID
 
 class ResponseBuilder(
     private val arrangorService: ArrangorService,
@@ -36,7 +37,10 @@ class ResponseBuilder(
     private val deltakerLaaseService: DeltakerLaaseService,
     private val vurderingRepository: VurderingRepository,
 ) {
-    suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
+    suspend fun buildDeltakerResponse(
+        deltaker: Deltaker,
+        kodeverkValg: Set<UUID>? = null,
+    ): DeltakerResponse {
         // hent alle entries som behøver navn på Nav-ansatt eller -enhet
         val endringsforslagForDeltaker = forslagRepository
             .getForDeltaker(deltaker.id)
@@ -55,7 +59,7 @@ class ResponseBuilder(
                 navEnheter = navEnheter,
                 navAnsatte = navAnsatte,
             ),
-            gjennomforing = buildGjennomforingResponse(deltaker.deltakerliste),
+            gjennomforing = buildGjennomforingResponse(deltaker.deltakerliste, kodeverkValg),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
             dagerPerUke = deltaker.dagerPerUke,
@@ -82,9 +86,29 @@ class ResponseBuilder(
         )
     }
 
-    suspend fun buildDeltakereResponse(deltakere: List<Deltaker>) = DeltakereResponse(deltakere.map { buildDeltakerResponse(it) })
+    suspend fun buildDeltakereResponse(deltakere: List<Deltaker>): DeltakereResponse {
+        // Hoist kodeverkValg-oppslag ut av loopen — alle deltakere på samme gjennomføring deler kodeverkValg.
+        // Tabellen er nøklet på deltakerliste_id, så vi henter én gang per unik deltakerliste.
+        val kodeverkValgPerDeltakerliste = deltakere
+            .map { it.deltakerliste }
+            .distinctBy { it.id }
+            .filter { it.tiltakstype.tiltakskode.erOpplaeringstiltak() }
+            .associate { it.id to KodeverkValgRepository.hentKodeverkValg(it.id) }
 
-    internal fun buildGjennomforingResponse(deltakerliste: Deltakerliste) = GjennomforingResponse(
+        return DeltakereResponse(
+            deltakere.map {
+                buildDeltakerResponse(
+                    deltaker = it,
+                    kodeverkValg = kodeverkValgPerDeltakerliste[it.deltakerliste.id] ?: emptySet(),
+                )
+            },
+        )
+    }
+
+    internal fun buildGjennomforingResponse(
+        deltakerliste: Deltakerliste,
+        kodeverkValg: Set<UUID>? = null,
+    ) = GjennomforingResponse(
         id = deltakerliste.id,
         tiltakstype = deltakerliste.tiltakstype,
         navn = deltakerliste.navn,
@@ -103,7 +127,7 @@ class ResponseBuilder(
         },
         pameldingstype = deltakerliste.pameldingstype,
         type = deltakerliste.gjennomforingstype,
-        kodeverkValg = if (deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()) {
+        kodeverkValg = kodeverkValg ?: if (deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()) {
             KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
         } else {
             emptySet()
