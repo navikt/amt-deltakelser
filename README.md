@@ -199,3 +199,4 @@ Alle versjoner styres i **libs.versions.toml**, slik at alle moduler i monorepoe
 
 Dette prosjektet er lisensiert under **MIT License**.  
 Se [LICENSE](LICENSE) for fullstendig lisensinformasjon.
+

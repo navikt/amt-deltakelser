@@ -53,14 +53,14 @@ data class DeltakerlisteResponse(
                 sluttdato = sluttDato,
                 status = status,
                 tilgjengeligInnhold = TilgjengeligInnholdResponse.fromDeltakerRegistreringInnhold(
-                    tiltak.innhold,
-                    tiltak.tiltakskode,
+                    innhold = tiltak.innhold,
+                    tiltakstype = tiltak.tiltakskode,
                 ),
                 erEnkeltplassUtenRammeavtale = erEnkeltplass, // TODO: Denne skal fjernes når frontend er klar
                 erEnkeltplass = erEnkeltplass,
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-                kodeverk = kodeverk,
+                kodeverk = kodeverk?.settValgt(gjennomforingModel.kodeverkValg),
             )
         }
     }

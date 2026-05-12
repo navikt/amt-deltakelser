@@ -144,6 +144,7 @@ fun Application.configureRouting(
             amtDeltakerClient = amtDeltakerClient,
             sporbarhetsloggService = sporbarhetsloggService,
             unleashToggle = commonUnleashToggle,
+            kodeverkClient = kodeverkClient,
         )
 
         registerPameldingApi(

@@ -202,6 +202,12 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
         @Test
         fun `skal returnere OK nar utkast er oppdatert`() = runTest {
+            // Arrange
+            coEvery { kodeverkClient.hentKodeverk(any()) } returns KodeverkResponse(
+                tiltakskode = deltakerInTest.deltakerliste.tiltak.tiltakskode,
+                alternativer = emptyList(),
+            )
+
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(utkastUrlInTest) {
