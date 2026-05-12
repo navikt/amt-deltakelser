@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.api
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 import no.nav.amt.deltaker.api.external.response.DeltakelserResponse
 import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
 import no.nav.amt.deltaker.api.external.response.Periode
@@ -13,7 +12,6 @@ import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
@@ -49,8 +47,7 @@ class DeltakelserResponseMapperTest {
     )
 
     private val arrangorRepository = ArrangorRepository()
-    private val arrangorService = ArrangorService(arrangorRepository, mockk())
-    private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
+    private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService)
 
     companion object {
         @RegisterExtension
@@ -134,7 +131,7 @@ class DeltakelserResponseMapperTest {
         assertSoftly(deltakelserResponse.aktive.first()) {
             deltakerId shouldBe deltaker.id
             deltakerlisteId shouldBe deltaker.deltakerliste.id
-            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Overordnet Arrangør"
+            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
             tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
                 deltaker.deltakerliste.tiltakstype.navn,
                 deltaker.deltakerliste.tiltakstype.tiltakskode,

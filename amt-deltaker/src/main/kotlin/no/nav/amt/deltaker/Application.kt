@@ -299,7 +299,7 @@ fun Application.module() {
             deltakerHistorikkService,
         )
 
-    val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
+    val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService)
 
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,

@@ -242,7 +242,6 @@ abstract class IntegrationTestBase {
     protected open val deltakelserResponseMapper: DeltakelserResponseMapper by lazy {
         DeltakelserResponseMapper(
             deltakerHistorikkService = deltakerHistorikkService,
-            arrangorService = arrangorService,
         )
     }
 
