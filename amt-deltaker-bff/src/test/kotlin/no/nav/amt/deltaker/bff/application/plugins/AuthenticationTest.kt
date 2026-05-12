@@ -104,6 +104,8 @@ class AuthenticationTest {
                 gjennomforingClient = mockk(),
                 kodeverkClient = mockk(),
                 selfServiceTilgangService = mockk(),
+                tiltakskoordinatorResponseBuilder = mockk(),
+                tiltakskoordinatorClient = mockk(),
             )
             setUpTestRoute()
         }

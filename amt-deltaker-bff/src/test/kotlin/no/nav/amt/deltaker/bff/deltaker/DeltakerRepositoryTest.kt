@@ -225,36 +225,6 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class GetForDeltakerlisteTests {
-        @Test
-        fun `getForDeltakerliste - flere deltakere pa samme liste - returnerer liste med deltakere`() {
-            val deltakerliste = TestData.lagDeltakerliste()
-            val deltakere = (0..10).map {
-                TestData.lagDeltaker(
-                    deltakerliste = deltakerliste,
-                    status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                )
-            }
-            deltakere.forEach { TestRepository.insert(it) }
-
-            val deltakereFraDb = deltakerRepository.getForDeltakerliste(deltakerliste.id)
-
-            deltakereFraDb.size shouldBe deltakere.size
-            deltakere
-                .sortedBy { it.id }
-                .zip(deltakereFraDb.sortedBy { it.id })
-                .forEach { DeltakerTestUtils.sammenlignDeltakere(it.first, it.second) }
-        }
-
-        @Test
-        fun `getForDeltakerliste - deltakerliste finnes ikke - returnerer tom liste`() {
-            val deltakereFraDb = deltakerRepository.getForDeltakerliste(UUID.randomUUID())
-
-            deltakereFraDb shouldBe emptyList()
-        }
-    }
-
-    @Nested
     inner class GetManyByIdList {
         @Test
         fun `getMany - ingen deltakere - returnerer tom liste`() {

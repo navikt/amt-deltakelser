@@ -83,11 +83,6 @@ class TiltakskoordinatorService(
         return deltakerRepository.get(deltakeroppdatering.id).getOrThrow().toTiltakskoordinatorsDeltaker()
     }
 
-    suspend fun hentDeltakereForDeltakerliste(deltakerlisteId: UUID): List<TiltakskoordinatorsDeltaker> {
-        val deltakere = deltakerRepository.getForDeltakerliste(deltakerlisteId)
-        return deltakere.toTiltakskoordinatorsDeltaker()
-    }
-
     fun TiltakskoordinatorsDeltaker.skalSkjules() = status.type in listOf(
         DeltakerStatus.Type.KLADD,
         DeltakerStatus.Type.UTKAST_TIL_PAMELDING,

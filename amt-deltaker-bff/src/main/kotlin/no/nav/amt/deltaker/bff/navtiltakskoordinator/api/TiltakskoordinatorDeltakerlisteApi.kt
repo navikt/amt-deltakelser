@@ -13,17 +13,19 @@ import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.clients.GjennomforingClient
+import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.skalSkjules
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder.toDeltakerResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder.toResponse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper.toDeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
@@ -34,7 +36,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     navAnsattService: NavAnsattService,
     gjennomforingClient: GjennomforingClient,
-    unleashToggle: CommonUnleashToggle,
+    tiltakskoordinatorClient: TiltakskoordinatorClient,
+    responseBuilder: ResponseBuilder,
 ) {
     authenticate(AuthLevel.TILTAKSKOORDINATOR.name) {
         route("/tiltakskoordinator/deltakerliste/{id}") {
@@ -48,16 +51,9 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     paaloggetNavAnsattId = paaloggetNavAnsatt.id,
                 )
 
-                val gjennomforingResponse = if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    gjennomforingClient
-                        .getGjennomforing(deltakerlisteId)
-                        .let { ResponseBuilder.buildGjennomforing(it, koordinatorer) }
-                } else {
-                    deltakerlisteService
-                        .get(deltakerlisteId)
-                        .getOrThrow()
-                        .toResponse(koordinatorer)
-                }
+                val gjennomforingResponse = gjennomforingClient
+                    .getGjennomforing(deltakerlisteId)
+                    .let { ResponseMapper.buildGjennomforing(it, koordinatorer) }
 
                 call.respond(gjennomforingResponse)
             }
@@ -70,16 +66,18 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     deltakerlisteId = deltakerlisteId,
                 )
 
-                val deltakere = tiltakskoordinatorService
-                    .hentDeltakereForDeltakerliste(deltakerlisteId)
+                val deltakere = tiltakskoordinatorClient
+                    .getDeltakereForGjennomforing(deltakerlisteId)
+                    .deltakere
+                    .map { ModelMapper.toDeltaker(it) }
+                    .filterNot { it.skalSkjules() }
                     .map { deltaker ->
-                        deltaker.toDeltakerResponse(
-                            tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
-                                navAnsattAzureId = call.getNavAnsattAzureId(),
-                                erSkjermet = deltaker.navBruker.erSkjermet,
-                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                            ),
+                        val kanSeNavn = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                            navAnsattAzureId = call.getNavAnsattAzureId(),
+                            erSkjermet = deltaker.navBruker.erSkjermet,
+                            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                         )
+                        responseBuilder.toDeltakerResponse(deltaker, kanSeNavn)
                     }
 
                 call.respond(deltakere)

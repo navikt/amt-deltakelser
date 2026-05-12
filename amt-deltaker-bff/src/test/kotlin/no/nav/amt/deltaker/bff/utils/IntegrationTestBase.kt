@@ -26,7 +26,9 @@ import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
@@ -68,6 +70,8 @@ abstract class IntegrationTestBase {
 
     protected val tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService = mockk()
     protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk()
+    protected val tiltakskoordinatorClient: TiltakskoordinatorClient = mockk()
+    protected open val tiltakskoordinatorResponseBuilder: ResponseBuilder = mockk()
     protected val ulestHendelseService: UlestHendelseService = mockk()
     protected val testdataService: TestdataService = mockk()
     protected val selfServiceTilgangskontrollService: SelfServiceTilgangService = mockk()
@@ -129,6 +133,8 @@ abstract class IntegrationTestBase {
                     gjennomforingClient = gjennomforingClient,
                     kodeverkClient = kodeverkClient,
                     selfServiceTilgangService = selfServiceTilgangskontrollService,
+                    tiltakskoordinatorClient = tiltakskoordinatorClient,
+                    tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
                 )
 
                 attributes.put(isReadyKey, appIsReady)

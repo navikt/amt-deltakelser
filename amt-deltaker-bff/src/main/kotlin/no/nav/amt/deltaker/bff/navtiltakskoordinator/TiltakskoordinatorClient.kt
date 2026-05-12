@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
+import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
@@ -25,6 +26,11 @@ class TiltakskoordinatorClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
+    suspend fun getDeltakereForGjennomforing(gjennomforingId: UUID): DeltakereResponse =
+        performGet("tiltakskoordinator/deltakere/$gjennomforingId")
+            .failIfNotSuccess("Fant ikke gjennomforing $gjennomforingId i amt-deltaker.")
+            .body()
+
     suspend fun delMedArrangor(
         deltakerIder: List<UUID>,
         endretAv: String,

@@ -31,10 +31,12 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.innbygger.api.registerInnbyggerApi
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerlisteApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerUlestHendelseApi
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
@@ -90,6 +92,8 @@ fun Application.configureRouting(
     testdataService: TestdataService,
     gjennomforingClient: GjennomforingClient,
     kodeverkClient: KodeverkClient,
+    tiltakskoordinatorResponseBuilder: ResponseBuilder,
+    tiltakskoordinatorClient: TiltakskoordinatorClient,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -191,9 +195,10 @@ fun Application.configureRouting(
             tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
             navAnsattService = navAnsattService,
             gjennomforingClient = gjennomforingClient,
-            unleashToggle = commonUnleashToggle,
             tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
             selfServiceTilgang = selfServiceTilgangService,
+            tiltakskoordinatorClient = tiltakskoordinatorClient,
+            responseBuilder = tiltakskoordinatorResponseBuilder,
         )
 
         registerUlestHendelseApi(ulestHendelseService)

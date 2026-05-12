@@ -15,7 +15,7 @@ import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
@@ -56,7 +56,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     deltakerlisteId = deltaker.gjennomforing.id,
                 )
                 val ulesteHendelser = ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId)
-                deltaker.let { ResponseBuilder.buildDeltakerDetaljerResponse(it, harTilgangTilBruker, ulesteHendelser) }
+                deltaker.let { ResponseMapper.buildDeltakerDetaljerResponse(it, harTilgangTilBruker, ulesteHendelser) }
             } else {
                 // Skal slettes etter hvert
                 val tiltakskoordinatorsDeltaker = tiltakskoordinatorService.getDeltaker(deltakerId)

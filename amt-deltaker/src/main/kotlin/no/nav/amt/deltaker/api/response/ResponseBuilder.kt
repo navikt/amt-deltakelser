@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
@@ -80,6 +81,8 @@ class ResponseBuilder(
             sisteVurdering = sisteVurdering?.let { VurderingResponse.fromVurdering(it) },
         )
     }
+
+    suspend fun buildDeltakereResponse(deltakere: List<Deltaker>) = DeltakereResponse(deltakere.map { buildDeltakerResponse(it) })
 
     internal fun buildGjennomforingResponse(deltakerliste: Deltakerliste) = GjennomforingResponse(
         id = deltakerliste.id,
