@@ -33,6 +33,8 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
 import org.slf4j.LoggerFactory
 import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 class ResponseBuilder(
     private val arrangorService: ArrangorService,
@@ -110,7 +112,7 @@ class ResponseBuilder(
     }
 
     suspend fun buildDeltakereResponse(deltakere: List<Deltaker>): DeltakereResponse = coroutineScope {
-        val startTime = System.currentTimeMillis()
+        val startMark = TimeSource.Monotonic.markNow()
 
         // TODO: Bygging av respons for store gjennomføringer er N+1-tungt:
         //   - DeltakerHistorikkService.getForDeltaker gjør 8 separate DB-queries per deltaker
@@ -147,9 +149,9 @@ class ResponseBuilder(
                 }.awaitAll(),
         )
 
-        val elapsed = System.currentTimeMillis() - startTime
-        if (deltakere.size >= LARGE_LIST_WARNING_THRESHOLD || elapsed > 5_000) {
-            log.info("Bygde respons for {} deltakere på {}ms", deltakere.size, elapsed)
+        val elapsed = startMark.elapsedNow()
+        if (deltakere.size >= LARGE_LIST_WARNING_THRESHOLD || elapsed > 5.seconds) {
+            log.info("Bygde respons for {} deltakere på {}ms", deltakere.size, elapsed.inWholeMilliseconds)
         }
 
         response
