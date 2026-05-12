@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.internapi.deltaker.response.DeltakereResponse
@@ -26,9 +27,21 @@ class TiltakskoordinatorClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
+    companion object {
+        // 45s timeout for endepunkter som bygger respons for store gjennomføringer.
+        // Den globale timeouten (10s) er for kort fordi N+1-mønstre i amt-deltaker
+        // gir lineær vekst i responstid med antall deltakere.
+        private const val LARGE_LIST_REQUEST_TIMEOUT_MILLIS = 45_000L
+    }
     suspend fun getDeltakereForGjennomforing(gjennomforingId: UUID): DeltakereResponse =
-        performGet("tiltakskoordinator/deltakere/$gjennomforingId")
-            .failIfNotSuccess("Fant ikke gjennomforing $gjennomforingId i amt-deltaker.")
+        performGet("tiltakskoordinator/deltakere/$gjennomforingId") {
+            // Bygger respons for alle deltakere på en gjennomføring (kan være 500+) er N+1-tungt
+            // i amt-deltaker. Bumpet timeout her inntil det er batche-optimalisert server-side.
+            timeout {
+                requestTimeoutMillis = LARGE_LIST_REQUEST_TIMEOUT_MILLIS
+                socketTimeoutMillis = LARGE_LIST_REQUEST_TIMEOUT_MILLIS
+            }
+        }.failIfNotSuccess("Fant ikke gjennomforing $gjennomforingId i amt-deltaker.")
             .body()
 
     suspend fun delMedArrangor(
