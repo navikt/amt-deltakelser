@@ -8,13 +8,12 @@ on:
       - "amt-iac/**/*.yaml"
       - ".github/workflows/ci-deploy-iac.yml"
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   changes:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     outputs:
       iac_folders: ${{ steps.filter.outputs.changes }}
@@ -51,6 +50,11 @@ jobs:
         iac_folder: ${{ fromJSON(needs.changes.outputs.iac_folders) }}
 
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
