@@ -11,7 +11,6 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
-import io.mockk.verify
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.model.Deltaker
@@ -140,23 +139,6 @@ class VeilederApiTest : IntegrationTestBase() {
     // ---- getDeltaker ----
 
     @Test
-    fun `getDeltaker - har tilgang, toggle av - returnerer deltaker fra lokal repo`() {
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            navBruker = lagNavBruker(personident = "1234"),
-        )
-        val expectedResponse = deltakerResponseInTest(deltaker, setupMocks(deltaker, deltaker))
-
-        withTestApplicationContext { httpClient ->
-            httpClient.post("/deltaker/${deltaker.id}") { createPostRequest(deltakerRequest) }.apply {
-                status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
-            }
-        }
-        verify(exactly = 1) { sporbarhetsloggService.sendAuditLog(any(), any()) }
-    }
-
-    @Test
     fun `getDeltaker - har tilgang, toggle på - returnerer deltaker fra amt-deltaker`() {
         val deltakerResponse = lagDeltakerResponse()
         val deltakerId = deltakerResponse.id
@@ -228,36 +210,6 @@ class VeilederApiTest : IntegrationTestBase() {
                         arrangornavn = arrangornavn,
                         oppstartstype = oppstartstype,
                         pameldingstype = null,
-                        enheter = enheter,
-                        ansatte = ansatte,
-                    ),
-                )
-                bodyAsText() shouldBe expected
-            }
-        }
-    }
-
-    @Test
-    fun `getDeltakerHistorikk - toggle av - returnerer lokal historikk`() {
-        val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
-        val historikk = deltaker.getDeltakerHistorikkForVisning()
-        val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
-        val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
-
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        every { navAnsattService.hentAnsatteForHistorikk(historikk) } returns ansatte
-        coEvery { navEnhetService.hentEnheterForHistorikk(historikk) } returns enheter
-
-        withTestApplicationContext { httpClient ->
-            httpClient.get("/deltaker/${deltaker.id}/historikk") { noBodyRequest() }.apply {
-                status shouldBe HttpStatusCode.OK
-                val expected = objectMapper.writePolymorphicListAsString(
-                    DeltakerHistorikkResponse.fromModels(
-                        models = historikk,
-                        arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                        oppstartstype = deltaker.deltakerliste.oppstart,
-                        pameldingstype = deltaker.deltakerliste.pameldingstype,
                         enheter = enheter,
                         ansatte = ansatte,
                     ),
