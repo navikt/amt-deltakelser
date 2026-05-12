@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
@@ -127,7 +128,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
     @Test
     fun `buildGjennomforingResponse - skal mappe deltakerliste korrekt`() {
         // Arrange
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+        val deltakerliste = lagDeltakerliste(
             status = GjennomforingStatusType.GJENNOMFORES,
             startDato = LocalDate.now(),
             sluttDato = LocalDate.now().plusDays(1),
@@ -137,15 +138,13 @@ class ResponseBuilderTest : IntegrationTestBase() {
             pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
-        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
-
         // Act
         val gjennomforingResponse = responseBuilder.buildGjennomforingResponse(deltakerliste)
 
         // Assert
         val expectedArrangor = ArrangorResponse(
-            navn = "~arrangor-navn~",
-            deltakerliste.arrangor.shouldNotBeNull().organisasjonsnummer,
+            navn = deltakerliste.arrangor.shouldNotBeNull().navn,
+            organisasjonsnummer = deltakerliste.arrangor.shouldNotBeNull().organisasjonsnummer,
         )
 
         assertSoftly(gjennomforingResponse) {
@@ -244,7 +243,6 @@ class ResponseBuilderTest : IntegrationTestBase() {
 
         coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
-        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
         every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
@@ -316,7 +314,6 @@ class ResponseBuilderTest : IntegrationTestBase() {
         val deltakere = listOf(deltaker1, deltaker2)
 
         coEvery { distribusjonClient.digitalBruker(any()) } returns true
-        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
         every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
         every { deltakerHistorikkService.getForDeltaker(any()) } returns emptyList()
         every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
