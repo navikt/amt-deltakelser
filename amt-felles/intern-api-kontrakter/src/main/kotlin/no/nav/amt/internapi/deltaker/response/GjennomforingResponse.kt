@@ -22,5 +22,5 @@ data class GjennomforingResponse(
     val oppmoteSted: String?,
     val arrangor: ArrangorResponse?,
     val pameldingstype: GjennomforingPameldingType?, // TODO: Denne bør ikke være nullable
-    val kodeverkValg: Set<UUID>,
+    val kodeverkValg: Set<UUID> = emptySet(),
 )
