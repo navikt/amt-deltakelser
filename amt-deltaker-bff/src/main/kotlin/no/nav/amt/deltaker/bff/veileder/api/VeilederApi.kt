@@ -169,7 +169,7 @@ fun Routing.registerVeilederApi(
                         .getDeltaker(deltakerId)
                         .let { deltakerResponse ->
                             val kodeverk = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
-                                .takeIf { tiltakskode -> tiltakskode.erOpplaeringstiltak() } // TODO: Kan vi spisse denne mer?
+                                .takeIf { tiltakskode -> tiltakskode.erOpplaeringstiltak() }
                                 ?.let { tiltakskode -> kodeverkClient.hentKodeverk(tiltakskode) }
 
                             DeltakerResponse.fromDeltakerModel(

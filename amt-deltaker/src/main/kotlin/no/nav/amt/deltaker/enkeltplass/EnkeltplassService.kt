@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
-import no.nav.amt.deltaker.repository.KodeverkValgRepository.lagreKodeverkValg
+import no.nav.amt.deltaker.repository.KodeverkValgRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
@@ -120,11 +120,15 @@ class EnkeltplassService(
                 ),
             )
 
-            oppdaterKladdRequest.kodeverkValg?.let {
-                lagreKodeverkValg(
-                    deltakerlisteId = deltaker.deltakerliste.id,
-                    valg = it,
-                )
+            oppdaterKladdRequest.kodeverkValg?.let { kodeverkValg ->
+                if (kodeverkValg.isNotEmpty()) {
+                    KodeverkValgRepository.lagreKodeverkValg(
+                        deltakerlisteId = deltaker.deltakerliste.id,
+                        valg = kodeverkValg,
+                    )
+                } else {
+                    KodeverkValgRepository.deleteForGjennomforing(deltaker.deltakerliste.id)
+                }
             }
 
             deltakerRepository.updateEnkeltplassKladd(

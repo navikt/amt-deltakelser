@@ -100,8 +100,11 @@ class ResponseBuilder(
         },
         pameldingstype = deltakerliste.pameldingstype,
         type = deltakerliste.gjennomforingstype,
-        // TODO: Kalles kun for spesifikke tiltakskoder
-        kodeverkValg = KodeverkValgRepository.hentKodeverkValg(deltakerliste.id),
+        kodeverkValg = if (deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()) {
+            KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
+        } else {
+            emptySet()
+        },
     )
 
     internal fun buildVedtaksinformasjonResponse(

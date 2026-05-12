@@ -43,9 +43,9 @@ class KodeverkValgRepositoryTest {
     }
 
     @Test
-    fun `skal returnere empty list nar ingen valg i db`() {
+    fun `skal returnere empty set nar ingen valg i db`() {
         val lagret = KodeverkValgRepository.hentKodeverkValg(UUID.randomUUID())
-        lagret shouldBe emptyList()
+        lagret shouldBe emptySet()
     }
 
     @Test
@@ -62,6 +62,6 @@ class KodeverkValgRepositoryTest {
 
         KodeverkValgRepository.deleteForGjennomforing(deltakerliste.id)
         val slettet = KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
-        slettet shouldBe emptyList()
+        slettet shouldBe emptySet()
     }
 }
