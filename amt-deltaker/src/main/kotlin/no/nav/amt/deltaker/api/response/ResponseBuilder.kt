@@ -45,9 +45,13 @@ class ResponseBuilder(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    // Delt semafor på tvers av samtidige forespørsler — uten dette ville hver request fått
+    // egne 8 permits, og N samtidige requests = N*8 permits, som kunne sulte Hikari-poolen (10).
+    private val deltakerBuildSemaphore = Semaphore(MAX_CONCURRENT_DELTAKER_BUILDS)
+
     companion object {
-        // Maks samtidige buildDeltakerResponse-kall — bevisst lavere enn HikariCP poolStørrelse (10)
-        // for å la andre forespørsler få DB-connections samtidig.
+        // Maks samtidige buildDeltakerResponse-kall på tvers av alle forespørsler — bevisst lavere
+        // enn HikariCP poolStørrelse (10) for å la andre endepunkter få DB-connections samtidig.
         private const val MAX_CONCURRENT_DELTAKER_BUILDS = 8
 
         // Logger advarsel når antall deltakere overstiger denne grensen — gir oss synlighet
@@ -125,17 +129,14 @@ class ResponseBuilder(
             .filter { it.tiltakstype.tiltakskode.erOpplaeringstiltak() }
             .associate { it.id to KodeverkValgRepository.hentKodeverkValg(it.id) }
 
-        // Parallelliser per-deltaker arbeid med begrenset samtidighet.
-        // Permit-grensen er satt under HikariCP poolStørrelse (10) for å unngå å sulte
-        // andre forespørsler. Hver buildDeltakerResponse gjør ~14 sekvensielle DB/HTTP-kall,
-        // så for store gjennomføringer (500+ deltakere) gir parallellisering 6-8x speedup.
-        val semaphore = Semaphore(MAX_CONCURRENT_DELTAKER_BUILDS)
-
+        // Parallelliser per-deltaker arbeid med begrenset samtidighet via delt semafor.
+        // Hver buildDeltakerResponse gjør ~14 sekvensielle DB/HTTP-kall, så for store
+        // gjennomføringer (500+ deltakere) gir parallellisering 6-8x speedup.
         val response = DeltakereResponse(
             deltakere
                 .map { deltaker ->
                     async {
-                        semaphore.withPermit {
+                        deltakerBuildSemaphore.withPermit {
                             buildDeltakerResponse(
                                 deltaker = deltaker,
                                 kodeverkValg = kodeverkValgPerDeltakerliste[deltaker.deltakerliste.id] ?: emptySet(),
