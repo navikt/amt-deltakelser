@@ -33,6 +33,7 @@ class TiltakskoordinatorClient(
         // gir lineær vekst i responstid med antall deltakere.
         private const val LARGE_LIST_REQUEST_TIMEOUT_MILLIS = 45_000L
     }
+
     suspend fun getDeltakereForGjennomforing(gjennomforingId: UUID): DeltakereResponse =
         performGet("tiltakskoordinator/deltakere/$gjennomforingId") {
             // Bygger respons for alle deltakere på en gjennomføring (kan være 500+) er N+1-tungt
