@@ -163,23 +163,17 @@ fun Routing.registerVeilederApi(
                 deltakerPersonIdent = personident,
             )
 
-            val deltakerResponse =
-                if (unleashToggle.prioriterSynkronKommunikasjon()) {
-                    amtDeltakerClient
-                        .getDeltaker(deltakerId)
-                        .let { deltakerResponse ->
-                            val kodeverk = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
-                                .takeIf { tiltakskode -> tiltakskode.erOpplaeringstiltak() }
-                                ?.let { tiltakskode -> kodeverkClient.hentKodeverk(tiltakskode) }
+            val deltakerResponse = amtDeltakerClient
+                .getDeltaker(deltakerId)
+                .let { deltakerResponse ->
+                    val kodeverk = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
+                        .takeIf { tiltakskode -> tiltakskode.erOpplaeringstiltak() }
+                        ?.let { tiltakskode -> kodeverkClient.hentKodeverk(tiltakskode) }
 
-                            DeltakerResponse.fromDeltakerModel(
-                                deltaker = ModelMapper.toDeltaker(deltakerResponse),
-                                kodeverkResponse = kodeverk,
-                            )
-                        }
-                } else {
-                    val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-                    komplettDeltakerResponse(deltaker)
+                    DeltakerResponse.fromDeltakerModel(
+                        deltaker = ModelMapper.toDeltaker(deltakerResponse),
+                        kodeverkResponse = kodeverk,
+                    )
                 }
 
             call.respond(deltakerResponse)
