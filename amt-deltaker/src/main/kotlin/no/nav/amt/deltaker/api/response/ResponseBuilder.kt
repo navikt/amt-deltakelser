@@ -112,14 +112,12 @@ class ResponseBuilder(
     suspend fun buildDeltakereResponse(deltakere: List<Deltaker>): DeltakereResponse = coroutineScope {
         val startTime = System.currentTimeMillis()
 
+        // TODO: Bygging av respons for store gjennomføringer er N+1-tungt:
+        //   - DeltakerHistorikkService.getForDeltaker gjør 8 separate DB-queries per deltaker
+        //   - amtDistribusjonClient.digitalBruker gjør 1 HTTP-kall per personident (cachet 15min)
+        //   Bør batches per deltakerliste — se issue om tiltakskoordinator-ytelse.
         if (deltakere.size >= LARGE_LIST_WARNING_THRESHOLD) {
-            log.warn(
-                "Bygger respons for {} deltakere — risiko for timeout. " +
-                    "Vurder batch-fetching eller paginering. " +
-                    "TODO: DeltakerHistorikkService.getForDeltaker gjør 8 separate DB-queries per deltaker, " +
-                    "og amtDistribusjonClient.digitalBruker gjør 1 HTTP-kall per deltaker (cachet 15min).",
-                deltakere.size,
-            )
+            log.warn("Bygger respons for {} deltakere — risiko for timeout", deltakere.size)
         }
 
         // Hoist kodeverkValg-oppslag ut av loopen — alle deltakere på samme gjennomføring deler kodeverkValg.
