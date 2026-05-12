@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.api.response
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -132,10 +133,12 @@ class ResponseBuilder(
         // Parallelliser per-deltaker arbeid med begrenset samtidighet via delt semafor.
         // Hver buildDeltakerResponse gjør ~14 sekvensielle DB/HTTP-kall, så for store
         // gjennomføringer (500+ deltakere) gir parallellisering 6-8x speedup.
+        // Kjører på Dispatchers.IO siden Database.query og HTTP-klient er blokkerende —
+        // unngår tråd-sult på Ktor sin request-dispatcher.
         val response = DeltakereResponse(
             deltakere
                 .map { deltaker ->
-                    async {
+                    async(Dispatchers.IO) {
                         deltakerBuildSemaphore.withPermit {
                             buildDeltakerResponse(
                                 deltaker = deltaker,
