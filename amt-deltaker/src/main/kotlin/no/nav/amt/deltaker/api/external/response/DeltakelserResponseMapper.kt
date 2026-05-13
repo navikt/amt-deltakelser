@@ -6,15 +6,16 @@ import no.nav.amt.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
-import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
 
 class DeltakelserResponseMapper(
     private val deltakerHistorikkService: DeltakerHistorikkService,
+    private val arrangorService: ArrangorService,
 ) {
     fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
         val aktive = deltakelser
@@ -87,8 +88,7 @@ class DeltakelserResponseMapper(
 
     private fun lagTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.arrangor
-            ?.navn
-            ?.toTitleCase()
+            ?.let { arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor) }
             ?: "Ukjent arrangør"
         return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
             Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"

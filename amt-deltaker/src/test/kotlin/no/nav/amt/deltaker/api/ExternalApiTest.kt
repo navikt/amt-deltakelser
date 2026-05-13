@@ -39,7 +39,6 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.toTitleCase
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.Nested
@@ -111,7 +110,7 @@ class ExternalApiTest : IntegrationTestBase() {
                     DeltakerKort(
                         deltakerId = deltaker.id,
                         deltakerlisteId = deltaker.deltakerliste.id,
-                        tittel = "Arbeidsforberedende trening hos ${deltaker.deltakerliste.arrangor.navn.toTitleCase()}",
+                        tittel = "Arbeidsforberedende trening hos ${deltaker.deltakerliste.arrangor.navn}",
                         tiltakstype = DeltakelserResponse.Tiltakstype(
                             navn = deltaker.deltakerliste.tiltakstype.navn,
                             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
@@ -189,7 +188,7 @@ class ExternalApiTest : IntegrationTestBase() {
                     DeltakerKort(
                         deltakerId = deltakerKladd.id,
                         deltakerlisteId = deltakerKladd.deltakerliste.id,
-                        tittel = "Arbeidsforberedende trening hos ${deltakerKladd.deltakerliste.arrangor.navn.toTitleCase()}",
+                        tittel = "Arbeidsforberedende trening hos ${deltakerKladd.deltakerliste.arrangor.navn}",
                         tiltakstype = DeltakelserResponse.Tiltakstype(
                             navn = deltakerKladd.deltakerliste.tiltakstype.navn,
                             tiltakskode = deltakerKladd.deltakerliste.tiltakstype.tiltakskode,
@@ -208,7 +207,7 @@ class ExternalApiTest : IntegrationTestBase() {
                     DeltakerKort(
                         deltakerId = avsluttetDeltaker.id,
                         deltakerlisteId = avsluttetDeltaker.deltakerliste.id,
-                        tittel = "Arbeidsforberedende trening hos ${avsluttetDeltaker.deltakerliste.arrangor!!.navn.toTitleCase()}",
+                        tittel = "Arbeidsforberedende trening hos ${deltakerKladd.deltakerliste.arrangor.navn}",
                         tiltakstype = DeltakelserResponse.Tiltakstype(
                             navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
                             tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.tiltakskode,
