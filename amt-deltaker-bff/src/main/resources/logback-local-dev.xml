@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="5 seconds">
-    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
 
     <appender name="consolePlain" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -8,16 +7,14 @@
         </encoder>
     </appender>
 
-    <root level="${ROOT_LOG_LEVEL:-INFO}">
+    <root level="${ROOT_LOG_LEVEL:-WARN}">
         <appender-ref ref="consolePlain"/>
     </root>
 
-    <!-- Keep noisy libraries under control in local runs -->
-    <logger name="org.apache.kafka" level="WARN"/>
-    <logger name="ch.qos.logback" level="WARN"/>
-    <logger name="com.zaxxer.hikari.pool" level="INFO"/>
+    <logger name="no.nav.amt" level="INFO"/>
 
-    <logger name="no.nav" level="DEBUG"/>
+    <logger name="no.nav.amt.lib.kafka" level="WARN"/>
+    <logger name="no.nav.amt.deltaker.bff.job.LeaderElection" level="WARN"/>
 
 </configuration>
 
