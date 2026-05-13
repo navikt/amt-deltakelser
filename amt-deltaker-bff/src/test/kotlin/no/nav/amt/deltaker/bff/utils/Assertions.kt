@@ -1,90 +1,82 @@
 package no.nav.amt.deltaker.bff.utils
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
+import io.mockk.verify
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltakerlistePayload
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorDeltakerlisteTilgang
+import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import no.nav.amt.lib.utils.objectMapper
-import tools.jackson.module.kotlin.readValue
-import java.util.UUID
 
-fun assertProduced(forslag: Forslag) = runTest {
-    val receivedMessages = mutableMapOf<UUID, Forslag>()
-
-    val consumer = stringStringConsumer(Environment.ARRANGOR_MELDING_TOPIC) { k, v ->
-        receivedMessages[UUID.fromString(k)] = objectMapper.readValue(v!!)
+/**
+ * Verifiserer at [Forslag] er sendt til outbox med riktig nøkkel og innhold.
+ * Tidligere konsumerte vi fra en ekte Kafka-topic; nå sjekker vi at
+ * [OutboxService.insertRecord] er kalt med forventede argumenter.
+ */
+fun OutboxService.assertProduced(forslag: Forslag) {
+    verify {
+        insertRecord(
+            key = forslag.id,
+            value = match { value ->
+                value is Forslag && matchesForslag(value, forslag)
+            },
+            topic = Environment.ARRANGOR_MELDING_TOPIC,
+            suppressOutsideTxWarning = any(),
+        )
     }
-
-    consumer.start()
-
-    eventually {
-        val receivedForslag = receivedMessages[forslag.id].shouldNotBeNull()
-
-        assertSoftly(receivedForslag) {
-            id shouldBe forslag.id
-            deltakerId shouldBe forslag.deltakerId
-            endring shouldBe forslag.endring
-            begrunnelse shouldBe forslag.begrunnelse
-            opprettet shouldBe forslag.opprettet
-            opprettetAvArrangorAnsattId shouldBe forslag.opprettetAvArrangorAnsattId
-        }
-
-        sammenlignForslagStatus(receivedForslag.status, forslag.status)
-    }
-
-    consumer.close()
 }
 
-fun assertProduced(
-    tilgang: TiltakskoordinatorsDeltakerlistePayload,
-    tombstoneExpected: Boolean = false,
-) = runTest {
-    val receivedDeltakerlister = mutableMapOf<UUID, TiltakskoordinatorsDeltakerlistePayload?>()
-
-    val consumer = stringStringConsumer(Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC) { k, v ->
-        receivedDeltakerlister[UUID.fromString(k)] = v?.let { objectMapper.readValue(it) }
+fun OutboxService.assertProduced(tilgang: TiltakskoordinatorsDeltakerlistePayload) {
+    verify {
+        insertRecord(
+            key = tilgang.id,
+            value = match { value ->
+                value is TiltakskoordinatorsDeltakerlistePayload &&
+                    value.id == tilgang.id &&
+                    value.gjennomforingId == tilgang.gjennomforingId &&
+                    value.navIdent == tilgang.navIdent
+            },
+            topic = Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC,
+            suppressOutsideTxWarning = any(),
+        )
     }
-
-    consumer.start()
-
-    eventually {
-        receivedDeltakerlister.keys.contains(tilgang.id) shouldBe true
-
-        if (tombstoneExpected) {
-            receivedDeltakerlister[tilgang.id] shouldBe null
-        } else {
-            assertSoftly(receivedDeltakerlister[tilgang.id].shouldNotBeNull()) {
-                id shouldBe tilgang.id
-                gjennomforingId shouldBe tilgang.gjennomforingId
-                navIdent shouldBe tilgang.navIdent
-            }
-        }
-    }
-
-    consumer.close()
 }
 
-fun assertProducedTombstone(tilgang: TiltakskoordinatorDeltakerlisteTilgang) = runTest {
-    val receivedDeltakerlister = mutableMapOf<UUID, TiltakskoordinatorsDeltakerlistePayload?>()
-
-    val consumer = stringStringConsumer(Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC) { k, v ->
-        receivedDeltakerlister[UUID.fromString(k)] = v?.let { objectMapper.readValue(it) }
+/**
+ * Verifiserer at [Producer.tombstone] er kalt for gitt id på tiltakskoordinatorer-topicen.
+ */
+fun Producer<String, String>.assertProducedTombstone(tilgang: TiltakskoordinatorDeltakerlisteTilgang) {
+    verify {
+        tombstone(
+            topic = Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC,
+            key = tilgang.id.toString(),
+        )
     }
+}
 
-    consumer.start()
-
-    eventually {
-        receivedDeltakerlister.keys.contains(tilgang.id) shouldBe true
-        receivedDeltakerlister[tilgang.id] shouldBe null
+fun Producer<String, String>.assertProducedTombstone(tilgang: TiltakskoordinatorsDeltakerlistePayload) {
+    verify {
+        tombstone(
+            topic = Environment.AMT_TILTAKSKOORDINATORS_DELTAKERLISTE_TOPIC,
+            key = tilgang.id.toString(),
+        )
     }
+}
 
-    consumer.close()
+private fun matchesForslag(
+    received: Forslag,
+    expected: Forslag,
+): Boolean {
+    if (received.id != expected.id) return false
+    if (received.deltakerId != expected.deltakerId) return false
+    if (received.endring != expected.endring) return false
+    if (received.begrunnelse != expected.begrunnelse) return false
+    if (received.opprettet != expected.opprettet) return false
+    if (received.opprettetAvArrangorAnsattId != expected.opprettetAvArrangorAnsattId) return false
+    return runCatching { sammenlignForslagStatus(received.status, expected.status) }.isSuccess
 }
 
 fun sammenlignForslagStatus(
@@ -99,27 +91,35 @@ fun sammenlignForslagStatus(
 
         is Forslag.Status.Avvist -> {
             second as Forslag.Status.Avvist
-            first.avvist shouldBeCloseTo second.avvist
-            first.avvistAv shouldBe second.avvistAv
-            first.begrunnelseFraNav shouldBe second.begrunnelseFraNav
+            assertSoftly(first) {
+                avvist shouldBeCloseTo second.avvist
+                avvistAv shouldBe second.avvistAv
+                begrunnelseFraNav shouldBe second.begrunnelseFraNav
+            }
         }
 
         is Forslag.Status.Godkjent -> {
             second as Forslag.Status.Godkjent
-            first.godkjent shouldBeCloseTo second.godkjent
-            first.godkjentAv shouldBe second.godkjentAv
+            assertSoftly(first) {
+                godkjent shouldBeCloseTo second.godkjent
+                godkjentAv shouldBe second.godkjentAv
+            }
         }
 
         is Forslag.Status.Tilbakekalt -> {
             second as Forslag.Status.Tilbakekalt
-            first.tilbakekalt shouldBeCloseTo second.tilbakekalt
-            first.tilbakekaltAvArrangorAnsattId shouldBe second.tilbakekaltAvArrangorAnsattId
+            assertSoftly(first) {
+                tilbakekalt shouldBeCloseTo second.tilbakekalt
+                tilbakekaltAvArrangorAnsattId shouldBe second.tilbakekaltAvArrangorAnsattId
+            }
         }
 
         is Forslag.Status.Erstattet -> {
             second as Forslag.Status.Erstattet
-            first.erstattetMedForslagId shouldBe second.erstattetMedForslagId
-            first.erstattet shouldBeCloseTo second.erstattet
+            assertSoftly(first) {
+                erstattetMedForslagId shouldBe second.erstattetMedForslagId
+                erstattet shouldBeCloseTo second.erstattet
+            }
         }
     }
 }

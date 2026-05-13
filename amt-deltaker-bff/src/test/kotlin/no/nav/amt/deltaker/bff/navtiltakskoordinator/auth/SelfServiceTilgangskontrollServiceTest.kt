@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.auth
 
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
@@ -10,20 +12,21 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.utils.assertProduced
 import no.nav.amt.deltaker.bff.utils.assertProducedTombstone
 import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
+import no.nav.amt.lib.outbox.OutboxRecord
+import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.DatabaseTestExtension
-import no.nav.amt.lib.testing.SingletonKafkaProvider
-import no.nav.amt.lib.testing.TestOutboxEnvironment
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 
 class SelfServiceTilgangskontrollServiceTest {
-    private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
+    private val outboxService = mockk<OutboxService>()
+    private val kafkaProducer = mockk<Producer<String, String>>()
     private val tiltakskoordinatorsDeltakerlisteProducer = TiltakskoordinatorsDeltakerlisteProducer(
-        TestOutboxEnvironment.outboxService,
+        outboxService,
         kafkaProducer,
     )
 
@@ -41,6 +44,14 @@ class SelfServiceTilgangskontrollServiceTest {
         val dbExtension = DatabaseTestExtension()
     }
 
+    @BeforeEach
+    fun setup() {
+        every {
+            outboxService.insertRecord(any(), any(), any(), any())
+        } returns mockk<OutboxRecord>()
+        justRun { kafkaProducer.tombstone(any(), any()) }
+    }
+
     @Nested
     inner class LeggTilTiltakskoordinatorTilgang {
         @Test
@@ -51,7 +62,7 @@ class SelfServiceTilgangskontrollServiceTest {
                 actual.isSuccess shouldBe true
 
                 val expected = TiltakskoordinatorsDeltakerlistePayload.fromModel(actual.getOrThrow(), navAnsatt.navIdent)
-                assertProduced(expected)
+                outboxService.assertProduced(expected)
             }
         }
 
@@ -64,7 +75,7 @@ class SelfServiceTilgangskontrollServiceTest {
                 actual.isSuccess shouldBe true
 
                 val expected = TiltakskoordinatorsDeltakerlistePayload.fromModel(actual.getOrThrow(), navAnsatt.navIdent)
-                assertProduced(expected)
+                outboxService.assertProduced(expected)
             }
         }
 
@@ -88,7 +99,7 @@ class SelfServiceTilgangskontrollServiceTest {
                 actual.isSuccess shouldBe true
 
                 val expected = TiltakskoordinatorsDeltakerlistePayload.fromModel(model = actual.getOrThrow(), navIdent = navAnsatt.navIdent)
-                assertProduced(tilgang = expected, tombstoneExpected = true)
+                kafkaProducer.assertProducedTombstone(tilgang = expected)
             }
         }
 
@@ -160,7 +171,7 @@ class SelfServiceTilgangskontrollServiceTest {
                     }
                 }
 
-                assertProducedTombstone(stengtTilgang.getOrThrow())
+                kafkaProducer.assertProducedTombstone(stengtTilgang.getOrThrow())
             }
         }
 

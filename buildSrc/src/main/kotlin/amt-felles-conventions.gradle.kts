@@ -24,4 +24,7 @@ tasks.named<Test>("test") {
         "-XX:+EnableDynamicAgentLoading",
         "-Dkotest.framework.classpath.scanning.autoscan.disable=true",
     )
+    // Lar Testcontainers gjenbruke containere på tvers av Gradle-runs.
+    // Testcontainers leser denne env-varen direkte (system property funker IKKE).
+    environment("TESTCONTAINERS_REUSE_ENABLE", "true")
 }
