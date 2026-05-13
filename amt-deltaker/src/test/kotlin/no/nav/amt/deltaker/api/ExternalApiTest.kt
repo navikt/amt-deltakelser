@@ -100,7 +100,7 @@ class ExternalApiTest : IntegrationTestBase() {
                 ),
             )
 
-            every { arrangorService.getArrangorNavn(any()) } returns deltaker.deltakerliste.arrangor!!.navn
+            every { arrangorService.getArrangorNavn(any(), any()) } returns deltaker.deltakerliste.arrangor!!.navn
 
             every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltaker)
             every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
@@ -153,7 +153,7 @@ class ExternalApiTest : IntegrationTestBase() {
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
 
-            every { arrangorService.getArrangorNavn(any()) } returns deltakerKladd.deltakerliste.arrangor!!.navn
+            every { arrangorService.getArrangorNavn(any(), any()) } returns deltakerKladd.deltakerliste.arrangor!!.navn
             every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
             val avsluttetDeltaker = lagDeltaker(

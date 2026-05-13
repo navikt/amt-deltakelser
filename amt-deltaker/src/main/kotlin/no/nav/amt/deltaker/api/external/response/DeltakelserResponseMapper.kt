@@ -88,8 +88,14 @@ class DeltakelserResponseMapper(
 
     private fun lagTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.arrangor
-            ?.let { arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor) }
+            ?.let {
+                arrangorService.getArrangorNavn(
+                    arrangor = deltaker.deltakerliste.arrangor,
+                    gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
+                )
+            }
             ?: "Ukjent arrangør"
+
         return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
             Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"
 
