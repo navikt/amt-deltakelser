@@ -137,7 +137,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
             pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
-        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
 
         // Act
         val gjennomforingResponse = responseBuilder.buildGjennomforingResponse(deltakerliste)
@@ -244,7 +244,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
 
         coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
-        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
         every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
@@ -316,7 +316,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         val deltakere = listOf(deltaker1, deltaker2)
 
         coEvery { distribusjonClient.digitalBruker(any()) } returns true
-        every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
         every { deltakerHistorikkService.getForDeltaker(any()) } returns emptyList()
         every { vurderingRepository.getForDeltaker(any()) } returns emptyList()

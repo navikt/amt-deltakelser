@@ -63,9 +63,15 @@ fun Routing.registerVeilederApi(
             val historikk = historikkService.getForDeltaker(deltakerId)
             val ansatteIder = historikk.flatMap { it.navAnsatte() }.distinct().toSet()
             val enheterIder = historikk.flatMap { it.navEnheter() }.distinct().toSet()
+
             val response = DeltakerHistorikkDataResponse(
                 historikk = historikk,
-                arrangornavn = deltaker.deltakerliste.arrangor?.let { arrangorService.getArrangorNavn(it) } ?: "",
+                arrangornavn = deltaker.deltakerliste.arrangor?.let { arrangor ->
+                    arrangorService.getArrangorNavn(
+                        arrangor = arrangor,
+                        gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
+                    )
+                } ?: "",
                 oppstartstype = deltaker.deltakerliste.oppstart,
                 pameldingstype = deltaker.deltakerliste.pameldingstype,
                 ansatte = navAnsattService.getMany(ansatteIder).associateBy { it.id },
