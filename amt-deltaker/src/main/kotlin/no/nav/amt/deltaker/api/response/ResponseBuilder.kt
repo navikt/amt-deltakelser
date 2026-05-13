@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.KodeverkValgRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
@@ -36,6 +37,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 class ResponseBuilder(
+    private val arrangorService: ArrangorService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
     private val amtDistribusjonClient: AmtDistribusjonClient,
@@ -171,7 +173,7 @@ class ResponseBuilder(
         oppmoteSted = deltakerliste.oppmoteSted,
         arrangor = deltakerliste.arrangor?.let {
             ArrangorResponse(
-                navn = deltakerliste.arrangor.navn,
+                navn = arrangorService.getArrangorNavn(deltakerliste.arrangor),
                 deltakerliste.arrangor.organisasjonsnummer,
             )
         },

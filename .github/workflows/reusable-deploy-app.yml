@@ -10,14 +10,13 @@ on:
 env:
   PRINT_PAYLOAD: true
 
-permissions:
-  contents: write
-  id-token: write
-
 jobs:
   test-build-and-push:
     name: Test, build and push ${{ inputs.module_path }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write    # Required for dependency-graph: generate-and-submit
+      id-token: write    # Required for nais/docker-build-push OIDC
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -72,6 +71,9 @@ jobs:
     name: Deploy ${{ inputs.module_path }} to dev
     needs: test-build-and-push
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write    # Required for nais/deploy OIDC
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -88,6 +90,9 @@ jobs:
     name: Deploy ${{ inputs.module_path }} to prod
     needs: [ test-build-and-push, deploy-dev ]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write    # Required for nais/deploy OIDC
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
