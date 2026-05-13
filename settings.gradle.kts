@@ -14,3 +14,5 @@ include(
     "amt-pdfgen",
     "amt-tiltaksarrangor-bff",
 )
+
+include("sim-nav")
