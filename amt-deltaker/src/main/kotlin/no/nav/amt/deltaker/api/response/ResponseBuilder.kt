@@ -84,7 +84,7 @@ class ResponseBuilder(
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
         return DeltakerResponse(
             id = deltaker.id,
-            navBruker = buildNavBrukerResponseFromNavBruker(
+            navBruker = buildNavBrukerResponse(
                 navBruker = deltaker.navBruker,
                 navEnheter = navEnheter,
                 navAnsatte = navAnsatte,
@@ -220,7 +220,7 @@ class ResponseBuilder(
         sistEndretAvEnhet = navEnheter.getOrThrow(vedtaksinformasjon.sistEndretAvEnhet).navn,
     )
 
-    internal suspend fun buildNavBrukerResponseFromNavBruker(
+    internal suspend fun buildNavBrukerResponse(
         navBruker: NavBruker,
         navAnsatte: GenericCache<NavAnsatt>,
         navEnheter: GenericCache<NavEnhet>,

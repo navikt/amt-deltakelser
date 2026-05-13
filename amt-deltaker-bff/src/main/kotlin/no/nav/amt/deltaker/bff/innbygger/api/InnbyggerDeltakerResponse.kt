@@ -66,14 +66,3 @@ data class InnbyggerDeltakerResponse(
         }
     }
 }
-
-/*
-val deltakelsesmengder: Deltakelsesmengder
-        get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()
-
-fun fromDeltakelsesmengder(deltakelsesmengder: Deltakelsesmengder) = DeltakelsesmengderResponse(
-            nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let { DeltakelsesmengdeResponse.fromDeltakelsesmengde(it) },
-            sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let { DeltakelsesmengdeResponse.fromDeltakelsesmengde(it) },
-        )
-    }
- */
