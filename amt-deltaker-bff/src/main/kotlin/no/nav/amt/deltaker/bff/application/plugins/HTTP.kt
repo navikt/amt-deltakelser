@@ -21,6 +21,7 @@ fun Application.configureHTTP() {
 
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader("aktiv-enhet")
         allowHeadersPrefixed("nav-")
     }
 }
