@@ -107,7 +107,7 @@ fun main() {
 
 fun Application.module() {
     configureSerialization()
-    configureHTTP()
+//    configureHTTP()
     val environment = Environment()
 
     Database.init(environment.databaseConfig)
