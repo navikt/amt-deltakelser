@@ -63,13 +63,14 @@ object SingletonKafkaProvider {
     }
 
     fun cleanup() {
-        adminClient.listTopics().names().get().forEach {
-            try {
-                adminClient.deleteTopics(listOf(it))
-                log.info("Deleted topic $it")
-            } catch (e: Exception) {
-                log.warn("Could not delete topic $it", e)
-            }
+        val topics = adminClient.listTopics().names().get()
+        if (topics.isEmpty()) return
+
+        try {
+            adminClient.deleteTopics(topics).all().get()
+            log.info("Deleted ${topics.size} topics: $topics")
+        } catch (e: Exception) {
+            log.warn("Could not delete topics $topics", e)
         }
     }
 }
