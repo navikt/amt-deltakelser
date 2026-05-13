@@ -25,6 +25,7 @@ import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -56,7 +57,12 @@ class ResponseBuilder(
         val sisteVurdering = vurderingRepository
             .getForDeltaker(deltaker.id)
             .maxByOrNull { it.gyldigFra }
-        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
+
+        val historikk = deltakerHistorikkService.getForDeltaker(
+            id = deltaker.id,
+            inkluderFullHistorikk = false,
+        )
+
         return DeltakerResponse(
             id = deltaker.id,
             navBruker = buildNavBrukerResponse(
@@ -83,7 +89,7 @@ class ResponseBuilder(
             kilde = deltaker.kilde,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
-            soktInnDato = deltakerHistorikkService.getInnsoktDato(historikk),
+            soktInnDato = historikk.getInnsoktDato()?.toLocalDate(),
             deltakelsesmengder = historikk
                 .toDeltakelsesmengder()
                 .let { mengder ->

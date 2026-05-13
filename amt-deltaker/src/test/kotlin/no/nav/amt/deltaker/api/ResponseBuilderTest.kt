@@ -249,7 +249,6 @@ class ResponseBuilderTest : IntegrationTestBase() {
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
-        every { deltakerHistorikkService.getInnsoktDato(any()) } returns null
         every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
         val expectedForslag = listOf(
@@ -322,7 +321,6 @@ class ResponseBuilderTest : IntegrationTestBase() {
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
         every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
-        every { deltakerHistorikkService.getInnsoktDato(any()) } returns null
         every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
         every { forslagRepository.getForDeltaker(any()) } returns emptyList()
 
@@ -366,7 +364,6 @@ class ResponseBuilderTest : IntegrationTestBase() {
             every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
             every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
             every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns historikk
-            every { deltakerHistorikkService.getInnsoktDato(any()) } returns null
             every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
             every { forslagRepository.getForDeltaker(any()) } returns emptyList()
             coEvery { navAnsattService.hentNavAnsatteForDeltaker(any()) } returns GenericCache(

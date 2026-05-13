@@ -25,18 +25,6 @@ class DeltakerHistorikkService(
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val vurderingRepository: VurderingRepository,
 ) {
-    fun getInnsoktDato(historikk: List<DeltakerHistorikk>): LocalDate? {
-        historikk
-            .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-            .firstOrNull()
-            ?.let { return it.importertFraArena.deltakerVedImport.innsoktDato }
-
-        return historikk // Kurstiltak / KREVER_GODKJENNING
-            .filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>()
-            .firstOrNull()
-            ?.let { return it.data.innsokt.toLocalDate() }
-    }
-
     fun getForDeltaker(
         id: UUID,
         inkluderFullHistorikk: Boolean = true,
@@ -71,15 +59,15 @@ class DeltakerHistorikkService(
                 .getForDeltaker(deltakerId)
                 ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
         },
-    )
-
-    private val utvidetHistorikkProviders = listOf<(UUID) -> List<DeltakerHistorikk>?>(
         { deltakerId ->
             innsokPaaFellesOppstartRepository
                 .getForDeltaker(deltakerId)
                 .getOrNull()
                 ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
         },
+    )
+
+    private val utvidetHistorikkProviders = listOf<(UUID) -> List<DeltakerHistorikk>?>(
         { deltakerId ->
             forslagRepository
                 .getForDeltaker(
