@@ -6,8 +6,14 @@ import io.ktor.server.plugins.cors.routing.*
 
 fun Application.configureHTTP() {
     install(CORS) {
-        allowHost("localhost:3004")  // Restrict to your frontend's origin
+        allowHost("127.0.0.1:3003")  // Tiltakskoordinators flate
+        allowHost("127.0.0.1:3004")  // Nav-veileders flate
+        allowHost("127.0.0.1:3005")  // Innbyggers flate
 
+        allowCredentials = true
+
+        allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Patch)
@@ -15,6 +21,6 @@ fun Application.configureHTTP() {
 
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        allowHeadersPrefixed("nav-")  // If you have custom headers
+        allowHeadersPrefixed("nav-")
     }
 }
