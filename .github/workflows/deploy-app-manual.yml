@@ -15,8 +15,8 @@ on:
           - amt-tiltaksarrangor-bff
 
 permissions:
-  contents: write
-  id-token: write
+  contents: write    # Required for dependency-graph submit in reusable workflow
+  id-token: write    # Required for NAIS deploy/docker-build-push in reusable workflow
 
 jobs:
   deploy:

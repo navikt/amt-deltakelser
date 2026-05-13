@@ -93,4 +93,8 @@ tasks.named<Test>("test") {
         "-Xshare:off",
         "-XX:+EnableDynamicAgentLoading",
     )
+    // Lar Testcontainers gjenbruke containere på tvers av Gradle-runs.
+    // Containerne har modulspesifikke reuse-labels (se IntegrationTest.kt og RepositoryTestBase.kt),
+    // så de deles ikke med andre moduler — unngår f.eks. Flyway V01-checksum-kollisjon.
+    environment("TESTCONTAINERS_REUSE_ENABLE", "true")
 }

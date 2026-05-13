@@ -4,7 +4,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.randomOrgnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID
@@ -14,55 +16,76 @@ class ArrangorServiceTest {
     private val amtArrangorClient = mockk<AmtArrangorClient>()
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
 
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-    }
-
     @Test
     fun `getArrangorNavn - overordnet arrangør - returnerer eget navn`() {
-        val arrangorNavn = "Test Arrangør"
-        val arrangor = Arrangor(
-            id = UUID.randomUUID(),
-            navn = arrangorNavn,
-            organisasjonsnummer = "123456789",
-            overordnetArrangorId = null,
-        )
-        arrangorRepository.upsert(arrangor)
-        arrangorService.getArrangorNavn(arrangor) shouldBe arrangorNavn
+        val arrangor = lagreArrangor(navn = "Test Arrangør")
+
+        arrangorService.getArrangorNavn(
+            arrangor = arrangor,
+            gjennomforingstype = GjennomforingType.Gruppe,
+        ) shouldBe "Test Arrangør"
     }
 
     @Test
     fun `getArrangorNavn - underordnet arrangør - returnerer overordnet arrangør navn`() {
-        val arrangorNavn = "Test Arrangør"
-        val overordnetArrangor = Arrangor(
-            id = UUID.randomUUID(),
-            navn = arrangorNavn,
-            organisasjonsnummer = "123456789",
-            overordnetArrangorId = null,
-        )
-        val underordnetArrangor = Arrangor(
-            id = UUID.randomUUID(),
-            navn = "Underordnet arrangør",
-            organisasjonsnummer = "1234567892",
-            overordnetArrangorId = overordnetArrangor.id,
-        )
-        arrangorRepository.upsert(overordnetArrangor)
-        arrangorRepository.upsert(underordnetArrangor)
+        val overordnetArrangor = lagreArrangor(navn = "Test Arrangør")
+        val underordnetArrangor = lagreArrangor(navn = "Underordnet arrangør", overordnetArrangorId = overordnetArrangor.id)
 
-        arrangorService.getArrangorNavn(underordnetArrangor) shouldBe arrangorNavn
+        arrangorService.getArrangorNavn(
+            arrangor = underordnetArrangor,
+            gjennomforingstype = GjennomforingType.Gruppe,
+        ) shouldBe "Test Arrangør"
     }
 
     @Test
     fun `getArrangorNavn - CAPS - formaterer navn`() {
-        val arrangorNavn = "TEST ARRANGØR"
-        val arrangor = Arrangor(
+        val arrangor = lagreArrangor(navn = "TEST ARRANGØR")
+
+        arrangorService.getArrangorNavn(
+            arrangor = arrangor,
+            gjennomforingstype = GjennomforingType.Gruppe,
+        ) shouldBe "Test Arrangør"
+    }
+
+    @Test
+    fun `getArrangorNavn - Enkeltplass med overordnet arrangør - returnerer underenhetens navn`() {
+        val overordnetArrangor = lagreArrangor(navn = "Overordnet Arrangør")
+        val underordnetArrangor = lagreArrangor(navn = "Underenhet Oslo", overordnetArrangorId = overordnetArrangor.id)
+
+        arrangorService.getArrangorNavn(
+            arrangor = underordnetArrangor,
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+        ) shouldBe "Underenhet Oslo"
+    }
+
+    @Test
+    fun `getArrangorNavn - Enkeltplass med CAPS-navn - formaterer underenhetens navn`() {
+        val arrangor = lagreArrangor(navn = "UNDERENHET OSLO AS")
+
+        arrangorService.getArrangorNavn(
+            arrangor = arrangor,
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+        ) shouldBe "Underenhet Oslo AS"
+    }
+
+    private fun lagreArrangor(
+        navn: String,
+        overordnetArrangorId: UUID? = null,
+    ): Arrangor = lagArrangor(navn, overordnetArrangorId)
+        .also { arrangorRepository.upsert(it) }
+
+    companion object {
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+
+        private fun lagArrangor(
+            navn: String,
+            overordnetArrangorId: UUID? = null,
+        ) = Arrangor(
             id = UUID.randomUUID(),
-            navn = arrangorNavn,
-            organisasjonsnummer = "123456789",
-            overordnetArrangorId = null,
+            navn = navn,
+            organisasjonsnummer = randomOrgnr(),
+            overordnetArrangorId = overordnetArrangorId,
         )
-        arrangorRepository.upsert(arrangor)
-        arrangorService.getArrangorNavn(arrangor) shouldBe "Test Arrangør"
     }
 }

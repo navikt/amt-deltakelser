@@ -7,19 +7,19 @@ on:
         required: true
         type: string
 
-permissions:
-  id-token: write
-
 jobs:
   deploy-dev:
     name: Deploy ${{ inputs.module_path }} Unleash to dev
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Deploy to dev
-        uses: nais/deploy/actions/deploy@823ec9b7e305ce7cf911d0f9a25f7da9d7486cf2 # v2
+        uses: nais/deploy/actions/deploy@a7f8690f9b367fcbf5348a0a1e21d44f1aae50eb # v2
         env:
           CLUSTER: dev-gcp
           RESOURCE: ${{ inputs.module_path }}/.nais/unleash-apitoken-dev.yaml
@@ -28,13 +28,16 @@ jobs:
   deploy-prod:
     name: Deploy ${{ inputs.module_path }} Unleash to prod
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Deploy to prod
-        uses: nais/deploy/actions/deploy@823ec9b7e305ce7cf911d0f9a25f7da9d7486cf2 # v2
+        uses: nais/deploy/actions/deploy@a7f8690f9b367fcbf5348a0a1e21d44f1aae50eb # v2
         env:
           CLUSTER: prod-gcp
           RESOURCE: ${{ inputs.module_path }}/.nais/unleash-apitoken-prod.yaml

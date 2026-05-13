@@ -31,7 +31,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
         val deltakerliste = lagDeltakerliste()
 
         every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
-        every { arrangorService.getArrangorNavn(deltakerliste.arrangor!!) } returns "Arrangor Navn"
+        every { arrangorService.getArrangorNavn(deltakerliste.arrangor!!, any()) } returns "Arrangor Navn"
 
         val expectedResponse = ResponseBuilder(
             arrangorService = arrangorService,

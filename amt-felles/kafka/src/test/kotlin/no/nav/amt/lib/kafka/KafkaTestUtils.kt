@@ -2,6 +2,7 @@ package no.nav.amt.lib.kafka
 
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.testing.SingletonKafkaProvider
+import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -33,6 +34,22 @@ object KafkaTestUtils {
         valueDeserializer = IntegerDeserializer(),
         groupId = "test-consumer-${UUID.randomUUID()}",
     )
+
+    /**
+     * Oppretter topic hvis den ikke allerede finnes — trygt ved gjenbruk av Kafka-container.
+     */
+    fun createTopicIfNotExists(topic: NewTopic) {
+        val existingTopics = SingletonKafkaProvider.adminClient
+            .listTopics()
+            .names()
+            .get()
+        if (topic.name() !in existingTopics) {
+            SingletonKafkaProvider.adminClient
+                .createTopics(listOf(topic))
+                .all()
+                .get()
+        }
+    }
 
     fun produceIntInt(record: ProducerRecord<Int, Int>): RecordMetadata {
         KafkaProducer<Int, Int>(

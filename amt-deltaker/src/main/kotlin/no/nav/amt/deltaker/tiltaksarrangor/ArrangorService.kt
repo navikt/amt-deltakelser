@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.tiltaksarrangor
 
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.toTitleCase
 import java.util.UUID
 
@@ -22,8 +23,15 @@ class ArrangorService(
         return arrangor.toModel()
     }
 
-    fun getArrangorNavn(arrangor: Arrangor): String {
-        val arrangor = arrangor.overordnetArrangorId?.let { arrangorRepository.get(it) } ?: arrangor
-        return arrangor.navn.toTitleCase()
+    fun getArrangorNavn(
+        arrangor: Arrangor,
+        gjennomforingstype: GjennomforingType,
+    ): String {
+        val navn = if (gjennomforingstype == GjennomforingType.Enkeltplass) {
+            arrangor.navn
+        } else {
+            arrangor.overordnetArrangorId?.let { arrangorRepository.get(it)?.navn } ?: arrangor.navn
+        }
+        return navn.toTitleCase()
     }
 }

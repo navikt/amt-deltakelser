@@ -192,7 +192,10 @@ class ResponseBuilder(
         oppmoteSted = deltakerliste.oppmoteSted,
         arrangor = deltakerliste.arrangor?.let {
             ArrangorResponse(
-                navn = arrangorService.getArrangorNavn(deltakerliste.arrangor),
+                navn = arrangorService.getArrangorNavn(
+                    arrangor = deltakerliste.arrangor,
+                    gjennomforingstype = deltakerliste.gjennomforingstype,
+                ),
                 deltakerliste.arrangor.organisasjonsnummer,
             )
         },

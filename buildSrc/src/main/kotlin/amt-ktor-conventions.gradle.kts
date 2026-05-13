@@ -73,4 +73,10 @@ tasks.named<Test>("test") {
         "-XX:+EnableDynamicAgentLoading",
         "--sun-misc-unsafe-memory-access=allow",
     )
+    // Lar Testcontainers gjenbruke containere på tvers av Gradle-runs.
+    // Testcontainers leser denne env-varen direkte (system property funker IKKE).
+    environment("TESTCONTAINERS_REUSE_ENABLE", "true")
+    // Modulspesifikk reuse-label så parallelle test-JVM-er (org.gradle.parallel=true) ikke
+    // deler én container på tvers av moduler. Se ContainerReuseConfig for detaljer.
+    environment("TESTCONTAINERS_REUSE_LABEL_SUFFIX", project.path)
 }

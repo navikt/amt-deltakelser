@@ -10,14 +10,13 @@ on:
 env:
   PRINT_PAYLOAD: true
 
-permissions:
-  contents: write
-  id-token: write
-
 jobs:
   test-build-and-push:
     name: Test, build and push ${{ inputs.module_path }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write    # Required for dependency-graph: generate-and-submit
+      id-token: write    # Required for nais/docker-build-push OIDC
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -55,7 +54,7 @@ jobs:
 #            --warning-mode=all
 
       - name: docker-build-push
-        uses: nais/docker-build-push@be85229e81c0293c265c646c084f05317fb6e0d2 # v0
+        uses: nais/docker-build-push@751a312f0803eb96a05a41fadf51be19b7be362c # v0
         id: docker-build-push
         with:
           team: amt
@@ -72,12 +71,15 @@ jobs:
     name: Deploy ${{ inputs.module_path }} to dev
     needs: test-build-and-push
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write    # Required for nais/deploy OIDC
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Deploy application
-        uses: nais/deploy/actions/deploy@823ec9b7e305ce7cf911d0f9a25f7da9d7486cf2 # v2
+        uses: nais/deploy/actions/deploy@a7f8690f9b367fcbf5348a0a1e21d44f1aae50eb # v2
         env:
           CLUSTER: dev-gcp
           RESOURCE: ${{ inputs.module_path }}/.nais/nais-dev.yaml
@@ -88,13 +90,16 @@ jobs:
     name: Deploy ${{ inputs.module_path }} to prod
     needs: [ test-build-and-push, deploy-dev ]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write    # Required for nais/deploy OIDC
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Deploy application
-        uses: nais/deploy/actions/deploy@823ec9b7e305ce7cf911d0f9a25f7da9d7486cf2 # v2
+        uses: nais/deploy/actions/deploy@a7f8690f9b367fcbf5348a0a1e21d44f1aae50eb # v2
         env:
           CLUSTER: prod-gcp
           RESOURCE: ${{ inputs.module_path }}/.nais/nais-prod.yaml

@@ -49,6 +49,10 @@ abstract class IntegrationTest : RepositoryTestBase() {
         val kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka")).apply {
             // workaround for https://github.com/testcontainers/testcontainers-java/issues/9506
             withEnv("KAFKA_LISTENERS", "PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094")
+            // Modulspesifikk reuse-label: container gjenbrukes mellom test-runs i denne modulen,
+            // men deles ikke med andre moduler. Krever TESTCONTAINERS_REUSE_ENABLE=true (satt i build.gradle.kts).
+            withReuse(true)
+            withLabel("reuse.UUID", "tiltaksarrangor-bff-kafka")
             start()
             System.setProperty("KAFKA_BROKERS", bootstrapServers)
         }
