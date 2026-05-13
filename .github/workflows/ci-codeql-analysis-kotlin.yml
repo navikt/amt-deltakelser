@@ -33,6 +33,10 @@ on:
   schedule:
     - cron: '28 9 * * 2'  # Ukentlig full scan, tirsdager kl 09:28
 
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   security-events: write
@@ -41,7 +45,7 @@ jobs:
   analyze:
     name: Analyze Kotlin
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -63,13 +67,17 @@ jobs:
           languages: java-kotlin
           queries: security-and-quality
 
+      # Bygger kun classfiles — CodeQL trenger ikke resources, javadoc eller sources JARs.
+      # --parallel og Gradle build-cache gir ~30-50% raskere bygg enn --no-build-cache.
       - name: Build project
         run: |
-          ./gradlew assemble \
+          ./gradlew classes \
             -x test \
+            -x javadocJar \
+            -x sourcesJar \
             --no-daemon \
-            --no-build-cache \
-            --no-configuration-cache
+            --no-configuration-cache \
+            --parallel
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4

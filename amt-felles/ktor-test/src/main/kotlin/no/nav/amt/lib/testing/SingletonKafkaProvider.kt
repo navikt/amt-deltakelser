@@ -30,6 +30,14 @@ object SingletonKafkaProvider {
         kafkaContainer.withLabel("reuse.UUID", reuseConfig.reuseLabel)
         kafkaContainer.start()
 
+        // Rydd opp topics fra forrige test-run. Med reuse overlever containeren (og dens
+        // topic-logg + consumer offsets) mellom JVM-kjøringer. Uten denne ryddingen vil
+        // `auto.offset.reset=earliest` re-lese gammel data — det gir tregere tester og
+        // potensielt ikke-hermetiske resultater når loggen vokser.
+        if (reuseConfig.reuse) {
+            cleanup()
+        }
+
         setupShutdownHook()
         log.info("Kafka setup finished listening on ${kafkaContainer.bootstrapServers}.")
     }
@@ -55,13 +63,14 @@ object SingletonKafkaProvider {
     }
 
     fun cleanup() {
-        adminClient.listTopics().names().get().forEach {
-            try {
-                adminClient.deleteTopics(listOf(it))
-                log.info("Deleted topic $it")
-            } catch (e: Exception) {
-                log.warn("Could not delete topic $it", e)
-            }
+        val topics = adminClient.listTopics().names().get()
+        if (topics.isEmpty()) return
+
+        try {
+            adminClient.deleteTopics(topics).all().get()
+            log.info("Deleted ${topics.size} topics: $topics")
+        } catch (e: Exception) {
+            log.warn("Could not delete topics $topics", e)
         }
     }
 }

@@ -41,6 +41,11 @@ abstract class RepositoryTestBase {
         ).apply {
             addEnv("TZ", "Europe/Oslo")
             waitingFor(Wait.forListeningPort())
+            // Modulspesifikk reuse-label: container gjenbrukes mellom test-runs i denne modulen,
+            // men deles ikke med andre moduler (unngår Flyway V01-checksum-kollisjon).
+            // Krever TESTCONTAINERS_REUSE_ENABLE=true (satt i build.gradle.kts).
+            withReuse(true)
+            withLabel("reuse.UUID", "tiltaksarrangor-bff-postgres")
         }
     }
 }
