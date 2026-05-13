@@ -363,6 +363,7 @@ abstract class IntegrationTestBase {
 
     protected open val responseBuilder: ResponseBuilder by lazy {
         ResponseBuilder(
+            arrangorService = arrangorService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             amtDistribusjonClient = distribusjonClient,

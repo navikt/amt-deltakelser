@@ -34,6 +34,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
         every { arrangorService.getArrangorNavn(deltakerliste.arrangor!!) } returns "Arrangor Navn"
 
         val expectedResponse = ResponseBuilder(
+            arrangorService = arrangorService,
             navAnsattService = mockk(),
             navEnhetService = mockk(),
             amtDistribusjonClient = mockk(),
