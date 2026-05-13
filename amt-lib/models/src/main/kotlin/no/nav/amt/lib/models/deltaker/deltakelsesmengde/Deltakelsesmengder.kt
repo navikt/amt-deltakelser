@@ -205,14 +205,10 @@ fun List<DeltakerHistorikk>.toDeltakelsesmengder(): Deltakelsesmengder {
 }
 
 private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
-    is DeltakerHistorikk.Endring -> this.endring.toDeltakelsesmengde()
-    is DeltakerHistorikk.EndringFraArrangor -> null
-    is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
-    is DeltakerHistorikk.Forslag -> null
     is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()
+    is DeltakerHistorikk.Endring -> this.endring.toDeltakelsesmengde()
     is DeltakerHistorikk.Vedtak -> this.vedtak.toDeltakelsesmengde()
-    is DeltakerHistorikk.VurderingFraArrangor -> null
-    is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
+    else -> null
 }
 
 private fun DeltakerHistorikk.toStartdato() = when (this) {
