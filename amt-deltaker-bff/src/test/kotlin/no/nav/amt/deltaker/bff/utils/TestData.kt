@@ -9,6 +9,8 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordin
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
@@ -370,8 +372,19 @@ object TestData {
         endringsforslagFraArrangor = endringsforslagFraArrangor,
         prisinformasjon = prisinformasjon,
         sisteVurdering = null,
-        soktInnDato = null,
-        deltakelsesmengder = null,
+        soktInnDato = LocalDate.now().minusMonths(2),
+        deltakelsesmengder = DeltakelsesmengderResponse(
+            nesteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+                gyldigFra = LocalDate.now().minusMonths(3),
+            ),
+            sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = LocalDate.now().minusMonths(1),
+            ),
+        ),
         importertFraArena = null,
     )
 
