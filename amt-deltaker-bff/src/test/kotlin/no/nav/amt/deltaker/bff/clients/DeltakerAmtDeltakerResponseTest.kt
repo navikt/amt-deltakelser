@@ -28,10 +28,6 @@ class DeltakerAmtDeltakerResponseTest {
             sistEndret shouldBe response.sistEndret
             erManueltDeltMedArrangor shouldBe response.erManueltDeltMedArrangor
             erLaastForEndringer shouldBe response.erLaastForEndringer
-
-            response.historikk.shouldNotBeEmpty()
-            historikk shouldBe response.historikk
-
             response.vedtaksinformasjon.shouldNotBeNull()
             vedtaksinformasjon shouldBe ModelMapper.toVedtaksinformasjon(response.vedtaksinformasjon!!)
 

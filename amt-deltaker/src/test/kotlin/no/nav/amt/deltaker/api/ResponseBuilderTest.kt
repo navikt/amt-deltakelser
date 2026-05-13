@@ -16,11 +16,14 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -96,7 +99,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         }
 
         // Act
-        val navBrukerResponse = responseBuilder.buildNavBrukerResponseFromNavBruker(
+        val navBrukerResponse = responseBuilder.buildNavBrukerResponse(
             navBruker = navBruker,
             navAnsatte = navAnsattCache,
             navEnheter = navEnhetCache,
@@ -245,7 +248,8 @@ class ResponseBuilderTest : IntegrationTestBase() {
         coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
         every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
+        every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
+        every { deltakerHistorikkService.getInnsoktDato(any()) } returns null
         every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
         val expectedForslag = listOf(
@@ -293,7 +297,6 @@ class ResponseBuilderTest : IntegrationTestBase() {
             erManueltDeltMedArrangor shouldBe true
             opprettet shouldBe deltaker.opprettet
 
-            historikk shouldBe emptyList()
             erLaastForEndringer shouldBe true
             endringsforslagFraArrangor shouldBe expectedForslag
             prisinformasjon shouldBe deltaker.deltakerliste.prisinformasjon
@@ -318,7 +321,8 @@ class ResponseBuilderTest : IntegrationTestBase() {
         coEvery { distribusjonClient.digitalBruker(any()) } returns true
         every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
         every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns emptyList()
+        every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
+        every { deltakerHistorikkService.getInnsoktDato(any()) } returns null
         every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
         every { forslagRepository.getForDeltaker(any()) } returns emptyList()
 
@@ -349,5 +353,231 @@ class ResponseBuilderTest : IntegrationTestBase() {
         val deltakereResponse = responseBuilder.buildDeltakereResponse(emptyList())
 
         deltakereResponse.deltakere shouldBe emptyList()
+    }
+
+    @Nested
+    inner class BuildDeltakerResponseMedDeltakelsesmengder {
+        private fun setupMocks(
+            navAnsatt: NavAnsatt,
+            navEnhet: NavEnhet,
+            historikk: List<DeltakerHistorikk>,
+        ) {
+            coEvery { distribusjonClient.digitalBruker(any()) } returns true
+            every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
+            every { arrangorService.getArrangorNavn(any()) } returns "~arrangor-navn~"
+            every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns historikk
+            every { deltakerHistorikkService.getInnsoktDato(any()) } returns null
+            every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
+            every { forslagRepository.getForDeltaker(any()) } returns emptyList()
+            coEvery { navAnsattService.hentNavAnsatteForDeltaker(any()) } returns GenericCache(
+                cacheName = "navAnsatte",
+                items = listOf(navAnsatt),
+                idSelector = { it.id },
+            )
+            coEvery { navEnhetService.hentNavEnheterForDeltaker(any()) } returns GenericCache(
+                cacheName = "navEnheter",
+                items = listOf(navEnhet),
+                idSelector = { it.id },
+            )
+        }
+
+        private fun endreDeltakelsesmengde(
+            deltakerId: UUID,
+            navAnsatt: NavAnsatt,
+            navEnhet: NavEnhet,
+            deltakelsesprosent: Float,
+            dagerPerUke: Float?,
+            gyldigFra: LocalDate,
+            endret: LocalDateTime,
+        ) = DeltakerHistorikk.Endring(
+            no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring(
+                deltakerId = deltakerId,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = deltakelsesprosent,
+                    dagerPerUke = dagerPerUke,
+                    gyldigFra = gyldigFra,
+                    begrunnelse = null,
+                ),
+                endretAv = navAnsatt.id,
+                endretAvEnhet = navEnhet.id,
+                endret = endret,
+            ),
+        )
+
+        @Test
+        fun `tom historikk - returnerer DeltakelsesmengderResponse med null felter`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = LocalDate.now(),
+                sluttdato = LocalDate.now().plusMonths(3),
+            )
+
+            setupMocks(navAnsatt, navEnhet, emptyList())
+
+            val response = responseBuilder.buildDeltakerResponse(deltaker)
+
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                nesteDeltakelsesmengde shouldBe null
+                sisteDeltakelsesmengde shouldBe null
+            }
+        }
+
+        @Test
+        fun `kun gjeldende vedtak - sisteDeltakelsesmengde settes, nesteDeltakelsesmengde er null`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            val startdato = LocalDate.now().minusMonths(1)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = startdato,
+                sluttdato = startdato.plusMonths(3),
+                deltakelsesprosent = 80F,
+                dagerPerUke = 4F,
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = startdato.atStartOfDay(),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
+
+            setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
+
+            val response = responseBuilder.buildDeltakerResponse(deltaker)
+
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                nesteDeltakelsesmengde shouldBe null
+                sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 80F,
+                    dagerPerUke = 4F,
+                    gyldigFra = startdato,
+                )
+            }
+        }
+
+        @Test
+        fun `gjeldende og fremtidig endring - nesteDeltakelsesmengde mapper fremtidig, siste mapper fremtidig (lastOrNull)`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            val startdato = LocalDate.now().minusMonths(1)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = startdato,
+                sluttdato = startdato.plusMonths(6),
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = startdato.atStartOfDay(),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
+            val fremtidigGyldigFra = LocalDate.now().plusDays(7)
+            val fremtidig = endreDeltakelsesmengde(
+                deltakerId = deltaker.id,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                deltakelsesprosent = 60F,
+                dagerPerUke = 3F,
+                gyldigFra = fremtidigGyldigFra,
+                endret = LocalDateTime.now(),
+            )
+
+            setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), fremtidig))
+
+            val response = responseBuilder.buildDeltakerResponse(deltaker)
+
+            val fremtidigResponse = DeltakelsesmengdeResponse(
+                deltakelsesprosent = 60F,
+                dagerPerUke = 3F,
+                gyldigFra = fremtidigGyldigFra,
+            )
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                nesteDeltakelsesmengde shouldBe fremtidigResponse
+                sisteDeltakelsesmengde shouldBe fremtidigResponse
+            }
+        }
+
+        @Test
+        fun `mengder før startdato trimmes bort av periode-funksjonen`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            // Startdato i framtiden gjør at "tidligere" endringer havner før perioden
+            val startdato = LocalDate.now().plusDays(10)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = startdato,
+                sluttdato = startdato.plusMonths(3),
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = LocalDate.now().minusMonths(2).atStartOfDay(),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
+            // Endring som gjelder fra startdato (innenfor perioden)
+            val gyldigFraInnenforPeriode = startdato.plusDays(1)
+            val innenforPeriode = endreDeltakelsesmengde(
+                deltakerId = deltaker.id,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                deltakelsesprosent = 50F,
+                dagerPerUke = 2F,
+                gyldigFra = gyldigFraInnenforPeriode,
+                endret = LocalDateTime.now(),
+            )
+
+            setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), innenforPeriode))
+
+            val response = responseBuilder.buildDeltakerResponse(deltaker)
+
+            // Vedtaket før startdato avgrenses til startdato, og endringen innenfor blir siste/neste
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 2F,
+                    gyldigFra = gyldigFraInnenforPeriode,
+                )
+                nesteDeltakelsesmengde.shouldNotBeNull()
+            }
+        }
+
+        @Test
+        fun `uten startdato - bruker hele tidslinjen uten periode-trim`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = null,
+                sluttdato = null,
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+            )
+            val fattetDato = LocalDate.now().minusMonths(1)
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = fattetDato.atStartOfDay(),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
+
+            setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
+
+            val response = responseBuilder.buildDeltakerResponse(deltaker)
+
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = fattetDato,
+                )
+                nesteDeltakelsesmengde shouldBe null
+            }
+        }
     }
 }

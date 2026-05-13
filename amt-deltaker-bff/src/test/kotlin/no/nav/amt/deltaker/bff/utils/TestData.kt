@@ -349,7 +349,6 @@ object TestData {
         deltakelsesinnhold: Deltakelsesinnhold? = lagDeltakelsesinnhold(),
         vedtaksinformasjon: VedtaksinformasjonResponse? = lagVedtaksinformasjonResponse(),
         endringsforslagFraArrangor: List<Forslag> = listOf(lagForslag()),
-        historikk: List<DeltakerHistorikk> = lagDeltakerHistorikk(),
         prisinformasjon: String? = null,
     ) = DeltakerResponse(
         id = id,
@@ -367,11 +366,13 @@ object TestData {
         kilde = Kilde.KOMET,
         sistEndret = sistEndret,
         opprettet = LocalDateTime.now(),
-        historikk = historikk,
         erLaastForEndringer = false,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
         prisinformasjon = prisinformasjon,
         sisteVurdering = null,
+        soktInnDato = null,
+        deltakelsesmengder = null,
+        importertFraArena = null,
     )
 
     fun lagTiltakskoordinatorDeltaker(

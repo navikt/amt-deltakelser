@@ -2,6 +2,7 @@ package no.nav.amt.distribusjon.utils.data
 
 import no.nav.amt.distribusjon.utils.data.Persondata.lagNavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -40,11 +41,13 @@ object DeltakerData {
         kilde = Kilde.KOMET,
         sistEndret = LocalDateTime.now(),
         opprettet = LocalDateTime.now(),
-        historikk = emptyList(),
         erLaastForEndringer = true,
         endringsforslagFraArrangor = emptyList(),
         prisinformasjon = null,
         sisteVurdering = null,
+        soktInnDato = null,
+        deltakelsesmengder = DeltakelsesmengderResponse(),
+        importertFraArena = null,
     )
 
     fun lagGjennomforingResponse() = GjennomforingResponse(

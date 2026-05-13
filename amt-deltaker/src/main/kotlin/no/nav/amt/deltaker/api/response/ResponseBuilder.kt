@@ -18,6 +18,8 @@ import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
@@ -27,6 +29,8 @@ import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -66,7 +70,8 @@ class ResponseBuilder(
         deltaker: Deltaker,
         kodeverkValg: Set<UUID>? = null,
     ): DeltakerResponse {
-        // hent alle entries som behøver navn på Nav-ansatt eller -enhet
+        // Forslag hentes også fra databasen med historikk men historikk filtrerer bort statusen
+        // som ønskes her.
         val endringsforslagForDeltaker = forslagRepository
             .getForDeltaker(deltaker.id)
             .filter { it.status is Forslag.Status.VenterPaSvar }
@@ -76,7 +81,7 @@ class ResponseBuilder(
         val sisteVurdering = vurderingRepository
             .getForDeltaker(deltaker.id)
             .maxByOrNull { it.gyldigFra }
-
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
         return DeltakerResponse(
             id = deltaker.id,
             navBruker = buildNavBrukerResponseFromNavBruker(
@@ -103,11 +108,25 @@ class ResponseBuilder(
             kilde = deltaker.kilde,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
-            historikk = deltakerHistorikkService.getForDeltaker(deltaker.id),
+            soktInnDato = deltakerHistorikkService.getInnsoktDato(historikk),
+            deltakelsesmengder = historikk
+                .toDeltakelsesmengder()
+                .let { mengder ->
+                    // Usikker på hva dette handler om men koden er kopiert fra Deltaker
+                    deltaker.startdato?.let { mengder.periode(it, deltaker.sluttdato) } ?: mengder
+                }.let { deltakelsesmengder ->
+                    DeltakelsesmengderResponse(
+                        nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
+                        sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
+                    )
+                },
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
             endringsforslagFraArrangor = endringsforslagForDeltaker,
             prisinformasjon = deltaker.deltakerliste.prisinformasjon,
             sisteVurdering = sisteVurdering?.let { VurderingResponse.fromVurdering(it) },
+            importertFraArena = historikk
+                .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
+                .let { it.firstOrNull()?.importertFraArena },
         )
     }
 

@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.bff.innbygger.api
 
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengderResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDate
 import java.util.UUID
@@ -57,11 +57,23 @@ data class InnbyggerDeltakerResponse(
                         ansatte = emptyMap(),
                     )
                 },
-                importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
-                deltakelsesmengder = DeltakelsesmengderResponse.fromDeltakelsesmengder(deltakelsesmengder),
+                importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
+                // Frontend støtter ikke at DeltakelsesmengderResponse er nullable
+                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
                 prisinformasjon = prisinformasjon,
             )
         }
     }
 }
+
+/*
+val deltakelsesmengder: Deltakelsesmengder
+        get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()
+
+fun fromDeltakelsesmengder(deltakelsesmengder: Deltakelsesmengder) = DeltakelsesmengderResponse(
+            nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let { DeltakelsesmengdeResponse.fromDeltakelsesmengde(it) },
+            sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let { DeltakelsesmengdeResponse.fromDeltakelsesmengde(it) },
+        )
+    }
+ */

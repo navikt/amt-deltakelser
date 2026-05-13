@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengdeResponse
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesmengderResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.getInnholdselementer
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -172,24 +172,11 @@ data class DeltakerResponse(
                         ansatte = emptyMap(),
                     )
                 },
-                importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
+                importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger
                 // Kan dette utledes i amt-deltaker?
-                deltakelsesmengder = DeltakelsesmengderResponse(
-                    nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let {
-                        DeltakelsesmengdeResponse
-                            .fromDeltakelsesmengde(
-                                it,
-                            )
-                    },
-                    sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let {
-                        DeltakelsesmengdeResponse
-                            .fromDeltakelsesmengde(
-                                it,
-                            )
-                    },
-                ),
+                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
                 prisinformasjon = prisinformasjon,

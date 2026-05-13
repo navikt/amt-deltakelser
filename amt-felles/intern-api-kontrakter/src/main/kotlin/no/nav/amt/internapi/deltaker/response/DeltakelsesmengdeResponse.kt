@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.commonresponse
+package no.nav.amt.internapi.deltaker.response
 
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import java.time.LocalDate

@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.model.DeltakerModel
+import no.nav.amt.deltaker.bff.model.NavBrukerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 
 class ResponseBuilder(
     private val ulestHendelseService: UlestHendelseService,
@@ -50,7 +50,7 @@ class ResponseBuilder(
                     it.hendelse is UlestHendelseType.ReaktiverDeltakelse
             },
             kanEndres = !erLaastForEndringer,
-            soktInnDato = historikk.getInnsoktDato()?.toLocalDate(),
+            soktInnDato = soktInnDato,
             startdato = startdato,
             sluttdato = sluttdato,
         )
