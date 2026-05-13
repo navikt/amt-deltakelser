@@ -12,6 +12,9 @@ dependencies {
 
     // --- Feature Toggle ---
     implementation(libs.unleash)
+
+    // --- CORS ---
+    implementation("io.ktor:ktor-server-cors-jvm")
 }
 
 application { mainClass = "no.nav.amt.deltaker.bff.ApplicationKt" }

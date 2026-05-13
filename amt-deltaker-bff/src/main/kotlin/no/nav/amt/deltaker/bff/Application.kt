@@ -20,6 +20,7 @@ import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
+import no.nav.amt.deltaker.bff.application.plugins.configureHTTP
 import no.nav.amt.deltaker.bff.application.plugins.configureMonitoring
 import no.nav.amt.deltaker.bff.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.bff.application.plugins.configureRouting
@@ -106,6 +107,7 @@ fun main() {
 
 fun Application.module() {
     configureSerialization()
+    configureHTTP()
     val environment = Environment()
 
     Database.init(environment.databaseConfig)
