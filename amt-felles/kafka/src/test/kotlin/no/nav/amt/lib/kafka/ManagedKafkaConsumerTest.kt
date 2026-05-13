@@ -4,6 +4,7 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.kafka.KafkaTestUtils.TOPIC_IN_TEST
+import no.nav.amt.lib.kafka.KafkaTestUtils.createTopicIfNotExists
 import no.nav.amt.lib.kafka.KafkaTestUtils.intConsumerConfig
 import no.nav.amt.lib.kafka.KafkaTestUtils.produceIntInt
 import no.nav.amt.lib.kafka.KafkaTestUtils.produceStringString
@@ -99,11 +100,8 @@ class ManagedKafkaConsumerTest {
 
     @Test
     fun `ManagedKafkaConsumer - konsumerer mange meldinger med feil og flere partisjoner`() = runTest {
-        val intTopic = NewTopic("int.topic-1", 4, 1)
-        SingletonKafkaProvider.adminClient
-            .createTopics(listOf(intTopic))
-            .all()
-            .get()
+        val intTopic = NewTopic("int.topic-1-${UUID.randomUUID()}", 4, 1)
+        createTopicIfNotExists(intTopic)
 
         val data = (1..500).toList()
         val consumed = mutableListOf<Int>()
@@ -133,11 +131,8 @@ class ManagedKafkaConsumerTest {
 
     @Test
     fun `ManagedKafkaConsumer - konsumerer mange meldinger med samme key i riktig rekkefølge`() = runTest {
-        val intTopic = NewTopic("int.topic-2", 4, 1)
-        SingletonKafkaProvider.adminClient
-            .createTopics(listOf(intTopic))
-            .all()
-            .get()
+        val intTopic = NewTopic("int.topic-2-${UUID.randomUUID()}", 4, 1)
+        createTopicIfNotExists(intTopic)
 
         val keys = (1..50).toList()
         val firstValue = 1

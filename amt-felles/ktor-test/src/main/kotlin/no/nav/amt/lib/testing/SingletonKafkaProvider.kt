@@ -30,6 +30,14 @@ object SingletonKafkaProvider {
         kafkaContainer.withLabel("reuse.UUID", reuseConfig.reuseLabel)
         kafkaContainer.start()
 
+        // Rydd opp topics fra forrige test-run. Med reuse overlever containeren (og dens
+        // topic-logg + consumer offsets) mellom JVM-kjøringer. Uten denne ryddingen vil
+        // `auto.offset.reset=earliest` re-lese gammel data — det gir tregere tester og
+        // potensielt ikke-hermetiske resultater når loggen vokser.
+        if (reuseConfig.reuse) {
+            cleanup()
+        }
+
         setupShutdownHook()
         log.info("Kafka setup finished listening on ${kafkaContainer.bootstrapServers}.")
     }
