@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.model.DeltakerModel
-import no.nav.amt.deltaker.bff.model.NavBrukerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
