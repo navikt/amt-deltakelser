@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.extensions.getGjennomforingId
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
+import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -36,7 +37,16 @@ fun Routing.registerTiltakskoordinatorApi(
             get("/{gjennomforingId}") {
                 val deltakereResponse = deltakerRepository
                     .getForGjennomforing(gjennomforingId = call.getGjennomforingId())
-                    .let { responseBuilder.buildDeltakereResponse(it) }
+                    .let { deltakere ->
+                        DeltakereResponse(
+                            deltakere.map {
+                                responseBuilder.buildDeltakerResponse(
+                                    deltaker = it,
+                                    kodeverkValg = emptySet(),
+                                )
+                            },
+                        )
+                    }
 
                 call.respond(deltakereResponse)
             }

@@ -18,6 +18,7 @@ import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
@@ -51,10 +52,11 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     fun `getDeltakereForGjennomforing - har tilgang - returnerer 200 og deltakere fra responseBuilder`() {
         val gjennomforingId = UUID.randomUUID()
         val deltakere = listOf(deltaker)
-        val expectedResponse = DeltakereResponse(emptyList())
+        val deltakerResponse = mockk<DeltakerResponse>(relaxed = true)
+        val expectedResponse = DeltakereResponse(listOf(deltakerResponse))
 
         every { deltakerRepository.getForGjennomforing(gjennomforingId) } returns deltakere
-        coEvery { responseBuilder.buildDeltakereResponse(deltakere) } returns expectedResponse
+        coEvery { responseBuilder.buildDeltakerResponse(deltaker, kodeverkValg = emptySet()) } returns deltakerResponse
 
         withTestApplicationContext { client ->
             client

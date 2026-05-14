@@ -303,56 +303,6 @@ class ResponseBuilderTest : IntegrationTestBase() {
         }
     }
 
-    @Test
-    fun `buildDeltakereResponse - mapper hver deltaker via buildDeltakerResponse`() = runTest {
-        // Arrange
-        val navAnsatt = TestData.lagNavAnsatt()
-        val navEnhet = TestData.lagNavEnhet()
-
-        val deltaker1 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-        )
-        val deltaker2 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-        )
-        val deltakere = listOf(deltaker1, deltaker2)
-
-        coEvery { distribusjonClient.digitalBruker(any()) } returns true
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
-        every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
-        every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
-        every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
-
-        deltakere.forEach { deltaker ->
-            coEvery { navAnsattService.hentNavAnsatteForDeltaker(deltaker) } returns GenericCache(
-                cacheName = "navAnsatte",
-                items = listOf(navAnsatt),
-                idSelector = { it.id },
-            )
-            coEvery { navEnhetService.hentNavEnheterForDeltaker(deltaker) } returns GenericCache(
-                cacheName = "navEnheter",
-                items = listOf(navEnhet),
-                idSelector = { it.id },
-            )
-        }
-
-        // Act
-        val deltakereResponse = responseBuilder.buildDeltakereResponse(deltakere)
-
-        // Assert
-        deltakereResponse.deltakere.size shouldBe 2
-        deltakereResponse.deltakere[0].id shouldBe deltaker1.id
-        deltakereResponse.deltakere[1].id shouldBe deltaker2.id
-    }
-
-    @Test
-    fun `buildDeltakereResponse - tom liste returnerer tom respons`() = runTest {
-        val deltakereResponse = responseBuilder.buildDeltakereResponse(emptyList())
-
-        deltakereResponse.deltakere shouldBe emptyList()
-    }
-
     @Nested
     inner class BuildDeltakerResponseMedDeltakelsesmengder {
         private fun setupMocks(

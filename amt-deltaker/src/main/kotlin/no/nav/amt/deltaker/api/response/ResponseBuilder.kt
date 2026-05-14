@@ -15,7 +15,6 @@ import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
-import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
@@ -26,6 +25,7 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -98,7 +98,7 @@ class ResponseBuilder(
             // hvis DeltakerHistorikk.InnsokPaaFellesOppstart ikke finnes, trenger vi
             // vi DeltakerHistorikk.Vedtak
             soktInnDato = historikk.getInnsoktDato()?.toLocalDate(),
-            // koden antyder at vi trenger disse her:
+            // koden antyder at vi trenger disse her for deltakelsesmengder:
             // DeltakerHistorikk.ImportertFraArena
             // DeltakerHistorikk.Endring
             // DeltakerHistorikk.Vedtak
@@ -121,25 +121,6 @@ class ResponseBuilder(
             importertFraArena = historikk
                 .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
                 .let { it.firstOrNull()?.importertFraArena },
-        )
-    }
-
-    suspend fun buildDeltakereResponse(deltakere: List<Deltaker>): DeltakereResponse {
-        // Hoist kodeverkValg-oppslag ut av loopen — alle deltakere på samme gjennomføring deler kodeverkValg.
-        // Tabellen er nøklet på deltakerliste_id, så vi henter én gang per unik deltakerliste.
-        val kodeverkValgPerDeltakerliste = deltakere
-            .map { it.deltakerliste }
-            .distinctBy { it.id }
-            .filter { it.tiltakstype.tiltakskode.erOpplaeringstiltak() }
-            .associate { it.id to KodeverkValgRepository.hentKodeverkValg(it.id) }
-
-        return DeltakereResponse(
-            deltakere.map {
-                buildDeltakerResponse(
-                    deltaker = it,
-                    kodeverkValg = kodeverkValgPerDeltakerliste[it.deltakerliste.id] ?: emptySet(),
-                )
-            },
         )
     }
 
@@ -168,7 +149,7 @@ class ResponseBuilder(
         },
         pameldingstype = deltakerliste.pameldingstype,
         type = deltakerliste.gjennomforingstype,
-        kodeverkValg = kodeverkValg ?: if (deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()) {
+        kodeverkValg = kodeverkValg ?: if (deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
             KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
         } else {
             emptySet()
