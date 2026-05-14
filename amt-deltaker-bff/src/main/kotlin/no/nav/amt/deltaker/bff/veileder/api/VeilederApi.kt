@@ -58,6 +58,7 @@ import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
@@ -167,7 +168,7 @@ fun Routing.registerVeilederApi(
                 .getDeltaker(deltakerId)
                 .let { deltakerResponse ->
                     val kodeverk = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
-                        .takeIf { tiltakskode -> tiltakskode.erOpplaeringstiltak() }
+                        .takeIf { deltakerResponse.gjennomforing.type == GjennomforingType.Enkeltplass }
                         ?.let { tiltakskode -> kodeverkClient.hentKodeverk(tiltakskode) }
 
                     DeltakerResponse.fromDeltakerModel(
