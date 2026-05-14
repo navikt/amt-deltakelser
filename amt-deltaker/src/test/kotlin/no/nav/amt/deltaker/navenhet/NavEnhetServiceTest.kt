@@ -193,8 +193,9 @@ class NavEnhetServiceTest {
         }
 
         @Test
-        fun `inkluderer enheter fra vedtaksinformasjon`() = runTest {
-            // Arrange
+        fun `vedtaksinformasjon-enheter utelates - kun navBruker navEnhetId hentes`() = runTest {
+            // Arrange — tiltakskoordinator-flyten trenger ikke vedtak-enheter, så bulk-metoden
+            // henter kun navBruker.navEnhetId for å unngå unødvendige oppslag.
             val brukerEnhet = lagNavEnhet().also { navEnhetRepository.upsert(it) }
             val opprettetAvEnhet = lagNavEnhet().also { navEnhetRepository.upsert(it) }
             val sistEndretAvEnhet = lagNavEnhet().also { navEnhetRepository.upsert(it) }
@@ -213,8 +214,8 @@ class NavEnhetServiceTest {
 
             // Assert
             enheter.getOrThrow(brukerEnhet.id) shouldBe brukerEnhet
-            enheter.getOrThrow(opprettetAvEnhet.id) shouldBe opprettetAvEnhet
-            enheter.getOrThrow(sistEndretAvEnhet.id) shouldBe sistEndretAvEnhet
+            shouldThrow<NoSuchElementException> { enheter.getOrThrow(opprettetAvEnhet.id) }
+            shouldThrow<NoSuchElementException> { enheter.getOrThrow(sistEndretAvEnhet.id) }
             coVerify(exactly = 0) { mockPersonServiceClient.hentNavEnhet(any<UUID>()) }
         }
     }

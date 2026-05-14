@@ -45,18 +45,16 @@ class NavEnhetService(
     }
 
     /**
-     * Bulk-variant for store kall (f.eks. tiltakskoordinator-lista). Samler alle relevante
-     * Nav-enhet-ID-er fra deltakerne og gjør ett enkelt DB-oppslag i stedet for ett per deltaker.
+     * Bulk-variant for store kall (f.eks. tiltakskoordinator-lista). Henter kun enhetene som
+     * trengs til å rendre `navBruker.navEnhet` for hver deltaker — vedtak-enheter
+     * (`opprettetAvEnhet`/`sistEndretAvEnhet`) utelates fordi tiltakskoordinator-responsen alltid
+     * setter `vedtaksinformasjon = null`. Gjør ett DB-oppslag for hele settet av ID-er i stedet
+     * for ett per deltaker.
      */
     suspend fun hentNavEnheterForDeltakere(deltakere: List<Deltaker>): GenericCache<NavEnhet> {
         val navEnhetIdSet = deltakere
-            .flatMap { deltaker ->
-                listOfNotNull(
-                    deltaker.navBruker.navEnhetId,
-                    deltaker.vedtaksinformasjon?.opprettetAvEnhet,
-                    deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
-                )
-            }.toSet()
+            .mapNotNull { it.navBruker.navEnhetId }
+            .toSet()
 
         return hentNavEnheter(navEnhetIdSet)
     }

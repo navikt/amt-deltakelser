@@ -52,18 +52,16 @@ class NavAnsattService(
     }
 
     /**
-     * Bulk-variant for store kall (f.eks. tiltakskoordinator-lista). Samler alle relevante
-     * Nav-ansatt-ID-er fra deltakerne og gjør ett enkelt DB-oppslag i stedet for ett per deltaker.
+     * Bulk-variant for store kall (f.eks. tiltakskoordinator-lista). Henter kun veilederne som
+     * trengs til å rendre `navBruker.navVeileder` for hver deltaker — vedtak-ansatte
+     * (`opprettetAv`/`sistEndretAv`) utelates fordi tiltakskoordinator-responsen alltid setter
+     * `vedtaksinformasjon = null`. Gjør ett DB-oppslag for hele settet av ID-er i stedet for ett
+     * per deltaker.
      */
     suspend fun hentNavAnsatteForDeltakere(deltakere: List<Deltaker>): GenericCache<NavAnsatt> {
         val navAnsattIdSet = deltakere
-            .flatMap { deltaker ->
-                listOfNotNull(
-                    deltaker.navBruker.navVeilederId,
-                    deltaker.vedtaksinformasjon?.opprettetAv,
-                    deltaker.vedtaksinformasjon?.sistEndretAv,
-                )
-            }.toSet()
+            .mapNotNull { it.navBruker.navVeilederId }
+            .toSet()
 
         return hentNavAnsatte(navAnsattIdSet)
     }

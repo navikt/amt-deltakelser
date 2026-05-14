@@ -212,8 +212,9 @@ class NavAnsattServiceTest {
         }
 
         @Test
-        fun `inkluderer ansatte fra vedtaksinformasjon`() = runTest {
-            // Arrange
+        fun `vedtaksinformasjon-ansatte utelates - kun navBruker navVeilederId hentes`() = runTest {
+            // Arrange — tiltakskoordinator-flyten trenger ikke vedtak-ansatte, så bulk-metoden
+            // henter kun navBruker.navVeilederId for å unngå unødvendige oppslag.
             val opprettetAv = lagNavAnsatt(navEnhetId = navEnhet.id).also { navAnsattRepository.upsert(it) }
             val sistEndretAv = lagNavAnsatt(navEnhetId = navEnhet.id).also { navAnsattRepository.upsert(it) }
 
@@ -235,8 +236,8 @@ class NavAnsattServiceTest {
 
             // Assert
             ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
-            ansatte.getOrThrow(opprettetAv.id) shouldBe opprettetAv
-            ansatte.getOrThrow(sistEndretAv.id) shouldBe sistEndretAv
+            shouldThrow<NoSuchElementException> { ansatte.getOrThrow(opprettetAv.id) }
+            shouldThrow<NoSuchElementException> { ansatte.getOrThrow(sistEndretAv.id) }
             coVerify(exactly = 0) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
         }
     }

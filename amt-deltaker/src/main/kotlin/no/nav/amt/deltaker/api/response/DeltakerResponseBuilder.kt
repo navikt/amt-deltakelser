@@ -87,6 +87,7 @@ class DeltakerResponseBuilder(
             // DeltakerHistorikk.ImportertFraArena
             // DeltakerHistorikk.Endring
             // DeltakerHistorikk.Vedtak
+            // EndringFraArrangor.LeggTilOppstartsdato
             deltakelsesmengder = historikk
                 .toDeltakelsesmengder()
                 .let { mengder ->
