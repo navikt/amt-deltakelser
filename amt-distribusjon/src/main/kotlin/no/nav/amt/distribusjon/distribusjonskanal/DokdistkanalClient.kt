@@ -24,7 +24,7 @@ class DokdistkanalClient(
     environment: Environment,
     private val distribusjonskanalCache: Cache<String, Distribusjonskanal> = Caffeine
         .newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(60))
+        .expireAfterWrite(Duration.ofMinutes(CACHE_EXPIRATION_MINUTES))
         .build(),
 ) {
     private val scope = environment.dokdistkanalScope
@@ -52,19 +52,24 @@ class DokdistkanalClient(
                 error("Kunne ikke hente distribusjonskanal for deltaker $deltakerId status: ${response.status} ${response.bodyAsText()}")
             }
         }
-        val distribusjonskanal = response.body<BestemDistribusjonskanalResponse>().distribusjonskanal
-        distribusjonskanalCache.put(personident, distribusjonskanal)
-        return distribusjonskanal
+
+        return response.body<BestemDistribusjonskanalResponse>().distribusjonskanal.also {
+            distribusjonskanalCache.put(personident, it)
+        }
+    }
+
+    data class BestemDistribusjonskanalRequest(
+        val brukerId: String,
+        val mottakerId: String = brukerId,
+        val tema: String = "OPP",
+        val erArkivert: Boolean = true, // hvis denne utelates eller settes til false så defaulter responsen til PRINT
+    )
+
+    data class BestemDistribusjonskanalResponse(
+        val distribusjonskanal: Distribusjonskanal,
+    )
+
+    companion object {
+        private const val CACHE_EXPIRATION_MINUTES = 120L
     }
 }
-
-data class BestemDistribusjonskanalRequest(
-    val brukerId: String,
-    val mottakerId: String = brukerId,
-    val tema: String = "OPP",
-    val erArkivert: Boolean = true, // hvis denne utelates eller settes til false så defaulter responsen til PRINT
-)
-
-data class BestemDistribusjonskanalResponse(
-    val distribusjonskanal: Distribusjonskanal,
-)

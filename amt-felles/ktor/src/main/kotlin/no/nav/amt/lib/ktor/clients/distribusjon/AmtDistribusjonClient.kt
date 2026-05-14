@@ -16,7 +16,7 @@ class AmtDistribusjonClient(
     azureAdTokenClient: AzureAdTokenClient,
     private val digitalBrukerCache: Cache<String, Boolean> = Caffeine
         .newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(15))
+        .expireAfterWrite(Duration.ofMinutes(CACHE_EXPIRATION_MINUTES))
         .build(),
 ) : ApiClientBase(
         baseUrl = baseUrl,
@@ -32,4 +32,8 @@ class AmtDistribusjonClient(
             .body<DigitalBrukerResponse>()
             .erDigital
             .also { digitalBrukerCache.put(personIdent, it) }
+
+    companion object {
+        private const val CACHE_EXPIRATION_MINUTES = 120L
+    }
 }

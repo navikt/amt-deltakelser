@@ -64,7 +64,7 @@ class DokdistkanalClientTest {
 
     private fun createDokdistkanalClient(
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        responseBody: BestemDistribusjonskanalResponse? = null,
+        responseBody: DokdistkanalClient.BestemDistribusjonskanalResponse? = null,
         cache: Cache<String, Distribusjonskanal>? = null,
     ): DokdistkanalClient {
         val httpClient = createMockHttpClient(
@@ -92,6 +92,6 @@ class DokdistkanalClientTest {
     companion object {
         private const val PERSON_IDENT = "~personident~"
         private val deltakerId: UUID = UUID.randomUUID()
-        private val expectedResponse = BestemDistribusjonskanalResponse(Distribusjonskanal.DITT_NAV)
+        private val expectedResponse = DokdistkanalClient.BestemDistribusjonskanalResponse(Distribusjonskanal.DITT_NAV)
     }
 }
