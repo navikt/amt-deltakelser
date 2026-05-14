@@ -1,5 +1,8 @@
 package no.nav.amt.deltaker.api.response
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -38,6 +41,7 @@ import java.time.LocalDate
  *     gjennomføring) og gjenbrukes — sparer N-1 arrangør-DB-oppslag
  *   - Nav-ansatte og Nav-enheter hentes i ett bulk-oppslag på tvers av alle deltakere
  *     i stedet for ett oppslag per deltaker — sparer 2(N-1) DB-roundtrips
+ *   - Alle 6 bulk-spørringer kjøres parallelt på `Dispatchers.IO` via `withContext` + `async`
  *
  * Felter som utelates (ikke brukt i tiltakskoordinator-frontenden):
  *   - `deltakelsesmengder` — alltid null
@@ -71,38 +75,41 @@ class TiltakskoordinatorResponseBuilder(
             kodeverkValg = emptySet(),
         )
 
-        // hent enheter og ansatte for alle deltakere
-        val navAnsatte = navAnsattService.hentNavAnsatteForDeltakere(deltakere)
-        val navEnheter = navEnhetService.hentNavEnheterForDeltakere(deltakere)
-
-        // beregn låsing for alle deltakere i én spisset spørring
-        val laaseStatusPerDeltaker = deltakerLaaseService.erLaastForEndringerForDeltakere(deltakere)
-
-        // hent søkt-inn-dato for alle deltakere i én spisset spørring
         val deltakerIder = deltakere.map { it.id }.toSet()
-        val soktInnDatoer = deltakerHistorikkService.getSoktInnDatoer(deltakerIder)
 
-        // hent forslag (VenterPaSvar) og siste vurdering for alle deltakere i ett oppslag hver
-        val forslagPerDeltaker = forslagRepository.getVenterPaSvarForDeltakere(deltakerIder)
-        val sisteVurderingPerDeltaker = vurderingRepository.getSisteVurderingForDeltakere(deltakerIder)
+        // kjør alle uavhengige DB-spørringer parallelt på IO-dispatcher
+        return withContext(Dispatchers.IO) {
+            val navAnsatteDeferred = async { navAnsattService.hentNavAnsatteForDeltakere(deltakere) }
+            val navEnheterDeferred = async { navEnhetService.hentNavEnheterForDeltakere(deltakere) }
+            val laaseStatusDeferred = async { deltakerLaaseService.erLaastForEndringerForDeltakere(deltakere) }
+            val soktInnDatoerDeferred = async { deltakerHistorikkService.getSoktInnDatoer(deltakerIder) }
+            val forslagDeferred = async { forslagRepository.getVenterPaSvarForDeltakere(deltakerIder) }
+            val vurderingDeferred = async { vurderingRepository.getSisteVurderingForDeltakere(deltakerIder) }
 
-        return DeltakereResponse(
-            deltakere.map {
-                buildDeltakerResponse(
-                    deltaker = it,
-                    gjennomforingResponse = gjennomforingResponse,
-                    navAnsatte = navAnsatte,
-                    navEnheter = navEnheter,
-                    erLaastForEndringer = laaseStatusPerDeltaker[it.id] ?: false,
-                    // Caffeine-cachen (15 min TTL) inne i AmtDistribusjonClient dedupliserer
-                    // gjentatte oppslag på samme personident — repeterte visninger er billige.
-                    erDigital = amtDistribusjonClient.digitalBruker(it.navBruker.personident),
-                    soktInnDato = soktInnDatoer[it.id],
-                    endringsforslagFraArrangor = forslagPerDeltaker[it.id].orEmpty(),
-                    sisteVurdering = sisteVurderingPerDeltaker[it.id],
-                )
-            },
-        )
+            val navAnsatte = navAnsatteDeferred.await()
+            val navEnheter = navEnheterDeferred.await()
+            val laaseStatusPerDeltaker = laaseStatusDeferred.await()
+            val soktInnDatoer = soktInnDatoerDeferred.await()
+            val forslagPerDeltaker = forslagDeferred.await()
+            val sisteVurderingPerDeltaker = vurderingDeferred.await()
+
+            DeltakereResponse(
+                deltakere.map {
+                    buildDeltakerResponse(
+                        deltaker = it,
+                        gjennomforingResponse = gjennomforingResponse,
+                        navAnsatte = navAnsatte,
+                        navEnheter = navEnheter,
+                        erLaastForEndringer = laaseStatusPerDeltaker[it.id] ?: false,
+                        // Caffeine-cachen inne i AmtDistribusjonClient dedupliserer gjentatte oppslag
+                        erDigital = amtDistribusjonClient.digitalBruker(it.navBruker.personident),
+                        soktInnDato = soktInnDatoer[it.id],
+                        endringsforslagFraArrangor = forslagPerDeltaker[it.id].orEmpty(),
+                        sisteVurdering = sisteVurderingPerDeltaker[it.id],
+                    )
+                },
+            )
+        }
     }
 
     private fun buildDeltakerResponse(
