@@ -6,6 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import no.nav.amt.deltaker.api.response.ResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
 import no.nav.amt.deltaker.extensions.getGjennomforingId
@@ -23,8 +24,6 @@ fun Routing.registerTiltakskoordinatorApi(
     deltakerRepository: DeltakerRepository,
     responseBuilder: ResponseBuilder,
 ) {
-    val apiPath = "/tiltakskoordinator/deltakere"
-
     fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
         ResponseMapper.fromDeltakerOppdateringResult(
             oppdateringResult = it,
@@ -33,62 +32,64 @@ fun Routing.registerTiltakskoordinatorApi(
     }
 
     authenticate("SYSTEM") {
-        get("$apiPath/{gjennomforingId}") {
-            val deltakereResponse = deltakerRepository
-                .getForGjennomforing(gjennomforingId = call.getGjennomforingId())
-                .let { responseBuilder.buildDeltakereResponse(it) }
+        route("/tiltakskoordinator/deltakere") {
+            get("/{gjennomforingId}") {
+                val deltakereResponse = deltakerRepository
+                    .getForGjennomforing(gjennomforingId = call.getGjennomforingId())
+                    .let { responseBuilder.buildDeltakereResponse(it) }
 
-            call.respond(deltakereResponse)
-        }
+                call.respond(deltakereResponse)
+            }
 
-        post("$apiPath/del-med-arrangor") {
-            val request = call.receive<DelMedArrangorRequest>()
+            post("/del-med-arrangor") {
+                val request = call.receive<DelMedArrangorRequest>()
 
-            val oppdaterteDeltakere = tiltaksansvarligService
-                .oppdaterDeltakere(
-                    request.deltakerIder.toSet(),
-                    EndringFraTiltakskoordinator.DelMedArrangor,
-                    request.endretAv,
-                ).toDeltakerOppdateringResult()
-            call.respond(oppdaterteDeltakere)
-        }
+                val oppdaterteDeltakere = tiltaksansvarligService
+                    .oppdaterDeltakere(
+                        request.deltakerIder.toSet(),
+                        EndringFraTiltakskoordinator.DelMedArrangor,
+                        request.endretAv,
+                    ).toDeltakerOppdateringResult()
+                call.respond(oppdaterteDeltakere)
+            }
 
-        post("$apiPath/tildel-plass") {
-            val request = call.receive<DeltakereRequest>()
-            val deltakerIder = request.deltakere
-            val oppdaterteDeltakere = tiltaksansvarligService
-                .oppdaterDeltakere(
-                    deltakerIder.toSet(),
-                    EndringFraTiltakskoordinator.TildelPlass,
-                    request.endretAv,
-                ).toDeltakerOppdateringResult()
+            post("/tildel-plass") {
+                val request = call.receive<DeltakereRequest>()
+                val deltakerIder = request.deltakere
+                val oppdaterteDeltakere = tiltaksansvarligService
+                    .oppdaterDeltakere(
+                        deltakerIder.toSet(),
+                        EndringFraTiltakskoordinator.TildelPlass,
+                        request.endretAv,
+                    ).toDeltakerOppdateringResult()
 
-            call.respond(oppdaterteDeltakere)
-        }
+                call.respond(oppdaterteDeltakere)
+            }
 
-        post("$apiPath/sett-paa-venteliste") {
-            val request = call.receive<DeltakereRequest>()
-            val deltakerIder = request.deltakere
-            val oppdaterteDeltakere = tiltaksansvarligService
-                .oppdaterDeltakere(
-                    deltakerIder.toSet(),
-                    EndringFraTiltakskoordinator.SettPaaVenteliste,
-                    request.endretAv,
-                ).toDeltakerOppdateringResult()
+            post("/sett-paa-venteliste") {
+                val request = call.receive<DeltakereRequest>()
+                val deltakerIder = request.deltakere
+                val oppdaterteDeltakere = tiltaksansvarligService
+                    .oppdaterDeltakere(
+                        deltakerIder.toSet(),
+                        EndringFraTiltakskoordinator.SettPaaVenteliste,
+                        request.endretAv,
+                    ).toDeltakerOppdateringResult()
 
-            call.respond(oppdaterteDeltakere)
-        }
+                call.respond(oppdaterteDeltakere)
+            }
 
-        post("$apiPath/gi-avslag") {
-            val request = call.receive<GiAvslagRequest>()
-            val deltakeroppdatering = tiltaksansvarligService
-                .giAvslag(
-                    request.deltakerId,
-                    request.avslag,
-                    request.endretAv,
-                ).toDeltakerOppdatering(deltakerHistorikkService.getForDeltaker(request.deltakerId))
+            post("/gi-avslag") {
+                val request = call.receive<GiAvslagRequest>()
+                val deltakeroppdatering = tiltaksansvarligService
+                    .giAvslag(
+                        request.deltakerId,
+                        request.avslag,
+                        request.endretAv,
+                    ).toDeltakerOppdatering(deltakerHistorikkService.getForDeltaker(request.deltakerId))
 
-            call.respond(deltakeroppdatering)
+                call.respond(deltakeroppdatering)
+            }
         }
     }
 }
