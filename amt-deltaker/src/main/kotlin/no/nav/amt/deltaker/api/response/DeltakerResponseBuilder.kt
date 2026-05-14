@@ -83,7 +83,7 @@ class DeltakerResponseBuilder(
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
             soktInnDato = deltakerHistorikkService.getSoktInnDato(deltaker.id),
-            // Følgende er pålkrevet for å beregne deltakelsesmengder
+            // Følgende er påkrevd for å beregne deltakelsesmengder
             // DeltakerHistorikk.ImportertFraArena
             // DeltakerHistorikk.Endring
             // DeltakerHistorikk.Vedtak

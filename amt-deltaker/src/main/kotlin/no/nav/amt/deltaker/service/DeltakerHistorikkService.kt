@@ -54,9 +54,9 @@ class DeltakerHistorikkService(
     }
 
     /**
-     * Optimalisert utleding av soktInnDato uten å hente full kjernehistorikk.
-     * Hopper over DeltakerEndring-oppslag (ikke nødvendig for soktInnDato), så
-     * det blir maks 3 DB-oppslag istedenfor 4.
+     * Utleder soktInnDato for én deltaker. Delegerer til [getSoktInnDatoer] som henter
+     * datoen i **ett** spisset SQL-oppslag (`COALESCE` på arena-import, innsøk på felles
+     * oppstart og første vedtak).
      *
      * Prioriterer: ImportertFraArena → InnsokPaaFellesOppstart → Vedtak.opprettet
      */
@@ -64,8 +64,9 @@ class DeltakerHistorikkService(
 
     /**
      * Bulk-variant av [getSoktInnDato]. Henter "søkt inn"-dato for alle [deltakerIder] i
-     * **ett** spisset SQL-oppslag, i stedet for 3 sekvensielle oppslag per deltaker.
-     * Egnet for store kall som tiltakskoordinator-lista.
+     * **ett** spisset SQL-oppslag som bruker `COALESCE` på arena-import, innsøk på felles
+     * oppstart og første vedtak. Erstatter tidligere implementasjon som gjorde opptil 3
+     * sekvensielle DB-oppslag per deltaker. Egnet for store kall som tiltakskoordinator-lista.
      *
      * @return Map fra deltaker-id til søkt-inn-dato (`null` for deltakere uten Arena-import,
      * innsøk på felles oppstart eller vedtak).
