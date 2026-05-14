@@ -163,8 +163,7 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
             vedtaksinformasjon shouldBe null
             importertFraArena shouldBe null
             erLaastForEndringer shouldBe false
-            deltakelsesmengder.shouldNotBeNull().nesteDeltakelsesmengde shouldBe null
-            deltakelsesmengder.shouldNotBeNull().sisteDeltakelsesmengde shouldBe null
+            deltakelsesmengder shouldBe null
             // kodeverkValg hentes aldri for koordinator-lista
             gjennomforing.kodeverkValg shouldBe emptySet()
         }
