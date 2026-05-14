@@ -20,7 +20,12 @@ fun Routing.registerGjennomforingApi(
             val gjennomforingResponse = deltakerlisteRepository
                 .get(gjennomforingId)
                 .getOrThrow()
-                .let { responseBuilder.buildGjennomforingResponse(it) }
+                .let {
+                    responseBuilder.buildGjennomforingResponse(
+                        deltakerliste = it,
+                        includeKodeverk = false,
+                    )
+                }
 
             call.respond(gjennomforingResponse)
         }

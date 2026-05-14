@@ -50,7 +50,11 @@ fun Routing.registerEnkeltplassApi(
                     decoratedRequest = request,
                 )
 
-                val deltakerResponse = responseBuilder.buildDeltakerResponse(oppdatertDeltaker)
+                val deltakerResponse = responseBuilder.buildDeltakerResponse(
+                    deltaker = oppdatertDeltaker,
+                    includeKodeverk = true,
+                )
+
                 call.respond(deltakerResponse)
             }
 
@@ -67,7 +71,11 @@ fun Routing.registerEnkeltplassApi(
                     decoratedRequest = request,
                 )
 
-                val deltakerResponse = responseBuilder.buildDeltakerResponse(oppdatertDeltaker)
+                val deltakerResponse = responseBuilder.buildDeltakerResponse(
+                    deltaker = oppdatertDeltaker,
+                    includeKodeverk = true,
+                )
+
                 call.respond(deltakerResponse)
             }
 

@@ -143,7 +143,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
 
         // Act
-        val gjennomforingResponse = responseBuilder.buildGjennomforingResponse(deltakerliste)
+        val gjennomforingResponse = responseBuilder.buildGjennomforingResponse(deltakerliste, false)
 
         // Assert
         val expectedArrangor = ArrangorResponse(

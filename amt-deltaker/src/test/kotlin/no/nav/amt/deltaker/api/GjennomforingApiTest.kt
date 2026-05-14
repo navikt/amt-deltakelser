@@ -42,7 +42,10 @@ class GjennomforingApiTest : IntegrationTestBase() {
             forslagRepository = mockk(),
             deltakerLaaseService = mockk(),
             vurderingRepository = mockk(),
-        ).buildGjennomforingResponse(deltakerliste)
+        ).buildGjennomforingResponse(
+            deltakerliste = deltakerliste,
+            includeKodeverk = false,
+        )
 
         withTestApplicationContext { client ->
             client.get("/gjennomforing/${deltakerliste.id}") { noBodyRequest() }.apply {

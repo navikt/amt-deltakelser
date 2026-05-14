@@ -30,7 +30,6 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
-import java.util.UUID
 
 class ResponseBuilder(
     private val arrangorService: ArrangorService,
@@ -44,7 +43,7 @@ class ResponseBuilder(
 ) {
     suspend fun buildDeltakerResponse(
         deltaker: Deltaker,
-        kodeverkValg: Set<UUID>? = null,
+        includeKodeverk: Boolean = false,
     ): DeltakerResponse {
         // Forslag hentes også fra databasen med historikk men historikk filtrerer bort statusen
         // som ønskes her.
@@ -70,7 +69,10 @@ class ResponseBuilder(
                 navEnheter = navEnheter,
                 navAnsatte = navAnsatte,
             ),
-            gjennomforing = buildGjennomforingResponse(deltaker.deltakerliste, kodeverkValg),
+            gjennomforing = buildGjennomforingResponse(
+                deltakerliste = deltaker.deltakerliste,
+                includeKodeverk = includeKodeverk,
+            ),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
             dagerPerUke = deltaker.dagerPerUke,
@@ -126,7 +128,7 @@ class ResponseBuilder(
 
     internal fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
-        kodeverkValg: Set<UUID>? = null,
+        includeKodeverk: Boolean,
     ) = GjennomforingResponse(
         id = deltakerliste.id,
         tiltakstype = deltakerliste.tiltakstype,
@@ -149,7 +151,7 @@ class ResponseBuilder(
         },
         pameldingstype = deltakerliste.pameldingstype,
         type = deltakerliste.gjennomforingstype,
-        kodeverkValg = kodeverkValg ?: if (deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+        kodeverkValg = if (includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
             KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
         } else {
             emptySet()

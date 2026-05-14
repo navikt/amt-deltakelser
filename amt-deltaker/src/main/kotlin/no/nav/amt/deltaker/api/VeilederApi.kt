@@ -42,7 +42,12 @@ fun Routing.registerVeilederApi(
             val deltakerResponse = deltakerRepository
                 .get(call.getDeltakerId())
                 .getOrThrow()
-                .let { responseBuilder.buildDeltakerResponse(it) }
+                .let {
+                    responseBuilder.buildDeltakerResponse(
+                        deltaker = it,
+                        includeKodeverk = true,
+                    )
+                }
 
             call.respond(deltakerResponse)
         }

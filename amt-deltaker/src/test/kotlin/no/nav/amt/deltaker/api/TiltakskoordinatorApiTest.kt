@@ -56,7 +56,12 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         val expectedResponse = DeltakereResponse(listOf(deltakerResponse))
 
         every { deltakerRepository.getForGjennomforing(gjennomforingId) } returns deltakere
-        coEvery { responseBuilder.buildDeltakerResponse(deltaker, kodeverkValg = emptySet()) } returns deltakerResponse
+        coEvery {
+            responseBuilder.buildDeltakerResponse(
+                deltaker = deltaker,
+                includeKodeverk = any(),
+            )
+        } returns deltakerResponse
 
         withTestApplicationContext { client ->
             client

@@ -39,11 +39,8 @@ fun Routing.registerTiltakskoordinatorApi(
                     .getForGjennomforing(gjennomforingId = call.getGjennomforingId())
                     .let { deltakere ->
                         DeltakereResponse(
-                            deltakere.map {
-                                responseBuilder.buildDeltakerResponse(
-                                    deltaker = it,
-                                    kodeverkValg = emptySet(),
-                                )
+                            deltakere.map { deltaker ->
+                                responseBuilder.buildDeltakerResponse(deltaker)
                             },
                         )
                     }
