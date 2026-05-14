@@ -87,6 +87,15 @@ class DeltakerHistorikkService(
                 .getOrNull()
                 ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
         },
+        // EndringFraArrangor er en del av kjernehistorikken fordi
+        // `LeggTilOppstartsdato` brukes av `toDeltakelsesmengder()` for å avgrense perioden.
+        // Uten den kan deltakere med arrangør-satt oppstartsdato få deltakelsesmengder
+        // med datoer før faktisk startdato.
+        { deltakerId ->
+            endringFraArrangorRepository
+                .getForDeltaker(deltakerId)
+                .map { DeltakerHistorikk.EndringFraArrangor(it) }
+        },
     )
 
     private val utvidetHistorikkProviders = listOf<(UUID) -> List<DeltakerHistorikk>?>(
@@ -101,11 +110,6 @@ class DeltakerHistorikkService(
             vurderingRepository
                 .getForDeltaker(deltakerId)
                 .map { DeltakerHistorikk.VurderingFraArrangor(it.toVurderingFraArrangorData()) }
-        },
-        { deltakerId ->
-            endringFraArrangorRepository
-                .getForDeltaker(deltakerId)
-                .map { DeltakerHistorikk.EndringFraArrangor(it) }
         },
         { deltakerId ->
             endringFraTiltakskoordinatorRepository

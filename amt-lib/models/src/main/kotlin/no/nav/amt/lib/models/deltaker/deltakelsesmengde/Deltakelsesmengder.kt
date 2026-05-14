@@ -188,7 +188,7 @@ class Deltakelsesmengder(
     override fun lastIndexOf(element: Deltakelsesmengde) = deltakelsesmengder.lastIndexOf(element)
 }
 
-// Filtrerer ut deltakelsesmengder og returnerer et Deltakelsesmengde-objekt
+// Filtrerer ut deltakelsesmengder og returnerer et Deltakelsesmengder-objekt
 fun List<DeltakerHistorikk>.toDeltakelsesmengder(): Deltakelsesmengder {
     return sortedBy { it.sistEndret }.fold(Deltakelsesmengder(emptyList())) { mengder, historikk ->
         val deltakelsesmengde = historikk.toDeltakelsesmengde()

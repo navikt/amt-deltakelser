@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -19,6 +20,7 @@ import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
+import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -355,6 +357,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         @Test
         fun `tom historikk - returnerer DeltakelsesmengderResponse med null felter`() = runTest {
+            // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()
             val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
@@ -365,8 +368,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, emptyList())
 
+            // Act
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
+            // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 nesteDeltakelsesmengde shouldBe null
                 sisteDeltakelsesmengde shouldBe null
@@ -375,6 +380,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         @Test
         fun `kun gjeldende vedtak - sisteDeltakelsesmengde settes, nesteDeltakelsesmengde er null`() = runTest {
+            // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()
             val startdato = LocalDate.now().minusMonths(1)
@@ -394,8 +400,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
+            // Act
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
+            // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 nesteDeltakelsesmengde shouldBe null
                 sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
@@ -408,6 +416,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         @Test
         fun `gjeldende og fremtidig endring - nesteDeltakelsesmengde mapper fremtidig, siste mapper fremtidig (lastOrNull)`() = runTest {
+            // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()
             val startdato = LocalDate.now().minusMonths(1)
@@ -437,8 +446,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), fremtidig))
 
+            // Act
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
+            // Assert
             val fremtidigResponse = DeltakelsesmengdeResponse(
                 deltakelsesprosent = 60F,
                 dagerPerUke = 3F,
@@ -452,6 +463,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         @Test
         fun `mengder før startdato trimmes bort av periode-funksjonen`() = runTest {
+            // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()
             // Startdato i framtiden gjør at "tidligere" endringer havner før perioden
@@ -483,8 +495,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), innenforPeriode))
 
+            // Act
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
+            // Assert
             // Vedtaket før startdato avgrenses til startdato, og endringen innenfor blir siste/neste
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
@@ -498,6 +512,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         @Test
         fun `uten startdato - bruker hele tidslinjen uten periode-trim`() = runTest {
+            // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()
             val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
@@ -517,8 +532,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
+            // Act
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
+            // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
                     deltakelsesprosent = 100F,
@@ -531,6 +548,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         @Test
         fun `ImportertFraArena - brukes som basis-deltakelsesmengde`() = runTest {
+            // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()
             val startdato = LocalDate.now().minusMonths(1)
@@ -556,8 +574,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(importertFraArena))
 
+            // Act
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
+            // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 nesteDeltakelsesmengde shouldBe null
                 sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
@@ -570,6 +590,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         @Test
         fun `to fremtidige endringer - nesteGjeldende er naermeste, sisteDeltakelsesmengde er sist i tid`() = runTest {
+            // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()
             val startdato = LocalDate.now().minusMonths(1)
@@ -613,8 +634,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 listOf(DeltakerHistorikk.Vedtak(vedtak), naermesteFremtidig, fjernesteFremtidig),
             )
 
+            // Act
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
+            // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 nesteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
                     deltakelsesprosent = 75F,
@@ -631,6 +654,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         @Test
         fun `ImportertFraArena, Vedtak og Endring i samme historikk - alle bidrar til deltakelsesmengder`() = runTest {
+            // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()
             val arenaStartdato = LocalDate.now().minusMonths(6)
@@ -684,8 +708,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 listOf(importertFraArena, DeltakerHistorikk.Vedtak(vedtak), fremtidigEndring),
             )
 
+            // Act
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
+            // Assert
             // nesteDeltakelsesmengde = den fremtidige endringen (50%/2 dager fra +14 dager)
             // sisteDeltakelsesmengde = siste i tid = samme fremtidige endring
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -702,6 +728,60 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             }
             // ImportertFraArena er også speilet på top-level felt
             response.importertFraArena shouldBe importertFraArena.importertFraArena
+        }
+
+        @Test
+        fun `EndringFraArrangor LeggTilOppstartsdato - henter full historikk og avgrenser perioden`() = runTest {
+            // Arrange
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            // Deltaker uten egen Nav-startdato — arrangør har lagt til oppstartsdato
+            val arrangorStartdato = LocalDate.now().plusDays(7)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = arrangorStartdato,
+                sluttdato = arrangorStartdato.plusMonths(3),
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+            )
+
+            // Vedtak fattet før arrangør la til oppstartsdato — vil i utgangspunktet gi
+            // deltakelsesmengde med gyldigFra = vedtak.fattet (før arrangorStartdato)
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = LocalDate.now().minusDays(3).atStartOfDay(),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
+
+            // Arrangør legger til oppstartsdato — skal avgrense perioden
+            val endringFraArrangor = DeltakerHistorikk.EndringFraArrangor(
+                no.nav.amt.deltaker.utils.data.TestData.lagEndringFraArrangor(
+                    deltakerId = deltaker.id,
+                    endring = EndringFraArrangor.LeggTilOppstartsdato(
+                        startdato = arrangorStartdato,
+                        sluttdato = arrangorStartdato.plusMonths(3),
+                    ),
+                    opprettet = LocalDateTime.now(),
+                ),
+            )
+
+            setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), endringFraArrangor))
+
+            // Act
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+
+            // Assert
+            // Regresjonstest: EndringFraArrangor må være en del av historikken som hentes til
+            // deltakelsesmengder. Den ligger nå i kjernehistorikken (ikke utvidet), siden
+            // `LeggTilOppstartsdato` brukes av `toDeltakelsesmengder.avgrensPeriodeTilStartdato`.
+            verify { deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false) }
+
+            // sisteDeltakelsesmengde.gyldigFra skal være arrangorStartdato (avgrenset),
+            // ikke vedtak.fattet (3 dager tidligere)
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                sisteDeltakelsesmengde.shouldNotBeNull().gyldigFra shouldBe arrangorStartdato
+            }
         }
     }
 }

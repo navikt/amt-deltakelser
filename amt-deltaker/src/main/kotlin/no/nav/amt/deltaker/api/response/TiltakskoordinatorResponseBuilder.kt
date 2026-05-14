@@ -5,6 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder.Companion.MAX_PARALLEL_DB_QUERIES
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -13,7 +14,6 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
-import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
@@ -44,8 +44,9 @@ import java.time.LocalDate
  *   - Nav-ansatte og Nav-enheter hentes i ett bulk-oppslag på tvers av alle deltakere
  *     i stedet for ett oppslag per deltaker — sparer 2(N-1) DB-roundtrips
  *   - Alle 6 bulk-spørringer kjøres parallelt på `Dispatchers.IO` via `withContext` + `async`,
- *     begrenset til [MAX_PARALLEL_DB_QUERIES] samtidige spørringer via [Semaphore] for å unngå
- *     å mette HikariCP-poolen (10 connections totalt)
+ *     begrenset av en **delt** [Semaphore] på prosessnivå slik at totalt antall samtidige
+ *     DB-spørringer på tvers av alle requests aldri overstiger [MAX_PARALLEL_DB_QUERIES] av
+ *     HikariCPs 10 connections — sikrer at andre endepunkter ikke sultes på connections
  *
  * Felter som utelates (ikke brukt i tiltakskoordinator-frontenden):
  *   - `deltakelsesmengder` — alltid null
@@ -80,22 +81,20 @@ class TiltakskoordinatorResponseBuilder(
         val deltakerIder = deltakere.map { it.id }.toSet()
 
         // kjør uavhengige DB-spørringer parallelt på IO-dispatcher, men begrens samtidighet
-        // for å unngå å mette connection-poolen (HikariCP er konfigurert med 10 connections).
-        // Med MAX_PARALLEL_DB_QUERIES = 3 vil to samtidige store kall bruke maks 6 connections,
-        // og lar 4 være ledige til andre endepunkter.
-        val dbSemaphore = Semaphore(permits = MAX_PARALLEL_DB_QUERIES)
+        // via en delt semaphore (se [DB_SEMAPHORE]) slik at totalt antall samtidige DB-spørringer
+        // på tvers av alle requests aldri overstiger [MAX_PARALLEL_DB_QUERIES].
         return withContext(Dispatchers.IO) {
-            val navAnsatteDeferred = async { dbSemaphore.withPermit { navAnsattService.hentNavAnsatteForDeltakere(deltakere) } }
-            val navEnheterDeferred = async { dbSemaphore.withPermit { navEnhetService.hentNavEnheterForDeltakere(deltakere) } }
+            val navAnsatteDeferred = async { DB_SEMAPHORE.withPermit { navAnsattService.hentNavAnsatteForDeltakere(deltakere) } }
+            val navEnheterDeferred = async { DB_SEMAPHORE.withPermit { navEnhetService.hentNavEnheterForDeltakere(deltakere) } }
             val laaseStatusDeferred = async {
-                dbSemaphore.withPermit { deltakerLaaseService.erLaastForEndringerForDeltakere(deltakere) }
+                DB_SEMAPHORE.withPermit { deltakerLaaseService.erLaastForEndringerForDeltakere(deltakere) }
             }
             val soktInnDatoerDeferred = async {
-                dbSemaphore.withPermit { deltakerHistorikkService.getSoktInnDatoer(deltakerIder) }
+                DB_SEMAPHORE.withPermit { deltakerHistorikkService.getSoktInnDatoer(deltakerIder) }
             }
-            val forslagDeferred = async { dbSemaphore.withPermit { forslagRepository.getVenterPaSvarForDeltakere(deltakerIder) } }
+            val forslagDeferred = async { DB_SEMAPHORE.withPermit { forslagRepository.getVenterPaSvarForDeltakere(deltakerIder) } }
             val vurderingDeferred = async {
-                dbSemaphore.withPermit { vurderingRepository.getSisteVurderingForDeltakere(deltakerIder) }
+                DB_SEMAPHORE.withPermit { vurderingRepository.getSisteVurderingForDeltakere(deltakerIder) }
             }
 
             val navAnsatte = navAnsatteDeferred.await()
@@ -156,10 +155,7 @@ class TiltakskoordinatorResponseBuilder(
         erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
         opprettet = deltaker.opprettet,
         soktInnDato = soktInnDato,
-        deltakelsesmengder = DeltakelsesmengderResponse(
-            nesteDeltakelsesmengde = null,
-            sisteDeltakelsesmengde = null,
-        ),
+        deltakelsesmengder = null,
         erLaastForEndringer = erLaastForEndringer,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
         prisinformasjon = deltaker.deltakerliste.prisinformasjon,
@@ -169,10 +165,18 @@ class TiltakskoordinatorResponseBuilder(
 
     companion object {
         /**
-         * Maks antall parallelle DB-spørringer per request. HikariCP er konfigurert med 10 connections;
-         * vi reserverer dermed maks 3 per request slik at 2 samtidige store kall bruker maks 6 av 10
-         * connections og lar 4 være ledige til andre endepunkter.
+         * Maks antall parallelle DB-spørringer **på tvers av alle samtidige requests** i prosessen.
+         * HikariCP er konfigurert med 10 connections totalt; ved å reservere 6 til denne builderen
+         * sikrer vi at minst 4 connections alltid er ledige til andre endepunkter, uavhengig av
+         * hvor mange tiltakskoordinator-kall som kjører samtidig.
          */
-        private const val MAX_PARALLEL_DB_QUERIES = 3
+        private const val MAX_PARALLEL_DB_QUERIES = 6
+
+        /**
+         * Delt semaphore på tvers av alle samtidige `buildResponse`-kall.
+         * Må være `companion object`-nivå for å fungere som en prosess-vid begrensning —
+         * en per-request semaphore beskytter ikke poolen mot mange samtidige requests.
+         */
+        private val DB_SEMAPHORE = Semaphore(permits = MAX_PARALLEL_DB_QUERIES)
     }
 }
