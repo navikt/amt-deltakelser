@@ -89,7 +89,19 @@ class ResponseBuilder(
             kilde = deltaker.kilde,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
+            // hvis DeltakerHistorikk.ImportertFraArena finnes, trenger vi ikke
+            // DeltakerHistorikk.InnsokPaaFellesOppstart eller DeltakerHistorikk.Vedtak
+            //
+            // hvis DeltakerHistorikk.ImportertFraArena ikke finnes, trenger vi
+            // DeltakerHistorikk.InnsokPaaFellesOppstart
+            //
+            // hvis DeltakerHistorikk.InnsokPaaFellesOppstart ikke finnes, trenger vi
+            // vi DeltakerHistorikk.Vedtak
             soktInnDato = historikk.getInnsoktDato()?.toLocalDate(),
+            // koden antyder at vi trenger disse her:
+            // DeltakerHistorikk.ImportertFraArena
+            // DeltakerHistorikk.Endring
+            // DeltakerHistorikk.Vedtak
             deltakelsesmengder = historikk
                 .toDeltakelsesmengder()
                 .let { mengder ->
@@ -105,6 +117,7 @@ class ResponseBuilder(
             endringsforslagFraArrangor = endringsforslagForDeltaker,
             prisinformasjon = deltaker.deltakerliste.prisinformasjon,
             sisteVurdering = sisteVurdering?.let { VurderingResponse.fromVurdering(it) },
+            // vi trenger alltid DeltakerHistorikk.ImportertFraArena
             importertFraArena = historikk
                 .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
                 .let { it.firstOrNull()?.importertFraArena },
