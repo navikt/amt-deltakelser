@@ -6,7 +6,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -33,7 +33,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
         every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
         every { arrangorService.getArrangorNavn(deltakerliste.arrangor!!, any()) } returns "Arrangor Navn"
 
-        val expectedResponse = ResponseBuilder(
+        val expectedResponse = DeltakerResponseBuilder(
             arrangorService = arrangorService,
             navAnsattService = mockk(),
             navEnhetService = mockk(),

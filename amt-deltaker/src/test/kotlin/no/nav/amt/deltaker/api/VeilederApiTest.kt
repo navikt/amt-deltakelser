@@ -13,7 +13,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.amt.deltaker.api.response.ResponseMapper
+import no.nav.amt.deltaker.api.response.SharedResponseMappers.deltakerEndringResponseFromDeltaker
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
@@ -465,7 +465,12 @@ class VeilederApiTest : IntegrationTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe
-                objectMapper.writeValueAsString(ResponseMapper.deltakerEndringResponseFromDeltaker(deltaker, historikk))
+                objectMapper.writeValueAsString(
+                    deltakerEndringResponseFromDeltaker(
+                        deltaker = deltaker,
+                        historikk = historikk,
+                    ),
+                )
         }
 
         coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }

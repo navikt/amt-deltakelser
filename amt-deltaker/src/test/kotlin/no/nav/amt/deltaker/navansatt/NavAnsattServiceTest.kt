@@ -141,8 +141,12 @@ class NavAnsattServiceTest {
     inner class HentNavAnsatteForDeltakereTests {
         @Test
         fun `tom liste med deltakere - returnerer tom cache uten oppslag`() = runTest {
+            // Arrange — ingen deltakere
+
+            // Act
             val ansatte = navAnsattService.hentNavAnsatteForDeltakere(emptyList())
 
+            // Assert
             // ingen ID-er => ingen oppslag mot personservice
             coVerify(exactly = 0) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
             // verifiser at cachen er tom ved at oppslag på en tilfeldig id kaster
@@ -151,13 +155,16 @@ class NavAnsattServiceTest {
 
         @Test
         fun `alle Nav-ansatte finnes i db - henter kun fra db, ingen kall til personservice`() = runTest {
+            // Arrange
             val veileder2 = lagNavAnsatt(navEnhetId = navEnhet.id).also { navAnsattRepository.upsert(it) }
 
             val deltaker1 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id))
             val deltaker2 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = veileder2.id, navEnhetId = navEnhet.id))
 
+            // Act
             val ansatte = navAnsattService.hentNavAnsatteForDeltakere(listOf(deltaker1, deltaker2))
 
+            // Assert
             ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
             ansatte.getOrThrow(veileder2.id) shouldBe veileder2
             coVerify(exactly = 0) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
@@ -165,6 +172,7 @@ class NavAnsattServiceTest {
 
         @Test
         fun `manglende Nav-ansatte hentes fra personservice og lagres`() = runTest {
+            // Arrange
             val manglendeVeileder = lagNavAnsatt(navEnhetId = navEnhet.id)
 
             val deltakerMedKjentVeileder = lagDeltaker(
@@ -176,10 +184,12 @@ class NavAnsattServiceTest {
 
             coEvery { mockPersonServiceClient.hentNavAnsatt(manglendeVeileder.id) } returns manglendeVeileder
 
+            // Act
             val ansatte = navAnsattService.hentNavAnsatteForDeltakere(
                 listOf(deltakerMedKjentVeileder, deltakerMedUkjentVeileder),
             )
 
+            // Assert
             ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
             ansatte.getOrThrow(manglendeVeileder.id) shouldBe manglendeVeileder
             navAnsattRepository.get(manglendeVeileder.id) shouldBe manglendeVeileder
@@ -188,18 +198,22 @@ class NavAnsattServiceTest {
 
         @Test
         fun `samme veileder paa flere deltakere - dedupliseres til ett oppslag`() = runTest {
+            // Arrange
             val deltaker1 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id))
             val deltaker2 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id))
             val deltaker3 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id))
 
+            // Act
             val ansatte = navAnsattService.hentNavAnsatteForDeltakere(listOf(deltaker1, deltaker2, deltaker3))
 
+            // Assert
             ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
             coVerify(exactly = 0) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
         }
 
         @Test
         fun `inkluderer ansatte fra vedtaksinformasjon`() = runTest {
+            // Arrange
             val opprettetAv = lagNavAnsatt(navEnhetId = navEnhet.id).also { navAnsattRepository.upsert(it) }
             val sistEndretAv = lagNavAnsatt(navEnhetId = navEnhet.id).also { navAnsattRepository.upsert(it) }
 
@@ -216,8 +230,10 @@ class NavAnsattServiceTest {
             )
             val deltaker = tempDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
 
+            // Act
             val ansatte = navAnsattService.hentNavAnsatteForDeltakere(listOf(deltaker))
 
+            // Assert
             ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
             ansatte.getOrThrow(opprettetAv.id) shouldBe opprettetAv
             ansatte.getOrThrow(sistEndretAv.id) shouldBe sistEndretAv

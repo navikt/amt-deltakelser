@@ -6,7 +6,8 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.api.response.ResponseMapper
+import io.ktor.server.routing.route
+import no.nav.amt.deltaker.api.response.SharedResponseMappers.utkastResponseFromDeltaker
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.veileder.PameldingService
@@ -18,46 +19,48 @@ fun Routing.registerPameldingApi(
     historikkService: DeltakerHistorikkService,
 ) {
     authenticate("SYSTEM") {
-        /*
-            Kalles av av frontend via amt-deltaker-bff med:
-            /pamelding/{deltakerId} godkjentAvNav=false (opprett/oppdater utkast)
-            /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true(meld på uten å dele utkast)
+        route("/pamelding") {
+            /*
+                Kalles av av frontend via amt-deltaker-bff med:
+                /pamelding/{deltakerId} godkjentAvNav=false (opprett/oppdater utkast)
+                /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true(meld på uten å dele utkast)
 
-            sånn sett så kan dette kalles "godkjenn påmelding"
+                sånn sett så kan dette kalles "godkjenn påmelding"
 
-         */
-        post("/pamelding/{deltakerId}") {
-            val deltaker = pameldingService.upsertUtkast(
-                deltakerId = call.getDeltakerId(),
-                utkast = call.receive<UtkastRequest>(),
-            )
+             */
+            post("/{deltakerId}") {
+                val deltaker = pameldingService.upsertUtkast(
+                    deltakerId = call.getDeltakerId(),
+                    utkast = call.receive<UtkastRequest>(),
+                )
 
-            call.respond(
-                ResponseMapper.utkastResponseFromDeltaker(
-                    deltaker = deltaker,
-                    historikk = historikkService.getForDeltaker(deltaker.id),
-                ),
-            )
-        }
+                call.respond(
+                    utkastResponseFromDeltaker(
+                        deltaker = deltaker,
+                        historikk = historikkService.getForDeltaker(deltaker.id),
+                    ),
+                )
+            }
 
-        post("/pamelding/{deltakerId}/innbygger/godkjenn-utkast") {
-            val oppdatertDeltaker = pameldingService.innbyggerGodkjennUtkast(call.getDeltakerId())
+            post("/{deltakerId}/innbygger/godkjenn-utkast") {
+                val oppdatertDeltaker = pameldingService.innbyggerGodkjennUtkast(call.getDeltakerId())
 
-            call.respond(
-                ResponseMapper.utkastResponseFromDeltaker(
-                    deltaker = oppdatertDeltaker,
-                    historikk = historikkService.getForDeltaker(oppdatertDeltaker.id),
-                ),
-            )
-        }
+                call.respond(
+                    utkastResponseFromDeltaker(
+                        deltaker = oppdatertDeltaker,
+                        historikk = historikkService.getForDeltaker(oppdatertDeltaker.id),
+                    ),
+                )
+            }
 
-        post("/pamelding/{deltakerId}/avbryt") {
-            pameldingService.avbrytUtkast(
-                deltakerId = call.getDeltakerId(),
-                avbrytUtkastRequest = call.receive<AvbrytUtkastRequest>(),
-            )
+            post("/{deltakerId}/avbryt") {
+                pameldingService.avbrytUtkast(
+                    deltakerId = call.getDeltakerId(),
+                    avbrytUtkastRequest = call.receive<AvbrytUtkastRequest>(),
+                )
 
-            call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
+            }
         }
     }
 }

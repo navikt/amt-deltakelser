@@ -11,27 +11,23 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
-import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
-import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
-import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
 
-class ResponseBuilder(
+class DeltakerResponseBuilder(
     private val arrangorService: ArrangorService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
@@ -45,17 +41,12 @@ class ResponseBuilder(
         deltaker: Deltaker,
         includeKodeverk: Boolean = false,
     ): DeltakerResponse {
-        // Forslag hentes også fra databasen med historikk men historikk filtrerer bort statusen
-        // som ønskes her.
-        val endringsforslagForDeltaker = forslagRepository
-            .getForDeltaker(deltaker.id)
-            .filter { it.status is Forslag.Status.VenterPaSvar }
+        val endringsforslagForDeltaker =
+            SharedResponseMappers.hentEndringsforslagVenterPaSvar(forslagRepository, deltaker.id)
 
         val navAnsatte = navAnsattService.hentNavAnsatteForDeltaker(deltaker)
         val navEnheter = navEnhetService.hentNavEnheterForDeltaker(deltaker)
-        val sisteVurdering = vurderingRepository
-            .getForDeltaker(deltaker.id)
-            .maxByOrNull { it.gyldigFra }
+        val sisteVurdering = SharedResponseMappers.hentSisteVurdering(vurderingRepository, deltaker.id)
 
         val historikk = deltakerHistorikkService.getForDeltaker(
             id = deltaker.id,
@@ -91,15 +82,7 @@ class ResponseBuilder(
             kilde = deltaker.kilde,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
-            // hvis DeltakerHistorikk.ImportertFraArena finnes, trenger vi ikke
-            // DeltakerHistorikk.InnsokPaaFellesOppstart eller DeltakerHistorikk.Vedtak
-            //
-            // hvis DeltakerHistorikk.ImportertFraArena ikke finnes, trenger vi
-            // DeltakerHistorikk.InnsokPaaFellesOppstart
-            //
-            // hvis DeltakerHistorikk.InnsokPaaFellesOppstart ikke finnes, trenger vi
-            // vi DeltakerHistorikk.Vedtak
-            soktInnDato = historikk.getInnsoktDato()?.toLocalDate(),
+            soktInnDato = deltakerHistorikkService.getSoktInnDato(deltaker.id),
             // koden antyder at vi trenger disse her for deltakelsesmengder:
             // DeltakerHistorikk.ImportertFraArena
             // DeltakerHistorikk.Endring
@@ -129,76 +112,38 @@ class ResponseBuilder(
     internal fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
         includeKodeverk: Boolean,
-    ) = GjennomforingResponse(
-        id = deltakerliste.id,
-        tiltakstype = deltakerliste.tiltakstype,
-        navn = deltakerliste.navn,
-        status = deltakerliste.status,
-        startDato = deltakerliste.startDato,
-        sluttDato = deltakerliste.sluttDato,
-        antallPlasser = deltakerliste.antallPlasser,
-        oppstart = deltakerliste.oppstart,
-        apentForPamelding = deltakerliste.apentForPamelding,
-        oppmoteSted = deltakerliste.oppmoteSted,
-        arrangor = deltakerliste.arrangor?.let {
-            ArrangorResponse(
-                navn = arrangorService.getArrangorNavn(
-                    arrangor = deltakerliste.arrangor,
-                    gjennomforingstype = deltakerliste.gjennomforingstype,
-                ),
-                deltakerliste.arrangor.organisasjonsnummer,
-            )
-        },
-        pameldingstype = deltakerliste.pameldingstype,
-        type = deltakerliste.gjennomforingstype,
-        kodeverkValg = if (includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+    ): GjennomforingResponse {
+        val kodeverkValg = if (includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
             KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
         } else {
             emptySet()
-        },
-    )
+        }
+
+        return SharedResponseMappers.buildGjennomforingResponse(
+            deltakerliste = deltakerliste,
+            arrangorService = arrangorService,
+            kodeverkValg = kodeverkValg,
+        )
+    }
 
     internal fun buildVedtaksinformasjonResponse(
         vedtaksinformasjon: Vedtaksinformasjon,
         navEnheter: GenericCache<NavEnhet>,
         navAnsatte: GenericCache<NavAnsatt>,
-    ) = VedtaksinformasjonResponse(
-        fattet = vedtaksinformasjon.fattet,
-        fattetAvNav = vedtaksinformasjon.fattetAvNav,
-        opprettet = vedtaksinformasjon.opprettet,
-        opprettetAv = navAnsatte.getOrThrow(vedtaksinformasjon.opprettetAv).navn,
-        opprettetAvEnhet = navEnheter.getOrThrow(vedtaksinformasjon.opprettetAvEnhet).navn,
-        sistEndret = vedtaksinformasjon.sistEndret,
-        sistEndretAv = navAnsatte.getOrThrow(vedtaksinformasjon.sistEndretAv).navn,
-        sistEndretAvEnhet = navEnheter.getOrThrow(vedtaksinformasjon.sistEndretAvEnhet).navn,
+    ): VedtaksinformasjonResponse = SharedResponseMappers.buildVedtaksinformasjonResponse(
+        vedtaksinformasjon = vedtaksinformasjon,
+        navEnheter = navEnheter,
+        navAnsatte = navAnsatte,
     )
 
     internal suspend fun buildNavBrukerResponse(
         navBruker: NavBruker,
         navAnsatte: GenericCache<NavAnsatt>,
         navEnheter: GenericCache<NavEnhet>,
-    ) = NavBrukerResponse(
-        personident = navBruker.personident,
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        telefon = navBruker.telefon,
-        epost = navBruker.epost,
-        erSkjermet = navBruker.erSkjermet,
-        adresse = navBruker.adresse,
-        adressebeskyttelse = navBruker.adressebeskyttelse,
-        oppfolgingsperioder = navBruker.oppfolgingsperioder,
-        innsatsgruppe = navBruker.innsatsgruppe,
+    ): NavBrukerResponse = SharedResponseMappers.buildNavBrukerResponse(
+        navBruker = navBruker,
+        navAnsatte = navAnsatte,
+        navEnheter = navEnheter,
         erDigital = amtDistribusjonClient.digitalBruker(navBruker.personident),
-        navVeileder = navBruker.navVeilederId
-            ?.let { navAnsatte.getOrThrow(it) }
-            ?.let { veileder ->
-                NavVeilederResponse(
-                    navn = veileder.navn,
-                    epost = veileder.epost,
-                    telefonnummer = veileder.telefon,
-                )
-            },
-        navEnhet = navBruker.navEnhetId?.let { navEnheter.getOrThrow(it).navn },
     )
 }

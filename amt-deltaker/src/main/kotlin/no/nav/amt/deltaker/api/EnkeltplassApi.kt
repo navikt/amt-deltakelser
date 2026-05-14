@@ -7,7 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.internapi.DeltakerIdResponse
@@ -17,7 +17,7 @@ import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 
 fun Routing.registerEnkeltplassApi(
     enkeltplassService: EnkeltplassService,
-    responseBuilder: ResponseBuilder,
+    deltakerResponseBuilder: DeltakerResponseBuilder,
 ) {
     authenticate("SYSTEM") {
         route("/enkeltplass") {
@@ -50,7 +50,7 @@ fun Routing.registerEnkeltplassApi(
                     decoratedRequest = request,
                 )
 
-                val deltakerResponse = responseBuilder.buildDeltakerResponse(
+                val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(
                     deltaker = oppdatertDeltaker,
                     includeKodeverk = true,
                 )
@@ -71,7 +71,7 @@ fun Routing.registerEnkeltplassApi(
                     decoratedRequest = request,
                 )
 
-                val deltakerResponse = responseBuilder.buildDeltakerResponse(
+                val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(
                     deltaker = oppdatertDeltaker,
                     includeKodeverk = true,
                 )

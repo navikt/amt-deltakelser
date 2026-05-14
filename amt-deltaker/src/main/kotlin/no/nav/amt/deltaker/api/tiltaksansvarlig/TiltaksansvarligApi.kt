@@ -7,13 +7,12 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
 import no.nav.amt.deltaker.extensions.getGjennomforingId
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
-import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -23,7 +22,7 @@ fun Routing.registerTiltakskoordinatorApi(
     tiltaksansvarligService: TiltaksansvarligService,
     deltakerHistorikkService: DeltakerHistorikkService,
     deltakerRepository: DeltakerRepository,
-    responseBuilder: ResponseBuilder,
+    tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
 ) {
     fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
         ResponseMapper.fromDeltakerOppdateringResult(
@@ -35,17 +34,8 @@ fun Routing.registerTiltakskoordinatorApi(
     authenticate("SYSTEM") {
         route("/tiltakskoordinator/deltakere") {
             get("/{gjennomforingId}") {
-                val deltakereResponse = deltakerRepository
-                    .getForGjennomforing(gjennomforingId = call.getGjennomforingId())
-                    .let { deltakere ->
-                        DeltakereResponse(
-                            deltakere.map { deltaker ->
-                                responseBuilder.buildDeltakerResponse(deltaker)
-                            },
-                        )
-                    }
-
-                call.respond(deltakereResponse)
+                val deltakere = deltakerRepository.getForGjennomforing(gjennomforingId = call.getGjennomforingId())
+                call.respond(tiltakskoordinatorResponseBuilder.buildResponse(deltakere))
             }
 
             post("/del-med-arrangor") {
@@ -53,9 +43,9 @@ fun Routing.registerTiltakskoordinatorApi(
 
                 val oppdaterteDeltakere = tiltaksansvarligService
                     .oppdaterDeltakere(
-                        request.deltakerIder.toSet(),
-                        EndringFraTiltakskoordinator.DelMedArrangor,
-                        request.endretAv,
+                        deltakerIder = request.deltakerIder.toSet(),
+                        endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
+                        endretAvIdent = request.endretAv,
                     ).toDeltakerOppdateringResult()
                 call.respond(oppdaterteDeltakere)
             }
@@ -65,9 +55,9 @@ fun Routing.registerTiltakskoordinatorApi(
                 val deltakerIder = request.deltakere
                 val oppdaterteDeltakere = tiltaksansvarligService
                     .oppdaterDeltakere(
-                        deltakerIder.toSet(),
-                        EndringFraTiltakskoordinator.TildelPlass,
-                        request.endretAv,
+                        deltakerIder = deltakerIder.toSet(),
+                        endringsType = EndringFraTiltakskoordinator.TildelPlass,
+                        endretAvIdent = request.endretAv,
                     ).toDeltakerOppdateringResult()
 
                 call.respond(oppdaterteDeltakere)
@@ -78,9 +68,9 @@ fun Routing.registerTiltakskoordinatorApi(
                 val deltakerIder = request.deltakere
                 val oppdaterteDeltakere = tiltaksansvarligService
                     .oppdaterDeltakere(
-                        deltakerIder.toSet(),
-                        EndringFraTiltakskoordinator.SettPaaVenteliste,
-                        request.endretAv,
+                        deltakerIder = deltakerIder.toSet(),
+                        endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
+                        endretAvIdent = request.endretAv,
                     ).toDeltakerOppdateringResult()
 
                 call.respond(oppdaterteDeltakere)
@@ -90,9 +80,9 @@ fun Routing.registerTiltakskoordinatorApi(
                 val request = call.receive<GiAvslagRequest>()
                 val deltakeroppdatering = tiltaksansvarligService
                     .giAvslag(
-                        request.deltakerId,
-                        request.avslag,
-                        request.endretAv,
+                        deltakerId = request.deltakerId,
+                        avslag = request.avslag,
+                        endretAv = request.endretAv,
                     ).toDeltakerOppdatering(deltakerHistorikkService.getForDeltaker(request.deltakerId))
 
                 call.respond(deltakeroppdatering)

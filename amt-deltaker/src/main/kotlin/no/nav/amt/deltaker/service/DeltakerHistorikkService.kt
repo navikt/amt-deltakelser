@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.service
 
 import no.nav.amt.deltaker.extensions.skalInkluderesIHistorikk
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
@@ -24,6 +25,7 @@ class DeltakerHistorikkService(
     private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val vurderingRepository: VurderingRepository,
+    private val deltakerRepository: DeltakerRepository,
 ) {
     fun getForDeltaker(
         id: UUID,
@@ -50,6 +52,25 @@ class DeltakerHistorikkService(
 
         return forsteVedtak?.fattet?.toLocalDate()
     }
+
+    /**
+     * Optimalisert utleding av soktInnDato uten å hente full kjernehistorikk.
+     * Hopper over DeltakerEndring-oppslag (ikke nødvendig for soktInnDato), så
+     * det blir maks 3 DB-oppslag istedenfor 4.
+     *
+     * Prioriterer: ImportertFraArena → InnsokPaaFellesOppstart → Vedtak.opprettet
+     */
+    fun getSoktInnDato(deltakerId: UUID): LocalDate? = getSoktInnDatoer(setOf(deltakerId))[deltakerId]
+
+    /**
+     * Bulk-variant av [getSoktInnDato]. Henter "søkt inn"-dato for alle [deltakerIder] i
+     * **ett** spisset SQL-oppslag, i stedet for 3 sekvensielle oppslag per deltaker.
+     * Egnet for store kall som tiltakskoordinator-lista.
+     *
+     * @return Map fra deltaker-id til søkt-inn-dato (`null` for deltakere uten Arena-import,
+     * innsøk på felles oppstart eller vedtak).
+     */
+    fun getSoktInnDatoer(deltakerIder: Set<UUID>): Map<UUID, LocalDate?> = deltakerRepository.getSoktInnDatoer(deltakerIder)
 
     private val kjernehistorikkProviders = listOf<(UUID) -> List<DeltakerHistorikk>?>(
         { deltakerId -> deltakerEndringRepository.getForDeltaker(deltakerId).map { DeltakerHistorikk.Endring(it) } },

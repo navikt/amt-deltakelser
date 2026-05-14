@@ -21,7 +21,8 @@ import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
 import no.nav.amt.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.api.registerVeilederApi
-import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
+import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
@@ -80,7 +81,8 @@ fun Application.configureRouting(
     navEnhetService: NavEnhetService,
     vedtakRepository: VedtakRepository,
     navAnsattService: NavAnsattService,
-    responseBuilder: ResponseBuilder,
+    deltakerResponseBuilder: DeltakerResponseBuilder,
+    tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
     arrangorService: ArrangorService,
     gjennomforingRequestProducer: GjennomforingRequestProducer,
 ) {
@@ -125,15 +127,15 @@ fun Application.configureRouting(
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
             historikkService = deltakerHistorikkService,
-            responseBuilder = responseBuilder,
+            deltakerResponseBuilder = deltakerResponseBuilder,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             arrangorService = arrangorService,
         )
-        registerGjennomforingApi(deltakerlisteRepository, responseBuilder)
+        registerGjennomforingApi(deltakerlisteRepository, deltakerResponseBuilder)
         registerEnkeltplassApi(
             enkeltplassService = enkeltplassService,
-            responseBuilder = responseBuilder,
+            deltakerResponseBuilder = deltakerResponseBuilder,
         )
         registerInternalApi(
             deltakerRepository,
@@ -151,7 +153,12 @@ fun Application.configureRouting(
             gjennomforingRequestProducer,
         )
 
-        registerTiltakskoordinatorApi(tiltaksansvarligService, deltakerHistorikkService, deltakerRepository, responseBuilder)
+        registerTiltakskoordinatorApi(
+            tiltaksansvarligService,
+            deltakerHistorikkService,
+            deltakerRepository,
+            tiltakskoordinatorResponseBuilder,
+        )
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 
         val catchAllRoute = "{...}"

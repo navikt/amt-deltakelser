@@ -39,7 +39,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class ResponseBuilderTest : IntegrationTestBase() {
+class DeltakerResponseBuilderTest : IntegrationTestBase() {
     override val arrangorService: ArrangorService = mockk()
     override val deltakerLaaseService: DeltakerLaaseService = mockk()
     override val navEnhetService: NavEnhetService = mockk()
@@ -99,7 +99,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         }
 
         // Act
-        val navBrukerResponse = responseBuilder.buildNavBrukerResponse(
+        val navBrukerResponse = deltakerResponseBuilder.buildNavBrukerResponse(
             navBruker = navBruker,
             navAnsatte = navAnsattCache,
             navEnheter = navEnhetCache,
@@ -143,7 +143,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
 
         // Act
-        val gjennomforingResponse = responseBuilder.buildGjennomforingResponse(deltakerliste, false)
+        val gjennomforingResponse = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, false)
 
         // Assert
         val expectedArrangor = ArrangorResponse(
@@ -199,7 +199,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         }
 
         // Act
-        val vedtaksinformasjonResponse = responseBuilder.buildVedtaksinformasjonResponse(
+        val vedtaksinformasjonResponse = deltakerResponseBuilder.buildVedtaksinformasjonResponse(
             vedtaksinformasjon = vedtaksinformasjon,
             navAnsatte = navAnsattCache,
             navEnheter = navEnhetCache,
@@ -249,6 +249,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
+        every { deltakerHistorikkService.getSoktInnDato(any()) } returns null
         every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
         val expectedForslag = listOf(
@@ -278,7 +279,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
         every { forslagRepository.getForDeltaker(any()) } returns expectedForslag
 
         // Act
-        val deltakerResponse = responseBuilder.buildDeltakerResponse(deltaker)
+        val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
         // Assert
         assertSoftly(deltakerResponse) {
@@ -314,6 +315,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
             every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
             every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
             every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns historikk
+            every { deltakerHistorikkService.getSoktInnDato(any()) } returns null
             every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
             every { forslagRepository.getForDeltaker(any()) } returns emptyList()
             coEvery { navAnsattService.hentNavAnsatteForDeltaker(any()) } returns GenericCache(
@@ -363,7 +365,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, emptyList())
 
-            val response = responseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 nesteDeltakelsesmengde shouldBe null
@@ -392,7 +394,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
-            val response = responseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 nesteDeltakelsesmengde shouldBe null
@@ -435,7 +437,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), fremtidig))
 
-            val response = responseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
             val fremtidigResponse = DeltakelsesmengdeResponse(
                 deltakelsesprosent = 60F,
@@ -481,7 +483,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), innenforPeriode))
 
-            val response = responseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
             // Vedtaket før startdato avgrenses til startdato, og endringen innenfor blir siste/neste
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -515,7 +517,7 @@ class ResponseBuilderTest : IntegrationTestBase() {
 
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
-            val response = responseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
 
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
