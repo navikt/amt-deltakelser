@@ -55,8 +55,16 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                         adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                         deltakerlisteId = deltaker.gjennomforing.id,
                     )
+
                     val ulesteHendelser = ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId)
-                    deltaker.let { ResponseMapper.buildDeltakerDetaljerResponse(it, harTilgangTilBruker, ulesteHendelser) }
+
+                    deltaker.let {
+                        ResponseMapper.buildDeltakerDetaljerResponse(
+                            deltaker = it,
+                            tilgangTilBruker = harTilgangTilBruker,
+                            ulesteHendelser = ulesteHendelser,
+                        )
+                    }
                 } else {
                     // Skal slettes etter hvert
                     val tiltakskoordinatorsDeltaker = tiltakskoordinatorService.getDeltaker(deltakerId)
@@ -71,8 +79,8 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     val ulesteHendelser = ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId)
 
                     tiltakskoordinatorsDeltaker.toResponse(
-                        harTilgangTilBruker,
-                        ulesteHendelser,
+                        harTilgangTilBruker = harTilgangTilBruker,
+                        ulesteHendelser = ulesteHendelser,
                     )
                 }
 

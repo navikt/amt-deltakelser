@@ -25,9 +25,8 @@ object ResponseMapper {
             .map {
                 ForslagResponse.fromForslag(
                     forslag = it,
-                    arrangornavn =
-                        gjennomforing.arrangor?.navn
-                            ?: throw IllegalStateException("Kan ikke ha forslag på en deltakelse uten arrangør"),
+                    arrangornavn = gjennomforing.arrangor?.navn
+                        ?: throw IllegalStateException("Kan ikke ha forslag på en deltakelse uten arrangør"),
                     ansatte = emptyMap(), // trenger ikke ansatte eller enheter
                     enheter = emptyMap(),
                 )
@@ -46,9 +45,11 @@ object ResponseMapper {
             startdato = startdato,
             sluttdato = sluttdato,
             navEnhet = navBruker.navEnhet,
-            navVeileder =
-                navBruker.navVeileder
-                    ?: NavVeilederResponse(navn = null, telefonnummer = null, epost = null),
+            navVeileder = navBruker.navVeileder ?: NavVeilederResponse(
+                navn = null,
+                telefonnummer = null,
+                epost = null,
+            ),
             vurdering = sisteVurdering,
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
             innsatsgruppe = navBruker.innsatsgruppe,
@@ -59,7 +60,11 @@ object ResponseMapper {
             oppstartstype = gjennomforing.oppstart,
             // Hvorfor er denne optional?
             pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-            deltakelsesinnhold = getDeltakelsesinnholdAnnet(tilgangTilBruker, gjennomforing.pameldingstype, deltakelsesinnhold),
+            deltakelsesinnhold = getDeltakelsesinnholdAnnet(
+                harTilgangTilBruker = tilgangTilBruker,
+                pameldingstype = gjennomforing.pameldingstype,
+                deltakelsesinnhold = deltakelsesinnhold,
+            ),
         )
     }
 
