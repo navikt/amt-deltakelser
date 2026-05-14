@@ -49,6 +49,8 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
         coVerify(exactly = 0) { deltakerLaaseService.erLaastForEndringerForDeltakere(any()) }
         coVerify(exactly = 0) { distribusjonClient.digitalBruker(any()) }
         coVerify(exactly = 0) { deltakerHistorikkService.getSoktInnDatoer(any()) }
+        coVerify(exactly = 0) { forslagRepository.getVenterPaSvarForDeltakere(any()) }
+        coVerify(exactly = 0) { vurderingRepository.getSisteVurderingForDeltakere(any()) }
     }
 
     @Test
@@ -190,51 +192,55 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `buildResponse - kun forslag som venter paa svar inkluderes`() = runTest {
+    fun `buildResponse - forslag og vurdering hentes i bulk for alle deltakere`() = runTest {
         // Arrange
         val navAnsatt = TestData.lagNavAnsatt()
         val navEnhet = TestData.lagNavEnhet()
-        val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData
+            .lagDeltakerliste()
+        val deltaker1 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
             navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+            deltakerliste = deltakerliste,
+        )
+        val deltaker2 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+            deltakerliste = deltakerliste,
         )
 
-        val venterPaaSvar = lagForslag(deltaker.id, Forslag.Status.VenterPaSvar)
-        val godkjent = lagForslag(
-            deltaker.id,
-            Forslag.Status.Godkjent(
-                godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-                godkjent = LocalDateTime.now(),
-            ),
+        val forslag1 = lagForslag(
+            deltakerId = deltaker1.id,
+            status = Forslag.Status.VenterPaSvar,
+        )
+        val forslag2 = lagForslag(
+            deltakerId = deltaker2.id,
+            status = Forslag.Status.VenterPaSvar,
+        )
+        val vurdering1 = lagVurdering(
+            deltakerId = deltaker1.id,
+            gyldigFra = LocalDateTime.now(),
         )
 
-        setupFellesMocker(navAnsatt, navEnhet, forslag = listOf(venterPaaSvar, godkjent))
+        setupFellesMocker(
+            navAnsatt,
+            navEnhet,
+            forslag = listOf(forslag1, forslag2),
+            vurderingListe = listOf(vurdering1),
+        )
 
         // Act
-        val response = tiltakskoordinatorResponseBuilder.buildResponse(listOf(deltaker))
+        val response = tiltakskoordinatorResponseBuilder.buildResponse(listOf(deltaker1, deltaker2))
 
         // Assert
-        response.deltakere.single().endringsforslagFraArrangor shouldBe listOf(venterPaaSvar)
-    }
+        response.deltakere[0].endringsforslagFraArrangor shouldBe listOf(forslag1)
+        response.deltakere[1].endringsforslagFraArrangor shouldBe listOf(forslag2)
+        response.deltakere[0].sisteVurdering shouldBe VurderingResponse.fromVurdering(vurdering1)
+        response.deltakere[1].sisteVurdering shouldBe null
 
-    @Test
-    fun `buildResponse - siste vurdering velges basert paa hoyeste gyldigFra`() = runTest {
-        // Arrange
-        val navAnsatt = TestData.lagNavAnsatt()
-        val navEnhet = TestData.lagNavEnhet()
-        val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-        )
-
-        val eldre = lagVurdering(deltaker.id, LocalDateTime.now().minusDays(10), Vurderingstype.OPPFYLLER_IKKE_KRAVENE)
-        val nyeste = lagVurdering(deltaker.id, LocalDateTime.now(), Vurderingstype.OPPFYLLER_KRAVENE)
-
-        setupFellesMocker(navAnsatt, navEnhet, vurderingListe = listOf(eldre, nyeste))
-
-        // Act
-        val response = tiltakskoordinatorResponseBuilder.buildResponse(listOf(deltaker))
-
-        // Assert
-        response.deltakere.single().sisteVurdering shouldBe VurderingResponse.fromVurdering(nyeste)
+        // bulk-metoder kalles én gang — ikke per deltaker
+        coVerify(exactly = 1) { forslagRepository.getVenterPaSvarForDeltakere(any()) }
+        coVerify(exactly = 0) { forslagRepository.getForDeltaker(any()) }
+        coVerify(exactly = 1) { vurderingRepository.getSisteVurderingForDeltakere(any()) }
+        coVerify(exactly = 0) { vurderingRepository.getForDeltaker(any()) }
     }
 
     private fun setupFellesMocker(
@@ -259,8 +265,20 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
         coEvery { navAnsattService.hentNavAnsatteForDeltakere(any()) } returns ansatteCache
         coEvery { navEnhetService.hentNavEnheterForDeltakere(any()) } returns enheterCache
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
-        every { vurderingRepository.getForDeltaker(any()) } returns vurderingListe
-        every { forslagRepository.getForDeltaker(any()) } returns forslag
+        every { vurderingRepository.getSisteVurderingForDeltakere(any()) } answers {
+            val ider = firstArg<Set<UUID>>()
+            val sistePerDeltaker = vurderingListe
+                .filter { it.deltakerId in ider }
+                .groupBy { it.deltakerId }
+                .mapValues { (_, v) -> v.maxBy { it.gyldigFra } }
+            sistePerDeltaker
+        }
+        every { forslagRepository.getVenterPaSvarForDeltakere(any()) } answers {
+            val ider = firstArg<Set<UUID>>()
+            forslag
+                .filter { it.deltakerId in ider && it.status is Forslag.Status.VenterPaSvar }
+                .groupBy { it.deltakerId }
+        }
         every { deltakerHistorikkService.getSoktInnDatoer(any()) } answers {
             firstArg<Set<UUID>>().associateWith { soktInnDato }
         }
@@ -286,13 +304,12 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
     private fun lagVurdering(
         deltakerId: UUID,
         gyldigFra: LocalDateTime,
-        type: Vurderingstype,
     ) = Vurdering(
         id = UUID.randomUUID(),
         deltakerId = deltakerId,
         opprettetAvArrangorAnsattId = UUID.randomUUID(),
         gyldigFra = gyldigFra,
-        vurderingstype = type,
+        vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
         begrunnelse = null,
     )
 }
