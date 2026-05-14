@@ -42,7 +42,15 @@ class ArrangorRepository {
     fun get(id: UUID): Arrangor? = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM arrangor WHERE id = :id",
+                """
+                SELECT 
+                    id, 
+                    navn, 
+                    organisasjonsnummer, 
+                    overordnet_arrangor_id 
+                FROM arrangor 
+                WHERE id = :id
+                """.trimIndent(),
                 mapOf("id" to id),
             ).map(::rowMapper).asSingle,
         )
@@ -51,7 +59,15 @@ class ArrangorRepository {
     fun get(orgnr: String): Arrangor? = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM arrangor WHERE organisasjonsnummer = :orgnr",
+                """
+                SELECT 
+                    id, 
+                    navn, 
+                    organisasjonsnummer, 
+                    overordnet_arrangor_id 
+                FROM arrangor 
+                WHERE organisasjonsnummer = :orgnr
+                """.trimIndent(),
                 mapOf("orgnr" to orgnr),
             ).map(::rowMapper).asSingle,
         )

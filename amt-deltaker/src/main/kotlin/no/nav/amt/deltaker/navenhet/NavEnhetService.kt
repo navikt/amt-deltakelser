@@ -41,6 +41,27 @@ class NavEnhetService(
             deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
         ).plus(additionalIds)
 
+        return hentNavEnheter(navEnhetIdSet)
+    }
+
+    /**
+     * Bulk-variant for store kall (f.eks. tiltakskoordinator-lista). Samler alle relevante
+     * Nav-enhet-ID-er fra deltakerne og gjør ett enkelt DB-oppslag i stedet for ett per deltaker.
+     */
+    suspend fun hentNavEnheterForDeltakere(deltakere: List<Deltaker>): GenericCache<NavEnhet> {
+        val navEnhetIdSet = deltakere
+            .flatMap { deltaker ->
+                listOfNotNull(
+                    deltaker.navBruker.navEnhetId,
+                    deltaker.vedtaksinformasjon?.opprettetAvEnhet,
+                    deltaker.vedtaksinformasjon?.sistEndretAvEnhet,
+                )
+            }.toSet()
+
+        return hentNavEnheter(navEnhetIdSet)
+    }
+
+    private suspend fun hentNavEnheter(navEnhetIdSet: Set<UUID>): GenericCache<NavEnhet> {
         val enheterFraDb = repository.getMany(navEnhetIdSet).associateBy { it.id }
 
         // hent Nav-enheter som mangler i db fra amt-person-service
@@ -50,6 +71,9 @@ class NavEnhetService(
                 repository.upsert(navEnhet)
             }.associateBy { it.id }
 
-        return GenericCache("navEnheter", enheterFraDb + manglendeNavEnheter)
+        return GenericCache(
+            cacheName = "navEnheter",
+            itemMap = enheterFraDb + manglendeNavEnheter,
+        )
     }
 }

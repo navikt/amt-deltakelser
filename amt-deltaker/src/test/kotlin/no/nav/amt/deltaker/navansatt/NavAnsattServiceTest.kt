@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.navansatt
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -133,6 +134,94 @@ class NavAnsattServiceTest {
             ansatte.getOrThrow(vedtakSistEndretAv.id) shouldBe vedtakSistEndretAv
 
             coVerify(exactly = 3) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
+        }
+    }
+
+    @Nested
+    inner class HentNavAnsatteForDeltakereTests {
+        @Test
+        fun `tom liste med deltakere - returnerer tom cache uten oppslag`() = runTest {
+            val ansatte = navAnsattService.hentNavAnsatteForDeltakere(emptyList())
+
+            // ingen ID-er => ingen oppslag mot personservice
+            coVerify(exactly = 0) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
+            // verifiser at cachen er tom ved at oppslag på en tilfeldig id kaster
+            shouldThrow<NoSuchElementException> { ansatte.getOrThrow(UUID.randomUUID()) }
+        }
+
+        @Test
+        fun `alle Nav-ansatte finnes i db - henter kun fra db, ingen kall til personservice`() = runTest {
+            val veileder2 = lagNavAnsatt(navEnhetId = navEnhet.id).also { navAnsattRepository.upsert(it) }
+
+            val deltaker1 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id))
+            val deltaker2 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = veileder2.id, navEnhetId = navEnhet.id))
+
+            val ansatte = navAnsattService.hentNavAnsatteForDeltakere(listOf(deltaker1, deltaker2))
+
+            ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
+            ansatte.getOrThrow(veileder2.id) shouldBe veileder2
+            coVerify(exactly = 0) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
+        }
+
+        @Test
+        fun `manglende Nav-ansatte hentes fra personservice og lagres`() = runTest {
+            val manglendeVeileder = lagNavAnsatt(navEnhetId = navEnhet.id)
+
+            val deltakerMedKjentVeileder = lagDeltaker(
+                navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+            )
+            val deltakerMedUkjentVeileder = lagDeltaker(
+                navBruker = lagNavBruker(navVeilederId = manglendeVeileder.id, navEnhetId = navEnhet.id),
+            )
+
+            coEvery { mockPersonServiceClient.hentNavAnsatt(manglendeVeileder.id) } returns manglendeVeileder
+
+            val ansatte = navAnsattService.hentNavAnsatteForDeltakere(
+                listOf(deltakerMedKjentVeileder, deltakerMedUkjentVeileder),
+            )
+
+            ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
+            ansatte.getOrThrow(manglendeVeileder.id) shouldBe manglendeVeileder
+            navAnsattRepository.get(manglendeVeileder.id) shouldBe manglendeVeileder
+            coVerify(exactly = 1) { mockPersonServiceClient.hentNavAnsatt(manglendeVeileder.id) }
+        }
+
+        @Test
+        fun `samme veileder paa flere deltakere - dedupliseres til ett oppslag`() = runTest {
+            val deltaker1 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id))
+            val deltaker2 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id))
+            val deltaker3 = lagDeltaker(navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id))
+
+            val ansatte = navAnsattService.hentNavAnsatteForDeltakere(listOf(deltaker1, deltaker2, deltaker3))
+
+            ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
+            coVerify(exactly = 0) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
+        }
+
+        @Test
+        fun `inkluderer ansatte fra vedtaksinformasjon`() = runTest {
+            val opprettetAv = lagNavAnsatt(navEnhetId = navEnhet.id).also { navAnsattRepository.upsert(it) }
+            val sistEndretAv = lagNavAnsatt(navEnhetId = navEnhet.id).also { navAnsattRepository.upsert(it) }
+
+            val tempDeltaker = lagDeltaker(
+                navBruker = lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+            )
+            val vedtak = lagVedtak(
+                deltakerId = tempDeltaker.id,
+                deltakerVedVedtak = tempDeltaker,
+                opprettetAv = opprettetAv,
+                sistEndretAv = sistEndretAv,
+                opprettetAvEnhet = navEnhet,
+                fattet = null,
+            )
+            val deltaker = tempDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
+
+            val ansatte = navAnsattService.hentNavAnsatteForDeltakere(listOf(deltaker))
+
+            ansatte.getOrThrow(navAnsatt.id) shouldBe navAnsatt
+            ansatte.getOrThrow(opprettetAv.id) shouldBe opprettetAv
+            ansatte.getOrThrow(sistEndretAv.id) shouldBe sistEndretAv
+            coVerify(exactly = 0) { mockPersonServiceClient.hentNavAnsatt(any<UUID>()) }
         }
     }
 }

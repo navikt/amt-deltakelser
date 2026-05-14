@@ -92,7 +92,26 @@ class NavBrukerRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    statement = "SELECT * FROM nav_bruker WHERE person_id = :person_id",
+                    statement =
+                        """
+                        SELECT 
+                            person_id, 
+                            personident, 
+                            fornavn, 
+                            mellomnavn, 
+                            etternavn, 
+                            nav_veileder_id, 
+                            nav_enhet_id, 
+                            telefonnummer, 
+                            epost, 
+                            er_skjermet, 
+                            adresse, 
+                            adressebeskyttelse, 
+                            oppfolgingsperioder, 
+                            innsatsgruppe 
+                        FROM nav_bruker 
+                        WHERE person_id = :person_id
+                        """.trimIndent(),
                     paramMap = mapOf("person_id" to personId),
                 ).map(::rowMapper).asSingle,
             ) ?: throw NoSuchElementException("Fant ikke bruker $personId")
@@ -103,7 +122,26 @@ class NavBrukerRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    statement = "SELECT * FROM nav_bruker WHERE personident = :personident",
+                    statement =
+                        """
+                        SELECT 
+                            person_id, 
+                            personident, 
+                            fornavn, 
+                            mellomnavn, 
+                            etternavn, 
+                            nav_veileder_id, 
+                            nav_enhet_id, 
+                            telefonnummer, 
+                            epost, 
+                            er_skjermet, 
+                            adresse, 
+                            adressebeskyttelse, 
+                            oppfolgingsperioder, 
+                            innsatsgruppe 
+                        FROM nav_bruker 
+                        WHERE personident = :personident
+                        """.trimIndent(),
                     paramMap = mapOf("personident" to personident),
                 ).map(::rowMapper).asSingle,
             ) ?: throw NoSuchElementException("Fant ikke bruker med personident")

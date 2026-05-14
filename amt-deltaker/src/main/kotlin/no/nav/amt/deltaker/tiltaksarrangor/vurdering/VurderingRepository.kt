@@ -11,7 +11,17 @@ open class VurderingRepository {
     fun getForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM vurdering WHERE deltaker_id = :deltakerId",
+                """
+                SELECT 
+                    id, 
+                    deltaker_id, 
+                    opprettet_av_arrangor_ansatt_id, 
+                    vurderingstype, 
+                    begrunnelse, 
+                    gyldig_fra 
+                FROM vurdering 
+                WHERE deltaker_id = :deltakerId
+                """.trimIndent(),
                 mapOf("deltakerId" to deltakerId),
             ).map(::rowMapper).asList,
         )

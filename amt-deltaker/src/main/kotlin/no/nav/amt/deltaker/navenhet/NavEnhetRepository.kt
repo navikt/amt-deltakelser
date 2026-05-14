@@ -48,7 +48,14 @@ class NavEnhetRepository {
     fun get(enhetsnummer: String): NavEnhet? = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
+                """
+                SELECT 
+                    id, 
+                    nav_enhet_nummer, 
+                    navn 
+                FROM nav_enhet 
+                WHERE nav_enhet_nummer = :nav_enhet_nummer
+                """.trimIndent(),
                 mapOf("nav_enhet_nummer" to enhetsnummer),
             ).map(::rowMapper).asSingle,
         )
@@ -59,7 +66,14 @@ class NavEnhetRepository {
     fun get(id: UUID): NavEnhet? = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM nav_enhet WHERE id = :id",
+                """
+                SELECT 
+                    id, 
+                    nav_enhet_nummer, 
+                    navn 
+                FROM nav_enhet 
+                WHERE id = :id
+                """.trimIndent(),
                 mapOf("id" to id),
             ).map(::rowMapper).asSingle,
         )
@@ -71,7 +85,14 @@ class NavEnhetRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    "SELECT * FROM nav_enhet WHERE id = ANY(:ider)",
+                    """
+                    SELECT 
+                        id, 
+                        nav_enhet_nummer, 
+                        navn 
+                    FROM nav_enhet 
+                    WHERE id = ANY(:ider)
+                    """.trimIndent(),
                     mapOf("ider" to ider.toTypedArray()),
                 ).map(::rowMapper).asList,
             )
