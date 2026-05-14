@@ -528,5 +528,180 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 nesteDeltakelsesmengde shouldBe null
             }
         }
+
+        @Test
+        fun `ImportertFraArena - brukes som basis-deltakelsesmengde`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            val startdato = LocalDate.now().minusMonths(1)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = startdato,
+                sluttdato = startdato.plusMonths(3),
+                deltakelsesprosent = 75F,
+                dagerPerUke = 3F,
+            )
+            val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+                TestData.lagImportertFraArena(
+                    deltakerId = deltaker.id,
+                    importertDato = startdato.atStartOfDay(),
+                    deltakerVedImport = TestData.lagDeltakerVedImport(
+                        startdato = startdato,
+                        sluttdato = startdato.plusMonths(3),
+                        deltakelsesprosent = 75F,
+                        dagerPerUke = 3F,
+                    ),
+                ),
+            )
+
+            setupMocks(navAnsatt, navEnhet, listOf(importertFraArena))
+
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                nesteDeltakelsesmengde shouldBe null
+                sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 75F,
+                    dagerPerUke = 3F,
+                    gyldigFra = startdato,
+                )
+            }
+        }
+
+        @Test
+        fun `to fremtidige endringer - nesteGjeldende er naermeste, sisteDeltakelsesmengde er sist i tid`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            val startdato = LocalDate.now().minusMonths(1)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = startdato,
+                sluttdato = startdato.plusMonths(6),
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = startdato.atStartOfDay(),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
+            val naermesteFremtidigGyldigFra = LocalDate.now().plusDays(7)
+            val naermesteFremtidig = endreDeltakelsesmengde(
+                deltakerId = deltaker.id,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                deltakelsesprosent = 75F,
+                dagerPerUke = 4F,
+                gyldigFra = naermesteFremtidigGyldigFra,
+                endret = LocalDateTime.now().minusDays(2),
+            )
+            val fjernesteFremtidigGyldigFra = LocalDate.now().plusMonths(2)
+            val fjernesteFremtidig = endreDeltakelsesmengde(
+                deltakerId = deltaker.id,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                deltakelsesprosent = 50F,
+                dagerPerUke = 2F,
+                gyldigFra = fjernesteFremtidigGyldigFra,
+                endret = LocalDateTime.now().minusDays(1),
+            )
+
+            setupMocks(
+                navAnsatt,
+                navEnhet,
+                listOf(DeltakerHistorikk.Vedtak(vedtak), naermesteFremtidig, fjernesteFremtidig),
+            )
+
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                nesteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 75F,
+                    dagerPerUke = 4F,
+                    gyldigFra = naermesteFremtidigGyldigFra,
+                )
+                sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 2F,
+                    gyldigFra = fjernesteFremtidigGyldigFra,
+                )
+            }
+        }
+
+        @Test
+        fun `ImportertFraArena, Vedtak og Endring i samme historikk - alle bidrar til deltakelsesmengder`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            val arenaStartdato = LocalDate.now().minusMonths(6)
+            val vedtakFattetDato = LocalDate.now().minusMonths(2)
+            val endringGyldigFra = LocalDate.now().plusDays(14)
+
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = arenaStartdato,
+                sluttdato = arenaStartdato.plusYears(1),
+                deltakelsesprosent = 50F,
+                dagerPerUke = 2F,
+            )
+
+            // 1. Først importert fra Arena med 100%/5 dager
+            val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+                TestData.lagImportertFraArena(
+                    deltakerId = deltaker.id,
+                    importertDato = arenaStartdato.atStartOfDay(),
+                    deltakerVedImport = TestData.lagDeltakerVedImport(
+                        startdato = arenaStartdato,
+                        sluttdato = arenaStartdato.plusYears(1),
+                        deltakelsesprosent = 100F,
+                        dagerPerUke = 5F,
+                    ),
+                ),
+            )
+
+            // 2. Senere fattet Vedtak fra Nav med 80%/4 dager
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker.copy(deltakelsesprosent = 80F, dagerPerUke = 4F),
+                fattet = vedtakFattetDato.atStartOfDay(),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
+
+            // 3. Fremtidig Endring til 50%/2 dager
+            val fremtidigEndring = endreDeltakelsesmengde(
+                deltakerId = deltaker.id,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                deltakelsesprosent = 50F,
+                dagerPerUke = 2F,
+                gyldigFra = endringGyldigFra,
+                endret = LocalDateTime.now(),
+            )
+
+            setupMocks(
+                navAnsatt,
+                navEnhet,
+                listOf(importertFraArena, DeltakerHistorikk.Vedtak(vedtak), fremtidigEndring),
+            )
+
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+
+            // nesteDeltakelsesmengde = den fremtidige endringen (50%/2 dager fra +14 dager)
+            // sisteDeltakelsesmengde = siste i tid = samme fremtidige endring
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                nesteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 2F,
+                    gyldigFra = endringGyldigFra,
+                )
+                sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 2F,
+                    gyldigFra = endringGyldigFra,
+                )
+            }
+            // ImportertFraArena er også speilet på top-level felt
+            response.importertFraArena shouldBe importertFraArena.importertFraArena
+        }
     }
 }

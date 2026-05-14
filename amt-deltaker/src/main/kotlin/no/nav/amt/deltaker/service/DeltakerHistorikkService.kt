@@ -80,15 +80,15 @@ class DeltakerHistorikkService(
                 .getForDeltaker(deltakerId)
                 ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
         },
+    )
+
+    private val utvidetHistorikkProviders = listOf<(UUID) -> List<DeltakerHistorikk>?>(
         { deltakerId ->
             innsokPaaFellesOppstartRepository
                 .getForDeltaker(deltakerId)
                 .getOrNull()
                 ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
         },
-    )
-
-    private val utvidetHistorikkProviders = listOf<(UUID) -> List<DeltakerHistorikk>?>(
         { deltakerId ->
             forslagRepository
                 .getForDeltaker(
