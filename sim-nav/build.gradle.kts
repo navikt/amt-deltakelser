@@ -18,6 +18,7 @@ repositories {
 }
 
 dependencies {
+    implementation("no.nav.poao-tilgang:poao-tilgang-test-wiremock:4.2026.05.11_07.01-54ab6eae4dde")
     implementation("no.nav.poao-tilgang:poao-tilgang-test-core:4.2026.05.11_07.01-54ab6eae4dde")
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
