@@ -56,10 +56,7 @@ class DigitalBrukerService(
             DigitalBrukerCacheRepository.upsertBatch(hentetFraKlient)
         }
 
-        val ferskeMap = cached.mapValues { (_, entry) -> entry.erDigital }
-        val hentetMap = hentetFraKlient.toMap()
-
-        return ferskeMap + hentetMap
+        return cached + hentetFraKlient.toMap()
     }
 
     /**

@@ -8,7 +8,7 @@ object DigitalBrukerCacheRepository {
      * Henter cache-entries for et sett med personidenter.
      * Returnerer kun entries som er yngre enn 24 timer og finnes i databasen — manglende personidenter er ikke med i resultatet.
      */
-    fun hentForPersonidenter(personidenter: Set<String>): Map<String, DigitalBrukerCacheEntry> {
+    fun hentForPersonidenter(personidenter: Set<String>): Map<String, Boolean> {
         if (personidenter.isEmpty()) return emptyMap()
 
         val sql =
@@ -26,14 +26,10 @@ object DigitalBrukerCacheRepository {
             .query { session ->
                 session.run(
                     queryOf(sql, mapOf("personidenter" to personidenter.toTypedArray()))
-                        .map { row ->
-                            DigitalBrukerCacheEntry(
-                                personident = row.string("personident"),
-                                erDigital = row.boolean("er_digital"),
-                            )
-                        }.asList,
+                        .map { row -> row.string("personident") to row.boolean("er_digital") }
+                        .asList,
                 )
-            }.associateBy { it.personident }
+            }.toMap()
     }
 
     /**

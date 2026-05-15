@@ -40,8 +40,8 @@ class DigitalBrukerCacheRepositoryTest {
         )
 
         resultat shouldContainExactly mapOf(
-            "11111111111" to DigitalBrukerCacheEntry("11111111111", true),
-            "22222222222" to DigitalBrukerCacheEntry("22222222222", false),
+            "11111111111" to true,
+            "22222222222" to false,
         )
     }
 
@@ -56,9 +56,7 @@ class DigitalBrukerCacheRepositoryTest {
             setOf("11111111111", "22222222222"),
         )
 
-        resultat shouldContainExactly mapOf(
-            "22222222222" to DigitalBrukerCacheEntry("22222222222", false),
-        )
+        resultat shouldContainExactly mapOf("22222222222" to false)
     }
 
     @Test
@@ -68,9 +66,7 @@ class DigitalBrukerCacheRepositoryTest {
 
         val resultat = DigitalBrukerCacheRepository.hentForPersonidenter(setOf("11111111111"))
 
-        resultat shouldContainExactly mapOf(
-            "11111111111" to DigitalBrukerCacheEntry("11111111111", true),
-        )
+        resultat shouldContainExactly mapOf("11111111111" to true)
     }
 
     @Test
@@ -94,8 +90,8 @@ class DigitalBrukerCacheRepositoryTest {
         )
 
         resultat shouldContainExactly mapOf(
-            "11111111111" to DigitalBrukerCacheEntry("11111111111", true),
-            "22222222222" to DigitalBrukerCacheEntry("22222222222", false),
+            "11111111111" to true,
+            "22222222222" to false,
         )
     }
 
@@ -111,9 +107,7 @@ class DigitalBrukerCacheRepositoryTest {
         DigitalBrukerCacheRepository.upsertBatch(listOf("11111111111" to true))
 
         val resultat = DigitalBrukerCacheRepository.hentForPersonidenter(setOf("11111111111"))
-        resultat shouldContainExactly mapOf(
-            "11111111111" to DigitalBrukerCacheEntry("11111111111", true),
-        )
+        resultat shouldContainExactly mapOf("11111111111" to true)
     }
 
     private fun gjorEntryUtdatert(

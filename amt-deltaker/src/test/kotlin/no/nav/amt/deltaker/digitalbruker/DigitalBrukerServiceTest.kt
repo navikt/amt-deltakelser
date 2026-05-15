@@ -47,8 +47,8 @@ class DigitalBrukerServiceTest {
         // Arrange
         val personidenter = setOf("11111111111", "22222222222")
         every { DigitalBrukerCacheRepository.hentForPersonidenter(personidenter) } returns mapOf(
-            "11111111111" to DigitalBrukerCacheEntry("11111111111", true),
-            "22222222222" to DigitalBrukerCacheEntry("22222222222", false),
+            "11111111111" to true,
+            "22222222222" to false,
         )
 
         // Act
@@ -93,7 +93,7 @@ class DigitalBrukerServiceTest {
         // Arrange
         val personidenter = setOf("11111111111", "22222222222", "33333333333")
         every { DigitalBrukerCacheRepository.hentForPersonidenter(personidenter) } returns mapOf(
-            "11111111111" to DigitalBrukerCacheEntry("11111111111", true),
+            "11111111111" to true,
         )
         coEvery { amtDistribusjonClient.digitalBruker("22222222222") } returns false
         coEvery { amtDistribusjonClient.digitalBruker("33333333333") } returns true
@@ -122,7 +122,7 @@ class DigitalBrukerServiceTest {
         // Arrange
         val personident = "11111111111"
         every { DigitalBrukerCacheRepository.hentForPersonidenter(setOf(personident)) } returns mapOf(
-            personident to DigitalBrukerCacheEntry(personident, true),
+            personident to true,
         )
 
         // Act
