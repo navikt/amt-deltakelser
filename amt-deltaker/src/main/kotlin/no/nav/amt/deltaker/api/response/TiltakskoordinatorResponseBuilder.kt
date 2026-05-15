@@ -5,7 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder.Companion.MAX_PARALLEL_DB_QUERIES
+import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -18,7 +18,6 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
-import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -43,10 +42,12 @@ import java.time.LocalDate
  *     gjennomføring) og gjenbrukes — sparer N-1 arrangør-DB-oppslag
  *   - Nav-ansatte og Nav-enheter hentes i ett bulk-oppslag på tvers av alle deltakere
  *     i stedet for ett oppslag per deltaker — sparer 2(N-1) DB-roundtrips
- *   - Alle 6 bulk-spørringer kjøres parallelt på `Dispatchers.IO` via `withContext` + `async`,
+ *   - De 6 bulk-DB-spørringene kjøres parallelt på `Dispatchers.IO` via `withContext` + `async`,
  *     begrenset av en **delt** [Semaphore] på prosessnivå slik at totalt antall samtidige
- *     DB-spørringer på tvers av alle requests aldri overstiger [MAX_PARALLEL_DB_QUERIES] av
- *     HikariCPs 10 connections — sikrer at andre endepunkter ikke sultes på connections
+ *     pakketinn DB-spørringer på tvers av alle requests aldri overstiger [MAX_PARALLEL_DB_QUERIES]
+ *     av HikariCPs 10 connections — sikrer at andre endepunkter ikke sultes på connections.
+ *     `digitalBrukerService` kjører i parallell med de andre, men ikke under semaforen
+ *     (se inline-kommentar).
  *
  * Felter som utelates (ikke brukt i tiltakskoordinator-frontenden):
  *   - `deltakelsesmengder` — alltid null
@@ -54,7 +55,8 @@ import java.time.LocalDate
  *   - `importertFraArena` — alltid null
  *   - `gjennomforing.kodeverkValg` — alltid tom
  *
- * `navBruker.erDigital` slås opp via [AmtDistribusjonClient.digitalBruker] per deltaker
+ * `navBruker.erDigital` hentes via [DigitalBrukerService] som bruker en DB-backet cache med
+ * 24-timers TTL — kun utdaterte/manglende entries hentes fra `amt-distribusjon`.
  *
  * Felles mapping-logikk er trukket ut i [SharedResponseMappers].
  */
@@ -66,7 +68,7 @@ class TiltakskoordinatorResponseBuilder(
     private val forslagRepository: ForslagRepository,
     private val vurderingRepository: VurderingRepository,
     private val deltakerLaaseService: DeltakerLaaseService,
-    private val amtDistribusjonClient: AmtDistribusjonClient,
+    private val digitalBrukerService: DigitalBrukerService,
 ) {
     suspend fun buildResponse(deltakere: List<Deltaker>): DeltakereResponse {
         if (deltakere.isEmpty()) return DeltakereResponse(emptyList())
@@ -80,22 +82,25 @@ class TiltakskoordinatorResponseBuilder(
         )
 
         val deltakerIder = deltakere.map { it.id }.toSet()
+        val personidenter = deltakere.map { it.navBruker.personident }.toSet()
 
         // kjør uavhengige DB-spørringer parallelt på IO-dispatcher, men begrens samtidighet
         // via en delt semaphore (se [DB_SEMAPHORE]) slik at totalt antall samtidige DB-spørringer
-        // på tvers av alle requests aldri overstiger [MAX_PARALLEL_DB_QUERIES].
+        // som er pakket inn av semaforen på tvers av alle requests aldri overstiger
+        // [MAX_PARALLEL_DB_QUERIES]. NB: DB-operasjonene inni `digitalBrukerService` (1 SELECT +
+        // ev. 1 UPSERT) kjører bevisst utenfor semaforen — se kommentar lenger ned.
         return withContext(Dispatchers.IO) {
-            val navAnsatteDeferred = async { DB_SEMAPHORE.withPermit { navAnsattService.hentNavAnsatteForDeltakere(deltakere) } }
-            val navEnheterDeferred = async { DB_SEMAPHORE.withPermit { navEnhetService.hentNavEnheterForDeltakere(deltakere) } }
-            val laaseStatusDeferred = async {
-                DB_SEMAPHORE.withPermit { deltakerLaaseService.erLaastForEndringerForDeltakere(deltakere) }
-            }
-            val soktInnDatoerDeferred = async {
-                DB_SEMAPHORE.withPermit { deltakerHistorikkService.getSoktInnDatoer(deltakerIder) }
-            }
-            val forslagDeferred = async { DB_SEMAPHORE.withPermit { forslagRepository.getVenterPaSvarForDeltakere(deltakerIder) } }
-            val vurderingDeferred = async {
-                DB_SEMAPHORE.withPermit { vurderingRepository.getSisteVurderingForDeltakere(deltakerIder) }
+            val navAnsatteDeferred = async { dbQuery { navAnsattService.hentNavAnsatteForDeltakere(deltakere) } }
+            val navEnheterDeferred = async { dbQuery { navEnhetService.hentNavEnheterForDeltakere(deltakere) } }
+            val laaseStatusDeferred = async { dbQuery { deltakerLaaseService.erLaastForEndringerForDeltakere(deltakere) } }
+            val soktInnDatoerDeferred = async { dbQuery { deltakerHistorikkService.getSoktInnDatoer(deltakerIder) } }
+            val forslagDeferred = async { dbQuery { forslagRepository.getVenterPaSvarForDeltakere(deltakerIder) } }
+            val vurderingDeferred = async { dbQuery { vurderingRepository.getSisteVurderingForDeltakere(deltakerIder) } }
+            // `hentErDigitalForPersonidenter` gjør 1 SELECT + N HTTP-kall mot amt-distribusjon + 1 UPSERT.
+            // Vi holder ikke DB_SEMAPHORE her — det ville blokkert poolen mens vi venter på HTTP.
+            // De to DB-operasjonene er små nok til at de kan kjøre uten reservasjon.
+            val erDigitalDeferred = async {
+                digitalBrukerService.hentErDigitalForPersonidenter(personidenter)
             }
 
             val navAnsatte = navAnsatteDeferred.await()
@@ -104,6 +109,7 @@ class TiltakskoordinatorResponseBuilder(
             val soktInnDatoer = soktInnDatoerDeferred.await()
             val forslagPerDeltaker = forslagDeferred.await()
             val sisteVurderingPerDeltaker = vurderingDeferred.await()
+            val erDigitalPerPersonident = erDigitalDeferred.await()
 
             DeltakereResponse(
                 deltakere.map {
@@ -113,8 +119,7 @@ class TiltakskoordinatorResponseBuilder(
                         navAnsatte = navAnsatte,
                         navEnheter = navEnheter,
                         erLaastForEndringer = laaseStatusPerDeltaker[it.id] ?: false,
-                        // Caffeine-cachen inne i AmtDistribusjonClient dedupliserer gjentatte oppslag
-                        erDigital = amtDistribusjonClient.digitalBruker(it.navBruker.personident),
+                        erDigital = erDigitalPerPersonident[it.navBruker.personident] ?: false,
                         soktInnDato = soktInnDatoer[it.id],
                         endringsforslagFraArrangor = forslagPerDeltaker[it.id].orEmpty(),
                         sisteVurdering = sisteVurderingPerDeltaker[it.id],
@@ -166,10 +171,12 @@ class TiltakskoordinatorResponseBuilder(
 
     companion object {
         /**
-         * Maks antall parallelle DB-spørringer **på tvers av alle samtidige requests** i prosessen.
-         * HikariCP er konfigurert med 10 connections totalt; ved å reservere 6 til denne builderen
-         * sikrer vi at minst 4 connections alltid er ledige til andre endepunkter, uavhengig av
-         * hvor mange tiltakskoordinator-kall som kjører samtidig.
+         * Maks antall parallelle DB-spørringer **pakket inn av [DB_SEMAPHORE]** på tvers av alle
+         * samtidige requests i prosessen. HikariCP er konfigurert med 10 connections totalt;
+         * ved å reservere 6 til de tunge bulk-spørringene i denne builderen sikrer vi at minst
+         * 4 connections er ledige til andre endepunkter. NB: dette er ikke en hard øvre grense
+         * for samtidig DB-bruk — små DB-operasjoner som ligger utenfor semaforen
+         * (f.eks. cache-oppslag i `DigitalBrukerService`) er ikke talt med.
          */
         private const val MAX_PARALLEL_DB_QUERIES = 6
 
@@ -179,5 +186,8 @@ class TiltakskoordinatorResponseBuilder(
          * en per-request semaphore beskytter ikke poolen mot mange samtidige requests.
          */
         private val DB_SEMAPHORE = Semaphore(permits = MAX_PARALLEL_DB_QUERIES)
+
+        /** Kjør en DB-spørring under semafor-permit for å begrense samtidig poolbruk. */
+        private suspend fun <T> dbQuery(block: suspend () -> T): T = DB_SEMAPHORE.withPermit { block() }
     }
 }
