@@ -4,14 +4,13 @@ import no.nav.amt.deltaker.bff.utils.FERIETILLEGG
 import no.nav.amt.deltaker.bff.utils.months
 import no.nav.amt.deltaker.bff.utils.weeks
 import no.nav.amt.deltaker.bff.utils.years
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.Duration
 import java.time.LocalDate
@@ -32,15 +31,14 @@ data class DeltakerModel(
     val status: DeltakerStatus,
     val sistEndret: LocalDateTime,
     val erManueltDeltMedArrangor: Boolean,
-    val historikk: List<DeltakerHistorikk>,
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
     val prisinformasjon: String?,
     val sisteVurdering: VurderingResponse?,
+    val deltakelsesmengder: DeltakelsesmengderResponse?,
+    val soktInnDato: LocalDate?,
+    val importertFraArena: ImportertFraArena?,
 ) {
-    val deltakelsesmengder: Deltakelsesmengder
-        get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()
-
     val adresseDelesMedArrangor = this.navBruker.adressebeskyttelse == null &&
         this.gjennomforing.tiltak.adresseKanDelesMedArrangor
 

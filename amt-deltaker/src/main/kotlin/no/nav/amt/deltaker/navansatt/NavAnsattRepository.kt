@@ -56,7 +56,17 @@ class NavAnsattRepository {
     fun get(id: UUID): NavAnsatt? = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM nav_ansatt WHERE id = :id",
+                """
+                SELECT 
+                    id, 
+                    nav_ident, 
+                    navn, 
+                    telefonnummer, 
+                    epost, 
+                    nav_enhet_id 
+                FROM nav_ansatt 
+                WHERE id = :id
+                """.trimIndent(),
                 mapOf("id" to id),
             ).map(::rowMapper).asSingle,
         )
@@ -68,7 +78,17 @@ class NavAnsattRepository {
     fun get(navIdent: String): NavAnsatt? = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM nav_ansatt WHERE nav_ident = :nav_ident",
+                """
+                SELECT 
+                    id, 
+                    nav_ident, 
+                    navn, 
+                    telefonnummer, 
+                    epost, 
+                    nav_enhet_id 
+                FROM nav_ansatt 
+                WHERE nav_ident = :nav_ident
+                """.trimIndent(),
                 mapOf("nav_ident" to navIdent),
             ).map(::rowMapper).asSingle,
         )
@@ -91,7 +111,17 @@ class NavAnsattRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    "SELECT * FROM nav_ansatt WHERE id = ANY(:ider)",
+                    """
+                    SELECT 
+                        id, 
+                        nav_ident, 
+                        navn, 
+                        telefonnummer, 
+                        epost, 
+                        nav_enhet_id 
+                    FROM nav_ansatt 
+                    WHERE id = ANY(:ider)
+                    """.trimIndent(),
                     mapOf("ider" to ider.toTypedArray()),
                 ).map(::rowMapper).asList,
             )
@@ -104,7 +134,17 @@ class NavAnsattRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    "SELECT * FROM nav_ansatt WHERE nav_ident = ANY(:ider)",
+                    """
+                    SELECT
+                        id, 
+                        nav_ident, 
+                        navn, 
+                        telefonnummer, 
+                        epost, 
+                        nav_enhet_id 
+                    FROM nav_ansatt 
+                    WHERE nav_ident = ANY(:ider)
+                    """.trimIndent(),
                     mapOf("ider" to veilederIdenter.toTypedArray()),
                 ).map(::rowMapper).asList,
             )

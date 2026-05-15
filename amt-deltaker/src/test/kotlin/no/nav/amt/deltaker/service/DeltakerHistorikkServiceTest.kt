@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
@@ -44,6 +45,7 @@ class DeltakerHistorikkServiceTest {
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
         vurderingRepository,
+        DeltakerRepository(),
     )
 
     companion object {
@@ -53,6 +55,7 @@ class DeltakerHistorikkServiceTest {
 
     @Test
     fun `getForDeltaker - ett vedtak flere endringer og forslag - returner liste riktig sortert`() {
+        // Arrange
         val navEnhet = TestData.lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
@@ -108,8 +111,10 @@ class DeltakerHistorikkServiceTest {
         forslagRepository.upsert(forslagVenter)
         vurderingRepository.upsert(nyVurdering)
 
+        // Act
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
 
+        // Assert
         historikk.size shouldBe 6
         DeltakerTestUtils.sammenlignHistorikk(
             historikk[0],
@@ -124,15 +129,18 @@ class DeltakerHistorikkServiceTest {
 
     @Test
     fun `getForDeltaker - ingen endringer - returner tom liste`() {
+        // Arrange
         val deltaker = no.nav.amt.deltaker.utils.data.TestData
             .lagDeltaker()
         TestRepository.insert(deltaker)
 
+        // Act & Assert
         deltakerHistorikkService.getForDeltaker(deltaker.id) shouldBe emptyList()
     }
 
     @Test
     fun `getInnsoktDato - ingen vedtak - returnerer null`() {
+        // Arrange
         val deltakerhistorikk =
             listOf<DeltakerHistorikk>(
                 DeltakerHistorikk.Endring(
@@ -141,11 +149,13 @@ class DeltakerHistorikkServiceTest {
                 ),
             )
 
+        // Act & Assert
         deltakerhistorikk.getInnsoktDato() shouldBe null
     }
 
     @Test
     fun `getInnsoktDato - to vedtak - returnerer tidligste opprettetdato`() {
+        // Arrange
         val deltakerhistorikk = listOf(
             DeltakerHistorikk.Endring(
                 no.nav.amt.deltaker.utils.data.TestData
@@ -163,11 +173,13 @@ class DeltakerHistorikkServiceTest {
             ),
         )
 
+        // Act & Assert
         deltakerhistorikk.getInnsoktDato() shouldBeCloseTo LocalDateTime.now().minusMonths(1)
     }
 
     @Test
     fun `getInnsoktDato - importert arenadeltaker - returnerer riktig dato`() {
+        // Arrange
         val innsoktDato = LocalDate.now().minusMonths(1)
         val deltakerhistorikk = listOf(
             DeltakerHistorikk.Endring(
@@ -185,11 +197,13 @@ class DeltakerHistorikkServiceTest {
             ),
         )
 
+        // Act & Assert
         deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
     }
 
     @Test
     fun `getInnsoktDato - har innsok - returnerer riktig dato`() {
+        // Arrange
         val innsoktDato = LocalDate.now().minusMonths(1)
         val deltakerhistorikk = listOf(
             DeltakerHistorikk.Endring(
@@ -210,6 +224,186 @@ class DeltakerHistorikkServiceTest {
             ),
         )
 
+        // Act & Assert
         deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
+    }
+
+    @Test
+    fun `getForDeltaker med inkluderFullHistorikk false inkluderer InnsokPaaFellesOppstart`() {
+        // Arrange
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData
+            .lagDeltaker()
+        val navAnsatt = TestData.lagNavAnsatt()
+        val navEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(deltaker)
+        TestRepository.insert(navAnsatt)
+        navEnhetRepository.upsert(navEnhet)
+
+        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            deltakerId = deltaker.id,
+            innsoktAv = navAnsatt.id,
+            innsoktAvEnhet = navEnhet.id,
+        )
+        InnsokPaaFellesOppstartRepository().insert(innsok)
+
+        // Act
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
+
+        // Assert
+        historikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().size shouldBe 1
+    }
+
+    @Test
+    fun `getForDeltaker med inkluderFullHistorikk false inkluderer EndringFraArrangor`() {
+        // Arrange
+        // EndringFraArrangor er en del av kjernehistorikken fordi `LeggTilOppstartsdato` brukes
+        // av `toDeltakelsesmengder.avgrensPeriodeTilStartdato` for å justere første gyldigFra.
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData
+            .lagDeltaker()
+        TestRepository.insert(deltaker)
+
+        val endringFraArrangor = no.nav.amt.deltaker.utils.data.TestData.lagEndringFraArrangor(
+            deltakerId = deltaker.id,
+        )
+        endringFraArrangorRepository.insert(endringFraArrangor)
+
+        // Act
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
+
+        // Assert
+        historikk.filterIsInstance<DeltakerHistorikk.EndringFraArrangor>().size shouldBe 1
+    }
+
+    @Test
+    fun `getInnsoktDato via kjernehistorikk - ingen data - returnerer null`() {
+        // Arrange
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData
+            .lagDeltaker()
+        TestRepository.insert(deltaker)
+
+        // Act
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
+
+        // Assert
+        historikk.getInnsoktDato() shouldBe null
+    }
+
+    @Test
+    fun `getInnsoktDato via kjernehistorikk - importert fra arena - returnerer innsoktDato`() {
+        // Arrange
+        val innsoktDato = LocalDate.now().minusMonths(2)
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData
+            .lagDeltaker()
+        TestRepository.insert(deltaker)
+
+        val importertFraArena = ImportertFraArena(
+            deltakerId = deltaker.id,
+            importertDato = LocalDateTime.now(),
+            deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato = innsoktDato),
+        )
+        ImportertFraArenaRepository().upsert(importertFraArena)
+
+        // Act
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
+
+        // Assert
+        historikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
+    }
+
+    @Test
+    fun `getInnsoktDato via kjernehistorikk - innsok paa felles oppstart - returnerer innsoktDato`() {
+        // Arrange
+        val innsoktDato = LocalDateTime.now().minusMonths(1)
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData
+            .lagDeltaker()
+        val navAnsatt = TestData.lagNavAnsatt()
+        val navEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(deltaker)
+        TestRepository.insert(navAnsatt)
+        navEnhetRepository.upsert(navEnhet)
+
+        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            deltakerId = deltaker.id,
+            innsokt = innsoktDato,
+            innsoktAv = navAnsatt.id,
+            innsoktAvEnhet = navEnhet.id,
+        )
+        InnsokPaaFellesOppstartRepository().insert(innsok)
+
+        // Act
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
+
+        // Assert
+        historikk.getInnsoktDato() shouldBeCloseTo innsoktDato
+    }
+
+    @Test
+    fun `getInnsoktDato via kjernehistorikk - vedtak uten arena eller innsok - returnerer vedtak opprettet dato`() {
+        // Arrange
+        val navEnhet = TestData.lagNavEnhet()
+        navEnhetRepository.upsert(navEnhet)
+        val navAnsatt = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
+
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData
+            .lagDeltaker()
+        val vedtakOpprettet = LocalDateTime.now().minusWeeks(3)
+        val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            opprettet = vedtakOpprettet,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+        )
+        TestRepository.insert(deltaker)
+        TestRepository.insert(vedtak)
+
+        // Act
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
+
+        // Assert
+        historikk.getInnsoktDato() shouldBeCloseTo vedtakOpprettet
+    }
+
+    @Test
+    fun `getInnsoktDato via kjernehistorikk - importert fra arena prioriteres over innsok og vedtak`() {
+        // Arrange
+        val innsoktDato = LocalDate.now().minusMonths(3)
+        val navEnhet = TestData.lagNavEnhet()
+        navEnhetRepository.upsert(navEnhet)
+        val navAnsatt = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
+
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData
+            .lagDeltaker()
+        TestRepository.insert(deltaker)
+
+        val importertFraArena = ImportertFraArena(
+            deltakerId = deltaker.id,
+            importertDato = LocalDateTime.now(),
+            deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato = innsoktDato),
+        )
+        ImportertFraArenaRepository().upsert(importertFraArena)
+
+        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            deltakerId = deltaker.id,
+            innsokt = LocalDateTime.now().minusMonths(1),
+            innsoktAv = navAnsatt.id,
+            innsoktAvEnhet = navEnhet.id,
+        )
+        InnsokPaaFellesOppstartRepository().insert(innsok)
+
+        val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            opprettet = LocalDateTime.now().minusWeeks(1),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+        )
+        TestRepository.insert(vedtak)
+
+        // Act
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
+
+        // Assert
+        historikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
     }
 }

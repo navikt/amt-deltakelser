@@ -20,7 +20,8 @@ import no.nav.amt.deltaker.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
-import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
+import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
@@ -131,7 +132,10 @@ fun Application.module() {
         }
     }
 
-    val leaderElection = LeaderElection(httpClient, environment.electorPath)
+    val leaderElection = LeaderElection(
+        httpClient = httpClient,
+        electorPath = environment.electorPath,
+    )
 
     val azureAdTokenClient = AzureAdTokenClient(
         azureAdTokenUrl = environment.azureAdTokenUrl,
@@ -178,7 +182,12 @@ fun Application.module() {
         isLeader = leaderElection::isLeader,
         applicationIsReady = { attributes.getOrNull(isReadyKey) == true },
     )
-    val outboxProcessor = OutboxProcessor(outboxService, jobManager, kafkaProducer)
+
+    val outboxProcessor = OutboxProcessor(
+        outboxService = outboxService,
+        jobManager = jobManager,
+        producer = kafkaProducer,
+    )
     outboxProcessor.start()
     // END outbox config
 
@@ -205,30 +214,44 @@ fun Application.module() {
 
     val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
 
-    val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
-    val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService)
+    val navEnhetService = NavEnhetService(
+        repository = navEnhetRepository,
+        amtPersonServiceClient = amtPersonServiceClient,
+    )
+
+    val navAnsattService = NavAnsattService(
+        repository = navAnsattRepository,
+        amtPersonServiceClient = amtPersonServiceClient,
+        navEnhetService = navEnhetService,
+    )
 
     val navBrukerService = NavBrukerService(
-        navBrukerRepository,
-        amtPersonServiceClient,
-        navEnhetService,
-        navAnsattService,
+        repository = navBrukerRepository,
+        personServiceClient = amtPersonServiceClient,
+        enhetService = navEnhetService,
+        ansattService = navAnsattService,
     )
+
     val vurderingService = VurderingService(vurderingRepository)
-    val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
+    val arrangorService = ArrangorService(
+        arrangorRepository = arrangorRepository,
+        amtArrangorClient = amtArrangorClient,
+    )
+
     val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
     val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
     val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
     val deltakerHistorikkService = DeltakerHistorikkService(
-        deltakerEndringRepository,
-        vedtakRepository,
-        forslagRepository,
-        endringFraArrangorRepository,
-        importertFraArenaRepository,
-        innsokPaaFellesOppstartRepository,
-        endringFraTiltakskoordinatorRepository,
-        vurderingRepository,
+        deltakerEndringRepository = deltakerEndringRepository,
+        vedtakRepository = vedtakRepository,
+        forslagRepository = forslagRepository,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+        innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+        vurderingRepository = vurderingRepository,
+        deltakerRepository = deltakerRepository,
     )
 
     val unleash = DefaultUnleash(
@@ -243,6 +266,7 @@ fun Application.module() {
     val unleashToggle = CommonUnleashToggle(unleash)
 
     val hendelseProducer = DistribuerEndringProducer(outboxService)
+
     val distribuerEndringService = DistribuerEndringService(
         hendelseProducer = hendelseProducer,
         navAnsattRepository = navAnsattRepository,
@@ -255,8 +279,12 @@ fun Application.module() {
         unleashToggle = unleashToggle,
     )
 
-    val deltakerKafkaPayloadBuilder =
-        DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
+    val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
+        vurderingRepository = vurderingRepository,
+    )
 
     val deltakerProducer = DeltakerProducer(
         outboxService = outboxService,
@@ -276,30 +304,36 @@ fun Application.module() {
         outboxService = outboxService,
     )
 
-    val deltakerProducerService =
-        DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, deltakerEksternV1Producer, unleashToggle)
+    val deltakerProducerService = DeltakerProducerService(
+        deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
+        deltakerProducer = deltakerProducer,
+        deltakerV1Producer = deltakerV1Producer,
+        deltakerEksternV1Producer = deltakerEksternV1Producer,
+        unleashToggle = unleashToggle,
+    )
 
     val vedtakService = VedtakService(vedtakRepository)
 
-    val forslagService =
-        ForslagService(
-            forslagRepository = forslagRepository,
-            arrangorMeldingProducer = ArrangorMeldingProducer(outboxService),
-            deltakerRepository = deltakerRepository,
-            deltakerProducerService = deltakerProducerService,
-        )
+    val forslagService = ForslagService(
+        forslagRepository = forslagRepository,
+        arrangorMeldingProducer = ArrangorMeldingProducer(outboxService),
+        deltakerRepository = deltakerRepository,
+        deltakerProducerService = deltakerProducerService,
+    )
 
-    val deltakerEndringService =
-        DeltakerEndringService(
-            deltakerEndringRepository,
-            navAnsattRepository,
-            navEnhetRepository,
-            distribuerEndringService,
-            forslagService,
-            deltakerHistorikkService,
-        )
+    val deltakerEndringService = DeltakerEndringService(
+        deltakerEndringRepository = deltakerEndringRepository,
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        distribuerEndringService = distribuerEndringService,
+        forslagService = forslagService,
+        deltakerHistorikkService = deltakerHistorikkService,
+    )
 
-    val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
+    val deltakelserResponseMapper = DeltakelserResponseMapper(
+        deltakerHistorikkService = deltakerHistorikkService,
+        arrangorService = arrangorService,
+    )
 
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -318,11 +352,11 @@ fun Application.module() {
     )
 
     val endringFraArrangorService = EndringFraArrangorService(
-        deltakerRepository,
-        deltakerService,
-        endringFraArrangorRepository,
-        distribuerEndringService,
-        deltakerHistorikkService,
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        distribuerEndringService = distribuerEndringService,
+        deltakerHistorikkService = deltakerHistorikkService,
     )
 
     val opprettKladdRequestValidator = OpprettKladdRequestValidator(
@@ -367,8 +401,8 @@ fun Application.module() {
 
     val deltakerLaaseService = DeltakerLaaseService(
         deltakerRepository = deltakerRepository,
-        importertFraArenaRepository = importertFraArenaRepository,
     )
+
     val tiltaksansvarligService = TiltaksansvarligService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
@@ -380,7 +414,7 @@ fun Application.module() {
         vedtakService = vedtakService,
     )
 
-    val responseBuilder = ResponseBuilder(
+    val deltakerResponseBuilder = DeltakerResponseBuilder(
         arrangorService = arrangorService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
@@ -389,6 +423,17 @@ fun Application.module() {
         forslagRepository = forslagRepository,
         deltakerLaaseService = deltakerLaaseService,
         vurderingRepository = vurderingRepository,
+    )
+
+    val tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(
+        arrangorService = arrangorService,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        deltakerHistorikkService = deltakerHistorikkService,
+        forslagRepository = forslagRepository,
+        vurderingRepository = vurderingRepository,
+        deltakerLaaseService = deltakerLaaseService,
+        amtDistribusjonClient = amtDistribusjonClient,
     )
 
     val consumers = listOf(
@@ -450,7 +495,8 @@ fun Application.module() {
         navEnhetService = navEnhetService,
         navAnsattService = navAnsattService,
         vedtakRepository = vedtakRepository,
-        responseBuilder = responseBuilder,
+        deltakerResponseBuilder = deltakerResponseBuilder,
+        tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
         kladdService = kladdService,
         enkeltplassService = enkeltplassService,
         arrangorService = arrangorService,
@@ -459,16 +505,20 @@ fun Application.module() {
     )
     configureMonitoring()
 
-    val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerService)
+    val statusUpdateJob = StatusUpdateJob(
+        leaderElection = leaderElection,
+        attributes = attributes,
+        deltakerService = deltakerService,
+    )
     statusUpdateJob.startJob()
 
     val deltakelsesmengdeUpdateJob = DeltakelsesmengdeUpdateJob(
-        leaderElection,
-        attributes,
-        deltakerEndringRepository,
-        deltakerEndringService,
-        deltakerRepository,
-        deltakerService,
+        leaderElection = leaderElection,
+        attributes = attributes,
+        deltakerEndringRepository = deltakerEndringRepository,
+        deltakerEndringService = deltakerEndringService,
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
     )
     deltakelsesmengdeUpdateJob.startJob()
 

@@ -9,6 +9,8 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordin
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
@@ -349,7 +351,6 @@ object TestData {
         deltakelsesinnhold: Deltakelsesinnhold? = lagDeltakelsesinnhold(),
         vedtaksinformasjon: VedtaksinformasjonResponse? = lagVedtaksinformasjonResponse(),
         endringsforslagFraArrangor: List<Forslag> = listOf(lagForslag()),
-        historikk: List<DeltakerHistorikk> = lagDeltakerHistorikk(),
         prisinformasjon: String? = null,
     ) = DeltakerResponse(
         id = id,
@@ -367,11 +368,24 @@ object TestData {
         kilde = Kilde.KOMET,
         sistEndret = sistEndret,
         opprettet = LocalDateTime.now(),
-        historikk = historikk,
         erLaastForEndringer = false,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
         prisinformasjon = prisinformasjon,
         sisteVurdering = null,
+        soktInnDato = LocalDate.now().minusMonths(2),
+        deltakelsesmengder = DeltakelsesmengderResponse(
+            nesteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+                gyldigFra = LocalDate.now().minusMonths(3),
+            ),
+            sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = LocalDate.now().minusMonths(1),
+            ),
+        ),
+        importertFraArena = null,
     )
 
     fun lagTiltakskoordinatorDeltaker(

@@ -14,7 +14,8 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
-import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
+import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRequestValidation
@@ -191,6 +192,7 @@ abstract class IntegrationTestBase {
             innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             vurderingRepository = vurderingRepository,
+            deltakerRepository = deltakerRepository,
         )
     }
 
@@ -357,12 +359,11 @@ abstract class IntegrationTestBase {
     protected open val deltakerLaaseService: DeltakerLaaseService by lazy {
         DeltakerLaaseService(
             deltakerRepository = deltakerRepository,
-            importertFraArenaRepository = importertFraArenaRepository,
         )
     }
 
-    protected open val responseBuilder: ResponseBuilder by lazy {
-        ResponseBuilder(
+    protected open val deltakerResponseBuilder: DeltakerResponseBuilder by lazy {
+        DeltakerResponseBuilder(
             arrangorService = arrangorService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
@@ -371,6 +372,19 @@ abstract class IntegrationTestBase {
             forslagRepository = forslagRepository,
             deltakerLaaseService = deltakerLaaseService,
             vurderingRepository = vurderingRepository,
+        )
+    }
+
+    protected open val tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder by lazy {
+        TiltakskoordinatorResponseBuilder(
+            arrangorService = arrangorService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            deltakerHistorikkService = deltakerHistorikkService,
+            forslagRepository = forslagRepository,
+            vurderingRepository = vurderingRepository,
+            deltakerLaaseService = deltakerLaaseService,
+            amtDistribusjonClient = distribusjonClient,
         )
     }
 
@@ -420,7 +434,8 @@ abstract class IntegrationTestBase {
                     navEnhetService = navEnhetService,
                     vedtakRepository = vedtakRepository,
                     navAnsattService = navAnsattService,
-                    responseBuilder = responseBuilder,
+                    deltakerResponseBuilder = deltakerResponseBuilder,
+                    tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
                     deltakerlisteRepository = deltakerlisteRepository,
                     arrangorService = arrangorService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,

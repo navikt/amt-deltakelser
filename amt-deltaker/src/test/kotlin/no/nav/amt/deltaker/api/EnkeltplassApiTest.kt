@@ -187,11 +187,22 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             } returns Result.success(TestData.lagInnsok(deltakerInTest))
 
             every {
-                deltakerRepository.getFlereForPerson(
-                    personIdent = deltakerInTest.navBruker.personident,
-                    deltakerlisteId = deltakerInTest.deltakerliste.id,
+                deltakerRepository.getDeltakelserForLaaseSjekk(
+                    setOf(deltakerInTest.navBruker.personident),
+                    deltakerInTest.deltakerliste.id,
                 )
-            } returns listOf(deltakerInTest)
+            } returns mapOf(
+                deltakerInTest.navBruker.personident to listOf(
+                    no.nav.amt.deltaker.repository.DeltakelseLaaseInfo(
+                        id = deltakerInTest.id,
+                        personident = deltakerInTest.navBruker.personident,
+                        statusType = deltakerInTest.status.type,
+                        statusGyldigFra = deltakerInTest.status.gyldigFra,
+                        vedtakFattet = null,
+                        innsoektDatoFraArena = null,
+                    ),
+                ),
+            )
 
             coEvery { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
             coEvery { distribusjonClient.digitalBruker(any()) } returns true
@@ -201,6 +212,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             every { endringFraArrangorRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
             every { importertFraArenaRepository.getForDeltaker(deltakerInTest.id) } returns null
             every { endringFraTiltakskoordinatorRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+            every { deltakerRepository.getSoktInnDatoer(any()) } returns emptyMap()
 
             // Act
             val response = withTestApplicationContext { client ->

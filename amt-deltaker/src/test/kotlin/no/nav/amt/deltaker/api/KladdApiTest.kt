@@ -12,7 +12,7 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
 import io.mockk.mockk
-import no.nav.amt.deltaker.api.response.ResponseMapper
+import no.nav.amt.deltaker.api.response.SharedResponseMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
@@ -64,9 +64,7 @@ class KladdApiTest : IntegrationTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe objectMapper.writeValueAsString(
-                ResponseMapper.opprettKladdResponseFromDeltaker(
-                    deltaker,
-                ),
+                opprettKladdResponseFromDeltaker(deltaker),
             )
         }
     }

@@ -53,7 +53,19 @@ class InnsokPaaFellesOppstartRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    "SELECT * FROM innsok_paa_felles_oppstart WHERE id = :id",
+                    """
+                    SELECT 
+                        id, 
+                        deltaker_id, 
+                        innsokt, 
+                        innsokt_av, 
+                        innsokt_av_enhet, 
+                        utkast_godkjent_av_nav, 
+                        utkast_delt, 
+                        deltakelsesinnhold_ved_innsok 
+                    FROM innsok_paa_felles_oppstart 
+                    WHERE id = :id
+                    """.trimIndent(),
                     mapOf("id" to id),
                 ).map(::rowMapper).asSingle,
             ) ?: throw NoSuchElementException("Fant ikke innsok med id $id")
@@ -64,7 +76,19 @@ class InnsokPaaFellesOppstartRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    "SELECT * FROM innsok_paa_felles_oppstart WHERE deltaker_id = :deltaker_id",
+                    """
+                    SELECT 
+                        id, 
+                        deltaker_id, 
+                        innsokt, 
+                        innsokt_av, 
+                        innsokt_av_enhet, 
+                        utkast_godkjent_av_nav, 
+                        utkast_delt, 
+                        deltakelsesinnhold_ved_innsok 
+                    FROM innsok_paa_felles_oppstart 
+                    WHERE deltaker_id = :deltaker_id
+                    """.trimIndent(),
                     mapOf("deltaker_id" to deltakerId),
                 ).map(::rowMapper).asSingle,
             ) ?: throw NoSuchElementException("Fant ikke innsok for deltaker med id $deltakerId")

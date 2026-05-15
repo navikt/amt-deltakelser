@@ -48,6 +48,25 @@ class NavAnsattService(
             deltaker.vedtaksinformasjon?.sistEndretAv,
         ).plus(additionalIds)
 
+        return hentNavAnsatte(navAnsattIdSet)
+    }
+
+    /**
+     * Bulk-variant for store kall (f.eks. tiltakskoordinator-lista). Henter kun veilederne som
+     * trengs til å rendre `navBruker.navVeileder` for hver deltaker — vedtak-ansatte
+     * (`opprettetAv`/`sistEndretAv`) utelates fordi tiltakskoordinator-responsen alltid setter
+     * `vedtaksinformasjon = null`. Gjør ett DB-oppslag for hele settet av ID-er i stedet for ett
+     * per deltaker.
+     */
+    suspend fun hentNavAnsatteForDeltakere(deltakere: List<Deltaker>): GenericCache<NavAnsatt> {
+        val navAnsattIdSet = deltakere
+            .mapNotNull { it.navBruker.navVeilederId }
+            .toSet()
+
+        return hentNavAnsatte(navAnsattIdSet)
+    }
+
+    private suspend fun hentNavAnsatte(navAnsattIdSet: Set<UUID>): GenericCache<NavAnsatt> {
         // hent Nav-ansatte fra db
         val navAnsatteFraDb = repository.getManyById(navAnsattIdSet).associateBy { it.id }
 

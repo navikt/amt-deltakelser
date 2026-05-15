@@ -27,12 +27,14 @@ class ModelMapper {
                 status = status,
                 sistEndret = sistEndret,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-                historikk = historikk,
                 vedtaksinformasjon = vedtaksinformasjon?.let { toVedtaksinformasjon(it) },
                 erLaastForEndringer = erLaastForEndringer,
                 endringsforslagFraArrangor = endringsforslagFraArrangor,
                 prisinformasjon = prisinformasjon,
                 sisteVurdering = sisteVurdering,
+                deltakelsesmengder = deltakelsesmengder,
+                soktInnDato = soktInnDato,
+                importertFraArena = importertFraArena,
             )
         }
 

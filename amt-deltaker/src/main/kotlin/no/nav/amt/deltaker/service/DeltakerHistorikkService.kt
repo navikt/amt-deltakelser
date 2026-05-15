@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.service
 
 import no.nav.amt.deltaker.extensions.skalInkluderesIHistorikk
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
@@ -24,55 +25,22 @@ class DeltakerHistorikkService(
     private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val vurderingRepository: VurderingRepository,
+    private val deltakerRepository: DeltakerRepository,
 ) {
-    fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
-        val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
-        val vedtak = vedtakRepository
-            .getForDeltaker(id)
-            ?.let { listOf(DeltakerHistorikk.Vedtak(it)) }
-            ?: emptyList()
+    fun getForDeltaker(
+        id: UUID,
+        inkluderFullHistorikk: Boolean = true,
+    ): List<DeltakerHistorikk> {
+        val historikkProviders = if (inkluderFullHistorikk) {
+            kjernehistorikkProviders.plus(utvidetHistorikkProviders)
+        } else {
+            kjernehistorikkProviders
+        }
 
-        val forslag = forslagRepository
-            .getForDeltaker(id)
-            .filter { it.skalInkluderesIHistorikk() }
-            .map { DeltakerHistorikk.Forslag(it) }
-
-        val vurderinger = vurderingRepository
-            .getForDeltaker(id)
-            .map { DeltakerHistorikk.VurderingFraArrangor(it.toVurderingFraArrangorData()) }
-
-        val endringerFraArrangor = endringFraArrangorRepository
-            .getForDeltaker(id)
-            .map { DeltakerHistorikk.EndringFraArrangor(it) }
-
-        val importertFraArena = importertFraArenaRepository
-            .getForDeltaker(id)
-            ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
-            ?: emptyList()
-
-        val endringFraTiltakskoordinator = endringFraTiltakskoordinatorRepository
-            .getForDeltaker(id)
-            .map { DeltakerHistorikk.EndringFraTiltakskoordinator(it) }
-
-        val innsok = innsokPaaFellesOppstartRepository
-            .getForDeltaker(id)
-            .getOrNull()
-            ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
-            ?: emptyList()
-
-        val historikk = endringer
-            .asSequence()
-            .plus(vedtak)
-            .plus(importertFraArena)
-            .plus(innsok)
-            .plus(endringFraTiltakskoordinator)
-            .plus(forslag)
-            .plus(endringerFraArrangor)
-            .plus(vurderinger)
+        return historikkProviders
+            .mapNotNull { it(id) }
+            .flatten()
             .sortedByDescending { it.sorteringsDato }
-            .toList()
-
-        return historikk
     }
 
     fun getForsteVedtakFattet(deltakerId: UUID): LocalDate? {
@@ -84,4 +52,69 @@ class DeltakerHistorikkService(
 
         return forsteVedtak?.fattet?.toLocalDate()
     }
+
+    /**
+     * Utleder soktInnDato for én deltaker. Delegerer til [getSoktInnDatoer] som henter
+     * datoen i **ett** spisset SQL-oppslag (`COALESCE` på arena-import, innsøk på felles
+     * oppstart og første vedtak).
+     *
+     * Prioriterer: ImportertFraArena → InnsokPaaFellesOppstart → Vedtak.opprettet
+     */
+    fun getSoktInnDato(deltakerId: UUID): LocalDate? = getSoktInnDatoer(setOf(deltakerId))[deltakerId]
+
+    /**
+     * Bulk-variant av [getSoktInnDato]. Henter "søkt inn"-dato for alle [deltakerIder] i
+     * **ett** spisset SQL-oppslag som bruker `COALESCE` på arena-import, innsøk på felles
+     * oppstart og første vedtak. Erstatter tidligere implementasjon som gjorde opptil 3
+     * sekvensielle DB-oppslag per deltaker. Egnet for store kall som tiltakskoordinator-lista.
+     *
+     * @return Map fra deltaker-id til søkt-inn-dato (`null` for deltakere uten Arena-import,
+     * innsøk på felles oppstart eller vedtak).
+     */
+    fun getSoktInnDatoer(deltakerIder: Set<UUID>): Map<UUID, LocalDate?> = deltakerRepository.getSoktInnDatoer(deltakerIder)
+
+    private val kjernehistorikkProviders = listOf<(UUID) -> List<DeltakerHistorikk>?>(
+        { deltakerId -> deltakerEndringRepository.getForDeltaker(deltakerId).map { DeltakerHistorikk.Endring(it) } },
+        { deltakerId -> vedtakRepository.getForDeltaker(deltakerId)?.let { listOf(DeltakerHistorikk.Vedtak(it)) } },
+        { deltakerId ->
+            importertFraArenaRepository
+                .getForDeltaker(deltakerId)
+                ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
+        },
+        { deltakerId ->
+            innsokPaaFellesOppstartRepository
+                .getForDeltaker(deltakerId)
+                .getOrNull()
+                ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
+        },
+        // EndringFraArrangor er en del av kjernehistorikken fordi
+        // `LeggTilOppstartsdato` brukes av `toDeltakelsesmengder()` for å avgrense perioden.
+        // Uten den kan deltakere med arrangør-satt oppstartsdato få deltakelsesmengder
+        // med datoer før faktisk startdato.
+        { deltakerId ->
+            endringFraArrangorRepository
+                .getForDeltaker(deltakerId)
+                .map { DeltakerHistorikk.EndringFraArrangor(it) }
+        },
+    )
+
+    private val utvidetHistorikkProviders = listOf<(UUID) -> List<DeltakerHistorikk>?>(
+        { deltakerId ->
+            forslagRepository
+                .getForDeltaker(
+                    deltakerId,
+                ).filter { it.skalInkluderesIHistorikk() }
+                .map { DeltakerHistorikk.Forslag(it) }
+        },
+        { deltakerId ->
+            vurderingRepository
+                .getForDeltaker(deltakerId)
+                .map { DeltakerHistorikk.VurderingFraArrangor(it.toVurderingFraArrangorData()) }
+        },
+        { deltakerId ->
+            endringFraTiltakskoordinatorRepository
+                .getForDeltaker(deltakerId)
+                .map { DeltakerHistorikk.EndringFraTiltakskoordinator(it) }
+        },
+    )
 }

@@ -36,6 +36,36 @@ class ForslagRepository {
         }
     }
 
+    fun getVenterPaSvarForDeltakere(deltakerIder: Set<UUID>): Map<UUID, List<Forslag>> {
+        if (deltakerIder.isEmpty()) return emptyMap()
+
+        val sql =
+            """
+            SELECT 
+                f.id AS "f.id",
+                f.deltaker_id AS "f.deltaker_id",
+                f.arrangoransatt_id AS "f.arrangoransatt_id",
+                f.opprettet AS "f.opprettet",
+                f.begrunnelse AS "f.begrunnelse",
+                f.endring AS "f.endring",
+                f.status AS "f.status"
+            FROM forslag f 
+            WHERE 
+                f.deltaker_id = ANY(:deltaker_ider)
+                AND f.status->>'type' = 'VenterPaSvar'
+            """.trimIndent()
+
+        return Database
+            .query { session ->
+                session.run(
+                    queryOf(
+                        sql,
+                        mapOf("deltaker_ider" to deltakerIder.toTypedArray()),
+                    ).map(::rowMapper).asList,
+                )
+            }.groupBy { it.deltakerId }
+    }
+
     fun get(id: UUID): Result<Forslag> = runCatching {
         val sql =
             """

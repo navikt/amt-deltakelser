@@ -228,7 +228,13 @@ object DeltakerStatusRepository {
         session.run(
             queryOf(
                 """
-                    SELECT *
+                    SELECT 
+                        id, 
+                        type, 
+                        aarsak, 
+                        gyldig_fra, 
+                        gyldig_til, 
+                        created_at
                     FROM deltaker_status 
                     WHERE 
                         deltaker_id = ? 
@@ -248,7 +254,17 @@ object DeltakerStatusRepository {
     internal fun get(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM deltaker_status WHERE id = ?",
+                """
+                SELECT 
+                    id, 
+                    type, 
+                    aarsak, 
+                    gyldig_fra, 
+                    gyldig_til, 
+                    created_at 
+                FROM deltaker_status 
+                WHERE id = ?
+                """.trimIndent(),
                 deltakerStatusId,
             ).map(::deltakerStatusRowMapper).asSingle,
         ) ?: throw NoSuchElementException("Fant ikke deltakerstatus med id $deltakerStatusId")
@@ -258,7 +274,17 @@ object DeltakerStatusRepository {
     internal fun getFremtidige(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM deltaker_status WHERE deltaker_id = ? AND gyldig_fra > CURRENT_TIMESTAMP",
+                """
+                SELECT 
+                    id, 
+                    type, 
+                    aarsak, 
+                    gyldig_fra, 
+                    gyldig_til, 
+                    created_at 
+                FROM deltaker_status 
+                WHERE deltaker_id = ? AND gyldig_fra > CURRENT_TIMESTAMP
+                """.trimIndent(),
                 deltakerId,
             ).map(::deltakerStatusRowMapper).asList,
         )

@@ -9,7 +9,8 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.amt.deltaker.api.response.ResponseBuilder
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
+import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
 import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
 import no.nav.amt.deltaker.model.Deltaker
@@ -18,6 +19,7 @@ import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
@@ -34,7 +36,8 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     override val tiltaksansvarligService = mockk<TiltaksansvarligService>()
     override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
     override val deltakerRepository = mockk<DeltakerRepository>()
-    override val responseBuilder = mockk<ResponseBuilder>()
+    override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
+    override val tiltakskoordinatorResponseBuilder = mockk<TiltakskoordinatorResponseBuilder>()
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
@@ -48,13 +51,14 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `getDeltakereForGjennomforing - har tilgang - returnerer 200 og deltakere fra responseBuilder`() {
+    fun `getDeltakereForGjennomforing - har tilgang - returnerer 200 og deltakere fra tiltakskoordinatorResponseBuilder`() {
         val gjennomforingId = UUID.randomUUID()
         val deltakere = listOf(deltaker)
-        val expectedResponse = DeltakereResponse(emptyList())
+        val deltakerResponse = mockk<DeltakerResponse>(relaxed = true)
+        val expectedResponse = DeltakereResponse(listOf(deltakerResponse))
 
         every { deltakerRepository.getForGjennomforing(gjennomforingId) } returns deltakere
-        coEvery { responseBuilder.buildDeltakereResponse(deltakere) } returns expectedResponse
+        coEvery { tiltakskoordinatorResponseBuilder.buildResponse(deltakere) } returns expectedResponse
 
         withTestApplicationContext { client ->
             client

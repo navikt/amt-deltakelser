@@ -70,7 +70,23 @@ class VedtakRepository {
     fun get(id: UUID): Vedtak? = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM vedtak WHERE id = :id",
+                """
+                SELECT 
+                    id, 
+                    deltaker_id, 
+                    fattet, 
+                    gyldig_til, 
+                    deltaker_ved_vedtak, 
+                    fattet_av_nav, 
+                    opprettet_av, 
+                    opprettet_av_enhet, 
+                    sist_endret_av, 
+                    sist_endret_av_enhet, 
+                    created_at, 
+                    modified_at 
+                FROM vedtak 
+                WHERE id = :id
+                """.trimIndent(),
                 mapOf("id" to id),
             ).map(::rowMapper).asSingle,
         )
@@ -79,7 +95,23 @@ class VedtakRepository {
     fun getForDeltaker(deltakerId: UUID): Vedtak? = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT * FROM vedtak WHERE deltaker_id = :deltaker_id",
+                """
+                SELECT 
+                    id, 
+                    deltaker_id, 
+                    fattet, 
+                    gyldig_til, 
+                    deltaker_ved_vedtak, 
+                    fattet_av_nav, 
+                    opprettet_av, 
+                    opprettet_av_enhet, 
+                    sist_endret_av, 
+                    sist_endret_av_enhet, 
+                    created_at, 
+                    modified_at 
+                FROM vedtak 
+                WHERE deltaker_id = :deltaker_id
+                """.trimIndent(),
                 mapOf("deltaker_id" to deltakerId),
             ).map(::rowMapper).asSingle,
         )

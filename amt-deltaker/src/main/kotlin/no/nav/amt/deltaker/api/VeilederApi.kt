@@ -7,8 +7,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.api.response.ResponseBuilder
-import no.nav.amt.deltaker.api.response.ResponseMapper
+import io.ktor.server.routing.route
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
+import no.nav.amt.deltaker.api.response.SharedResponseMappers.deltakerEndringResponseFromDeltaker
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -25,7 +26,7 @@ fun Routing.registerVeilederApi(
     deltakerRepository: DeltakerRepository,
     deltakerService: DeltakerService,
     historikkService: DeltakerHistorikkService,
-    responseBuilder: ResponseBuilder,
+    deltakerResponseBuilder: DeltakerResponseBuilder,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     arrangorService: ArrangorService,
@@ -38,59 +39,66 @@ fun Routing.registerVeilederApi(
             call.respond(PersonIdentResponse(personident))
         }
 
-        get("/deltaker/{deltakerId}") {
-            val deltakerResponse = deltakerRepository
-                .get(call.getDeltakerId())
-                .getOrThrow()
-                .let { responseBuilder.buildDeltakerResponse(it) }
+        route("/deltaker") {
+            get("/{deltakerId}") {
+                val deltakerResponse = deltakerRepository
+                    .get(call.getDeltakerId())
+                    .getOrThrow()
+                    .let {
+                        deltakerResponseBuilder.buildDeltakerResponse(
+                            deltaker = it,
+                            includeKodeverk = true,
+                        )
+                    }
 
-            call.respond(deltakerResponse)
-        }
+                call.respond(deltakerResponse)
+            }
 
-        post("/deltaker/{deltakerId}/endre-deltaker") {
-            val deltaker = deltakerService.upsertEndretDeltaker(
-                deltakerId = call.getDeltakerId(),
-                endringRequest = call.receive<EndringRequest>(),
-            )
-            val historikk = historikkService.getForDeltaker(deltaker.id)
+            post("/{deltakerId}/endre-deltaker") {
+                val deltaker = deltakerService.upsertEndretDeltaker(
+                    deltakerId = call.getDeltakerId(),
+                    endringRequest = call.receive<EndringRequest>(),
+                )
+                val historikk = historikkService.getForDeltaker(deltaker.id)
 
-            call.respond(ResponseMapper.deltakerEndringResponseFromDeltaker(deltaker, historikk))
-        }
+                call.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))
+            }
 
-        get("/deltaker/{deltakerId}/historikk") {
-            val deltakerId = call.getDeltakerId()
-            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-            val historikk = historikkService.getForDeltaker(deltakerId)
-            val ansatteIder = historikk.flatMap { it.navAnsatte() }.distinct().toSet()
-            val enheterIder = historikk.flatMap { it.navEnheter() }.distinct().toSet()
+            get("/{deltakerId}/historikk") {
+                val deltakerId = call.getDeltakerId()
+                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                val historikk = historikkService.getForDeltaker(deltakerId)
+                val ansatteIder = historikk.flatMap { it.navAnsatte() }.distinct().toSet()
+                val enheterIder = historikk.flatMap { it.navEnheter() }.distinct().toSet()
 
-            val response = DeltakerHistorikkDataResponse(
-                historikk = historikk,
-                arrangornavn = deltaker.deltakerliste.arrangor?.let { arrangor ->
-                    arrangorService.getArrangorNavn(
-                        arrangor = arrangor,
-                        gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
-                    )
-                } ?: "",
-                oppstartstype = deltaker.deltakerliste.oppstart,
-                pameldingstype = deltaker.deltakerliste.pameldingstype,
-                ansatte = navAnsattService.getMany(ansatteIder).associateBy { it.id },
-                enheter = navEnhetService
-                    .getEnheter(enheterIder)
-                    .values
-                    .toList()
-                    .associateBy { it.id },
-            )
-            call.respond(response)
-        }
+                val response = DeltakerHistorikkDataResponse(
+                    historikk = historikk,
+                    arrangornavn = deltaker.deltakerliste.arrangor?.let { arrangor ->
+                        arrangorService.getArrangorNavn(
+                            arrangor = arrangor,
+                            gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
+                        )
+                    } ?: "",
+                    oppstartstype = deltaker.deltakerliste.oppstart,
+                    pameldingstype = deltaker.deltakerliste.pameldingstype,
+                    ansatte = navAnsattService.getMany(ansatteIder).associateBy { it.id },
+                    enheter = navEnhetService
+                        .getEnheter(enheterIder)
+                        .values
+                        .toList()
+                        .associateBy { it.id },
+                )
+                call.respond(response)
+            }
 
-        post("/deltaker/{deltakerId}/sist-besokt") {
-            deltakerService.oppdaterSistBesokt(
-                deltakerId = call.getDeltakerId(),
-                sistBesokt = call.receive<ZonedDateTime>(),
-            )
+            post("/{deltakerId}/sist-besokt") {
+                deltakerService.oppdaterSistBesokt(
+                    deltakerId = call.getDeltakerId(),
+                    sistBesokt = call.receive<ZonedDateTime>(),
+                )
 
-            call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
+            }
         }
     }
 }

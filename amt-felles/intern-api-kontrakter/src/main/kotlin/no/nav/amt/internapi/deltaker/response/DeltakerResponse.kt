@@ -2,8 +2,8 @@ package no.nav.amt.internapi.deltaker.response
 
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -25,15 +25,11 @@ data class DeltakerResponse(
     val kilde: Kilde,
     val sistEndret: LocalDateTime,
     val opprettet: LocalDateTime,
-    /*
-        Må vi ha med historikk? Ja, fordi noe informasjon utledes fra historikken i domeneobjektet i amt-deltaker-bff
-        Vi bør vurdere hente ut konkrete datapunkter i amt-deltaker så denne kan fjernes.
-        historikken blir brukt i frontend vha get /historikk endepunket, så vi kan vurdere om dette responsobjektet eller
-        en eget historikk endepunkt med respons skal lages
-     */
-    val historikk: List<DeltakerHistorikk>, // eget endepunkt
+    val soktInnDato: LocalDate?, // tiltakskoordinator trenger
+    val deltakelsesmengder: DeltakelsesmengderResponse?, // veileder trenger
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
     val prisinformasjon: String?,
     val sisteVurdering: VurderingResponse?,
+    val importertFraArena: ImportertFraArena?,
 )

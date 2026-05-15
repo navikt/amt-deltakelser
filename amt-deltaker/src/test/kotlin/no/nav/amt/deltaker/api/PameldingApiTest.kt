@@ -10,7 +10,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import no.nav.amt.deltaker.api.response.ResponseMapper
+import no.nav.amt.deltaker.api.response.SharedResponseMappers.utkastResponseFromDeltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
@@ -54,9 +54,9 @@ class PameldingApiTest : IntegrationTestBase() {
                 }.apply {
                     status shouldBe HttpStatusCode.OK
                     bodyAsText() shouldBe objectMapper.writeValueAsString(
-                        ResponseMapper.utkastResponseFromDeltaker(
-                            deltaker,
-                            historikk,
+                        utkastResponseFromDeltaker(
+                            deltaker = deltaker,
+                            historikk = historikk,
                         ),
                     )
                 }
