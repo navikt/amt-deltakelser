@@ -5,6 +5,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
@@ -16,6 +17,7 @@ import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
+import no.nav.amt.deltaker.bff.extensions.getTerm
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
@@ -31,6 +33,11 @@ fun Routing.registerEnkeltplassApi(
 ) {
     authenticate(AuthLevel.VEILEDER.name) {
         route("/enkeltplass") {
+            get("/kodeverk-sertifiseringer/sok/{term}") {
+                val sertifiseringer = kodeverkClient.sertifiseringSok(call.getTerm())
+                call.respond(sertifiseringer)
+            }
+
             /*
             Oppretter kladd for en enkeltplass deltaker.
             Opprettes automatisk når man trykker seg inn i påmeldingsskjemaet

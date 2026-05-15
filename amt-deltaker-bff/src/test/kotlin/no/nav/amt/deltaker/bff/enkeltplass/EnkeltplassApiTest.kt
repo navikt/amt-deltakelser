@@ -1,6 +1,9 @@
 package no.nav.amt.deltaker.bff.enkeltplass
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
@@ -22,6 +25,7 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
+import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -44,6 +48,41 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         coEvery { enkeltplassClient.oppdaterUtkast(any(), any()) } returns lagDeltakerResponse()
         coEvery { enkeltplassClient.meldPaaDirekte(deltakerInTest.id, any()) } returns mockHttpResponse
         coEvery { amtDeltakerClient.getDeltaker(deltakerInTest.id) } returns lagDeltakerResponse()
+    }
+
+    @Nested
+    inner class SertifiseringSokTests {
+        @Test
+        fun `skal returnere Unauthorized nar tilgang mangler`() {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.get("/enkeltplass/kodeverk-sertifiseringer/sok/foo")
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Unauthorized
+        }
+
+        @Test
+        fun `skal returnere sokeresultat`() = runTest {
+            // Arrange
+            val expectedResponse = listOf(
+                SertifiseringResponse(konseptId = 1, label = "Sertifisering 1"),
+            )
+
+            coEvery { kodeverkClient.sertifiseringSok(any()) } returns expectedResponse
+
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.get("/enkeltplass/kodeverk-sertifiseringer/sok/foo") {
+                    bearerAuth(bearerTokenInTest)
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.OK
+            response.body<List<SertifiseringResponse>>() shouldBe expectedResponse
+        }
     }
 
     @Nested
