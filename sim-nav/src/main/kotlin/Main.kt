@@ -1,19 +1,15 @@
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
-import no.nav.poao_tilgang.poao_tilgang_test_wiremock.PoaoTilgangWiremock
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
-private const val POAO_TILGANG_PORT = 9001
 private const val SIM_NAV_HTTP_PORT = 9002
 private const val UNLEASH_PATH_PREFIX = "/unleash"
 private const val MOCK_OAUTH_TOKEN_PROXY_PATH = "/mock-oauth/token"
 
 fun main() {
-    PoaoTilgangWiremock(portnummer = POAO_TILGANG_PORT)
-
     val simNavHttpServer = HttpServer.create(InetSocketAddress(SIM_NAV_HTTP_PORT), 0).apply {
         createContext("/") { exchange ->
             val path = exchange.requestURI.path
@@ -46,7 +42,6 @@ fun main() {
         },
     )
 
-    println("Poao Tilgang WireMock started on port $POAO_TILGANG_PORT")
     println("Sim-nav HTTP stub started on port $SIM_NAV_HTTP_PORT")
     println("Set UNLEASH_SERVER_API_URL=http://localhost:$SIM_NAV_HTTP_PORT$UNLEASH_PATH_PREFIX/api and UNLEASH_SERVER_API_TOKEN=dummy")
     println("Mock OAuth token proxy: GET http://localhost:$SIM_NAV_HTTP_PORT$MOCK_OAUTH_TOKEN_PROXY_PATH")
