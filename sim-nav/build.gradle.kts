@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    id("application")
 }
 
 group = "no.nav.amt.mocks"
@@ -29,6 +30,10 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
     }
+}
+
+application {
+    mainClass.set("MainKt")
 }
 
 tasks.test {
