@@ -7,11 +7,14 @@
         </encoder>
     </appender>
 
-    <root level="${ROOT_LOG_LEVEL:-WARN}">
+    <root level="${ROOT_LOG_LEVEL:-DEBUG}">
         <appender-ref ref="consolePlain"/>
     </root>
 
-    <logger name="no.nav.amt" level="INFO"/>
+    <logger name="org.apache.kafka" level="WARN" />
+    <logger name="io.netty" level="WARN" />
+    <logger name="com.zaxxer.hikari" level="WARN" />
+    <logger name="no.nav.amt" level="DEBUG"/>
 
     <logger name="no.nav.amt.lib.kafka" level="WARN"/>
     <logger name="no.nav.amt.deltaker.bff.job.LeaderElection" level="WARN"/>
