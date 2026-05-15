@@ -32,4 +32,8 @@ class KodeverkClient(
         }.failIfNotSuccess("Kunne ikke hente kodeverk for tiltakskode $tiltakskode fra Mulighetsrommet")
             .body<KodeverkResponse>()
             .also { kodeverkCache.put(tiltakskode, it) }
+
+    suspend fun sertifiseringSok(term: String): List<SertifiseringResponse> = performGet("api/kodeverk/opplaring/sertifiseringer/sok") {
+        parameter("q", term)
+    }.failIfNotSuccess("Kunne ikke hente sertifiseringer fra Mulighetsrommet").body()
 }
