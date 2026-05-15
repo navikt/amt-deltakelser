@@ -12,6 +12,8 @@ import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
@@ -23,6 +25,8 @@ import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.digitalbruker.DigitalBrukerCacheRepository
+import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.innbygger.DistribuerEndringProducer
@@ -75,6 +79,7 @@ import no.nav.amt.lib.outbox.OutboxRecord
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 
 abstract class IntegrationTestBase {
@@ -356,6 +361,12 @@ abstract class IntegrationTestBase {
         GjennomforingRequestProducer(outboxService = outboxService)
     }
 
+    protected open val digitalBrukerService: DigitalBrukerService by lazy {
+        DigitalBrukerService(
+            amtDistribusjonClient = distribusjonClient,
+        )
+    }
+
     protected open val deltakerLaaseService: DeltakerLaaseService by lazy {
         DeltakerLaaseService(
             deltakerRepository = deltakerRepository,
@@ -367,7 +378,7 @@ abstract class IntegrationTestBase {
             arrangorService = arrangorService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
-            amtDistribusjonClient = distribusjonClient,
+            digitalBrukerService = digitalBrukerService,
             deltakerHistorikkService = deltakerHistorikkService,
             forslagRepository = forslagRepository,
             deltakerLaaseService = deltakerLaaseService,
@@ -384,7 +395,7 @@ abstract class IntegrationTestBase {
             forslagRepository = forslagRepository,
             vurderingRepository = vurderingRepository,
             deltakerLaaseService = deltakerLaaseService,
-            amtDistribusjonClient = distribusjonClient,
+            digitalBrukerService = digitalBrukerService,
         )
     }
 
@@ -393,6 +404,10 @@ abstract class IntegrationTestBase {
         clearAllMocks()
         configureEnvForAuthentication()
 
+        mockkObject(DigitalBrukerCacheRepository)
+        every { DigitalBrukerCacheRepository.hentForPersonidenter(any()) } returns emptyMap()
+        every { DigitalBrukerCacheRepository.upsertBatch(any()) } returns Unit
+
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
 
@@ -400,6 +415,11 @@ abstract class IntegrationTestBase {
         every {
             outboxService.insertRecord(any(), any(), any(), any())
         } returns mockOutboxRecord
+    }
+
+    @AfterEach
+    protected fun teardown() {
+        unmockkObject(DigitalBrukerCacheRepository)
     }
 
     protected fun <T : Any> withTestApplicationContext(

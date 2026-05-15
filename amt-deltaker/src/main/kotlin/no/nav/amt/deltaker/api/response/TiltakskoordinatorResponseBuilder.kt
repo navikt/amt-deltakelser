@@ -6,6 +6,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder.Companion.MAX_PARALLEL_DB_QUERIES
+import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -18,7 +19,6 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.DeltakereResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
-import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -54,7 +54,8 @@ import java.time.LocalDate
  *   - `importertFraArena` — alltid null
  *   - `gjennomforing.kodeverkValg` — alltid tom
  *
- * `navBruker.erDigital` slås opp via [AmtDistribusjonClient.digitalBruker] per deltaker
+ * `navBruker.erDigital` hentes via [DigitalBrukerService] som bruker en DB-backet cache med
+ * 24-timers TTL — kun utdaterte/manglende entries hentes fra `amt-distribusjon`.
  *
  * Felles mapping-logikk er trukket ut i [SharedResponseMappers].
  */
@@ -66,7 +67,7 @@ class TiltakskoordinatorResponseBuilder(
     private val forslagRepository: ForslagRepository,
     private val vurderingRepository: VurderingRepository,
     private val deltakerLaaseService: DeltakerLaaseService,
-    private val amtDistribusjonClient: AmtDistribusjonClient,
+    private val digitalBrukerService: DigitalBrukerService,
 ) {
     suspend fun buildResponse(deltakere: List<Deltaker>): DeltakereResponse {
         if (deltakere.isEmpty()) return DeltakereResponse(emptyList())
@@ -80,6 +81,7 @@ class TiltakskoordinatorResponseBuilder(
         )
 
         val deltakerIder = deltakere.map { it.id }.toSet()
+        val personidenter = deltakere.map { it.navBruker.personident }.toSet()
 
         // kjør uavhengige DB-spørringer parallelt på IO-dispatcher, men begrens samtidighet
         // via en delt semaphore (se [DB_SEMAPHORE]) slik at totalt antall samtidige DB-spørringer
@@ -97,6 +99,9 @@ class TiltakskoordinatorResponseBuilder(
             val vurderingDeferred = async {
                 DB_SEMAPHORE.withPermit { vurderingRepository.getSisteVurderingForDeltakere(deltakerIder) }
             }
+            val erDigitalDeferred = async {
+                DB_SEMAPHORE.withPermit { digitalBrukerService.hentErDigitalForPersonidenter(personidenter) }
+            }
 
             val navAnsatte = navAnsatteDeferred.await()
             val navEnheter = navEnheterDeferred.await()
@@ -104,6 +109,7 @@ class TiltakskoordinatorResponseBuilder(
             val soktInnDatoer = soktInnDatoerDeferred.await()
             val forslagPerDeltaker = forslagDeferred.await()
             val sisteVurderingPerDeltaker = vurderingDeferred.await()
+            val erDigitalPerPersonident = erDigitalDeferred.await()
 
             DeltakereResponse(
                 deltakere.map {
@@ -113,8 +119,7 @@ class TiltakskoordinatorResponseBuilder(
                         navAnsatte = navAnsatte,
                         navEnheter = navEnheter,
                         erLaastForEndringer = laaseStatusPerDeltaker[it.id] ?: false,
-                        // Caffeine-cachen inne i AmtDistribusjonClient dedupliserer gjentatte oppslag
-                        erDigital = amtDistribusjonClient.digitalBruker(it.navBruker.personident),
+                        erDigital = erDigitalPerPersonident[it.navBruker.personident] ?: false,
                         soktInnDato = soktInnDatoer[it.id],
                         endringsforslagFraArrangor = forslagPerDeltaker[it.id].orEmpty(),
                         sisteVurdering = sisteVurderingPerDeltaker[it.id],

@@ -8,6 +8,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
@@ -33,6 +34,7 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
     override val navAnsattService: NavAnsattService = mockk()
     override val deltakerHistorikkService: DeltakerHistorikkService = mockk()
     override val deltakerLaaseService: DeltakerLaaseService = mockk()
+    override val digitalBrukerService: DigitalBrukerService = mockk()
 
     @Test
     fun `buildResponse - tom liste - returnerer tom respons uten tunge oppslag`() = runTest {
@@ -47,7 +49,7 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
         coVerify(exactly = 0) { navAnsattService.hentNavAnsatteForDeltakere(any()) }
         coVerify(exactly = 0) { navEnhetService.hentNavEnheterForDeltakere(any()) }
         coVerify(exactly = 0) { deltakerLaaseService.erLaastForEndringerForDeltakere(any()) }
-        coVerify(exactly = 0) { distribusjonClient.digitalBruker(any()) }
+        coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
         coVerify(exactly = 0) { deltakerHistorikkService.getSoktInnDatoer(any()) }
         coVerify(exactly = 0) { forslagRepository.getVenterPaSvarForDeltakere(any()) }
         coVerify(exactly = 0) { vurderingRepository.getSisteVurderingForDeltakere(any()) }
@@ -91,8 +93,8 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
         coVerify(exactly = 1) { deltakerLaaseService.erLaastForEndringerForDeltakere(any()) }
         coVerify(exactly = 0) { deltakerLaaseService.erLaastForEndringer(any<no.nav.amt.deltaker.model.Deltaker>()) }
 
-        // digital-status slås opp én gang per deltaker (Caffeine-cache i klienten dedupliserer på personident)
-        coVerify(exactly = 2) { distribusjonClient.digitalBruker(any()) }
+        // digital-status hentes i ett bulk-oppslag via DigitalBrukerService
+        coVerify(exactly = 1) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
 
         // soktInnDato hentes i ett bulk-oppslag — ikke per deltaker
         coVerify(exactly = 1) { deltakerHistorikkService.getSoktInnDatoer(any()) }
@@ -285,6 +287,9 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
             firstArg<List<no.nav.amt.deltaker.model.Deltaker>>().associate { it.id to false }
         }
         coEvery { distribusjonClient.digitalBruker(any()) } returns true
+        coEvery { digitalBrukerService.hentErDigitalForPersonidenter(any()) } answers {
+            firstArg<Set<String>>().associateWith { true }
+        }
     }
 
     private fun lagForslag(

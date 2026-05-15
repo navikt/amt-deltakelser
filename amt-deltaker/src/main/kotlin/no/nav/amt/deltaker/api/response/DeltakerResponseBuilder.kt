@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.api.response
 
+import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
@@ -19,7 +20,6 @@ import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
-import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -32,7 +32,7 @@ class DeltakerResponseBuilder(
     private val arrangorService: ArrangorService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
-    private val amtDistribusjonClient: AmtDistribusjonClient,
+    private val digitalBrukerService: DigitalBrukerService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val forslagRepository: ForslagRepository,
     private val deltakerLaaseService: DeltakerLaaseService,
@@ -157,6 +157,6 @@ class DeltakerResponseBuilder(
         navBruker = navBruker,
         navAnsatte = navAnsatte,
         navEnheter = navEnheter,
-        erDigital = amtDistribusjonClient.digitalBruker(navBruker.personident),
+        erDigital = digitalBrukerService.erDigital(navBruker.personident),
     )
 }

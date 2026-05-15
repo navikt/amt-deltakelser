@@ -37,7 +37,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
             arrangorService = arrangorService,
             navAnsattService = mockk(),
             navEnhetService = mockk(),
-            amtDistribusjonClient = mockk(),
+            digitalBrukerService = mockk(),
             deltakerHistorikkService = mockk(),
             forslagRepository = mockk(),
             deltakerLaaseService = mockk(),

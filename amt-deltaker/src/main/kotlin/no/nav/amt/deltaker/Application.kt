@@ -30,6 +30,7 @@ import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.EnkeltplassDeltakerConsumer
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
@@ -414,11 +415,15 @@ fun Application.module() {
         vedtakService = vedtakService,
     )
 
+    val digitalBrukerService = DigitalBrukerService(
+        amtDistribusjonClient = amtDistribusjonClient,
+    )
+
     val deltakerResponseBuilder = DeltakerResponseBuilder(
         arrangorService = arrangorService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
-        amtDistribusjonClient = amtDistribusjonClient,
+        digitalBrukerService = digitalBrukerService,
         deltakerHistorikkService = deltakerHistorikkService,
         forslagRepository = forslagRepository,
         deltakerLaaseService = deltakerLaaseService,
@@ -433,7 +438,7 @@ fun Application.module() {
         forslagRepository = forslagRepository,
         vurderingRepository = vurderingRepository,
         deltakerLaaseService = deltakerLaaseService,
-        amtDistribusjonClient = amtDistribusjonClient,
+        digitalBrukerService = digitalBrukerService,
     )
 
     val consumers = listOf(
