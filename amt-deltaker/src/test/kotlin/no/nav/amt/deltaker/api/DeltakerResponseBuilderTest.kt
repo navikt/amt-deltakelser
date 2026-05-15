@@ -180,6 +180,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
+        val kodeverkValg = setOf(UUID.randomUUID())
         val sertifiseringer = setOf(
             SertifiseringValg(id = 1, navn = "Truckfører T1"),
         )
@@ -187,18 +188,20 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         mockkObject(KodeverkValgRepository)
         mockkObject(SertifiseringValgRepository)
-        every { KodeverkValgRepository.hentKodeverkValg(deltakerliste.id) } returns setOf(UUID.randomUUID())
-        every { SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id) } returns sertifiseringer
+        try {
+            every { KodeverkValgRepository.hentKodeverkValg(deltakerliste.id) } returns kodeverkValg
+            every { SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id) } returns sertifiseringer
 
-        // Act
-        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
+            // Act
+            val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
 
-        // Assert
-        response.kodeverkValg shouldBe KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
-        response.sertifiseringValg shouldBe sertifiseringer
-
-        unmockkObject(KodeverkValgRepository)
-        unmockkObject(SertifiseringValgRepository)
+            // Assert
+            response.kodeverkValg shouldBe kodeverkValg
+            response.sertifiseringValg shouldBe sertifiseringer
+        } finally {
+            unmockkObject(KodeverkValgRepository)
+            unmockkObject(SertifiseringValgRepository)
+        }
     }
 
     @Test

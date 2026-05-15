@@ -20,6 +20,9 @@ import java.util.UUID
  * @property tiltakskode Tiltakskoden kodeverket gjelder for.
  * @property alternativer Toppnivå-containere i kodeverket — enten [Alternativ.Gruppe]
  *   eller [Alternativ.Verdigruppe]. Kan ikke inneholde [Alternativ.Verdi] direkte.
+ * @property sertifiseringValg Sertifiseringer valgt for en enkeltplass-gjennomføring.
+ *   Verdiene kommer fra et eksternt søk ([Alternativ.VerdigruppeSok]) og lagres separat
+ *   fra det statiske kodeverket i [alternativer].
  */
 data class KodeverkResponse(
     val tiltakskode: Tiltakskode,
@@ -29,9 +32,10 @@ data class KodeverkResponse(
     /**
      * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true` for alle
      * verdier med `id` i [kodeverkValg], og `false` for alle øvrige.
+     * [sertifiseringValg] erstatter eventuelle eksisterende sertifiseringer i responsen.
      *
      * Synkroniserer hele treet — kildedataens initiale `valgt`-verdier overskrives
-     * alltid, slik at resultatet kun reflekterer [kodeverkValg].
+     * alltid, slik at resultatet kun reflekterer [kodeverkValg] og [sertifiseringValg].
      */
     fun settValgt(
         kodeverkValg: Set<UUID>,
