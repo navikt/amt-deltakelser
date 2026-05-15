@@ -99,8 +99,11 @@ class TiltakskoordinatorResponseBuilder(
             val vurderingDeferred = async {
                 DB_SEMAPHORE.withPermit { vurderingRepository.getSisteVurderingForDeltakere(deltakerIder) }
             }
+            // `hentErDigitalForPersonidenter` gjør 1 SELECT + N HTTP-kall mot amt-distribusjon + 1 UPSERT.
+            // Vi holder ikke DB_SEMAPHORE her — det ville blokkert poolen mens vi venter på HTTP.
+            // De to DB-operasjonene er små nok til at de kan kjøre uten reservasjon.
             val erDigitalDeferred = async {
-                DB_SEMAPHORE.withPermit { digitalBrukerService.hentErDigitalForPersonidenter(personidenter) }
+                digitalBrukerService.hentErDigitalForPersonidenter(personidenter)
             }
 
             val navAnsatte = navAnsatteDeferred.await()

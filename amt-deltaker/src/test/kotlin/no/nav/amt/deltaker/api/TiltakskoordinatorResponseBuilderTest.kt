@@ -161,7 +161,7 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
             sisteVurdering shouldBe VurderingResponse.fromVurdering(vurdering)
 
             // Optimaliseringskonstanter — disse skal ALDRI variere fra tiltakskoordinator-flyten
-            navBruker.erDigital shouldBe true // mocket via distribusjonClient.digitalBruker
+            navBruker.erDigital shouldBe true // mocket via digitalBrukerService.hentErDigitalForPersonidenter
             vedtaksinformasjon shouldBe null
             importertFraArena shouldBe null
             erLaastForEndringer shouldBe false
@@ -286,7 +286,6 @@ class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
         every { deltakerLaaseService.erLaastForEndringerForDeltakere(any()) } answers {
             firstArg<List<no.nav.amt.deltaker.model.Deltaker>>().associate { it.id to false }
         }
-        coEvery { distribusjonClient.digitalBruker(any()) } returns true
         coEvery { digitalBrukerService.hentErDigitalForPersonidenter(any()) } answers {
             firstArg<Set<String>>().associateWith { true }
         }

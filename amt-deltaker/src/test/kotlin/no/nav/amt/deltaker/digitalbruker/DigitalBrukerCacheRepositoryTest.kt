@@ -123,7 +123,8 @@ class DigitalBrukerCacheRepositoryTest {
         Database.query { session ->
             session.run(
                 queryOf(
-                    "UPDATE digital_bruker_cache SET modified_at = NOW() - INTERVAL '$hoursAgo hours' WHERE personident = ?",
+                    "UPDATE digital_bruker_cache SET modified_at = NOW() - make_interval(hours => ?) WHERE personident = ?",
+                    hoursAgo,
                     personident,
                 ).asUpdate,
             )
