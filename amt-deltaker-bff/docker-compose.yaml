@@ -9,6 +9,15 @@ services:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydb
+    command:
+      - "postgres"
+      - "-c"
+      # Needed migration V27 in amt-deltaker
+      - "wal_level=logical"
+      - "-c"
+      - "max_replication_slots=10"
+      - "-c"
+      - "max_wal_senders=10"
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
