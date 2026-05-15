@@ -60,7 +60,10 @@ data class DeltakerlisteResponse(
                 erEnkeltplass = erEnkeltplass,
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-                kodeverk = kodeverk?.settValgt(gjennomforingModel.kodeverkValg),
+                kodeverk = kodeverk?.settValgt(
+                    kodeverkValg = gjennomforingModel.kodeverkValg,
+                    sertifiseringValg = gjennomforingModel.sertifiseringValg,
+                ),
             )
         }
     }

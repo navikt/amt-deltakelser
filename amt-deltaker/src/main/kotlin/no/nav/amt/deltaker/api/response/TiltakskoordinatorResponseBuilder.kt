@@ -76,6 +76,7 @@ class TiltakskoordinatorResponseBuilder(
             deltakerliste = deltakere.first().deltakerliste,
             arrangorService = arrangorService,
             kodeverkValg = emptySet(),
+            sertifiseringValg = emptySet(),
         )
 
         val deltakerIder = deltakere.map { it.id }.toSet()

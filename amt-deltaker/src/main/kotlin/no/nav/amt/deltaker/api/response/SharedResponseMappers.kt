@@ -17,6 +17,7 @@ import no.nav.amt.internapi.paamelding.response.UtkastResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.Vurdering
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -64,6 +65,7 @@ internal object SharedResponseMappers {
         deltakerliste: Deltakerliste,
         arrangorService: ArrangorService,
         kodeverkValg: Set<UUID>,
+        sertifiseringValg: Set<SertifiseringValg>,
     ) = GjennomforingResponse(
         id = deltakerliste.id,
         tiltakstype = deltakerliste.tiltakstype,
@@ -87,6 +89,7 @@ internal object SharedResponseMappers {
         pameldingstype = deltakerliste.pameldingstype,
         type = deltakerliste.gjennomforingstype,
         kodeverkValg = kodeverkValg,
+        sertifiseringValg = sertifiseringValg,
     )
 
     fun buildVedtaksinformasjonResponse(
