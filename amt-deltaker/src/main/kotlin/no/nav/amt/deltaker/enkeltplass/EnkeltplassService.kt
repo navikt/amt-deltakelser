@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
@@ -128,6 +129,18 @@ class EnkeltplassService(
                     )
                 } else {
                     KodeverkValgRepository.deleteForGjennomforing(deltaker.deltakerliste.id)
+                }
+            }
+
+            oppdaterKladdRequest.sertifiseringValg?.let { sertifiseringValg ->
+                // insert-only, sletter eksisterende valg før insert
+                SertifiseringValgRepository.deleteForGjennomforing(deltaker.deltakerliste.id)
+
+                if (sertifiseringValg.isNotEmpty()) {
+                    SertifiseringValgRepository.lagreSertifiseringValg(
+                        deltakerlisteId = deltaker.deltakerliste.id,
+                        sertifiseringValg = sertifiseringValg,
+                    )
                 }
             }
 

@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -28,6 +29,7 @@ import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -56,10 +58,17 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             val block = firstArg<() -> Any>()
             block()
         }
+
+        mockkObject(SertifiseringValgRepository)
+        every { SertifiseringValgRepository.deleteForGjennomforing(any()) } just Runs
+        every { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) } just Runs
     }
 
     @AfterEach
-    fun cleanup() = unmockkObject(Database)
+    fun cleanup() {
+        unmockkObject(Database)
+        unmockkObject(SertifiseringValgRepository)
+    }
 
     @Nested
     inner class OppdaterKladdTests {
@@ -99,6 +108,67 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     oppdaterKladdRequest = oppdaterKladdRequest,
                 )
             }
+        }
+
+        @Test
+        fun `sertifiseringValg med verdier - sletter eksisterende og lagrer nye`() = runTest {
+            // Arrange
+            every { deltakerlisteRepository.update(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+
+            val sertifiseringer = setOf(
+                SertifiseringValg(id = 1, navn = "Truckfører T1"),
+                SertifiseringValg(id = 2, navn = "Truckfører T2"),
+            )
+            val request = oppdaterKladdRequest.copy(sertifiseringValg = sertifiseringer)
+
+            // Act
+            enkeltplassService.oppdaterKladd(
+                deltakerId = deltakerInTest.id,
+                oppdaterKladdRequest = request,
+            )
+
+            // Assert
+            verify { SertifiseringValgRepository.deleteForGjennomforing(deltakerInTest.deltakerliste.id) }
+            verify { SertifiseringValgRepository.lagreSertifiseringValg(deltakerInTest.deltakerliste.id, sertifiseringer) }
+        }
+
+        @Test
+        fun `sertifiseringValg tomt sett - sletter eksisterende uten aa lagre nye`() = runTest {
+            // Arrange
+            every { deltakerlisteRepository.update(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+
+            val request = oppdaterKladdRequest.copy(sertifiseringValg = emptySet())
+
+            // Act
+            enkeltplassService.oppdaterKladd(
+                deltakerId = deltakerInTest.id,
+                oppdaterKladdRequest = request,
+            )
+
+            // Assert
+            verify { SertifiseringValgRepository.deleteForGjennomforing(deltakerInTest.deltakerliste.id) }
+            verify(exactly = 0) { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) }
+        }
+
+        @Test
+        fun `sertifiseringValg null - rører ikke sertifiseringer`() = runTest {
+            // Arrange
+            every { deltakerlisteRepository.update(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+
+            val request = oppdaterKladdRequest.copy(sertifiseringValg = null)
+
+            // Act
+            enkeltplassService.oppdaterKladd(
+                deltakerId = deltakerInTest.id,
+                oppdaterKladdRequest = request,
+            )
+
+            // Assert
+            verify(exactly = 0) { SertifiseringValgRepository.deleteForGjennomforing(any()) }
+            verify(exactly = 0) { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) }
         }
     }
 

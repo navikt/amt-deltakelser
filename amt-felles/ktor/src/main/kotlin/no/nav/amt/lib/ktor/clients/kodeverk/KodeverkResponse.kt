@@ -2,6 +2,7 @@ package no.nav.amt.lib.ktor.clients.kodeverk
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.util.UUID
 
@@ -23,6 +24,7 @@ import java.util.UUID
 data class KodeverkResponse(
     val tiltakskode: Tiltakskode,
     val alternativer: List<Alternativ.Container>,
+    val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
 ) {
     /**
      * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true` for alle
@@ -31,7 +33,13 @@ data class KodeverkResponse(
      * Synkroniserer hele treet — kildedataens initiale `valgt`-verdier overskrives
      * alltid, slik at resultatet kun reflekterer [kodeverkValg].
      */
-    fun settValgt(kodeverkValg: Set<UUID>): KodeverkResponse = copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })
+    fun settValgt(
+        kodeverkValg: Set<UUID>,
+        sertifiseringValg: Set<SertifiseringValg>,
+    ): KodeverkResponse = copy(
+        alternativer = alternativer.map { it.settValgt(kodeverkValg) },
+        sertifiseringValg = sertifiseringValg,
+    )
 
     private fun Alternativ.Container.settValgt(kodeverkValg: Set<UUID>): Alternativ.Container = when (this) {
         is Alternativ.Gruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })

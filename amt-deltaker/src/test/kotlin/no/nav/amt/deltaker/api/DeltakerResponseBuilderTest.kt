@@ -7,11 +7,15 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -29,7 +33,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
@@ -166,6 +172,67 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             arrangor shouldBe expectedArrangor
             pameldingstype shouldBe deltakerliste.pameldingstype.shouldNotBeNull()
         }
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - enkeltplass med includeKodeverk - henter kodeverk og sertifiseringer`() {
+        // Arrange
+        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+        )
+        val sertifiseringer = setOf(
+            SertifiseringValg(id = 1, navn = "Truckfører T1"),
+        )
+
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
+        mockkObject(KodeverkValgRepository)
+        mockkObject(SertifiseringValgRepository)
+        every { KodeverkValgRepository.hentKodeverkValg(deltakerliste.id) } returns setOf(UUID.randomUUID())
+        every { SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id) } returns sertifiseringer
+
+        // Act
+        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
+
+        // Assert
+        response.kodeverkValg shouldBe KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
+        response.sertifiseringValg shouldBe sertifiseringer
+
+        unmockkObject(KodeverkValgRepository)
+        unmockkObject(SertifiseringValgRepository)
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - ikke enkeltplass med includeKodeverk - returnerer tomme sett`() {
+        // Arrange
+        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Gruppe,
+        )
+
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
+
+        // Act
+        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
+
+        // Assert
+        response.kodeverkValg shouldBe emptySet()
+        response.sertifiseringValg shouldBe emptySet()
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - enkeltplass uten includeKodeverk - returnerer tomme sett`() {
+        // Arrange
+        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+        )
+
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
+
+        // Act
+        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = false)
+
+        // Assert
+        response.kodeverkValg shouldBe emptySet()
+        response.sertifiseringValg shouldBe emptySet()
     }
 
     @Test

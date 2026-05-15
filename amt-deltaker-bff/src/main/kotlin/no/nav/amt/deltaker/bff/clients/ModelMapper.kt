@@ -72,6 +72,7 @@ class ModelMapper {
                 arrangor = arrangor?.let { toArrangor(it) },
                 pameldingstype = pameldingstype,
                 kodeverkValg = kodeverkValg,
+                sertifiseringValg = sertifiseringValg,
             )
         }
 

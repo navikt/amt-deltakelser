@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.DeltakerUtils
@@ -93,6 +94,7 @@ class KladdService(
                 if (opprinneligDeltaker.erEnkeltplass) {
                     log.info("Sletter deltakerliste med id $gjennomforingId for kladd deltaker med id $deltakerId")
                     KodeverkValgRepository.deleteForGjennomforing(gjennomforingId)
+                    SertifiseringValgRepository.deleteForGjennomforing(gjennomforingId)
                     deltakerlisteRepository.delete(gjennomforingId)
                 }
             }

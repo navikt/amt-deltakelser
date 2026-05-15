@@ -4,6 +4,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.util.UUID
@@ -23,4 +24,5 @@ data class GjennomforingResponse(
     val arrangor: ArrangorResponse?,
     val pameldingstype: GjennomforingPameldingType?, // TODO: Denne bør ikke være nullable
     val kodeverkValg: Set<UUID> = emptySet(),
+    val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
 )

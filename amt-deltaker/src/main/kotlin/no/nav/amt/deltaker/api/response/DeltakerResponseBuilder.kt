@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -114,16 +115,27 @@ class DeltakerResponseBuilder(
         deltakerliste: Deltakerliste,
         includeKodeverk: Boolean,
     ): GjennomforingResponse {
-        val kodeverkValg = if (includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
-            KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
-        } else {
-            emptySet()
-        }
+        val skalHenteEnkeltplassValg = includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass
+
+        val kodeverkValg =
+            if (skalHenteEnkeltplassValg) {
+                KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
+            } else {
+                emptySet()
+            }
+
+        val sertifiseringValg =
+            if (skalHenteEnkeltplassValg) {
+                SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id)
+            } else {
+                emptySet()
+            }
 
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             kodeverkValg = kodeverkValg,
+            sertifiseringValg = sertifiseringValg,
         )
     }
 

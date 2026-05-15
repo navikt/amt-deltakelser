@@ -114,7 +114,7 @@ class KodeverkTest {
             ),
         )
 
-        val resultat = kodeverk.settValgt(setOf(verdiAId, verdiBId))
+        val resultat = kodeverk.settValgt(setOf(verdiAId, verdiBId), emptySet())
 
         val verdier = (resultat.alternativer[0] as KodeverkResponse.Alternativ.Verdigruppe).alternativer
         verdier.first { it.id == verdiAId }.valgt shouldBe true
@@ -146,7 +146,7 @@ class KodeverkTest {
             ),
         )
 
-        val resultat = kodeverk.settValgt(setOf(nestedVerdiId))
+        val resultat = kodeverk.settValgt(setOf(nestedVerdiId), emptySet())
 
         val gruppe = resultat.alternativer[0] as KodeverkResponse.Alternativ.Gruppe
         val verdigruppe = gruppe.alternativer[0] as KodeverkResponse.Alternativ.Verdigruppe
@@ -171,7 +171,7 @@ class KodeverkTest {
             ),
         )
 
-        val resultat = kodeverk.settValgt(emptySet())
+        val resultat = kodeverk.settValgt(emptySet(), emptySet())
 
         val verdigruppe = resultat.alternativer[0] as KodeverkResponse.Alternativ.Verdigruppe
         verdigruppe.alternativer[0].valgt shouldBe false
@@ -192,7 +192,7 @@ class KodeverkTest {
             alternativer = listOf(verdigruppeSok),
         )
 
-        val resultat = kodeverk.settValgt(setOf(sokId, UUID.randomUUID()))
+        val resultat = kodeverk.settValgt(setOf(sokId, UUID.randomUUID()), emptySet())
 
         resultat.alternativer[0] shouldBe verdigruppeSok
     }
