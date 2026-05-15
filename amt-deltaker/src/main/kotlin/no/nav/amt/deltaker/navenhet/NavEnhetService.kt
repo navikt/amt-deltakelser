@@ -13,20 +13,14 @@ class NavEnhetService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun hentEllerOpprettNavEnhet(enhetsnummer: String): NavEnhet {
-        repository.get(enhetsnummer)?.let { return it }
-
+    suspend fun hentEllerOpprettNavEnhet(enhetsnummer: String): NavEnhet = repository.get(enhetsnummer) ?: run {
         log.info("Fant ikke Nav-enhet med nummer $enhetsnummer, henter fra amt-person-service")
-        val navEnhet = amtPersonServiceClient.hentNavEnhet(enhetsnummer)
-        return repository.upsert(navEnhet)
+        repository.upsert(amtPersonServiceClient.hentNavEnhet(enhetsnummer))
     }
 
-    suspend fun hentEllerOpprettNavEnhet(id: UUID): NavEnhet {
-        repository.get(id)?.let { return it }
-
+    suspend fun hentEllerOpprettNavEnhet(id: UUID): NavEnhet = repository.get(id) ?: run {
         log.info("Fant ikke Nav-enhet med id $id, henter fra amt-person-service")
-        val navEnhet = amtPersonServiceClient.hentNavEnhet(id)
-        return repository.upsert(navEnhet)
+        repository.upsert(amtPersonServiceClient.hentNavEnhet(id))
     }
 
     fun getEnheter(ider: Set<UUID>) = repository.getMany(ider).associateBy { it.id }

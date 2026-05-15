@@ -15,26 +15,20 @@ class NavAnsattService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun hentEllerOpprettNavAnsatt(navIdent: String): NavAnsatt {
-        repository.get(navIdent)?.let { return it }
-
+    suspend fun hentEllerOpprettNavAnsatt(navIdent: String): NavAnsatt = repository.get(navIdent) ?: run {
         log.info("Fant ikke Nav-ansatt med ident $navIdent, henter fra amt-person-service")
-        val navAnsatt = amtPersonServiceClient.hentNavAnsatt(navIdent)
-        return oppdaterNavAnsatt(navAnsatt)
+        oppdaterNavAnsatt(amtPersonServiceClient.hentNavAnsatt(navIdent))
     }
 
-    suspend fun hentEllerOpprettNavAnsatt(id: UUID): NavAnsatt {
-        repository.get(id)?.let { return it }
-
+    suspend fun hentEllerOpprettNavAnsatt(id: UUID): NavAnsatt = repository.get(id) ?: run {
         log.info("Fant ikke Nav-ansatt med id $id, henter fra amt-person-service")
-        val navAnsatt = amtPersonServiceClient.hentNavAnsatt(id)
-        return oppdaterNavAnsatt(navAnsatt)
+        oppdaterNavAnsatt(amtPersonServiceClient.hentNavAnsatt(id))
     }
 
     fun getMany(ider: Set<UUID>): List<NavAnsatt> = repository.getManyById(ider)
 
     suspend fun oppdaterNavAnsatt(navAnsatt: NavAnsatt): NavAnsatt {
-        navAnsatt.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
+        navAnsatt.navEnhetId?.also { navEnhetService.hentEllerOpprettNavEnhet(it) }
         return repository.upsert(navAnsatt)
     }
 
