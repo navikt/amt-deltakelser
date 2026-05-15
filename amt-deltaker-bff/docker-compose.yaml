@@ -50,7 +50,7 @@ services:
           "tokenCallbacks": [
             {
               "issuerId": "azure",
-              "tokenExpiry": 3600,
+              "tokenExpiry": 315360000,
               "requestMappings": [
                 {
                   "requestParam": "grant_type",
