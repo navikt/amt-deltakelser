@@ -23,7 +23,7 @@ fun tryHandleUnleashRequest(exchange: HttpExchange): Boolean {
         }
 
         path == UNLEASH_PATH_PREFIX || path == "$UNLEASH_PATH_PREFIX/api" -> {
-            respondJson(exchange, 200, "{" + "\"status\":\"ok\"" + "}")
+            respondJson(exchange, 200, """{"status":"ok"}""")
             true
         }
 
@@ -52,16 +52,9 @@ private fun unleashFeaturesJson(): String {
         "amt.prioriter-synkron-kommunikasjon",
         "amt.oppdater-alle-aktivitetskort",
     ).joinToString(",") { feature ->
-        "{" +
-            "\"name\":\"$feature\"," +
-            "\"enabled\":false," +
-            "\"strategies\":[]" +
-            "}"
+        """{"name":"$feature","enabled":false,"strategies":[]}"""
     }
 
-    return "{" +
-        "\"version\":1," +
-        "\"features\":[" + features + "]" +
-        "}"
+    return """{"version":1,"features":[$features]}"""
 }
 
