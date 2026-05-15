@@ -85,7 +85,9 @@ class TiltakskoordinatorResponseBuilder(
 
         // kjør uavhengige DB-spørringer parallelt på IO-dispatcher, men begrens samtidighet
         // via en delt semaphore (se [DB_SEMAPHORE]) slik at totalt antall samtidige DB-spørringer
-        // på tvers av alle requests aldri overstiger [MAX_PARALLEL_DB_QUERIES].
+        // som er pakket inn av semaforen på tvers av alle requests aldri overstiger
+        // [MAX_PARALLEL_DB_QUERIES]. NB: DB-operasjonene inni `digitalBrukerService` (1 SELECT +
+        // ev. 1 UPSERT) kjører bevisst utenfor semaforen — se kommentar lenger ned.
         return withContext(Dispatchers.IO) {
             val navAnsatteDeferred = async { DB_SEMAPHORE.withPermit { navAnsattService.hentNavAnsatteForDeltakere(deltakere) } }
             val navEnheterDeferred = async { DB_SEMAPHORE.withPermit { navEnhetService.hentNavEnheterForDeltakere(deltakere) } }
@@ -174,10 +176,12 @@ class TiltakskoordinatorResponseBuilder(
 
     companion object {
         /**
-         * Maks antall parallelle DB-spørringer **på tvers av alle samtidige requests** i prosessen.
-         * HikariCP er konfigurert med 10 connections totalt; ved å reservere 6 til denne builderen
-         * sikrer vi at minst 4 connections alltid er ledige til andre endepunkter, uavhengig av
-         * hvor mange tiltakskoordinator-kall som kjører samtidig.
+         * Maks antall parallelle DB-spørringer **pakket inn av [DB_SEMAPHORE]** på tvers av alle
+         * samtidige requests i prosessen. HikariCP er konfigurert med 10 connections totalt;
+         * ved å reservere 6 til de tunge bulk-spørringene i denne builderen sikrer vi at minst
+         * 4 connections er ledige til andre endepunkter. NB: dette er ikke en hard øvre grense
+         * for samtidig DB-bruk — små DB-operasjoner som ligger utenfor semaforen
+         * (f.eks. cache-oppslag i `DigitalBrukerService`) er ikke talt med.
          */
         private const val MAX_PARALLEL_DB_QUERIES = 6
 
