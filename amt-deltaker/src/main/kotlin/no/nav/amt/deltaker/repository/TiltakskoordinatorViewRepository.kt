@@ -69,11 +69,11 @@ class TiltakskoordinatorViewRepository {
                 ne.navn                         AS "ne.navn",
 
                 -- sokt-inn-dato (COALESCE av 3 kilder).
-                -- v_all har ingen gyldig_til-filter — vedtak.deltaker_id er UNIQUE så maks 1 rad.
+                -- vedtak.deltaker_id er UNIQUE (V51) så maks 1 rad — én JOIN dekker begge behov.
                 COALESCE(
                     (ifa.deltaker_ved_import->>'innsoktDato')::date,
                     ipfo.innsokt::date,
-                    v_all.created_at::date
+                    v.created_at::date
                 )                               AS sokt_inn_dato,
 
                 -- har aktivt forslag (preaggregert via LATERAL)
@@ -85,8 +85,8 @@ class TiltakskoordinatorViewRepository {
                 -- digital bruker cache (null = utdatert eller mangler)
                 dbc.er_digital                  AS "dbc.er_digital",
 
-                -- felter for låse-sjekk (kun fra gyldig vedtak)
-                v_active.fattet AS "v.fattet",
+                -- felter for låse-sjekk (fattet kun når vedtaket er gyldig, dvs. gyldig_til IS NULL)
+                CASE WHEN v.gyldig_til IS NULL THEN v.fattet ELSE NULL END AS "v.fattet",
                 (ifa.deltaker_ved_import->>'innsoktDato')::date AS innsoekt_dato_arena
             FROM
                 deltaker d
@@ -95,12 +95,8 @@ class TiltakskoordinatorViewRepository {
                     d.id = ds.deltaker_id
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                -- Gyldig vedtak — kun for låse-felt (v_active.fattet)
-                LEFT JOIN vedtak v_active ON
-                    v_active.deltaker_id = d.id
-                    AND v_active.gyldig_til IS NULL
-                -- Alle vedtak (UNIQUE deltaker_id garanterer maks 1 rad) — for sokt-inn-dato fallback
-                LEFT JOIN vedtak v_all ON v_all.deltaker_id = d.id
+                -- Enkel vedtak-JOIN (UNIQUE deltaker_id garanterer maks 1 rad)
+                LEFT JOIN vedtak v ON v.deltaker_id = d.id
                 LEFT JOIN nav_ansatt na ON na.id = nb.nav_veileder_id
                 LEFT JOIN nav_enhet ne ON ne.id = nb.nav_enhet_id
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id

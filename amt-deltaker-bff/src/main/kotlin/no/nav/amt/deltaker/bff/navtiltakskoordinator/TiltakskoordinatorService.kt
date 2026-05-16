@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJULTE_STATUSER
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
@@ -14,7 +15,6 @@ import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.util.UUID
 
@@ -83,13 +83,7 @@ class TiltakskoordinatorService(
         return deltakerRepository.get(deltakeroppdatering.id).getOrThrow().toTiltakskoordinatorsDeltaker()
     }
 
-    fun TiltakskoordinatorsDeltaker.skalSkjules() = status.type in listOf(
-        DeltakerStatus.Type.KLADD,
-        DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-        DeltakerStatus.Type.AVBRUTT_UTKAST,
-        DeltakerStatus.Type.FEILREGISTRERT,
-        DeltakerStatus.Type.PABEGYNT_REGISTRERING,
-    )
+    fun TiltakskoordinatorsDeltaker.skalSkjules() = status.type in SKJULTE_STATUSER
 
     private suspend fun Deltaker.toTiltakskoordinatorsDeltaker() = listOf(this).toTiltakskoordinatorsDeltaker().first()
 

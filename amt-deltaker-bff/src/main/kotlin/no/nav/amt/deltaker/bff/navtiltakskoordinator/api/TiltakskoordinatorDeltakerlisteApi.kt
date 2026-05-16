@@ -17,13 +17,13 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJULTE_STATUSER
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper.toDeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.util.UUID
 
@@ -230,11 +230,3 @@ fun RoutingContext.getDeltakerlisteId(): UUID {
         throw IllegalArgumentException("URL parameter 'deltakerlisteId' er ikke formattert riktig.")
     }
 }
-
-private val SKJULTE_STATUSER = setOf(
-    DeltakerStatus.Type.KLADD,
-    DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-    DeltakerStatus.Type.AVBRUTT_UTKAST,
-    DeltakerStatus.Type.FEILREGISTRERT,
-    DeltakerStatus.Type.PABEGYNT_REGISTRERING,
-)
