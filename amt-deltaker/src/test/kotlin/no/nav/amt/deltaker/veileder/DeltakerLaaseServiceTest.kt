@@ -39,10 +39,10 @@ class DeltakerLaaseServiceTest {
             // Arrange
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(deltakerInTest.navBruker.personident),
-                    deltakerInTest.deltakerliste.id,
+                    personident = deltakerInTest.navBruker.personident,
+                    deltakerlisteId = deltakerInTest.deltakerliste.id,
                 )
-            } returns emptyMap()
+            } returns emptyList()
 
             // Act
             val thrown = shouldThrow<IllegalArgumentException> {
@@ -58,13 +58,11 @@ class DeltakerLaaseServiceTest {
             // Arrange
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(deltakerInTest.navBruker.personident),
-                    deltakerInTest.deltakerliste.id,
+                    personident = deltakerInTest.navBruker.personident,
+                    deltakerlisteId = deltakerInTest.deltakerliste.id,
                 )
-            } returns mapOf(
-                deltakerInTest.navBruker.personident to listOf(
-                    laaseInfo(deltakerInTest.id, deltakerInTest.navBruker.personident),
-                ),
+            } returns listOf(
+                laaseInfo(deltakerInTest.id),
             )
 
             // Act
@@ -77,28 +75,23 @@ class DeltakerLaaseServiceTest {
         @Test
         fun `skal returnere true hvis deltaker ikke er nyeste deltaker`() {
             // Arrange
-            val personident = deltakerInTest.navBruker.personident
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(personident),
-                    deltakerInTest.deltakerliste.id,
+                    personident = deltakerInTest.navBruker.personident,
+                    deltakerlisteId = deltakerInTest.deltakerliste.id,
                 )
-            } returns mapOf(
-                personident to listOf(
-                    laaseInfo(
-                        id = deltakerInTest.id,
-                        personident = personident,
-                        statusType = DeltakerStatus.Type.DELTAR,
-                        statusGyldigFra = LocalDateTime.now().minusDays(1),
-                        vedtakFattet = LocalDateTime.now().minusDays(1),
-                    ),
-                    laaseInfo(
-                        id = tidligereDeltakerInTest.id,
-                        personident = personident,
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        statusGyldigFra = LocalDateTime.now().minusMonths(2),
-                        vedtakFattet = LocalDateTime.now().minusMonths(2),
-                    ),
+            } returns listOf(
+                laaseInfo(
+                    id = deltakerInTest.id,
+                    statusType = DeltakerStatus.Type.DELTAR,
+                    statusGyldigFra = LocalDateTime.now().minusDays(1),
+                    vedtakFattet = LocalDateTime.now().minusDays(1),
+                ),
+                laaseInfo(
+                    id = tidligereDeltakerInTest.id,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    statusGyldigFra = LocalDateTime.now().minusMonths(2),
+                    vedtakFattet = LocalDateTime.now().minusMonths(2),
                 ),
             )
 
@@ -110,14 +103,15 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `enkelt-deltaker-varianten bruker samme spissede SQL-spoerring som bulk`() {
+        fun `bruker spisset SQL-spoerring med enkelt personident`() {
             // Arrange
             every {
-                mockDeltakerRepository.getDeltakelserForLaaseSjekk(any(), any())
-            } returns mapOf(
-                deltakerInTest.navBruker.personident to listOf(
-                    laaseInfo(deltakerInTest.id, deltakerInTest.navBruker.personident),
-                ),
+                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
+                    personident = any(),
+                    deltakerlisteId = any(),
+                )
+            } returns listOf(
+                laaseInfo(deltakerInTest.id),
             )
 
             // Act
@@ -126,7 +120,7 @@ class DeltakerLaaseServiceTest {
             // Assert
             verify(exactly = 1) {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(deltakerInTest.navBruker.personident),
+                    deltakerInTest.navBruker.personident,
                     deltakerInTest.deltakerliste.id,
                 )
             }
@@ -134,167 +128,77 @@ class DeltakerLaaseServiceTest {
     }
 
     @Nested
-    inner class ErLaastForEndringerForDeltakereTests {
-        @Test
-        fun `skal returnere tom map naar deltakere er tom liste`() {
-            // Act
-            val result = sut.erLaastForEndringerForDeltakere(emptyList())
-
-            // Assert
-            result shouldBe emptyMap()
-            verify(exactly = 0) { mockDeltakerRepository.getDeltakelserForLaaseSjekk(any(), any()) }
-        }
-
-        @Test
-        fun `skal kaste feil hvis deltakere hoerer til ulike deltakerlister`() {
-            // Arrange
-            val deltaker1 = lagDeltaker()
-            val deltaker2 = lagDeltaker()
-
-            // Act
-            val thrown = shouldThrow<IllegalArgumentException> {
-                sut.erLaastForEndringerForDeltakere(listOf(deltaker1, deltaker2))
-            }
-
-            // Assert
-            thrown.message shouldBe "Alle deltakere må høre til samme deltakerliste (fant 2)"
-        }
-
-        @Test
-        fun `skal kaste feil hvis ingen deltakelser finnes for personen`() {
-            // Arrange
-            every {
-                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(deltakerInTest.navBruker.personident),
-                    deltakerInTest.deltakerliste.id,
-                )
-            } returns emptyMap()
-
-            // Act
-            val thrown = shouldThrow<IllegalArgumentException> {
-                sut.erLaastForEndringerForDeltakere(listOf(deltakerInTest))
-            }
-
-            // Assert
-            thrown.message shouldBe "Fant ingen deltakelser i deltakerliste med deltaker-id ${deltakerInTest.id}"
-        }
-
-        @Test
-        fun `skal returnere false naar personen kun har en deltakelse`() {
-            // Arrange
-            every {
-                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(deltakerInTest.navBruker.personident),
-                    deltakerInTest.deltakerliste.id,
-                )
-            } returns mapOf(
-                deltakerInTest.navBruker.personident to listOf(
-                    laaseInfo(deltakerInTest.id, deltakerInTest.navBruker.personident),
-                ),
-            )
-
-            // Act
-            val result = sut.erLaastForEndringerForDeltakere(listOf(deltakerInTest))
-
-            // Assert
-            result shouldBe mapOf(deltakerInTest.id to false)
-        }
-
-        @Test
-        fun `skal laase eldre deltakelse og frigi nyeste aktive`() {
-            // Arrange
-            val personident = deltakerInTest.navBruker.personident
-            val nyeste = deltakerInTest
-            val eldre = tidligereDeltakerInTest
-
-            every {
-                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(personident),
-                    nyeste.deltakerliste.id,
-                )
-            } returns mapOf(
-                personident to listOf(
-                    laaseInfo(
-                        id = nyeste.id,
-                        personident = personident,
-                        statusType = DeltakerStatus.Type.DELTAR,
-                        statusGyldigFra = LocalDateTime.now().minusDays(1),
-                        vedtakFattet = LocalDateTime.now().minusDays(1),
-                    ),
-                    laaseInfo(
-                        id = eldre.id,
-                        personident = personident,
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        statusGyldigFra = LocalDateTime.now().minusMonths(2),
-                        vedtakFattet = LocalDateTime.now().minusMonths(2),
-                    ),
-                ),
-            )
-
-            // Act
-            val result = sut.erLaastForEndringerForDeltakere(listOf(nyeste, eldre))
-
-            // Assert
-            result shouldBe mapOf(
-                nyeste.id to false,
-                eldre.id to true,
-            )
-        }
-
+    inner class PrioriteringTests {
         @Test
         fun `skal prioritere aktiv status foran nyere avsluttet status`() {
             // Arrange
-            val personident = deltakerInTest.navBruker.personident
             val aktiv = deltakerInTest
             val nyereAvsluttet = tidligereDeltakerInTest
 
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(personident),
-                    aktiv.deltakerliste.id,
+                    personident = aktiv.navBruker.personident,
+                    deltakerlisteId = aktiv.deltakerliste.id,
                 )
-            } returns mapOf(
-                personident to listOf(
-                    // Avsluttet er nyere i tid, men ikke aktiv
-                    laaseInfo(
-                        id = nyereAvsluttet.id,
-                        personident = personident,
-                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                        statusGyldigFra = LocalDateTime.now(),
-                        vedtakFattet = LocalDateTime.now(),
-                    ),
-                    // Aktiv, men eldre
-                    laaseInfo(
-                        id = aktiv.id,
-                        personident = personident,
-                        statusType = DeltakerStatus.Type.DELTAR,
-                        statusGyldigFra = LocalDateTime.now().minusMonths(1),
-                        vedtakFattet = LocalDateTime.now().minusMonths(1),
-                    ),
+            } returns listOf(
+                laaseInfo(
+                    id = nyereAvsluttet.id,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    statusGyldigFra = LocalDateTime.now(),
+                    vedtakFattet = LocalDateTime.now(),
+                ),
+                laaseInfo(
+                    id = aktiv.id,
+                    statusType = DeltakerStatus.Type.DELTAR,
+                    statusGyldigFra = LocalDateTime.now().minusMonths(1),
+                    vedtakFattet = LocalDateTime.now().minusMonths(1),
                 ),
             )
 
-            // Act
-            val result = sut.erLaastForEndringerForDeltakere(listOf(aktiv, nyereAvsluttet))
+            // Act + Assert: aktiv låses ikke, nyere avsluttet låses
+            sut.erLaastForEndringer(aktiv) shouldBe false
+            sut.erLaastForEndringer(nyereAvsluttet) shouldBe true
+        }
 
-            // Assert
-            result shouldBe mapOf(
-                aktiv.id to false,
-                nyereAvsluttet.id to true,
+        @Test
+        fun `skal laase eldre deltakelse og frigi nyeste aktive`() {
+            // Arrange
+            val nyeste = deltakerInTest
+            val eldre = tidligereDeltakerInTest
+
+            every {
+                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
+                    personident = nyeste.navBruker.personident,
+                    deltakerlisteId = nyeste.deltakerliste.id,
+                )
+            } returns listOf(
+                laaseInfo(
+                    id = nyeste.id,
+                    statusType = DeltakerStatus.Type.DELTAR,
+                    statusGyldigFra = LocalDateTime.now().minusDays(1),
+                    vedtakFattet = LocalDateTime.now().minusDays(1),
+                ),
+                laaseInfo(
+                    id = eldre.id,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    statusGyldigFra = LocalDateTime.now().minusMonths(2),
+                    vedtakFattet = LocalDateTime.now().minusMonths(2),
+                ),
             )
+
+            sut.erLaastForEndringer(nyeste) shouldBe false
+            sut.erLaastForEndringer(eldre) shouldBe true
         }
     }
 
     private fun laaseInfo(
         id: UUID,
-        personident: String,
         statusType: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
         statusGyldigFra: LocalDateTime = LocalDateTime.now(),
         vedtakFattet: LocalDateTime? = null,
         innsoektDatoFraArena: LocalDate? = null,
     ) = DeltakelseLaaseInfo(
         id = id,
-        personident = personident,
         statusType = statusType,
         statusGyldigFra = statusGyldigFra,
         vedtakFattet = vedtakFattet,

@@ -297,7 +297,7 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         amtDistribusjonClient = amtDistribusjonClient,
         forslagRepository = forslagRepository,
-        ulesteHendelseService = ulestHendelseService,
+        ulestHendelseRepository = ulestHendelseRepository,
     )
 
     val tilgangskontrollService = TilgangskontrollService(
@@ -350,7 +350,7 @@ fun Application.module() {
             unleashToggle,
         ),
         ArrangorMeldingConsumer(forslagRepository),
-        DeltakerEndringHendelseConsumer(ulestHendelseService),
+        DeltakerEndringHendelseConsumer(ulestHendelseService, ulestHendelseRepository),
         NavEnhetConsumer(navEnhetService),
     )
     consumers.forEach { it.start() }
@@ -378,13 +378,13 @@ fun Application.module() {
         tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
         tiltakskoordinatorService = tiltakskoordinatorService,
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
-        ulestHendelseService = ulestHendelseService,
+        ulestHendelseRepository = ulestHendelseRepository,
         testdataService = testdataService,
         gjennomforingClient = gjennomforingClient,
         selfServiceTilgangService = selfServiceTilgangService,
         kodeverkClient = kodeverkClient,
         tiltakskoordinatorClient = tiltakskoordinatorClient,
-        tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(ulestHendelseService),
+        tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(ulestHendelseRepository),
     )
     configureMonitoring()
 

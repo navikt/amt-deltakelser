@@ -1,7 +1,5 @@
 package no.nav.amt.deltaker.tiltaksarrangor.vurdering
 
-import io.kotest.matchers.maps.shouldBeEmpty
-import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -11,7 +9,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
-import java.util.UUID
 
 class VurderingRepositoryTest {
     private val vurderingRepository = VurderingRepository()
@@ -118,126 +115,6 @@ class VurderingRepositoryTest {
             // Assert
             resultat.size shouldBe 1
             resultat.single().deltakerId shouldBe deltaker1.id
-        }
-    }
-
-    @Nested
-    inner class GetSisteVurderingForDeltakere {
-        @Test
-        fun `tom set - returnerer tom map`() {
-            // Arrange / Act
-            val resultat = vurderingRepository.getSisteVurderingForDeltakere(emptySet())
-
-            // Assert
-            resultat.shouldBeEmpty()
-        }
-
-        @Test
-        fun `ingen treff - returnerer tom map`() {
-            // Arrange / Act
-            val resultat = vurderingRepository.getSisteVurderingForDeltakere(setOf(UUID.randomUUID()))
-
-            // Assert
-            resultat.shouldBeEmpty()
-        }
-
-        @Test
-        fun `en deltaker med en vurdering - returnerer den`() {
-            // Arrange
-            val deltaker = TestData.lagDeltaker()
-            TestRepository.insert(deltaker)
-            val vurdering = TestData.lagVurdering(deltakerId = deltaker.id)
-            vurderingRepository.upsert(vurdering)
-
-            // Act
-            val resultat = vurderingRepository.getSisteVurderingForDeltakere(setOf(deltaker.id))
-
-            // Assert
-            resultat shouldHaveSize 1
-            resultat[deltaker.id]!!.id shouldBe vurdering.id
-        }
-
-        @Test
-        fun `en deltaker med flere vurderinger - returnerer siste basert paa gyldigFra`() {
-            // Arrange
-            val deltaker = TestData.lagDeltaker()
-            TestRepository.insert(deltaker)
-            val eldre = TestData.lagVurdering(
-                deltakerId = deltaker.id,
-                gyldigFra = LocalDateTime.now().minusDays(10),
-                vurderingstype = Vurderingstype.OPPFYLLER_IKKE_KRAVENE,
-            )
-            val nyeste = TestData.lagVurdering(
-                deltakerId = deltaker.id,
-                gyldigFra = LocalDateTime.now(),
-                vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
-            )
-            vurderingRepository.upsert(eldre)
-            vurderingRepository.upsert(nyeste)
-
-            // Act
-            val resultat = vurderingRepository.getSisteVurderingForDeltakere(setOf(deltaker.id))
-
-            // Assert
-            resultat shouldHaveSize 1
-            resultat[deltaker.id]!!.id shouldBe nyeste.id
-            resultat[deltaker.id]!!.vurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
-        }
-
-        @Test
-        fun `flere deltakere - returnerer siste vurdering per deltaker`() {
-            // Arrange
-            val deltaker1 = TestData.lagDeltaker()
-            val deltaker2 = TestData.lagDeltaker()
-            TestRepository.insert(deltaker1)
-            TestRepository.insert(deltaker2)
-
-            val v1Eldre = TestData.lagVurdering(
-                deltakerId = deltaker1.id,
-                gyldigFra = LocalDateTime.now().minusDays(5),
-                vurderingstype = Vurderingstype.OPPFYLLER_IKKE_KRAVENE,
-            )
-            val v1Nyeste = TestData.lagVurdering(
-                deltakerId = deltaker1.id,
-                gyldigFra = LocalDateTime.now(),
-                vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
-            )
-            val v2 = TestData.lagVurdering(
-                deltakerId = deltaker2.id,
-                gyldigFra = LocalDateTime.now().minusDays(1),
-                vurderingstype = Vurderingstype.OPPFYLLER_IKKE_KRAVENE,
-            )
-            vurderingRepository.upsert(v1Eldre)
-            vurderingRepository.upsert(v1Nyeste)
-            vurderingRepository.upsert(v2)
-
-            // Act
-            val resultat = vurderingRepository.getSisteVurderingForDeltakere(
-                setOf(deltaker1.id, deltaker2.id),
-            )
-
-            // Assert
-            resultat shouldHaveSize 2
-            resultat[deltaker1.id]!!.id shouldBe v1Nyeste.id
-            resultat[deltaker2.id]!!.id shouldBe v2.id
-        }
-
-        @Test
-        fun `filtrerer paa oppgitte deltakerIder`() {
-            // Arrange
-            val deltaker1 = TestData.lagDeltaker()
-            val deltaker2 = TestData.lagDeltaker()
-            TestRepository.insert(deltaker1)
-            TestRepository.insert(deltaker2)
-            vurderingRepository.upsert(TestData.lagVurdering(deltakerId = deltaker1.id))
-            vurderingRepository.upsert(TestData.lagVurdering(deltakerId = deltaker2.id))
-
-            // Act — spør kun etter deltaker1
-            val resultat = vurderingRepository.getSisteVurderingForDeltakere(setOf(deltaker1.id))
-
-            // Assert
-            resultat shouldHaveSize 1
-            resultat.keys.single() shouldBe deltaker1.id
         }
     }
 

@@ -11,7 +11,6 @@ import java.util.UUID
  */
 data class DeltakelseLaaseInfo(
     val id: UUID,
-    val personident: String,
     val statusType: DeltakerStatus.Type,
     val statusGyldigFra: LocalDateTime,
     val vedtakFattet: LocalDateTime?,

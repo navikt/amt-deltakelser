@@ -19,7 +19,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
@@ -34,7 +34,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
     amtDeltakerClient: AmtDeltakerClient,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
-    ulesteHendelserService: UlestHendelseService,
+    ulestHendelseRepository: UlestHendelseRepository,
     unleashToggle: CommonUnleashToggle,
 ) {
     authenticate(AuthLevel.TILTAKSKOORDINATOR.name) {
@@ -56,7 +56,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                         deltakerlisteId = deltaker.gjennomforing.id,
                     )
 
-                    val ulesteHendelser = ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId)
+                    val ulesteHendelser = ulestHendelseRepository.getForDeltaker(deltakerId)
 
                     deltaker.let {
                         ResponseMapper.buildDeltakerDetaljerResponse(
@@ -76,7 +76,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                         adressebeskyttelse = tiltakskoordinatorsDeltaker.navBruker.adressebeskyttelse,
                         deltakerlisteId = tiltakskoordinatorsDeltaker.deltakerliste.id,
                     )
-                    val ulesteHendelser = ulesteHendelserService.getUlesteHendelserForDeltaker(deltakerId)
+                    val ulesteHendelser = ulestHendelseRepository.getForDeltaker(deltakerId)
 
                     tiltakskoordinatorsDeltaker.toResponse(
                         harTilgangTilBruker = harTilgangTilBruker,

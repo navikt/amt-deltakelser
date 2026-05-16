@@ -1,4 +1,5 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse
+
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.delete
@@ -21,7 +22,7 @@ class UlestHendelseApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal returnere NoContent nar hendelse er slettet`() {
-        every { ulestHendelseService.delete(any()) } just runs
+        every { ulestHendelseRepository.delete(any()) } just runs
 
         val response = withTestApplicationContext { client ->
             client.delete("/tiltakskoordinator/ulest-hendelse/${UUID.randomUUID()}") {
@@ -31,6 +32,6 @@ class UlestHendelseApiTest : IntegrationTestBase() {
 
         response.status shouldBe HttpStatusCode.NoContent
 
-        verify { ulestHendelseService.delete(any()) }
+        verify { ulestHendelseRepository.delete(any()) }
     }
 }

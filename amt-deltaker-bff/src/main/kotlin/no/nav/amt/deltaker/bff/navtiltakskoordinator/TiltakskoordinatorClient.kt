@@ -5,7 +5,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.timeout
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
-import no.nav.amt.internapi.deltaker.response.DeltakereResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
@@ -28,16 +28,14 @@ class TiltakskoordinatorClient(
         azureAdTokenClient = azureAdTokenClient,
     ) {
     companion object {
-        // 45s timeout for endepunkter som bygger respons for store gjennomføringer.
-        // Den globale timeouten (10s) er for kort fordi N+1-mønstre i amt-deltaker
-        // gir lineær vekst i responstid med antall deltakere.
+        // Forhøyet timeout for store gjennomføringer (2000+ deltakere).
+        // Responsen er batchet server-side, men store lister kan fortsatt ta tid.
         private const val LARGE_LIST_REQUEST_TIMEOUT_MILLIS = 45_000L
     }
 
-    suspend fun getDeltakereForGjennomforing(gjennomforingId: UUID): DeltakereResponse =
+    suspend fun getDeltakereForGjennomforing(gjennomforingId: UUID): TiltakskoordinatorDeltakereResponse =
         performGet("tiltakskoordinator/deltakere/$gjennomforingId") {
-            // Bygger respons for alle deltakere på en gjennomføring (kan være 500+) er N+1-tungt
-            // i amt-deltaker. Bumpet timeout her inntil det er batche-optimalisert server-side.
+            // Store gjennomføringer kan ha 2000+ deltakere — bruk forhøyet timeout.
             timeout {
                 requestTimeoutMillis = LARGE_LIST_REQUEST_TIMEOUT_MILLIS
                 socketTimeoutMillis = LARGE_LIST_REQUEST_TIMEOUT_MILLIS

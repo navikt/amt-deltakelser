@@ -98,7 +98,7 @@ class AuthenticationTest {
                 tiltakskoordinatorTilgangskontrollService = mockk(),
                 tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
-                ulestHendelseService = mockk(),
+                ulestHendelseRepository = mockk(),
                 testdataService = mockk(),
                 paameldingClient = mockk(),
                 gjennomforingClient = mockk(),

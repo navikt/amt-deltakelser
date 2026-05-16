@@ -1,10 +1,8 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse
 
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toUlestHendelse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.lib.models.hendelse.Hendelse
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 class UlestHendelseService(
     private val ulestHendelseRepository: UlestHendelseRepository,
@@ -17,13 +15,6 @@ class UlestHendelseService(
             ?.also { ulestHendelse ->
                 ulestHendelseRepository.upsert(ulestHendelse)
                 log.info("Lagret ulest hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}")
-            } ?: { log.warn("Ikke lagret ulest hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}") }
-    }
-
-    fun getUlesteHendelserForDeltaker(deltakerId: UUID): List<UlestHendelse> = ulestHendelseRepository.getForDeltaker(deltakerId)
-
-    fun delete(hendelseId: UUID) {
-        ulestHendelseRepository.delete(hendelseId)
-        log.info("Slettet ulest hendelse $hendelseId")
+            } ?: run { log.warn("Ikke lagret ulest hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}") }
     }
 }

@@ -6,15 +6,13 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import java.util.UUID
 
-fun Routing.registerUlestHendelseApi(ulestHendelseService: UlestHendelseService) {
-    val apiPath = "/tiltakskoordinator/ulest-hendelse/{id}"
-
+fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepository) {
     authenticate(AuthLevel.TILTAKSKOORDINATOR.name) {
-        delete(apiPath) {
-            ulestHendelseService.delete(UUID.fromString(call.parameters["id"]))
+        delete("/tiltakskoordinator/ulest-hendelse/{id}") {
+            ulestHendelseRepository.delete(UUID.fromString(call.parameters["id"]))
             call.respond(HttpStatusCode.NoContent)
         }
     }

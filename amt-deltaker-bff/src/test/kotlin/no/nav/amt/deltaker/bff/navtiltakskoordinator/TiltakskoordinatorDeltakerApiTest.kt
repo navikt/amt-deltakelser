@@ -48,7 +48,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 ulesteHendelser = emptyList(),
             )
 
-            every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+            every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
             coEvery { tiltakskoordinatorService.getDeltaker(any()) } returns tiltakskoordinatorsDeltaker
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
 
@@ -80,7 +80,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
             coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltaker
 
-            every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+            every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
             every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
 
             coEvery {

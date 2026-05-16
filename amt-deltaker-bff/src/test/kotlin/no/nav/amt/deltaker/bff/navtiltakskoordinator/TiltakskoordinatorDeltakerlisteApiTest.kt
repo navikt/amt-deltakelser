@@ -15,17 +15,17 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilde
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
-import no.nav.amt.deltaker.bff.utils.TestData.lagNavBrukerResponse
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorNavBrukerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorTilgang
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostTiltakskoordinatorRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
-import no.nav.amt.internapi.deltaker.response.DeltakereResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
-    override val tiltakskoordinatorResponseBuilder = ResponseBuilder(ulestHendelseService)
+    override val tiltakskoordinatorResponseBuilder = ResponseBuilder(ulestHendelseRepository)
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
@@ -181,12 +181,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         mockTilgangTilDeltakerliste()
 
         val deltakere = (0..5)
-            .map { lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR)) }
-        val deltakereResponse = DeltakereResponse(deltakere)
+            .map { lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR)) }
+        val deltakereResponse = TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere)
 
         coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns deltakereResponse
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
 
         deltakere.forEach {
             every {
@@ -212,22 +212,16 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get deltakere - filtrerer bort skjulte deltakere`() {
+    fun `get deltakere - returnerer alle deltakere fra amt-deltaker uten ekstra filtering`() {
         mockTilgangTilDeltakerliste()
 
-        val synligDeltaker = lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-        val kladd = lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        val utkast = lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
-        val avbruttUtkast = lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT_UTKAST))
-        val feilregistrert = lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT))
-        val pabegyntRegistrering = lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.PABEGYNT_REGISTRERING))
-
-        val alleDeltakere = listOf(synligDeltaker, kladd, utkast, avbruttUtkast, feilregistrert, pabegyntRegistrering)
+        val deltaker1 = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val deltaker2 = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
 
         coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns
-            DeltakereResponse(alleDeltakere)
+            TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = listOf(deltaker1, deltaker2))
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
         every {
             tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
         } returns true
@@ -239,8 +233,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             val body = response.body<List<DeltakerResponse>>()
-            body.size shouldBe 1
-            body.single().id shouldBe synligDeltaker.id
+            body.size shouldBe 2
+            body.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
         }
     }
 
@@ -248,15 +242,15 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `get deltakere - mangler tilgang til skjermet person - kanSeInnbyggersNavn er false`() {
         mockTilgangTilDeltakerliste()
 
-        val skjermetDeltaker = lagDeltakerResponse(
-            navBruker = lagNavBrukerResponse(erSkjermet = true),
+        val skjermetDeltaker = lagTiltakskoordinatorDeltakerResponse(
+            navBruker = lagTiltakskoordinatorNavBrukerResponse(erSkjermet = true),
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
         coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns
-            DeltakereResponse(listOf(skjermetDeltaker))
+            TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = listOf(skjermetDeltaker))
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
         every {
             tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
                 any(),

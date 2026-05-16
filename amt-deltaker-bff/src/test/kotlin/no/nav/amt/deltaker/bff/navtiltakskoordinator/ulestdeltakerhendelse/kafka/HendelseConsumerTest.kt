@@ -30,7 +30,7 @@ class HendelseConsumerTest {
 
     @Test
     fun `consume - hendelse InnbyggerGodkjennUtkast - lagrer`(): Unit = runTest {
-        val consumer = DeltakerEndringHendelseConsumer(ulestHendelseService)
+        val consumer = DeltakerEndringHendelseConsumer(ulestHendelseService, ulestHendelseRepository)
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
@@ -61,7 +61,7 @@ class HendelseConsumerTest {
 
     @Test
     fun `consume - hendelse vi ikke bryr oss om - lagrer ikke`(): Unit = runTest {
-        val consumer = DeltakerEndringHendelseConsumer(ulestHendelseService)
+        val consumer = DeltakerEndringHendelseConsumer(ulestHendelseService, ulestHendelseRepository)
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
@@ -83,7 +83,7 @@ class HendelseConsumerTest {
 
     @Test
     fun `consume - hendelse tombstone - sletter`(): Unit = runTest {
-        val consumer = DeltakerEndringHendelseConsumer(ulestHendelseService)
+        val consumer = DeltakerEndringHendelseConsumer(ulestHendelseService, ulestHendelseRepository)
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )

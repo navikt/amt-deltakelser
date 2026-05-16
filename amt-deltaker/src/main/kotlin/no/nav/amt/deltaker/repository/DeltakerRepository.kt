@@ -327,21 +327,16 @@ class DeltakerRepository {
      * Unngår dermed tunge JOIN-er til `deltakerliste`, `tiltakstype`, `arrangor` og hele
      * `nav_bruker`-modellen som [buildDeltakerSql] gjør.
      *
-     * Ett kall henter låsedata for alle [personIdenter] i [deltakerlisteId].
-     *
-     * @return Map fra personident til alle deltakelser i deltakerlisten for den personen.
+     * @return Alle deltakelser i [deltakerlisteId] for gitt [personident].
      */
     fun getDeltakelserForLaaseSjekk(
-        personIdenter: Set<String>,
+        personident: String,
         deltakerlisteId: UUID,
-    ): Map<String, List<DeltakelseLaaseInfo>> {
-        if (personIdenter.isEmpty()) return emptyMap()
-
+    ): List<DeltakelseLaaseInfo> {
         val sql =
             """
             SELECT
                 d.id AS id,
-                nb.personident AS personident,
                 ds.type AS status_type,
                 ds.gyldig_fra AS status_gyldig_fra,
                 v.fattet AS vedtak_fattet,
@@ -358,55 +353,50 @@ class DeltakerRepository {
                     AND v.gyldig_til IS NULL
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id
             WHERE 
-                nb.personident = ANY(:personidenter)
+                nb.personident = :personident
                 AND d.deltakerliste_id = :deltakerliste_id
             """.trimIndent()
 
-        return Database
-            .query { session ->
-                session.run(
-                    queryOf(
-                        sql,
-                        mapOf(
-                            "personidenter" to personIdenter.toTypedArray(),
-                            "deltakerliste_id" to deltakerlisteId,
-                        ),
-                    ).map { row ->
-                        DeltakelseLaaseInfo(
-                            id = row.uuid("id"),
-                            personident = row.string("personident"),
-                            statusType = DeltakerStatus.Type.valueOf(row.string("status_type")),
-                            statusGyldigFra = row.localDateTime("status_gyldig_fra"),
-                            vedtakFattet = row.localDateTimeOrNull("vedtak_fattet"),
-                            innsoektDatoFraArena = row.localDateOrNull("innsoekt_dato_arena"),
-                        )
-                    }.asList,
-                )
-            }.groupBy { it.personident }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "personident" to personident,
+                        "deltakerliste_id" to deltakerlisteId,
+                    ),
+                ).map { row ->
+                    DeltakelseLaaseInfo(
+                        id = row.uuid("id"),
+                        statusType = DeltakerStatus.Type.valueOf(row.string("status_type")),
+                        statusGyldigFra = row.localDateTime("status_gyldig_fra"),
+                        vedtakFattet = row.localDateTimeOrNull("vedtak_fattet"),
+                        innsoektDatoFraArena = row.localDateOrNull("innsoekt_dato_arena"),
+                    )
+                }.asList,
+            )
+        }
     }
 
     /**
-     * Bulk-variant for henting av "søkt inn"-dato. Erstatter 3 sekvensielle DB-oppslag per deltaker
-     * ([ImportertFraArenaRepository.getForDeltaker], [InnsokPaaFellesOppstartRepository.getForDeltaker]
-     * og [VedtakRepository.getForDeltaker]) med **ett** kall som returnerer datoen for alle deltakere.
+     * Henter "søkt inn"-dato for én deltaker i ett spisset SQL-oppslag. Erstatter 3 sekvensielle
+     * DB-oppslag (`ImportertFraArenaRepository.getForDeltaker`,
+     * `InnsokPaaFellesOppstartRepository.getForDeltaker` og [VedtakRepository.getForDeltaker]).
      *
-     * Speiler prioriteten i [DeltakerHistorikkService.getSoktInnDato]:
+     * Bruker følgende prioritet for å finne søkt inn-dato:
      *   1. `importert_fra_arena.deltaker_ved_import.innsoktDato` (JSONB)
      *   2. `innsok_paa_felles_oppstart.innsokt::date`
      *   3. `vedtak.created_at::date`
      *
      * `COALESCE` velger første ikke-null kandidat i denne rekkefølgen.
      *
-     * @return Map fra deltaker-id til søkt-inn-dato (kan være `null` hvis deltakeren mangler både
-     * Arena-import, innsøk på felles oppstart og vedtak).
+     * @return søkt-inn-dato, eller `null` hvis deltakeren mangler både Arena-import,
+     * innsøk på felles oppstart og vedtak.
      */
-    fun getSoktInnDatoer(deltakerIder: Set<UUID>): Map<UUID, LocalDate?> {
-        if (deltakerIder.isEmpty()) return emptyMap()
-
+    fun getSoktInnDato(deltakerId: UUID): LocalDate? {
         val sql =
             """
             SELECT
-                d.id AS deltaker_id,
                 COALESCE(
                     (ifa.deltaker_ved_import->>'innsoktDato')::date,
                     ipfo.innsokt::date,
@@ -418,20 +408,17 @@ class DeltakerRepository {
                 LEFT JOIN innsok_paa_felles_oppstart ipfo ON ipfo.deltaker_id = d.id
                 LEFT JOIN vedtak v ON v.deltaker_id = d.id
             WHERE 
-                d.id = ANY(:deltaker_ider)
+                d.id = :deltaker_id
             """.trimIndent()
 
-        return Database
-            .query { session ->
-                session.run(
-                    queryOf(
-                        sql,
-                        mapOf("deltaker_ider" to deltakerIder.toTypedArray()),
-                    ).map { row ->
-                        row.uuid("deltaker_id") to row.localDateOrNull("sokt_inn_dato")
-                    }.asList,
-                )
-            }.toMap()
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("deltaker_id" to deltakerId),
+                ).map { row -> row.localDateOrNull("sokt_inn_dato") }.asSingle,
+            )
+        }
     }
 
     fun getDeltakerHvorSluttdatoSkalEndres(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->

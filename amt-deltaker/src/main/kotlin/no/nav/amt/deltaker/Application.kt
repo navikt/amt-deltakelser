@@ -56,6 +56,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
@@ -252,7 +253,6 @@ fun Application.module() {
         innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         vurderingRepository = vurderingRepository,
-        deltakerRepository = deltakerRepository,
     )
 
     val unleash = DefaultUnleash(
@@ -428,16 +428,15 @@ fun Application.module() {
         forslagRepository = forslagRepository,
         deltakerLaaseService = deltakerLaaseService,
         vurderingRepository = vurderingRepository,
+        deltakerRepository = deltakerRepository,
     )
 
+    val tiltakskoordinatorViewRepository = TiltakskoordinatorViewRepository()
+
     val tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(
+        viewRepository = tiltakskoordinatorViewRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
         arrangorService = arrangorService,
-        navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
-        deltakerHistorikkService = deltakerHistorikkService,
-        forslagRepository = forslagRepository,
-        vurderingRepository = vurderingRepository,
-        deltakerLaaseService = deltakerLaaseService,
         digitalBrukerService = digitalBrukerService,
     )
 

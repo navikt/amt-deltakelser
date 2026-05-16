@@ -13,12 +13,10 @@ import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.clients.GjennomforingClient
-import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.skalSkjules
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper.toDeltakerResponse
@@ -66,19 +64,20 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     deltakerlisteId = deltakerlisteId,
                 )
 
-                val deltakere = tiltakskoordinatorClient
+                val response = tiltakskoordinatorClient
                     .getDeltakereForGjennomforing(deltakerlisteId)
-                    .deltakere
-                    .map { ModelMapper.toDeltaker(it) }
-                    .filterNot { it.skalSkjules() }
-                    .map { deltaker ->
-                        val kanSeNavn = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
-                            navAnsattAzureId = call.getNavAnsattAzureId(),
+
+                val navAnsattAzureId = call.getNavAnsattAzureId()
+                val deltakere = responseBuilder.toDeltakerResponses(
+                    deltakere = response.deltakere,
+                    kanSeInnbyggersNavn = { deltaker ->
+                        tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                            navAnsattAzureId = navAnsattAzureId,
                             erSkjermet = deltaker.navBruker.erSkjermet,
                             adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                         )
-                        responseBuilder.toDeltakerResponse(deltaker, kanSeNavn)
-                    }
+                    },
+                )
 
                 call.respond(deltakere)
             }

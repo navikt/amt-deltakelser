@@ -7,14 +7,14 @@ import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJULTE_STATUSER
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.util.UUID
 
@@ -27,7 +27,7 @@ class TiltakskoordinatorService(
     private val navAnsattService: NavAnsattService,
     private val amtDistribusjonClient: AmtDistribusjonClient,
     private val forslagRepository: ForslagRepository,
-    private val ulesteHendelseService: UlestHendelseService,
+    private val ulestHendelseRepository: UlestHendelseRepository,
 ) {
     suspend fun getMany(deltakerIder: List<UUID>) = deltakerRepository.getMany(deltakerIder).toTiltakskoordinatorsDeltaker()
 
@@ -37,7 +37,7 @@ class TiltakskoordinatorService(
         val navVeileder = deltaker.navBruker.navVeilederId?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
         val navEnhet = deltaker.navBruker.navEnhetId?.let { navEnhetService.hentEnhet(it) }
         val forslag = forslagRepository.getForDeltaker(deltaker.id)
-        val ulesteHendelser = ulesteHendelseService.getUlesteHendelserForDeltaker(deltakerId)
+        val ulesteHendelser = ulestHendelseRepository.getForDeltaker(deltakerId)
 
         if (deltaker.navBruker.adresse == null) {
             val digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident)
@@ -83,13 +83,7 @@ class TiltakskoordinatorService(
         return deltakerRepository.get(deltakeroppdatering.id).getOrThrow().toTiltakskoordinatorsDeltaker()
     }
 
-    fun TiltakskoordinatorsDeltaker.skalSkjules() = status.type in listOf(
-        DeltakerStatus.Type.KLADD,
-        DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-        DeltakerStatus.Type.AVBRUTT_UTKAST,
-        DeltakerStatus.Type.FEILREGISTRERT,
-        DeltakerStatus.Type.PABEGYNT_REGISTRERING,
-    )
+    fun TiltakskoordinatorsDeltaker.skalSkjules() = status.type in SKJULTE_STATUSER
 
     private suspend fun Deltaker.toTiltakskoordinatorsDeltaker() = listOf(this).toTiltakskoordinatorsDeltaker().first()
 
@@ -107,7 +101,7 @@ class TiltakskoordinatorService(
                     ikkeDigitalOgManglerAdresse = !amtDistribusjonClient.digitalBruker(it.navBruker.personident)
                 }
 
-                val ulesteHendelser = ulesteHendelseService.getUlesteHendelserForDeltaker(it.id)
+                val ulesteHendelser = ulestHendelseRepository.getForDeltaker(it.id)
 
                 it.toTiltakskoordinatorsDeltaker(
                     sisteVurdering,
@@ -134,7 +128,7 @@ class TiltakskoordinatorService(
                 if (deltaker.navBruker.adresse == null) {
                     ikkeDigitalOgManglerAdresse = !amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident)
                 }
-                val ulesteHendelser = ulesteHendelseService.getUlesteHendelserForDeltaker(deltaker.id)
+                val ulesteHendelser = ulestHendelseRepository.getForDeltaker(deltaker.id)
                 deltaker.toTiltakskoordinatorsDeltaker(
                     sisteVurdering,
                     navEnheter[deltaker.navBruker.navEnhetId],

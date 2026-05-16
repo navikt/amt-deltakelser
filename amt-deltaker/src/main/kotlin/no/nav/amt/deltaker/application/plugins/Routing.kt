@@ -156,7 +156,6 @@ fun Application.configureRouting(
         registerTiltakskoordinatorApi(
             tiltaksansvarligService,
             deltakerHistorikkService,
-            deltakerRepository,
             tiltakskoordinatorResponseBuilder,
         )
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)

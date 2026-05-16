@@ -8,311 +8,326 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
-import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
+import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
-import no.nav.amt.deltaker.utils.IntegrationTestBase
-import no.nav.amt.deltaker.veileder.DeltakerLaaseService
-import no.nav.amt.internapi.deltaker.response.VurderingResponse
-import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
-import no.nav.amt.lib.models.deltaker.Vurdering
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.testing.utils.TestData
-import no.nav.amt.lib.utils.GenericCache
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Kilde
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class TiltakskoordinatorResponseBuilderTest : IntegrationTestBase() {
-    override val arrangorService: ArrangorService = mockk()
-    override val navEnhetService: NavEnhetService = mockk()
-    override val navAnsattService: NavAnsattService = mockk()
-    override val deltakerHistorikkService: DeltakerHistorikkService = mockk()
-    override val deltakerLaaseService: DeltakerLaaseService = mockk()
-    override val digitalBrukerService: DigitalBrukerService = mockk()
+class TiltakskoordinatorResponseBuilderTest {
+    private val viewRepository: TiltakskoordinatorViewRepository = mockk()
+    private val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+    private val arrangorService: ArrangorService = mockk()
+    private val digitalBrukerService: DigitalBrukerService = mockk()
 
-    @Test
-    fun `buildResponse - tom liste - returnerer tom respons uten tunge oppslag`() = runTest {
-        // Arrange — ingen deltakere, ingen mocker
-
-        // Act
-        val response = tiltakskoordinatorResponseBuilder.buildResponse(emptyList())
-
-        // Assert
-        response.deltakere shouldBe emptyList()
-        coVerify(exactly = 0) { arrangorService.getArrangorNavn(any(), any()) }
-        coVerify(exactly = 0) { navAnsattService.hentNavAnsatteForDeltakere(any()) }
-        coVerify(exactly = 0) { navEnhetService.hentNavEnheterForDeltakere(any()) }
-        coVerify(exactly = 0) { deltakerLaaseService.erLaastForEndringerForDeltakere(any()) }
-        coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
-        coVerify(exactly = 0) { deltakerHistorikkService.getSoktInnDatoer(any()) }
-        coVerify(exactly = 0) { forslagRepository.getVenterPaSvarForDeltakere(any()) }
-        coVerify(exactly = 0) { vurderingRepository.getSisteVurderingForDeltakere(any()) }
-    }
-
-    @Test
-    fun `buildResponse - flere deltakere - bygger gjennomforing og henter bulk-cacher kun en gang`() = runTest {
-        // Arrange — to deltakere som hører til samme deltakerliste
-        val navAnsatt = TestData.lagNavAnsatt()
-        val navEnhet = TestData.lagNavEnhet()
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData
-            .lagDeltakerliste()
-
-        val deltaker1 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-            deltakerliste = deltakerliste,
-        )
-        val deltaker2 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-            deltakerliste = deltakerliste,
-        )
-
-        setupFellesMocker(navAnsatt, navEnhet)
-
-        // Act
-        val response = tiltakskoordinatorResponseBuilder.buildResponse(listOf(deltaker1, deltaker2))
-
-        // Assert
-        response.deltakere.size shouldBe 2
-        // gjennomforing-objektet skal være delt mellom deltakerne (samme instans / verdi)
-        response.deltakere[0].gjennomforing shouldBe response.deltakere[1].gjennomforing
-
-        // arrangør-navn-oppslag skal kun skje én gang for hele lista
-        coVerify(exactly = 1) { arrangorService.getArrangorNavn(any(), any()) }
-
-        // bulk-cacher skal kalles én gang totalt — ikke per deltaker
-        coVerify(exactly = 1) { navAnsattService.hentNavAnsatteForDeltakere(any()) }
-        coVerify(exactly = 1) { navEnhetService.hentNavEnheterForDeltakere(any()) }
-
-        // låsing skal beregnes via bulk-metoden i én spørring — ikke per deltaker
-        coVerify(exactly = 1) { deltakerLaaseService.erLaastForEndringerForDeltakere(any()) }
-        coVerify(exactly = 0) { deltakerLaaseService.erLaastForEndringer(any<no.nav.amt.deltaker.model.Deltaker>()) }
-
-        // digital-status hentes i ett bulk-oppslag via DigitalBrukerService
-        coVerify(exactly = 1) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
-
-        // soktInnDato hentes i ett bulk-oppslag — ikke per deltaker
-        coVerify(exactly = 1) { deltakerHistorikkService.getSoktInnDatoer(any()) }
-        coVerify(exactly = 0) { deltakerHistorikkService.getSoktInnDato(any()) }
-        coVerify(exactly = 0) { deltakerHistorikkService.getForDeltaker(any(), any()) }
-    }
-
-    @Test
-    fun `buildResponse - mapper deltakerfelter korrekt og setter optimaliseringskonstantene`() = runTest {
-        // Arrange
-        val navAnsatt = TestData.lagNavAnsatt()
-        val navEnhet = TestData.lagNavEnhet()
-        val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-            startdato = LocalDate.now(),
-            sluttdato = LocalDate.now().plusDays(1),
-            dagerPerUke = 4F,
-            deltakelsesprosent = 50F,
-            bakgrunnsinformasjon = "~bakgrunnsinformasjon~",
-            erManueltDeltMedArrangor = true,
-        )
-
-        val vurdering = Vurdering(
-            id = UUID.randomUUID(),
-            deltakerId = deltaker.id,
-            opprettetAvArrangorAnsattId = UUID.randomUUID(),
-            gyldigFra = LocalDateTime.now(),
-            vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
-            begrunnelse = null,
-        )
-        val forslag = listOf(
-            Forslag(
-                id = UUID.randomUUID(),
-                deltakerId = deltaker.id,
-                opprettetAvArrangorAnsattId = UUID.randomUUID(),
-                opprettet = LocalDateTime.now(),
-                begrunnelse = "~begrunnelse~",
-                endring = Forslag.ForlengDeltakelse(LocalDate.now().plusWeeks(2)),
-                status = Forslag.Status.VenterPaSvar,
-            ),
-        )
-
-        setupFellesMocker(navAnsatt, navEnhet, vurdering = vurdering, forslag = forslag)
-
-        // Act
-        val response = tiltakskoordinatorResponseBuilder.buildResponse(listOf(deltaker))
-        val deltakerResponse = response.deltakere.single()
-
-        // Assert
-        assertSoftly(deltakerResponse) {
-            id shouldBe deltaker.id
-            startdato shouldBe deltaker.startdato.shouldNotBeNull()
-            sluttdato shouldBe deltaker.sluttdato.shouldNotBeNull()
-            dagerPerUke shouldBe deltaker.dagerPerUke.shouldNotBeNull()
-            deltakelsesprosent shouldBe deltaker.deltakelsesprosent.shouldNotBeNull()
-            bakgrunnsinformasjon shouldBe deltaker.bakgrunnsinformasjon.shouldNotBeNull()
-            status shouldBe deltaker.status
-            erManueltDeltMedArrangor shouldBe true
-            sistEndret shouldBe deltaker.sistEndret
-            kilde shouldBe deltaker.kilde
-            opprettet shouldBe deltaker.opprettet
-            prisinformasjon shouldBe deltaker.deltakerliste.prisinformasjon
-            endringsforslagFraArrangor shouldBe forslag
-            sisteVurdering shouldBe VurderingResponse.fromVurdering(vurdering)
-
-            // Optimaliseringskonstanter — disse skal ALDRI variere fra tiltakskoordinator-flyten
-            navBruker.erDigital shouldBe true // mocket via digitalBrukerService.hentErDigitalForPersonidenter
-            vedtaksinformasjon shouldBe null
-            importertFraArena shouldBe null
-            erLaastForEndringer shouldBe false
-            deltakelsesmengder shouldBe null
-            // kodeverkValg hentes aldri for koordinator-lista
-            gjennomforing.kodeverkValg shouldBe emptySet()
-        }
-    }
-
-    @Test
-    fun `buildResponse - soktInnDato hentes i bulk for alle deltakere`() = runTest {
-        // Arrange
-        val navAnsatt = TestData.lagNavAnsatt()
-        val navEnhet = TestData.lagNavEnhet()
-        val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-        )
-        val forventetSoktInn = LocalDate.now().minusMonths(1)
-
-        setupFellesMocker(navAnsatt, navEnhet, soktInnDato = forventetSoktInn)
-
-        // Act
-        val response = tiltakskoordinatorResponseBuilder.buildResponse(listOf(deltaker))
-
-        // Assert
-        response.deltakere.single().soktInnDato shouldBe forventetSoktInn
-        coVerify(exactly = 1) { deltakerHistorikkService.getSoktInnDatoer(setOf(deltaker.id)) }
-        coVerify(exactly = 0) { deltakerHistorikkService.getSoktInnDato(any()) }
-    }
-
-    @Test
-    fun `buildResponse - forslag og vurdering hentes i bulk for alle deltakere`() = runTest {
-        // Arrange
-        val navAnsatt = TestData.lagNavAnsatt()
-        val navEnhet = TestData.lagNavEnhet()
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData
-            .lagDeltakerliste()
-        val deltaker1 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-            deltakerliste = deltakerliste,
-        )
-        val deltaker2 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
-            deltakerliste = deltakerliste,
-        )
-
-        val forslag1 = lagForslag(
-            deltakerId = deltaker1.id,
-            status = Forslag.Status.VenterPaSvar,
-        )
-        val forslag2 = lagForslag(
-            deltakerId = deltaker2.id,
-            status = Forslag.Status.VenterPaSvar,
-        )
-        val vurdering1 = lagVurdering(
-            deltakerId = deltaker1.id,
-            gyldigFra = LocalDateTime.now(),
-        )
-
-        setupFellesMocker(
-            navAnsatt,
-            navEnhet,
-            forslag = listOf(forslag1, forslag2),
-            vurderingListe = listOf(vurdering1),
-        )
-
-        // Act
-        val response = tiltakskoordinatorResponseBuilder.buildResponse(listOf(deltaker1, deltaker2))
-
-        // Assert
-        response.deltakere[0].endringsforslagFraArrangor shouldBe listOf(forslag1)
-        response.deltakere[1].endringsforslagFraArrangor shouldBe listOf(forslag2)
-        response.deltakere[0].sisteVurdering shouldBe VurderingResponse.fromVurdering(vurdering1)
-        response.deltakere[1].sisteVurdering shouldBe null
-
-        // bulk-metoder kalles én gang — ikke per deltaker
-        coVerify(exactly = 1) { forslagRepository.getVenterPaSvarForDeltakere(any()) }
-        coVerify(exactly = 0) { forslagRepository.getForDeltaker(any()) }
-        coVerify(exactly = 1) { vurderingRepository.getSisteVurderingForDeltakere(any()) }
-        coVerify(exactly = 0) { vurderingRepository.getForDeltaker(any()) }
-    }
-
-    private fun setupFellesMocker(
-        navAnsatt: NavAnsatt,
-        navEnhet: NavEnhet,
-        vurdering: Vurdering? = null,
-        vurderingListe: List<Vurdering> = listOfNotNull(vurdering),
-        forslag: List<Forslag> = emptyList(),
-        soktInnDato: LocalDate? = null,
-    ) {
-        val ansatteCache: GenericCache<NavAnsatt> = GenericCache(
-            cacheName = "navAnsatte",
-            items = listOf(navAnsatt),
-            idSelector = { it.id },
-        )
-        val enheterCache: GenericCache<NavEnhet> = GenericCache(
-            cacheName = "navEnheter",
-            items = listOf(navEnhet),
-            idSelector = { it.id },
-        )
-
-        coEvery { navAnsattService.hentNavAnsatteForDeltakere(any()) } returns ansatteCache
-        coEvery { navEnhetService.hentNavEnheterForDeltakere(any()) } returns enheterCache
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
-        every { vurderingRepository.getSisteVurderingForDeltakere(any()) } answers {
-            val ider = firstArg<Set<UUID>>()
-            val sistePerDeltaker = vurderingListe
-                .filter { it.deltakerId in ider }
-                .groupBy { it.deltakerId }
-                .mapValues { (_, v) -> v.maxBy { it.gyldigFra } }
-            sistePerDeltaker
-        }
-        every { forslagRepository.getVenterPaSvarForDeltakere(any()) } answers {
-            val ider = firstArg<Set<UUID>>()
-            forslag
-                .filter { it.deltakerId in ider && it.status is Forslag.Status.VenterPaSvar }
-                .groupBy { it.deltakerId }
-        }
-        every { deltakerHistorikkService.getSoktInnDatoer(any()) } answers {
-            firstArg<Set<UUID>>().associateWith { soktInnDato }
-        }
-        every { deltakerLaaseService.erLaastForEndringerForDeltakere(any()) } answers {
-            firstArg<List<no.nav.amt.deltaker.model.Deltaker>>().associate { it.id to false }
-        }
-        coEvery { digitalBrukerService.hentErDigitalForPersonidenter(any()) } answers {
-            firstArg<Set<String>>().associateWith { true }
-        }
-    }
-
-    private fun lagForslag(
-        deltakerId: UUID,
-        status: Forslag.Status,
-    ) = Forslag(
-        id = UUID.randomUUID(),
-        deltakerId = deltakerId,
-        opprettetAvArrangorAnsattId = UUID.randomUUID(),
-        opprettet = LocalDateTime.now(),
-        begrunnelse = null,
-        endring = Forslag.ForlengDeltakelse(LocalDate.now().plusWeeks(2)),
-        status = status,
+    private val builder = TiltakskoordinatorResponseBuilder(
+        viewRepository = viewRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
+        arrangorService = arrangorService,
+        digitalBrukerService = digitalBrukerService,
     )
 
-    private fun lagVurdering(
-        deltakerId: UUID,
-        gyldigFra: LocalDateTime,
-    ) = Vurdering(
+    private val gjennomforingId = UUID.randomUUID()
+    private val defaultDeltakerliste = no.nav.amt.deltaker.utils.data.TestData
+        .lagDeltakerliste()
+
+    private fun mockGjennomforing() {
+        every { deltakerlisteRepository.get(gjennomforingId) } returns Result.success(defaultDeltakerliste)
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "Arrangør Navn"
+    }
+
+    @Test
+    fun `buildResponse - gjennomforing finnes ikke - returnerer tom respons`() = runTest {
+        every { deltakerlisteRepository.get(gjennomforingId) } returns Result.failure(NoSuchElementException())
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere shouldBe emptyList()
+        response.gjennomforing shouldBe null
+        coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
+    }
+
+    @Test
+    fun `buildResponse - flere deltakere med fersk cache - ingen HTTP-fallback`() = runTest {
+        mockGjennomforing()
+        val row1 = lagRow(
+            erDigitalCached = true,
+            navVeilederNavn = "Veileder 1",
+            navVeilederId = UUID.randomUUID(),
+            navEnhetNavn = "NAV Enhet",
+            navEnhetId = UUID.randomUUID(),
+        )
+        val row2 = lagRow(
+            erDigitalCached = true,
+            navVeilederNavn = "Veileder 2",
+            navVeilederId = UUID.randomUUID(),
+            navEnhetNavn = "NAV Enhet",
+            navEnhetId = UUID.randomUUID(),
+        )
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row1, row2)
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere.size shouldBe 2
+        response.gjennomforing.shouldNotBeNull()
+        coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
+    }
+
+    @Test
+    fun `buildResponse - mapper deltakerfelter korrekt`() = runTest {
+        mockGjennomforing()
+        val soktInn = LocalDate.now().minusMonths(1)
+        val row = lagRow(
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
+            erManueltDeltMedArrangor = true,
+            soktInnDato = soktInn,
+            harAktivtForslag = true,
+            sisteVurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
+            erDigitalCached = true,
+            navVeilederId = UUID.randomUUID(),
+            navVeilederNavn = "Veileder Navn",
+            navEnhetId = UUID.randomUUID(),
+            navEnhetNavn = "NAV Enhet",
+        )
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
+
+        val response = builder.buildResponse(gjennomforingId)
+        val deltakerResponse = response.deltakere.single()
+
+        assertSoftly(deltakerResponse) {
+            id shouldBe row.id
+            startdato shouldBe row.startdato.shouldNotBeNull()
+            sluttdato shouldBe row.sluttdato.shouldNotBeNull()
+            status shouldBe row.status
+            erManueltDeltMedArrangor shouldBe true
+            sistEndret shouldBe row.sistEndret
+            kilde shouldBe row.kilde
+            opprettet shouldBe row.opprettet
+            soktInnDato shouldBe soktInn
+            harAktivtForslag shouldBe true
+            sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
+            navBruker.erDigital shouldBe true
+            navBruker.navVeileder?.navn shouldBe "Veileder Navn"
+            navBruker.navEnhet shouldBe "NAV Enhet"
+            erLaastForEndringer shouldBe false
+        }
+    }
+
+    @Test
+    fun `buildResponse - manglende digital cache gir HTTP-fallback`() = runTest {
+        mockGjennomforing()
+        val row = lagRow(erDigitalCached = null)
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
+        coEvery { digitalBrukerService.hentErDigitalForPersonidenter(setOf(row.personident)) } returns mapOf(
+            row.personident to true,
+        )
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere
+            .single()
+            .navBruker.erDigital shouldBe true
+        coVerify(exactly = 1) { digitalBrukerService.hentErDigitalForPersonidenter(setOf(row.personident)) }
+    }
+
+    @Test
+    fun `buildResponse - forslag og vurdering fra SQL uten ekstra spørringer`() = runTest {
+        mockGjennomforing()
+        val row1 = lagRow(harAktivtForslag = true, sisteVurderingstype = Vurderingstype.OPPFYLLER_KRAVENE, erDigitalCached = true)
+        val row2 = lagRow(harAktivtForslag = false, sisteVurderingstype = null, erDigitalCached = true)
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row1, row2)
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere[0].harAktivtForslag shouldBe true
+        response.deltakere[1].harAktivtForslag shouldBe false
+        response.deltakere[0].sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
+        response.deltakere[1].sisteVurderingstype shouldBe null
+        coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
+    }
+
+    @Test
+    fun `buildResponse - flere deltakelser for samme person - returnerer kun nyeste`() = runTest {
+        mockGjennomforing()
+        val personident = "12345678901"
+
+        val gammelAvsluttet = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            statusGyldigFra = LocalDateTime.now().minusMonths(6),
+            vedtakFattet = LocalDateTime.now().minusMonths(8),
+            erDigitalCached = true,
+        )
+        val nyAktiv = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.DELTAR,
+            statusGyldigFra = LocalDateTime.now().minusDays(10),
+            vedtakFattet = LocalDateTime.now().minusDays(14),
+            erDigitalCached = true,
+        )
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(gammelAvsluttet, nyAktiv)
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere.size shouldBe 1
+        response.deltakere.single().id shouldBe nyAktiv.id
+    }
+
+    @Test
+    fun `buildResponse - flere deltakelser for samme person uten aktiv - velger nyeste`() = runTest {
+        mockGjennomforing()
+        val personident = "12345678901"
+
+        val eldreAvsluttet = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            statusGyldigFra = LocalDateTime.now().minusMonths(6),
+            vedtakFattet = LocalDateTime.now().minusMonths(8),
+            erDigitalCached = true,
+        )
+        val nyereAvsluttet = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+            statusGyldigFra = LocalDateTime.now().minusDays(10),
+            vedtakFattet = LocalDateTime.now().minusDays(14),
+            erDigitalCached = true,
+        )
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(eldreAvsluttet, nyereAvsluttet)
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere.size shouldBe 1
+        response.deltakere.single().id shouldBe nyereAvsluttet.id
+    }
+
+    @Test
+    fun `buildResponse - aktiv status velges over nyere avsluttet deltakelse`() = runTest {
+        mockGjennomforing()
+        val personident = "12345678901"
+
+        val aktiv = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            statusGyldigFra = LocalDateTime.now().minusDays(30),
+            vedtakFattet = LocalDateTime.now().minusDays(30),
+            erDigitalCached = true,
+        )
+        val nyereAvsluttet = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            statusGyldigFra = LocalDateTime.now().minusDays(5),
+            vedtakFattet = LocalDateTime.now().minusDays(3),
+            erDigitalCached = true,
+        )
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(nyereAvsluttet, aktiv)
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere.size shouldBe 1
+        response.deltakere.single().id shouldBe aktiv.id
+    }
+
+    @Test
+    fun `buildResponse - ulike personer gir en rad per person`() = runTest {
+        mockGjennomforing()
+
+        val person1Aktiv = lagRow(
+            personident = "11111111111",
+            statusType = DeltakerStatus.Type.DELTAR,
+            erDigitalCached = true,
+        )
+        val person1Avsluttet = lagRow(
+            personident = "11111111111",
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            statusGyldigFra = LocalDateTime.now().minusMonths(3),
+            vedtakFattet = LocalDateTime.now().minusMonths(4),
+            erDigitalCached = true,
+        )
+        val person2Aktiv = lagRow(
+            personident = "22222222222",
+            statusType = DeltakerStatus.Type.DELTAR,
+            erDigitalCached = true,
+        )
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(person1Aktiv, person1Avsluttet, person2Aktiv)
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere.size shouldBe 2
+        response.deltakere.map { it.id }.toSet() shouldBe setOf(person1Aktiv.id, person2Aktiv.id)
+    }
+
+    private var personidentCounter = 0
+
+    private fun lagRow(
+        personident: String = "1234567${"%04d".format(++personidentCounter)}",
+        statusType: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
+        statusGyldigFra: LocalDateTime = LocalDateTime.now(),
+        vedtakFattet: LocalDateTime? = null,
+        innsoektDatoArena: LocalDate? = null,
+        navVeilederId: UUID? = null,
+        navVeilederNavn: String? = null,
+        navVeilederEpost: String? = null,
+        navVeilederTelefon: String? = null,
+        navEnhetId: UUID? = null,
+        navEnhetNavn: String? = null,
+        startdato: LocalDate? = null,
+        sluttdato: LocalDate? = null,
+        erManueltDeltMedArrangor: Boolean = false,
+        soktInnDato: LocalDate? = null,
+        harAktivtForslag: Boolean = false,
+        sisteVurderingstype: Vurderingstype? = null,
+        erDigitalCached: Boolean? = false,
+    ) = TiltakskoordinatorDeltakerRow(
         id = UUID.randomUUID(),
-        deltakerId = deltakerId,
-        opprettetAvArrangorAnsattId = UUID.randomUUID(),
-        gyldigFra = gyldigFra,
-        vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
-        begrunnelse = null,
+        personident = personident,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        sistEndret = LocalDateTime.now(),
+        kilde = Kilde.KOMET,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        opprettet = LocalDateTime.now(),
+        status = DeltakerStatus(
+            id = UUID.randomUUID(),
+            type = statusType,
+            aarsak = null,
+            gyldigFra = statusGyldigFra,
+            gyldigTil = null,
+            opprettet = LocalDateTime.now(),
+        ),
+        fornavn = "Fornavn",
+        mellomnavn = null,
+        etternavn = "Etternavn",
+        erSkjermet = false,
+        adresse = null,
+        adressebeskyttelse = null,
+        navVeilederId = navVeilederId,
+        navVeilederNavn = navVeilederNavn,
+        navVeilederEpost = navVeilederEpost,
+        navVeilederTelefon = navVeilederTelefon,
+        navEnhetId = navEnhetId,
+        navEnhetNavn = navEnhetNavn,
+        soktInnDato = soktInnDato,
+        harAktivtForslag = harAktivtForslag,
+        sisteVurderingstype = sisteVurderingstype,
+        erDigitalCached = erDigitalCached,
+        vedtakFattet = vedtakFattet,
+        innsoektDatoArena = innsoektDatoArena,
     )
 }
