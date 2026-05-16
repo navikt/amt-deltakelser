@@ -10,6 +10,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
+import no.nav.amt.deltaker.repository.GjennomforingRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -31,9 +32,16 @@ class TiltakskoordinatorResponseBuilderTest {
 
     private val gjennomforingId = UUID.randomUUID()
 
+    private val defaultDeltakerliste = no.nav.amt.deltaker.utils.data.TestData
+        .lagDeltakerliste()
+    private val defaultGjennomforingRow = GjennomforingRow(
+        deltakerliste = defaultDeltakerliste,
+        overordnetArrangorNavn = null,
+    )
+
     @Test
-    fun `buildResponse - tom liste - returnerer tom respons uten oppslag`() = runTest {
-        every { viewRepository.getForTiltakskoordinatorView(gjennomforingId) } returns emptyList()
+    fun `buildResponse - gjennomforing finnes ikke - returnerer tom respons`() = runTest {
+        every { viewRepository.getGjennomforing(gjennomforingId) } returns null
 
         val response = builder.buildResponse(gjennomforingId)
 
@@ -44,27 +52,23 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - flere deltakere med fersk cache - ingen HTTP-fallback`() = runTest {
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData
-            .lagDeltakerliste()
-
         val row1 = lagRow(
-            deltakerliste = deltakerliste,
-            navVeilederId = UUID.randomUUID(),
-            navVeilederNavn = "Veileder 1",
-            navEnhetId = UUID.randomUUID(),
-            navEnhetNavn = "NAV Enhet",
             erDigitalCached = true,
+            navVeilederNavn = "Veileder 1",
+            navVeilederId = UUID.randomUUID(),
+            navEnhetNavn = "NAV Enhet",
+            navEnhetId = UUID.randomUUID(),
         )
         val row2 = lagRow(
-            deltakerliste = deltakerliste,
-            navVeilederId = UUID.randomUUID(),
-            navVeilederNavn = "Veileder 2",
-            navEnhetId = UUID.randomUUID(),
-            navEnhetNavn = "NAV Enhet",
             erDigitalCached = true,
+            navVeilederNavn = "Veileder 2",
+            navVeilederId = UUID.randomUUID(),
+            navEnhetNavn = "NAV Enhet",
+            navEnhetId = UUID.randomUUID(),
         )
 
-        every { viewRepository.getForTiltakskoordinatorView(gjennomforingId) } returns listOf(row1, row2)
+        every { viewRepository.getGjennomforing(gjennomforingId) } returns defaultGjennomforingRow
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row1, row2)
 
         val response = builder.buildResponse(gjennomforingId)
 
@@ -75,11 +79,8 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - mapper deltakerfelter korrekt`() = runTest {
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData
-            .lagDeltakerliste()
         val soktInn = LocalDate.now().minusMonths(1)
         val row = lagRow(
-            deltakerliste = deltakerliste,
             startdato = LocalDate.now(),
             sluttdato = LocalDate.now().plusDays(1),
             erManueltDeltMedArrangor = true,
@@ -93,7 +94,8 @@ class TiltakskoordinatorResponseBuilderTest {
             navEnhetNavn = "NAV Enhet",
         )
 
-        every { viewRepository.getForTiltakskoordinatorView(gjennomforingId) } returns listOf(row)
+        every { viewRepository.getGjennomforing(gjennomforingId) } returns defaultGjennomforingRow
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
 
         val response = builder.buildResponse(gjennomforingId)
         val deltakerResponse = response.deltakere.single()
@@ -119,14 +121,10 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - manglende digital cache gir HTTP-fallback`() = runTest {
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData
-            .lagDeltakerliste()
-        val row = lagRow(
-            deltakerliste = deltakerliste,
-            erDigitalCached = null,
-        )
+        val row = lagRow(erDigitalCached = null)
 
-        every { viewRepository.getForTiltakskoordinatorView(gjennomforingId) } returns listOf(row)
+        every { viewRepository.getGjennomforing(gjennomforingId) } returns defaultGjennomforingRow
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
         coEvery { digitalBrukerService.hentErDigitalForPersonidenter(setOf(row.personident)) } returns mapOf(
             row.personident to true,
         )
@@ -141,22 +139,11 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - forslag og vurdering fra SQL uten ekstra spørringer`() = runTest {
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData
-            .lagDeltakerliste()
-        val row1 = lagRow(
-            deltakerliste = deltakerliste,
-            harAktivtForslag = true,
-            sisteVurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
-            erDigitalCached = true,
-        )
-        val row2 = lagRow(
-            deltakerliste = deltakerliste,
-            harAktivtForslag = false,
-            sisteVurderingstype = null,
-            erDigitalCached = true,
-        )
+        val row1 = lagRow(harAktivtForslag = true, sisteVurderingstype = Vurderingstype.OPPFYLLER_KRAVENE, erDigitalCached = true)
+        val row2 = lagRow(harAktivtForslag = false, sisteVurderingstype = null, erDigitalCached = true)
 
-        every { viewRepository.getForTiltakskoordinatorView(gjennomforingId) } returns listOf(row1, row2)
+        every { viewRepository.getGjennomforing(gjennomforingId) } returns defaultGjennomforingRow
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row1, row2)
 
         val response = builder.buildResponse(gjennomforingId)
 
@@ -168,7 +155,6 @@ class TiltakskoordinatorResponseBuilderTest {
     }
 
     private fun lagRow(
-        deltakerliste: no.nav.amt.deltaker.model.Deltakerliste,
         navVeilederId: UUID? = null,
         navVeilederNavn: String? = null,
         navVeilederEpost: String? = null,
@@ -211,14 +197,11 @@ class TiltakskoordinatorResponseBuilderTest {
         navVeilederTelefon = navVeilederTelefon,
         navEnhetId = navEnhetId,
         navEnhetNavn = navEnhetNavn,
-        deltakerliste = deltakerliste,
-        overordnetArrangorNavn = null,
         soktInnDato = soktInnDato,
         harAktivtForslag = harAktivtForslag,
         sisteVurderingstype = sisteVurderingstype,
         erDigitalCached = erDigitalCached,
         vedtakFattet = null,
         innsoektDatoArena = null,
-        prisinformasjon = deltakerliste.prisinformasjon,
     )
 }

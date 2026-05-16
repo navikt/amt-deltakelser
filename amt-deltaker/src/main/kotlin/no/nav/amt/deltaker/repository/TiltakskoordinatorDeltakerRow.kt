@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.repository
 
-import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -11,13 +10,11 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 /**
- * Flat data-klasse som representerer én rad fra den konsoliderte tiltakskoordinator-spørringen.
+ * Flat data-klasse som representerer én deltaker-rad fra tiltakskoordinator-spørringen.
  *
- * Inneholder alle felt som `TiltakskoordinatorResponseBuilder` trenger for å bygge
- * `TiltakskoordinatorDeltakereResponse` — uten ekstra DB-oppslag.
- *
- * Felt relatert til låse-sjekken (vedtakFattet, innsoektDatoArena, statusGyldigFra)
- * er med slik at `DeltakerLaaseService`-logikken kan kjøres direkte fra dette resultatet.
+ * Deltakerliste-/arrangør-/tiltakstype-data hentes i en egen spørring
+ * ([TiltakskoordinatorViewRepository.getGjennomforing]) for å unngå å gjenta
+ * identiske kolonner for alle deltakere (kan være 2000+).
  */
 data class TiltakskoordinatorDeltakerRow(
     // Deltaker core
@@ -46,10 +43,6 @@ data class TiltakskoordinatorDeltakerRow(
     // Nav enhet (fra nav_enhet LEFT JOIN — null hvis enhet ikke finnes i lokal DB)
     val navEnhetId: UUID?,
     val navEnhetNavn: String?,
-    // Deltakerliste (hele objektet for gjennomforing-bygging)
-    val deltakerliste: Deltakerliste,
-    // Overordnet arrangør-navn (for getArrangorNavn-logikken)
-    val overordnetArrangorNavn: String?,
     // Berikede felt — beregnet direkte i SQL
     val soktInnDato: LocalDate?,
     val harAktivtForslag: Boolean,
@@ -59,5 +52,4 @@ data class TiltakskoordinatorDeltakerRow(
     // Felter for låse-sjekk (beregnes i Kotlin fra groupBy personident)
     val vedtakFattet: LocalDateTime?,
     val innsoektDatoArena: LocalDate?,
-    val prisinformasjon: String?,
 )

@@ -13,27 +13,72 @@ import java.util.UUID
 
 class TiltakskoordinatorViewRepository {
     /**
-     * Konsolidert spørring som henter alt tiltakskoordinator-responsen trenger i **én** SQL-spørring.
-     *
-     * Erstatter den tidligere flyten med 1 hoved-spørring + 6–7 supplerende oppslag
-     * (`NavAnsattService`, `NavEnhetService`, `DeltakerLaaseService`, `DeltakerHistorikkService`,
-     * `ForslagRepository`, `VurderingRepository`, `DigitalBrukerService`) med ett enkelt kall.
-     *
-     * Resultatet inneholder nok data til å:
-     *   - Bygge `TiltakskoordinatorDeltakereResponse` direkte
-     *   - Beregne `erLaastForEndringer` i Kotlin (via groupBy personident)
-     *   - Identifisere deltakere som trenger HTTP-fallback for digital-status, nav-ansatt eller nav-enhet
+     * Henter gjennomføring (deltakerliste + tiltakstype + arrangør) i **én rad**.
+     * Returnerer `null` hvis gjennomføringen ikke finnes.
      */
-    fun getForTiltakskoordinatorView(gjennomforingId: UUID): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
+    fun getGjennomforing(gjennomforingId: UUID): GjennomforingRow? = Database.query { session ->
         session.run(
-            queryOf(SQL, mapOf("deltakerliste_id" to gjennomforingId))
-                .map(::rowMapper)
+            queryOf(GJENNOMFORING_SQL, mapOf("deltakerliste_id" to gjennomforingId))
+                .map { row ->
+                    GjennomforingRow(
+                        deltakerliste = DeltakerlisteRepository.rowMapper(row),
+                        overordnetArrangorNavn = row.stringOrNull("oa.navn"),
+                    )
+                }.asSingle,
+        )
+    }
+
+    /**
+     * Henter alle deltakere for en gjennomføring med berikede felt (soktInnDato,
+     * harAktivtForslag, sisteVurderingstype, digital-bruker-cache, låse-felt).
+     *
+     * Deltakerliste-/tiltakstype-/arrangør-kolonner er **ikke** med — de hentes via
+     * [getGjennomforing] i en egen spørring for å unngå å gjenta identiske data
+     * for alle deltakere (kan være 2000+).
+     */
+    fun getDeltakere(gjennomforingId: UUID): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
+        session.run(
+            queryOf(DELTAKERE_SQL, mapOf("deltakerliste_id" to gjennomforingId))
+                .map(::deltakerRowMapper)
                 .asList,
         )
     }
 
     companion object {
-        private val SQL =
+        private val GJENNOMFORING_SQL =
+            """
+            SELECT
+                dl.id                           AS "dl.id",
+                dl.navn                         AS "dl.navn",
+                dl.gjennomforingstype           AS "dl.gjennomforingstype",
+                dl.status                       AS "dl.status",
+                dl.start_dato                   AS "dl.start_dato",
+                dl.slutt_dato                   AS "dl.slutt_dato",
+                dl.antall_plasser               AS "dl.antall_plasser",
+                dl.oppstart                     AS "dl.oppstart",
+                dl.apent_for_pamelding          AS "dl.apent_for_pamelding",
+                dl.oppmote_sted                 AS "dl.oppmote_sted",
+                dl.pameldingstype               AS "dl.pameldingstype",
+                dl.prisinformasjon              AS "dl.prisinformasjon",
+                a.id                            AS "a.id",
+                a.navn                          AS "a.navn",
+                a.organisasjonsnummer           AS "a.organisasjonsnummer",
+                a.overordnet_arrangor_id        AS "a.overordnet_arrangor_id",
+                oa.navn                         AS "oa.navn",
+                t.id                            AS "t.id",
+                t.navn                          AS "t.navn",
+                t.tiltakskode                   AS "t.tiltakskode",
+                t.innsatsgrupper                AS "t.innsatsgrupper",
+                t.innhold                       AS "t.innhold"
+            FROM
+                deltakerliste dl
+                JOIN tiltakstype t ON t.id = dl.tiltakstype_id
+                LEFT JOIN arrangor a ON a.id = dl.arrangor_id
+                LEFT JOIN arrangor oa ON oa.id = a.overordnet_arrangor_id
+            WHERE dl.id = :deltakerliste_id
+            """.trimIndent()
+
+        private val DELTAKERE_SQL =
             """
             SELECT
                 -- deltaker
@@ -64,36 +109,6 @@ class TiltakskoordinatorViewRepository {
                 ds.gyldig_til                   AS "ds.gyldig_til",
                 ds.created_at                   AS "ds.created_at",
 
-                -- deltakerliste
-                dl.id                           AS "dl.id",
-                dl.navn                         AS "dl.navn",
-                dl.gjennomforingstype           AS "dl.gjennomforingstype",
-                dl.status                       AS "dl.status",
-                dl.start_dato                   AS "dl.start_dato",
-                dl.slutt_dato                   AS "dl.slutt_dato",
-                dl.antall_plasser               AS "dl.antall_plasser",
-                dl.oppstart                     AS "dl.oppstart",
-                dl.apent_for_pamelding          AS "dl.apent_for_pamelding",
-                dl.oppmote_sted                 AS "dl.oppmote_sted",
-                dl.pameldingstype               AS "dl.pameldingstype",
-                dl.prisinformasjon              AS "dl.prisinformasjon",
-
-                -- arrangor
-                a.id                            AS "a.id",
-                a.navn                          AS "a.navn",
-                a.organisasjonsnummer           AS "a.organisasjonsnummer",
-                a.overordnet_arrangor_id        AS "a.overordnet_arrangor_id",
-
-                -- overordnet arrangør (for getArrangorNavn-logikken)
-                oa.navn                         AS "oa.navn",
-
-                -- tiltakstype
-                t.id                            AS "t.id",
-                t.navn                          AS "t.navn",
-                t.tiltakskode                   AS "t.tiltakskode",
-                t.innsatsgrupper                AS "t.innsatsgrupper",
-                t.innhold                       AS "t.innhold",
-
                 -- nav_ansatt (veileder) — LEFT JOIN, kan være null
                 na.navn                         AS "na.navn",
                 na.epost                        AS "na.epost",
@@ -102,17 +117,18 @@ class TiltakskoordinatorViewRepository {
                 -- nav_enhet — LEFT JOIN, kan være null
                 ne.navn                         AS "ne.navn",
 
-                -- sokt-inn-dato (COALESCE av 3 kilder)
+                -- sokt-inn-dato (COALESCE av 3 kilder).
+                -- v_all har ingen gyldig_til-filter — vedtak.deltaker_id er UNIQUE så maks 1 rad.
                 COALESCE(
                     (ifa.deltaker_ved_import->>'innsoktDato')::date,
                     ipfo.innsokt::date,
-                    v.created_at::date
+                    v_all.created_at::date
                 )                               AS sokt_inn_dato,
 
                 -- har aktivt forslag (boolean fra EXISTS)
                 EXISTS (
                     SELECT 1 FROM forslag f
-                    WHERE 
+                    WHERE
                         f.deltaker_id = d.id
                         AND f.status->>'type' = 'VenterPaSvar'
                 )                               AS har_aktivt_forslag,
@@ -129,8 +145,8 @@ class TiltakskoordinatorViewRepository {
                 -- digital bruker cache (null = utdatert eller mangler)
                 dbc.er_digital                  AS "dbc.er_digital",
 
-                -- felter for låse-sjekk
-                v.fattet AS "v.fattet",
+                -- felter for låse-sjekk (kun fra gyldig vedtak)
+                v_active.fattet AS "v.fattet",
                 (ifa.deltaker_ved_import->>'innsoktDato')::date AS innsoekt_dato_arena
             FROM
                 deltaker d
@@ -139,13 +155,12 @@ class TiltakskoordinatorViewRepository {
                     d.id = ds.deltaker_id
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                JOIN deltakerliste dl ON d.deltakerliste_id = dl.id
-                JOIN tiltakstype t ON t.id = dl.tiltakstype_id
-                LEFT JOIN arrangor a ON a.id = dl.arrangor_id
-                LEFT JOIN arrangor oa ON oa.id = a.overordnet_arrangor_id
-                LEFT JOIN vedtak v ON
-                    d.id = v.deltaker_id
-                    AND v.gyldig_til IS NULL
+                -- Gyldig vedtak — kun for låse-felt (v_active.fattet)
+                LEFT JOIN vedtak v_active ON
+                    v_active.deltaker_id = d.id
+                    AND v_active.gyldig_til IS NULL
+                -- Alle vedtak (UNIQUE deltaker_id garanterer maks 1 rad) — for sokt-inn-dato fallback
+                LEFT JOIN vedtak v_all ON v_all.deltaker_id = d.id
                 LEFT JOIN nav_ansatt na ON na.id = nb.nav_veileder_id
                 LEFT JOIN nav_enhet ne ON ne.id = nb.nav_enhet_id
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id
@@ -156,7 +171,7 @@ class TiltakskoordinatorViewRepository {
             WHERE d.deltakerliste_id = :deltakerliste_id
             """.trimIndent()
 
-        private fun rowMapper(row: Row): TiltakskoordinatorDeltakerRow {
+        private fun deltakerRowMapper(row: Row): TiltakskoordinatorDeltakerRow {
             val statusType = DeltakerStatus.Type.valueOf(row.string("ds.type"))
 
             return TiltakskoordinatorDeltakerRow(
@@ -188,15 +203,12 @@ class TiltakskoordinatorViewRepository {
                 navVeilederTelefon = row.stringOrNull("na.telefon"),
                 navEnhetId = row.uuidOrNull("nb.nav_enhet_id"),
                 navEnhetNavn = row.stringOrNull("ne.navn"),
-                deltakerliste = DeltakerlisteRepository.rowMapper(row),
-                overordnetArrangorNavn = row.stringOrNull("oa.navn"),
                 soktInnDato = row.localDateOrNull("sokt_inn_dato"),
                 harAktivtForslag = row.boolean("har_aktivt_forslag"),
                 sisteVurderingstype = row.stringOrNull("siste_vurderingstype")?.let { Vurderingstype.valueOf(it) },
                 erDigitalCached = row.anyOrNull("dbc.er_digital") as? Boolean,
                 vedtakFattet = row.localDateTimeOrNull("v.fattet"),
                 innsoektDatoArena = row.localDateOrNull("innsoekt_dato_arena"),
-                prisinformasjon = row.stringOrNull("dl.prisinformasjon"),
             )
         }
     }

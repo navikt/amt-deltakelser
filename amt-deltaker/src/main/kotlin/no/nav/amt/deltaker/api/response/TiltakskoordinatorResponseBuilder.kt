@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.api.response
 
 import no.nav.amt.deltaker.AKTIVE_STATUSER
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
+import no.nav.amt.deltaker.repository.GjennomforingRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
@@ -20,14 +21,12 @@ import java.util.UUID
  * Bygger spisset respons for tiltakskoordinator-lista (`GET /tiltakskoordinator/deltakere/{gjennomforingId}`).
  * Optimalisert for kall med mange deltakere (kan være >2000 per request).
  *
- * **Konsolidert til 1 SQL-spørring** via [TiltakskoordinatorViewRepository.getForTiltakskoordinatorView].
- * Erstatter den forrige flyten med 1 hoved-spørring + 6–7 supplerende oppslag.
+ * Henter data i **to SQL-spørringer**:
+ *   1. [TiltakskoordinatorViewRepository.getGjennomforing] — deltakerliste/tiltakstype/arrangør (1 rad).
+ *   2. [TiltakskoordinatorViewRepository.getDeltakere] — alle deltakere med berikede felt (N rader).
  *
- * Den ene spørringen henter alle felt som trengs for responsen inkludert:
- *   - nav_ansatt (veileder), nav_enhet, soktInnDato, harAktivtForslag, sisteVurderingstype,
- *     digital_bruker_cache, og felter for låse-sjekk.
+ * Deltakerliste-kolonnene gjentas ikke for hver deltaker — sparer båndbredde ved store lister.
  *
- * `nav_ansatt` og `nav_enhet` hentes alltid fra SQL (FK-constraints garanterer at LEFT JOIN finner rad).
  * Eneste HTTP-fallback er for `digital_bruker_cache`-entries som er utdaterte eller mangler.
  */
 class TiltakskoordinatorResponseBuilder(
@@ -35,42 +34,39 @@ class TiltakskoordinatorResponseBuilder(
     private val digitalBrukerService: DigitalBrukerService,
 ) {
     /**
-     * Henter alle deltakere for en gjennomføring og bygger respons i **én SQL-spørring**.
+     * Henter gjennomføring og deltakere for en gjennomføring-id.
      *
-     * Eventuell HTTP-fallback gjøres kun for digital-status (utdatert/manglende cache-entry).
+     * En person kan ha flere deltakelser på samme gjennomføring (f.eks. en gammel avsluttet
+     * + en ny aktiv). Vi returnerer kun den nyeste — eldre deltakelser er uinteressante for frontend.
      */
     suspend fun buildResponse(gjennomforingId: UUID): TiltakskoordinatorDeltakereResponse {
-        val rows = viewRepository.getForTiltakskoordinatorView(gjennomforingId)
+        val gjennomforingRow = viewRepository.getGjennomforing(gjennomforingId)
+            ?: return TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = emptyList())
 
-        if (rows.isEmpty()) {
-            return TiltakskoordinatorDeltakereResponse(
-                gjennomforing = null,
-                deltakere = emptyList(),
-            )
-        }
+        val rows = viewRepository.getDeltakere(gjennomforingId)
 
-        val gjennomforingResponse = buildGjennomforingResponse(rows.first())
+        val gjennomforingResponse = buildGjennomforingResponse(gjennomforingRow)
 
-        // Beregn erLaastForEndringer fra låse-data i resultatet (gruppert per personident)
-        val laaseStatusPerDeltaker = beregnLaaseStatus(rows)
+        // Behold kun den nyeste deltakelsen per person (eldre er "låst" og uinteressant)
+        val nyesteDeltakelsePerPerson = velgNyesteDeltakelsePerPerson(rows)
 
         // Hent digital-status for deltakere uten fersk cache-entry
-        val erDigitalFallback = hentManglendeDigitalStatus(rows)
+        val erDigitalFallback = hentManglendeDigitalStatus(nyesteDeltakelsePerPerson)
 
         return TiltakskoordinatorDeltakereResponse(
             gjennomforing = gjennomforingResponse,
-            deltakere = rows.map { row ->
+            deltakere = nyesteDeltakelsePerPerson.map { row ->
                 buildDeltakerResponse(
                     row = row,
-                    erLaastForEndringer = laaseStatusPerDeltaker[row.id] ?: false,
+                    prisinformasjon = gjennomforingRow.deltakerliste.prisinformasjon,
                     erDigitalFallback = erDigitalFallback,
                 )
             },
         )
     }
 
-    private fun buildGjennomforingResponse(row: TiltakskoordinatorDeltakerRow): GjennomforingResponse {
-        val deltakerliste = row.deltakerliste
+    private fun buildGjennomforingResponse(gjennomforingRow: GjennomforingRow): GjennomforingResponse {
+        val deltakerliste = gjennomforingRow.deltakerliste
         val arrangor = deltakerliste.arrangor
 
         return GjennomforingResponse(
@@ -88,7 +84,7 @@ class TiltakskoordinatorResponseBuilder(
                 val navn = if (deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
                     it.navn
                 } else {
-                    row.overordnetArrangorNavn ?: it.navn
+                    gjennomforingRow.overordnetArrangorNavn ?: it.navn
                 }
                 ArrangorResponse(
                     navn = navn.toTitleCase(),
@@ -104,7 +100,7 @@ class TiltakskoordinatorResponseBuilder(
 
     private fun buildDeltakerResponse(
         row: TiltakskoordinatorDeltakerRow,
-        erLaastForEndringer: Boolean,
+        prisinformasjon: String?,
         erDigitalFallback: Map<String, Boolean>,
     ): TiltakskoordinatorDeltakerResponse {
         val navVeileder = row.navVeilederId?.let {
@@ -136,44 +132,35 @@ class TiltakskoordinatorResponseBuilder(
             sluttdato = row.sluttdato,
             soktInnDato = row.soktInnDato,
             erManueltDeltMedArrangor = row.erManueltDeltMedArrangor,
-            erLaastForEndringer = erLaastForEndringer,
+            // Vi returnerer kun nyeste deltakelse per person — den kan alltid endres
+            erLaastForEndringer = false,
             harAktivtForslag = row.harAktivtForslag,
             sisteVurderingstype = row.sisteVurderingstype,
             sistEndret = row.sistEndret,
             kilde = row.kilde,
             opprettet = row.opprettet,
-            prisinformasjon = row.prisinformasjon,
+            prisinformasjon = prisinformasjon,
         )
     }
 
     /**
-     * Beregner låsestatus for alle deltakere basert på data fra den konsoliderte spørringen.
-     * Speiler logikken i `DeltakerLaaseService`, men bruker data som allerede er hentet.
+     * Velger den nyeste deltakelsen per person. Speiler logikken i `DeltakerLaaseService`:
+     * sortér etter påmeldt-tidspunkt (`vedtak.fattet` eller `innsoektDatoArena`) synkende,
+     * deretter `status.gyldigFra` synkende. Foretrekk aktiv status hvis flere kandidater finnes.
      */
-    private fun beregnLaaseStatus(rows: List<TiltakskoordinatorDeltakerRow>): Map<UUID, Boolean> {
-        val perPerson = rows.groupBy { it.personident }
+    private fun velgNyesteDeltakelsePerPerson(rows: List<TiltakskoordinatorDeltakerRow>): List<TiltakskoordinatorDeltakerRow> = rows
+        .groupBy { it.personident }
+        .map { (_, deltakelser) ->
+            if (deltakelser.size == 1) return@map deltakelser.single()
 
-        return rows.associate { row ->
-            val deltakelserForPerson = perPerson[row.personident].orEmpty()
-
-            // Eneste deltakelse for denne personen → ikke låst
-            if (deltakelserForPerson.size <= 1) {
-                return@associate row.id to false
-            }
-
-            val sortert = deltakelserForPerson.sortedWith(
+            val sortert = deltakelser.sortedWith(
                 compareByDescending<TiltakskoordinatorDeltakerRow> {
                     paameldtTidspunkt(it.vedtakFattet, it.innsoektDatoArena)
                 }.thenByDescending { it.status.gyldigFra },
             )
 
-            val nyesteDeltakelse = sortert
-                .firstOrNull { it.status.type in AKTIVE_STATUSER }
-                ?: sortert.first()
-
-            row.id to (row.id != nyesteDeltakelse.id)
+            sortert.firstOrNull { it.status.type in AKTIVE_STATUSER } ?: sortert.first()
         }
-    }
 
     private fun paameldtTidspunkt(
         vedtakFattet: LocalDateTime?,
