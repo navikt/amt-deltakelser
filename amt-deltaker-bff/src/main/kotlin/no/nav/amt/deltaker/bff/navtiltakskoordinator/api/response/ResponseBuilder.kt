@@ -32,27 +32,27 @@ class ResponseBuilder(
         deltaker: TiltakskoordinatorDeltakerResponse,
         kanSeInnbyggersNavn: Boolean,
         ulesteHendelser: List<UlestHendelse>,
-    ): DeltakerResponse {
-        val (fornavn, mellomnavn, etternavn) = deltaker.navBruker.getVisningsnavn(kanSeInnbyggersNavn)
+    ): DeltakerResponse = with(deltaker) {
+        val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(kanSeInnbyggersNavn)
 
-        return DeltakerResponse(
-            id = deltaker.id,
+        DeltakerResponse(
+            id = id,
             fornavn = fornavn,
             mellomnavn = mellomnavn,
             etternavn = etternavn,
             status = DeltakerStatusResponse(
-                type = deltaker.status.type,
-                aarsak = deltaker.status.aarsak?.let {
+                type = status.type,
+                aarsak = status.aarsak?.let {
                     DeltakerStatusAarsakResponse(it.type, it.beskrivelse)
                 },
             ),
-            vurdering = deltaker.sisteVurderingstype,
-            beskyttelsesmarkering = deltaker.navBruker.beskyttelsesmarkeringer,
-            navEnhet = deltaker.navBruker.navEnhet,
-            erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
+            vurdering = sisteVurderingstype,
+            beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
+            navEnhet = navBruker.navEnhet,
+            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             feilkode = null,
-            ikkeDigitalOgManglerAdresse = deltaker.navBruker.adresse == null && !deltaker.navBruker.erDigital,
-            harAktiveForslag = deltaker.harAktivtForslag,
+            ikkeDigitalOgManglerAdresse = navBruker.adresse == null && !navBruker.erDigital,
+            harAktiveForslag = harAktivtForslag,
             erNyDeltaker = ulesteHendelser.any {
                 it.hendelse is UlestHendelseType.InnbyggerGodkjennUtkast ||
                     it.hendelse is UlestHendelseType.NavGodkjennUtkast
@@ -63,10 +63,10 @@ class ResponseBuilder(
                     it.hendelse is UlestHendelseType.AvbrytDeltakelse ||
                     it.hendelse is UlestHendelseType.ReaktiverDeltakelse
             },
-            kanEndres = !deltaker.erLaastForEndringer,
-            soktInnDato = deltaker.soktInnDato,
-            startdato = deltaker.startdato,
-            sluttdato = deltaker.sluttdato,
+            kanEndres = !erLaastForEndringer,
+            soktInnDato = soktInnDato,
+            startdato = startdato,
+            sluttdato = sluttdato,
         )
     }
 }
