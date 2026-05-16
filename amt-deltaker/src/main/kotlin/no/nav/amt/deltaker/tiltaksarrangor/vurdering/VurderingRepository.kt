@@ -27,38 +27,6 @@ open class VurderingRepository {
         )
     }
 
-    fun getSisteVurderingForDeltakere(deltakerIder: Set<UUID>): Map<UUID, Vurdering> {
-        if (deltakerIder.isEmpty()) return emptyMap()
-
-        val sql =
-            """
-            SELECT 
-                id, 
-                deltaker_id, 
-                opprettet_av_arrangor_ansatt_id, 
-                vurderingstype, 
-                begrunnelse, 
-                gyldig_fra
-            FROM (
-                SELECT *, ROW_NUMBER() OVER (
-                    PARTITION BY deltaker_id ORDER BY gyldig_fra DESC
-                ) AS rn
-                FROM vurdering
-                WHERE deltaker_id = ANY(:deltaker_ider)
-            ) sub
-            WHERE rn = 1
-            """.trimIndent()
-
-        return Database
-            .query { session ->
-                session.run(
-                    queryOf(sql, mapOf("deltaker_ider" to deltakerIder.toTypedArray()))
-                        .map(::rowMapper)
-                        .asList,
-                )
-            }.associateBy { it.deltakerId }
-    }
-
     fun upsert(vurdering: Vurdering) {
         val sql =
             """
