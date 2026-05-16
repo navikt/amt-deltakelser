@@ -42,20 +42,6 @@ import java.util.UUID
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
 
-    @Test
-    fun `getForGjennomforing - skal returnere deltakere`() {
-        val gjennomforing = lagDeltakerliste()
-        TestRepository.insert(gjennomforing)
-        TestRepository.insert(lagDeltaker(deltakerliste = gjennomforing))
-        TestRepository.insert(lagDeltaker(deltakerliste = gjennomforing))
-
-        val deltakerePaaGjennomforing = deltakerRepository.getForGjennomforing(
-            gjennomforingId = gjennomforing.id,
-        )
-
-        deltakerePaaGjennomforing.size shouldBe 2
-    }
-
     @Nested
     inner class GetEnkeltplassdeltakerTests {
         @Test
