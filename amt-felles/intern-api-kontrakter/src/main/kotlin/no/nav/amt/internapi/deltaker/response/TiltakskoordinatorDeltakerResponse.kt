@@ -1,5 +1,6 @@
 package no.nav.amt.internapi.deltaker.response
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -51,6 +52,7 @@ data class TiltakskoordinatorNavBrukerResponse(
     val navEnhet: String?,
     val erDigital: Boolean,
 ) {
+    @get:JsonIgnore
     val beskyttelsesmarkeringer: List<Beskyttelsesmarkering>
         get() = listOfNotNull(
             adressebeskyttelse?.toBeskyttelsesmarkering(),

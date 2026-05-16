@@ -76,22 +76,11 @@ class TiltakskoordinatorViewRepository {
                     v_all.created_at::date
                 )                               AS sokt_inn_dato,
 
-                -- har aktivt forslag (boolean fra EXISTS)
-                EXISTS (
-                    SELECT 1 FROM forslag f
-                    WHERE
-                        f.deltaker_id = d.id
-                        AND f.status->>'type' = 'VenterPaSvar'
-                )                               AS har_aktivt_forslag,
+                -- har aktivt forslag (preaggregert via LATERAL)
+                COALESCE(af.har_aktivt, false)  AS har_aktivt_forslag,
 
-                -- siste vurderingstype (scalar subquery)
-                (
-                    SELECT vr.vurderingstype
-                    FROM vurdering vr
-                    WHERE vr.deltaker_id = d.id
-                    ORDER BY vr.gyldig_fra DESC
-                    LIMIT 1
-                ) AS siste_vurderingstype,
+                -- siste vurderingstype (preaggregert via LATERAL)
+                sv.vurderingstype               AS siste_vurderingstype,
 
                 -- digital bruker cache (null = utdatert eller mangler)
                 dbc.er_digital                  AS "dbc.er_digital",
@@ -119,6 +108,22 @@ class TiltakskoordinatorViewRepository {
                 LEFT JOIN digital_bruker_cache dbc ON
                     dbc.personident = nb.personident
                     AND dbc.modified_at > NOW() - INTERVAL '24 hours'
+                -- Preaggregert: har minst ett aktivt forslag?
+                LEFT JOIN LATERAL (
+                    SELECT true AS har_aktivt
+                    FROM forslag f
+                    WHERE f.deltaker_id = d.id
+                      AND f.status->>'type' = 'VenterPaSvar'
+                    LIMIT 1
+                ) af ON true
+                -- Preaggregert: siste vurderingstype (utnytter composite index)
+                LEFT JOIN LATERAL (
+                    SELECT vr.vurderingstype
+                    FROM vurdering vr
+                    WHERE vr.deltaker_id = d.id
+                    ORDER BY vr.gyldig_fra DESC
+                    LIMIT 1
+                ) sv ON true
             WHERE d.deltakerliste_id = :deltakerliste_id
             """.trimIndent()
 
