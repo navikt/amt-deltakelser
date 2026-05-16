@@ -13,27 +13,11 @@ import java.util.UUID
 
 class TiltakskoordinatorViewRepository {
     /**
-     * Henter gjennomføring (deltakerliste + tiltakstype + arrangør) i **én rad**.
-     * Returnerer `null` hvis gjennomføringen ikke finnes.
-     */
-    fun getGjennomforing(gjennomforingId: UUID): GjennomforingRow? = Database.query { session ->
-        session.run(
-            queryOf(GJENNOMFORING_SQL, mapOf("deltakerliste_id" to gjennomforingId))
-                .map { row ->
-                    GjennomforingRow(
-                        deltakerliste = DeltakerlisteRepository.rowMapper(row),
-                        overordnetArrangorNavn = row.stringOrNull("oa.navn"),
-                    )
-                }.asSingle,
-        )
-    }
-
-    /**
      * Henter alle deltakere for en gjennomføring med berikede felt (soktInnDato,
      * harAktivtForslag, sisteVurderingstype, digital-bruker-cache, låse-felt).
      *
      * Deltakerliste-/tiltakstype-/arrangør-kolonner er **ikke** med — de hentes via
-     * [getGjennomforing] i en egen spørring for å unngå å gjenta identiske data
+     * [DeltakerlisteRepository.get] for å unngå å gjenta identiske data
      * for alle deltakere (kan være 2000+).
      */
     fun getDeltakere(gjennomforingId: UUID): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
@@ -45,39 +29,6 @@ class TiltakskoordinatorViewRepository {
     }
 
     companion object {
-        private val GJENNOMFORING_SQL =
-            """
-            SELECT
-                dl.id                           AS "dl.id",
-                dl.navn                         AS "dl.navn",
-                dl.gjennomforingstype           AS "dl.gjennomforingstype",
-                dl.status                       AS "dl.status",
-                dl.start_dato                   AS "dl.start_dato",
-                dl.slutt_dato                   AS "dl.slutt_dato",
-                dl.antall_plasser               AS "dl.antall_plasser",
-                dl.oppstart                     AS "dl.oppstart",
-                dl.apent_for_pamelding          AS "dl.apent_for_pamelding",
-                dl.oppmote_sted                 AS "dl.oppmote_sted",
-                dl.pameldingstype               AS "dl.pameldingstype",
-                dl.prisinformasjon              AS "dl.prisinformasjon",
-                a.id                            AS "a.id",
-                a.navn                          AS "a.navn",
-                a.organisasjonsnummer           AS "a.organisasjonsnummer",
-                a.overordnet_arrangor_id        AS "a.overordnet_arrangor_id",
-                oa.navn                         AS "oa.navn",
-                t.id                            AS "t.id",
-                t.navn                          AS "t.navn",
-                t.tiltakskode                   AS "t.tiltakskode",
-                t.innsatsgrupper                AS "t.innsatsgrupper",
-                t.innhold                       AS "t.innhold"
-            FROM
-                deltakerliste dl
-                JOIN tiltakstype t ON t.id = dl.tiltakstype_id
-                LEFT JOIN arrangor a ON a.id = dl.arrangor_id
-                LEFT JOIN arrangor oa ON oa.id = a.overordnet_arrangor_id
-            WHERE dl.id = :deltakerliste_id
-            """.trimIndent()
-
         private val DELTAKERE_SQL =
             """
             SELECT

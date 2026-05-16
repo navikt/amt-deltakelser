@@ -390,7 +390,7 @@ class DeltakerRepository {
      * DB-oppslag (`ImportertFraArenaRepository.getForDeltaker`,
      * `InnsokPaaFellesOppstartRepository.getForDeltaker` og [VedtakRepository.getForDeltaker]).
      *
-     * Speiler prioriteten i `DeltakerHistorikkService.getSoktInnDato`:
+     * Bruker følgende prioritet for å finne søkt inn-dato:
      *   1. `importert_fra_arena.deltaker_ved_import.innsoktDato` (JSONB)
      *   2. `innsok_paa_felles_oppstart.innsokt::date`
      *   3. `vedtak.created_at::date`

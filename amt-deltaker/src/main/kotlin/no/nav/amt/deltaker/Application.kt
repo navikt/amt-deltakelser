@@ -435,6 +435,8 @@ fun Application.module() {
 
     val tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(
         viewRepository = tiltakskoordinatorViewRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
+        arrangorService = arrangorService,
         digitalBrukerService = digitalBrukerService,
     )
 

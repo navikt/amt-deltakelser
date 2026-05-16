@@ -2,17 +2,17 @@ package no.nav.amt.deltaker.api.response
 
 import no.nav.amt.deltaker.AKTIVE_STATUSER
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
-import no.nav.amt.deltaker.repository.GjennomforingRow
+import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorNavBrukerResponse
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -22,7 +22,7 @@ import java.util.UUID
  * Optimalisert for kall med mange deltakere (kan være >2000 per request).
  *
  * Henter data i **to SQL-spørringer**:
- *   1. [TiltakskoordinatorViewRepository.getGjennomforing] — deltakerliste/tiltakstype/arrangør (1 rad).
+ *   1. [DeltakerlisteRepository.get] — deltakerliste/tiltakstype/arrangør (1 rad).
  *   2. [TiltakskoordinatorViewRepository.getDeltakere] — alle deltakere med berikede felt (N rader).
  *
  * Deltakerliste-kolonnene gjentas ikke for hver deltaker — sparer båndbredde ved store lister.
@@ -31,6 +31,8 @@ import java.util.UUID
  */
 class TiltakskoordinatorResponseBuilder(
     private val viewRepository: TiltakskoordinatorViewRepository,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val arrangorService: ArrangorService,
     private val digitalBrukerService: DigitalBrukerService,
 ) {
     /**
@@ -40,12 +42,12 @@ class TiltakskoordinatorResponseBuilder(
      * + en ny aktiv). Vi returnerer kun den nyeste — eldre deltakelser er uinteressante for frontend.
      */
     suspend fun buildResponse(gjennomforingId: UUID): TiltakskoordinatorDeltakereResponse {
-        val gjennomforingRow = viewRepository.getGjennomforing(gjennomforingId)
+        val deltakerliste = deltakerlisteRepository.get(gjennomforingId).getOrNull()
             ?: return TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = emptyList())
 
         val rows = viewRepository.getDeltakere(gjennomforingId)
 
-        val gjennomforingResponse = buildGjennomforingResponse(gjennomforingRow)
+        val gjennomforingResponse = buildGjennomforingResponse(deltakerliste)
 
         // Behold kun den nyeste deltakelsen per person (eldre er "låst" og uinteressant)
         val nyesteDeltakelsePerPerson = velgNyesteDeltakelsePerPerson(rows)
@@ -58,15 +60,14 @@ class TiltakskoordinatorResponseBuilder(
             deltakere = nyesteDeltakelsePerPerson.map { row ->
                 buildDeltakerResponse(
                     row = row,
-                    prisinformasjon = gjennomforingRow.deltakerliste.prisinformasjon,
+                    prisinformasjon = deltakerliste.prisinformasjon,
                     erDigitalFallback = erDigitalFallback,
                 )
             },
         )
     }
 
-    private fun buildGjennomforingResponse(gjennomforingRow: GjennomforingRow): GjennomforingResponse {
-        val deltakerliste = gjennomforingRow.deltakerliste
+    private fun buildGjennomforingResponse(deltakerliste: Deltakerliste): GjennomforingResponse {
         val arrangor = deltakerliste.arrangor
 
         return GjennomforingResponse(
@@ -81,13 +82,8 @@ class TiltakskoordinatorResponseBuilder(
             apentForPamelding = deltakerliste.apentForPamelding,
             oppmoteSted = deltakerliste.oppmoteSted,
             arrangor = arrangor?.let {
-                val navn = if (deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
-                    it.navn
-                } else {
-                    gjennomforingRow.overordnetArrangorNavn ?: it.navn
-                }
                 ArrangorResponse(
-                    navn = navn.toTitleCase(),
+                    navn = arrangorService.getArrangorNavn(it, deltakerliste.gjennomforingstype),
                     organisasjonsnummer = it.organisasjonsnummer,
                 )
             },
@@ -108,7 +104,9 @@ class TiltakskoordinatorResponseBuilder(
                 navn = row.navVeilederNavn,
                 epost = row.navVeilederEpost,
                 telefonnummer = row.navVeilederTelefon,
-            )
+            ).takeIf {
+                it.navn != null || it.epost != null || it.telefonnummer != null
+            }
         }
 
         val erDigital = row.erDigitalCached ?: erDigitalFallback[row.personident] ?: false

@@ -392,6 +392,8 @@ abstract class IntegrationTestBase {
     protected open val tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder by lazy {
         TiltakskoordinatorResponseBuilder(
             viewRepository = tiltakskoordinatorViewRepository,
+            deltakerlisteRepository = mockk(),
+            arrangorService = arrangorService,
             digitalBrukerService = digitalBrukerService,
         )
     }
