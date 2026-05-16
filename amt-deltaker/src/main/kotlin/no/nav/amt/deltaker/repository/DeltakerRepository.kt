@@ -327,21 +327,16 @@ class DeltakerRepository {
      * Unngår dermed tunge JOIN-er til `deltakerliste`, `tiltakstype`, `arrangor` og hele
      * `nav_bruker`-modellen som [buildDeltakerSql] gjør.
      *
-     * Ett kall henter låsedata for alle [personIdenter] i [deltakerlisteId].
-     *
-     * @return Map fra personident til alle deltakelser i deltakerlisten for den personen.
+     * @return Alle deltakelser i [deltakerlisteId] for gitt [personident].
      */
     fun getDeltakelserForLaaseSjekk(
-        personIdenter: Set<String>,
+        personident: String,
         deltakerlisteId: UUID,
-    ): Map<String, List<DeltakelseLaaseInfo>> {
-        if (personIdenter.isEmpty()) return emptyMap()
-
+    ): List<DeltakelseLaaseInfo> {
         val sql =
             """
             SELECT
                 d.id AS id,
-                nb.personident AS personident,
                 ds.type AS status_type,
                 ds.gyldig_fra AS status_gyldig_fra,
                 v.fattet AS vedtak_fattet,
@@ -358,31 +353,29 @@ class DeltakerRepository {
                     AND v.gyldig_til IS NULL
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id
             WHERE 
-                nb.personident = ANY(:personidenter)
+                nb.personident = :personident
                 AND d.deltakerliste_id = :deltakerliste_id
             """.trimIndent()
 
-        return Database
-            .query { session ->
-                session.run(
-                    queryOf(
-                        sql,
-                        mapOf(
-                            "personidenter" to personIdenter.toTypedArray(),
-                            "deltakerliste_id" to deltakerlisteId,
-                        ),
-                    ).map { row ->
-                        DeltakelseLaaseInfo(
-                            id = row.uuid("id"),
-                            personident = row.string("personident"),
-                            statusType = DeltakerStatus.Type.valueOf(row.string("status_type")),
-                            statusGyldigFra = row.localDateTime("status_gyldig_fra"),
-                            vedtakFattet = row.localDateTimeOrNull("vedtak_fattet"),
-                            innsoektDatoFraArena = row.localDateOrNull("innsoekt_dato_arena"),
-                        )
-                    }.asList,
-                )
-            }.groupBy { it.personident }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "personident" to personident,
+                        "deltakerliste_id" to deltakerlisteId,
+                    ),
+                ).map { row ->
+                    DeltakelseLaaseInfo(
+                        id = row.uuid("id"),
+                        statusType = DeltakerStatus.Type.valueOf(row.string("status_type")),
+                        statusGyldigFra = row.localDateTime("status_gyldig_fra"),
+                        vedtakFattet = row.localDateTimeOrNull("vedtak_fattet"),
+                        innsoektDatoFraArena = row.localDateOrNull("innsoekt_dato_arena"),
+                    )
+                }.asList,
+            )
+        }
     }
 
     /**

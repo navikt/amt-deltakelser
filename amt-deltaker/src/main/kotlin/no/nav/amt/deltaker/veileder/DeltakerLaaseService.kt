@@ -29,15 +29,14 @@ class DeltakerLaaseService(
      * @return `true` dersom deltakeren er låst, ellers `false`
      */
     fun erLaastForEndringer(deltaker: Deltaker): Boolean {
-        val deltakelserPerPerson = deltakerRepository.getDeltakelserForLaaseSjekk(
-            personIdenter = setOf(deltaker.navBruker.personident),
+        val deltakelser = deltakerRepository.getDeltakelserForLaaseSjekk(
+            personident = deltaker.navBruker.personident,
             deltakerlisteId = deltaker.deltakerliste.id,
         )
-        val deltakelserForPerson = deltakelserPerPerson[deltaker.navBruker.personident].orEmpty()
-        require(deltakelserForPerson.any()) {
+        require(deltakelser.isNotEmpty()) {
             "Fant ingen deltakelser i deltakerliste med deltaker-id ${deltaker.id}"
         }
-        return erLaastForEndringer(deltaker.id, deltakelserForPerson)
+        return erLaastForEndringer(deltaker.id, deltakelser)
     }
 
     private fun erLaastForEndringer(

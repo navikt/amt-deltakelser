@@ -188,19 +188,16 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             every {
                 deltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(deltakerInTest.navBruker.personident),
+                    deltakerInTest.navBruker.personident,
                     deltakerInTest.deltakerliste.id,
                 )
-            } returns mapOf(
-                deltakerInTest.navBruker.personident to listOf(
-                    no.nav.amt.deltaker.repository.DeltakelseLaaseInfo(
-                        id = deltakerInTest.id,
-                        personident = deltakerInTest.navBruker.personident,
-                        statusType = deltakerInTest.status.type,
-                        statusGyldigFra = deltakerInTest.status.gyldigFra,
-                        vedtakFattet = null,
-                        innsoektDatoFraArena = null,
-                    ),
+            } returns listOf(
+                no.nav.amt.deltaker.repository.DeltakelseLaaseInfo(
+                    id = deltakerInTest.id,
+                    statusType = deltakerInTest.status.type,
+                    statusGyldigFra = deltakerInTest.status.gyldigFra,
+                    vedtakFattet = null,
+                    innsoektDatoFraArena = null,
                 ),
             )
 
