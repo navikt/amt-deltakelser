@@ -44,7 +44,7 @@ spec:
           for: 3m
           annotations:
               title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har feil i SendVentendeVarslerJob'
-              summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har hatt en høy andel feil i loggene for SendVentendeVarslerJob de siste 20 minuttene.'
+              summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har hatt mer enn 3 feil i SendVentendeVarslerJob de siste 20 minuttene.'
               action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs {{ $labels.pod }}`'
               resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger som normalt for SendVentendeVarslerJob'
           labels:
@@ -176,8 +176,8 @@ spec:
           for: 1m
           annotations:
             title: 'Appen `{{ $labels.app }}` har problemer med å prosessere meldinger'
-            summary: 'En eller flere Kafka-meldinger er ikke prossesert riktig'
-            action: "Sjekk `arena_data` tabellen i `{{ $labels.app }}` slik: `select * from arena_data where ingest_status = 'FAILED';`"
+            summary: 'En eller flere Kafka-meldinger er ikke prosessert riktig'
+            action: "Sjekk `arena_data`-tabellen i `{{ $labels.app }}` slik: `select * from arena_data where ingest_status = 'FAILED';`"
             resolved: '`{{ $labels.app }}` prosesserer meldinger som normalt'
           labels:
             namespace: amt
@@ -190,7 +190,7 @@ spec:
           for: 1m
           annotations:
             title: 'Appen `{{ $labels.app }}` har problemer med å prosessere meldinger'
-            summary: "En eller flere Kafka-meldinger er ikke prossesert riktig"
+            summary: "En eller flere Kafka-meldinger er ikke prosessert riktig"
             action: "Sjekk `kafka_consumer_record`-tabellen i `{{ $labels.app }}` slik: `select * from kafka_consumer_record;`"
             resolved: '`{{ $labels.app }}` prosesserer meldinger som normalt'
           labels:
