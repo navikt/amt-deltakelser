@@ -119,4 +119,3 @@ class TiltakskoordinatorNavBrukerResponseTest {
         response.getVisningsnavn(tilgangTilBruker = true) shouldBe Triple("Fornavn", null, "Etternavn")
     }
 }
-
