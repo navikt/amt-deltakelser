@@ -25,8 +25,8 @@ spec:
 
         # Sjekk antallet errors over tid (per pod)
         - alert: LogsErrorCount
-          expr: sum by (app, namespace, pod) (rate(log_messages_errors{level="Error", namespace="amt"}[10m])) > 5
-          for: 10m
+          expr: sum by (app, namespace, pod) (increase(log_messages_errors{level="Error", namespace="amt"}[10m])) > 5
+          for: 1m
           annotations:
             title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger mange feil'
             summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har hatt mer enn 5 feil i loggene de siste 10 minuttene.'
