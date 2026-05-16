@@ -7,14 +7,13 @@ import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.veileder.DeltakerLaaseService.Companion.paameldtTidspunkt
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorNavBrukerResponse
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 /**
@@ -153,20 +152,15 @@ class TiltakskoordinatorResponseBuilder(
 
             val sortert = deltakelser.sortedWith(
                 compareByDescending<TiltakskoordinatorDeltakerRow> {
-                    paameldtTidspunkt(it.vedtakFattet, it.innsoektDatoArena)
+                    paameldtTidspunkt(
+                        vedtakFattet = it.vedtakFattet,
+                        innsoektDatoFraArena = it.innsoektDatoArena,
+                    )
                 }.thenByDescending { it.status.gyldigFra },
             )
 
             sortert.firstOrNull { it.status.type in AKTIVE_STATUSER } ?: sortert.first()
         }
-
-    private fun paameldtTidspunkt(
-        vedtakFattet: LocalDateTime?,
-        innsoektDatoFraArena: LocalDate?,
-    ): LocalDateTime? = listOfNotNull(
-        vedtakFattet,
-        innsoektDatoFraArena?.atStartOfDay(),
-    ).maxOrNull()
 
     /**
      * Henter digital-status via HTTP for deltakere uten fersk cache-entry i `digital_bruker_cache`.

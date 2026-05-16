@@ -49,7 +49,10 @@ class DeltakerLaaseService(
         val sortert = deltakelserForPerson
             .sortedWith(
                 compareByDescending<DeltakelseLaaseInfo> {
-                    paameldtTidspunkt(it.vedtakFattet, it.innsoektDatoFraArena)
+                    paameldtTidspunkt(
+                        vedtakFattet = it.vedtakFattet,
+                        innsoektDatoFraArena = it.innsoektDatoFraArena,
+                    )
                 }.thenByDescending { it.statusGyldigFra },
             )
 
@@ -65,11 +68,13 @@ class DeltakerLaaseService(
         }
     }
 
-    private fun paameldtTidspunkt(
-        vedtakFattet: LocalDateTime?,
-        innsoektDatoFraArena: LocalDate?,
-    ): LocalDateTime? = listOfNotNull(
-        vedtakFattet,
-        innsoektDatoFraArena?.atStartOfDay(),
-    ).maxOrNull()
+    companion object {
+        fun paameldtTidspunkt(
+            vedtakFattet: LocalDateTime?,
+            innsoektDatoFraArena: LocalDate?,
+        ): LocalDateTime? = listOfNotNull(
+            vedtakFattet,
+            innsoektDatoFraArena?.atStartOfDay(),
+        ).maxOrNull()
+    }
 }
