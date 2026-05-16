@@ -23,15 +23,16 @@ spec:
             severity: warning
             alert_type: custom
 
-        # Sjekk antallet errors over tid (per pod)
+        # Sjekk antallet errors over tid (per app — total feilmengde er signalet,
+        # uavhengig av hvilken pod som tok requesten)
         - alert: LogsErrorCount
-          expr: sum by (app, namespace, pod) (increase(log_messages_errors{level="Error", namespace="amt"}[10m])) > 5
+          expr: sum by (app, namespace) (increase(log_messages_errors{level="Error", namespace="amt"}[10m])) > 5
           for: 1m
           annotations:
-            title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger mange feil'
-            summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har hatt mer enn 5 feil i loggene de siste 10 minuttene.'
-            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs {{ $labels.pod }}`'
-            resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger som normalt'
+            title: 'Applikasjonen `{{ $labels.app }}` logger mange feil'
+            summary: 'Applikasjonen `{{ $labels.app }}` har hatt mer enn 5 feil i loggene de siste 10 minuttene.'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
+            resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt'
           labels:
             namespace: amt
             severity: warning

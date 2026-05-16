@@ -23,30 +23,31 @@ spec:
             severity: warning
             alert_type: custom
 
-        # Sjekk antallet errors over tid (per pod)
+        # Sjekk antallet errors over tid (per app — total feilmengde er signalet,
+        # uavhengig av hvilken pod som tok requesten)
         - alert: LogsErrorCount
-          expr: sum by (app, namespace, pod) (increase(log_messages_errors{level="Error",namespace="amt"}[10m])) > 5
+          expr: sum by (app, namespace) (increase(log_messages_errors{level="Error",namespace="amt"}[10m])) > 5
           for: 1m
           annotations:
-            title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger mange feil'
-            summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har hatt mer enn 5 feil i loggene de siste 10 minuttene.'
-            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs {{ $labels.pod }}`'
-            resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger som normalt'
+            title: 'Applikasjonen `{{ $labels.app }}` logger mange feil'
+            summary: 'Applikasjonen `{{ $labels.app }}` har hatt mer enn 5 feil i loggene de siste 10 minuttene.'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
+            resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt'
           labels:
             namespace: amt
             severity: warning
             alert_type: custom
 
-        # Egen alert for SendVentendeVarslerJob (per pod)
+        # Egen alert for SendVentendeVarslerJob (per app — jobb-level signal)
         # Om antall Error hvor message inneholder "SendVentendeVarslerJob" i løpet av 20 minutter er større enn 3, og dette vedvarer i 3 minutter, så trigges alerten
         - alert: SendVentendeVarslerJobErrors
-          expr: sum by (app, namespace, pod) (increase(log_messages_errors{level="Error", namespace="amt", message=~".*SendVentendeVarslerJob.*"}[20m])) > 3
+          expr: sum by (app, namespace) (increase(log_messages_errors{level="Error", namespace="amt", message=~".*SendVentendeVarslerJob.*"}[20m])) > 3
           for: 3m
           annotations:
-              title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har feil i SendVentendeVarslerJob'
-              summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har hatt mer enn 3 feil i SendVentendeVarslerJob de siste 20 minuttene.'
-              action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs {{ $labels.pod }}`'
-              resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger som normalt for SendVentendeVarslerJob'
+              title: 'Applikasjonen `{{ $labels.app }}` har feil i SendVentendeVarslerJob'
+              summary: 'Applikasjonen `{{ $labels.app }}` har hatt mer enn 3 feil i SendVentendeVarslerJob de siste 20 minuttene.'
+              action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
+              resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt for SendVentendeVarslerJob'
           labels:
               namespace: amt
               severity: warning
