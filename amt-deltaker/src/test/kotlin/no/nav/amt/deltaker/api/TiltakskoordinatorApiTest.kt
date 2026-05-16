@@ -54,7 +54,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     fun `getDeltakereForGjennomforing - har tilgang - returnerer 200 og deltakere fra tiltakskoordinatorResponseBuilder`() {
         val gjennomforingId = UUID.randomUUID()
         val deltakerResponse = mockk<TiltakskoordinatorDeltakerResponse>(relaxed = true)
-        val expectedResponse = TiltakskoordinatorDeltakereResponse(gjennomforing = null, listOf(deltakerResponse))
+        val expectedResponse = TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = listOf(deltakerResponse))
 
         coEvery { tiltakskoordinatorResponseBuilder.buildResponse(gjennomforingId) } returns expectedResponse
 

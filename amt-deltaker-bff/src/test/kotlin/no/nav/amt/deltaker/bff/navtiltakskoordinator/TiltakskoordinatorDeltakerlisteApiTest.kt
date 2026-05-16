@@ -219,7 +219,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         val deltaker2 = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
 
         coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns
-            TiltakskoordinatorDeltakereResponse(gjennomforing = null, listOf(deltaker1, deltaker2))
+            TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = listOf(deltaker1, deltaker2))
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
         every {
@@ -248,7 +248,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         )
 
         coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns
-            TiltakskoordinatorDeltakereResponse(gjennomforing = null, listOf(skjermetDeltaker))
+            TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = listOf(skjermetDeltaker))
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
         every {
