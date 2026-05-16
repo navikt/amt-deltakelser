@@ -9,29 +9,29 @@ spec:
   groups:
     - name: amt-application-alerts
       rules:
-        # Sjekk mengden errors i loggen
+        # Sjekk mengden errors i loggen (per pod, slik at én støyende pod ikke gjemmes bak gjennomsnittet)
         - alert: LogsErrorRate
-          expr: (100 * sum by (app, namespace) (rate(log_messages_errors{level="Error", namespace="amt"}[3m])) / sum by (app, namespace) (rate(log_messages_total{namespace="amt"}[3m]))) > 1
+          expr: (100 * sum by (app, namespace, pod) (rate(log_messages_errors{level="Error", namespace="amt"}[3m])) / sum by (app, namespace, pod) (rate(log_messages_total{namespace="amt"}[3m]))) > 1
           for: 3m
           annotations:
-            title: 'Applikasjonen `{{ $labels.app }}` logger mye feil'
-            summary: 'Applikasjonen `{{ $labels.app }}` har hatt en høy andel feil i loggene de siste 3 minuttene.'
-            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
-            resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt'
+            title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har høy andel feil i loggene'
+            summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har hatt en høy andel feil i loggene de siste 3 minuttene.'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs {{ $labels.pod }}`'
+            resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger som normalt'
           labels:
             namespace: amt
             severity: warning
             alert_type: custom
 
-        # Sjekk antallet errors over tid
+        # Sjekk antallet errors over tid (per pod)
         - alert: LogsErrorCount
-          expr: sum by (app, namespace) (rate(log_messages_errors{level="Error", namespace="amt"}[10m])) > 5
-          for: 10m
+          expr: sum by (app, namespace, pod) (increase(log_messages_errors{level="Error", namespace="amt"}[10m])) > 5
+          for: 1m
           annotations:
-            title: 'Applikasjonen `{{ $labels.app }}` logger mange feil'
-            summary: 'Applikasjonen `{{ $labels.app }}` har hatt mer enn 5 feil i loggene de siste 10 minuttene.'
-            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
-            resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt'
+            title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger mange feil'
+            summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har hatt mer enn 5 feil i loggene de siste 10 minuttene.'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs {{ $labels.pod }}`'
+            resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` logger som normalt'
           labels:
             namespace: amt
             severity: warning
@@ -70,7 +70,7 @@ spec:
           expr: sum by(group, topic) (kafka_consumergroup_group_lag{group=~"^amt-.*",client_id!="unknown"}) > 10
           for: 3m
           annotations:
-            title: 'Konsumenten `{{ $labels.group }}` har treghet i mottak av Kafka-meldinger'
+            title: 'Konsumenten `{{ $labels.group }}` har treghet på topic `{{ $labels.topic }}`'
             summary: 'Forsinkelsen ved mottak av Kafka-meldinger for `{{ $labels.group }}` på topic `{{ $labels.topic }}` overstiger terskelen.'
             action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana> eller NAIS Console for telemetri og logger.'
             resolved: 'Konsumenten `{{ $labels.group }}` oppfører seg normalt'
@@ -81,15 +81,18 @@ spec:
 
     - name: amt-runtime-alerts
       rules:
-        # Sjekk CPU-bruk (tilpass terskel etter behov)
+        # Sjekk CPU-bruk per pod i absolutte CPU-kjerner.
+        # `rate(jvm_cpu_time_seconds_total[5m])` gir CPU-sekunder per sekund = antall kjerner i bruk.
+        # Vi bruker absolutt terskel (2 kjerner) i stedet for prosent, fordi mange pods kjører uten
+        # `limits.cpu` og dermed ikke har en meningsfull "100 %".
         - alert: HighCPUUsage
-          expr: (100 * sum by(app) (rate(jvm_cpu_time_seconds_total{namespace="amt"}[5m]))) > 80
+          expr: sum by(app, pod) (rate(jvm_cpu_time_seconds_total{namespace="amt"}[5m])) > 2
           for: 5m
           annotations:
-            title: 'Applikasjonen `{{ $labels.app }}` har høy CPU-bruk'
-            summary: 'En eller flere instanser av `{{ $labels.app }}` bruker mer enn 80% av CPU de siste 5 minuttene.'
-            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
-            resolved: 'Applikasjonen `{{ $labels.app }}` bruker nå normal CPU'
+            title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har høy CPU-bruk'
+            summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` bruker mer enn 2 CPU-kjerner de siste 5 minuttene.'
+            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs {{ $labels.pod }}`'
+            resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` bruker nå normal CPU'
           labels:
             namespace: amt
             severity: critical
@@ -100,7 +103,7 @@ spec:
           expr: (100 * sum by (app, pod) (jvm_memory_used_bytes{namespace="amt", area="heap"})) / sum by (app, pod) (jvm_memory_max_bytes{namespace="amt", area="heap"}) > 50
           for: 3m
           annotations:
-            title: 'Applikasjonen `{{ $labels.app }}` har høyt minneforbruk for pod `{{ $labels.pod }}`'
+            title: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har høyt minneforbruk'
             summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` bruker mer enn 50% av heap-minne'
             action: 'Sjekk Grafana (<https://grafana.nav.cloud.nais.io>), NAIS Console, eller hent logger med `kubectl logs {{ $labels.pod }}`.'
             resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.app }}` har normalt minneforbruk'
@@ -109,7 +112,7 @@ spec:
             severity: critical
             alert_type: custom
 
-        # Sjekk manglende POD replicas (uten offset)
+        # Sjekk manglende pod replicas (uten offset)
         - alert: InstanceDown
           expr: sum by (deployment, namespace) (kube_deployment_status_replicas_available{namespace="amt"}) == 0
           for: 3m
@@ -123,22 +126,23 @@ spec:
             severity: critical
             alert_type: custom
 
-        # Sjekk POD restart status
+        # Sjekk pod restart status (per pod). `container` er container-navnet, som på NAIS
+        # er det samme som app-navnet — så vi kan vise hvilken app det gjelder uten ekstra join.
         - alert: CrashLoopBackoff
-          expr: sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace="amt"}[5m])) > 3
+          expr: sum by (pod, container, namespace) (increase(kube_pod_container_status_restarts_total{namespace="amt", container!="POD"}[5m])) > 3
           for: 5m
           annotations:
-            title: 'POD `{{ $labels.pod }}` starter ikke'
-            summary: 'POD `{{ $labels.pod }}` har restartet mer enn 3 ganger på 5 minutter.'
-            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.pod }}`'
-            resolved: 'POD `{{ $labels.pod }}` kjører nå normalt'
+            title: 'Pod `{{ $labels.pod }}` i `{{ $labels.container }}` starter ikke'
+            summary: 'Pod `{{ $labels.pod }}` i `{{ $labels.container }}` har restartet mer enn 3 ganger på 5 minutter.'
+            action: 'Sjekk <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs {{ $labels.pod }}`'
+            resolved: 'Pod `{{ $labels.pod }}` i `{{ $labels.container }}` kjører nå normalt'
           labels:
             namespace: amt
             severity: critical
             alert_type: custom
 
         # Unik sjekk i amt-arena-acl
-        - alert: Antall meldinger i arena-acl med status FAILED > 0
+        - alert: AmtArenaAclFailedMessages
           expr: amt_arena_acl_ingest_status{app="amt-arena-acl", status="FAILED"} > 5
           for: 1m
           annotations:
@@ -152,7 +156,7 @@ spec:
             alert_type: custom
 
         # Unik sjekk i amt-tiltak
-        - alert: Antall meldinger i amt-tiltak med status FAILED > 0
+        - alert: AmtTiltakFailedMessages
           expr: amt_tiltak_antall_feilede_kafkameldinger{app="amt-tiltak"} > 5
           for: 1m
           annotations:
