@@ -103,20 +103,21 @@ class TiltakskoordinatorViewRepositoryTest {
     }
 
     @Test
-    fun `skal nullstille start- og sluttdato for FEILREGISTRERT`() {
+    fun `skal filtrere bort skjulte statuser i SQL`() {
         val deltakerliste = lagDeltakerliste()
-        val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
-            status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
-            startdato = LocalDate.now().minusDays(10),
-            sluttdato = LocalDate.now().plusDays(10),
-        )
-        TestRepository.insert(deltaker)
+        val synlig = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val kladd = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+        val feilregistrert = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT))
+        val utkast = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        TestRepository.insert(synlig)
+        TestRepository.insert(kladd)
+        TestRepository.insert(feilregistrert)
+        TestRepository.insert(utkast)
 
-        val result = repository.getDeltakere(deltakerliste.id).single()
+        val result = repository.getDeltakere(deltakerliste.id)
 
-        result.startdato.shouldBeNull()
-        result.sluttdato.shouldBeNull()
+        result shouldHaveSize 1
+        result.single().id shouldBe synlig.id
     }
 
     @Nested

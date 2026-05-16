@@ -212,21 +212,14 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get deltakere - filtrerer bort skjulte deltakere`() {
+    fun `get deltakere - returnerer alle deltakere fra amt-deltaker uten ekstra filtering`() {
         mockTilgangTilDeltakerliste()
 
-        val synligDeltaker = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-        val kladd = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        val utkast = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
-        val avbruttUtkast = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT_UTKAST))
-        val feilregistrert = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT))
-        val pabegyntRegistrering =
-            lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.PABEGYNT_REGISTRERING))
-
-        val alleDeltakere = listOf(synligDeltaker, kladd, utkast, avbruttUtkast, feilregistrert, pabegyntRegistrering)
+        val deltaker1 = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val deltaker2 = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
 
         coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns
-            TiltakskoordinatorDeltakereResponse(gjennomforing = null, alleDeltakere)
+            TiltakskoordinatorDeltakereResponse(gjennomforing = null, listOf(deltaker1, deltaker2))
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
         every {
@@ -240,8 +233,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             val body = response.body<List<DeltakerResponse>>()
-            body.size shouldBe 1
-            body.single().id shouldBe synligDeltaker.id
+            body.size shouldBe 2
+            body.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
         }
     }
 

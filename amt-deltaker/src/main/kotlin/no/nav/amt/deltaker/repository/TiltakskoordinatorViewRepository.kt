@@ -95,6 +95,7 @@ class TiltakskoordinatorViewRepository {
                     d.id = ds.deltaker_id
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
+                    AND ds.type NOT IN ('KLADD', 'UTKAST_TIL_PAMELDING', 'AVBRUTT_UTKAST', 'FEILREGISTRERT', 'PABEGYNT_REGISTRERING')
                 -- Enkel vedtak-JOIN (UNIQUE deltaker_id garanterer maks 1 rad)
                 LEFT JOIN vedtak v ON v.deltaker_id = d.id
                 LEFT JOIN nav_ansatt na ON na.id = nb.nav_veileder_id
@@ -129,8 +130,8 @@ class TiltakskoordinatorViewRepository {
             return TiltakskoordinatorDeltakerRow(
                 id = row.uuid("d.id"),
                 personident = row.string("nb.personident"),
-                startdato = if (statusType == DeltakerStatus.Type.FEILREGISTRERT) null else row.localDateOrNull("d.startdato"),
-                sluttdato = if (statusType == DeltakerStatus.Type.FEILREGISTRERT) null else row.localDateOrNull("d.sluttdato"),
+                startdato = row.localDateOrNull("d.startdato"),
+                sluttdato = row.localDateOrNull("d.sluttdato"),
                 sistEndret = row.localDateTime("d.modified_at"),
                 kilde = Kilde.valueOf(row.string("d.kilde")),
                 erManueltDeltMedArrangor = row.boolean("d.er_manuelt_delt_med_arrangor"),

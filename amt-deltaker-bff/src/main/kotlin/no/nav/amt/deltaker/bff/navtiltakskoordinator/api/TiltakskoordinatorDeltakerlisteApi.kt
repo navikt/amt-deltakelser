@@ -17,7 +17,6 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJULTE_STATUSER
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper.toDeltakerResponse
@@ -68,12 +67,9 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val response = tiltakskoordinatorClient
                     .getDeltakereForGjennomforing(deltakerlisteId)
 
-                val synligeDeltakere = response.deltakere
-                    .filterNot { it.status.type in SKJULTE_STATUSER }
-
                 val navAnsattAzureId = call.getNavAnsattAzureId()
                 val deltakere = responseBuilder.toDeltakerResponses(
-                    deltakere = synligeDeltakere,
+                    deltakere = response.deltakere,
                     kanSeInnbyggersNavn = { deltaker ->
                         tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
                             navAnsattAzureId = navAnsattAzureId,
