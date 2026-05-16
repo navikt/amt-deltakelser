@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.lib.models.hendelse.UtkastDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -104,8 +105,16 @@ class UlestHendelseRepositoryTest {
         )
         val hendelse2 = lagHendelse(
             deltaker = deltaker,
-            payload = HendelseType.EndreBakgrunnsinformasjon(
-                bakgrunnsinformasjon = "Ny bakgrunnsinformasjon",
+            payload = HendelseType.ReaktiverDeltakelse(
+                utkast = UtkastDto(
+                    startdato = LocalDate.now(),
+                    sluttdato = LocalDate.now().plusMonths(1),
+                    dagerPerUke = 5f,
+                    deltakelsesprosent = 100f,
+                    bakgrunnsinformasjon = "Reaktivering etter feilaktig avbrytelse",
+                    innhold = null,
+                ),
+                begrunnelseFraNav = "Reaktivert",
             ),
         )
 
