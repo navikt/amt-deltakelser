@@ -15,6 +15,6 @@ class UlestHendelseService(
             ?.also { ulestHendelse ->
                 ulestHendelseRepository.upsert(ulestHendelse)
                 log.info("Lagret ulest hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}")
-            } ?: { log.warn("Ikke lagret ulest hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}") }
+            } ?: run { log.warn("Ikke lagret ulest hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}") }
     }
 }

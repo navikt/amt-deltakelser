@@ -273,8 +273,10 @@ class TiltakskoordinatorResponseBuilderTest {
         response.deltakere.map { it.id }.toSet() shouldBe setOf(person1Aktiv.id, person2Aktiv.id)
     }
 
+    private var personidentCounter = 0
+
     private fun lagRow(
-        personident: String = "1234567890${(1..9).random()}",
+        personident: String = "1234567${"%04d".format(++personidentCounter)}",
         statusType: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
         statusGyldigFra: LocalDateTime = LocalDateTime.now(),
         vedtakFattet: LocalDateTime? = null,
