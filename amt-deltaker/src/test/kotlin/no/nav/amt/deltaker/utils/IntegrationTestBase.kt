@@ -45,6 +45,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
@@ -197,7 +198,6 @@ abstract class IntegrationTestBase {
             innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             vurderingRepository = vurderingRepository,
-            deltakerRepository = deltakerRepository,
         )
     }
 
@@ -383,18 +383,15 @@ abstract class IntegrationTestBase {
             forslagRepository = forslagRepository,
             deltakerLaaseService = deltakerLaaseService,
             vurderingRepository = vurderingRepository,
+            deltakerRepository = deltakerRepository,
         )
     }
 
+    protected open val tiltakskoordinatorViewRepository: TiltakskoordinatorViewRepository = mockk()
+
     protected open val tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder by lazy {
         TiltakskoordinatorResponseBuilder(
-            arrangorService = arrangorService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            deltakerHistorikkService = deltakerHistorikkService,
-            forslagRepository = forslagRepository,
-            vurderingRepository = vurderingRepository,
-            deltakerLaaseService = deltakerLaaseService,
+            viewRepository = tiltakskoordinatorViewRepository,
             digitalBrukerService = digitalBrukerService,
         )
     }

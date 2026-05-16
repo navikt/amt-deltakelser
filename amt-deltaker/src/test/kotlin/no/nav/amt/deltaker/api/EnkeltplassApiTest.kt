@@ -212,7 +212,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             every { endringFraArrangorRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
             every { importertFraArenaRepository.getForDeltaker(deltakerInTest.id) } returns null
             every { endringFraTiltakskoordinatorRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
-            every { deltakerRepository.getSoktInnDatoer(any()) } returns emptyMap()
+            every { deltakerRepository.getSoktInnDato(any()) } returns null
 
             // Act
             val response = withTestApplicationContext { client ->

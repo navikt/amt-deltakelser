@@ -6,10 +6,13 @@ import no.nav.amt.deltaker.bff.db.toPGObject
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class UlestHendelseRepository {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun getForDeltaker(deltakerId: UUID): List<UlestHendelse> {
         val query = queryOf(
             """
@@ -26,6 +29,28 @@ class UlestHendelseRepository {
         ).map(::rowMapper).asList
 
         return Database.query { session -> session.run(query) }
+    }
+
+    fun getForDeltakere(deltakerIder: Set<UUID>): Map<UUID, List<UlestHendelse>> {
+        if (deltakerIder.isEmpty()) return emptyMap()
+
+        val query = queryOf(
+            """
+            SELECT 
+                id,
+                deltaker_id,
+                opprettet,
+                ansvarlig,
+                hendelse
+            FROM ulest_hendelse
+            WHERE deltaker_id = ANY(:deltaker_ider)
+            """.trimIndent(),
+            mapOf("deltaker_ider" to deltakerIder.toTypedArray()),
+        ).map(::rowMapper).asList
+
+        return Database
+            .query { session -> session.run(query) }
+            .groupBy { it.deltakerId }
     }
 
     fun get(id: UUID): Result<UlestHendelse> = runCatching {
@@ -85,13 +110,16 @@ class UlestHendelseRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun delete(id: UUID) = Database.query { session ->
-        session.update(
-            queryOf(
-                "DELETE FROM ulest_hendelse WHERE id = :id",
-                mapOf("id" to id),
-            ),
-        )
+    fun delete(id: UUID) {
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "DELETE FROM ulest_hendelse WHERE id = :id",
+                    mapOf("id" to id),
+                ),
+            )
+        }
+        log.info("Slettet ulest hendelse $id")
     }
 
     companion object {

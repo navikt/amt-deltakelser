@@ -40,7 +40,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilde
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.deltaker.bff.testdata.registerTestdataApi
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
@@ -88,7 +88,7 @@ fun Application.configureRouting(
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
-    ulestHendelseService: UlestHendelseService,
+    ulestHendelseRepository: UlestHendelseRepository,
     testdataService: TestdataService,
     gjennomforingClient: GjennomforingClient,
     kodeverkClient: KodeverkClient,
@@ -185,7 +185,7 @@ fun Application.configureRouting(
             amtDeltakerClient = amtDeltakerClient,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
-            ulesteHendelserService = ulestHendelseService,
+            ulestHendelseRepository = ulestHendelseRepository,
             unleashToggle = commonUnleashToggle,
         )
 
@@ -201,7 +201,7 @@ fun Application.configureRouting(
             responseBuilder = tiltakskoordinatorResponseBuilder,
         )
 
-        registerUlestHendelseApi(ulestHendelseService)
+        registerUlestHendelseApi(ulestHendelseRepository)
 
         registerArrangorsokApi(arrangorsokClient = arrangorsokClient)
 

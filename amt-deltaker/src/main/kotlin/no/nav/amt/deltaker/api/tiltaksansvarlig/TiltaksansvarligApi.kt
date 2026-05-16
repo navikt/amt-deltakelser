@@ -10,7 +10,6 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
 import no.nav.amt.deltaker.extensions.getGjennomforingId
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
@@ -21,7 +20,6 @@ import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 fun Routing.registerTiltakskoordinatorApi(
     tiltaksansvarligService: TiltaksansvarligService,
     deltakerHistorikkService: DeltakerHistorikkService,
-    deltakerRepository: DeltakerRepository,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
 ) {
     fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
@@ -34,8 +32,7 @@ fun Routing.registerTiltakskoordinatorApi(
     authenticate("SYSTEM") {
         route("/tiltakskoordinator/deltakere") {
             get("/{gjennomforingId}") {
-                val deltakere = deltakerRepository.getForGjennomforing(gjennomforingId = call.getGjennomforingId())
-                call.respond(tiltakskoordinatorResponseBuilder.buildResponse(deltakere))
+                call.respond(tiltakskoordinatorResponseBuilder.buildResponse(gjennomforingId = call.getGjennomforingId()))
             }
 
             post("/del-med-arrangor") {

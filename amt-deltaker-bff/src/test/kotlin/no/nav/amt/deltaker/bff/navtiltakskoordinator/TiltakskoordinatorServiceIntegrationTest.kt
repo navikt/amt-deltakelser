@@ -14,7 +14,7 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
@@ -47,7 +47,7 @@ class TiltakskoordinatorServiceIntegrationTest {
         forslagRepository = forslagRepository,
     )
     private val amtDistribusjonClient = mockk<AmtDistribusjonClient>()
-    private val ulestHendelseService = mockk<UlestHendelseService>()
+    private val ulestHendelseRepository = mockk<UlestHendelseRepository>()
     private val tiltakskoordinatorService = TiltakskoordinatorService(
         tiltaksKoordinatorClient,
         deltakerRepository,
@@ -57,7 +57,7 @@ class TiltakskoordinatorServiceIntegrationTest {
         navAnsattService,
         amtDistribusjonClient,
         forslagRepository,
-        ulestHendelseService,
+        ulestHendelseRepository,
     )
 
     companion object {
@@ -78,7 +78,7 @@ class TiltakskoordinatorServiceIntegrationTest {
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
         every { forslagRepository.getForDeltaker(any()) } returns emptyList()
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus =
             DeltakerStatus(UUID.randomUUID(), DeltakerStatus.Type.VENTER_PA_OPPSTART, null, LocalDateTime.now(), null, LocalDateTime.now())
@@ -127,7 +127,7 @@ class TiltakskoordinatorServiceIntegrationTest {
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
         every { forslagRepository.getForDeltaker(any()) } returns emptyList()
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus = DeltakerStatus(
             id = UUID.randomUUID(),
@@ -173,7 +173,7 @@ class TiltakskoordinatorServiceIntegrationTest {
         every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
         every { forslagRepository.getForDeltaker(any()) } returns emptyList()
-        every { ulestHendelseService.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+        every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus =
             DeltakerStatus(UUID.randomUUID(), DeltakerStatus.Type.VENTELISTE, null, LocalDateTime.now(), null, LocalDateTime.now())

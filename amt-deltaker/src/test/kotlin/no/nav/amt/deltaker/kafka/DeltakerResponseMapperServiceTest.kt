@@ -7,7 +7,6 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.kafka.payload.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
@@ -65,7 +64,6 @@ class DeltakerResponseMapperServiceTest {
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
         vurderingRepository,
-        DeltakerRepository(),
     )
     private val deltakerKafkaPayloadBuilder =
         DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)

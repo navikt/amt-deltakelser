@@ -386,27 +386,24 @@ class DeltakerRepository {
     }
 
     /**
-     * Bulk-variant for henting av "søkt inn"-dato. Erstatter 3 sekvensielle DB-oppslag per deltaker
-     * ([ImportertFraArenaRepository.getForDeltaker], [InnsokPaaFellesOppstartRepository.getForDeltaker]
-     * og [VedtakRepository.getForDeltaker]) med **ett** kall som returnerer datoen for alle deltakere.
+     * Henter "søkt inn"-dato for én deltaker i ett spisset SQL-oppslag. Erstatter 3 sekvensielle
+     * DB-oppslag (`ImportertFraArenaRepository.getForDeltaker`,
+     * `InnsokPaaFellesOppstartRepository.getForDeltaker` og [VedtakRepository.getForDeltaker]).
      *
-     * Speiler prioriteten i [DeltakerHistorikkService.getSoktInnDato]:
+     * Speiler prioriteten i `DeltakerHistorikkService.getSoktInnDato`:
      *   1. `importert_fra_arena.deltaker_ved_import.innsoktDato` (JSONB)
      *   2. `innsok_paa_felles_oppstart.innsokt::date`
      *   3. `vedtak.created_at::date`
      *
      * `COALESCE` velger første ikke-null kandidat i denne rekkefølgen.
      *
-     * @return Map fra deltaker-id til søkt-inn-dato (kan være `null` hvis deltakeren mangler både
-     * Arena-import, innsøk på felles oppstart og vedtak).
+     * @return søkt-inn-dato, eller `null` hvis deltakeren mangler både Arena-import,
+     * innsøk på felles oppstart og vedtak.
      */
-    fun getSoktInnDatoer(deltakerIder: Set<UUID>): Map<UUID, LocalDate?> {
-        if (deltakerIder.isEmpty()) return emptyMap()
-
+    fun getSoktInnDato(deltakerId: UUID): LocalDate? {
         val sql =
             """
             SELECT
-                d.id AS deltaker_id,
                 COALESCE(
                     (ifa.deltaker_ved_import->>'innsoktDato')::date,
                     ipfo.innsokt::date,
@@ -418,20 +415,17 @@ class DeltakerRepository {
                 LEFT JOIN innsok_paa_felles_oppstart ipfo ON ipfo.deltaker_id = d.id
                 LEFT JOIN vedtak v ON v.deltaker_id = d.id
             WHERE 
-                d.id = ANY(:deltaker_ider)
+                d.id = :deltaker_id
             """.trimIndent()
 
-        return Database
-            .query { session ->
-                session.run(
-                    queryOf(
-                        sql,
-                        mapOf("deltaker_ider" to deltakerIder.toTypedArray()),
-                    ).map { row ->
-                        row.uuid("deltaker_id") to row.localDateOrNull("sokt_inn_dato")
-                    }.asList,
-                )
-            }.toMap()
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("deltaker_id" to deltakerId),
+                ).map { row -> row.localDateOrNull("sokt_inn_dato") }.asSingle,
+            )
+        }
     }
 
     fun getDeltakerHvorSluttdatoSkalEndres(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->

@@ -13,6 +13,7 @@ import java.util.UUID
 
 class DeltakerEndringHendelseConsumer(
     private val ulestHendelseService: UlestHendelseService,
+    private val ulestHendelseRepository: UlestHendelseRepository,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -28,7 +29,7 @@ class DeltakerEndringHendelseConsumer(
     ) {
         if (value == null) {
             log.warn("Mottok tombstone for melding med id: $key")
-            ulestHendelseService.delete(key)
+            ulestHendelseRepository.delete(key)
             return
         }
         val hendelse = objectMapper.readValue<Hendelse>(value)

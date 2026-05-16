@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.KodeverkValgRepository
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
@@ -37,6 +38,7 @@ class DeltakerResponseBuilder(
     private val forslagRepository: ForslagRepository,
     private val deltakerLaaseService: DeltakerLaaseService,
     private val vurderingRepository: VurderingRepository,
+    private val deltakerRepository: DeltakerRepository,
 ) {
     suspend fun buildDeltakerResponse(
         deltaker: Deltaker,
@@ -83,7 +85,7 @@ class DeltakerResponseBuilder(
             kilde = deltaker.kilde,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
-            soktInnDato = deltakerHistorikkService.getSoktInnDato(deltaker.id),
+            soktInnDato = deltakerRepository.getSoktInnDato(deltaker.id),
             // Følgende er påkrevd for å beregne deltakelsesmengder
             // DeltakerHistorikk.ImportertFraArena
             // DeltakerHistorikk.Endring

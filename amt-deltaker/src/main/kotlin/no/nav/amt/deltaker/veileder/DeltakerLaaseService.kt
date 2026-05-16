@@ -15,8 +15,8 @@ import java.util.UUID
  * Kun den nyeste relevante deltakelsen for en person i en deltakerliste kan
  * endres. Eldre deltakelser låses for å bevare historikk.
  *
- * Alle oppslag går gjennom samme spissede SQL-spørring
- * ([DeltakerRepository.getDeltakelserForLaaseSjekk]) — både for enkelt-deltaker- og bulk-varianten.
+ * Slår opp i samme spissede SQL-spørring ([DeltakerRepository.getDeltakelserForLaaseSjekk])
+ * — slim SELECT uten JOIN til deltakerliste/arrangør/tiltak/vedtaksdetaljer.
  */
 class DeltakerLaaseService(
     private val deltakerRepository: DeltakerRepository,
@@ -26,40 +26,18 @@ class DeltakerLaaseService(
     /**
      * Sjekker om en [deltaker] er låst for endringer.
      *
-     * Tynn wrapper rundt [erLaastForEndringerForDeltakere] med én deltaker.
-     *
      * @return `true` dersom deltakeren er låst, ellers `false`
      */
-    fun erLaastForEndringer(deltaker: Deltaker): Boolean = erLaastForEndringerForDeltakere(listOf(deltaker)).getValue(deltaker.id)
-
-    /**
-     * Bulk-variant. Beregner låsing for alle [deltakere] i samme deltakerliste i én spisset
-     * SQL-spørring (slim SELECT, ingen JOIN til deltakerliste/arrangør/tiltak/vedtaksdetaljer).
-     * Egnet for store kall som tiltakskoordinator-lista.
-     *
-     * Forutsetter at alle deltakere hører til **samme deltakerliste**.
-     *
-     * @return Map fra deltaker-id til hvorvidt deltakeren er låst for endringer.
-     */
-    fun erLaastForEndringerForDeltakere(deltakere: List<Deltaker>): Map<UUID, Boolean> {
-        if (deltakere.isEmpty()) return emptyMap()
-
-        val deltakerlisteIder = deltakere.map { it.deltakerliste.id }.toSet()
-        require(deltakerlisteIder.size == 1) {
-            "Alle deltakere må høre til samme deltakerliste (fant ${deltakerlisteIder.size})"
+    fun erLaastForEndringer(deltaker: Deltaker): Boolean {
+        val deltakelserPerPerson = deltakerRepository.getDeltakelserForLaaseSjekk(
+            personIdenter = setOf(deltaker.navBruker.personident),
+            deltakerlisteId = deltaker.deltakerliste.id,
+        )
+        val deltakelserForPerson = deltakelserPerPerson[deltaker.navBruker.personident].orEmpty()
+        require(deltakelserForPerson.any()) {
+            "Fant ingen deltakelser i deltakerliste med deltaker-id ${deltaker.id}"
         }
-        val deltakerlisteId = deltakerlisteIder.first()
-
-        val personIdenter = deltakere.map { it.navBruker.personident }.toSet()
-        val deltakelserPerPerson = deltakerRepository.getDeltakelserForLaaseSjekk(personIdenter, deltakerlisteId)
-
-        return deltakere.associate { deltaker ->
-            val deltakelserForPerson = deltakelserPerPerson[deltaker.navBruker.personident].orEmpty()
-            require(deltakelserForPerson.any()) {
-                "Fant ingen deltakelser i deltakerliste med deltaker-id ${deltaker.id}"
-            }
-            deltaker.id to erLaastForEndringer(deltaker.id, deltakelserForPerson)
-        }
+        return erLaastForEndringer(deltaker.id, deltakelserForPerson)
     }
 
     private fun erLaastForEndringer(

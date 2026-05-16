@@ -8,7 +8,6 @@ import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
 import no.nav.amt.deltaker.api.external.response.Periode
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
@@ -47,7 +46,6 @@ class DeltakelserResponseMapperTest {
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
         VurderingRepository(),
-        DeltakerRepository(),
     )
 
     private val arrangorRepository = ArrangorRepository()

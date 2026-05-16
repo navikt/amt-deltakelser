@@ -1,43 +1,58 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
-import no.nav.amt.deltaker.bff.model.DeltakerModel
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
-import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 
 class ResponseBuilder(
-    private val ulestHendelseService: UlestHendelseService,
+    private val ulestHendelseRepository: UlestHendelseRepository,
 ) {
-    fun toDeltakerResponse(
-        deltaker: DeltakerModel,
+    /**
+     * Bygger liste-respons fra den spissede [TiltakskoordinatorDeltakerResponse] fra amt-deltaker.
+     * Henter ulestehendelser i bulk for å unngå N+1-spørringer.
+     */
+    fun toDeltakerResponses(
+        deltakere: List<TiltakskoordinatorDeltakerResponse>,
+        kanSeInnbyggersNavn: (TiltakskoordinatorDeltakerResponse) -> Boolean,
+    ): List<DeltakerResponse> {
+        val ulesteHendelserPerDeltaker = ulestHendelseRepository
+            .getForDeltakere(deltakere.map { it.id }.toSet())
+
+        return deltakere.map { deltaker ->
+            buildDeltakerResponse(
+                deltaker = deltaker,
+                kanSeInnbyggersNavn = kanSeInnbyggersNavn(deltaker),
+                ulesteHendelser = ulesteHendelserPerDeltaker[deltaker.id].orEmpty(),
+            )
+        }
+    }
+
+    private fun buildDeltakerResponse(
+        deltaker: TiltakskoordinatorDeltakerResponse,
         kanSeInnbyggersNavn: Boolean,
-    ): DeltakerResponse = with(deltaker) {
-        val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(kanSeInnbyggersNavn)
-        val ulesteHendelser = ulestHendelseService.getUlesteHendelserForDeltaker(id)
+        ulesteHendelser: List<UlestHendelse>,
+    ): DeltakerResponse {
+        val (fornavn, mellomnavn, etternavn) = deltaker.navBruker.getVisningsnavn(kanSeInnbyggersNavn)
 
         return DeltakerResponse(
-            id = id,
+            id = deltaker.id,
             fornavn = fornavn,
             mellomnavn = mellomnavn,
             etternavn = etternavn,
             status = DeltakerStatusResponse(
-                type = status.type,
-                aarsak = status.aarsak?.let {
-                    DeltakerStatusAarsakResponse(
-                        it.type,
-                        it.beskrivelse,
-                    )
+                type = deltaker.status.type,
+                aarsak = deltaker.status.aarsak?.let {
+                    DeltakerStatusAarsakResponse(it.type, it.beskrivelse)
                 },
             ),
-            vurdering = sisteVurdering?.type,
-            beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
-            navEnhet = navBruker.navEnhet,
-            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            // TODO: Hva skal gjøres her? Denne er alltid null når vi henter data men ved oppdateringer så skal den settes
-            // om noe går galt
+            vurdering = deltaker.sisteVurderingstype,
+            beskyttelsesmarkering = deltaker.navBruker.beskyttelsesmarkeringer,
+            navEnhet = deltaker.navBruker.navEnhet,
+            erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             feilkode = null,
-            ikkeDigitalOgManglerAdresse = navBruker.adresse == null && !navBruker.erDigital,
-            harAktiveForslag = endringsforslagFraArrangor.any { f -> f.status == Forslag.Status.VenterPaSvar },
+            ikkeDigitalOgManglerAdresse = deltaker.navBruker.adresse == null && !deltaker.navBruker.erDigital,
+            harAktiveForslag = deltaker.harAktivtForslag,
             erNyDeltaker = ulesteHendelser.any {
                 it.hendelse is UlestHendelseType.InnbyggerGodkjennUtkast ||
                     it.hendelse is UlestHendelseType.NavGodkjennUtkast
@@ -48,10 +63,10 @@ class ResponseBuilder(
                     it.hendelse is UlestHendelseType.AvbrytDeltakelse ||
                     it.hendelse is UlestHendelseType.ReaktiverDeltakelse
             },
-            kanEndres = !erLaastForEndringer,
-            soktInnDato = soktInnDato,
-            startdato = startdato,
-            sluttdato = sluttdato,
+            kanEndres = !deltaker.erLaastForEndringer,
+            soktInnDato = deltaker.soktInnDato,
+            startdato = deltaker.startdato,
+            sluttdato = deltaker.sluttdato,
         )
     }
 }

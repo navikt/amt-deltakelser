@@ -15,6 +15,8 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorNavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -386,6 +388,58 @@ object TestData {
             ),
         ),
         importertFraArena = null,
+    )
+
+    fun lagTiltakskoordinatorDeltakerResponse(
+        id: UUID = UUID.randomUUID(),
+        navBruker: TiltakskoordinatorNavBrukerResponse = lagTiltakskoordinatorNavBrukerResponse(),
+        status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+        startdato: LocalDate? = LocalDate.now().minusMonths(3),
+        sluttdato: LocalDate? = LocalDate.now().minusDays(1),
+        sistEndret: LocalDateTime = LocalDateTime.now(),
+        erManueltDeltMedArrangor: Boolean = false,
+        prisinformasjon: String? = null,
+        harAktivtForslag: Boolean = false,
+        sisteVurderingstype: Vurderingstype? = null,
+        erLaastForEndringer: Boolean = false,
+        soktInnDato: LocalDate? = LocalDate.now().minusMonths(2),
+    ) = TiltakskoordinatorDeltakerResponse(
+        id = id,
+        status = status,
+        navBruker = navBruker,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        soktInnDato = soktInnDato,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        erLaastForEndringer = erLaastForEndringer,
+        harAktivtForslag = harAktivtForslag,
+        sisteVurderingstype = sisteVurderingstype,
+        sistEndret = sistEndret,
+        kilde = Kilde.KOMET,
+        opprettet = LocalDateTime.now(),
+        prisinformasjon = prisinformasjon,
+    )
+
+    fun lagTiltakskoordinatorNavBrukerResponse(
+        personident: String = randomIdent(),
+        fornavn: String = "Fornavn",
+        mellomnavn: String? = "Mellomnavn",
+        etternavn: String = "Etternavn",
+        adressebeskyttelse: Adressebeskyttelse? = null,
+        adresse: Adresse? = lagAdresse(),
+        erSkjermet: Boolean = false,
+        erDigital: Boolean = true,
+    ) = TiltakskoordinatorNavBrukerResponse(
+        personident = personident,
+        fornavn = fornavn,
+        mellomnavn = mellomnavn,
+        etternavn = etternavn,
+        erSkjermet = erSkjermet,
+        adresse = adresse,
+        adressebeskyttelse = adressebeskyttelse,
+        erDigital = erDigital,
+        navVeileder = NavVeilederResponse("Nav Veiledersen", null, null),
+        navEnhet = "Nav Grunerløkka",
     )
 
     fun lagTiltakskoordinatorDeltaker(

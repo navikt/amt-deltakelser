@@ -792,37 +792,27 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class GetSoktInnDatoerTests {
+    inner class GetSoktInnDatoTests {
         @Test
-        fun `tom set - returnerer tom map`() {
+        fun `ukjent deltaker - returnerer null`() {
             // Arrange / Act
-            val resultat = deltakerRepository.getSoktInnDatoer(emptySet())
+            val resultat = deltakerRepository.getSoktInnDato(UUID.randomUUID())
 
             // Assert
-            resultat shouldBe emptyMap()
+            resultat shouldBe null
         }
 
         @Test
-        fun `ingen treff - returnerer tom map`() {
-            // Arrange / Act
-            val resultat = deltakerRepository.getSoktInnDatoer(setOf(UUID.randomUUID()))
-
-            // Assert
-            resultat shouldBe emptyMap()
-        }
-
-        @Test
-        fun `deltaker uten arena-import, innsok eller vedtak - returnerer null som dato`() {
+        fun `deltaker uten arena-import, innsok eller vedtak - returnerer null`() {
             // Arrange
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
             // Act
-            val resultat = deltakerRepository.getSoktInnDatoer(setOf(deltaker.id))
+            val resultat = deltakerRepository.getSoktInnDato(deltaker.id)
 
             // Assert
-            resultat.size shouldBe 1
-            resultat[deltaker.id] shouldBe null
+            resultat shouldBe null
         }
 
         @Test
@@ -838,10 +828,10 @@ class DeltakerRepositoryTest {
             TestRepository.insertAll(arenaImport)
 
             // Act
-            val resultat = deltakerRepository.getSoktInnDatoer(setOf(deltaker.id))
+            val resultat = deltakerRepository.getSoktInnDato(deltaker.id)
 
             // Assert
-            resultat[deltaker.id] shouldBe arenaDato
+            resultat shouldBe arenaDato
         }
 
         @Test
@@ -862,10 +852,10 @@ class DeltakerRepositoryTest {
             TestRepository.insertAll(innsok)
 
             // Act
-            val resultat = deltakerRepository.getSoktInnDatoer(setOf(deltaker.id))
+            val resultat = deltakerRepository.getSoktInnDato(deltaker.id)
 
             // Assert
-            resultat[deltaker.id] shouldBe innsoktTidspunkt.toLocalDate()
+            resultat shouldBe innsoktTidspunkt.toLocalDate()
         }
 
         @Test
@@ -886,10 +876,10 @@ class DeltakerRepositoryTest {
             TestRepository.insertAll(vedtak)
 
             // Act
-            val resultat = deltakerRepository.getSoktInnDatoer(setOf(deltaker.id))
+            val resultat = deltakerRepository.getSoktInnDato(deltaker.id)
 
             // Assert
-            resultat[deltaker.id] shouldBe vedtakOpprettet.toLocalDate()
+            resultat shouldBe vedtakOpprettet.toLocalDate()
         }
 
         @Test
@@ -921,10 +911,10 @@ class DeltakerRepositoryTest {
             TestRepository.insertAll(arenaImport, innsok, vedtak)
 
             // Act
-            val resultat = deltakerRepository.getSoktInnDatoer(setOf(deltaker.id))
+            val resultat = deltakerRepository.getSoktInnDato(deltaker.id)
 
             // Assert — COALESCE prioriterer arena-import først
-            resultat[deltaker.id] shouldBe arenaDato
+            resultat shouldBe arenaDato
         }
 
         @Test
@@ -952,50 +942,10 @@ class DeltakerRepositoryTest {
             TestRepository.insertAll(innsok, vedtak)
 
             // Act
-            val resultat = deltakerRepository.getSoktInnDatoer(setOf(deltaker.id))
+            val resultat = deltakerRepository.getSoktInnDato(deltaker.id)
 
             // Assert — COALESCE prioriterer innsøk over vedtak
-            resultat[deltaker.id] shouldBe innsoktTidspunkt.toLocalDate()
-        }
-
-        @Test
-        fun `bulk-oppslag for flere deltakere med ulike kilder`() {
-            // Arrange
-            val deltaker1 = lagDeltaker() // arena-import
-            val deltaker2 = lagDeltaker() // vedtak
-            val deltaker3 = lagDeltaker() // ingen data
-            val ansatt = lagNavAnsatt()
-            val enhet = lagNavEnhet()
-            TestRepository.insert(deltaker1)
-            TestRepository.insert(deltaker2)
-            TestRepository.insert(deltaker3)
-            TestRepository.insertAll(ansatt, enhet)
-
-            val arenaDato = LocalDate.of(2024, 2, 1)
-            TestRepository.insertAll(
-                lagImportertFraArena(
-                    deltakerId = deltaker1.id,
-                    deltakerVedImport = lagDeltakerVedImport(innsoktDato = arenaDato),
-                ),
-            )
-            val vedtakOpprettet = LocalDateTime.of(2024, 4, 1, 8, 0)
-            TestRepository.insertAll(
-                lagVedtak(
-                    deltakerVedVedtak = deltaker2,
-                    opprettet = vedtakOpprettet,
-                    opprettetAv = ansatt,
-                    opprettetAvEnhet = enhet,
-                ),
-            )
-
-            // Act
-            val resultat = deltakerRepository.getSoktInnDatoer(setOf(deltaker1.id, deltaker2.id, deltaker3.id))
-
-            // Assert
-            resultat.size shouldBe 3
-            resultat[deltaker1.id] shouldBe arenaDato
-            resultat[deltaker2.id] shouldBe vedtakOpprettet.toLocalDate()
-            resultat[deltaker3.id] shouldBe null
+            resultat shouldBe innsoktTidspunkt.toLocalDate()
         }
     }
 

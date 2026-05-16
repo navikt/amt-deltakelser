@@ -19,8 +19,8 @@ import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.internapi.deltaker.response.DeltakerResponse
-import no.nav.amt.internapi.deltaker.response.DeltakereResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
@@ -53,12 +53,10 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `getDeltakereForGjennomforing - har tilgang - returnerer 200 og deltakere fra tiltakskoordinatorResponseBuilder`() {
         val gjennomforingId = UUID.randomUUID()
-        val deltakere = listOf(deltaker)
-        val deltakerResponse = mockk<DeltakerResponse>(relaxed = true)
-        val expectedResponse = DeltakereResponse(listOf(deltakerResponse))
+        val deltakerResponse = mockk<TiltakskoordinatorDeltakerResponse>(relaxed = true)
+        val expectedResponse = TiltakskoordinatorDeltakereResponse(gjennomforing = null, listOf(deltakerResponse))
 
-        every { deltakerRepository.getForGjennomforing(gjennomforingId) } returns deltakere
-        coEvery { tiltakskoordinatorResponseBuilder.buildResponse(deltakere) } returns expectedResponse
+        coEvery { tiltakskoordinatorResponseBuilder.buildResponse(gjennomforingId) } returns expectedResponse
 
         withTestApplicationContext { client ->
             client

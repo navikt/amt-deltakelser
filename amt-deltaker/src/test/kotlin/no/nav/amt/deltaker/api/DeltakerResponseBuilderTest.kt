@@ -321,7 +321,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
-        every { deltakerHistorikkService.getSoktInnDato(any()) } returns null
+        every { deltakerRepository.getSoktInnDato(any()) } returns null
         every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
         val expectedForslag = listOf(
@@ -387,7 +387,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
             every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
             every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns historikk
-            every { deltakerHistorikkService.getSoktInnDato(any()) } returns null
+            every { deltakerRepository.getSoktInnDato(any()) } returns null
             every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
             every { forslagRepository.getForDeltaker(any()) } returns emptyList()
             coEvery { navAnsattService.hentNavAnsatteForDeltaker(any()) } returns GenericCache(
