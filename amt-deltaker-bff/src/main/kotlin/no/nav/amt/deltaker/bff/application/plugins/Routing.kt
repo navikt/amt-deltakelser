@@ -18,7 +18,6 @@ import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
-import no.nav.amt.deltaker.bff.clients.GjennomforingClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
@@ -90,7 +89,6 @@ fun Application.configureRouting(
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     ulestHendelseRepository: UlestHendelseRepository,
     testdataService: TestdataService,
-    gjennomforingClient: GjennomforingClient,
     kodeverkClient: KodeverkClient,
     tiltakskoordinatorResponseBuilder: ResponseBuilder,
     tiltakskoordinatorClient: TiltakskoordinatorClient,
@@ -194,7 +192,6 @@ fun Application.configureRouting(
             tiltakskoordinatorService = tiltakskoordinatorService,
             tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
             navAnsattService = navAnsattService,
-            gjennomforingClient = gjennomforingClient,
             tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
             selfServiceTilgang = selfServiceTilgangService,
             tiltakskoordinatorClient = tiltakskoordinatorClient,

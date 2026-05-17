@@ -12,7 +12,6 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
-import no.nav.amt.deltaker.bff.clients.GjennomforingClient
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
@@ -33,7 +32,6 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     navAnsattService: NavAnsattService,
-    gjennomforingClient: GjennomforingClient,
     tiltakskoordinatorClient: TiltakskoordinatorClient,
     responseBuilder: ResponseBuilder,
 ) {
@@ -49,9 +47,14 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     paaloggetNavAnsattId = paaloggetNavAnsatt.id,
                 )
 
-                val gjennomforingResponse = gjennomforingClient
+                val gjennomforingResponse = tiltakskoordinatorClient
                     .getGjennomforing(deltakerlisteId)
-                    .let { ResponseMapper.buildGjennomforing(it, koordinatorer) }
+                    .let {
+                        ResponseMapper.buildGjennomforing(
+                            gjennomforingResponse = it,
+                            koordinatortilganger = koordinatorer,
+                        )
+                    }
 
                 call.respond(gjennomforingResponse)
             }

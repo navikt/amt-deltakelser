@@ -51,7 +51,7 @@ class ResponseBuilder(
             navEnhet = navBruker.navEnhet,
             erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             feilkode = null,
-            ikkeDigitalOgManglerAdresse = navBruker.adresse == null && !navBruker.erDigital,
+            ikkeDigitalOgManglerAdresse = navBruker.ikkeDigitalOgManglerAdresse,
             harAktiveForslag = harAktivtForslag,
             erNyDeltaker = ulesteHendelser.any {
                 it.hendelse is UlestHendelseType.InnbyggerGodkjennUtkast ||
@@ -63,7 +63,7 @@ class ResponseBuilder(
                     it.hendelse is UlestHendelseType.AvbrytDeltakelse ||
                     it.hendelse is UlestHendelseType.ReaktiverDeltakelse
             },
-            kanEndres = !erLaastForEndringer,
+            kanEndres = true,
             soktInnDato = soktInnDato,
             startdato = startdato,
             sluttdato = sluttdato,

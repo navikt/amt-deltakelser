@@ -17,7 +17,6 @@ import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
-import no.nav.amt.deltaker.bff.clients.GjennomforingClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
@@ -52,7 +51,6 @@ abstract class IntegrationTestBase {
     protected val arrangorsokClient = mockk<ArrangorsokClient>()
     protected val enkeltplassClient = mockk<EnkeltplassClient>()
     protected val paameldingClient: PaameldingClient = mockk()
-    protected val gjennomforingClient: GjennomforingClient = mockk()
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
     protected val kodeverkClient = mockk<KodeverkClient>()
 
@@ -130,7 +128,6 @@ abstract class IntegrationTestBase {
                     ulestHendelseRepository = ulestHendelseRepository,
                     testdataService = testdataService,
                     paameldingClient = paameldingClient,
-                    gjennomforingClient = gjennomforingClient,
                     kodeverkClient = kodeverkClient,
                     selfServiceTilgangService = selfServiceTilgangskontrollService,
                     tiltakskoordinatorClient = tiltakskoordinatorClient,

@@ -2,8 +2,6 @@ package no.nav.amt.deltaker.repository
 
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -21,26 +19,16 @@ data class TiltakskoordinatorDeltakerRow(
     val personident: String,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
-    val sistEndret: LocalDateTime,
-    val kilde: Kilde,
     val erManueltDeltMedArrangor: Boolean,
-    val opprettet: LocalDateTime,
-    // Status
     val status: DeltakerStatus,
     // Nav bruker
     val fornavn: String,
     val mellomnavn: String?,
     val etternavn: String,
     val erSkjermet: Boolean,
-    val adresse: Adresse?,
+    val harAdresse: Boolean,
     val adressebeskyttelse: Adressebeskyttelse?,
-    // Nav veileder (fra nav_ansatt LEFT JOIN — null hvis ansatt ikke finnes i lokal DB)
-    val navVeilederId: UUID?,
-    val navVeilederNavn: String?,
-    val navVeilederEpost: String?,
-    val navVeilederTelefon: String?,
     // Nav enhet (fra nav_enhet LEFT JOIN — null hvis enhet ikke finnes i lokal DB)
-    val navEnhetId: UUID?,
     val navEnhetNavn: String?,
     // Berikede felt — beregnet direkte i SQL
     val soktInnDato: LocalDate?,

@@ -3,13 +3,10 @@ package no.nav.amt.internapi.deltaker.response
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.person.Beskyttelsesmarkering
-import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.person.extensions.toBeskyttelsesmarkering
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 /**
@@ -31,13 +28,8 @@ data class TiltakskoordinatorDeltakerResponse(
     val sluttdato: LocalDate?,
     val soktInnDato: LocalDate?,
     val erManueltDeltMedArrangor: Boolean,
-    val erLaastForEndringer: Boolean,
     val harAktivtForslag: Boolean,
     val sisteVurderingstype: Vurderingstype?,
-    val sistEndret: LocalDateTime,
-    val kilde: Kilde,
-    val opprettet: LocalDateTime,
-    val prisinformasjon: String?,
 )
 
 data class TiltakskoordinatorNavBrukerResponse(
@@ -46,11 +38,9 @@ data class TiltakskoordinatorNavBrukerResponse(
     val mellomnavn: String?,
     val etternavn: String,
     val erSkjermet: Boolean,
-    val adresse: Adresse?,
     val adressebeskyttelse: Adressebeskyttelse?,
-    val navVeileder: NavVeilederResponse?,
     val navEnhet: String?,
-    val erDigital: Boolean,
+    val ikkeDigitalOgManglerAdresse: Boolean,
 ) {
     @get:JsonIgnore
     val beskyttelsesmarkeringer: List<Beskyttelsesmarkering>

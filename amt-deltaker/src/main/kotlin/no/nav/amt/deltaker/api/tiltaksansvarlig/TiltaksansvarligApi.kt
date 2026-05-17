@@ -7,9 +7,11 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
 import no.nav.amt.deltaker.extensions.getGjennomforingId
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
@@ -18,6 +20,8 @@ import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 
 fun Routing.registerTiltakskoordinatorApi(
+    deltakerlisteRepository: DeltakerlisteRepository,
+    deltakerResponseBuilder: DeltakerResponseBuilder,
     tiltaksansvarligService: TiltaksansvarligService,
     deltakerHistorikkService: DeltakerHistorikkService,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
@@ -30,6 +34,21 @@ fun Routing.registerTiltakskoordinatorApi(
     }
 
     authenticate("SYSTEM") {
+        get("/gjennomforing/{gjennomforingId}") {
+            val gjennomforingId = call.getGjennomforingId()
+            val gjennomforingResponse = deltakerlisteRepository
+                .get(gjennomforingId)
+                .getOrThrow()
+                .let {
+                    deltakerResponseBuilder.buildGjennomforingResponse(
+                        deltakerliste = it,
+                        includeKodeverk = false,
+                    )
+                }
+
+            call.respond(gjennomforingResponse)
+        }
+
         route("/tiltakskoordinator/deltakere") {
             get("/{gjennomforingId}") {
                 call.respond(tiltakskoordinatorResponseBuilder.buildResponse(gjennomforingId = call.getGjennomforingId()))

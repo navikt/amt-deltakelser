@@ -101,7 +101,6 @@ class AuthenticationTest {
                 ulestHendelseRepository = mockk(),
                 testdataService = mockk(),
                 paameldingClient = mockk(),
-                gjennomforingClient = mockk(),
                 kodeverkClient = mockk(),
                 selfServiceTilgangService = mockk(),
                 tiltakskoordinatorResponseBuilder = mockk(),

@@ -86,7 +86,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @Test
     fun `get deltakerliste - liste finnes ikke, toggle på - returnerer 404`() {
         coEvery {
-            gjennomforingClient.getGjennomforing(any())
+            tiltakskoordinatorClient.getGjennomforing(any())
         } throws NoSuchElementException()
         every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
         every { tiltakskoordinatorTilgangRepository.hentKoordinatorer(any(), any()) } returns emptyList()
@@ -108,7 +108,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         val expected = ResponseMapper.buildGjennomforing(gjennomforing, listOf(tiltakskoordinatorInTest))
         every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
         every { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
-        coEvery { gjennomforingClient.getGjennomforing(deltakerlisteInTest.id) } returns gjennomforing
+        coEvery { tiltakskoordinatorClient.getGjennomforing(deltakerlisteInTest.id) } returns gjennomforing
 
         every {
             tiltakskoordinatorTilgangRepository.hentKoordinatorer(

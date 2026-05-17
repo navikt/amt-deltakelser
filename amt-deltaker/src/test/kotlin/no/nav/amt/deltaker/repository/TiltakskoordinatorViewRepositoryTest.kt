@@ -405,22 +405,6 @@ class TiltakskoordinatorViewRepositoryTest {
     }
 
     @Nested
-    inner class NavVeilederTests {
-        @Test
-        fun `skal inkludere veiledernavn og enhet når de finnes`() {
-            val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            TestRepository.insert(deltaker)
-
-            val result = repository.getDeltakere(deltakerliste.id).single()
-
-            result.navVeilederId shouldBe deltaker.navBruker.navVeilederId
-            result.navVeilederNavn.shouldNotBeNull()
-            result.navEnhetNavn.shouldNotBeNull()
-        }
-    }
-
-    @Nested
     inner class FlereDeltakelserTests {
         @Test
         fun `skal returnere flere rader når samme person har flere deltakelser`() {

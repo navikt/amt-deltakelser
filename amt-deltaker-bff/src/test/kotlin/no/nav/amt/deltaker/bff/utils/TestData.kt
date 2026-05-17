@@ -396,12 +396,9 @@ object TestData {
         status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         startdato: LocalDate? = LocalDate.now().minusMonths(3),
         sluttdato: LocalDate? = LocalDate.now().minusDays(1),
-        sistEndret: LocalDateTime = LocalDateTime.now(),
         erManueltDeltMedArrangor: Boolean = false,
-        prisinformasjon: String? = null,
         harAktivtForslag: Boolean = false,
         sisteVurderingstype: Vurderingstype? = null,
-        erLaastForEndringer: Boolean = false,
         soktInnDato: LocalDate? = LocalDate.now().minusMonths(2),
     ) = TiltakskoordinatorDeltakerResponse(
         id = id,
@@ -411,13 +408,8 @@ object TestData {
         sluttdato = sluttdato,
         soktInnDato = soktInnDato,
         erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-        erLaastForEndringer = erLaastForEndringer,
         harAktivtForslag = harAktivtForslag,
         sisteVurderingstype = sisteVurderingstype,
-        sistEndret = sistEndret,
-        kilde = Kilde.KOMET,
-        opprettet = LocalDateTime.now(),
-        prisinformasjon = prisinformasjon,
     )
 
     fun lagTiltakskoordinatorNavBrukerResponse(
@@ -426,19 +418,16 @@ object TestData {
         mellomnavn: String? = "Mellomnavn",
         etternavn: String = "Etternavn",
         adressebeskyttelse: Adressebeskyttelse? = null,
-        adresse: Adresse? = lagAdresse(),
         erSkjermet: Boolean = false,
-        erDigital: Boolean = true,
+        ikkeDigitalOgManglerAdresse: Boolean = false,
     ) = TiltakskoordinatorNavBrukerResponse(
         personident = personident,
         fornavn = fornavn,
         mellomnavn = mellomnavn,
         etternavn = etternavn,
         erSkjermet = erSkjermet,
-        adresse = adresse,
         adressebeskyttelse = adressebeskyttelse,
-        erDigital = erDigital,
-        navVeileder = NavVeilederResponse("Nav Veiledersen", null, null),
+        ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
         navEnhet = "Nav Grunerløkka",
     )
 

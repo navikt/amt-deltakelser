@@ -23,6 +23,12 @@ import org.junit.jupiter.params.provider.MethodSource
 import kotlin.reflect.KClass
 
 class TiltaksKoordinatorClientTest {
+    // TODO: Mangler tester for følgende:
+    // - getGjennomforing
+    // - getDeltakereForGjennomforing
+    // - tildelPlass
+    // - settPaaVenteliste
+
     @Nested
     inner class DelMedArrangor {
         val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/del-med-arrangor"

@@ -9,7 +9,7 @@ import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 
 /**
  * DB-backet cache for `erDigital`-oppslag. Reduserer antall HTTP-kall til `amt-distribusjon`
- * ved å lagre resultatet i [digital_bruker_cache]-tabellen med 24-timers TTL.
+ * ved å lagre resultatet i digital_bruker_cache-tabellen med 24-timers TTL.
  *
  * Bruksmønster for bulk-kall (tiltakskoordinator-lista med >2000 deltakere):
  *  1. Hent ferske entries (< 24 timer) fra DB i ett oppslag
