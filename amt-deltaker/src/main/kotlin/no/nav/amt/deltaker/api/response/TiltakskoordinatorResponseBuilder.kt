@@ -10,7 +10,6 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService.Companion.paameldtTidspunkt
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
-import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorNavBrukerResponse
@@ -41,74 +40,63 @@ class TiltakskoordinatorResponseBuilder(
      * + en ny aktiv). Vi returnerer kun den nyeste — eldre deltakelser er uinteressante for frontend.
      */
     suspend fun buildResponse(gjennomforingId: UUID): TiltakskoordinatorDeltakereResponse {
-        val deltakerliste = deltakerlisteRepository.get(gjennomforingId).getOrNull()
+        val gjennomforing = deltakerlisteRepository.get(gjennomforingId).getOrNull()
             ?: return TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = emptyList())
 
-        val rows = viewRepository.getDeltakere(gjennomforingId)
+        val gjennomforingResponse = buildGjennomforingResponse(gjennomforing)
 
-        val gjennomforingResponse = buildGjennomforingResponse(deltakerliste)
+        val rows = viewRepository.getDeltakere(gjennomforingId)
 
         // Behold kun den nyeste deltakelsen per person (eldre er "låst" og uinteressant)
         val nyesteDeltakelsePerPerson = velgNyesteDeltakelsePerPerson(rows)
 
         // Hent digital-status for deltakere uten fersk cache-entry
-        val erDigitalFallback = hentManglendeDigitalStatus(nyesteDeltakelsePerPerson)
+        // HandlingerKnapp i frontend vises kun for GjennomforingPameldingType.TRENGER_GODKJENNING
+        val erDigitalMap = nyesteDeltakelsePerPerson
+            .takeIf { gjennomforing.deltakelserMaaGodkjennes }
+            ?.let { hentManglendeDigitalStatus(it) }
 
         return TiltakskoordinatorDeltakereResponse(
             gjennomforing = gjennomforingResponse,
-            deltakere = nyesteDeltakelsePerPerson.map { row ->
-                buildDeltakerResponse(
-                    row = row,
-                    prisinformasjon = deltakerliste.prisinformasjon,
-                    erDigitalFallback = erDigitalFallback,
-                )
-            },
+            deltakere = nyesteDeltakelsePerPerson.map
+                { row ->
+                    buildDeltakerResponse(
+                        row = row,
+                        erDigitalMap = erDigitalMap,
+                    )
+                },
         )
     }
 
-    private fun buildGjennomforingResponse(deltakerliste: Deltakerliste): GjennomforingResponse {
-        val arrangor = deltakerliste.arrangor
-
-        return GjennomforingResponse(
-            id = deltakerliste.id,
-            tiltakstype = deltakerliste.tiltakstype,
-            navn = deltakerliste.navn,
-            status = deltakerliste.status,
-            startDato = deltakerliste.startDato,
-            sluttDato = deltakerliste.sluttDato,
-            antallPlasser = deltakerliste.antallPlasser,
-            oppstart = deltakerliste.oppstart,
-            apentForPamelding = deltakerliste.apentForPamelding,
-            oppmoteSted = deltakerliste.oppmoteSted,
-            arrangor = arrangor?.let {
-                ArrangorResponse(
-                    navn = arrangorService.getArrangorNavn(it, deltakerliste.gjennomforingstype),
-                    organisasjonsnummer = it.organisasjonsnummer,
-                )
-            },
-            pameldingstype = deltakerliste.pameldingstype,
-            type = deltakerliste.gjennomforingstype,
-            kodeverkValg = emptySet(),
-            sertifiseringValg = emptySet(),
-        )
-    }
+    private fun buildGjennomforingResponse(gjennomforing: Deltakerliste): GjennomforingResponse = GjennomforingResponse(
+        id = gjennomforing.id,
+        tiltakstype = gjennomforing.tiltakstype,
+        navn = gjennomforing.navn,
+        status = gjennomforing.status,
+        startDato = gjennomforing.startDato,
+        sluttDato = gjennomforing.sluttDato,
+        antallPlasser = gjennomforing.antallPlasser,
+        oppstart = gjennomforing.oppstart,
+        apentForPamelding = gjennomforing.apentForPamelding,
+        oppmoteSted = gjennomforing.oppmoteSted,
+        arrangor = gjennomforing.arrangor?.let {
+            ArrangorResponse(
+                navn = arrangorService.getArrangorNavn(it, gjennomforing.gjennomforingstype),
+                organisasjonsnummer = it.organisasjonsnummer,
+            )
+        },
+        pameldingstype = gjennomforing.pameldingstype,
+        type = gjennomforing.gjennomforingstype,
+        kodeverkValg = emptySet(),
+        sertifiseringValg = emptySet(),
+    )
 
     private fun buildDeltakerResponse(
         row: TiltakskoordinatorDeltakerRow,
-        prisinformasjon: String?,
-        erDigitalFallback: Map<String, Boolean>,
+        erDigitalMap: Map<String, Boolean>?,
     ): TiltakskoordinatorDeltakerResponse {
-        val navVeileder = row.navVeilederId?.let {
-            NavVeilederResponse(
-                navn = row.navVeilederNavn,
-                epost = row.navVeilederEpost,
-                telefonnummer = row.navVeilederTelefon,
-            ).takeIf {
-                it.navn != null || it.epost != null || it.telefonnummer != null
-            }
-        }
-
-        val erDigital = row.erDigitalCached ?: erDigitalFallback[row.personident] ?: false
+        val ikkeDigitalOgManglerAdresse =
+            erDigitalMap?.get(row.personident) == false && !row.harAdresse
 
         return TiltakskoordinatorDeltakerResponse(
             id = row.id,
@@ -119,24 +107,16 @@ class TiltakskoordinatorResponseBuilder(
                 mellomnavn = row.mellomnavn,
                 etternavn = row.etternavn,
                 erSkjermet = row.erSkjermet,
-                adresse = row.adresse,
                 adressebeskyttelse = row.adressebeskyttelse,
-                navVeileder = navVeileder,
                 navEnhet = row.navEnhetNavn,
-                erDigital = erDigital,
+                ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
             ),
             startdato = row.startdato,
             sluttdato = row.sluttdato,
             soktInnDato = row.soktInnDato,
             erManueltDeltMedArrangor = row.erManueltDeltMedArrangor,
-            // Vi returnerer kun nyeste deltakelse per person — den kan alltid endres
-            erLaastForEndringer = false,
             harAktivtForslag = row.harAktivtForslag,
             sisteVurderingstype = row.sisteVurderingstype,
-            sistEndret = row.sistEndret,
-            kilde = row.kilde,
-            opprettet = row.opprettet,
-            prisinformasjon = prisinformasjon,
         )
     }
 
@@ -167,6 +147,7 @@ class TiltakskoordinatorResponseBuilder(
      */
     private suspend fun hentManglendeDigitalStatus(rows: List<TiltakskoordinatorDeltakerRow>): Map<String, Boolean> {
         val manglendePersonidenter = rows
+            .filterNot { it.harAdresse }
             .filter { it.erDigitalCached == null }
             .map { it.personident }
             .toSet()

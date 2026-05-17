@@ -16,7 +16,6 @@ import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.api.external.registerExternalApi
 import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
 import no.nav.amt.deltaker.api.registerEnkeltplassApi
-import no.nav.amt.deltaker.api.registerGjennomforingApi
 import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
 import no.nav.amt.deltaker.api.registerPameldingApi
@@ -132,7 +131,6 @@ fun Application.configureRouting(
             navEnhetService = navEnhetService,
             arrangorService = arrangorService,
         )
-        registerGjennomforingApi(deltakerlisteRepository, deltakerResponseBuilder)
         registerEnkeltplassApi(
             enkeltplassService = enkeltplassService,
             deltakerResponseBuilder = deltakerResponseBuilder,
@@ -154,9 +152,11 @@ fun Application.configureRouting(
         )
 
         registerTiltakskoordinatorApi(
-            tiltaksansvarligService,
-            deltakerHistorikkService,
-            tiltakskoordinatorResponseBuilder,
+            deltakerlisteRepository = deltakerlisteRepository,
+            deltakerResponseBuilder = deltakerResponseBuilder,
+            tiltaksansvarligService = tiltaksansvarligService,
+            deltakerHistorikkService = deltakerHistorikkService,
+            tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
         )
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 

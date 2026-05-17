@@ -15,10 +15,14 @@ import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
 import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
@@ -29,6 +33,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -38,6 +43,67 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     override val deltakerRepository = mockk<DeltakerRepository>()
     override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
     override val tiltakskoordinatorResponseBuilder = mockk<TiltakskoordinatorResponseBuilder>()
+    override val arrangorService: ArrangorService = mockk()
+    override val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+
+    @Nested
+    inner class GetGjennomforingTests {
+        @Test
+        fun `get gjennomforing - mangler token - returnerer 401`() {
+            withTestApplicationContext { client ->
+                client.get("/gjennomforing/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+            }
+        }
+
+        @Test
+        fun `get gjennomforing - gjennomforing finnes - returnerer 200 med gjennomforing`() {
+            val deltakerliste = lagDeltakerliste()
+
+            val expectedResponse = GjennomforingResponse(
+                id = deltakerliste.id,
+                type = deltakerliste.gjennomforingstype,
+                tiltakstype = deltakerliste.tiltakstype,
+                navn = deltakerliste.navn,
+                status = deltakerliste.status,
+                startDato = deltakerliste.startDato,
+                sluttDato = deltakerliste.sluttDato,
+                antallPlasser = deltakerliste.antallPlasser,
+                oppstart = deltakerliste.oppstart,
+                apentForPamelding = deltakerliste.apentForPamelding,
+                oppmoteSted = deltakerliste.oppmoteSted,
+                arrangor = null,
+                pameldingstype = deltakerliste.pameldingstype,
+            )
+
+            every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
+            every {
+                deltakerResponseBuilder.buildGjennomforingResponse(
+                    deltakerliste = deltakerliste,
+                    includeKodeverk = false,
+                )
+            } returns expectedResponse
+
+            withTestApplicationContext { client ->
+                client.get("/gjennomforing/${deltakerliste.id}") { noBodyRequest() }.apply {
+                    status shouldBe HttpStatusCode.OK
+                    bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
+                }
+            }
+        }
+
+        @Test
+        fun `get gjennomforing - gjennomforing finnes ikke - returnerer 404`() {
+            every {
+                deltakerlisteRepository.get(any())
+            } returns Result.failure(NoSuchElementException("Fant ikke deltakerliste"))
+
+            withTestApplicationContext { client ->
+                client.get("/gjennomforing/${UUID.randomUUID()}") { noBodyRequest() }.apply {
+                    status shouldBe HttpStatusCode.NotFound
+                }
+            }
+        }
+    }
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {

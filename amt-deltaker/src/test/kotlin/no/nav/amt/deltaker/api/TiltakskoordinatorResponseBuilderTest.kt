@@ -14,9 +14,10 @@ import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -36,11 +37,12 @@ class TiltakskoordinatorResponseBuilderTest {
     )
 
     private val gjennomforingId = UUID.randomUUID()
-    private val defaultDeltakerliste = no.nav.amt.deltaker.utils.data.TestData
-        .lagDeltakerliste()
+    private val defaultDeltakerliste = lagDeltakerliste()
 
-    private fun mockGjennomforing() {
-        every { deltakerlisteRepository.get(gjennomforingId) } returns Result.success(defaultDeltakerliste)
+    private fun mockGjennomforing(paameldingstype: GjennomforingPameldingType) {
+        every {
+            deltakerlisteRepository.get(gjennomforingId)
+        } returns Result.success(defaultDeltakerliste.copy(pameldingstype = paameldingstype))
         every { arrangorService.getArrangorNavn(any(), any()) } returns "Arrangør Navn"
     }
 
@@ -57,20 +59,14 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - flere deltakere med fersk cache - ingen HTTP-fallback`() = runTest {
-        mockGjennomforing()
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val row1 = lagRow(
             erDigitalCached = true,
-            navVeilederNavn = "Veileder 1",
-            navVeilederId = UUID.randomUUID(),
             navEnhetNavn = "NAV Enhet",
-            navEnhetId = UUID.randomUUID(),
         )
         val row2 = lagRow(
             erDigitalCached = true,
-            navVeilederNavn = "Veileder 2",
-            navVeilederId = UUID.randomUUID(),
             navEnhetNavn = "NAV Enhet",
-            navEnhetId = UUID.randomUUID(),
         )
 
         every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row1, row2)
@@ -84,7 +80,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - mapper deltakerfelter korrekt`() = runTest {
-        mockGjennomforing()
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val soktInn = LocalDate.now().minusMonths(1)
         val row = lagRow(
             startdato = LocalDate.now(),
@@ -94,9 +90,6 @@ class TiltakskoordinatorResponseBuilderTest {
             harAktivtForslag = true,
             sisteVurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
             erDigitalCached = true,
-            navVeilederId = UUID.randomUUID(),
-            navVeilederNavn = "Veileder Navn",
-            navEnhetId = UUID.randomUUID(),
             navEnhetNavn = "NAV Enhet",
         )
 
@@ -109,24 +102,18 @@ class TiltakskoordinatorResponseBuilderTest {
             id shouldBe row.id
             startdato shouldBe row.startdato.shouldNotBeNull()
             sluttdato shouldBe row.sluttdato.shouldNotBeNull()
-            status shouldBe row.status
             erManueltDeltMedArrangor shouldBe true
-            sistEndret shouldBe row.sistEndret
-            kilde shouldBe row.kilde
-            opprettet shouldBe row.opprettet
             soktInnDato shouldBe soktInn
             harAktivtForslag shouldBe true
             sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
-            navBruker.erDigital shouldBe true
-            navBruker.navVeileder?.navn shouldBe "Veileder Navn"
+            navBruker.ikkeDigitalOgManglerAdresse shouldBe false
             navBruker.navEnhet shouldBe "NAV Enhet"
-            erLaastForEndringer shouldBe false
         }
     }
 
     @Test
-    fun `buildResponse - manglende digital cache gir HTTP-fallback`() = runTest {
-        mockGjennomforing()
+    fun `buildResponse - manglende digital cache trenger ikke HTTP-fallback`() = runTest {
+        mockGjennomforing(GjennomforingPameldingType.DIREKTE_VEDTAK)
         val row = lagRow(erDigitalCached = null)
 
         every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
@@ -138,13 +125,35 @@ class TiltakskoordinatorResponseBuilderTest {
 
         response.deltakere
             .single()
-            .navBruker.erDigital shouldBe true
+            .navBruker.ikkeDigitalOgManglerAdresse shouldBe false
+
+        coVerify(exactly = 0) {
+            digitalBrukerService.hentErDigitalForPersonidenter(setOf(row.personident))
+        }
+    }
+
+    @Test
+    fun `buildResponse - manglende digital cache gir HTTP-fallback`() = runTest {
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
+        val row = lagRow(erDigitalCached = null, harAdresse = false)
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
+        coEvery {
+            digitalBrukerService.hentErDigitalForPersonidenter(setOf(row.personident))
+        } returns mapOf(row.personident to false)
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere
+            .single()
+            .navBruker.ikkeDigitalOgManglerAdresse shouldBe true
+
         coVerify(exactly = 1) { digitalBrukerService.hentErDigitalForPersonidenter(setOf(row.personident)) }
     }
 
     @Test
     fun `buildResponse - forslag og vurdering fra SQL uten ekstra spørringer`() = runTest {
-        mockGjennomforing()
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val row1 = lagRow(harAktivtForslag = true, sisteVurderingstype = Vurderingstype.OPPFYLLER_KRAVENE, erDigitalCached = true)
         val row2 = lagRow(harAktivtForslag = false, sisteVurderingstype = null, erDigitalCached = true)
 
@@ -161,7 +170,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - flere deltakelser for samme person - returnerer kun nyeste`() = runTest {
-        mockGjennomforing()
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val personident = "12345678901"
 
         val gammelAvsluttet = lagRow(
@@ -189,7 +198,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - flere deltakelser for samme person uten aktiv - velger nyeste`() = runTest {
-        mockGjennomforing()
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val personident = "12345678901"
 
         val eldreAvsluttet = lagRow(
@@ -217,7 +226,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - aktiv status velges over nyere avsluttet deltakelse`() = runTest {
-        mockGjennomforing()
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val personident = "12345678901"
 
         val aktiv = lagRow(
@@ -245,7 +254,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - ulike personer gir en rad per person`() = runTest {
-        mockGjennomforing()
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
 
         val person1Aktiv = lagRow(
             personident = "11111111111",
@@ -281,11 +290,6 @@ class TiltakskoordinatorResponseBuilderTest {
         statusGyldigFra: LocalDateTime = LocalDateTime.now(),
         vedtakFattet: LocalDateTime? = null,
         innsoektDatoArena: LocalDate? = null,
-        navVeilederId: UUID? = null,
-        navVeilederNavn: String? = null,
-        navVeilederEpost: String? = null,
-        navVeilederTelefon: String? = null,
-        navEnhetId: UUID? = null,
         navEnhetNavn: String? = null,
         startdato: LocalDate? = null,
         sluttdato: LocalDate? = null,
@@ -294,15 +298,13 @@ class TiltakskoordinatorResponseBuilderTest {
         harAktivtForslag: Boolean = false,
         sisteVurderingstype: Vurderingstype? = null,
         erDigitalCached: Boolean? = false,
+        harAdresse: Boolean = true,
     ) = TiltakskoordinatorDeltakerRow(
         id = UUID.randomUUID(),
         personident = personident,
         startdato = startdato,
         sluttdato = sluttdato,
-        sistEndret = LocalDateTime.now(),
-        kilde = Kilde.KOMET,
         erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-        opprettet = LocalDateTime.now(),
         status = DeltakerStatus(
             id = UUID.randomUUID(),
             type = statusType,
@@ -315,13 +317,8 @@ class TiltakskoordinatorResponseBuilderTest {
         mellomnavn = null,
         etternavn = "Etternavn",
         erSkjermet = false,
-        adresse = null,
+        harAdresse = harAdresse,
         adressebeskyttelse = null,
-        navVeilederId = navVeilederId,
-        navVeilederNavn = navVeilederNavn,
-        navVeilederEpost = navVeilederEpost,
-        navVeilederTelefon = navVeilederTelefon,
-        navEnhetId = navEnhetId,
         navEnhetNavn = navEnhetNavn,
         soktInnDato = soktInnDato,
         harAktivtForslag = harAktivtForslag,

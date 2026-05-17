@@ -28,7 +28,6 @@ import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
-import no.nav.amt.deltaker.bff.clients.GjennomforingClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
@@ -182,13 +181,6 @@ fun Application.module() {
     )
 
     val enkeltplassClient = EnkeltplassClient(
-        baseUrl = environment.amtDeltakerUrl,
-        scope = environment.amtDeltakerScope,
-        httpClient = httpClient,
-        azureAdTokenClient = azureAdTokenClient,
-    )
-
-    val gjennomforingClient = GjennomforingClient(
         baseUrl = environment.amtDeltakerUrl,
         scope = environment.amtDeltakerScope,
         httpClient = httpClient,
@@ -380,7 +372,6 @@ fun Application.module() {
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
         ulestHendelseRepository = ulestHendelseRepository,
         testdataService = testdataService,
-        gjennomforingClient = gjennomforingClient,
         selfServiceTilgangService = selfServiceTilgangService,
         kodeverkClient = kodeverkClient,
         tiltakskoordinatorClient = tiltakskoordinatorClient,

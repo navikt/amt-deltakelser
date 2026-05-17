@@ -17,11 +17,9 @@ class TiltakskoordinatorNavBrukerResponseTest {
         mellomnavn = null,
         etternavn = "Etternavn",
         erSkjermet = erSkjermet,
-        adresse = null,
         adressebeskyttelse = adressebeskyttelse,
-        navVeileder = null,
         navEnhet = null,
-        erDigital = true,
+        ikkeDigitalOgManglerAdresse = false,
     )
 
     @Test
