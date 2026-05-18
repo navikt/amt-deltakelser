@@ -29,4 +29,3 @@ val STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING = setOf(
     DeltakerStatus.Type.AVBRUTT,
     DeltakerStatus.Type.IKKE_AKTUELL,
 )
-

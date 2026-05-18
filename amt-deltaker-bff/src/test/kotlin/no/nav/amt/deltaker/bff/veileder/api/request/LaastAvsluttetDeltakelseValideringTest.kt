@@ -105,7 +105,6 @@ class LaastAvsluttetDeltakelseValideringTest {
         }
     }
 
-
     @Nested
     inner class EndreAvslutningValideringLaastDeltaker {
         @Test
@@ -258,6 +257,3 @@ class LaastAvsluttetDeltakelseValideringTest {
         }
     }
 }
-
-
-
