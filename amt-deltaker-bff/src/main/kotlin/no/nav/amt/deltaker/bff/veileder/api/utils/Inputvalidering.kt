@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.utils
 
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
@@ -95,11 +96,15 @@ fun validerDeltakerKanEndres(opprinneligDeltaker: Deltaker) {
         "Kan ikke endre feilregistrert deltaker"
     }
     if (opprinneligDeltaker.harSluttet()) {
-        require(opprinneligDeltaker.kanEndres) {
-            "Kan ikke endre avsluttet deltakelse når det finnes aktiv deltakelse på samme tiltak"
-        }
         require(opprinneligDeltaker.harSluttetForMindreEnnToMndSiden()) {
             "Kan ikke endre deltaker som fikk avsluttende status for mer enn to måneder siden"
+        }
+        if (!opprinneligDeltaker.kanEndres) {
+            // Låst pga. nyere deltakelse på samme tiltak – kun tillatt for de 4 statusene
+            // som frontend eksponerer begrenset redigering for.
+            require(opprinneligDeltaker.status.type in STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING) {
+                "Kan ikke endre låst deltakelse med status ${opprinneligDeltaker.status.type}"
+            }
         }
     }
 }

@@ -33,6 +33,12 @@ data class EndreAvslutningRequest(
             "Kan ikke avslutte deltakelse med uendret avslutning, årsak eller sluttdato"
         }
 
+        if (!deltaker.kanEndres && sluttdato != null) {
+            require(sluttdato.isBefore(LocalDate.now())) {
+                "Sluttdato må være tilbake i tid når deltakelsen er låst for endringer"
+            }
+        }
+
         val endreTilAvbrutt = harDeltatt() && !harFullfort()
         if (endreTilAvbrutt) {
             require(aarsak != null) { "Årsak er påkrevd for å avbryte deltakelse" }

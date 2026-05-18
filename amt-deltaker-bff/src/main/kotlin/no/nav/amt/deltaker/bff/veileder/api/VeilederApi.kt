@@ -24,6 +24,7 @@ import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getForslagId
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
@@ -93,10 +94,17 @@ fun Routing.registerVeilederApi(
     fun illegalUpdateGuard(
         deltaker: Deltaker,
         tillatEndringUtenOppfPeriode: Boolean,
+        request: EndringRequestFromFrontend,
     ) {
         if (!deltaker.kanEndres) {
-            log.error("Kan ikke endre deltaker med id ${deltaker.id} som er låst")
-            throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")
+            val kanEndreAvsluttetDeltakelse = request.tillattForLaastAvsluttetDeltakelse() &&
+                deltaker.status.type in STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING &&
+                deltaker.harSluttetForMindreEnnToMndSiden()
+
+            if (!kanEndreAvsluttetDeltakelse) {
+                log.error("Kan ikke endre deltaker med id ${deltaker.id} som er låst")
+                throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")
+            }
         }
 
         if (deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
@@ -126,6 +134,7 @@ fun Routing.registerVeilederApi(
         illegalUpdateGuard(
             deltaker = deltaker,
             tillatEndringUtenOppfPeriode = request.tillattEndringUtenAktivOppfolgingsperiode(),
+            request = request,
         )
 
         request.valider(deltaker)
