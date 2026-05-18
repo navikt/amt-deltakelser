@@ -137,15 +137,17 @@ class EnkeltplassService(
             deltaker = deltaker,
             // TODO: Vurder å benytte kun OppdaterEnkeltplassKladdRequest
             // EnkeltplassPameldingRequest og OppdaterEnkeltplassKladdRequest er veldig like
-            oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
-                beskrivelse = decoratedRequest.wrappedRequest.beskrivelse,
-                prisinformasjon = decoratedRequest.wrappedRequest.prisinformasjon,
-                arrangorUnderenhet = decoratedRequest.wrappedRequest.arrangorUnderenhet,
-                startdato = decoratedRequest.wrappedRequest.startdato,
-                sluttdato = decoratedRequest.wrappedRequest.sluttdato,
-                kodeverkValg = decoratedRequest.wrappedRequest.kodeverkValg,
-                sertifiseringValg = decoratedRequest.wrappedRequest.sertifiseringValg,
-            ),
+            oppdaterKladdRequest = with(decoratedRequest.wrappedRequest) {
+                OppdaterEnkeltplassKladdRequest(
+                    beskrivelse = beskrivelse,
+                    prisinformasjon = prisinformasjon,
+                    arrangorUnderenhet = arrangorUnderenhet,
+                    startdato = startdato,
+                    sluttdato = sluttdato,
+                    kodeverkValg = kodeverkValg,
+                    sertifiseringValg = sertifiseringValg,
+                )
+            },
         )
 
         // TODO: Avklar hvordan endring i prisinfo skal håndteres
