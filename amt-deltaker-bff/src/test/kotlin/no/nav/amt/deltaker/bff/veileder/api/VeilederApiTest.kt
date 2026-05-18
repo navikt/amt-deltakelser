@@ -106,7 +106,6 @@ class VeilederApiTest : IntegrationTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Deny("Ikke tilgang", ""))
         every { deltakerRepository.get(any()) } returns Result.success(deltaker)
         every { forslagRepository.get(any()) } returns Result.success(lagForslag())
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns PersonIdentResponse(deltaker.navBruker.personident)
 
         withTestApplicationContext { httpClient ->
@@ -144,7 +143,6 @@ class VeilederApiTest : IntegrationTestBase() {
         val deltakerId = deltakerResponse.id
         val personident = "1234"
 
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerId) } returns PersonIdentResponse(personident)
         coEvery { amtDeltakerClient.getDeltaker(deltakerId) } returns deltakerResponse
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
@@ -190,7 +188,6 @@ class VeilederApiTest : IntegrationTestBase() {
         val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns PersonIdentResponse(deltaker.navBruker.personident)
         coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltaker.id) } returns DeltakerHistorikkDataResponse(
             historikk = historikk,
@@ -559,7 +556,6 @@ class VeilederApiTest : IntegrationTestBase() {
         every { deltakerRepository.getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id) } returns listOf(deltaker)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns PersonIdentResponse(deltaker.navBruker.personident)
