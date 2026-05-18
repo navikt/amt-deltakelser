@@ -178,13 +178,8 @@ fun Application.configureRouting(
 
         registerTiltakskoordinatorDeltakerApi(
             tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
-            tiltakskoordinatorService = tiltakskoordinatorService,
-            deltakerRepository = deltakerRepository,
             amtDeltakerClient = amtDeltakerClient,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
             ulestHendelseRepository = ulestHendelseRepository,
-            unleashToggle = commonUnleashToggle,
         )
 
         registerTiltakskoordinatorDeltakerlisteApi(
