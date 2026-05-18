@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.timeout
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
@@ -28,25 +27,14 @@ class TiltakskoordinatorClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    companion object {
-        // Forhøyet timeout for store gjennomføringer (2000+ deltakere).
-        // Responsen er batchet server-side, men store lister kan fortsatt ta tid.
-        private const val LARGE_LIST_REQUEST_TIMEOUT_MILLIS = 45_000L
-    }
-
     suspend fun getGjennomforing(gjennomforingId: UUID): GjennomforingResponse = performGet("gjennomforing/$gjennomforingId")
         .failIfNotSuccess("Fant ikke gjennomforing $gjennomforingId i amt-deltaker.")
         .body()
 
-    suspend fun getDeltakereForGjennomforing(gjennomforingId: UUID): TiltakskoordinatorDeltakereResponse =
-        performGet("tiltakskoordinator/deltakere/$gjennomforingId") {
-            // Store gjennomføringer kan ha 2000+ deltakere — bruk forhøyet timeout.
-            timeout {
-                requestTimeoutMillis = LARGE_LIST_REQUEST_TIMEOUT_MILLIS
-                socketTimeoutMillis = LARGE_LIST_REQUEST_TIMEOUT_MILLIS
-            }
-        }.failIfNotSuccess("Fant ikke gjennomforing $gjennomforingId i amt-deltaker.")
-            .body()
+    suspend fun getDeltakereForGjennomforing(gjennomforingId: UUID): TiltakskoordinatorDeltakereResponse = performGet(
+        "tiltakskoordinator/deltakere/$gjennomforingId",
+    ).failIfNotSuccess("Fant ikke gjennomforing $gjennomforingId i amt-deltaker.")
+        .body()
 
     suspend fun delMedArrangor(
         deltakerIder: List<UUID>,
