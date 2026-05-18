@@ -52,7 +52,7 @@ class TiltakskoordinatorResponseBuilder(
 
         // Hent digital-status for deltakere uten fersk cache-entry
         // HandlingerKnapp i frontend vises kun for GjennomforingPameldingType.TRENGER_GODKJENNING
-        val erDigitalMap = nyesteDeltakelsePerPerson
+        val erDigitalFallbackMap = nyesteDeltakelsePerPerson
             .takeIf { gjennomforing.deltakelserMaaGodkjennes }
             ?.let { hentManglendeDigitalStatus(it) }
 
@@ -62,7 +62,7 @@ class TiltakskoordinatorResponseBuilder(
                 { row ->
                     buildDeltakerResponse(
                         row = row,
-                        erDigitalMap = erDigitalMap,
+                        erDigitalFallbackMap = erDigitalFallbackMap,
                     )
                 },
         )
@@ -93,10 +93,13 @@ class TiltakskoordinatorResponseBuilder(
 
     private fun buildDeltakerResponse(
         row: TiltakskoordinatorDeltakerRow,
-        erDigitalMap: Map<String, Boolean>?,
+        erDigitalFallbackMap: Map<String, Boolean>?,
     ): TiltakskoordinatorDeltakerResponse {
-        val ikkeDigitalOgManglerAdresse =
-            erDigitalMap?.get(row.personident) == false && !row.harAdresse
+        val erDigital = row.erDigitalCached
+            ?: erDigitalFallbackMap?.get(row.personident)
+            ?: true
+
+        val ikkeDigitalOgManglerAdresse = !(erDigital || row.harAdresse)
 
         return TiltakskoordinatorDeltakerResponse(
             id = row.id,
