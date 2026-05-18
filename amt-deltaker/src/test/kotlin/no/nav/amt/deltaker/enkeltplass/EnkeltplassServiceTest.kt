@@ -258,23 +258,23 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     inner class OppdaterUtkastTests {
         @Test
         fun `skal oppdatere deltaker og vedtak uten aa endre status`() = runTest {
+            // Arrange
             every {
-                vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = false,
-                    endretAv = navAnsattInTest,
-                    endretAvEnhet = navEnhetInTest,
-                    deltaker = any(),
-                    fattetDato = null,
+                deltakerRepository.get(deltakerInTest.id)
+            } returns
+                Result.success(
+                    deltakerInTest.copy(
+                        status = deltakerInTest.status.copy(
+                            type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+                        ),
+                    ),
                 )
-            } returns lagVedtak(
-                deltakerId = deltakerInTest.id,
-                deltakerVedVedtak = deltakerInTest,
-            )
 
             every { arrangorRepository.get(any<String>()) } returns arrangorInTest
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
             every { deltakerlisteRepository.update(any()) } just Runs
 
+            // Act
             enkeltplassService.oppdaterUtkast(
                 deltakerId = deltakerInTest.id,
                 decoratedRequest = decoratedRequest,
@@ -282,15 +282,6 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             verify(exactly = 0) {
                 deltakerService.lagreDeltakerStatus(any(), any(), any())
-            }
-            verify {
-                vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = false,
-                    endretAv = navAnsattInTest,
-                    endretAvEnhet = navEnhetInTest,
-                    deltaker = any(),
-                    fattetDato = null,
-                )
             }
             verify { deltakerlisteRepository.update(any()) }
             verify { deltakerRepository.updateEnkeltplassKladd(any()) }

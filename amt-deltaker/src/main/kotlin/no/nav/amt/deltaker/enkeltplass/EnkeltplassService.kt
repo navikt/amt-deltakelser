@@ -100,16 +100,86 @@ class EnkeltplassService(
         // Deltakeren hentes for å få tak i ledeteksten fra tiltakstypen
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
-        require(deltaker.deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
-            "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id $deltakerId har gjennomforingstype ${deltaker.deltakerliste.gjennomforingstype}"
-        }
         require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
             "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id $deltakerId har status ${deltaker.status.type}"
         }
 
+        oppdaterKladdEllerUtkast(
+            deltaker = deltaker,
+            oppdaterKladdRequest = oppdaterKladdRequest,
+        )
+    }
+
+    /** Oppdaterer utkastet og setter status til [DeltakerStatus.Type.UTKAST_TIL_PAMELDING] for deling med innbygger. */
+    suspend fun delUtkastMedInnbygger(
+        deltakerId: UUID,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ): Deltaker = lagreOgPubliser(
+        deltakerId = deltakerId,
+        decoratedRequest = decoratedRequest,
+        nyStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+    )
+
+    /** Oppdaterer innholdet i utkastet uten å endre status. */
+    suspend fun oppdaterUtkast(
+        deltakerId: UUID,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ): Deltaker {
+        // Deltakeren hentes for å få tak i ledeteksten fra tiltakstypen
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+
+        require(deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
+            "Oppdatering av utkast kan kun benyttes for deltaker med status ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}. " +
+                "Deltaker $deltakerId har status ${deltaker.status.type}"
+        }
+
+        oppdaterKladdEllerUtkast(
+            deltaker = deltaker,
+            // TODO: Vurder å benytte kun OppdaterEnkeltplassKladdRequest
+            // EnkeltplassPameldingRequest og OppdaterEnkeltplassKladdRequest er veldig like
+            oppdaterKladdRequest = with(decoratedRequest.wrappedRequest) {
+                OppdaterEnkeltplassKladdRequest(
+                    beskrivelse = beskrivelse,
+                    prisinformasjon = prisinformasjon,
+                    arrangorUnderenhet = arrangorUnderenhet,
+                    startdato = startdato,
+                    sluttdato = sluttdato,
+                    kodeverkValg = kodeverkValg,
+                    sertifiseringValg = sertifiseringValg,
+                )
+            },
+        )
+
+        // TODO: Avklar hvordan endring i prisinfo skal håndteres
+
+        return deltakerRepository.get(deltakerId).getOrThrow()
+    }
+
+    suspend fun meldPaaDirekte(
+        deltakerId: UUID,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+    ) {
+        lagreOgPubliser(
+            deltakerId = deltakerId,
+            decoratedRequest = decoratedRequest,
+            nyStatus = DeltakerStatus.Type.SOKT_INN,
+        )
+    }
+
+    private suspend fun oppdaterKladdEllerUtkast(
+        deltaker: Deltaker,
+        oppdaterKladdRequest: OppdaterEnkeltplassKladdRequest,
+    ) {
+        require(deltaker.deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+            "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id ${deltaker.id} har gjennomforingstype ${deltaker.deltakerliste.gjennomforingstype}"
+        }
+
         // Arrangøren oppdateres bare hvis den er endret i requesten
         val arrangor = oppdaterKladdRequest.arrangorUnderenhet?.let {
-            hentArrangorHvisEndret(organisasjonsnummer = it, eksisterendeArrangor = deltaker.deltakerliste.arrangor)
+            hentArrangorHvisEndret(
+                organisasjonsnummer = it,
+                eksisterendeArrangor = deltaker.deltakerliste.arrangor,
+            )
         }
 
         Database.transaction {
@@ -146,7 +216,7 @@ class EnkeltplassService(
 
             deltakerRepository.updateEnkeltplassKladd(
                 byggDeltakerUpdateDbo(
-                    deltakerId = deltakerId,
+                    deltakerId = deltaker.id,
                     deltaker = deltaker,
                     startdato = oppdaterKladdRequest.startdato,
                     sluttdato = oppdaterKladdRequest.sluttdato,
@@ -154,37 +224,6 @@ class EnkeltplassService(
                 ),
             )
         }
-    }
-
-    /** Oppdaterer utkastet og setter status til [DeltakerStatus.Type.UTKAST_TIL_PAMELDING] for deling med innbygger. */
-    suspend fun delUtkastMedInnbygger(
-        deltakerId: UUID,
-        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
-    ): Deltaker = lagreOgPubliser(
-        deltakerId = deltakerId,
-        decoratedRequest = decoratedRequest,
-        nyStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-    )
-
-    /** Oppdaterer innholdet i utkastet uten å endre status. */
-    suspend fun oppdaterUtkast(
-        deltakerId: UUID,
-        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
-    ): Deltaker = lagreOgPubliser(
-        deltakerId = deltakerId,
-        decoratedRequest = decoratedRequest,
-        nyStatus = null,
-    )
-
-    suspend fun meldPaaDirekte(
-        deltakerId: UUID,
-        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
-    ) {
-        lagreOgPubliser(
-            deltakerId = deltakerId,
-            decoratedRequest = decoratedRequest,
-            nyStatus = DeltakerStatus.Type.SOKT_INN,
-        )
     }
 
     /**
