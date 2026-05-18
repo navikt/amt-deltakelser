@@ -117,7 +117,6 @@ class LaastAvsluttetDeltakelseValideringTest {
                 begrunnelse = "begrunnelse",
                 forslagId = UUID.randomUUID(),
             )
-            // Status er AVBRUTT, endring til harFullfort = true representerer FULLFORT
             val deltaker = laastNyligAvsluttetDeltaker.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
                 sluttdato = sluttdatoFireUkerSiden,
@@ -126,6 +125,29 @@ class LaastAvsluttetDeltakelseValideringTest {
             shouldNotThrow<IllegalArgumentException> {
                 request.valider(deltaker)
             }
+        }
+
+        @Test
+        fun `skal avvise endring for låst deltaker med status IKKE_AKTUELL`() {
+            val request = EndreAvslutningRequest(
+                harFullfort = true,
+                sluttdato = sluttdatoIGår,
+                aarsak = null,
+                begrunnelse = "begrunnelse",
+                forslagId = UUID.randomUUID(),
+            )
+            val deltaker = laastNyligAvsluttetDeltaker.copy(
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                    gyldigFra = LocalDateTime.now().minusWeeks(4),
+                ),
+                sluttdato = null,
+            )
+
+            // IKKE_AKTUELL er ikke i kanEndreAvslutning-listen og blokkeres av den generelle statussjekken
+            shouldThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }.message shouldBe "Kan ikke endre avslutning for deltaker som ikke har status AVBRUTT, FULLFORT, HAR_SLUTTET eller DELTAR"
         }
 
         @Test

@@ -21,12 +21,21 @@ data class EndreAvslutningRequest(
     private val kanEndreAvslutning =
         listOf(DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT, DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.DELTAR)
 
+    private val kanEndreAvslutningLaastDeltakelse =
+        listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.FULLFORT, DeltakerStatus.Type.AVBRUTT)
+
     override fun valider(deltaker: Deltaker) {
         validerAarsaksBeskrivelse(aarsak?.beskrivelse)
         validerBegrunnelse(begrunnelse)
         validerDeltakerKanEndres(deltaker)
         require(deltaker.status.type in kanEndreAvslutning) {
             "Kan ikke endre avslutning for deltaker som ikke har status AVBRUTT, FULLFORT, HAR_SLUTTET eller DELTAR"
+        }
+
+        if (!deltaker.kanEndres) {
+            require(deltaker.status.type in kanEndreAvslutningLaastDeltakelse) {
+                "Kan ikke endre avslutning for låst deltakelse med status ${deltaker.status.type}"
+            }
         }
 
         require(deltakerErEndret(deltaker)) {
