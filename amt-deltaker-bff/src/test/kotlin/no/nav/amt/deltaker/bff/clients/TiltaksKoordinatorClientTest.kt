@@ -3,14 +3,20 @@ package no.nav.amt.deltaker.bff.clients
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdateringResponse
+import no.nav.amt.internapi.deltaker.request.PageRequest
+import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.deltaker.response.PaginatedResult
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
@@ -20,14 +26,46 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import java.util.UUID
 import kotlin.reflect.KClass
 
 class TiltaksKoordinatorClientTest {
     // TODO: Mangler tester for følgende:
     // - getGjennomforing
-    // - getDeltakereForGjennomforing
     // - tildelPlass
     // - settPaaVenteliste
+
+    @Nested
+    inner class GetDeltakereForGjennomforing {
+        val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/$gjennomforingId"
+        val expectedErrorMessage = "Fant ikke gjennomforing $gjennomforingId i amt-deltaker."
+        val getDeltakereForGjennomforingLambda: suspend (TiltakskoordinatorClient) -> TiltakskoordinatorDeltakereResponse =
+            { client -> client.getDeltakereForGjennomforing(deltakereRequest) }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(
+                expectedExceptionType,
+                statusCode,
+                expectedUrl,
+                expectedErrorMessage,
+                getDeltakereForGjennomforingLambda,
+                expectedMethod = HttpMethod.Post,
+            )
+        }
+
+        @Test
+        fun `skal returnere deltakere for gjennomforing`() {
+            runHappyPathTest(
+                expectedUrl,
+                lagTiltakskoordinatorDeltakereResponse(),
+                getDeltakereForGjennomforingLambda,
+                expectedMethod = HttpMethod.Post,
+            )
+        }
+    }
 
     @Nested
     inner class DelMedArrangor {
@@ -90,8 +128,26 @@ class TiltaksKoordinatorClientTest {
 
     companion object {
         private const val CLIENT_BASE_URL = "http://amt-tiltakskoordinator"
+        private val gjennomforingId = UUID.randomUUID()
+        private val deltakereRequest = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = gjennomforingId,
+            pageRequest = PageRequest(
+                sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
+                page = 2,
+                pageSize = 50,
+            ),
+        )
         private val deltakerInTest = lagDeltaker()
         private val deltakerOppdateringInTest = deltakerInTest.toDeltakeroppdatering()
+
+        private fun lagTiltakskoordinatorDeltakereResponse() = TiltakskoordinatorDeltakereResponse(
+            gjennomforing = null,
+            paginatedResult = PaginatedResult(
+                totalCount = 1,
+                pageSize = 50,
+                data = listOf(lagTiltakskoordinatorDeltakerResponse()),
+            ),
+        )
 
         private fun runFailureTest(
             exceptionType: KClass<out Throwable>,
@@ -99,10 +155,11 @@ class TiltaksKoordinatorClientTest {
             expectedUrl: String,
             expectedError: String,
             block: suspend (TiltakskoordinatorClient) -> Any,
+            expectedMethod: HttpMethod? = null,
         ) {
             val thrown = Assertions.assertThrows(exceptionType.java) {
                 runTest {
-                    block(createTiltaksKoordinatorClient(expectedUrl, statusCode))
+                    block(createTiltaksKoordinatorClient(expectedUrl, statusCode, expectedMethod = expectedMethod))
                 }
             }
             thrown.message shouldStartWith expectedError
@@ -112,8 +169,9 @@ class TiltaksKoordinatorClientTest {
             expectedUrl: String,
             expectedResponse: T,
             block: suspend (TiltakskoordinatorClient) -> T,
+            expectedMethod: HttpMethod? = null,
         ) = runTest {
-            val deltakerClient = createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.OK, expectedResponse)
+            val deltakerClient = createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.OK, expectedResponse, expectedMethod)
 
             if (expectedResponse == null) {
                 shouldNotThrowAny { block(deltakerClient) }
@@ -126,10 +184,11 @@ class TiltaksKoordinatorClientTest {
             expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
+            expectedMethod: HttpMethod? = null,
         ) = TiltakskoordinatorClient(
             baseUrl = CLIENT_BASE_URL,
             scope = "scope",
-            httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
+            httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode, expectedMethod = expectedMethod),
             azureAdTokenClient = mockAzureAdClient(),
         )
     }
