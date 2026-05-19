@@ -16,7 +16,7 @@ import no.nav.amt.deltaker.bff.utils.toDeltakeroppdateringResponse
 import no.nav.amt.internapi.deltaker.request.PageRequest
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
@@ -39,7 +39,7 @@ class TiltaksKoordinatorClientTest {
     inner class GetDeltakereForGjennomforing {
         val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/$gjennomforingId"
         val expectedErrorMessage = "Fant ikke gjennomforing $gjennomforingId i amt-deltaker."
-        val getDeltakereForGjennomforingLambda: suspend (TiltakskoordinatorClient) -> TiltakskoordinatorDeltakereResponse =
+        val getDeltakereForGjennomforingLambda: suspend (TiltakskoordinatorClient) -> PaginatedResult<TiltakskoordinatorDeltakerResponse> =
             { client -> client.getDeltakereForGjennomforing(deltakereRequest) }
 
         @ParameterizedTest
@@ -60,7 +60,7 @@ class TiltaksKoordinatorClientTest {
         fun `skal returnere deltakere for gjennomforing`() {
             runHappyPathTest(
                 expectedUrl,
-                lagTiltakskoordinatorDeltakereResponse(),
+                lagPaginatedTiltakskoordinatorDeltakere(),
                 getDeltakereForGjennomforingLambda,
                 expectedMethod = HttpMethod.Post,
             )
@@ -140,13 +140,10 @@ class TiltaksKoordinatorClientTest {
         private val deltakerInTest = lagDeltaker()
         private val deltakerOppdateringInTest = deltakerInTest.toDeltakeroppdatering()
 
-        private fun lagTiltakskoordinatorDeltakereResponse() = TiltakskoordinatorDeltakereResponse(
-            gjennomforing = null,
-            paginatedResult = PaginatedResult(
-                totalCount = 1,
-                pageSize = 50,
-                data = listOf(lagTiltakskoordinatorDeltakerResponse()),
-            ),
+        private fun lagPaginatedTiltakskoordinatorDeltakere() = PaginatedResult(
+            totalCount = 1,
+            pageSize = 50,
+            data = listOf(lagTiltakskoordinatorDeltakerResponse()),
         )
 
         private fun runFailureTest(

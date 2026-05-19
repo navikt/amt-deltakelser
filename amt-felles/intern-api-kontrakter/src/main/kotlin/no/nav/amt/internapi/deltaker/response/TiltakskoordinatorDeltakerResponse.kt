@@ -15,10 +15,6 @@ import java.util.UUID
  * Kun data BFF faktisk bruker for å rendre liste-visningen er med — ingen forslag-JSONB,
  * ingen full vurdering, ingen vedtaksinformasjon, deltakelsesinnhold eller bakgrunnsinformasjon.
  */
-data class TiltakskoordinatorDeltakereResponse(
-    val gjennomforing: GjennomforingResponse?,
-    val paginatedResult: PaginatedResult<TiltakskoordinatorDeltakerResponse>,
-)
 
 data class TiltakskoordinatorDeltakerResponse(
     val id: UUID,

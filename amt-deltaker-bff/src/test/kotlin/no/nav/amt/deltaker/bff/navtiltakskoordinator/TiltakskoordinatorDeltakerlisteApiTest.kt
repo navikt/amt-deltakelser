@@ -30,7 +30,6 @@ import no.nav.amt.internapi.deltaker.request.PageRequest
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -469,13 +468,10 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             deltakere: List<TiltakskoordinatorDeltakerResponse>,
             totalCount: Int = deltakere.size,
             pageSize: Int = 5500,
-        ) = TiltakskoordinatorDeltakereResponse(
-            gjennomforing = null,
-            paginatedResult = PaginatedResult(
-                totalCount = totalCount,
-                pageSize = pageSize,
-                data = deltakere,
-            ),
+        ) = PaginatedResult(
+            totalCount = totalCount,
+            pageSize = pageSize,
+            data = deltakere,
         )
     }
 }

@@ -28,7 +28,6 @@ import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequ
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
@@ -132,13 +131,10 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             ),
         )
         val deltakerResponse = mockk<TiltakskoordinatorDeltakerResponse>(relaxed = true)
-        val expectedResponse = TiltakskoordinatorDeltakereResponse(
-            gjennomforing = null,
-            paginatedResult = PaginatedResult(
-                totalCount = 1,
-                pageSize = 50,
-                data = listOf(deltakerResponse),
-            ),
+        val expectedResponse = PaginatedResult(
+            totalCount = 1,
+            pageSize = 50,
+            data = listOf(deltakerResponse),
         )
 
         coEvery { tiltakskoordinatorResponseBuilder.buildResponse(request) } returns expectedResponse

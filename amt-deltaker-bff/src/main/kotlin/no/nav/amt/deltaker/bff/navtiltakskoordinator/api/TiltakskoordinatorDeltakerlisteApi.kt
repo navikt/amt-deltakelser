@@ -266,7 +266,7 @@ private suspend fun RoutingContext.hentDeltakereForDeltakerliste(
     val response = tiltakskoordinatorClient.getDeltakereForGjennomforing(request)
     val navAnsattAzureId = call.getNavAnsattAzureId()
     val deltakere = responseBuilder.toDeltakerResponses(
-        deltakere = response.paginatedResult.data,
+        deltakere = response.data,
         kanSeInnbyggersNavn = { deltaker ->
             tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
                 navAnsattAzureId = navAnsattAzureId,
@@ -277,8 +277,8 @@ private suspend fun RoutingContext.hentDeltakereForDeltakerliste(
     )
 
     return PaginatedResult(
-        totalCount = response.paginatedResult.totalCount,
-        pageSize = response.paginatedResult.pageSize,
+        totalCount = response.totalCount,
+        pageSize = response.pageSize,
         data = deltakere,
     )
 }

@@ -14,7 +14,6 @@ import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.deltaker.request.PageRequest
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
@@ -29,13 +28,11 @@ import java.util.UUID
 class TiltakskoordinatorResponseBuilderTest {
     private val viewRepository: TiltakskoordinatorViewRepository = mockk()
     private val deltakerlisteRepository: DeltakerlisteRepository = mockk()
-    private val arrangorService: ArrangorService = mockk()
     private val digitalBrukerService: DigitalBrukerService = mockk()
 
     private val builder = TiltakskoordinatorResponseBuilder(
         viewRepository = viewRepository,
         deltakerlisteRepository = deltakerlisteRepository,
-        arrangorService = arrangorService,
         digitalBrukerService = digitalBrukerService,
     )
 
@@ -46,7 +43,6 @@ class TiltakskoordinatorResponseBuilderTest {
         every {
             deltakerlisteRepository.get(gjennomforingId)
         } returns Result.success(defaultDeltakerliste.copy(pameldingstype = paameldingstype))
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "Arrangør Navn"
     }
 
     private fun mockDeltakere(rows: List<TiltakskoordinatorDeltakerRow>) {
@@ -62,8 +58,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
         val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
 
-        response.paginatedResult.data shouldBe emptyList()
-        response.gjennomforing shouldBe null
+        response.data shouldBe emptyList()
         coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
     }
 
@@ -83,8 +78,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
         val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
 
-        response.paginatedResult.data.size shouldBe 2
-        response.gjennomforing.shouldNotBeNull()
+        response.data.size shouldBe 2
         coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
     }
 
@@ -106,7 +100,7 @@ class TiltakskoordinatorResponseBuilderTest {
         mockDeltakere(listOf(row))
 
         val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
-        val deltakerResponse = response.paginatedResult.data.single()
+        val deltakerResponse = response.data.single()
 
         assertSoftly(deltakerResponse) {
             id shouldBe row.id
@@ -133,7 +127,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
         val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
 
-        response.paginatedResult.data
+        response.data
             .single()
             .navBruker.ikkeDigitalOgManglerAdresse shouldBe false
 
@@ -154,7 +148,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
         val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
 
-        response.paginatedResult.data
+        response.data
             .single()
             .navBruker.ikkeDigitalOgManglerAdresse shouldBe true
 
@@ -171,12 +165,12 @@ class TiltakskoordinatorResponseBuilderTest {
 
         val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
 
-        assertSoftly(response.paginatedResult.data.first()) {
+        assertSoftly(response.data.first()) {
             harAktivtForslag shouldBe true
             sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
         }
 
-        assertSoftly(response.paginatedResult.data.last()) {
+        assertSoftly(response.data.last()) {
             harAktivtForslag shouldBe false
             sisteVurderingstype shouldBe null
         }
@@ -198,9 +192,9 @@ class TiltakskoordinatorResponseBuilderTest {
 
         val response = builder.buildResponse(request)
 
-        response.paginatedResult.totalCount shouldBe 123
-        response.paginatedResult.pageSize shouldBe 37
-        response.paginatedResult.data.size shouldBe 1
+        response.totalCount shouldBe 123
+        response.pageSize shouldBe 37
+        response.data.size shouldBe 1
         verify(exactly = 1) { viewRepository.getDeltakereTotalCount(request) }
     }
 
@@ -224,8 +218,8 @@ class TiltakskoordinatorResponseBuilderTest {
         val deltarResponse = builder.buildResponse(deltarRequest)
         val venterPaOppstartResponse = builder.buildResponse(venterPaOppstartRequest)
 
-        deltarResponse.paginatedResult.totalCount shouldBe 10
-        venterPaOppstartResponse.paginatedResult.totalCount shouldBe 25
+        deltarResponse.totalCount shouldBe 10
+        venterPaOppstartResponse.totalCount shouldBe 25
         verify(exactly = 1) { viewRepository.getDeltakereTotalCount(deltarRequest) }
         verify(exactly = 1) { viewRepository.getDeltakereTotalCount(venterPaOppstartRequest) }
     }

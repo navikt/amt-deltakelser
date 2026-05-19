@@ -3,17 +3,12 @@ package no.nav.amt.deltaker.api.response
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
-import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
-import no.nav.amt.internapi.deltaker.response.ArrangorResponse
-import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorNavBrukerResponse
 import java.time.Duration
 
@@ -32,7 +27,6 @@ import java.time.Duration
 class TiltakskoordinatorResponseBuilder(
     private val viewRepository: TiltakskoordinatorViewRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
-    private val arrangorService: ArrangorService,
     private val digitalBrukerService: DigitalBrukerService,
 ) {
     private val itemCountCache: Cache<String, Int> = Caffeine
@@ -47,17 +41,12 @@ class TiltakskoordinatorResponseBuilder(
     /**
      * Henter gjennomføring og deltakere for en gjennomføring-id.
      */
-    suspend fun buildResponse(request: TiltaksKoordinatorDeltakerlisteRequest): TiltakskoordinatorDeltakereResponse {
+    suspend fun buildResponse(request: TiltaksKoordinatorDeltakerlisteRequest): PaginatedResult<TiltakskoordinatorDeltakerResponse> {
         val gjennomforing = deltakerlisteRepository.get(request.gjennomforingId).getOrNull()
-            ?: return TiltakskoordinatorDeltakereResponse(
-                gjennomforing = null,
-                paginatedResult = PaginatedResult(
-                    pageSize = request.pageRequest.pageSize,
-                    data = emptyList(),
-                ),
+            ?: return PaginatedResult(
+                pageSize = request.pageRequest.pageSize,
+                data = emptyList(),
             )
-
-        val gjennomforingResponse = buildGjennomforingResponse(gjennomforing)
 
         val rows = viewRepository.getDeltakerePaged(request)
 
@@ -67,43 +56,17 @@ class TiltakskoordinatorResponseBuilder(
             .takeIf { gjennomforing.deltakelserMaaGodkjennes }
             ?.let { hentManglendeDigitalStatus(it) }
 
-        return TiltakskoordinatorDeltakereResponse(
-            gjennomforing = gjennomforingResponse,
-            paginatedResult = PaginatedResult(
-                totalCount = getItemCount(request),
-                pageSize = request.pageRequest.pageSize,
-                data = rows.map { row ->
-                    buildDeltakerResponse(
-                        row = row,
-                        erDigitalFallbackMap = erDigitalFallbackMap,
-                    )
-                },
-            ),
+        return PaginatedResult(
+            totalCount = getItemCount(request),
+            pageSize = request.pageRequest.pageSize,
+            data = rows.map { row ->
+                buildDeltakerResponse(
+                    row = row,
+                    erDigitalFallbackMap = erDigitalFallbackMap,
+                )
+            },
         )
     }
-
-    private fun buildGjennomforingResponse(gjennomforing: Deltakerliste): GjennomforingResponse = GjennomforingResponse(
-        id = gjennomforing.id,
-        tiltakstype = gjennomforing.tiltakstype,
-        navn = gjennomforing.navn,
-        status = gjennomforing.status,
-        startDato = gjennomforing.startDato,
-        sluttDato = gjennomforing.sluttDato,
-        antallPlasser = gjennomforing.antallPlasser,
-        oppstart = gjennomforing.oppstart,
-        apentForPamelding = gjennomforing.apentForPamelding,
-        oppmoteSted = gjennomforing.oppmoteSted,
-        arrangor = gjennomforing.arrangor?.let {
-            ArrangorResponse(
-                navn = arrangorService.getArrangorNavn(it, gjennomforing.gjennomforingstype),
-                organisasjonsnummer = it.organisasjonsnummer,
-            )
-        },
-        pameldingstype = gjennomforing.pameldingstype,
-        type = gjennomforing.gjennomforingstype,
-        kodeverkValg = emptySet(),
-        sertifiseringValg = emptySet(),
-    )
 
     private fun buildDeltakerResponse(
         row: TiltakskoordinatorDeltakerRow,
