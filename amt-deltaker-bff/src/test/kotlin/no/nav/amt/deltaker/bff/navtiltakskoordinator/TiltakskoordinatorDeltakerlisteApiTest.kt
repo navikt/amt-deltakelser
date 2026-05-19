@@ -90,7 +90,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         } throws NoSuchElementException()
         every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
         every { tiltakskoordinatorTilgangRepository.hentKoordinatorer(any(), any()) } returns emptyList()
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
 
         val response = withTestApplicationContext { client ->
             client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}") {
@@ -116,7 +115,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
                 paaloggetNavAnsattId = any(),
             )
         } returns listOf(tiltakskoordinatorInTest)
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
 
         withTestApplicationContext { client ->
             // Act

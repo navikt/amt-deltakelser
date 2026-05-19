@@ -73,7 +73,6 @@ class InnbyggerApiTest : IntegrationTestBase() {
         val deltaker = TestData.lagDeltakerResponse()
 
         coEvery { deltakerService.oppdaterSistBesokt(deltaker.id) } just Runs
-        coEvery { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
         coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltaker
 
         // Act
@@ -141,7 +140,6 @@ class InnbyggerApiTest : IntegrationTestBase() {
         val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
-        every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
         coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltaker.id) } returns DeltakerHistorikkDataResponse(
             historikk = historikk,
             arrangornavn = arrangornavn,

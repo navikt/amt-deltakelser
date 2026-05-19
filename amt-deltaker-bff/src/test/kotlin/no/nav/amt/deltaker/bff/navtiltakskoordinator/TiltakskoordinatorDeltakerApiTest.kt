@@ -11,8 +11,6 @@ import io.mockk.every
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
@@ -42,46 +40,12 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
         @ParameterizedTest
         @ValueSource(booleans = [true, false])
-        fun `skal returnere DeltakerDetaljerResponse - toggle er av`(harTilgangTilBruker: Boolean) {
-            val expectedResponseBody = tiltakskoordinatorsDeltaker.toResponse(
-                harTilgangTilBruker = harTilgangTilBruker,
-                ulesteHendelser = emptyList(),
-            )
-
-            every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
-            coEvery { tiltakskoordinatorService.getDeltaker(any()) } returns tiltakskoordinatorsDeltaker
-            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
-
-            coEvery {
-                tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
-                    navIdent = any(),
-                    navAnsattAzureId = any(),
-                    personident = any(),
-                    erSkjermet = any(),
-                    adressebeskyttelse = any(),
-                    deltakerlisteId = any(),
-                )
-            } returns harTilgangTilBruker
-
-            val responseBody = withTestApplicationContext { httpClient ->
-                httpClient
-                    .get(urlString) {
-                        bearerAuth(bearerTokenInTest)
-                    }.body<DeltakerDetaljerResponse>()
-            }
-
-            responseBody shouldBe expectedResponseBody
-        }
-
-        @ParameterizedTest
-        @ValueSource(booleans = [true, false])
         fun `skal returnere DeltakerDetaljerResponse - toggle er på`(harTilgangTilBruker: Boolean) {
             val deltaker = lagDeltakerResponse()
 
             coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltaker
 
             every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
-            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
 
             coEvery {
                 tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
@@ -122,8 +86,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
         @Test
         fun `skal returnere Forbidden nar ikke tilgang til bruker`() {
-            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
-            every { deltakerRepository.get(any()) } returns Result.success(deltaker)
+            coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltakerResponse
             coEvery {
                 tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
                     navIdent = any(),
@@ -167,7 +130,6 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
                 ),
             )
 
-            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
             coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltakerResponse
             coEvery { amtDeltakerClient.getDeltakerHistorikkData(any()) } returns DeltakerHistorikkDataResponse(
                 historikk = historikk,
@@ -197,67 +159,12 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
             responseBody shouldBe expectedResponse
         }
-
-        @Test
-        fun `skal returnere liste med DeltakerHistorikk fra lokal data nar toggle er av`() {
-            // Arrange
-            val historikk = deltaker.getDeltakerHistorikkForVisning()
-
-            val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
-            val navEnhetMap = mapOf(navEnhet.id to navEnhet)
-
-            val expectedResponse = objectMapper.writePolymorphicListAsString(
-                DeltakerHistorikkResponse.fromModels(
-                    models = historikk,
-                    arrangornavn = deltaker.deltakerliste.arrangor.getArrangorNavn(),
-                    oppstartstype = deltaker.deltakerliste.oppstart,
-                    pameldingstype = deltaker.deltakerliste.pameldingstype,
-                    enheter = navEnhetMap,
-                    ansatte = navAnsattMap,
-                ),
-            )
-
-            every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns false
-            every { deltakerRepository.get(any()) } returns Result.success(deltaker)
-            coEvery {
-                tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
-                    navIdent = any(),
-                    navAnsattAzureId = any(),
-                    personident = any(),
-                    erSkjermet = any(),
-                    adressebeskyttelse = any(),
-                    deltakerlisteId = any(),
-                )
-            } returns true
-
-            every { navAnsattService.hentAnsatteForHistorikk(any()) } returns navAnsattMap
-            coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns navEnhetMap
-
-            val responseBody = withTestApplicationContext { httpClient ->
-                httpClient
-                    .get(urlString) {
-                        bearerAuth(bearerTokenInTest)
-                    }.bodyAsText()
-            }
-
-            responseBody shouldBe expectedResponse
-        }
     }
 
     companion object {
         private val deltaker = lagDeltaker()
+        private val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
         private val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
         private val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
-
-        private val tiltakskoordinatorsDeltaker = deltaker
-            .toTiltakskoordinatorsDeltaker(
-                sisteVurdering = null,
-                navEnhet = navEnhet,
-                navVeileder = navAnsatt,
-                feilkode = null,
-                ikkeDigitalOgManglerAdresse = false,
-                forslag = emptyList(),
-                ulesteHendelser = emptyList(),
-            )
     }
 }
