@@ -16,12 +16,15 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper.toDeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
+import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.util.UUID
 
@@ -61,28 +64,40 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
 
             get("/deltakere") {
                 val deltakerlisteId = getDeltakerlisteId()
-                deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
-                selfServiceTilgang.verifiserTiltakskoordinatorTilgang(
-                    navIdent = call.getNavIdent(),
+                val pagedResponse = hentDeltakereForDeltakerliste(
                     deltakerlisteId = deltakerlisteId,
+                    request = TiltaksKoordinatorDeltakerlisteRequest(
+                        gjennomforingId = deltakerlisteId,
+                    ),
+                    deltakerlisteService = deltakerlisteService,
+                    selfServiceTilgang = selfServiceTilgang,
+                    tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
+                    tiltakskoordinatorClient = tiltakskoordinatorClient,
+                    responseBuilder = responseBuilder,
                 )
 
-                val response = tiltakskoordinatorClient
-                    .getDeltakereForGjennomforing(deltakerlisteId)
+                call.respond(pagedResponse.data)
+            }
 
-                val navAnsattAzureId = call.getNavAnsattAzureId()
-                val deltakere = responseBuilder.toDeltakerResponses(
-                    deltakere = response.deltakere,
-                    kanSeInnbyggersNavn = { deltaker ->
-                        tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
-                            navAnsattAzureId = navAnsattAzureId,
-                            erSkjermet = deltaker.navBruker.erSkjermet,
-                            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                        )
-                    },
+            post("/deltakere-paged") {
+                val deltakerlisteId = getDeltakerlisteId()
+                val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()
+
+                require(request.gjennomforingId == deltakerlisteId) {
+                    "DeltakerlisteId i request må matche URL parameter."
+                }
+
+                val response = hentDeltakereForDeltakerliste(
+                    deltakerlisteId = deltakerlisteId,
+                    request = request,
+                    deltakerlisteService = deltakerlisteService,
+                    selfServiceTilgang = selfServiceTilgang,
+                    tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
+                    tiltakskoordinatorClient = tiltakskoordinatorClient,
+                    responseBuilder = responseBuilder,
                 )
 
-                call.respond(deltakere)
+                call.respond(response)
             }
 
             post("/deltakere/tildel-plass") {
@@ -228,4 +243,39 @@ fun RoutingContext.getDeltakerlisteId(): UUID {
     } catch (_: IllegalArgumentException) {
         throw IllegalArgumentException("URL parameter 'deltakerlisteId' er ikke formattert riktig.")
     }
+}
+
+private suspend fun RoutingContext.hentDeltakereForDeltakerliste(
+    deltakerlisteId: UUID,
+    request: TiltaksKoordinatorDeltakerlisteRequest,
+    deltakerlisteService: DeltakerlisteService,
+    selfServiceTilgang: SelfServiceTilgangService,
+    tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
+    tiltakskoordinatorClient: TiltakskoordinatorClient,
+    responseBuilder: ResponseBuilder,
+): PaginatedResult<DeltakerResponse> {
+    deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
+    selfServiceTilgang.verifiserTiltakskoordinatorTilgang(
+        navIdent = call.getNavIdent(),
+        deltakerlisteId = deltakerlisteId,
+    )
+
+    val response = tiltakskoordinatorClient.getDeltakereForGjennomforing(request)
+    val navAnsattAzureId = call.getNavAnsattAzureId()
+    val deltakere = responseBuilder.toDeltakerResponses(
+        deltakere = response.data,
+        kanSeInnbyggersNavn = { deltaker ->
+            tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                navAnsattAzureId = navAnsattAzureId,
+                erSkjermet = deltaker.navBruker.erSkjermet,
+                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+            )
+        },
+    )
+
+    return PaginatedResult(
+        totalCount = response.totalCount,
+        pageSize = response.pageSize,
+        data = deltakere,
+    )
 }

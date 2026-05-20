@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.extensions.getGjennomforingId
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
+import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -50,8 +51,13 @@ fun Routing.registerTiltakskoordinatorApi(
         }
 
         route("/tiltakskoordinator/deltakere") {
-            get("/{gjennomforingId}") {
-                call.respond(tiltakskoordinatorResponseBuilder.buildResponse(gjennomforingId = call.getGjennomforingId()))
+            post("/{gjennomforingId}") {
+                val gjennomforingId = call.getGjennomforingId()
+                val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                require(request.gjennomforingId == gjennomforingId) {
+                    "GjennomforingId i path matcher ikke gjennomforingId i request body"
+                }
+                call.respond(tiltakskoordinatorResponseBuilder.buildResponse(request))
             }
 
             post("/del-med-arrangor") {
