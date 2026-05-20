@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
@@ -12,6 +13,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
+import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
@@ -419,6 +421,50 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 outboxService.insertRecord(any(), any(), any(), any())
             }
         }
+    }
+
+    @Nested
+    inner class PubliserGjennomforingTests {
+        @Test
+        fun `skal kaste IllegalStateException naar prisinformasjon mangler`() {
+            val deltaker = deltakerInTest.copy(
+                deltakerliste = deltakerInTest.deltakerliste.copy(prisinformasjon = null),
+            )
+            mockVedtakOgAnsvarlige(deltaker)
+
+            val exception = shouldThrow<IllegalStateException> {
+                enkeltplassService.publiserGjennomforing(deltaker)
+            }
+
+            exception.message shouldBe "Kan ikke publisere gjennomføring ${deltaker.deltakerliste.id}: prisinformasjon mangler"
+            verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
+        }
+
+        @Test
+        fun `skal kaste IllegalStateException naar arrangor mangler`() {
+            val deltaker = deltakerInTest.copy(
+                deltakerliste = deltakerInTest.deltakerliste.copy(arrangor = null),
+            )
+            mockVedtakOgAnsvarlige(deltaker)
+
+            val exception = shouldThrow<IllegalStateException> {
+                enkeltplassService.publiserGjennomforing(deltaker)
+            }
+
+            exception.message shouldBe "Kan ikke publisere gjennomføring ${deltaker.deltakerliste.id}: arrangør mangler"
+            verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
+        }
+    }
+
+    private fun mockVedtakOgAnsvarlige(deltaker: Deltaker) {
+        every { vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id) } returns lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = navAnsattInTest,
+            opprettetAvEnhet = navEnhetInTest,
+        )
+        every { navEnhetRepository.getOrThrow(navEnhetInTest.id) } returns navEnhetInTest
+        every { navAnsattRepository.getOrThrow(navAnsattInTest.id) } returns navAnsattInTest
     }
 
     companion object {
