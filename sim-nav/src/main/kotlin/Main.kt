@@ -8,7 +8,7 @@ private const val SIM_NAV_HTTP_PORT = 9002
 fun main() {
     val simNavHttpServer = HttpServer.create(InetSocketAddress(SIM_NAV_HTTP_PORT), 0).apply {
         createContext("/") { exchange ->
-            if (!tryHandleUnleashRequest(exchange) && !tryHandlePoaoTilgangRequest(exchange)) {
+            if (!tryHandleUnleashRequest(exchange) && !tryHandlePoaoTilgangRequest(exchange) && !tryHandleKafkaRequest(exchange)) {
                 respondJson(exchange, 404, "{\"error\":\"not found\"}")
             }
         }
