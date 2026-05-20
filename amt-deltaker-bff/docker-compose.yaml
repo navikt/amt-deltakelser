@@ -65,6 +65,7 @@ services:
                   "requestParam": "client_id",
                   "match": "amt-deltaker-bff",
                   "claims": {
+                    "NAVident": "Z123456",
                     "oid": "11111111-1111-1111-1111-111111111111",
                     "sub": "11111111-1111-1111-1111-111111111111",
                     "azp": "amt-deltaker-bff",
