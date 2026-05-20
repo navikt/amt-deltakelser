@@ -52,7 +52,7 @@ private fun unleashFeaturesJson(): String {
         "amt.prioriter-synkron-kommunikasjon",
         "amt.oppdater-alle-aktivitetskort",
     ).joinToString(",") { feature ->
-        """{"name":"$feature","enabled":false,"strategies":[]}"""
+        """{"name":"$feature","enabled":true,"strategies":[]}"""
     }
 
     return """{"version":1,"features":[$features]}"""

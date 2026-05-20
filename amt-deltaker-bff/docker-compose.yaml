@@ -87,3 +87,12 @@ services:
             }
           ]
         }
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    ports:
+      - "9010:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "broker:29092"
+    depends_on:
+      - kafka
