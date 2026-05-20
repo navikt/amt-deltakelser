@@ -21,6 +21,9 @@ data class EndreAvslutningRequest(
     private val kanEndreAvslutning =
         listOf(DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT, DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.DELTAR)
 
+    private val kanEndreAvslutningLaastDeltakelse =
+        listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.FULLFORT, DeltakerStatus.Type.AVBRUTT)
+
     override fun valider(deltaker: Deltaker) {
         validerAarsaksBeskrivelse(aarsak?.beskrivelse)
         validerBegrunnelse(begrunnelse)
@@ -29,8 +32,20 @@ data class EndreAvslutningRequest(
             "Kan ikke endre avslutning for deltaker som ikke har status AVBRUTT, FULLFORT, HAR_SLUTTET eller DELTAR"
         }
 
+        if (!deltaker.kanEndres) {
+            require(deltaker.status.type in kanEndreAvslutningLaastDeltakelse) {
+                "Kan ikke endre avslutning for låst deltakelse med status ${deltaker.status.type}"
+            }
+        }
+
         require(deltakerErEndret(deltaker)) {
             "Kan ikke avslutte deltakelse med uendret avslutning, årsak eller sluttdato"
+        }
+
+        if (!deltaker.kanEndres && sluttdato != null) {
+            require(sluttdato.isBefore(LocalDate.now())) {
+                "Sluttdato må være tilbake i tid når deltakelsen er låst for endringer"
+            }
         }
 
         val endreTilAvbrutt = harDeltatt() && !harFullfort()

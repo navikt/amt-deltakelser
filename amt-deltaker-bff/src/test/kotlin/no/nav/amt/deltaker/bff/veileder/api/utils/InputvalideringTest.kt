@@ -269,6 +269,10 @@ class InputvalideringTest {
             ),
             sluttdato = null,
         )
+        // Låst pga. nyere deltakelse på samme tiltak, men avsluttet nylig – skal være tillatt
+        val deltakerLaastSluttetFireUkerSiden = deltakerSluttetFireUkerSiden.copy(kanEndres = false)
+        // Låst OG avsluttet for mer enn 2 måneder siden – skal fortsatt feile
+        val deltakerLaastSluttetFireMndSiden = deltakerSluttetFireMndSiden.copy(kanEndres = false)
 
         shouldNotThrow<IllegalArgumentException> {
             validerDeltakerKanEndres(deltakerDeltar)
@@ -282,8 +286,13 @@ class InputvalideringTest {
         shouldThrow<IllegalArgumentException> {
             validerDeltakerKanEndres(deltakerIkkeAktuellFireMndSiden)
         }
+        // Låst + nylig avsluttet skal IKKE lenger kaste feil
+        shouldNotThrow<IllegalArgumentException> {
+            validerDeltakerKanEndres(deltakerLaastSluttetFireUkerSiden)
+        }
+        // Låst + gammel avsluttet skal fortsatt kaste feil
         shouldThrow<IllegalArgumentException> {
-            validerDeltakerKanEndres(deltakerSluttetFireUkerSiden.copy(kanEndres = false))
+            validerDeltakerKanEndres(deltakerLaastSluttetFireMndSiden)
         }
     }
 

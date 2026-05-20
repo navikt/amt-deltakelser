@@ -6,6 +6,19 @@ import java.util.UUID
 sealed interface EndringRequestFromFrontend {
     fun valider(deltaker: Deltaker)
 
+    /**
+     * Returnerer true dersom endringen er tillatt for en deltaker som er låst for endringer
+     * (det finnes en nyere deltakelse på samme tiltak), men har fått avsluttende status
+     * for under 2 måneder siden.
+     */
+    fun tillattForLaastAvsluttetDeltakelse() = when (this) {
+        is EndreAvslutningRequest,
+        is EndreSluttarsakRequest,
+        -> true
+
+        else -> false
+    }
+
     fun tillattEndringUtenAktivOppfolgingsperiode() = when (this) {
         is EndreBakgrunnsinformasjonRequest,
         is EndreDeltakelsesmengdeRequest,

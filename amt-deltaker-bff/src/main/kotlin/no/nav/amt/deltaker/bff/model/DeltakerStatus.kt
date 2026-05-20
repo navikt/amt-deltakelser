@@ -18,3 +18,14 @@ val AKTIVE_STATUSER = setOf(
     DeltakerStatus.Type.SOKT_INN,
     DeltakerStatus.Type.VENTELISTE,
 )
+
+/**
+ * Statuser der begrenset redigering er tillatt for en låst, nylig avsluttet deltakelse.
+ * Speiler frontend sin STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING.
+ */
+val STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING = setOf(
+    DeltakerStatus.Type.HAR_SLUTTET,
+    DeltakerStatus.Type.FULLFORT,
+    DeltakerStatus.Type.AVBRUTT,
+    DeltakerStatus.Type.IKKE_AKTUELL,
+)
