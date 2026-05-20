@@ -6,6 +6,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
@@ -25,7 +26,10 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostTiltakskoordinatorRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
+import no.nav.amt.internapi.deltaker.request.PageRequest
+import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.deltaker.response.PaginatedResult
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -41,6 +45,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         withTestApplicationContext { client ->
             client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
             client.get("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere").status shouldBe HttpStatusCode.Unauthorized
+            client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere-paged").status shouldBe
+                HttpStatusCode.Unauthorized
             client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/tilgang/legg-til").status shouldBe
                 HttpStatusCode.Unauthorized
             client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor").status shouldBe
@@ -63,6 +69,10 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
             client
                 .get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere") { noBodyRequest() }
+                .apply { status shouldBe HttpStatusCode.Unauthorized }
+
+            client
+                .post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere-paged") { noBodyRequest() }
                 .apply { status shouldBe HttpStatusCode.Unauthorized }
 
             client
@@ -180,9 +190,9 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
         val deltakere = (0..5)
             .map { lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR)) }
-        val deltakereResponse = TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere)
+        val deltakereResponse = tiltakskoordinatorDeltakereResponse(deltakere)
 
-        coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns deltakereResponse
+        coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakereRequest()) } returns deltakereResponse
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
 
@@ -216,8 +226,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         val deltaker1 = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val deltaker2 = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
 
-        coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns
-            TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = listOf(deltaker1, deltaker2))
+        coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakereRequest()) } returns
+            tiltakskoordinatorDeltakereResponse(listOf(deltaker1, deltaker2))
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
         every {
@@ -245,8 +255,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
-        coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakerlisteInTest.id) } returns
-            TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = listOf(skjermetDeltaker))
+        coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakereRequest()) } returns
+            tiltakskoordinatorDeltakereResponse(listOf(skjermetDeltaker))
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
         every {
@@ -268,6 +278,55 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             // navnefelt skal være maskert når kanSeInnbyggersNavn=false (skjermet person)
             body.single().fornavn shouldBe DeltakerResponseUtils.SKJERMET_PERSON_PLACEHOLDER_NAVN
         }
+    }
+
+    @Test
+    fun `post deltakere-paged - deltakerliste finnes - returnerer paginerte deltakere`() {
+        mockTilgangTilDeltakerliste()
+
+        val request = pagedDeltakereRequest()
+        val deltakere = (0..1)
+            .map { lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR)) }
+        val deltakereResponse = tiltakskoordinatorDeltakereResponse(
+            deltakere = deltakere,
+            totalCount = 6,
+            pageSize = request.pageRequest.pageSize,
+        )
+
+        coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(request) } returns deltakereResponse
+        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
+        every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+        every {
+            tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
+        } returns true
+
+        withTestApplicationContext { client ->
+            val response = client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere-paged") {
+                createPostTiltakskoordinatorRequest(request)
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+            val body = response.body<PaginatedResult<DeltakerResponse>>()
+            body.totalCount shouldBe 6
+            body.pageSize shouldBe request.pageRequest.pageSize
+            body.data.map { it.id } shouldBe deltakere.map { it.id }
+        }
+
+        coVerify(exactly = 1) { tiltakskoordinatorClient.getDeltakereForGjennomforing(request) }
+    }
+
+    @Test
+    fun `post deltakere-paged - request-id matcher ikke url-id - returnerer 400`() {
+        val request = pagedDeltakereRequest(gjennomforingId = UUID.randomUUID())
+
+        val response = withTestApplicationContext { client ->
+            client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere-paged") {
+                createPostTiltakskoordinatorRequest(request)
+            }
+        }
+
+        response.status shouldBe HttpStatusCode.BadRequest
+        coVerify(exactly = 0) { tiltakskoordinatorClient.getDeltakereForGjennomforing(any()) }
     }
 
     @Test
@@ -389,6 +448,29 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             navn = "~navn~",
             erAktiv = true,
             kanFjernes = true,
+        )
+
+        private fun deltakereRequest() = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = deltakerlisteInTest.id,
+        )
+
+        private fun pagedDeltakereRequest(gjennomforingId: UUID = deltakerlisteInTest.id) = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = gjennomforingId,
+            pageRequest = PageRequest(
+                sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
+                page = 2,
+                pageSize = 2,
+            ),
+        )
+
+        private fun tiltakskoordinatorDeltakereResponse(
+            deltakere: List<TiltakskoordinatorDeltakerResponse>,
+            totalCount: Int = deltakere.size,
+            pageSize: Int = deltakere.size,
+        ) = PaginatedResult(
+            totalCount = totalCount,
+            pageSize = pageSize,
+            data = deltakere,
         )
     }
 }
