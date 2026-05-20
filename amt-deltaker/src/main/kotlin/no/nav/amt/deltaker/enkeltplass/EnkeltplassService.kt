@@ -174,10 +174,10 @@ class EnkeltplassService(
         val payload = GjennomforingRequestPayload.OpprettEnkeltplass(
             gjennomforingId = deltaker.deltakerliste.id,
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            prisinformasjon = requireNotNull(gjennomforing.prisinformasjon) {
+            prisinformasjon = checkNotNull(gjennomforing.prisinformasjon) {
                 "Kan ikke publisere gjennomføring ${gjennomforing.id}: prisinformasjon mangler"
             },
-            organisasjonsnummer = requireNotNull(gjennomforing.arrangor) {
+            organisasjonsnummer = checkNotNull(gjennomforing.arrangor) {
                 "Kan ikke publisere gjennomføring ${gjennomforing.id}: arrangør mangler"
             }.organisasjonsnummer,
             ansvarligEnhet = ansvarligEnhet.enhetsnummer,
