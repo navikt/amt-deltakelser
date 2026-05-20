@@ -4,10 +4,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
-import no.nav.amt.internapi.deltaker.response.PaginatedResult
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
@@ -33,13 +31,10 @@ class TiltakskoordinatorClient(
         .failIfNotSuccess("Fant ikke gjennomforing $gjennomforingId i amt-deltaker.")
         .body()
 
-    suspend fun getDeltakereForGjennomforing(
-        request: TiltaksKoordinatorDeltakerlisteRequest,
-    ): PaginatedResult<TiltakskoordinatorDeltakerResponse> = performPost(
-        "tiltakskoordinator/deltakere/${request.gjennomforingId}",
-        request,
-    ).failIfNotSuccess("Fant ikke gjennomforing ${request.gjennomforingId} i amt-deltaker.")
-        .body<PaginatedResult<TiltakskoordinatorDeltakerResponse>>()
+    suspend fun getDeltakereForGjennomforing(gjennomforingId: UUID): TiltakskoordinatorDeltakereResponse = performGet(
+        "tiltakskoordinator/deltakere/$gjennomforingId",
+    ).failIfNotSuccess("Fant ikke gjennomforing $gjennomforingId i amt-deltaker.")
+        .body()
 
     suspend fun delMedArrangor(
         deltakerIder: List<UUID>,

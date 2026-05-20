@@ -7,16 +7,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.internapi.deltaker.request.PageRequest
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -28,11 +26,13 @@ import java.util.UUID
 class TiltakskoordinatorResponseBuilderTest {
     private val viewRepository: TiltakskoordinatorViewRepository = mockk()
     private val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+    private val arrangorService: ArrangorService = mockk()
     private val digitalBrukerService: DigitalBrukerService = mockk()
 
     private val builder = TiltakskoordinatorResponseBuilder(
         viewRepository = viewRepository,
         deltakerlisteRepository = deltakerlisteRepository,
+        arrangorService = arrangorService,
         digitalBrukerService = digitalBrukerService,
     )
 
@@ -43,22 +43,17 @@ class TiltakskoordinatorResponseBuilderTest {
         every {
             deltakerlisteRepository.get(gjennomforingId)
         } returns Result.success(defaultDeltakerliste.copy(pameldingstype = paameldingstype))
-    }
-
-    private fun mockDeltakere(rows: List<TiltakskoordinatorDeltakerRow>) {
-        every { viewRepository.getDeltakere(any(), any()) } returns rows
-        every { viewRepository.getDeltakereTotalCount(any()) } returns rows.size
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "Arrangør Navn"
     }
 
     @Test
     fun `buildResponse - gjennomforing finnes ikke - returnerer tom respons`() = runTest {
-        every {
-            deltakerlisteRepository.get(gjennomforingId)
-        } returns Result.failure(NoSuchElementException())
+        every { deltakerlisteRepository.get(gjennomforingId) } returns Result.failure(NoSuchElementException())
 
-        val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
+        val response = builder.buildResponse(gjennomforingId)
 
-        response.data shouldBe emptyList()
+        response.deltakere shouldBe emptyList()
+        response.gjennomforing shouldBe null
         coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
     }
 
@@ -74,11 +69,12 @@ class TiltakskoordinatorResponseBuilderTest {
             navEnhetNavn = "NAV Enhet",
         )
 
-        mockDeltakere(listOf(row1, row2))
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row1, row2)
 
-        val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
+        val response = builder.buildResponse(gjennomforingId)
 
-        response.data.size shouldBe 2
+        response.deltakere.size shouldBe 2
+        response.gjennomforing.shouldNotBeNull()
         coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
     }
 
@@ -97,10 +93,10 @@ class TiltakskoordinatorResponseBuilderTest {
             navEnhetNavn = "NAV Enhet",
         )
 
-        mockDeltakere(listOf(row))
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
 
-        val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
-        val deltakerResponse = response.data.single()
+        val response = builder.buildResponse(gjennomforingId)
+        val deltakerResponse = response.deltakere.single()
 
         assertSoftly(deltakerResponse) {
             id shouldBe row.id
@@ -120,14 +116,14 @@ class TiltakskoordinatorResponseBuilderTest {
         mockGjennomforing(GjennomforingPameldingType.DIREKTE_VEDTAK)
         val row = lagRow(erDigitalCached = null)
 
-        mockDeltakere(listOf(row))
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
         coEvery { digitalBrukerService.hentErDigitalForPersonidenter(setOf(row.personident)) } returns mapOf(
             row.personident to true,
         )
 
-        val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
+        val response = builder.buildResponse(gjennomforingId)
 
-        response.data
+        response.deltakere
             .single()
             .navBruker.ikkeDigitalOgManglerAdresse shouldBe false
 
@@ -141,14 +137,14 @@ class TiltakskoordinatorResponseBuilderTest {
         mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val row = lagRow(erDigitalCached = null, harAdresse = false)
 
-        mockDeltakere(listOf(row))
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row)
         coEvery {
             digitalBrukerService.hentErDigitalForPersonidenter(setOf(row.personident))
         } returns mapOf(row.personident to false)
 
-        val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
+        val response = builder.buildResponse(gjennomforingId)
 
-        response.data
+        response.deltakere
             .single()
             .navBruker.ikkeDigitalOgManglerAdresse shouldBe true
 
@@ -161,103 +157,129 @@ class TiltakskoordinatorResponseBuilderTest {
         val row1 = lagRow(harAktivtForslag = true, sisteVurderingstype = Vurderingstype.OPPFYLLER_KRAVENE, erDigitalCached = true)
         val row2 = lagRow(harAktivtForslag = false, sisteVurderingstype = null, erDigitalCached = true)
 
-        mockDeltakere(listOf(row1, row2))
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(row1, row2)
 
-        val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
+        val response = builder.buildResponse(gjennomforingId)
 
-        assertSoftly(response.data.first()) {
-            harAktivtForslag shouldBe true
-            sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
-        }
-
-        assertSoftly(response.data.last()) {
-            harAktivtForslag shouldBe false
-            sisteVurderingstype shouldBe null
-        }
-
+        response.deltakere[0].harAktivtForslag shouldBe true
+        response.deltakere[1].harAktivtForslag shouldBe false
+        response.deltakere[0].sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
+        response.deltakere[1].sisteVurderingstype shouldBe null
         coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
     }
 
     @Test
-    fun `buildResponse - pagination skrudd av - setter totalCount fra antall returnerte rader`() = runTest {
+    fun `buildResponse - flere deltakelser for samme person - returnerer kun nyeste`() = runTest {
         mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
-        val request = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = gjennomforingId,
-            pageRequest = PageRequest(pageSize = 37),
+        val personident = "12345678901"
+
+        val gammelAvsluttet = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            statusGyldigFra = LocalDateTime.now().minusMonths(6),
+            vedtakFattet = LocalDateTime.now().minusMonths(8),
+            erDigitalCached = true,
         )
-        val rows = listOf(lagRow(erDigitalCached = true), lagRow(erDigitalCached = true))
+        val nyAktiv = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.DELTAR,
+            statusGyldigFra = LocalDateTime.now().minusDays(10),
+            vedtakFattet = LocalDateTime.now().minusDays(14),
+            erDigitalCached = true,
+        )
 
-        every { viewRepository.getDeltakere(request, paginationEnabled = false) } returns rows
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(gammelAvsluttet, nyAktiv)
 
-        val response = builder.buildResponse(request)
+        val response = builder.buildResponse(gjennomforingId)
 
-        response.totalCount shouldBe 2
-        response.pageSize shouldBe 37
-        response.data.size shouldBe 2
-        verify(exactly = 0) { viewRepository.getDeltakereTotalCount(any()) }
+        response.deltakere.size shouldBe 1
+        response.deltakere.single().id shouldBe nyAktiv.id
     }
 
     @Test
-    fun `buildResponse - pagination skrudd paa - setter totalCount og pageSize fra repository og request`() = runTest {
-        val builderMedPagination = TiltakskoordinatorResponseBuilder(
-            viewRepository = viewRepository,
-            deltakerlisteRepository = deltakerlisteRepository,
-            digitalBrukerService = digitalBrukerService,
-            paginationEnabled = true,
-        )
+    fun `buildResponse - flere deltakelser for samme person uten aktiv - velger nyeste`() = runTest {
         mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
-        val request = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = gjennomforingId,
-            pageRequest = PageRequest(pageSize = 37),
+        val personident = "12345678901"
+
+        val eldreAvsluttet = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            statusGyldigFra = LocalDateTime.now().minusMonths(6),
+            vedtakFattet = LocalDateTime.now().minusMonths(8),
+            erDigitalCached = true,
         )
-        val row = lagRow(erDigitalCached = true)
+        val nyereAvsluttet = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+            statusGyldigFra = LocalDateTime.now().minusDays(10),
+            vedtakFattet = LocalDateTime.now().minusDays(14),
+            erDigitalCached = true,
+        )
 
-        every { viewRepository.getDeltakere(request, paginationEnabled = true) } returns listOf(row)
-        every { viewRepository.getDeltakereTotalCount(request) } returns 123
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(eldreAvsluttet, nyereAvsluttet)
 
-        val response = builderMedPagination.buildResponse(request)
+        val response = builder.buildResponse(gjennomforingId)
 
-        response.totalCount shouldBe 123
-        response.pageSize shouldBe 37
-        response.data.size shouldBe 1
-        verify(exactly = 1) { viewRepository.getDeltakereTotalCount(request) }
+        response.deltakere.size shouldBe 1
+        response.deltakere.single().id shouldBe nyereAvsluttet.id
     }
 
     @Test
-    fun `buildResponse - bruker separat count-cache for ulike filterkombinasjoner`() = runTest {
-        val builderMedPagination = TiltakskoordinatorResponseBuilder(
-            viewRepository = viewRepository,
-            deltakerlisteRepository = deltakerlisteRepository,
-            digitalBrukerService = digitalBrukerService,
-            paginationEnabled = true,
-        )
+    fun `buildResponse - aktiv status velges over nyere avsluttet deltakelse`() = runTest {
         mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
-        val deltarRequest = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = gjennomforingId,
-            statuser = setOf(DeltakerStatus.Type.DELTAR),
-            pageRequest = PageRequest(pageSize = 50),
+        val personident = "12345678901"
+
+        val aktiv = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            statusGyldigFra = LocalDateTime.now().minusDays(30),
+            vedtakFattet = LocalDateTime.now().minusDays(30),
+            erDigitalCached = true,
         )
-        val venterPaOppstartRequest = deltarRequest.copy(
-            statuser = setOf(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        val nyereAvsluttet = lagRow(
+            personident = personident,
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            statusGyldigFra = LocalDateTime.now().minusDays(5),
+            vedtakFattet = LocalDateTime.now().minusDays(3),
+            erDigitalCached = true,
         )
 
-        every { viewRepository.getDeltakere(deltarRequest, paginationEnabled = true) } returns listOf(lagRow(erDigitalCached = true))
-        every {
-            viewRepository.getDeltakere(
-                venterPaOppstartRequest,
-                paginationEnabled = true,
-            )
-        } returns listOf(lagRow(erDigitalCached = true))
-        every { viewRepository.getDeltakereTotalCount(deltarRequest) } returns 10
-        every { viewRepository.getDeltakereTotalCount(venterPaOppstartRequest) } returns 25
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(nyereAvsluttet, aktiv)
 
-        val deltarResponse = builderMedPagination.buildResponse(deltarRequest)
-        val venterPaOppstartResponse = builderMedPagination.buildResponse(venterPaOppstartRequest)
+        val response = builder.buildResponse(gjennomforingId)
 
-        deltarResponse.totalCount shouldBe 10
-        venterPaOppstartResponse.totalCount shouldBe 25
-        verify(exactly = 1) { viewRepository.getDeltakereTotalCount(deltarRequest) }
-        verify(exactly = 1) { viewRepository.getDeltakereTotalCount(venterPaOppstartRequest) }
+        response.deltakere.size shouldBe 1
+        response.deltakere.single().id shouldBe aktiv.id
+    }
+
+    @Test
+    fun `buildResponse - ulike personer gir en rad per person`() = runTest {
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
+
+        val person1Aktiv = lagRow(
+            personident = "11111111111",
+            statusType = DeltakerStatus.Type.DELTAR,
+            erDigitalCached = true,
+        )
+        val person1Avsluttet = lagRow(
+            personident = "11111111111",
+            statusType = DeltakerStatus.Type.HAR_SLUTTET,
+            statusGyldigFra = LocalDateTime.now().minusMonths(3),
+            vedtakFattet = LocalDateTime.now().minusMonths(4),
+            erDigitalCached = true,
+        )
+        val person2Aktiv = lagRow(
+            personident = "22222222222",
+            statusType = DeltakerStatus.Type.DELTAR,
+            erDigitalCached = true,
+        )
+
+        every { viewRepository.getDeltakere(gjennomforingId) } returns listOf(person1Aktiv, person1Avsluttet, person2Aktiv)
+
+        val response = builder.buildResponse(gjennomforingId)
+
+        response.deltakere.size shouldBe 2
+        response.deltakere.map { it.id }.toSet() shouldBe setOf(person1Aktiv.id, person2Aktiv.id)
     }
 
     private var personidentCounter = 0

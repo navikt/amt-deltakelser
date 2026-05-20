@@ -7,7 +7,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
@@ -23,11 +22,9 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.internapi.deltaker.request.PageRequest
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
-import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakereResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
@@ -111,7 +108,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("$API_PATH/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.get("$API_PATH/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
@@ -122,53 +119,20 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `getDeltakereForGjennomforing - har tilgang - returnerer 200 og deltakere fra tiltakskoordinatorResponseBuilder`() {
         val gjennomforingId = UUID.randomUUID()
-        val request = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = gjennomforingId,
-            pageRequest = PageRequest(
-                sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
-                page = 2,
-                pageSize = 50,
-            ),
-        )
         val deltakerResponse = mockk<TiltakskoordinatorDeltakerResponse>(relaxed = true)
-        val expectedResponse = PaginatedResult(
-            totalCount = 1,
-            pageSize = 50,
-            data = listOf(deltakerResponse),
-        )
+        val expectedResponse = TiltakskoordinatorDeltakereResponse(gjennomforing = null, deltakere = listOf(deltakerResponse))
 
-        coEvery { tiltakskoordinatorResponseBuilder.buildResponse(request) } returns expectedResponse
+        coEvery { tiltakskoordinatorResponseBuilder.buildResponse(gjennomforingId) } returns expectedResponse
 
         withTestApplicationContext { client ->
             client
-                .post("$API_PATH/$gjennomforingId") {
-                    postRequest(request)
+                .get("$API_PATH/$gjennomforingId") {
+                    noBodyRequest()
                 }.apply {
                     status shouldBe HttpStatusCode.OK
                     bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
                 }
         }
-
-        coVerify(exactly = 1) { tiltakskoordinatorResponseBuilder.buildResponse(request) }
-    }
-
-    @Test
-    fun `getDeltakereForGjennomforing - gjennomforingId i path og body matcher ikke - returnerer 400`() {
-        val pathGjennomforingId = UUID.randomUUID()
-        val request = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = UUID.randomUUID(),
-        )
-
-        withTestApplicationContext { client ->
-            client
-                .post("$API_PATH/$pathGjennomforingId") {
-                    postRequest(request)
-                }.apply {
-                    status shouldBe HttpStatusCode.BadRequest
-                }
-        }
-
-        coVerify(exactly = 0) { tiltakskoordinatorResponseBuilder.buildResponse(any()) }
     }
 
     @Test

@@ -7,7 +7,6 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.jackson3.jackson
@@ -32,13 +31,11 @@ object ClientTestUtils {
         responseBody: T?,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
         expectAuthHeader: Boolean = true,
-        expectedMethod: HttpMethod? = null,
     ) = HttpClient(MockEngine) {
         install(ContentNegotiation) { jackson() }
         engine {
             addHandler { request ->
                 request.url.toString() shouldBe expectedUrl
-                expectedMethod?.let { request.method shouldBe it }
                 if (expectAuthHeader) request.headers[HttpHeaders.Authorization] shouldBe "Bearer XYZ"
 
                 when (responseBody) {

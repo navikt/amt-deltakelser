@@ -393,6 +393,7 @@ abstract class IntegrationTestBase {
         TiltakskoordinatorResponseBuilder(
             viewRepository = tiltakskoordinatorViewRepository,
             deltakerlisteRepository = mockk(),
+            arrangorService = arrangorService,
             digitalBrukerService = digitalBrukerService,
         )
     }
