@@ -62,13 +62,24 @@ services:
               "tokenExpiry": 315360000,
               "requestMappings": [
                 {
-                  "requestParam": "grant_type",
-                  "match": "client_credentials",
+                  "requestParam": "client_id",
+                  "match": "amt-deltaker-bff",
+                  "claims": {
+                    "oid": "11111111-1111-1111-1111-111111111111",
+                    "sub": "11111111-1111-1111-1111-111111111111",
+                    "azp": "amt-deltaker-bff",
+                    "groups": [],
+                    "aud": ["amt-deltaker"]
+                  }
+                },
+                {
+                  "requestParam": "client_id",
+                  "match": "frontend-client-id",
                   "claims": {
                     "NAVident": "Z123456",
                     "oid": "11111111-1111-1111-1111-111111111111",
                     "groups": [],
-                    "aud": ["local-client-id"]
+                    "aud": ["amt-deltaker-bff"]
                   }
                 }
               ]
