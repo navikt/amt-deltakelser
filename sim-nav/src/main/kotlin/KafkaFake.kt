@@ -1,9 +1,11 @@
 import com.sun.net.httpserver.HttpExchange
-import java.nio.charset.StandardCharsets
 
 private const val KAFKA_ENKELTPLASS_GJENNOMFORING_PATH = "/kafka/gjennomforing/enkeltplass"
 
-fun tryHandleKafkaRequest(exchange: HttpExchange): Boolean {
+fun tryHandleKafkaRequest(
+    exchange: HttpExchange,
+    kafkaPublisher: KafkaPublisher,
+): Boolean {
     val path = exchange.requestURI.path
 
     return when (path) {
@@ -13,9 +15,12 @@ fun tryHandleKafkaRequest(exchange: HttpExchange): Boolean {
                 return true
             }
 
-            // Wiring only for now: accept request body without processing.
-            exchange.requestBody.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-            respondJson(exchange, 202, "{\"status\":\"accepted\"}")
+            try {
+                kafkaPublisher.publishGjennomforingEnkeltplass()
+                respondJson(exchange, 202, "{\"status\":\"accepted\"}")
+            } catch (_: Exception) {
+                respondJson(exchange, 500, "{\"error\":\"failed to publish kafka message\"}")
+            }
             true
         }
 

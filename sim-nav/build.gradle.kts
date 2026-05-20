@@ -20,6 +20,9 @@ repositories {
 
 dependencies {
     implementation(project(":amt-lib:models"))
+    implementation(libs.kafka.clients)
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.jackson.datatype.jsr310)
 
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
