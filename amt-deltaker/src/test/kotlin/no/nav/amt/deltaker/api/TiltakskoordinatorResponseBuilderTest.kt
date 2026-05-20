@@ -46,7 +46,7 @@ class TiltakskoordinatorResponseBuilderTest {
     }
 
     private fun mockDeltakere(rows: List<TiltakskoordinatorDeltakerRow>) {
-        every { viewRepository.getDeltakerePaged(any()) } returns rows
+        every { viewRepository.getDeltakere(any(), any()) } returns rows
         every { viewRepository.getDeltakereTotalCount(any()) } returns rows.size
     }
 
@@ -179,7 +179,32 @@ class TiltakskoordinatorResponseBuilderTest {
     }
 
     @Test
-    fun `buildResponse - setter totalCount og pageSize fra repository og request`() = runTest {
+    fun `buildResponse - pagination skrudd av - setter totalCount fra antall returnerte rader`() = runTest {
+        mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
+        val request = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = gjennomforingId,
+            pageRequest = PageRequest(pageSize = 37),
+        )
+        val rows = listOf(lagRow(erDigitalCached = true), lagRow(erDigitalCached = true))
+
+        every { viewRepository.getDeltakere(request, paginationEnabled = false) } returns rows
+
+        val response = builder.buildResponse(request)
+
+        response.totalCount shouldBe 2
+        response.pageSize shouldBe 37
+        response.data.size shouldBe 2
+        verify(exactly = 0) { viewRepository.getDeltakereTotalCount(any()) }
+    }
+
+    @Test
+    fun `buildResponse - pagination skrudd paa - setter totalCount og pageSize fra repository og request`() = runTest {
+        val builderMedPagination = TiltakskoordinatorResponseBuilder(
+            viewRepository = viewRepository,
+            deltakerlisteRepository = deltakerlisteRepository,
+            digitalBrukerService = digitalBrukerService,
+            paginationEnabled = true,
+        )
         mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val request = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
@@ -187,10 +212,10 @@ class TiltakskoordinatorResponseBuilderTest {
         )
         val row = lagRow(erDigitalCached = true)
 
-        every { viewRepository.getDeltakerePaged(request) } returns listOf(row)
+        every { viewRepository.getDeltakere(request, paginationEnabled = true) } returns listOf(row)
         every { viewRepository.getDeltakereTotalCount(request) } returns 123
 
-        val response = builder.buildResponse(request)
+        val response = builderMedPagination.buildResponse(request)
 
         response.totalCount shouldBe 123
         response.pageSize shouldBe 37
@@ -200,6 +225,12 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - bruker separat count-cache for ulike filterkombinasjoner`() = runTest {
+        val builderMedPagination = TiltakskoordinatorResponseBuilder(
+            viewRepository = viewRepository,
+            deltakerlisteRepository = deltakerlisteRepository,
+            digitalBrukerService = digitalBrukerService,
+            paginationEnabled = true,
+        )
         mockGjennomforing(GjennomforingPameldingType.TRENGER_GODKJENNING)
         val deltarRequest = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
@@ -210,13 +241,18 @@ class TiltakskoordinatorResponseBuilderTest {
             statuser = setOf(DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
 
-        every { viewRepository.getDeltakerePaged(deltarRequest) } returns listOf(lagRow(erDigitalCached = true))
-        every { viewRepository.getDeltakerePaged(venterPaOppstartRequest) } returns listOf(lagRow(erDigitalCached = true))
+        every { viewRepository.getDeltakere(deltarRequest, paginationEnabled = true) } returns listOf(lagRow(erDigitalCached = true))
+        every {
+            viewRepository.getDeltakere(
+                venterPaOppstartRequest,
+                paginationEnabled = true,
+            )
+        } returns listOf(lagRow(erDigitalCached = true))
         every { viewRepository.getDeltakereTotalCount(deltarRequest) } returns 10
         every { viewRepository.getDeltakereTotalCount(venterPaOppstartRequest) } returns 25
 
-        val deltarResponse = builder.buildResponse(deltarRequest)
-        val venterPaOppstartResponse = builder.buildResponse(venterPaOppstartRequest)
+        val deltarResponse = builderMedPagination.buildResponse(deltarRequest)
+        val venterPaOppstartResponse = builderMedPagination.buildResponse(venterPaOppstartRequest)
 
         deltarResponse.totalCount shouldBe 10
         venterPaOppstartResponse.totalCount shouldBe 25

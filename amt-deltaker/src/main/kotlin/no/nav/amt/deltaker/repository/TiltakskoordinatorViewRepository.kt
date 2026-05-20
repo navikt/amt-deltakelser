@@ -17,24 +17,46 @@ class TiltakskoordinatorViewRepository {
             queryOf(
                 deltakereCountSql(request),
                 mapOf("deltakerliste_id" to request.gjennomforingId)
-                    .plus(statusFilterParams(request)),
+                    .plus(
+                        statusFilterParams(
+                            paginationEnabled = true,
+                            request = request,
+                        ),
+                    ),
             ).map { row -> row.int("total_count") }.asSingle,
         ) ?: 0
     }
 
-    fun getDeltakerePaged(request: TiltaksKoordinatorDeltakerlisteRequest): List<TiltakskoordinatorDeltakerRow> =
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    deltakereSelectSql(request),
-                    mapOf(
-                        "deltakerliste_id" to request.gjennomforingId,
-                        "page_size" to request.pageRequest.pageSize,
-                        "offset" to request.pageRequest.offset,
-                    ).plus(statusFilterParams(request)),
-                ).map(::deltakerRowMapper).asList,
-            )
-        }
+    fun getDeltakere(
+        request: TiltaksKoordinatorDeltakerlisteRequest,
+        paginationEnabled: Boolean,
+    ): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
+        session.run(
+            queryOf(
+                deltakereSelectSql(
+                    paginationEnabled = paginationEnabled,
+                    request = request,
+                ),
+                mapOf(
+                    "deltakerliste_id" to request.gjennomforingId,
+                ).plus(
+                    statusFilterParams(
+                        paginationEnabled = paginationEnabled,
+                        request = request,
+                    ),
+                ).plus(
+                    if (paginationEnabled) {
+                        mapOf(
+                            "page_size" to request.pageRequest.pageSize,
+                            "offset" to request.pageRequest.offset,
+                        )
+                    } else {
+                        emptyMap()
+                    },
+                ),
+            ).map(::deltakerRowMapper).asList,
+        )
+    }
 
     companion object {
         private val sortColumnMap = mapOf(
@@ -54,7 +76,10 @@ class TiltakskoordinatorViewRepository {
             ?.let { " AND ds.type = ANY(:statuser)" }
             ?: ""
 
-        private fun statusFilterParams(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.statuser.isNotEmpty()) {
+        private fun statusFilterParams(
+            paginationEnabled: Boolean,
+            request: TiltaksKoordinatorDeltakerlisteRequest,
+        ) = if (paginationEnabled && request.statuser.isNotEmpty()) {
             mapOf("statuser" to request.statuser.map { it.name }.toTypedArray())
         } else {
             emptyMap<String, Any>()
@@ -105,8 +130,10 @@ class TiltakskoordinatorViewRepository {
                 ${harForslagFraArrangorWhereClause(request)}
             """.trimIndent()
 
-        private fun deltakereSelectSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
-            """
+        private fun deltakereSelectSql(
+            paginationEnabled: Boolean,
+            request: TiltaksKoordinatorDeltakerlisteRequest,
+        ) = """
             SELECT
                 -- deltaker
                 d.id                            AS "d.id",
@@ -191,8 +218,8 @@ class TiltakskoordinatorViewRepository {
             WHERE 
                 d.deltakerliste_id = :deltakerliste_id
                 ${harForslagFraArrangorWhereClause(request)}
-            ${request.pageRequest.orderByClause()}
-            LIMIT :page_size OFFSET :offset
+            ${if (paginationEnabled) request.pageRequest.orderByClause() else ""}
+            ${if (paginationEnabled) "LIMIT :limit OFFSET :offset" else ""}
             """.trimIndent()
 
         private fun deltakerRowMapper(row: Row): TiltakskoordinatorDeltakerRow = TiltakskoordinatorDeltakerRow(

@@ -18,7 +18,7 @@ import java.time.Duration
  *
  * Henter data i **to SQL-spørringer**:
  *   1. [DeltakerlisteRepository.get] — deltakerliste/tiltakstype/arrangør (1 rad).
- *   2. [TiltakskoordinatorViewRepository.getDeltakerePaged] — deltakere med berikede felt (N rader).
+ *   2. [TiltakskoordinatorViewRepository.getDeltakere] — deltakere med berikede felt (N rader).
  *
  * Deltakerliste-kolonnene gjentas ikke for hver deltaker — sparer båndbredde ved store lister.
  *
@@ -28,6 +28,7 @@ class TiltakskoordinatorResponseBuilder(
     private val viewRepository: TiltakskoordinatorViewRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val digitalBrukerService: DigitalBrukerService,
+    private val paginationEnabled: Boolean = false,
 ) {
     private val itemCountCache: Cache<String, Int> = Caffeine
         .newBuilder()
@@ -48,7 +49,10 @@ class TiltakskoordinatorResponseBuilder(
                 data = emptyList(),
             )
 
-        val rows = viewRepository.getDeltakerePaged(request)
+        val rows = viewRepository.getDeltakere(
+            request = request,
+            paginationEnabled = paginationEnabled,
+        )
 
         // Hent digital-status for deltakere uten fersk cache-entry
         // HandlingerKnapp i frontend vises kun for GjennomforingPameldingType.TRENGER_GODKJENNING
@@ -57,7 +61,7 @@ class TiltakskoordinatorResponseBuilder(
             ?.let { hentManglendeDigitalStatus(it) }
 
         return PaginatedResult(
-            totalCount = getItemCount(request),
+            totalCount = if (paginationEnabled) getItemCount(request) else rows.size,
             pageSize = request.pageRequest.pageSize,
             data = rows.map { row ->
                 buildDeltakerResponse(

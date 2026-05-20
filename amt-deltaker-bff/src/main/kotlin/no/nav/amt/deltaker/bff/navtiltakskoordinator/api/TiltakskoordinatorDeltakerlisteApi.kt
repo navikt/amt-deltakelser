@@ -23,7 +23,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.internapi.deltaker.request.PageRequest
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -63,14 +62,12 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 call.respond(gjennomforingResponse)
             }
 
-            // TODO: skal fjernes
             get("/deltakere") {
                 val deltakerlisteId = getDeltakerlisteId()
                 val pagedResponse = hentDeltakereForDeltakerliste(
                     deltakerlisteId = deltakerlisteId,
                     request = TiltaksKoordinatorDeltakerlisteRequest(
                         gjennomforingId = deltakerlisteId,
-                        pageRequest = PageRequest(pageSize = 5500),
                     ),
                     deltakerlisteService = deltakerlisteService,
                     selfServiceTilgang = selfServiceTilgang,

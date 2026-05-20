@@ -38,11 +38,12 @@ class TiltakskoordinatorViewRepositoryTest {
     private val forslagRepository = ForslagRepository()
     private val vurderingRepository = VurderingRepository()
 
-    private fun getDeltakerePaged(gjennomforingId: UUID) = viewRepository.getDeltakerePaged(
+    private fun getDeltakerePaged(gjennomforingId: UUID) = viewRepository.getDeltakere(
         TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
             pageRequest = PageRequest(pageSize = 1000),
         ),
+        paginationEnabled = true,
     )
 
     companion object {
@@ -109,7 +110,10 @@ class TiltakskoordinatorViewRepositoryTest {
 
         @Test
         fun `skal returnere tom liste når ingen deltakere finnes for gjennomføring`() {
-            val result = viewRepository.getDeltakerePaged(requestInTest)
+            val result = viewRepository.getDeltakere(
+                request = requestInTest,
+                paginationEnabled = true,
+            )
 
             result shouldBe emptyList()
         }
@@ -128,7 +132,10 @@ class TiltakskoordinatorViewRepositoryTest {
             )
             TestRepository.insert(deltaker2)
 
-            val result = viewRepository.getDeltakerePaged(requestInTest)
+            val result = viewRepository.getDeltakere(
+                request = requestInTest,
+                paginationEnabled = true,
+            )
 
             result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
         }
@@ -142,8 +149,9 @@ class TiltakskoordinatorViewRepositoryTest {
             TestRepository.insert(deltaker2)
 
             TiltaksKoordinatorDeltakerlisteRequest.SortColumn.entries.forEach { sortColumn ->
-                val result = viewRepository.getDeltakerePaged(
-                    requestInTest.copy(pageRequest = pageRequestInTest.copy(sort = sortColumn)),
+                val result = viewRepository.getDeltakere(
+                    request = requestInTest.copy(pageRequest = pageRequestInTest.copy(sort = sortColumn)),
+                    paginationEnabled = true,
                 )
 
                 result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
@@ -166,21 +174,23 @@ class TiltakskoordinatorViewRepositoryTest {
             )
             TestRepository.insert(deltaker2)
 
-            val ascending = viewRepository.getDeltakerePaged(
-                requestInTest.copy(
+            val ascending = viewRepository.getDeltakere(
+                request = requestInTest.copy(
                     pageRequest = pageRequestInTest.copy(
                         sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
                         order = PageRequest.SortDirection.ASC,
                     ),
                 ),
+                paginationEnabled = true,
             )
-            val descending = viewRepository.getDeltakerePaged(
-                requestInTest.copy(
+            val descending = viewRepository.getDeltakere(
+                request = requestInTest.copy(
                     pageRequest = pageRequestInTest.copy(
                         sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
                         order = PageRequest.SortDirection.DESC,
                     ),
                 ),
+                paginationEnabled = true,
             )
 
             ascending.map { it.id } shouldBe listOf(deltaker1.id, deltaker2.id)
@@ -210,20 +220,42 @@ class TiltakskoordinatorViewRepositoryTest {
                 ),
             )
 
-            val defaultSort = viewRepository.getDeltakerePaged(
-                requestInTest.copy(pageRequest = PageRequest(pageSize = 10)),
+            val defaultSort = viewRepository.getDeltakere(
+                request = requestInTest.copy(pageRequest = PageRequest(pageSize = 10)),
+                paginationEnabled = true,
             )
-            val explicitAscending = viewRepository.getDeltakerePaged(
-                requestInTest.copy(
+            val explicitAscending = viewRepository.getDeltakere(
+                request = requestInTest.copy(
                     pageRequest = pageRequestInTest.copy(
                         sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.SOKT_INN_DATO,
                         order = PageRequest.SortDirection.ASC,
                     ),
                 ),
+                paginationEnabled = true,
             )
 
             defaultSort.map { it.id } shouldBe listOf(nyeste.id, midterste.id, eldste.id)
             explicitAscending.map { it.id } shouldBe listOf(eldste.id, midterste.id, nyeste.id)
+        }
+
+        @Test
+        fun `skal ignorere pageSize naar pagination er skrudd av`() {
+            val deltakerliste = lagDeltakerliste()
+            val request = TiltaksKoordinatorDeltakerlisteRequest(
+                gjennomforingId = deltakerliste.id,
+                pageRequest = pageRequestInTest.copy(pageSize = 1),
+            )
+            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            TestRepository.insert(deltaker1)
+            TestRepository.insert(deltaker2)
+
+            val result = viewRepository.getDeltakere(
+                request = request,
+                paginationEnabled = false,
+            )
+
+            result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
         }
     }
 
@@ -492,12 +524,13 @@ class TiltakskoordinatorViewRepositoryTest {
                     ),
                 )
 
-                val result = viewRepository.getDeltakerePaged(
-                    TiltaksKoordinatorDeltakerlisteRequest(
+                val result = viewRepository.getDeltakere(
+                    request = TiltaksKoordinatorDeltakerlisteRequest(
                         gjennomforingId = deltakerliste.id,
                         harForslagFraArrangor = true,
                         pageRequest = PageRequest(pageSize = 1000),
                     ),
+                    paginationEnabled = true,
                 )
 
                 result shouldHaveSize 1

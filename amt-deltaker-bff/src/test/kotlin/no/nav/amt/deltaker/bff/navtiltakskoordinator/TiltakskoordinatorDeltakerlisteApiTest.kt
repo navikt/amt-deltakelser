@@ -452,7 +452,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
         private fun deltakereRequest() = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = deltakerlisteInTest.id,
-            pageRequest = PageRequest(pageSize = 5500),
         )
 
         private fun pagedDeltakereRequest(gjennomforingId: UUID = deltakerlisteInTest.id) = TiltaksKoordinatorDeltakerlisteRequest(
@@ -467,7 +466,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         private fun tiltakskoordinatorDeltakereResponse(
             deltakere: List<TiltakskoordinatorDeltakerResponse>,
             totalCount: Int = deltakere.size,
-            pageSize: Int = 5500,
+            pageSize: Int = deltakere.size,
         ) = PaginatedResult(
             totalCount = totalCount,
             pageSize = pageSize,
