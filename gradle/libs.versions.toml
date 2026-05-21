@@ -9,6 +9,7 @@ ktlint-cli-version = "1.8.0"
 jackson2-version = "2.21.3"
 nav-common-version = "3.2025.10.10_08.21-bb7c7830d93c"
 poao-tilgang-version = "2025.11.03_14.33-9c5783f38a9a"
+mock-oauth2-server-version = "3.0.3"
 kotest-version = "6.1.11"
 flyway-version = "12.6.1"
 hikari-version = "7.0.2"
@@ -113,6 +114,7 @@ nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "nav-
 
 # --- POAO ---
 poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "poao-tilgang-version" }
+mock-oauth2-server = { module = "no.nav.security:mock-oauth2-server", version.ref = "mock-oauth2-server-version" }
 
 # --- TMS Varsel Kotlin Builder ---
 tms-varsel-kotlin-builder = { module = "no.nav.tms.varsel:kotlin-builder", version.ref = "tms-varsel-kotlin-builder-version" }

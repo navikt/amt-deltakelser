@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.kafka.clients)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.mock.oauth2.server)
 
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
