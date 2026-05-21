@@ -47,6 +47,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.tilUtflatetKodeverk
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
@@ -173,20 +174,25 @@ fun Routing.registerVeilederApi(
                 deltakerPersonIdent = personident,
             )
 
-            val deltakerResponse = amtDeltakerClient
+            amtDeltakerClient
                 .getDeltaker(deltakerId)
                 .let { deltakerResponse ->
-                    val kodeverk = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
-                        .takeIf { deltakerResponse.gjennomforing.type == GjennomforingType.Enkeltplass }
-                        ?.let { tiltakskode -> kodeverkClient.hentKodeverk(tiltakskode) }
+                    val utflatetKodeverk = if (deltakerResponse.gjennomforing.type == GjennomforingType.Enkeltplass) {
+                        kodeverkClient
+                            .hentKodeverk(deltakerResponse.gjennomforing.tiltakstype.tiltakskode)
+                            .tilUtflatetKodeverk(
+                                kodeverkValg = deltakerResponse.gjennomforing.kodeverkValg,
+                                sertifiseringValg = deltakerResponse.gjennomforing.sertifiseringValg,
+                            )
+                    } else {
+                        null
+                    }
 
                     DeltakerResponse.fromDeltakerModel(
                         deltaker = ModelMapper.toDeltaker(deltakerResponse),
-                        kodeverkResponse = kodeverk,
+                        utflatetKodeverk = utflatetKodeverk,
                     )
-                }
-
-            call.respond(deltakerResponse)
+                }.also { call.respond(it) }
         }
 
         get("/deltaker/{deltakerId}/historikk") {

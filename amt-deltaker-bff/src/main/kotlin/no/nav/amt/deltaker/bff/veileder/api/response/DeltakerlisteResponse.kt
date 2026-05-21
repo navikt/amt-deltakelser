@@ -1,13 +1,17 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
+
+data class UtflatetKodeverk(
+    val tittel: String,
+    val valg: List<String>,
+)
 
 // Burde brukes av både veileder og innbygger
 data class DeltakerlisteResponse(
@@ -25,7 +29,7 @@ data class DeltakerlisteResponse(
     val erEnkeltplass: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
-    val kodeverk: KodeverkResponse? = null,
+    val kodeverk: UtflatetKodeverk? = null,
 ) {
     data class ArrangorResponse(
         val navn: String,
@@ -35,7 +39,7 @@ data class DeltakerlisteResponse(
     companion object {
         fun fromModel(
             gjennomforingModel: GjennomforingModel,
-            kodeverk: KodeverkResponse? = null,
+            kodeverk: UtflatetKodeverk? = null,
         ) = with(gjennomforingModel) {
             DeltakerlisteResponse(
                 deltakerlisteId = id,
@@ -60,10 +64,7 @@ data class DeltakerlisteResponse(
                 erEnkeltplass = erEnkeltplass,
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-                kodeverk = kodeverk?.settValgt(
-                    kodeverkValg = gjennomforingModel.kodeverkValg,
-                    sertifiseringValg = gjennomforingModel.sertifiseringValg,
-                ),
+                kodeverk = kodeverk,
             )
         }
     }
