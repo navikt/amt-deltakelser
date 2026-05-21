@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
@@ -176,8 +177,8 @@ class TiltakskoordinatorResponseBuilderTest {
     }
 
     @Test
-    fun `buildResponse - setter totalCount og pageSize fra repository og request`() = runTest {
-        val builderMedPagination = TiltakskoordinatorResponseBuilder(
+    fun `buildResponse - setter totalCount og pageSize fra antall returnerte rader`() = runTest {
+        val builder = TiltakskoordinatorResponseBuilder(
             viewRepository = viewRepository,
             deltakerlisteRepository = deltakerlisteRepository,
             digitalBrukerService = digitalBrukerService,
@@ -190,7 +191,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
         every { viewRepository.getDeltakere(request) } returns listOf(row)
 
-        val response = builderMedPagination.buildResponse(request)
+        val response = builder.buildResponse(request)
 
         response.totalCount shouldBe 1
         response.pageSize shouldBe 1
@@ -198,8 +199,8 @@ class TiltakskoordinatorResponseBuilderTest {
     }
 
     @Test
-    fun `buildResponse - bruker separat count-cache for ulike filterkombinasjoner`() = runTest {
-        val builderMedPagination = TiltakskoordinatorResponseBuilder(
+    fun `buildResponse - ulike filterkombinasjoner gir separate kall og ulike resultater`() = runTest {
+        val builder = TiltakskoordinatorResponseBuilder(
             viewRepository = viewRepository,
             deltakerlisteRepository = deltakerlisteRepository,
             digitalBrukerService = digitalBrukerService,
@@ -213,18 +214,41 @@ class TiltakskoordinatorResponseBuilderTest {
             statuser = setOf(DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
 
-        every { viewRepository.getDeltakere(deltarRequest) } returns listOf(lagRow(erDigitalCached = true))
+        val deltarRow = lagRow(
+            statusType = DeltakerStatus.Type.DELTAR,
+            erDigitalCached = true,
+        )
+        val venterPaOppstartRow = lagRow(
+            statusType = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            erDigitalCached = true,
+        )
+
+        every { viewRepository.getDeltakere(deltarRequest) } returns listOf(deltarRow)
         every {
             viewRepository.getDeltakere(
                 venterPaOppstartRequest,
             )
-        } returns listOf(lagRow(erDigitalCached = true))
+        } returns listOf(venterPaOppstartRow)
 
-        val deltarResponse = builderMedPagination.buildResponse(deltarRequest)
-        val venterPaOppstartResponse = builderMedPagination.buildResponse(venterPaOppstartRequest)
+        val deltarResponse = builder.buildResponse(deltarRequest)
+        val venterPaOppstartResponse = builder.buildResponse(venterPaOppstartRequest)
 
         deltarResponse.totalCount shouldBe 1
+        deltarResponse.pageSize shouldBe 1
+        deltarResponse.data.single().id shouldBe deltarRow.id
+        deltarResponse.data
+            .single()
+            .status.type shouldBe DeltakerStatus.Type.DELTAR
+
         venterPaOppstartResponse.totalCount shouldBe 1
+        venterPaOppstartResponse.pageSize shouldBe 1
+        venterPaOppstartResponse.data.single().id shouldBe venterPaOppstartRow.id
+        venterPaOppstartResponse.data
+            .single()
+            .status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+
+        verify(exactly = 1) { viewRepository.getDeltakere(deltarRequest) }
+        verify(exactly = 1) { viewRepository.getDeltakere(venterPaOppstartRequest) }
     }
 
     private var personidentCounter = 0

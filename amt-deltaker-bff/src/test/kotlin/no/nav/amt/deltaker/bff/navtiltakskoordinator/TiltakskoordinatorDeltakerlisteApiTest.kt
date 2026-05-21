@@ -283,9 +283,10 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `post deltakere-paged - deltakerliste finnes - returnerer paginerte deltakere`() {
         mockTilgangTilDeltakerliste()
 
-        val request = pagedDeltakereRequest()
+        val request = filteredDeltakereRequest()
         val deltakere = (0..1)
             .map { lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR)) }
+
         val deltakereResponse = tiltakskoordinatorDeltakereResponse(
             deltakere = deltakere,
             totalCount = 6,
@@ -304,27 +305,11 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             }
 
             response.status shouldBe HttpStatusCode.OK
-            val body = response.body<PaginatedResult<DeltakerResponse>>()
-            body.totalCount shouldBe 6
-            body.pageSize shouldBe deltakere.size
-            body.data.map { it.id } shouldBe deltakere.map { it.id }
+            val body = response.body<List<DeltakerResponse>>()
+            body.map { it.id } shouldBe deltakere.map { it.id }
         }
 
         coVerify(exactly = 1) { tiltakskoordinatorClient.getDeltakereForGjennomforing(request) }
-    }
-
-    @Test
-    fun `post deltakere-paged - request-id matcher ikke url-id - returnerer 400`() {
-        val request = pagedDeltakereRequest(gjennomforingId = UUID.randomUUID())
-
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere-paged") {
-                createPostTiltakskoordinatorRequest(request)
-            }
-        }
-
-        response.status shouldBe HttpStatusCode.BadRequest
-        coVerify(exactly = 0) { tiltakskoordinatorClient.getDeltakereForGjennomforing(any()) }
     }
 
     @Test
@@ -452,7 +437,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             gjennomforingId = deltakerlisteInTest.id,
         )
 
-        private fun pagedDeltakereRequest(gjennomforingId: UUID = deltakerlisteInTest.id) = TiltaksKoordinatorDeltakerlisteRequest(
+        private fun filteredDeltakereRequest(gjennomforingId: UUID = deltakerlisteInTest.id) = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
         )
 

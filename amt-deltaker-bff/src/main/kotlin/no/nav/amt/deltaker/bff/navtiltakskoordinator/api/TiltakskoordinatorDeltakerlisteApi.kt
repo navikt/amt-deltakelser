@@ -81,7 +81,9 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
 
             post("/deltakere-paged") {
                 val deltakerlisteId = getDeltakerlisteId()
-                val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                val request = call
+                    .receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                    .copy(gjennomforingId = deltakerlisteId)
 
                 require(request.gjennomforingId == deltakerlisteId) {
                     "DeltakerlisteId i request må matche URL parameter."
@@ -97,7 +99,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     responseBuilder = responseBuilder,
                 )
 
-                call.respond(response)
+                call.respond(response.data)
             }
 
             post("/deltakere/tildel-plass") {

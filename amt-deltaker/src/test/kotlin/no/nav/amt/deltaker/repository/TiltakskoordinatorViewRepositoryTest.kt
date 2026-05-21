@@ -36,7 +36,7 @@ class TiltakskoordinatorViewRepositoryTest {
     private val forslagRepository = ForslagRepository()
     private val vurderingRepository = VurderingRepository()
 
-    private fun getDeltakerePaged(gjennomforingId: UUID) = viewRepository.getDeltakere(
+    private fun getDeltakereMedBerikelse(gjennomforingId: UUID) = viewRepository.getDeltakere(
         TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
         ),
@@ -48,7 +48,7 @@ class TiltakskoordinatorViewRepositoryTest {
     }
 
     @Nested
-    inner class GetDeltakerePagedTests {
+    inner class GetDeltakereTests {
         val deltakerliste = lagDeltakerliste()
 
         val requestInTest = TiltaksKoordinatorDeltakerlisteRequest(
@@ -89,10 +89,10 @@ class TiltakskoordinatorViewRepositoryTest {
     }
 
     @Nested
-    inner class GetDeltakerePagedMedBerikelseTests {
+    inner class GetDeltakereMedBerikelseTests {
         @Test
         fun `skal returnere tom liste når ingen deltakere finnes for gjennomføring`() {
-            val result = getDeltakerePaged(UUID.randomUUID())
+            val result = getDeltakereMedBerikelse(UUID.randomUUID())
 
             result.shouldBeEmpty()
         }
@@ -107,7 +107,7 @@ class TiltakskoordinatorViewRepositoryTest {
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
             TestRepository.insert(deltaker2)
 
-            val result = getDeltakerePaged(deltakerliste.id)
+            val result = getDeltakereMedBerikelse(deltakerliste.id)
 
             result shouldHaveSize 2
             result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
@@ -122,7 +122,7 @@ class TiltakskoordinatorViewRepositoryTest {
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
 
-            val result = getDeltakerePaged(deltakerliste1.id)
+            val result = getDeltakereMedBerikelse(deltakerliste1.id)
 
             result shouldHaveSize 1
             result.first().id shouldBe deltaker1.id
@@ -134,7 +134,7 @@ class TiltakskoordinatorViewRepositoryTest {
             val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
-            val result = getDeltakerePaged(deltakerliste.id).single()
+            val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
             result.personident shouldBe deltaker.navBruker.personident
             result.fornavn shouldBe deltaker.navBruker.fornavn
@@ -149,7 +149,7 @@ class TiltakskoordinatorViewRepositoryTest {
             val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
-            val result = getDeltakerePaged(deltakerliste.id).single()
+            val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
             result.status.type shouldBe DeltakerStatus.Type.DELTAR
         }
@@ -166,7 +166,7 @@ class TiltakskoordinatorViewRepositoryTest {
             TestRepository.insert(feilregistrert)
             TestRepository.insert(utkast)
 
-            val result = getDeltakerePaged(deltakerliste.id)
+            val result = getDeltakereMedBerikelse(deltakerliste.id)
 
             result shouldHaveSize 1
             result.single().id shouldBe synlig.id
@@ -180,7 +180,7 @@ class TiltakskoordinatorViewRepositoryTest {
                 val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.soktInnDato.shouldBeNull()
             }
@@ -196,7 +196,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     lagImportertFraArena(deltakerId = deltaker.id, deltakerVedImport = lagDeltakerVedImport(innsoktDato = arenaDato)),
                 )
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.soktInnDato shouldBe arenaDato
             }
@@ -220,7 +220,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     ),
                 )
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.soktInnDato shouldBe vedtakOpprettet.toLocalDate()
             }
@@ -245,7 +245,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     ),
                 )
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 // v_all (uten gyldig_til-filter) skal brukes for soktInnDato
                 result.soktInnDato shouldBe vedtakOpprettet.toLocalDate()
@@ -273,7 +273,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     ),
                 )
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.soktInnDato shouldBe arenaDato
             }
@@ -287,7 +287,7 @@ class TiltakskoordinatorViewRepositoryTest {
                 val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.harAktivtForslag shouldBe false
             }
@@ -299,7 +299,7 @@ class TiltakskoordinatorViewRepositoryTest {
                 TestRepository.insert(deltaker)
                 forslagRepository.upsert(lagForslag(deltakerId = deltaker.id, status = Forslag.Status.VenterPaSvar))
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.harAktivtForslag shouldBe true
             }
@@ -319,7 +319,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     ),
                 )
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.harAktivtForslag shouldBe false
             }
@@ -374,7 +374,7 @@ class TiltakskoordinatorViewRepositoryTest {
                 val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.sisteVurderingstype.shouldBeNull()
             }
@@ -400,7 +400,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     ),
                 )
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_IKKE_KRAVENE
             }
@@ -414,7 +414,7 @@ class TiltakskoordinatorViewRepositoryTest {
                 val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.vedtakFattet.shouldBeNull()
             }
@@ -439,7 +439,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     ),
                 )
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.vedtakFattet.shouldNotBeNull()
             }
@@ -463,7 +463,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     ),
                 )
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 // v_active filtrerer på gyldig_til IS NULL, så expired vedtak gir null
                 result.vedtakFattet.shouldBeNull()
@@ -478,7 +478,7 @@ class TiltakskoordinatorViewRepositoryTest {
                 val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.erDigitalCached.shouldBeNull()
             }
@@ -491,7 +491,7 @@ class TiltakskoordinatorViewRepositoryTest {
 
                 DigitalBrukerCacheRepository.upsertBatch(listOf(deltaker.navBruker.personident to true))
 
-                val result = getDeltakerePaged(deltakerliste.id).single()
+                val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.erDigitalCached shouldBe true
             }
