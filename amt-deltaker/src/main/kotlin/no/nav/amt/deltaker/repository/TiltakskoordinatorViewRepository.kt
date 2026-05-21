@@ -44,7 +44,7 @@ class TiltakskoordinatorViewRepository {
      * Optimalisert for store deltakerlister (>2000 deltakere) ved å:
      * - Bruke preaggregerte LATERAL JOINs for aktive forslag og siste vurderingstype
      * - Håndtere sokt-inn-dato via COALESCE av 3 kilder (arena, egen oppstart, vedtak)
-     * - Støtte filterering på harForslagFraArrangor
+     * - Støtte filtrering på harForslagFraArrangor
      *
      * Sorteres etter sokt_inn_dato synkende (nyeste først), deretter etter id.
      *
