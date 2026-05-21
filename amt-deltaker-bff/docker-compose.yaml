@@ -70,7 +70,7 @@ services:
                     "sub": "11111111-1111-1111-1111-111111111111",
                     "azp": "amt-deltaker-bff",
                     "groups": [],
-                    "aud": ["amt-deltaker"]
+                    "aud": ["amt-deltaker", "amt-arrangor"]
                   }
                 },
                 {
