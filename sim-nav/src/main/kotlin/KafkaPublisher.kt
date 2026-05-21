@@ -13,8 +13,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.apache.kafka.common.serialization.UUIDSerializer
 import java.time.OffsetDateTime
-import java.util.Properties
-import java.util.UUID
+import java.util.*
 
 private const val DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
 private const val DEFAULT_GJENNOMFORING_ENKELTPLASS_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2"
@@ -24,7 +23,7 @@ private val STATIC_ENKELTPLASS_GJENNOMFORING = GjennomforingV2KafkaPayload.Enkel
     opprettetTidspunkt = OffsetDateTime.parse("2025-01-01T00:00:00+00:00"),
     oppdatertTidspunkt = OffsetDateTime.parse("2025-01-01T00:00:00+00:00"),
     tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-    arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = "123456789"),
+    arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = "924956704"),
     pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
     status = GjennomforingStatusType.GJENNOMFORES,
     oppstart = Oppstartstype.ENKELTPLASS,

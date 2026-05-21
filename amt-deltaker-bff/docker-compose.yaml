@@ -82,7 +82,14 @@ services:
                     "groups": [],
                     "aud": ["amt-deltaker-bff"]
                   }
-                }
+                },
+                {
+                   "requestParam": "scope",
+                   "match": "api://amt-enhetsregister/.default",
+                   "claims": {
+                     "aud": ["amt-enhetsregister"]
+                   }
+                 }
               ]
             }
           ]
