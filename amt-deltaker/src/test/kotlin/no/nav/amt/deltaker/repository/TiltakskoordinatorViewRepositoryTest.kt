@@ -15,7 +15,6 @@ import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestData.lagVurdering
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.internapi.deltaker.request.PageRequest
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -24,7 +23,6 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagDeltakerVedImport
 import no.nav.amt.lib.testing.utils.TestData.lagImportertFraArena
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
-import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -41,9 +39,7 @@ class TiltakskoordinatorViewRepositoryTest {
     private fun getDeltakerePaged(gjennomforingId: UUID) = viewRepository.getDeltakere(
         TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
-            pageRequest = PageRequest(pageSize = 1000),
         ),
-        paginationEnabled = true,
     )
 
     companion object {
@@ -52,50 +48,8 @@ class TiltakskoordinatorViewRepositoryTest {
     }
 
     @Nested
-    inner class GetDeltakereCountTests {
-        val deltakerliste = lagDeltakerliste()
-
-        val deltakerlisteRequestInTest = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = deltakerliste.id,
-            harForslagFraArrangor = true,
-            statuser = setOf(
-                DeltakerStatus.Type.DELTAR,
-                DeltakerStatus.Type.VENTER_PA_OPPSTART,
-                DeltakerStatus.Type.HAR_SLUTTET,
-            ),
-        )
-
-        @Test
-        fun `skal returnere 0 når ingen deltakere finnes for gjennomføring`() {
-            val result = viewRepository.getDeltakereTotalCount(deltakerlisteRequestInTest)
-
-            result shouldBe 0
-        }
-
-        @Test
-        fun `skal returnere antall deltakere for gjennomføring`() {
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            TestRepository.insert(deltaker1)
-
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            TestRepository.insert(deltaker2)
-
-            val result = viewRepository.getDeltakereTotalCount(deltakerlisteRequestInTest.copy(harForslagFraArrangor = false))
-
-            result shouldBe 2
-        }
-    }
-
-    @Nested
     inner class GetDeltakerePagedTests {
         val deltakerliste = lagDeltakerliste()
-
-        val pageRequestInTest = PageRequest<TiltaksKoordinatorDeltakerlisteRequest.SortColumn>(
-            sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.SOKT_INN_DATO,
-            order = PageRequest.SortDirection.ASC,
-            page = 1,
-            pageSize = 10,
-        )
 
         val requestInTest = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = deltakerliste.id,
@@ -105,15 +59,11 @@ class TiltakskoordinatorViewRepositoryTest {
                 DeltakerStatus.Type.VENTER_PA_OPPSTART,
                 DeltakerStatus.Type.HAR_SLUTTET,
             ),
-            pageRequest = pageRequestInTest,
         )
 
         @Test
         fun `skal returnere tom liste når ingen deltakere finnes for gjennomføring`() {
-            val result = viewRepository.getDeltakere(
-                request = requestInTest,
-                paginationEnabled = true,
-            )
+            val result = viewRepository.getDeltakere(request = requestInTest)
 
             result shouldBe emptyList()
         }
@@ -132,128 +82,7 @@ class TiltakskoordinatorViewRepositoryTest {
             )
             TestRepository.insert(deltaker2)
 
-            val result = viewRepository.getDeltakere(
-                request = requestInTest,
-                paginationEnabled = true,
-            )
-
-            result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
-        }
-
-        @Test
-        fun `skal returnere sorterte deltakere for gjennomføring`() {
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            TestRepository.insert(deltaker1)
-
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            TestRepository.insert(deltaker2)
-
-            TiltaksKoordinatorDeltakerlisteRequest.SortColumn.entries.forEach { sortColumn ->
-                val result = viewRepository.getDeltakere(
-                    request = requestInTest.copy(pageRequest = pageRequestInTest.copy(sort = sortColumn)),
-                    paginationEnabled = true,
-                )
-
-                result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
-            }
-        }
-
-        @Test
-        fun `skal returnere rekkefolge`() {
-            val deltaker1 = lagDeltaker(
-                navBruker = lagNavBruker(fornavn = "A", mellomnavn = "B", etternavn = "C"),
-                deltakerliste = deltakerliste,
-                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            )
-            TestRepository.insert(deltaker1)
-
-            val deltaker2 = lagDeltaker(
-                navBruker = lagNavBruker(fornavn = "B", mellomnavn = "C", etternavn = "D"),
-                deltakerliste = deltakerliste,
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            )
-            TestRepository.insert(deltaker2)
-
-            val ascending = viewRepository.getDeltakere(
-                request = requestInTest.copy(
-                    pageRequest = pageRequestInTest.copy(
-                        sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
-                        order = PageRequest.SortDirection.ASC,
-                    ),
-                ),
-                paginationEnabled = true,
-            )
-            val descending = viewRepository.getDeltakere(
-                request = requestInTest.copy(
-                    pageRequest = pageRequestInTest.copy(
-                        sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
-                        order = PageRequest.SortDirection.DESC,
-                    ),
-                ),
-                paginationEnabled = true,
-            )
-
-            ascending.map { it.id } shouldBe listOf(deltaker1.id, deltaker2.id)
-            descending.map { it.id } shouldBe listOf(deltaker2.id, deltaker1.id)
-        }
-
-        @Test
-        fun `skal sortere paa sokt inn dato synkende som default`() {
-            val eldste = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val nyeste = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val midterste = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            TestRepository.insert(eldste)
-            TestRepository.insert(nyeste)
-            TestRepository.insert(midterste)
-            TestRepository.insertAll(
-                lagImportertFraArena(
-                    deltakerId = eldste.id,
-                    deltakerVedImport = lagDeltakerVedImport(innsoktDato = LocalDate.of(2024, 1, 1)),
-                ),
-                lagImportertFraArena(
-                    deltakerId = nyeste.id,
-                    deltakerVedImport = lagDeltakerVedImport(innsoktDato = LocalDate.of(2024, 3, 1)),
-                ),
-                lagImportertFraArena(
-                    deltakerId = midterste.id,
-                    deltakerVedImport = lagDeltakerVedImport(innsoktDato = LocalDate.of(2024, 2, 1)),
-                ),
-            )
-
-            val defaultSort = viewRepository.getDeltakere(
-                request = requestInTest.copy(pageRequest = PageRequest(pageSize = 10)),
-                paginationEnabled = true,
-            )
-            val explicitAscending = viewRepository.getDeltakere(
-                request = requestInTest.copy(
-                    pageRequest = pageRequestInTest.copy(
-                        sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.SOKT_INN_DATO,
-                        order = PageRequest.SortDirection.ASC,
-                    ),
-                ),
-                paginationEnabled = true,
-            )
-
-            defaultSort.map { it.id } shouldBe listOf(nyeste.id, midterste.id, eldste.id)
-            explicitAscending.map { it.id } shouldBe listOf(eldste.id, midterste.id, nyeste.id)
-        }
-
-        @Test
-        fun `skal ignorere pageSize naar pagination er skrudd av`() {
-            val deltakerliste = lagDeltakerliste()
-            val request = TiltaksKoordinatorDeltakerlisteRequest(
-                gjennomforingId = deltakerliste.id,
-                pageRequest = pageRequestInTest.copy(pageSize = 1),
-            )
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            TestRepository.insert(deltaker1)
-            TestRepository.insert(deltaker2)
-
-            val result = viewRepository.getDeltakere(
-                request = request,
-                paginationEnabled = false,
-            )
+            val result = viewRepository.getDeltakere(request = requestInTest)
 
             result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
         }
@@ -528,9 +357,7 @@ class TiltakskoordinatorViewRepositoryTest {
                     request = TiltaksKoordinatorDeltakerlisteRequest(
                         gjennomforingId = deltakerliste.id,
                         harForslagFraArrangor = true,
-                        pageRequest = PageRequest(pageSize = 1000),
                     ),
-                    paginationEnabled = true,
                 )
 
                 result shouldHaveSize 1

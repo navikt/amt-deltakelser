@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.internapi.deltaker.request.PageRequest
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -12,92 +11,26 @@ import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
 
 class TiltakskoordinatorViewRepository {
-    fun getDeltakereTotalCount(request: TiltaksKoordinatorDeltakerlisteRequest): Int = Database.query { session ->
+    fun getDeltakere(request: TiltaksKoordinatorDeltakerlisteRequest): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
         session.run(
             queryOf(
-                deltakereCountSql(request),
+                deltakereSelectSql(request),
                 mapOf("deltakerliste_id" to request.gjennomforingId)
-                    .plus(
-                        statusFilterParams(
-                            paginationEnabled = true,
-                            request = request,
-                        ),
-                    ),
-            ).map { row -> row.int("total_count") }.asSingle,
-        ) ?: 0
-    }
-
-    fun getDeltakere(
-        request: TiltaksKoordinatorDeltakerlisteRequest,
-        paginationEnabled: Boolean,
-    ): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
-        session.run(
-            queryOf(
-                deltakereSelectSql(
-                    paginationEnabled = paginationEnabled,
-                    request = request,
-                ),
-                mapOf(
-                    "deltakerliste_id" to request.gjennomforingId,
-                ).plus(
-                    statusFilterParams(
-                        paginationEnabled = paginationEnabled,
-                        request = request,
-                    ),
-                ).plus(
-                    if (paginationEnabled) {
-                        mapOf(
-                            "page_size" to request.pageRequest.pageSize,
-                            "offset" to request.pageRequest.offset,
-                        )
-                    } else {
-                        emptyMap()
-                    },
-                ),
+                    .plus(statusFilterParams(request)),
             ).map(::deltakerRowMapper).asList,
         )
     }
 
     companion object {
-        private val sortColumnMap = mapOf(
-            TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN to "nb.etternavn",
-            TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAV_ENHET to "ne.navn",
-            TiltaksKoordinatorDeltakerlisteRequest.SortColumn.SOKT_INN_DATO to "sokt_inn_dato",
-            TiltaksKoordinatorDeltakerlisteRequest.SortColumn.STARTDATO to "d.startdato",
-            TiltaksKoordinatorDeltakerlisteRequest.SortColumn.SLUTTDATO to "d.sluttdato",
-            TiltaksKoordinatorDeltakerlisteRequest.SortColumn.STATUS to "ds.type",
-        )
-
-        private const val DEFAULT_SORT_COLUMN = "sokt_inn_dato"
-        private val DEFAULT_SORT_DIRECTION = PageRequest.SortDirection.DESC
-
         private fun statusFilterSql(request: TiltaksKoordinatorDeltakerlisteRequest) = request.statuser
             .takeIf { it.isNotEmpty() }
             ?.let { " AND ds.type = ANY(:statuser)" }
             ?: ""
 
-        private fun statusFilterParams(
-            paginationEnabled: Boolean,
-            request: TiltaksKoordinatorDeltakerlisteRequest,
-        ) = if (paginationEnabled && request.statuser.isNotEmpty()) {
+        private fun statusFilterParams(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.statuser.isNotEmpty()) {
             mapOf("statuser" to request.statuser.map { it.name }.toTypedArray())
         } else {
             emptyMap<String, Any>()
-        }
-
-        private fun harForslagFraArrangorJoinClause(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.harForslagFraArrangor) {
-            """
-            LEFT JOIN LATERAL (
-                SELECT true AS har_aktivt
-                FROM forslag f
-                WHERE 
-                    f.deltaker_id = d.id
-                    AND f.status->>'type' = 'VenterPaSvar'
-                LIMIT 1
-            ) af ON true                    
-            """.trimIndent()
-        } else {
-            ""
         }
 
         private fun harForslagFraArrangorWhereClause(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.harForslagFraArrangor) {
@@ -106,34 +39,8 @@ class TiltakskoordinatorViewRepository {
             ""
         }
 
-        private fun PageRequest<TiltaksKoordinatorDeltakerlisteRequest.SortColumn>.orderByClause(): String {
-            val sortColumn = sortColumnMap[sort] ?: DEFAULT_SORT_COLUMN
-            val sortDirection = sort?.let { order } ?: DEFAULT_SORT_DIRECTION
-
-            return "ORDER BY $sortColumn $sortDirection NULLS LAST, d.id ASC"
-        }
-
-        private fun deltakereCountSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
+        private fun deltakereSelectSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
             """
-            SELECT COUNT(d.id) AS total_count
-            FROM
-                deltaker d
-                JOIN deltaker_status ds ON
-                    d.id = ds.deltaker_id
-                    AND ds.gyldig_til IS NULL
-                    AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                    ${statusFilterSql(request)}
-                    AND ds.type NOT IN ('KLADD', 'UTKAST_TIL_PAMELDING', 'AVBRUTT_UTKAST', 'FEILREGISTRERT', 'PABEGYNT_REGISTRERING')
-               ${harForslagFraArrangorJoinClause(request)}     
-            WHERE 
-                d.deltakerliste_id = :deltakerliste_id
-                ${harForslagFraArrangorWhereClause(request)}
-            """.trimIndent()
-
-        private fun deltakereSelectSql(
-            paginationEnabled: Boolean,
-            request: TiltaksKoordinatorDeltakerlisteRequest,
-        ) = """
             SELECT
                 -- deltaker
                 d.id                            AS "d.id",
@@ -218,8 +125,7 @@ class TiltakskoordinatorViewRepository {
             WHERE 
                 d.deltakerliste_id = :deltakerliste_id
                 ${harForslagFraArrangorWhereClause(request)}
-            ${if (paginationEnabled) request.pageRequest.orderByClause() else ""}
-            ${if (paginationEnabled) "LIMIT :limit OFFSET :offset" else ""}
+            ORDER BY sokt_inn_dato DESC NULLS LAST, d.id ASC
             """.trimIndent()
 
         private fun deltakerRowMapper(row: Row): TiltakskoordinatorDeltakerRow = TiltakskoordinatorDeltakerRow(

@@ -26,7 +26,6 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostTiltakskoordinatorRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
-import no.nav.amt.internapi.deltaker.request.PageRequest
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
@@ -290,7 +289,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         val deltakereResponse = tiltakskoordinatorDeltakereResponse(
             deltakere = deltakere,
             totalCount = 6,
-            pageSize = request.pageRequest.pageSize,
         )
 
         coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(request) } returns deltakereResponse
@@ -308,7 +306,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             response.status shouldBe HttpStatusCode.OK
             val body = response.body<PaginatedResult<DeltakerResponse>>()
             body.totalCount shouldBe 6
-            body.pageSize shouldBe request.pageRequest.pageSize
+            body.pageSize shouldBe deltakere.size
             body.data.map { it.id } shouldBe deltakere.map { it.id }
         }
 
@@ -456,11 +454,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
         private fun pagedDeltakereRequest(gjennomforingId: UUID = deltakerlisteInTest.id) = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
-            pageRequest = PageRequest(
-                sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
-                page = 2,
-                pageSize = 2,
-            ),
         )
 
         private fun tiltakskoordinatorDeltakereResponse(
