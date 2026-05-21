@@ -31,6 +31,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
@@ -82,6 +83,7 @@ fun Application.configureRouting(
     navAnsattService: NavAnsattService,
     deltakerResponseBuilder: DeltakerResponseBuilder,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
+    tiltakskoordinatorViewRepository: TiltakskoordinatorViewRepository,
     arrangorService: ArrangorService,
     gjennomforingRequestProducer: GjennomforingRequestProducer,
 ) {
@@ -157,6 +159,7 @@ fun Application.configureRouting(
             tiltaksansvarligService = tiltaksansvarligService,
             deltakerHistorikkService = deltakerHistorikkService,
             tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
+            tiltakskoordinatorViewRepository = tiltakskoordinatorViewRepository,
         )
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 

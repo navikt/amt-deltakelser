@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
 import no.nav.amt.deltaker.extensions.getGjennomforingId
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
@@ -26,6 +27,7 @@ fun Routing.registerTiltakskoordinatorApi(
     tiltaksansvarligService: TiltaksansvarligService,
     deltakerHistorikkService: DeltakerHistorikkService,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
+    tiltakskoordinatorViewRepository: TiltakskoordinatorViewRepository,
 ) {
     fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
         ResponseMapper.fromDeltakerOppdateringResult(
@@ -58,6 +60,15 @@ fun Routing.registerTiltakskoordinatorApi(
                     "GjennomforingId i path matcher ikke gjennomforingId i request body"
                 }
                 call.respond(tiltakskoordinatorResponseBuilder.buildResponse(request))
+            }
+
+            post("/{gjennomforingId}/counts-per-status") {
+                val gjennomforingId = call.getGjennomforingId()
+                val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                require(request.gjennomforingId == gjennomforingId) {
+                    "GjennomforingId i path matcher ikke gjennomforingId i request body"
+                }
+                call.respond(tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(request))
             }
 
             post("/del-med-arrangor") {

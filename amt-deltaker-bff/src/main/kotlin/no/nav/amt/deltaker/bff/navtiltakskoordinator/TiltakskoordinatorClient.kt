@@ -14,6 +14,7 @@ import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringRespo
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import java.util.UUID
@@ -39,7 +40,14 @@ class TiltakskoordinatorClient(
         "tiltakskoordinator/deltakere/${request.gjennomforingId}",
         request,
     ).failIfNotSuccess("Fant ikke gjennomforing ${request.gjennomforingId} i amt-deltaker.")
-        .body<PaginatedResult<TiltakskoordinatorDeltakerResponse>>()
+        .body()
+
+    suspend fun getDeltakereForGjennomforingCounts(request: TiltaksKoordinatorDeltakerlisteRequest): Map<DeltakerStatus.Type, Int> =
+        performPost(
+            "tiltakskoordinator/deltakere/${request.gjennomforingId}/counts-per-status",
+            request,
+        ).failIfNotSuccess("Fant ikke gjennomforing ${request.gjennomforingId} i amt-deltaker.")
+            .body()
 
     suspend fun delMedArrangor(
         deltakerIder: List<UUID>,

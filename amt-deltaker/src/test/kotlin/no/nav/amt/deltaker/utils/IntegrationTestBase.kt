@@ -454,6 +454,7 @@ abstract class IntegrationTestBase {
                     navAnsattService = navAnsattService,
                     deltakerResponseBuilder = deltakerResponseBuilder,
                     tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
+                    tiltakskoordinatorViewRepository = tiltakskoordinatorViewRepository,
                     deltakerlisteRepository = deltakerlisteRepository,
                     arrangorService = arrangorService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,

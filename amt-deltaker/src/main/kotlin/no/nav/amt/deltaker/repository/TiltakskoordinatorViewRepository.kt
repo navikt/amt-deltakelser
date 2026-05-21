@@ -11,6 +11,46 @@ import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
 
 class TiltakskoordinatorViewRepository {
+    /**
+     * Henter antall deltakere per deltakerstatus for en gjennomføring.
+     *
+     * Aggregerer deltakere etter status, uavhengig av øvrige filter (f.eks. harForslagFraArrangor).
+     * Statuser må spesifiseres i requesten — returnerer tom map hvis ingen deltakere finnes.
+     *
+     * @param request inneholder gjennomforingId og statuser (påkrevd, må være ikke-tomt)
+     * @return Map av deltakerstatus til antall deltakere med den statusen
+     * @throws IllegalArgumentException hvis request.statuser er tomt
+     */
+    fun getDeltakereCountPerStatus(request: TiltaksKoordinatorDeltakerlisteRequest): Map<DeltakerStatus.Type, Int> {
+        require(request.statuser.isNotEmpty()) { "Statuser må spesifiseres for å hente deltakerantall per status" }
+
+        return Database.query { session ->
+            session
+                .run(
+                    queryOf(
+                        deltakereCountSql(request),
+                        mapOf("deltakerliste_id" to request.gjennomforingId)
+                            .plus(statusFilterParams(request)),
+                    ).map { row ->
+                        DeltakerStatus.Type.valueOf(row.string("type")) to row.int("count")
+                    }.asList,
+                ).toMap()
+        }
+    }
+
+    /**
+     * Henter deltakere for en gjennomføring med berikede feltdata.
+     *
+     * Optimalisert for store deltakerlister (>2000 deltakere) ved å:
+     * - Bruke preaggregerte LATERAL JOINs for aktive forslag og siste vurderingstype
+     * - Håndtere sokt-inn-dato via COALESCE av 3 kilder (arena, egen oppstart, vedtak)
+     * - Støtte filterering på harForslagFraArrangor
+     *
+     * Sorteres etter sokt_inn_dato synkende (nyeste først), deretter etter id.
+     *
+     * @param request inneholder gjennomforingId, statuser (valgfritt), og harForslagFraArrangor (valgfritt)
+     * @return Liste av deltakere med berikede feltdata, sortert etter søkt-inn-dato
+     */
     fun getDeltakere(request: TiltaksKoordinatorDeltakerlisteRequest): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
         session.run(
             queryOf(
@@ -38,6 +78,25 @@ class TiltakskoordinatorViewRepository {
         } else {
             ""
         }
+
+        private fun deltakereCountSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
+            """
+            SELECT
+                ds.type,
+                COUNT(*) AS count
+            FROM
+                deltaker d
+                JOIN nav_bruker nb ON d.person_id = nb.person_id
+                JOIN deltaker_status ds ON
+                    d.id = ds.deltaker_id
+                    AND ds.gyldig_til IS NULL
+                    AND ds.gyldig_fra <= CURRENT_TIMESTAMP
+                    ${statusFilterSql(request)}
+                    AND ds.type NOT IN ('KLADD', 'UTKAST_TIL_PAMELDING', 'AVBRUTT_UTKAST', 'FEILREGISTRERT', 'PABEGYNT_REGISTRERING')
+            WHERE 
+                d.deltakerliste_id = :deltakerliste_id
+            GROUP BY ds.type
+            """.trimIndent()
 
         private fun deltakereSelectSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
             """

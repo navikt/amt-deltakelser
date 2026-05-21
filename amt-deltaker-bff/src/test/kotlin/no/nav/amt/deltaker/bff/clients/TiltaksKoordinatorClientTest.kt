@@ -17,6 +17,7 @@ import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequ
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
@@ -61,6 +62,38 @@ class TiltaksKoordinatorClientTest {
                 expectedUrl,
                 lagPaginatedTiltakskoordinatorDeltakere(),
                 getDeltakereForGjennomforingLambda,
+                expectedMethod = HttpMethod.Post,
+            )
+        }
+    }
+
+    @Nested
+    inner class GetDeltakereForGjennomforingCounts {
+        val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/$gjennomforingId/counts-per-status"
+        val expectedErrorMessage = "Fant ikke gjennomforing $gjennomforingId i amt-deltaker."
+        val getDeltakereForGjennomforingCountsLambda: suspend (TiltakskoordinatorClient) -> Map<DeltakerStatus.Type, Int> =
+            { client -> client.getDeltakereForGjennomforingCounts(deltakereRequest) }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(
+                expectedExceptionType,
+                statusCode,
+                expectedUrl,
+                expectedErrorMessage,
+                getDeltakereForGjennomforingCountsLambda,
+                expectedMethod = HttpMethod.Post,
+            )
+        }
+
+        @Test
+        fun `skal returnere antall deltakere per status`() {
+            runHappyPathTest(
+                expectedUrl,
+                lagCountsPerStatus(),
+                getDeltakereForGjennomforingCountsLambda,
                 expectedMethod = HttpMethod.Post,
             )
         }
@@ -138,6 +171,11 @@ class TiltaksKoordinatorClientTest {
             totalCount = 1,
             pageSize = 50,
             data = listOf(lagTiltakskoordinatorDeltakerResponse()),
+        )
+
+        private fun lagCountsPerStatus() = mapOf(
+            DeltakerStatus.Type.DELTAR to 2,
+            DeltakerStatus.Type.HAR_SLUTTET to 1,
         )
 
         private fun runFailureTest(
