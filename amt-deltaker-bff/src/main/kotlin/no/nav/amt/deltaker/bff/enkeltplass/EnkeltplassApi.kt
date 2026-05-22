@@ -42,7 +42,7 @@ fun Routing.registerEnkeltplassApi(
 
             get("/kodeverk/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
                 tilgangskontrollService.verifiserLesetilgang(
                     navAnsattAzureId = call.getNavAnsattAzureId(),
@@ -96,7 +96,7 @@ fun Routing.registerEnkeltplassApi(
              */
             post("/oppdater-kladd/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
                 val oppdaterEnkeltplassKladdRequest = call.receive<OppdaterEnkeltplassKladdRequest>()
 
@@ -121,7 +121,7 @@ fun Routing.registerEnkeltplassApi(
              */
             post("/utkast/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
                 val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
 
@@ -168,7 +168,7 @@ fun Routing.registerEnkeltplassApi(
              */
             post("/utkast/{deltakerId}/del-med-innbygger") {
                 val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
                 val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
 
@@ -202,7 +202,7 @@ fun Routing.registerEnkeltplassApi(
 
                 tilgangskontrollService.verifiserSkrivetilgang(
                     navAnsattAzureId = call.getNavAnsattAzureId(),
-                    norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident,
+                    norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
                 )
 
                 val pameldingRequest: EnkeltplassPameldingRequest = call.receive()

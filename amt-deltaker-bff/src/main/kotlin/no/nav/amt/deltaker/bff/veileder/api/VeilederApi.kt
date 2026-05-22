@@ -156,7 +156,7 @@ fun Routing.registerVeilederApi(
         post("/deltaker/{deltakerId}") {
             val request = call.receive<DeltakerRequest>()
             val deltakerId = call.getDeltakerId()
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
             if (request.personident != personident) {
                 log.warn("$deltakerId ble forsøkt lest med annen Nav-bruker i kontekst.")
@@ -200,7 +200,7 @@ fun Routing.registerVeilederApi(
 
             log.info("Nav-ident ${call.getNavIdent()} har gjort oppslag på historikk for deltaker med id $deltakerId")
 
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
             tilgangskontrollService.verifiserLesetilgang(
                 navAnsattAzureId = call.getNavAnsattAzureId(),
                 norskIdent = personident,

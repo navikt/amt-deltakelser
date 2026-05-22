@@ -15,16 +15,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.clients.ModelMapper
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.tokenXToken
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
-import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision
@@ -36,7 +32,7 @@ import java.util.UUID
 class InnbyggerApiTest : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns PersonIdentResponse("123")
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns PersonIdentResponse("123").personident
     }
 
     @Test
@@ -164,37 +160,6 @@ class InnbyggerApiTest : IntegrationTestBase() {
                 )
             }
         }
-    }
-
-    private fun setupMocks(
-        deltaker: Deltaker,
-        oppdatertDeltaker: Deltaker? = null,
-        forslag: List<Forslag> = emptyList(),
-    ): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
-
-        return if (oppdatertDeltaker == null) {
-            mockAnsatteOgEnhetForDeltaker(deltaker)
-        } else {
-            mockAnsatteOgEnhetForDeltaker(oppdatertDeltaker)
-        }
-    }
-
-    private fun mockAnsatteOgEnhetForDeltaker(deltaker: Deltaker): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
-        val ansatte = TestData.lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
-        val enhet = deltaker.vedtaksinformasjon?.let {
-            no.nav.amt.lib.testing.utils.TestData
-                .lagNavEnhet(id = it.sistEndretAvEnhet)
-        }
-        val enheter = TestData.lagNavEnheterForHistorikk(deltaker.historikk).associateBy { it.id }
-
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
-        enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
-        coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns enheter
-
-        return Pair(ansatte, enhet)
     }
 
     companion object {

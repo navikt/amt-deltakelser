@@ -4,11 +4,21 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.serialization.jackson3.jackson
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
+import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
@@ -33,6 +43,7 @@ import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.withLogCapture
+import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -43,6 +54,76 @@ import java.time.ZonedDateTime
 import kotlin.reflect.KClass
 
 class AmtDeltakerClientTest {
+    @Nested
+    inner class GetPersonidentForDeltaker {
+        val expectedUrl = "$DELTAKER_BASE_URL/personident/${deltakerInTest.id}"
+        val expectedErrorMessage = "Fant ikke personident for deltaker ${deltakerInTest.id} i amt-deltaker."
+        val getPersonidentLambda: suspend (AmtDeltakerClient) -> String =
+            { client -> client.getPersonidentForDeltaker(deltakerInTest.id) }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(
+                exceptionType = expectedExceptionType,
+                statusCode = statusCode,
+                expectedUrl = expectedUrl,
+                expectedErrorMessage = expectedErrorMessage,
+                block = getPersonidentLambda,
+            )
+        }
+
+        @Test
+        fun `skal returnere personident`() = runTest {
+            val client = createDeltakerClient(
+                expectedUrl = expectedUrl,
+                statusCode = HttpStatusCode.OK,
+                responseBody = PersonIdentResponse("12345678901"),
+            )
+
+            client.getPersonidentForDeltaker(deltakerInTest.id) shouldBe "12345678901"
+        }
+
+        @Test
+        fun `skal bruke cache ved gjentatt kall for samme deltaker`() = runTest {
+            var requestCount = 0
+            val client = AmtDeltakerClient(
+                baseUrl = DELTAKER_BASE_URL,
+                scope = "scope",
+                httpClient = HttpClient(MockEngine) {
+                    install(ContentNegotiation) { jackson() }
+                    engine {
+                        addHandler {
+                            requestCount++
+                            if (requestCount == 1) {
+                                respond(
+                                    content = ByteReadChannel(objectMapper.writeValueAsBytes(PersonIdentResponse("12345678901"))),
+                                    status = HttpStatusCode.OK,
+                                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                                )
+                            } else {
+                                respond(
+                                    content = ByteReadChannel("server error"),
+                                    status = HttpStatusCode.InternalServerError,
+                                    headers = headersOf(HttpHeaders.ContentType, ContentType.Text.Plain.toString()),
+                                )
+                            }
+                        }
+                    }
+                },
+                azureAdTokenClient = mockAzureAdClient(),
+            )
+
+            val first = client.getPersonidentForDeltaker(deltakerInTest.id)
+            val second = client.getPersonidentForDeltaker(deltakerInTest.id)
+
+            first shouldBe "12345678901"
+            second shouldBe "12345678901"
+            requestCount shouldBe 1
+        }
+    }
+
     @Nested
     inner class GetDeltaker {
         val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}"

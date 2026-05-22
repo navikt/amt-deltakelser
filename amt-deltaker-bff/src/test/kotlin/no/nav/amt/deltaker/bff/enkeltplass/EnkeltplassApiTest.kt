@@ -41,7 +41,8 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setup() {
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns PersonIdentResponse(PERSONIDENT_IN_TEST)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns
+            PersonIdentResponse(PERSONIDENT_IN_TEST).personident
         every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
 
         val mockHttpResponse = mockk<HttpResponse>()

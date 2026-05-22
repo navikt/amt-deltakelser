@@ -106,7 +106,8 @@ class VeilederApiTest : IntegrationTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Deny("Ikke tilgang", ""))
         every { deltakerRepository.get(any()) } returns Result.success(deltaker)
         every { forslagRepository.get(any()) } returns Result.success(lagForslag())
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns PersonIdentResponse(deltaker.navBruker.personident)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns
+            PersonIdentResponse(deltaker.navBruker.personident).personident
 
         withTestApplicationContext { httpClient ->
             val id = UUID.randomUUID()
@@ -143,7 +144,7 @@ class VeilederApiTest : IntegrationTestBase() {
         val deltakerId = deltakerResponse.id
         val personident = "1234"
 
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerId) } returns PersonIdentResponse(personident)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerId) } returns PersonIdentResponse(personident).personident
         coEvery { amtDeltakerClient.getDeltaker(deltakerId) } returns deltakerResponse
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
 
@@ -188,7 +189,8 @@ class VeilederApiTest : IntegrationTestBase() {
         val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns PersonIdentResponse(deltaker.navBruker.personident)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns
+            PersonIdentResponse(deltaker.navBruker.personident).personident
         coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltaker.id) } returns DeltakerHistorikkDataResponse(
             historikk = historikk,
             arrangornavn = arrangornavn,
@@ -558,7 +560,8 @@ class VeilederApiTest : IntegrationTestBase() {
         every { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns PersonIdentResponse(deltaker.navBruker.personident)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns
+            PersonIdentResponse(deltaker.navBruker.personident).personident
 
         return if (oppdatertDeltaker != null) {
             coEvery { deltakerService.oppdaterDeltaker(deltaker = deltaker, endringRequest = any()) } returns oppdatertDeltaker
