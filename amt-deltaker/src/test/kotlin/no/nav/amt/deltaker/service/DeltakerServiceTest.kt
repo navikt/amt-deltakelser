@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
+import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
@@ -1101,6 +1102,155 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             // Assert
             resultat.status.type shouldBe DeltakerStatus.Type.SOKT_INN
             deltakerRepository.get(kladd.id).shouldBeFailure()
+        }
+
+        @Test
+        fun `upsertEndretDeltaker - aktiv oppfolgingsperiode, endring som krever oppfolging - utfører endring`() = runTest {
+            // Arrange — bruker med aktiv oppfølgingsperiode (default fra lagNavBruker)
+            val navBruker = TestData.lagNavBruker(
+                oppfolgingsperioder = listOf(
+                    TestData.lagOppfolgingsperiode(
+                        startdato = LocalDateTime.now().minusMonths(2),
+                        sluttdato = null,
+                    ),
+                ),
+            )
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = navBruker,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                bakgrunnsinformasjon = "Gammel informasjon",
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insertAll(deltaker, vedtak)
+
+            // BakgrunnsinformasjonRequest krever aktiv oppfølging
+            val endringsrequest = BakgrunnsinformasjonRequest(
+                endretAv = navAnsattInTest.navIdent,
+                endretAvEnhet = navEnhetInTest.enhetsnummer,
+                bakgrunnsinformasjon = "Ny informasjon",
+            )
+
+            // Act
+            val resultat = deltakerService.upsertEndretDeltaker(
+                deltakerId = deltaker.id,
+                endringRequest = endringsrequest,
+            )
+
+            // Assert
+            resultat.bakgrunnsinformasjon shouldBe "Ny informasjon"
+            deltakerRepository.get(deltaker.id).shouldBeSuccess().bakgrunnsinformasjon shouldBe "Ny informasjon"
+            deltakerEndringRepository
+                .getForDeltaker(deltaker.id)
+                .first()
+                .endring
+                .shouldBeInstanceOf<DeltakerEndring.Endring.EndreBakgrunnsinformasjon>()
+        }
+
+        @Test
+        fun `upsertEndretDeltaker - ingen aktiv oppfolgingsperiode, endring som krever oppfolging - kaster exception`() = runTest {
+            // Arrange — bruker med utløpt oppfølgingsperiode
+            val navBruker = TestData.lagNavBruker(
+                oppfolgingsperioder = listOf(
+                    TestData.lagOppfolgingsperiode(
+                        startdato = LocalDateTime.now().minusMonths(6),
+                        sluttdato = LocalDateTime.now().minusDays(2),
+                    ),
+                ),
+            )
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = navBruker,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                bakgrunnsinformasjon = "Gammel informasjon",
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insertAll(deltaker, vedtak)
+
+            val endringsrequest = BakgrunnsinformasjonRequest(
+                endretAv = navAnsattInTest.navIdent,
+                endretAvEnhet = navEnhetInTest.enhetsnummer,
+                bakgrunnsinformasjon = "Ny informasjon",
+            )
+
+            // Act & Assert
+            val exception = assertThrows<IllegalArgumentException> {
+                deltakerService.upsertEndretDeltaker(
+                    deltakerId = deltaker.id,
+                    endringRequest = endringsrequest,
+                )
+            }
+            exception.message shouldBe
+                "Kan ikke utføre endring BakgrunnsinformasjonRequest på deltaker ${deltaker.id} uten aktiv oppfølgingsperiode"
+
+            // deltaker uendret i databasen
+            deltakerRepository.get(deltaker.id).shouldBeSuccess().bakgrunnsinformasjon shouldBe "Gammel informasjon"
+            deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
+        }
+
+        @Test
+        fun `upsertEndretDeltaker - ingen aktiv oppfolgingsperiode, endring som kan iverksettes uten - utfører endring`() = runTest {
+            // Arrange — bruker uten aktiv oppfølgingsperiode, men endring (AvsluttDeltakelseRequest)
+            // er tillatt uten oppfølging
+            val navBruker = TestData.lagNavBruker(
+                oppfolgingsperioder = listOf(
+                    TestData.lagOppfolgingsperiode(
+                        startdato = LocalDateTime.now().minusMonths(6),
+                        sluttdato = LocalDateTime.now().minusDays(2),
+                    ),
+                ),
+            )
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = navBruker,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                sluttdato = LocalDate.now().plusMonths(1),
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insertAll(deltaker, vedtak)
+
+            val endringsrequest = AvsluttDeltakelseRequest(
+                endretAv = navAnsattInTest.navIdent,
+                endretAvEnhet = navEnhetInTest.enhetsnummer,
+                sluttdato = LocalDate.now().plusWeeks(1),
+                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+                begrunnelse = null,
+                forslagId = null,
+                harFullfort = null,
+            )
+
+            // Act
+            val resultat = deltakerService.upsertEndretDeltaker(
+                deltakerId = deltaker.id,
+                endringRequest = endringsrequest,
+            )
+
+            // Assert
+            resultat.sluttdato shouldBe endringsrequest.sluttdato
+            deltakerRepository.get(deltaker.id).shouldBeSuccess().sluttdato shouldBe endringsrequest.sluttdato
+            deltakerEndringRepository
+                .getForDeltaker(deltaker.id)
+                .first()
+                .endring
+                .shouldBeInstanceOf<DeltakerEndring.Endring.AvsluttDeltakelse>()
         }
     }
 

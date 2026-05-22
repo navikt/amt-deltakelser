@@ -1,10 +1,12 @@
 package no.nav.amt.deltaker.bff.veileder.api.utils
 
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.model.STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.skalKunHaAnnetBeskrivelse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -71,7 +73,7 @@ fun validerDeltakelsesmengde(
     deltaker: Deltaker,
 ) {
     require(
-        deltaker.deltakelsesmengder.validerNyDeltakelsesmengde(
+        deltaker.deltakelsesmengderFraHistorikk.validerNyDeltakelsesmengde(
             Deltakelsesmengde(
                 deltakelsesprosent = nyProsent?.toFloat() ?: 100F,
                 dagerPerUke = nyDagerPerUke?.toFloat(),
@@ -84,7 +86,51 @@ fun validerDeltakelsesmengde(
     }
 }
 
+fun validerDeltakelsesmengde(
+    nyProsent: Int?,
+    nyDagerPerUke: Int?,
+    gyldigFra: LocalDate,
+    eksisterendeDeltaker: DeltakerModel,
+) {
+    require(
+        validerNyDeltakelsesmengde(
+            eksisterendeDeltaker.deltakelsesmengder,
+            Deltakelsesmengde(
+                deltakelsesprosent = nyProsent?.toFloat() ?: 100F,
+                dagerPerUke = nyDagerPerUke?.toFloat(),
+                gyldigFra = gyldigFra,
+                opprettet = LocalDateTime.now(),
+            ),
+        ),
+    ) {
+        "Deltakelsesmengdeendringen er ikke en reel endring"
+    }
+}
+
+/**
+ * Validerer om ny deltakelsesmengde fører til en endring av gjeldende deltakelsesmengder for hele deltakelsen eller ikke.
+ */
+fun validerNyDeltakelsesmengde(
+    deltakelsesmengde: DeltakelsesmengderResponse?,
+    nyDeltakelsesmengde: Deltakelsesmengde,
+): Boolean {
+    val siste = deltakelsesmengde?.sisteDeltakelsesmengde ?: return true
+
+    return if (siste.dagerPerUke != nyDeltakelsesmengde.dagerPerUke || siste.deltakelsesprosent != nyDeltakelsesmengde.deltakelsesprosent) {
+        true
+    } else {
+        nyDeltakelsesmengde.gyldigFra < siste.gyldigFra
+    }
+}
+
 fun validerDeltakerKanReaktiveres(opprinneligDeltaker: Deltaker) {
+    require(opprinneligDeltaker.status.type == DeltakerStatus.Type.IKKE_AKTUELL) {
+        "Kan ikke reaktivere deltaker som har annen status enn ikke aktuell"
+    }
+    validerDeltakerKanEndres(opprinneligDeltaker)
+}
+
+fun validerDeltakerKanReaktiveres(opprinneligDeltaker: DeltakerModel) {
     require(opprinneligDeltaker.status.type == DeltakerStatus.Type.IKKE_AKTUELL) {
         "Kan ikke reaktivere deltaker som har annen status enn ikke aktuell"
     }
@@ -109,7 +155,25 @@ fun validerDeltakerKanEndres(opprinneligDeltaker: Deltaker) {
     }
 }
 
-fun statusForMindreEnn15DagerSiden(opprinneligDeltaker: Deltaker): Boolean = opprinneligDeltaker.status.gyldigFra
+fun validerDeltakerKanEndres(opprinneligDeltaker: DeltakerModel) {
+    require(opprinneligDeltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
+        "Kan ikke endre feilregistrert deltaker"
+    }
+    if (opprinneligDeltaker.harSluttet()) {
+        require(opprinneligDeltaker.harSluttetForMindreEnnToMndSiden()) {
+            "Kan ikke endre deltaker som fikk avsluttende status for mer enn to måneder siden"
+        }
+        if (opprinneligDeltaker.erLaastForEndringer) {
+            // Låst pga. nyere deltakelse på samme tiltak – kun tillatt for de 4 statusene
+            // som frontend eksponerer begrenset redigering for.
+            require(opprinneligDeltaker.status.type in STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING) {
+                "Kan ikke endre låst deltakelse med status ${opprinneligDeltaker.status.type}"
+            }
+        }
+    }
+}
+
+fun statusForMindreEnn15DagerSiden(opprinneligDeltakerStatus: DeltakerStatus): Boolean = opprinneligDeltakerStatus.gyldigFra
     .toLocalDate()
     .isAfter(LocalDate.now().minusDays(15))
 
@@ -134,6 +198,21 @@ fun validerSluttdatoForDeltaker(
     opprinneligDeltaker: Deltaker,
 ) {
     require(opprinneligDeltaker.deltakerliste.sluttDato == null || !sluttdato.isAfter(opprinneligDeltaker.deltakerliste.sluttDato)) {
+        "Sluttdato kan ikke være senere enn deltakerlistens sluttdato"
+    }
+    require(startdato == null || !sluttdato.isBefore(startdato)) {
+        "Sluttdato må være etter startdato"
+    }
+
+    startdato?.let { validerVarighet(it, sluttdato, opprinneligDeltaker) }
+}
+
+fun validerSluttdatoForDeltaker(
+    sluttdato: LocalDate,
+    startdato: LocalDate?,
+    opprinneligDeltaker: DeltakerModel,
+) {
+    require(opprinneligDeltaker.gjennomforing.sluttDato == null || !sluttdato.isAfter(opprinneligDeltaker.gjennomforing.sluttDato)) {
         "Sluttdato kan ikke være senere enn deltakerlistens sluttdato"
     }
     require(startdato == null || !sluttdato.isBefore(startdato)) {
@@ -198,6 +277,24 @@ private fun validerVarighet(
     startdato: LocalDate,
     sluttdato: LocalDate,
     deltaker: Deltaker,
+) {
+    val maxVarighet = deltaker.maxVarighet ?: return
+
+    val senesteSluttdato = startdato.plusDays(maxVarighet.toDays())
+
+    if (deltaker.sluttdato != null && senesteSluttdato.isBefore(deltaker.sluttdato)) {
+        require(!sluttdato.isAfter(deltaker.sluttdato))
+    } else {
+        require(!sluttdato.isAfter(senesteSluttdato)) {
+            "Sluttdato $sluttdato er etter seneste mulige sluttdato $senesteSluttdato"
+        }
+    }
+}
+
+private fun validerVarighet(
+    startdato: LocalDate,
+    sluttdato: LocalDate,
+    deltaker: DeltakerModel,
 ) {
     val maxVarighet = deltaker.maxVarighet ?: return
 

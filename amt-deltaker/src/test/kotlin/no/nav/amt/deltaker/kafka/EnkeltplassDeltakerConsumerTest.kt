@@ -80,6 +80,7 @@ class EnkeltplassDeltakerConsumerTest {
             deltakerHistorikkService = mockk(),
             endringFraTiltakskoordinatorRepository = mockk(),
             forslagRepository = mockk(),
+            unleashToggle = mockk(),
         ),
     )
 

@@ -83,7 +83,7 @@ fun Routing.registerVeilederApi(
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    // duplikat i PameldiongApi
+    // Skal slettes når alt er flyttet til amt-deltaker
     suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
         deltaker = deltaker,
         ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
@@ -97,7 +97,13 @@ fun Routing.registerVeilederApi(
         tillatEndringUtenOppfPeriode: Boolean,
         request: EndringRequestFromFrontend,
     ) {
+        /*
+        Alle disse sjekkene er flyttet til amt-deltaker, ivaretas i valideringen på endringstype
+        men denne beholdes her fram til toggelen er påskrudd i prod for å hindre lagring i lokal database når
+        når endringen egentlig ikke er gyldig
+         */
         if (!deltaker.kanEndres) {
+            // Finnes i amt-deltaker https://github.com/navikt/amt-deltakelser/blob/5d30c9f514cc1d03f640cfc46775ab742b0b2d91/amt-deltaker/src/main/kotlin/no/nav/amt/deltaker/service/DeltakerService.kt#L104
             val kanEndreAvsluttetDeltakelse = request.tillattForLaastAvsluttetDeltakelse() &&
                 deltaker.status.type in STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING &&
                 deltaker.harSluttetForMindreEnnToMndSiden()
@@ -109,14 +115,17 @@ fun Routing.registerVeilederApi(
         }
 
         if (deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
+            // Finnes i amt-deltaker https://github.com/navikt/amt-deltakelser/blob/5d30c9f514cc1d03f640cfc46775ab742b0b2d91/amt-deltaker/src/main/kotlin/no/nav/amt/deltaker/service/DeltakerService.kt#L104
             throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")
         }
 
         if (!unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltak.tiltakskode)) {
+            // Valideres i amt-deltaker
             throw ForbiddenException("Kan ikke utføre endring på deltaker ${deltaker.id}")
         }
 
         if (!deltaker.navBruker.harAktivOppfolgingsperiode && !tillatEndringUtenOppfPeriode) {
+            // Valideres i amt-deltaker
             log.warn("Kan ikke endre deltaker med id ${deltaker.id} som ikke har aktiv oppfølgingsperiode")
             throw IllegalArgumentException("Kan ikke endre deltaker som ikke har aktiv oppfølgingsperiode")
         }
@@ -126,30 +135,50 @@ fun Routing.registerVeilederApi(
         request: EndringRequestFromFrontend,
         produceEndringRequest: (deltaker: Deltaker, endretAv: String, endretAvEnhet: String) -> EndringRequest,
     ) {
-        val deltaker = deltakerRepository.get(this.getDeltakerId()).getOrThrow()
+        val deltakerId = this.getDeltakerId()
+        val response = if (unleashToggle.prioriterSynkronKommunikasjon()) {
+            val deltaker = amtDeltakerClient
+                .getDeltaker(deltakerId)
+                .let { ModelMapper.toDeltaker(it) }
 
-        tilgangskontrollService.verifiserSkrivetilgang(
-            navAnsattAzureId = this.getNavAnsattAzureId(),
-            norskIdent = deltaker.navBruker.personident,
-        )
-        illegalUpdateGuard(
-            deltaker = deltaker,
-            tillatEndringUtenOppfPeriode = request.tillattEndringUtenAktivOppfolgingsperiode(),
-            request = request,
-        )
+            tilgangskontrollService.verifiserSkrivetilgang(
+                navAnsattAzureId = this.getNavAnsattAzureId(),
+                norskIdent = deltaker.navBruker.personident,
+            )
+            request.valider(deltaker)
 
-        request.valider(deltaker)
+            amtDeltakerClient
+                .getDeltaker(deltaker.id)
+                .let { ModelMapper.toDeltaker(it) }
+                .let { DeltakerResponse.fromDeltakerModel(it) }
+        } else {
+            // Alt dette skal slettes når dette er testet
+            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
-        val oppdatertDeltaker = deltakerService.oppdaterDeltaker(
-            deltaker = deltaker,
-            endringRequest = produceEndringRequest(
-                deltaker,
-                this.getNavIdent(),
-                this.getEnhetsnummer(),
-            ),
-        )
+            tilgangskontrollService.verifiserSkrivetilgang(
+                navAnsattAzureId = this.getNavAnsattAzureId(),
+                norskIdent = deltaker.navBruker.personident,
+            )
+            illegalUpdateGuard(
+                deltaker = deltaker,
+                tillatEndringUtenOppfPeriode = request.tillattEndringUtenAktivOppfolgingsperiode(),
+                request = request,
+            )
 
-        this.respond(komplettDeltakerResponse(oppdatertDeltaker))
+            request.valider(deltaker)
+
+            val oppdatertDeltaker = deltakerService.oppdaterDeltaker(
+                deltaker = deltaker,
+                endringRequest = produceEndringRequest(
+                    deltaker,
+                    this.getNavIdent(),
+                    this.getEnhetsnummer(),
+                ),
+            )
+
+            komplettDeltakerResponse(oppdatertDeltaker)
+        }
+        this.respond(response)
     }
 
     authenticate(AuthLevel.VEILEDER.name) {

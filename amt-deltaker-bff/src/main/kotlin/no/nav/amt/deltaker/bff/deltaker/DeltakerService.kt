@@ -29,7 +29,6 @@ class DeltakerService(
         endringRequest: EndringRequest,
     ): Deltaker {
         navEnhetService.hentOpprettEllerOppdaterNavEnhet(endringRequest.endretAvEnhet)
-
         val deltakeroppdatering = amtDeltakerClient
             .postEndreDeltaker(
                 deltakerId = deltaker.id,
@@ -48,6 +47,7 @@ class DeltakerService(
             },
             afterUpsert = {
                 if (endringRequest is EndringForslagRequest) {
+                    // Forslag skal ikke lengre vises for nav veileder når det er godkjent
                     endringRequest.forslagId?.let { forslagId -> forslagRepository.delete(forslagId) }
                 }
             },

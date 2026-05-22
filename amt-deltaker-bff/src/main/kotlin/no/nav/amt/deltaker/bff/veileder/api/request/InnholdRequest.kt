@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
@@ -12,6 +13,19 @@ fun List<InnholdsElementRequest>.toInnholdModel(deltaker: Deltaker) = this.mapNo
         deltaker.deltakerliste.tiltak.innhold
             ?.innholdselementer,
         deltaker.deltakerliste.tiltak.tiltakskode,
+    ).find { it.innholdskode == valgtInnholdElement.innholdskode }
+    if (valgtInnholdElement.innholdskode == annetInnholdselement.innholdskode) {
+        tiltaksinnhold?.toInnhold(true, valgtInnholdElement.beskrivelse)
+    } else {
+        tiltaksinnhold?.toInnhold(valgt = true)
+    }
+}
+
+fun List<InnholdsElementRequest>.toInnholdModel(deltaker: DeltakerModel) = this.mapNotNull { valgtInnholdElement ->
+    val tiltaksinnhold = getInnholdselementer(
+        deltaker.gjennomforing.tiltak.innhold
+            ?.innholdselementer,
+        deltaker.gjennomforing.tiltak.tiltakskode,
     ).find { it.innholdskode == valgtInnholdElement.innholdskode }
     if (valgtInnholdElement.innholdskode == annetInnholdselement.innholdskode) {
         tiltaksinnhold?.toInnhold(true, valgtInnholdElement.beskrivelse)

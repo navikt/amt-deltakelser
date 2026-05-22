@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
@@ -16,5 +17,16 @@ data class EndreInnholdRequest(
         }
     }
 
+    override fun valider(deltaker: DeltakerModel) {
+        validerDeltakelsesinnhold(innhold, deltaker.gjennomforing.tiltak.innhold, deltaker.gjennomforing.tiltak.tiltakskode)
+        validerDeltakerKanEndres(deltaker)
+        require(deltakerErEndret(deltaker)) {
+            "Innholdet er ikke endret"
+        }
+    }
+
     private fun deltakerErEndret(deltaker: Deltaker): Boolean = deltaker.deltakelsesinnhold?.innhold != innhold.toInnholdModel(deltaker)
+
+    private fun deltakerErEndret(deltaker: DeltakerModel): Boolean =
+        deltaker.deltakelsesinnhold?.innhold != innhold.toInnholdModel(deltaker)
 }

@@ -13,4 +13,23 @@ sealed interface EndringRequest {
     val endretAvEnhet: String
 
     fun toEndring(): DeltakerEndring.Endring
+
+    fun kanIverksettesUtenAktivOppfolging() = when (this) {
+        is BakgrunnsinformasjonRequest,
+        is DeltakelsesmengdeRequest,
+        is EndretInnholdRequest,
+        is StartdatoRequest,
+        is ForlengDeltakelseRequest,
+        is ReaktiverDeltakelseRequest,
+        is FjernOppstartsdatoRequest,
+        -> false
+
+        is AvsluttDeltakelseRequest,
+        is AvbrytDeltakelseRequest,
+        is EndreAvslutningRequest,
+        is SluttarsakRequest,
+        is SluttdatoRequest,
+        is IkkeAktuellRequest,
+        -> true
+    }
 }

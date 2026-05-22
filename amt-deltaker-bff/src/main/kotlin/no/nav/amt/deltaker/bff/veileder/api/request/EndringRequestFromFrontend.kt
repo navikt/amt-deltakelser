@@ -1,10 +1,13 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import java.util.UUID
 
 sealed interface EndringRequestFromFrontend {
     fun valider(deltaker: Deltaker)
+
+    fun valider(deltaker: DeltakerModel)
 
     /**
      * Returnerer true dersom endringen er tillatt for en deltaker som er låst for endringer

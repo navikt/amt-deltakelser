@@ -138,4 +138,16 @@ data class DeltakerModel(
             Tiltakskode.TILPASSET_JOBBSTOTTE,
             -> null
         }
+
+    fun harSluttet(): Boolean = status.type in AVSLUTTENDE_STATUSER
+
+    fun harSluttetForMindreEnnToMndSiden(): Boolean {
+        if (!harSluttet()) return false
+
+        val nyesteDato = listOfNotNull(sluttdato, status.gyldigFra.toLocalDate())
+            .maxOrNull() ?: return false
+
+        val toMndSiden = LocalDate.now().minusMonths(2)
+        return nyesteDato.isAfter(toMndSiden)
+    }
 }

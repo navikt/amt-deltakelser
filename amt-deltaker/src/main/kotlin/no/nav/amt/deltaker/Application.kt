@@ -350,6 +350,7 @@ fun Application.module() {
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navAnsattService = navAnsattService,
         forslagRepository = forslagRepository,
+        unleashToggle = unleashToggle,
     )
 
     val endringFraArrangorService = EndringFraArrangorService(

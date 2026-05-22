@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDagerPerUke
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesProsent
@@ -18,6 +19,28 @@ data class EndreDeltakelsesmengdeRequest(
     override val forslagId: UUID?,
 ) : EndringMedForslagRequest {
     override fun valider(deltaker: Deltaker) {
+        validerDeltakelsesProsent(deltakelsesprosent)
+        validerDagerPerUke(dagerPerUke)
+
+        deltaker.sluttdato?.let {
+            require(!gyldigFra.isAfter(it)) {
+                "Deltakelsesmengde kan ikke endres etter deltaker sin sluttdato"
+            }
+        }
+
+        if (deltaker.status.type != DeltakerStatus.Type.VENTER_PA_OPPSTART && deltaker.startdato != null) {
+            require(!gyldigFra.isBefore(deltaker.startdato)) {
+                "Deltakelsesmengde kan ikke endres før deltaker sin startdato"
+            }
+        }
+
+        validerDeltakelsesmengde(deltakelsesprosent, dagerPerUke, gyldigFra, deltaker)
+
+        validerDeltakerKanEndres(deltaker)
+        validerBegrunnelse(begrunnelse)
+    }
+
+    override fun valider(deltaker: DeltakerModel) {
         validerDeltakelsesProsent(deltakelsesprosent)
         validerDagerPerUke(dagerPerUke)
 
