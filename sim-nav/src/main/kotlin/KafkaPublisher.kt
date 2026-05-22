@@ -6,6 +6,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka.TiltakstypeDto
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -17,6 +18,7 @@ import java.util.*
 
 private const val DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
 private const val DEFAULT_GJENNOMFORING_ENKELTPLASS_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2"
+private const val DEFAULT_TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v3"
 
 private val STATIC_ENKELTPLASS_GJENNOMFORING = GjennomforingV2KafkaPayload.Enkeltplass(
     id = UUID.fromString("00000000-0000-0000-0000-000000000001"),
@@ -30,11 +32,23 @@ private val STATIC_ENKELTPLASS_GJENNOMFORING = GjennomforingV2KafkaPayload.Enkel
     prisinformasjon = null,
 )
 
+private val STATIC_ENKELTPLASS_AMO_TILTAKSTYPE = TiltakstypeDto(
+    id = UUID.fromString("00000000-0000-0000-0000-000000000002"),
+    navn = "Enkeltplass arbeidsmarkedsopplaering",
+    tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+    innsatsgrupper = emptySet(),
+    deltakerRegistreringInnhold = null,
+)
+
 class KafkaPublisher(
     bootstrapServers: String = getenvOrProperty("KAFKA_BOOTSTRAP_SERVERS", DEFAULT_BOOTSTRAP_SERVERS),
     private val gjennomforingEnkeltplassTopic: String = getenvOrProperty(
         "KAFKA_GJENNOMFORING_ENKELTPLASS_TOPIC",
         DEFAULT_GJENNOMFORING_ENKELTPLASS_TOPIC,
+    ),
+    private val tiltakstypeTopic: String = getenvOrProperty(
+        "KAFKA_TILTAKSTYPE_TOPIC",
+        DEFAULT_TILTAKSTYPE_TOPIC,
     ),
     private val producer: Producer<UUID, String> = createProducer(bootstrapServers),
     private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()),
@@ -43,6 +57,12 @@ class KafkaPublisher(
         val payload = STATIC_ENKELTPLASS_GJENNOMFORING
         val message = objectMapper.writeValueAsString(payload)
         producer.send(ProducerRecord(gjennomforingEnkeltplassTopic, payload.id, message)).get()
+    }
+
+    fun publishTiltakstypeEnkeltplassArbeidsmarkedsopplaering() {
+        val payload = STATIC_ENKELTPLASS_AMO_TILTAKSTYPE
+        val message = objectMapper.writeValueAsString(payload)
+        producer.send(ProducerRecord(tiltakstypeTopic, payload.id, message)).get()
     }
 
     fun close() {

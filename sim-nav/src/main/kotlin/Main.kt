@@ -39,6 +39,8 @@ fun main() {
     println("Set AZURE_OPENID_CONFIG_ISSUER=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID")
     println("Set AZURE_OPENID_CONFIG_JWKS_URI=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/jwks")
     println("Set AZURE_OPENID_CONFIG_TOKEN_ENDPOINT=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/token")
+    println("POST http://localhost:$SIM_NAV_HTTP_PORT/kafka/tiltakstype/enkeltplass-amo")
+    println("POST http://localhost:$SIM_NAV_HTTP_PORT/kafka/gjennomforing/enkeltplass")
 
     CountDownLatch(1).await()
 }
