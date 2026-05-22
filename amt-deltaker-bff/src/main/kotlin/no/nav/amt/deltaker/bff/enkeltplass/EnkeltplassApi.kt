@@ -40,7 +40,6 @@ fun Routing.registerEnkeltplassApi(
                 call.respond(sertifiseringer)
             }
 
-            // TODO: Skriv tester
             get("/kodeverk/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
                 val gjennomforing = amtDeltakerClient.getDeltaker(deltakerId).gjennomforing
