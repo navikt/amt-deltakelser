@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
@@ -34,6 +35,8 @@ data class DeltakerlisteResponse(
     data class UtflatetKodeverk(
         val tittel: String? = null,
         val valg: List<String>,
+        val valgteKodeverkIder: Set<UUID>,
+        val valgteSertifiseringer: Set<SertifiseringValg>,
     )
 
     companion object {

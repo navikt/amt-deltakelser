@@ -22,8 +22,10 @@ fun KodeverkResponse.tilUtflatetKodeverk(
         .map { it.tilTittelOgValg(sertifiseringValg) }
 
     return DeltakerlisteResponse.UtflatetKodeverk(
-        tittel = tittelOgValg.firstOrNull { it.tittel.isNotBlank() }?.tittel ?: "",
+        tittel = tittelOgValg.firstOrNull { it.tittel.isNotBlank() }?.tittel,
         valg = tittelOgValg.flatMap { it.valg },
+        valgteKodeverkIder = kodeverkValg,
+        valgteSertifiseringer = sertifiseringValg,
     )
 }
 
