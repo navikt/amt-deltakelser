@@ -329,7 +329,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         }
 
         response.status shouldBe HttpStatusCode.Forbidden
-        coVerify(exactly = 0) { tiltakskoordinatorClient.getDeltakereForGjennomforingCounts(any()) }
     }
 
     @Test

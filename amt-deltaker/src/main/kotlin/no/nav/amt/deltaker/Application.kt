@@ -500,7 +500,6 @@ fun Application.module() {
         vedtakRepository = vedtakRepository,
         deltakerResponseBuilder = deltakerResponseBuilder,
         tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
-        tiltakskoordinatorViewRepository = tiltakskoordinatorViewRepository,
         kladdService = kladdService,
         enkeltplassService = enkeltplassService,
         arrangorService = arrangorService,

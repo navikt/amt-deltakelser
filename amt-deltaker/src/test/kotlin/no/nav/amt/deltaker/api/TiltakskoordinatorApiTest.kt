@@ -10,7 +10,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
@@ -33,7 +32,6 @@ import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilk
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
@@ -113,7 +111,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("$API_PATH/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("$API_PATH/${UUID.randomUUID()}/counts-per-status") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
@@ -166,53 +163,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         }
 
         coVerify(exactly = 0) { tiltakskoordinatorResponseBuilder.buildResponse(any()) }
-    }
-
-    @Test
-    fun `getDeltakereCountPerStatus - har tilgang - returnerer 200 og antall per status`() {
-        val gjennomforingId = UUID.randomUUID()
-        val request = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = gjennomforingId,
-            statuser = setOf(DeltakerStatus.Type.DELTAR, DeltakerStatus.Type.HAR_SLUTTET),
-        )
-        val expectedResponse = mapOf(
-            DeltakerStatus.Type.DELTAR to 2,
-            DeltakerStatus.Type.HAR_SLUTTET to 1,
-        )
-
-        every { tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(request) } returns expectedResponse
-
-        withTestApplicationContext { client ->
-            client
-                .post("$API_PATH/$gjennomforingId/counts-per-status") {
-                    postRequest(request)
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                    bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
-                }
-        }
-
-        verify(exactly = 1) { tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(request) }
-    }
-
-    @Test
-    fun `getDeltakereCountPerStatus - gjennomforingId i path og body matcher ikke - returnerer 400`() {
-        val pathGjennomforingId = UUID.randomUUID()
-        val request = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = UUID.randomUUID(),
-            statuser = setOf(DeltakerStatus.Type.DELTAR),
-        )
-
-        withTestApplicationContext { client ->
-            client
-                .post("$API_PATH/$pathGjennomforingId/counts-per-status") {
-                    postRequest(request)
-                }.apply {
-                    status shouldBe HttpStatusCode.BadRequest
-                }
-        }
-
-        verify(exactly = 0) { tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(any()) }
     }
 
     @Test
