@@ -47,6 +47,7 @@ fun startMockOAuth2Server(): MockOAuth2Server {
                 claims = mapOf(
                     "aud" to listOf("amt-person-service"),
                     "sub" to "11111111-1111-1111-1111-111111111111",
+                    "oid" to "11111111-1111-1111-1111-111111111111",
                 ),
             ),
         ),
