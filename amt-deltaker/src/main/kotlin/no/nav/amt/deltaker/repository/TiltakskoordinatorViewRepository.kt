@@ -18,11 +18,11 @@ class TiltakskoordinatorViewRepository {
      * Optimalisert for store deltakerlister (>2000 deltakere) ved å:
      * - Bruke preaggregerte LATERAL JOINs for aktive forslag og siste vurderingstype
      * - Håndtere sokt-inn-dato via COALESCE av 3 kilder (arena, egen oppstart, vedtak)
-     * - Støtte filtrering på harForslagFraArrangor
+     * - Støtte filtrering på handlingFilterValg (f.eks. AktiveForslag)
      *
      * Sorteres etter sokt_inn_dato synkende (nyeste først), deretter etter id.
      *
-     * @param request inneholder gjennomforingId, statuser (valgfritt), og harForslagFraArrangor (valgfritt)
+     * @param request inneholder gjennomforingId, statuser (valgfritt), og handlingFilterValg (valgfritt)
      * @return Liste av deltakere med berikede feltdata, sortert etter søkt-inn-dato
      */
     fun getDeltakere(request: TiltaksKoordinatorDeltakerlisteRequest): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
@@ -112,7 +112,6 @@ class TiltakskoordinatorViewRepository {
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
                     ${statusFilterSql(request)}
-                    AND ds.type NOT IN ('KLADD', 'UTKAST_TIL_PAMELDING', 'AVBRUTT_UTKAST', 'FEILREGISTRERT', 'PABEGYNT_REGISTRERING')
                 -- Enkel vedtak-JOIN (UNIQUE deltaker_id garanterer maks 1 rad)
                 LEFT JOIN vedtak v ON v.deltaker_id = d.id
                 LEFT JOIN nav_enhet ne ON ne.id = nb.nav_enhet_id

@@ -32,7 +32,6 @@ class DeltakerlisteRepository {
      */
     fun getDeltakereCountPerStatus(request: TiltaksKoordinatorDeltakerlisteRequest): DeltakerlisteFilterCountsResponse {
         require(request.statuser.isNotEmpty()) { "Statuser må spesifiseres for å hente deltakerantall per status" }
-        // require(request.handlingFilterValg.isNotEmpty()) { "Handlinger må spesifiseres for å hente deltakerantall per handling" }
 
         val rows = Database.query { session ->
             session
