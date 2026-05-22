@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
@@ -55,6 +56,7 @@ abstract class IntegrationTestBase {
     protected val kodeverkClient = mockk<KodeverkClient>()
 
     protected val deltakerRepository: DeltakerRepository = mockk()
+    protected val deltakerlisteRepository: DeltakerlisteRepository = mockk()
     protected val forslagRepository: ForslagRepository = mockk()
     protected val tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository = mockk()
 
@@ -120,6 +122,7 @@ abstract class IntegrationTestBase {
                     sporbarhetsloggService = sporbarhetsloggService,
                     deltakerRepository = deltakerRepository,
                     deltakerlisteService = deltakerlisteService,
+                    deltakerlisteRepository = deltakerlisteRepository,
                     unleash = unleash,
                     commonUnleashToggle = commonUnleashToggle,
                     tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,

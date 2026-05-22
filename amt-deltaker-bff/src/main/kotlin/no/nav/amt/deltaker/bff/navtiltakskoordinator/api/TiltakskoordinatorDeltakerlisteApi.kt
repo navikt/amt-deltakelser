@@ -12,24 +12,25 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper.toDeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
-import no.nav.amt.internapi.deltaker.response.PaginatedResult
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
+import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     deltakerlisteService: DeltakerlisteService,
+    deltakerlisteRepository: DeltakerlisteRepository,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     selfServiceTilgang: SelfServiceTilgangService,
     tiltakskoordinatorService: TiltakskoordinatorService,
@@ -62,42 +63,63 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 call.respond(gjennomforingResponse)
             }
 
-            get("/deltakere") {
+            post("/deltakere") {
                 val deltakerlisteId = getDeltakerlisteId()
-                val pagedResponse = hentDeltakereForDeltakerliste(
+
+                deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
+                selfServiceTilgang.verifiserTiltakskoordinatorTilgang(
+                    navIdent = call.getNavIdent(),
                     deltakerlisteId = deltakerlisteId,
-                    request = TiltaksKoordinatorDeltakerlisteRequest(
-                        gjennomforingId = deltakerlisteId,
-                    ),
-                    deltakerlisteService = deltakerlisteService,
-                    selfServiceTilgang = selfServiceTilgang,
-                    tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
-                    tiltakskoordinatorClient = tiltakskoordinatorClient,
-                    responseBuilder = responseBuilder,
                 )
 
-                call.respond(pagedResponse.data)
+                val request = call
+                    .receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                    .copy(gjennomforingId = deltakerlisteId)
+
+                val deltakerResponses = tiltakskoordinatorClient
+                    .getDeltakereForGjennomforing(request)
+                    .data
+
+                val navAnsattAzureId = call.getNavAnsattAzureId()
+
+                val deltakere = responseBuilder
+                    .toDeltakerResponses(
+                        deltakere = deltakerResponses,
+                        kanSeInnbyggersNavn = { deltaker ->
+                            tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                                navAnsattAzureId = navAnsattAzureId,
+                                erSkjermet = deltaker.navBruker.erSkjermet,
+                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                            )
+                        },
+                    ).filter { deltaker ->
+                        deltaker.erNyDeltaker || request.handlingFilterValg.none { it == HandlingFilterValg.NyeDeltakere }
+                    }.filter { deltaker ->
+                        deltaker.harOppdateringFraNav ||
+                            request.handlingFilterValg.none { it == HandlingFilterValg.OppdateringFraNav }
+                    }
+
+                call.respond(deltakere)
             }
 
-            post("/deltakere-paged") {
+            post("/deltakere/status-counts") {
                 val deltakerlisteId = getDeltakerlisteId()
-                val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()
 
-                require(request.gjennomforingId == deltakerlisteId) {
-                    "DeltakerlisteId i request må matche URL parameter."
-                }
-
-                val response = hentDeltakereForDeltakerliste(
+                deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
+                selfServiceTilgang.verifiserTiltakskoordinatorTilgang(
+                    navIdent = call.getNavIdent(),
                     deltakerlisteId = deltakerlisteId,
-                    request = request,
-                    deltakerlisteService = deltakerlisteService,
-                    selfServiceTilgang = selfServiceTilgang,
-                    tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
-                    tiltakskoordinatorClient = tiltakskoordinatorClient,
-                    responseBuilder = responseBuilder,
                 )
 
-                call.respond(response)
+                val request = call
+                    .receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                    .copy(gjennomforingId = deltakerlisteId)
+
+                require(request.statuser.isNotEmpty()) {
+                    "Statuser må spesifiseres for å hente deltakerantall per status"
+                }
+
+                call.respond(deltakerlisteRepository.getDeltakereCountPerStatus(request))
             }
 
             post("/deltakere/tildel-plass") {
@@ -243,39 +265,4 @@ fun RoutingContext.getDeltakerlisteId(): UUID {
     } catch (_: IllegalArgumentException) {
         throw IllegalArgumentException("URL parameter 'deltakerlisteId' er ikke formattert riktig.")
     }
-}
-
-private suspend fun RoutingContext.hentDeltakereForDeltakerliste(
-    deltakerlisteId: UUID,
-    request: TiltaksKoordinatorDeltakerlisteRequest,
-    deltakerlisteService: DeltakerlisteService,
-    selfServiceTilgang: SelfServiceTilgangService,
-    tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
-    tiltakskoordinatorClient: TiltakskoordinatorClient,
-    responseBuilder: ResponseBuilder,
-): PaginatedResult<DeltakerResponse> {
-    deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteId)
-    selfServiceTilgang.verifiserTiltakskoordinatorTilgang(
-        navIdent = call.getNavIdent(),
-        deltakerlisteId = deltakerlisteId,
-    )
-
-    val response = tiltakskoordinatorClient.getDeltakereForGjennomforing(request)
-    val navAnsattAzureId = call.getNavAnsattAzureId()
-    val deltakere = responseBuilder.toDeltakerResponses(
-        deltakere = response.data,
-        kanSeInnbyggersNavn = { deltaker ->
-            tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
-                navAnsattAzureId = navAnsattAzureId,
-                erSkjermet = deltaker.navBruker.erSkjermet,
-                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-            )
-        },
-    )
-
-    return PaginatedResult(
-        totalCount = response.totalCount,
-        pageSize = response.pageSize,
-        data = deltakere,
-    )
 }

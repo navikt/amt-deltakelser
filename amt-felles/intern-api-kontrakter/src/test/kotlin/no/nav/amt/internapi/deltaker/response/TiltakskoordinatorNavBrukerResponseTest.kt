@@ -1,6 +1,7 @@
 package no.nav.amt.internapi.deltaker.response
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 import no.nav.amt.lib.models.person.Beskyttelsesmarkering
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.objectMapper

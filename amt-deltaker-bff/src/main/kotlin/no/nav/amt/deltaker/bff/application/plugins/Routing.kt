@@ -25,6 +25,7 @@ import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
 import no.nav.amt.deltaker.bff.enkeltplass.validate
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.innbygger.api.registerInnbyggerApi
@@ -82,6 +83,7 @@ fun Application.configureRouting(
     sporbarhetsloggService: SporbarhetsloggService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteService: DeltakerlisteService,
+    deltakerlisteRepository: DeltakerlisteRepository,
     unleash: Unleash,
     commonUnleashToggle: CommonUnleashToggle,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
@@ -191,6 +193,7 @@ fun Application.configureRouting(
             selfServiceTilgang = selfServiceTilgangService,
             tiltakskoordinatorClient = tiltakskoordinatorClient,
             responseBuilder = tiltakskoordinatorResponseBuilder,
+            deltakerlisteRepository = deltakerlisteRepository,
         )
 
         registerUlestHendelseApi(ulestHendelseRepository)
