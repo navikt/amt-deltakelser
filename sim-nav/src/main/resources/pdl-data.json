@@ -1,0 +1,87 @@
+{
+  "defaultIdent": "11111111111",
+  "persons": {
+	"11111111111": {
+	  "fornavn": "Ola",
+	  "mellomnavn": null,
+	  "etternavn": "Nordmann",
+	  "foedselsaar": 1990,
+	  "erFalskIdentitet": false,
+	  "adressebeskyttelse": "UGRADERT",
+	  "identer": [
+		{
+		  "ident": "11111111111",
+		  "historisk": false,
+		  "gruppe": "FOLKEREGISTERIDENT"
+		},
+		{
+		  "ident": "1000000000001",
+		  "historisk": false,
+		  "gruppe": "AKTORID"
+		}
+	  ],
+	  "telefonnummer": [
+		{
+		  "landskode": "+47",
+		  "nummer": "12345678",
+		  "prioritet": 1
+		}
+	  ],
+	  "bostedsadresse": [
+		{
+		  "coAdressenavn": null,
+		  "vegadresse": {
+			"husnummer": "1",
+			"husbokstav": "A",
+			"adressenavn": "Storgata",
+			"tilleggsnavn": null,
+			"postnummer": "0150"
+		  },
+		  "matrikkeladresse": null
+		}
+	  ],
+	  "oppholdsadresse": [],
+	  "kontaktadresse": [
+		{
+		  "coAdressenavn": null,
+		  "vegadresse": null,
+		  "postboksadresse": {
+			"postboks": "123",
+			"postnummer": "0101"
+		  }
+		}
+	  ]
+	},
+	"22222222222": {
+	  "fornavn": "Kari",
+	  "mellomnavn": "Q",
+	  "etternavn": "Nordmann",
+	  "foedselsaar": 1985,
+	  "erFalskIdentitet": false,
+	  "adressebeskyttelse": "FORTROLIG",
+	  "identer": [
+		{
+		  "ident": "22222222222",
+		  "historisk": false,
+		  "gruppe": "FOLKEREGISTERIDENT"
+		},
+		{
+		  "ident": "1000000000002",
+		  "historisk": false,
+		  "gruppe": "AKTORID"
+		}
+	  ],
+	  "telefonnummer": [
+		{
+		  "landskode": "+47",
+		  "nummer": "87654321",
+		  "prioritet": 1
+		}
+	  ],
+	  "bostedsadresse": [],
+	  "oppholdsadresse": [],
+	  "kontaktadresse": []
+	}
+  }
+}
+
