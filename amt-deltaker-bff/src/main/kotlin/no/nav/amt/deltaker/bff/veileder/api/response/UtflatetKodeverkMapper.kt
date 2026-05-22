@@ -16,12 +16,12 @@ private val REPRESENTERER_SOM_SKAL_VISE_TITTEL = setOf(
 fun KodeverkResponse.tilUtflatetKodeverk(
     kodeverkValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
-): UtflatetKodeverk {
+): DeltakerlisteResponse.UtflatetKodeverk {
     val tittelOgValg = settValgt(kodeverkValg, sertifiseringValg)
         .alternativer
         .map { it.tilTittelOgValg(sertifiseringValg) }
 
-    return UtflatetKodeverk(
+    return DeltakerlisteResponse.UtflatetKodeverk(
         tittel = tittelOgValg.firstOrNull { it.tittel.isNotBlank() }?.tittel ?: "",
         valg = tittelOgValg.flatMap { it.valg },
     )

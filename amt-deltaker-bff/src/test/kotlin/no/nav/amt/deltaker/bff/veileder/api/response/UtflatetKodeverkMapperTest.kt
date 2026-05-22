@@ -52,7 +52,7 @@ class UtflatetKodeverkMapperTest {
             sertifiseringValg = sertifiseringValg,
         )
 
-        utflatetKodeverk shouldBe UtflatetKodeverk(
+        utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
             tittel = "Utdanningsprogram",
             valg = listOf("Helsearbeiderfaget", "Truckførerbevis"),
         )
@@ -84,7 +84,7 @@ class UtflatetKodeverkMapperTest {
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk shouldBe UtflatetKodeverk(
+        utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
             tittel = "Bransje",
             valg = listOf("Bygg og anlegg"),
         )

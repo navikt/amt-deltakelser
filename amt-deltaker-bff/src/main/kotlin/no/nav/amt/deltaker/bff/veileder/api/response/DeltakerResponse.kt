@@ -128,7 +128,7 @@ data class DeltakerResponse(
 
         fun fromDeltakerModel(
             deltaker: DeltakerModel,
-            utflatetKodeverk: UtflatetKodeverk? = null,
+            utflatetKodeverk: DeltakerlisteResponse.UtflatetKodeverk? = null,
         ) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,

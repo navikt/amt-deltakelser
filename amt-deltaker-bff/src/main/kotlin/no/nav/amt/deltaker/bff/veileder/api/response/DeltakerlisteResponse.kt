@@ -8,11 +8,6 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
 
-data class UtflatetKodeverk(
-    val tittel: String,
-    val valg: List<String>,
-)
-
 // Burde brukes av både veileder og innbygger
 data class DeltakerlisteResponse(
     val deltakerlisteId: UUID,
@@ -34,6 +29,11 @@ data class DeltakerlisteResponse(
     data class ArrangorResponse(
         val navn: String,
         val organisasjonsnummer: String,
+    )
+
+    data class UtflatetKodeverk(
+        val tittel: String? = null,
+        val valg: List<String>,
     )
 
     companion object {
