@@ -1,0 +1,248 @@
+{
+  "enheter": [
+    {
+      "organisasjonsnummer": "123456789",
+      "navn": "GALAKTISK VAFFELDRIFT OG MUGGNE TROMPETER AS",
+      "slettedato": null,
+      "organisasjonsform": {
+        "kode": "AS",
+        "beskrivelse": "Aksjeselskap"
+      },
+      "registreringsdatoEnhetsregisteret": "2020-01-01",
+      "forretningsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "0101",
+        "poststed": "OSLO",
+        "adresse": ["Moseveien 999"],
+        "kommune": "OSLO",
+        "kommunenummer": "0301"
+      }
+    },
+    {
+      "organisasjonsnummer": "923456780",
+      "navn": "INSTITUTT FOR OVERKOKTE BOLLER OG KRYMPENDE SOKKER",
+      "slettedato": null,
+      "organisasjonsform": {
+        "kode": "AS",
+        "beskrivelse": "Aksjeselskap"
+      },
+      "registreringsdatoEnhetsregisteret": "2020-02-02",
+      "forretningsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "5001",
+        "poststed": "BERGEN",
+        "adresse": ["Snublegrend 12"],
+        "kommune": "BERGEN",
+        "kommunenummer": "4601"
+      }
+    },
+    {
+      "organisasjonsnummer": "923456781",
+      "navn": "FORENINGEN FOR DRAMATISK PAPIRKLIPP",
+      "slettedato": null,
+      "organisasjonsform": {
+        "kode": "FLI",
+        "beskrivelse": "Forening"
+      },
+      "registreringsdatoEnhetsregisteret": "2020-03-03",
+      "forretningsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "7001",
+        "poststed": "TRONDHEIM",
+        "adresse": ["Fjasestredet 404"],
+        "kommune": "TRONDHEIM",
+        "kommunenummer": "5001"
+      }
+    },
+    {
+      "organisasjonsnummer": "923456782",
+      "navn": "NORDISK RAKETTGRILL OG KATTEDJ",
+      "slettedato": null,
+      "organisasjonsform": {
+        "kode": "AS",
+        "beskrivelse": "Aksjeselskap"
+      },
+      "registreringsdatoEnhetsregisteret": "2020-04-04",
+      "forretningsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "9008",
+        "poststed": "TROMSO",
+        "adresse": ["Blafrevegen 7"],
+        "kommune": "TROMSO",
+        "kommunenummer": "5501"
+      }
+    },
+    {
+      "organisasjonsnummer": "923456783",
+      "navn": "MELLOMNASJONALT BYRA FOR SKJEVE PIZZASLICER",
+      "slettedato": null,
+      "organisasjonsform": {
+        "kode": "STI",
+        "beskrivelse": "Stiftelse"
+      },
+      "registreringsdatoEnhetsregisteret": "2020-05-05",
+      "forretningsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "4005",
+        "poststed": "STAVANGER",
+        "adresse": ["Kaotisk kai 13"],
+        "kommune": "STAVANGER",
+        "kommunenummer": "1103"
+      }
+    }
+  ],
+  "underenheter": [
+    {
+      "organisasjonsnummer": "923456784",
+      "navn": "VAFFELKANON LAB",
+      "slettedato": null,
+      "overordnetEnhet": "123456789",
+      "registreringsdatoEnhetsregisteret": "2020-06-01",
+      "beliggenhetsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "0105",
+        "poststed": "OSLO",
+        "adresse": ["Gaffelteigen 1"],
+        "kommune": "OSLO",
+        "kommunenummer": "0301"
+      }
+    },
+    {
+      "organisasjonsnummer": "923456785",
+      "navn": "SOKKESNURR KONTOR",
+      "slettedato": null,
+      "overordnetEnhet": "923456780",
+      "registreringsdatoEnhetsregisteret": "2020-06-02",
+      "beliggenhetsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "5003",
+        "poststed": "BERGEN",
+        "adresse": ["Latterlia 88"],
+        "kommune": "BERGEN",
+        "kommunenummer": "4601"
+      }
+    },
+    {
+      "organisasjonsnummer": "923456786",
+      "navn": "PAPIRKLIPP BEREDSKAP",
+      "slettedato": null,
+      "overordnetEnhet": "923456781",
+      "registreringsdatoEnhetsregisteret": "2020-06-03",
+      "beliggenhetsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "7010",
+        "poststed": "TRONDHEIM",
+        "adresse": ["Krittsvingen 22"],
+        "kommune": "TRONDHEIM",
+        "kommunenummer": "5001"
+      }
+    },
+    {
+      "organisasjonsnummer": "923456787",
+      "navn": "KATTEDJ NORD",
+      "slettedato": null,
+      "overordnetEnhet": "923456782",
+      "registreringsdatoEnhetsregisteret": "2020-06-04",
+      "beliggenhetsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "9010",
+        "poststed": "TROMSO",
+        "adresse": ["Pelsbakken 5"],
+        "kommune": "TROMSO",
+        "kommunenummer": "5501"
+      }
+    },
+    {
+      "organisasjonsnummer": "923456788",
+      "navn": "PIZZASLICE REPARASJON",
+      "slettedato": null,
+      "overordnetEnhet": "923456783",
+      "registreringsdatoEnhetsregisteret": "2020-06-05",
+      "beliggenhetsadresse": {
+        "land": "Norge",
+        "landkode": "NO",
+        "postnummer": "4012",
+        "poststed": "STAVANGER",
+        "adresse": ["Skjevgata 71"],
+        "kommune": "STAVANGER",
+        "kommunenummer": "1103"
+      }
+    }
+  ],
+  "oppdateringer": {
+    "enheter": [
+      {
+        "oppdateringsid": 1,
+        "dato": "2026-01-01T08:00:00Z",
+        "organisasjonsnummer": "123456789",
+        "endringstype": "Endring"
+      },
+      {
+        "oppdateringsid": 2,
+        "dato": "2026-01-01T09:00:00Z",
+        "organisasjonsnummer": "923456780",
+        "endringstype": "Ny"
+      },
+      {
+        "oppdateringsid": 3,
+        "dato": "2026-01-01T10:00:00Z",
+        "organisasjonsnummer": "923456781",
+        "endringstype": "Endring"
+      },
+      {
+        "oppdateringsid": 4,
+        "dato": "2026-01-01T11:00:00Z",
+        "organisasjonsnummer": "923456782",
+        "endringstype": "Endring"
+      },
+      {
+        "oppdateringsid": 5,
+        "dato": "2026-01-01T12:00:00Z",
+        "organisasjonsnummer": "923456783",
+        "endringstype": "Ny"
+      }
+    ],
+    "underenheter": [
+      {
+        "oppdateringsid": 1,
+        "dato": "2026-01-02T08:00:00Z",
+        "organisasjonsnummer": "923456784",
+        "endringstype": "Endring"
+      },
+      {
+        "oppdateringsid": 2,
+        "dato": "2026-01-02T09:00:00Z",
+        "organisasjonsnummer": "923456785",
+        "endringstype": "Ny"
+      },
+      {
+        "oppdateringsid": 3,
+        "dato": "2026-01-02T10:00:00Z",
+        "organisasjonsnummer": "923456786",
+        "endringstype": "Endring"
+      },
+      {
+        "oppdateringsid": 4,
+        "dato": "2026-01-02T11:00:00Z",
+        "organisasjonsnummer": "923456787",
+        "endringstype": "Endring"
+      },
+      {
+        "oppdateringsid": 5,
+        "dato": "2026-01-02T12:00:00Z",
+        "organisasjonsnummer": "923456788",
+        "endringstype": "Ny"
+      }
+    ]
+  }
+}
+
