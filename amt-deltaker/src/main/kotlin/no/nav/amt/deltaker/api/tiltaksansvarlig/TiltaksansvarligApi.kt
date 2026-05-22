@@ -15,9 +15,9 @@ import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
+import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 

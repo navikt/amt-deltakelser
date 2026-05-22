@@ -1,5 +1,6 @@
-package no.nav.amt.internapi.deltaker.request
+package no.nav.amt.internapi.tiltakskoordinator.request
 
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.util.UUID
 
@@ -10,11 +11,11 @@ import java.util.UUID
  * fra arrangør.
  *
  * @property gjennomforingId ID til gjennomføringen deltakerne tilhører.
- * @property harForslagFraArrangor Hvis true returneres kun deltakere med aktive forslag fra arrangør.
+ * @property handlingFilterValg Valg for filtrering på aktive forslag fra arrangør.
  * @property statuser Filtrerer på aktive deltakerstatuser. Tomt sett betyr ingen statusfiltrering.
  */
 data class TiltaksKoordinatorDeltakerlisteRequest(
     val gjennomforingId: UUID = UUID.randomUUID(),
-    val harForslagFraArrangor: Boolean = false,
+    val handlingFilterValg: Set<HandlingFilterValg> = emptySet(),
     val statuser: Set<DeltakerStatus.Type> = emptySet(),
 )

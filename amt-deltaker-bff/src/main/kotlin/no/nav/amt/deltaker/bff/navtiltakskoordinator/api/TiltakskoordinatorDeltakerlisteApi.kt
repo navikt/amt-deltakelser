@@ -12,6 +12,7 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
+import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
@@ -22,12 +23,14 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
+import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     deltakerlisteService: DeltakerlisteService,
+    deltakerlisteRepository: DeltakerlisteRepository,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     selfServiceTilgang: SelfServiceTilgangService,
     tiltakskoordinatorService: TiltakskoordinatorService,
@@ -69,24 +72,32 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     deltakerlisteId = deltakerlisteId,
                 )
 
+                val request = call
+                    .receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                    .copy(gjennomforingId = deltakerlisteId)
+
                 val deltakerResponses = tiltakskoordinatorClient
-                    .getDeltakereForGjennomforing(
-                        call
-                            .receive<TiltaksKoordinatorDeltakerlisteRequest>()
-                            .copy(gjennomforingId = deltakerlisteId),
-                    ).data
+                    .getDeltakereForGjennomforing(request)
+                    .data
 
                 val navAnsattAzureId = call.getNavAnsattAzureId()
-                val deltakere = responseBuilder.toDeltakerResponses(
-                    deltakere = deltakerResponses,
-                    kanSeInnbyggersNavn = { deltaker ->
-                        tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
-                            navAnsattAzureId = navAnsattAzureId,
-                            erSkjermet = deltaker.navBruker.erSkjermet,
-                            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                        )
-                    },
-                )
+
+                val deltakere = responseBuilder
+                    .toDeltakerResponses(
+                        deltakere = deltakerResponses,
+                        kanSeInnbyggersNavn = { deltaker ->
+                            tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                                navAnsattAzureId = navAnsattAzureId,
+                                erSkjermet = deltaker.navBruker.erSkjermet,
+                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                            )
+                        },
+                    ).filter { deltaker ->
+                        deltaker.erNyDeltaker || request.handlingFilterValg.none { it == HandlingFilterValg.NyeDeltakere }
+                    }.filter { deltaker ->
+                        deltaker.harOppdateringFraNav ||
+                            request.handlingFilterValg.none { it == HandlingFilterValg.OppdateringFraNav }
+                    }
 
                 call.respond(deltakere)
             }
@@ -101,7 +112,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 )
 
                 call.respond(
-                    tiltakskoordinatorClient.getDeltakereForGjennomforingCounts(
+                    deltakerlisteRepository.getDeltakereCountPerStatus(
                         call
                             .receive<TiltaksKoordinatorDeltakerlisteRequest>()
                             .copy(gjennomforingId = deltakerlisteId),

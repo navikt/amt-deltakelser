@@ -283,6 +283,9 @@ class EnkeltplassService(
                     arrangorId = arrangor.id,
                 ),
             )
+
+            // TODO: kodeverk: Kodeverk, sertifiseringer
+
             deltakerRepository.updateEnkeltplassKladd(
                 lagDeltakerUpdateDbo(
                     deltaker = deltaker,

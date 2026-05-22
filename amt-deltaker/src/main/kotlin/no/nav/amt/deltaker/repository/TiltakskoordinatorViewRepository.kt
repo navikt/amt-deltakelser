@@ -2,7 +2,8 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
+import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
@@ -62,10 +63,11 @@ class TiltakskoordinatorViewRepository {
     }
 
     companion object {
-        private fun statusFilterSql(request: TiltaksKoordinatorDeltakerlisteRequest) = request.statuser
-            .takeIf { it.isNotEmpty() }
-            ?.let { " AND ds.type = ANY(:statuser)" }
-            ?: ""
+        private fun statusFilterSql(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.statuser.isNotEmpty()) {
+            "AND ds.type = ANY(:statuser)"
+        } else {
+            "AND ds.type NOT IN ('KLADD', 'UTKAST_TIL_PAMELDING', 'AVBRUTT_UTKAST', 'FEILREGISTRERT', 'PABEGYNT_REGISTRERING')"
+        }
 
         private fun statusFilterParams(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.statuser.isNotEmpty()) {
             mapOf("statuser" to request.statuser.map { it.name }.toTypedArray())
@@ -73,11 +75,12 @@ class TiltakskoordinatorViewRepository {
             emptyMap<String, Any>()
         }
 
-        private fun harForslagFraArrangorWhereClause(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.harForslagFraArrangor) {
-            " AND har_aktivt = true"
-        } else {
-            ""
-        }
+        private fun harForslagFraArrangorWhereClause(request: TiltaksKoordinatorDeltakerlisteRequest) =
+            if (request.handlingFilterValg.any { it == HandlingFilterValg.AktiveForslag }) {
+                " AND har_aktivt = true"
+            } else {
+                ""
+            }
 
         private fun deltakereCountSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
             """
@@ -91,8 +94,7 @@ class TiltakskoordinatorViewRepository {
                     d.id = ds.deltaker_id
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                    ${statusFilterSql(request)}
-                    AND ds.type NOT IN ('KLADD', 'UTKAST_TIL_PAMELDING', 'AVBRUTT_UTKAST', 'FEILREGISTRERT', 'PABEGYNT_REGISTRERING')
+                    ${statusFilterSql(request)}                  
             WHERE 
                 d.deltakerliste_id = :deltakerliste_id
             GROUP BY ds.type

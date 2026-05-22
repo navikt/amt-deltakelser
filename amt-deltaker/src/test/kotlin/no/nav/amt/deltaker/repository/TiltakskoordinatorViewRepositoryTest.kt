@@ -16,7 +16,8 @@ import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestData.lagVurdering
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
+import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -54,7 +55,6 @@ class TiltakskoordinatorViewRepositoryTest {
 
         val requestInTest = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = deltakerliste.id,
-            harForslagFraArrangor = false,
             statuser = setOf(
                 DeltakerStatus.Type.DELTAR,
                 DeltakerStatus.Type.VENTER_PA_OPPSTART,
@@ -357,7 +357,7 @@ class TiltakskoordinatorViewRepositoryTest {
                 val result = viewRepository.getDeltakere(
                     request = TiltaksKoordinatorDeltakerlisteRequest(
                         gjennomforingId = deltakerliste.id,
-                        harForslagFraArrangor = true,
+                        handlingFilterValg = setOf(HandlingFilterValg.AktiveForslag),
                     ),
                 )
 

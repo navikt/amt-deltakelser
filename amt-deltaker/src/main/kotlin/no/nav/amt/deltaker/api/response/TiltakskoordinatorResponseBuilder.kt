@@ -4,8 +4,8 @@ import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
+import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 
