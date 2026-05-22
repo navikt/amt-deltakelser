@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
@@ -98,6 +99,19 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
+        fun `skal returnere Forbidden nar veileder ikke har lesetilgang til bruker`() {
+            every { tilgangskontrollService.verifiserLesetilgang(any(), any()) } throws AuthorizationException("")
+
+            val response = withTestApplicationContext { client ->
+                client.get("/enkeltplass/kodeverk/${deltakerInTest.id}") {
+                    bearerAuth(bearerTokenInTest)
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
         fun `skal returnere kodeverk med valgte verdier`() = runTest {
             val verdiId = UUID.randomUUID()
             val deltakerResponse = lagDeltakerResponse(id = deltakerInTest.id).let {
@@ -140,6 +154,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             coVerify(exactly = 1) { amtDeltakerClient.getDeltaker(deltakerInTest.id) }
             coVerify(exactly = 1) { kodeverkClient.hentKodeverk(tiltakskode) }
+            verify(exactly = 1) { tilgangskontrollService.verifiserLesetilgang(any(), any()) }
         }
     }
 

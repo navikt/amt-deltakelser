@@ -42,6 +42,13 @@ fun Routing.registerEnkeltplassApi(
 
             get("/kodeverk/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+
+                tilgangskontrollService.verifiserLesetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = personident,
+                )
+
                 val gjennomforing = amtDeltakerClient.getDeltaker(deltakerId).gjennomforing
                 val kodeverk = kodeverkClient.hentKodeverk(gjennomforing.tiltakstype.tiltakskode)
 
