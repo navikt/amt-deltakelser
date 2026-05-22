@@ -335,7 +335,10 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `post status-counts - deltakerliste finnes - returnerer counts per status`() {
         mockTilgangTilDeltakerliste()
 
-        val request = filteredDeltakereRequest(gjennomforingId = UUID.randomUUID())
+        val request = filteredDeltakereRequest(
+            gjennomforingId = UUID.randomUUID(),
+            statuser = setOf(DeltakerStatus.Type.DELTAR, DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        )
         val expectedRequest = request.copy(gjennomforingId = deltakerlisteInTest.id)
 
         val expectedResponse = DeltakerlisteFilterCountsResponse(
@@ -357,6 +360,21 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             response.status shouldBe HttpStatusCode.OK
             response.body<DeltakerlisteFilterCountsResponse>() shouldBe expectedResponse
         }
+    }
+
+    @Test
+    fun `post status-counts - tomme statuser - returnerer 400`() {
+        mockTilgangTilDeltakerliste()
+        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
+
+        val response = withTestApplicationContext { client ->
+            client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/status-counts") {
+                createPostTiltakskoordinatorRequest(filteredDeltakereRequest())
+            }
+        }
+
+        response.status shouldBe HttpStatusCode.BadRequest
+        coVerify(exactly = 0) { deltakerlisteRepository.getDeltakereCountPerStatus(any()) }
     }
 
     @Test
@@ -484,8 +502,12 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             gjennomforingId = deltakerlisteInTest.id,
         )
 
-        private fun filteredDeltakereRequest(gjennomforingId: UUID = deltakerlisteInTest.id) = TiltaksKoordinatorDeltakerlisteRequest(
+        private fun filteredDeltakereRequest(
+            gjennomforingId: UUID = deltakerlisteInTest.id,
+            statuser: Set<DeltakerStatus.Type> = emptySet(),
+        ) = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
+            statuser = statuser,
         )
 
         private fun tiltakskoordinatorDeltakereResponse(

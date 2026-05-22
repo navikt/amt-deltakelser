@@ -111,13 +111,15 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     deltakerlisteId = deltakerlisteId,
                 )
 
-                call.respond(
-                    deltakerlisteRepository.getDeltakereCountPerStatus(
-                        call
-                            .receive<TiltaksKoordinatorDeltakerlisteRequest>()
-                            .copy(gjennomforingId = deltakerlisteId),
-                    ),
-                )
+                val request = call
+                    .receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                    .copy(gjennomforingId = deltakerlisteId)
+
+                require(request.statuser.isNotEmpty()) {
+                    "Statuser må spesifiseres for å hente deltakerantall per status"
+                }
+
+                call.respond(deltakerlisteRepository.getDeltakereCountPerStatus(request))
             }
 
             post("/deltakere/tildel-plass") {
