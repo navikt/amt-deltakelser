@@ -38,6 +38,7 @@ fun startMockOAuth2Server(): MockOAuth2Server {
                 match = "api://amt-enhetsregister/.default",
                 claims = mapOf(
                     "aud" to listOf("amt-enhetsregister"),
+                    "sub" to "11111111-1111-1111-1111-111111111111",
                 ),
             ),
         ),
@@ -48,6 +49,8 @@ fun startMockOAuth2Server(): MockOAuth2Server {
             interactiveLogin = true,
             tokenCallbacks = setOf(tokenCallback),
         ),
-    ).also { it.start(MOCK_OAUTH2_PORT) }
+    ).also {
+        it.start(MOCK_OAUTH2_PORT)
+    }
 }
 
