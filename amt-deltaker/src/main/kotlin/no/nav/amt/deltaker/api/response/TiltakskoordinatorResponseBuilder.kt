@@ -6,8 +6,8 @@ import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorNavBrukerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 
 /**
  * Bygger spisset respons for tiltakskoordinator-lista (`POST /tiltakskoordinator/deltakere/{gjennomforingId}`).

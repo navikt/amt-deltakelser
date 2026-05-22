@@ -27,11 +27,11 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator

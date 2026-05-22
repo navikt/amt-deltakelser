@@ -1,4 +1,4 @@
-package no.nav.amt.internapi.deltaker.response
+package no.nav.amt.internapi.tiltakskoordinator.response
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype

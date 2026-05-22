@@ -28,7 +28,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
 import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType

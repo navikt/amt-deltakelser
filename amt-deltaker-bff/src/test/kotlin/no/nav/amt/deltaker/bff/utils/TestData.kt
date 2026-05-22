@@ -15,10 +15,10 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorNavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.toInnhold
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering

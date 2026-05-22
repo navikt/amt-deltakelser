@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 
 class ResponseBuilder(
     private val ulestHendelseRepository: UlestHendelseRepository,
