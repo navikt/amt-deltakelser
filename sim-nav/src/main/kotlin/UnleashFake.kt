@@ -1,47 +1,33 @@
-import com.sun.net.httpserver.HttpExchange
-import java.nio.charset.StandardCharsets
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 
 const val UNLEASH_PATH_PREFIX = "/unleash"
 
-fun tryHandleUnleashRequest(exchange: HttpExchange): Boolean {
-    val path = exchange.requestURI.path
-
-    return when {
-        path.startsWith("$UNLEASH_PATH_PREFIX/") && path.endsWith("/client/features") -> {
-            respondJson(exchange, 200, unleashFeaturesJson())
-            true
+fun Route.unleashFakeRoutes() {
+    route(UNLEASH_PATH_PREFIX) {
+        get {
+            respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")
         }
 
-        path.startsWith("$UNLEASH_PATH_PREFIX/") && path.endsWith("/client/register") -> {
-            respondEmpty(exchange, 202)
-            true
+        get("api") {
+            respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")
         }
 
-        path.startsWith("$UNLEASH_PATH_PREFIX/") && path.endsWith("/client/metrics") -> {
-            respondEmpty(exchange, 202)
-            true
+        get("api/client/features") {
+            respondJson(call, HttpStatusCode.OK, unleashFeaturesJson())
         }
 
-        path == UNLEASH_PATH_PREFIX || path == "$UNLEASH_PATH_PREFIX/api" -> {
-            respondJson(exchange, 200, """{"status":"ok"}""")
-            true
+        post("api/client/register") {
+            respondEmpty(call, HttpStatusCode.Accepted)
         }
 
-        else -> false
+        post("api/client/metrics") {
+            respondEmpty(call, HttpStatusCode.Accepted)
+        }
     }
-}
-
-fun respondJson(exchange: HttpExchange, status: Int, body: String) {
-    val bytes = body.toByteArray(StandardCharsets.UTF_8)
-    exchange.responseHeaders.add("Content-Type", "application/json; charset=utf-8")
-    exchange.sendResponseHeaders(status, bytes.size.toLong())
-    exchange.responseBody.use { output -> output.write(bytes) }
-    exchange.close()
-}
-
-fun respondEmpty(exchange: HttpExchange, status: Int) {
-    exchange.sendResponseHeaders(status, -1)
-    exchange.close()
 }
 
 private fun unleashFeaturesJson(): String {

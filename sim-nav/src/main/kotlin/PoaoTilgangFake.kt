@@ -1,56 +1,50 @@
-import com.sun.net.httpserver.HttpExchange
-import java.nio.charset.StandardCharsets
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 
 const val POAO_TILGANG_PATH_PREFIX = "/poao-tilgang"
 
 private val requestIdRegex = Regex("\"requestId\"\\s*:\\s*\"([^\"]+)\"")
 private val personidentRegex = Regex("\"(\\d{11})\"")
 
-fun tryHandlePoaoTilgangRequest(exchange: HttpExchange): Boolean {
-    val path = exchange.requestURI.path
+fun Route.poaoTilgangFakeRoutes() {
+    route(POAO_TILGANG_PATH_PREFIX) {
+        get {
+            respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")
+        }
 
-    return when (path.removePrefix(POAO_TILGANG_PATH_PREFIX)) {
-        "/api/v1/policy/evaluate" -> {
-            val body = readRequestBody(exchange)
+        get("api") {
+            respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")
+        }
+
+        post("api/v1/policy/evaluate") {
+            val body = readRequestBody(call)
             val requestIds = requestIdRegex.findAll(body).map { it.groupValues[1] }.toList()
             val results = requestIds.joinToString(",") { requestId ->
                 """{"requestId":"$requestId","decision":{"type":"PERMIT","message":null,"reason":null}}"""
             }
 
-            respondJson(exchange, 200, """{"results":[$results]}""")
-            true
+            respondJson(call, HttpStatusCode.OK, """{"results":[$results]}""")
         }
 
-        "/api/v1/skjermet-person" -> {
-            val body = readRequestBody(exchange)
+        post("api/v1/skjermet-person") {
+            val body = readRequestBody(call)
             val identer = personidentRegex.findAll(body).map { it.groupValues[1] }.toSet()
             val response = identer.joinToString(",") { personident -> "\"$personident\":false" }
-            respondJson(exchange, 200, "{$response}")
-            true
+            respondJson(call, HttpStatusCode.OK, "{$response}")
         }
 
-        "/api/v1/ad-gruppe" -> {
-            readRequestBody(exchange)
-            respondJson(exchange, 200, "[]")
-            true
+        post("api/v1/ad-gruppe") {
+            readRequestBody(call)
+            respondJson(call, HttpStatusCode.OK, "[]")
         }
 
-        "/api/v1/tilgangsattributter" -> {
-            readRequestBody(exchange)
-            respondJson(exchange, 200, """{"kontor":"9999","skjermet":false,"diskresjonskode":"UGRADERT"}""")
-            true
+        post("api/v1/tilgangsattributter") {
+            readRequestBody(call)
+            respondJson(call, HttpStatusCode.OK, """{"kontor":"9999","skjermet":false,"diskresjonskode":"UGRADERT"}""")
         }
-
-        "/", "", "/api" -> {
-            respondJson(exchange, 200, """{"status":"ok"}""")
-            true
-        }
-
-        else -> false
     }
-}
-
-private fun readRequestBody(exchange: HttpExchange): String {
-    return exchange.requestBody.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
 }
 

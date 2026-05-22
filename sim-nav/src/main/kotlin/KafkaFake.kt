@@ -1,46 +1,34 @@
-import com.sun.net.httpserver.HttpExchange
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 
 private const val KAFKA_ENKELTPLASS_GJENNOMFORING_PATH = "/kafka/gjennomforing/enkeltplass"
 private const val KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH = "/kafka/tiltakstype/enkeltplass-amo"
 
-fun tryHandleKafkaRequest(
-    exchange: HttpExchange,
+fun Route.kafkaFakeRoutes(
     kafkaPublisher: KafkaPublisher,
-): Boolean {
-    val path = exchange.requestURI.path
-
-    return when (path) {
-        KAFKA_ENKELTPLASS_GJENNOMFORING_PATH -> {
-            if (exchange.requestMethod != "POST") {
-                respondJson(exchange, 405, "{\"error\":\"method not allowed\"}")
-                return true
-            }
-
+) {
+    route(KAFKA_ENKELTPLASS_GJENNOMFORING_PATH) {
+        post {
             try {
                 kafkaPublisher.publishGjennomforingEnkeltplass()
-                respondJson(exchange, 202, "{\"status\":\"accepted\"}")
+                respondJson(call, HttpStatusCode.Accepted, "{\"status\":\"accepted\"}")
             } catch (_: Exception) {
-                respondJson(exchange, 500, "{\"error\":\"failed to publish kafka message\"}")
+                respondJson(call, HttpStatusCode.InternalServerError, "{\"error\":\"failed to publish kafka message\"}")
             }
-            true
         }
+    }
 
-        KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH -> {
-            if (exchange.requestMethod != "POST") {
-                respondJson(exchange, 405, "{\"error\":\"method not allowed\"}")
-                return true
-            }
-
+    route(KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH) {
+        post {
             try {
                 kafkaPublisher.publishTiltakstypeEnkeltplassArbeidsmarkedsopplaering()
-                respondJson(exchange, 202, "{\"status\":\"accepted\"}")
+                respondJson(call, HttpStatusCode.Accepted, "{\"status\":\"accepted\"}")
             } catch (_: Exception) {
-                respondJson(exchange, 500, "{\"error\":\"failed to publish kafka message\"}")
+                respondJson(call, HttpStatusCode.InternalServerError, "{\"error\":\"failed to publish kafka message\"}")
             }
-            true
         }
-
-        else -> false
     }
 }
 

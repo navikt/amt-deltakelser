@@ -1,7 +1,6 @@
-import com.sun.net.httpserver.HttpServer
-import java.net.InetSocketAddress
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 
 private const val SIM_NAV_HTTP_PORT = 9002
 
@@ -9,23 +8,17 @@ fun main() {
     val kafkaPublisher = KafkaPublisher()
     val mockOAuth2Server = startMockOAuth2Server()
 
-    val simNavHttpServer = HttpServer.create(InetSocketAddress(SIM_NAV_HTTP_PORT), 0).apply {
-        createContext("/") { exchange ->
-            if (!tryHandleUnleashRequest(exchange) &&
-                !tryHandlePoaoTilgangRequest(exchange) &&
-                !tryHandleBronnoysundRequest(exchange) &&
-                !tryHandleKafkaRequest(exchange, kafkaPublisher)
-            ) {
-                respondJson(exchange, 404, "{\"error\":\"not found\"}")
-            }
-        }
-        executor = Executors.newCachedThreadPool()
-        start()
-    }
+    val simNavHttpServer = embeddedServer(
+        factory = Netty,
+        port = SIM_NAV_HTTP_PORT,
+        module = {
+            simNavModule(kafkaPublisher)
+        },
+    ).start(wait = false)
 
     Runtime.getRuntime().addShutdownHook(
         Thread {
-            simNavHttpServer.stop(0)
+            simNavHttpServer.stop(gracePeriodMillis = 0, timeoutMillis = 0)
             mockOAuth2Server.shutdown()
             kafkaPublisher.close()
         },
