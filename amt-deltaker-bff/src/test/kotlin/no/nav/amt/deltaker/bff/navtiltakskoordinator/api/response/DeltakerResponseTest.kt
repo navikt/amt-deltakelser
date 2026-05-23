@@ -2,64 +2,64 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
-import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.person.Beskyttelsesmarkering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
 class DeltakerResponseTest {
     @Test
-    fun `matchesHandlingFilter - tomt filter - returnerer true`() {
-        val request = request()
+    fun `skal returnere true når handlingsfilteret er tomt`() {
         val response = deltakerResponse()
 
-        response.matchesHandlingFilter(request) shouldBe true
+        response.matchesHandlingFilter(emptySet()) shouldBe true
     }
 
     @Test
-    fun `matchesHandlingFilter - matcher nye deltakere - returnerer true`() {
-        val request = request(handlingFilterValg = setOf(HandlingFilterValg.NyeDeltakere))
+    fun `skal returnere true når deltaker matcher NyeDeltakere`() {
         val response = deltakerResponse(erNyDeltaker = true)
 
-        response.matchesHandlingFilter(request) shouldBe true
+        response.matchesHandlingFilter(setOf(HandlingFilterValg.NyeDeltakere)) shouldBe true
     }
 
     @Test
-    fun `matchesHandlingFilter - matcher oppdatering fra nav - returnerer true`() {
-        val request = request(handlingFilterValg = setOf(HandlingFilterValg.OppdateringFraNav))
+    fun `skal returnere true når deltaker matcher OppdateringFraNav`() {
         val response = deltakerResponse(harOppdateringFraNav = true)
 
-        response.matchesHandlingFilter(request) shouldBe true
+        response.matchesHandlingFilter(setOf(HandlingFilterValg.OppdateringFraNav)) shouldBe true
     }
 
     @Test
-    fun `matchesHandlingFilter - matcher aktive forslag - returnerer true`() {
-        val request = request(handlingFilterValg = setOf(HandlingFilterValg.AktiveForslag))
+    fun `skal returnere true når deltaker matcher AktiveForslag`() {
         val response = deltakerResponse(harAktiveForslag = true)
 
-        response.matchesHandlingFilter(request) shouldBe true
+        response.matchesHandlingFilter(setOf(HandlingFilterValg.AktiveForslag)) shouldBe true
     }
 
     @Test
-    fun `matchesHandlingFilter - ingen match - returnerer false`() {
-        val request = request(
-            handlingFilterValg = setOf(
+    fun `skal returnere true når deltaker matcher ett av flere valgte filtre`() {
+        val response = deltakerResponse(erNyDeltaker = true)
+
+        response.matchesHandlingFilter(
+            setOf(
                 HandlingFilterValg.NyeDeltakere,
                 HandlingFilterValg.OppdateringFraNav,
-                HandlingFilterValg.AktiveForslag,
             ),
-        )
-        val response = deltakerResponse()
-
-        response.matchesHandlingFilter(request) shouldBe false
+        ) shouldBe true
     }
 
-    private fun request(handlingFilterValg: Set<HandlingFilterValg> = emptySet()) = TiltaksKoordinatorDeltakerlisteRequest(
-        gjennomforingId = UUID.randomUUID(),
-        handlingFilterValg = handlingFilterValg,
-    )
+    @Test
+    fun `skal returnere false når deltaker ikke matcher noen valgte filtre`() {
+        val handlingFilterValg = setOf(
+            HandlingFilterValg.NyeDeltakere,
+            HandlingFilterValg.OppdateringFraNav,
+            HandlingFilterValg.AktiveForslag,
+        )
+
+        val response = deltakerResponse()
+
+        response.matchesHandlingFilter(handlingFilterValg) shouldBe false
+    }
 
     private fun deltakerResponse(
         erNyDeltaker: Boolean = false,
@@ -71,7 +71,7 @@ class DeltakerResponseTest {
         mellomnavn = null,
         etternavn = "Nordmann",
         status = DeltakerStatusResponse(type = DeltakerStatus.Type.DELTAR, aarsak = null),
-        beskyttelsesmarkering = emptyList<Beskyttelsesmarkering>(),
+        beskyttelsesmarkering = emptyList(),
         vurdering = null,
         navEnhet = null,
         erManueltDeltMedArrangor = false,

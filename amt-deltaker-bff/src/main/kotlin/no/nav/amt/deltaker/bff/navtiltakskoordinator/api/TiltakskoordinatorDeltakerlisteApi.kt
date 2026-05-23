@@ -91,7 +91,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                                 adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                             )
                         },
-                    ).filter { deltaker -> deltaker.matchesHandlingFilter(request) }
+                    ).filter { deltaker -> deltaker.matchesHandlingFilter(request.handlingFilterValg) }
 
                 call.respond(deltakere)
             }
