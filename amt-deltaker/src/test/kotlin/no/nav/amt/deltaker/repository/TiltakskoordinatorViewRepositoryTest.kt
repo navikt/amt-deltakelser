@@ -15,7 +15,6 @@ import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestData.lagVurdering
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -322,47 +321,6 @@ class TiltakskoordinatorViewRepositoryTest {
                 val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.harAktivtForslag shouldBe false
-            }
-
-            @Test
-            fun `skal kun returnere deltakere med aktivt forslag når harForslagFraArrangor er true`() {
-                val deltakerliste = lagDeltakerliste()
-                val deltakerMedAktivtForslag = lagDeltaker(
-                    deltakerliste = deltakerliste,
-                    status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                )
-                val deltakerUtenForslag = lagDeltaker(
-                    deltakerliste = deltakerliste,
-                    status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                )
-                val deltakerMedIkkeAktivtForslag = lagDeltaker(
-                    deltakerliste = deltakerliste,
-                    status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                )
-                TestRepository.insert(deltakerMedAktivtForslag)
-                TestRepository.insert(deltakerUtenForslag)
-                TestRepository.insert(deltakerMedIkkeAktivtForslag)
-                forslagRepository.upsert(lagForslag(deltakerId = deltakerMedAktivtForslag.id, status = Forslag.Status.VenterPaSvar))
-                forslagRepository.upsert(
-                    lagForslag(
-                        deltakerId = deltakerMedIkkeAktivtForslag.id,
-                        status = Forslag.Status.Godkjent(
-                            godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
-                            godkjent = LocalDateTime.now(),
-                        ),
-                    ),
-                )
-
-                val result = viewRepository.getDeltakere(
-                    request = TiltaksKoordinatorDeltakerlisteRequest(
-                        gjennomforingId = deltakerliste.id,
-                        handlingFilterValg = setOf(HandlingFilterValg.AktiveForslag),
-                    ),
-                )
-
-                result shouldHaveSize 1
-                result.single().id shouldBe deltakerMedAktivtForslag.id
-                result.single().harAktivtForslag shouldBe true
             }
         }
 

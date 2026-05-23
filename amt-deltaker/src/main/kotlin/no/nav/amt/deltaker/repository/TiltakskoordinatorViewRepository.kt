@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -18,11 +17,11 @@ class TiltakskoordinatorViewRepository {
      * Optimalisert for store deltakerlister (>2000 deltakere) ved å:
      * - Bruke preaggregerte LATERAL JOINs for aktive forslag og siste vurderingstype
      * - Håndtere sokt-inn-dato via COALESCE av 3 kilder (arena, egen oppstart, vedtak)
-     * - Støtte filtrering på handlingFilterValg (f.eks. AktiveForslag)
+     * - Berike resultatet med avledede handling-flagg, som `har_aktivt_forslag`
      *
      * Sorteres etter sokt_inn_dato synkende (nyeste først), deretter etter id.
      *
-     * @param request inneholder gjennomforingId, statuser (valgfritt), og handlingFilterValg (valgfritt)
+     * @param request inneholder gjennomforingId og statuser (valgfritt); handlingFilterValg brukes ikke som SQL-filter
      * @return Liste av deltakere med berikede feltdata, sortert etter søkt-inn-dato
      */
     fun getDeltakere(request: TiltaksKoordinatorDeltakerlisteRequest): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
@@ -47,13 +46,6 @@ class TiltakskoordinatorViewRepository {
         } else {
             emptyMap<String, Any>()
         }
-
-        private fun harForslagFraArrangorWhereClause(request: TiltaksKoordinatorDeltakerlisteRequest) =
-            if (request.handlingFilterValg.any { it == HandlingFilterValg.AktiveForslag }) {
-                " AND har_aktivt = true"
-            } else {
-                ""
-            }
 
         private fun deltakereSelectSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
             """
@@ -139,7 +131,6 @@ class TiltakskoordinatorViewRepository {
                 ) sv ON true
             WHERE 
                 d.deltakerliste_id = :deltakerliste_id
-                ${harForslagFraArrangorWhereClause(request)}
             ORDER BY sokt_inn_dato DESC NULLS LAST, d.id ASC
             """.trimIndent()
 
