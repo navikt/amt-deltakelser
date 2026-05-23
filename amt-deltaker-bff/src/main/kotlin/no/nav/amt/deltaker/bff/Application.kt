@@ -365,6 +365,7 @@ fun Application.module() {
         sporbarhetsloggService = sporbarhetsloggService,
         deltakerRepository = deltakerRepository,
         deltakerlisteService = deltakerlisteService,
+        deltakerlisteRepository = deltakerlisteRepository,
         unleash = unleash,
         commonUnleashToggle = commonUnleashToggle,
         tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,

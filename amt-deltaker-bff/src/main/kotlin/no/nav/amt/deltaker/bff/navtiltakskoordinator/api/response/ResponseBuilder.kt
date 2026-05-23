@@ -1,9 +1,7 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 
 class ResponseBuilder(
     private val ulestHendelseRepository: UlestHendelseRepository,
@@ -20,10 +18,12 @@ class ResponseBuilder(
             .getForDeltakere(deltakere.map { it.id }.toSet())
 
         return deltakere.map { deltaker ->
+            val ulestFlags = ulesteHendelserPerDeltaker[deltaker.id]
             buildDeltakerResponse(
                 deltaker = deltaker,
                 kanSeInnbyggersNavn = kanSeInnbyggersNavn(deltaker),
-                ulesteHendelser = ulesteHendelserPerDeltaker[deltaker.id].orEmpty(),
+                erNyDeltaker = ulestFlags?.erNyDeltaker == true,
+                harOppdateringFraNav = ulestFlags?.harOppdateringFraNav == true,
             )
         }
     }
@@ -31,7 +31,8 @@ class ResponseBuilder(
     private fun buildDeltakerResponse(
         deltaker: TiltakskoordinatorDeltakerResponse,
         kanSeInnbyggersNavn: Boolean,
-        ulesteHendelser: List<UlestHendelse>,
+        erNyDeltaker: Boolean,
+        harOppdateringFraNav: Boolean,
     ): DeltakerResponse = with(deltaker) {
         val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(kanSeInnbyggersNavn)
 
@@ -53,16 +54,8 @@ class ResponseBuilder(
             feilkode = null,
             ikkeDigitalOgManglerAdresse = navBruker.ikkeDigitalOgManglerAdresse,
             harAktiveForslag = harAktivtForslag,
-            erNyDeltaker = ulesteHendelser.any {
-                it.hendelse is UlestHendelseType.InnbyggerGodkjennUtkast ||
-                    it.hendelse is UlestHendelseType.NavGodkjennUtkast
-            },
-            harOppdateringFraNav = ulesteHendelser.any {
-                it.hendelse is UlestHendelseType.IkkeAktuell ||
-                    it.hendelse is UlestHendelseType.AvsluttDeltakelse ||
-                    it.hendelse is UlestHendelseType.AvbrytDeltakelse ||
-                    it.hendelse is UlestHendelseType.ReaktiverDeltakelse
-            },
+            erNyDeltaker = erNyDeltaker,
+            harOppdateringFraNav = harOppdateringFraNav,
             kanEndres = true,
             soktInnDato = soktInnDato,
             startdato = startdato,
