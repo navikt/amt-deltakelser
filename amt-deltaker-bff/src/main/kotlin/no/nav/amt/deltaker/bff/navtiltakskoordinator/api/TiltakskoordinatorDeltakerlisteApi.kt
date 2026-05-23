@@ -23,7 +23,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.util.UUID
@@ -92,12 +91,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                                 adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                             )
                         },
-                    ).filter { deltaker ->
-                        deltaker.erNyDeltaker || request.handlingFilterValg.none { it == HandlingFilterValg.NyeDeltakere }
-                    }.filter { deltaker ->
-                        deltaker.harOppdateringFraNav ||
-                            request.handlingFilterValg.none { it == HandlingFilterValg.OppdateringFraNav }
-                    }
+                    ).filter { deltaker -> deltaker.matchesHandlingFilter(request) }
 
                 call.respond(deltakere)
             }
@@ -257,8 +251,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
 }
 
 fun RoutingContext.getDeltakerlisteId(): UUID {
-    val id =
-        call.parameters["id"] ?: throw IllegalArgumentException("Påkrevd URL parameter 'deltakerlisteId' mangler.")
+    val id = call.parameters["id"] ?: throw IllegalArgumentException("Påkrevd URL parameter 'deltakerlisteId' mangler.")
 
     return try {
         UUID.fromString(id)

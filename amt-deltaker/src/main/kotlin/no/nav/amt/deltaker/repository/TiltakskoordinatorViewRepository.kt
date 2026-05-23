@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -47,13 +46,6 @@ class TiltakskoordinatorViewRepository {
         } else {
             emptyMap<String, Any>()
         }
-
-        private fun harForslagFraArrangorWhereClause(request: TiltaksKoordinatorDeltakerlisteRequest) =
-            if (request.handlingFilterValg.any { it == HandlingFilterValg.AktiveForslag }) {
-                " AND har_aktivt = true"
-            } else {
-                ""
-            }
 
         private fun deltakereSelectSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
             """
@@ -139,7 +131,6 @@ class TiltakskoordinatorViewRepository {
                 ) sv ON true
             WHERE 
                 d.deltakerliste_id = :deltakerliste_id
-                ${harForslagFraArrangorWhereClause(request)}
             ORDER BY sokt_inn_dato DESC NULLS LAST, d.id ASC
             """.trimIndent()
 
