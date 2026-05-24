@@ -61,8 +61,11 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk - bruker visningsnavn som tittel for bransjer`() {
+    fun `tilUtflatetKodeverk - bruker bransjenavn som tittel for bransjer`() {
         val valgtBransjeId = UUID.randomUUID()
+        val valgtForerkortId = UUID.randomUUID()
+        val sertifiseringValg = setOf(SertifiseringValg(id = 1, navn = "Truckførerbevis"))
+
         val kodeverk = KodeverkResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
@@ -78,18 +81,73 @@ class UtflatetKodeverkMapperTest {
                         ),
                     ),
                 ),
+                KodeverkResponse.Alternativ.Verdigruppe(
+                    id = UUID.randomUUID(),
+                    visningsnavn = "Førerkortklasse",
+                    representerer = "forerkortklasse",
+                    seleksjonstype = KodeverkResponse.Seleksjonstype.FLERVALG,
+                    alternativer = listOf(
+                        KodeverkResponse.Alternativ.Verdi(
+                            id = valgtForerkortId,
+                            visningsnavn = "B - Personbil",
+                        ),
+                        KodeverkResponse.Alternativ.Verdi(
+                            id = UUID.randomUUID(),
+                            visningsnavn = "C - Lastebil",
+                        ),
+                    ),
+                ),
+                KodeverkResponse.Alternativ.VerdigruppeSok(
+                    id = UUID.randomUUID(),
+                    visningsnavn = "Sertifiseringer",
+                    seleksjonstype = KodeverkResponse.Seleksjonstype.FLERVALG,
+                    kilde = KodeverkResponse.Alternativ.VerdigruppeSok.Kilde.JANZZ_SERTIFISERING,
+                ),
             ),
         )
 
         val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
-            kodeverkValg = setOf(valgtBransjeId),
+            kodeverkValg = setOf(valgtBransjeId, valgtForerkortId),
+            sertifiseringValg = sertifiseringValg,
+        )
+
+        utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+            tittel = "Bygg og anlegg",
+            valg = listOf("B - Personbil", "Truckførerbevis"),
+            valgteKodeverkIder = setOf(valgtBransjeId, valgtForerkortId),
+            valgteSertifiseringer = sertifiseringValg,
+        )
+    }
+
+    @Test
+    fun `tilUtflatetKodeverk - tittel er tom streng når ingen bransje er valgt`() {
+        val kodeverk = KodeverkResponse(
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            alternativer = listOf(
+                KodeverkResponse.Alternativ.Verdigruppe(
+                    id = UUID.randomUUID(),
+                    visningsnavn = "Bransje",
+                    representerer = "bransje",
+                    seleksjonstype = KodeverkResponse.Seleksjonstype.ENKELTVALG,
+                    alternativer = listOf(
+                        KodeverkResponse.Alternativ.Verdi(
+                            id = UUID.randomUUID(),
+                            visningsnavn = "Bygg og anlegg",
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+            kodeverkValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
         utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
-            tittel = "Bransje",
-            valg = listOf("Bygg og anlegg"),
-            valgteKodeverkIder = setOf(valgtBransjeId),
+            tittel = null,
+            valg = emptyList(),
+            valgteKodeverkIder = emptySet(),
             valgteSertifiseringer = emptySet(),
         )
     }

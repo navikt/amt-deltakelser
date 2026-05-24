@@ -8,11 +8,6 @@ private const val UTDANNINGSPROGRAM_VISNINGSNAVN = "Utdanningsprogram"
 private const val BRANSJER_REPRESENTERER = "bransje"
 private const val KURSTYPE_REPRESENTERER = "kurstype"
 
-private val REPRESENTERER_SOM_SKAL_VISE_TITTEL = setOf(
-    BRANSJER_REPRESENTERER,
-    KURSTYPE_REPRESENTERER,
-)
-
 fun KodeverkResponse.tilUtflatetKodeverk(
     kodeverkValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
@@ -32,8 +27,8 @@ fun KodeverkResponse.tilUtflatetKodeverk(
 private fun KodeverkResponse.Alternativ.Container.tilTittelOgValg(sertifiseringValg: Set<SertifiseringValg>): TittelOgValg = when (this) {
     is KodeverkResponse.Alternativ.Gruppe -> tilTittelOgValg()
     is KodeverkResponse.Alternativ.Verdigruppe -> TittelOgValg(
-        tittel = if (representerer in REPRESENTERER_SOM_SKAL_VISE_TITTEL) visningsnavn else "",
-        valg = valgteVisningsnavn(),
+        tittel = tittel(),
+        valg = if (representerer == BRANSJER_REPRESENTERER) emptyList() else valgteVisningsnavn(),
     )
 
     is KodeverkResponse.Alternativ.VerdigruppeSok -> TittelOgValg(
@@ -51,6 +46,12 @@ private fun KodeverkResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg =
     )
 } else {
     TittelOgValg.empty()
+}
+
+private fun KodeverkResponse.Alternativ.Verdigruppe.tittel(): String = when (representerer) {
+    BRANSJER_REPRESENTERER -> alternativer.firstOrNull { it.valgt }?.visningsnavn ?: ""
+    KURSTYPE_REPRESENTERER -> visningsnavn
+    else -> ""
 }
 
 private fun KodeverkResponse.Alternativ.Verdigruppe.valgteVisningsnavn() = alternativer
