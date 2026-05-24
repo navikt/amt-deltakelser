@@ -34,7 +34,7 @@ private fun KodeverkResponse.Alternativ.Container.tilTittelOgValg(sertifiseringV
     )
 
     is KodeverkResponse.Alternativ.VerdigruppeSok -> TittelOgValg(
-        tittel = "",
+        tittel = null,
         valg = sertifiseringValg.map { it.navn },
     )
 }

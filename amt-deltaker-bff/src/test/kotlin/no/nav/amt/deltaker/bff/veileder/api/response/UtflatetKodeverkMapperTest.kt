@@ -141,7 +141,7 @@ class UtflatetKodeverkMapperTest {
                     alternativer = listOf(
                         KodeverkResponse.Alternativ.Verdi(
                             id = valgtKurstypeId,
-                            visningsnavn = "Gunnleggende ferdigheter",
+                            visningsnavn = "Grunnleggende ferdigheter",
                         ),
                     ),
                 ),
@@ -154,7 +154,7 @@ class UtflatetKodeverkMapperTest {
         )
 
         utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
-            tittel = "Gunnleggende ferdigheter",
+            tittel = "Grunnleggende ferdigheter",
             valg = emptyList(),
             valgteKodeverkIder = setOf(valgtKurstypeId),
             valgteSertifiseringer = emptySet(),
@@ -162,7 +162,7 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk - tittel er tom streng når ingen bransje er valgt`() {
+    fun `tilUtflatetKodeverk - tittel er null når ingen bransje er valgt`() {
         val kodeverk = KodeverkResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
