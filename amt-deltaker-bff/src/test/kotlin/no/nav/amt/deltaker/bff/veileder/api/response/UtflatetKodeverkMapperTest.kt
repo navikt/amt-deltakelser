@@ -127,6 +127,41 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
+    fun `tilUtflatetKodeverk - bruker kurstype som tittel`() {
+        val valgtKurstypeId = UUID.randomUUID()
+
+        val kodeverk = KodeverkResponse(
+            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            alternativer = listOf(
+                KodeverkResponse.Alternativ.Verdigruppe(
+                    id = UUID.randomUUID(),
+                    visningsnavn = "Kurstype",
+                    representerer = "kurstype",
+                    seleksjonstype = KodeverkResponse.Seleksjonstype.ENKELTVALG,
+                    alternativer = listOf(
+                        KodeverkResponse.Alternativ.Verdi(
+                            id = valgtKurstypeId,
+                            visningsnavn = "Gunnleggende ferdigheter",
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+            kodeverkValg = setOf(valgtKurstypeId),
+            sertifiseringValg = emptySet(),
+        )
+
+        utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+            tittel = "Gunnleggende ferdigheter",
+            valg = emptyList(),
+            valgteKodeverkIder = setOf(valgtKurstypeId),
+            valgteSertifiseringer = emptySet(),
+        )
+    }
+
+    @Test
     fun `tilUtflatetKodeverk - tittel er tom streng når ingen bransje er valgt`() {
         val kodeverk = KodeverkResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,

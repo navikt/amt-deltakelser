@@ -7,6 +7,9 @@ import java.util.UUID
 private const val BRANSJE_REPRESENTERER = "bransje"
 private const val KURSTYPE_REPRESENTERER = "kurstype"
 
+// Begge bruker valgt verdi som tittel — ikke kategorinavnet
+private val REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL = setOf(BRANSJE_REPRESENTERER, KURSTYPE_REPRESENTERER)
+
 fun KodeverkResponse.tilUtflatetKodeverk(
     kodeverkValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
@@ -27,7 +30,7 @@ private fun KodeverkResponse.Alternativ.Container.tilTittelOgValg(sertifiseringV
     is KodeverkResponse.Alternativ.Gruppe -> tilTittelOgValg()
     is KodeverkResponse.Alternativ.Verdigruppe -> TittelOgValg(
         tittel = tittel(),
-        valg = if (representerer == BRANSJE_REPRESENTERER) emptyList() else valgteVisningsnavn(),
+        valg = if (representerer in REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL) emptyList() else valgteVisningsnavn(),
     )
 
     is KodeverkResponse.Alternativ.VerdigruppeSok -> TittelOgValg(
@@ -55,11 +58,12 @@ private fun KodeverkResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg {
     )
 }
 
-private fun KodeverkResponse.Alternativ.Verdigruppe.tittel(): String? = when (representerer) {
-    BRANSJE_REPRESENTERER -> alternativer.firstOrNull { it.valgt }?.visningsnavn
-    KURSTYPE_REPRESENTERER -> visningsnavn
-    else -> null
-}
+private fun KodeverkResponse.Alternativ.Verdigruppe.tittel(): String? =
+    if (representerer in REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL) {
+        alternativer.firstOrNull { it.valgt }?.visningsnavn
+    } else {
+        null
+    }
 
 private fun KodeverkResponse.Alternativ.Verdigruppe.valgteVisningsnavn() = alternativer
     .filter { it.valgt }
