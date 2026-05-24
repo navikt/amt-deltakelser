@@ -4,8 +4,7 @@ import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
-private const val UTDANNINGSPROGRAM_VISNINGSNAVN = "Utdanningsprogram"
-private const val BRANSJER_REPRESENTERER = "bransje"
+private const val BRANSJE_REPRESENTERER = "bransje"
 private const val KURSTYPE_REPRESENTERER = "kurstype"
 
 fun KodeverkResponse.tilUtflatetKodeverk(
@@ -17,7 +16,7 @@ fun KodeverkResponse.tilUtflatetKodeverk(
         .map { it.tilTittelOgValg(sertifiseringValg) }
 
     return DeltakerlisteResponse.UtflatetKodeverk(
-        tittel = tittelOgValg.firstOrNull { it.tittel.isNotBlank() }?.tittel,
+        tittel = tittelOgValg.firstOrNull { it.tittel != null }?.tittel,
         valg = tittelOgValg.flatMap { it.valg },
         valgteKodeverkIder = kodeverkValg,
         valgteSertifiseringer = sertifiseringValg,
@@ -28,7 +27,7 @@ private fun KodeverkResponse.Alternativ.Container.tilTittelOgValg(sertifiseringV
     is KodeverkResponse.Alternativ.Gruppe -> tilTittelOgValg()
     is KodeverkResponse.Alternativ.Verdigruppe -> TittelOgValg(
         tittel = tittel(),
-        valg = if (representerer == BRANSJER_REPRESENTERER) emptyList() else valgteVisningsnavn(),
+        valg = if (representerer == BRANSJE_REPRESENTERER) emptyList() else valgteVisningsnavn(),
     )
 
     is KodeverkResponse.Alternativ.VerdigruppeSok -> TittelOgValg(
@@ -37,21 +36,29 @@ private fun KodeverkResponse.Alternativ.Container.tilTittelOgValg(sertifiseringV
     )
 }
 
-private fun KodeverkResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg = if (visningsnavn == UTDANNINGSPROGRAM_VISNINGSNAVN) {
-    TittelOgValg(
-        tittel = visningsnavn,
-        valg = alternativer
-            .filterIsInstance<KodeverkResponse.Alternativ.Verdigruppe>()
-            .flatMap { it.valgteVisningsnavn() },
+private fun KodeverkResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg {
+    val valgtToppnivaaGruppe = alternativer
+        .filterIsInstance<KodeverkResponse.Alternativ.Gruppe>()
+        .firstOrNull { gruppe ->
+            gruppe.alternativer
+                .filterIsInstance<KodeverkResponse.Alternativ.Verdigruppe>()
+                .any { vg -> vg.alternativer.any { it.valgt } }
+        }
+
+    return TittelOgValg(
+        tittel = valgtToppnivaaGruppe?.visningsnavn,
+        valg = valgtToppnivaaGruppe
+            ?.alternativer
+            ?.filterIsInstance<KodeverkResponse.Alternativ.Verdigruppe>()
+            ?.flatMap { it.valgteVisningsnavn() }
+            ?: emptyList(),
     )
-} else {
-    TittelOgValg.empty()
 }
 
-private fun KodeverkResponse.Alternativ.Verdigruppe.tittel(): String = when (representerer) {
-    BRANSJER_REPRESENTERER -> alternativer.firstOrNull { it.valgt }?.visningsnavn ?: ""
+private fun KodeverkResponse.Alternativ.Verdigruppe.tittel(): String? = when (representerer) {
+    BRANSJE_REPRESENTERER -> alternativer.firstOrNull { it.valgt }?.visningsnavn
     KURSTYPE_REPRESENTERER -> visningsnavn
-    else -> ""
+    else -> null
 }
 
 private fun KodeverkResponse.Alternativ.Verdigruppe.valgteVisningsnavn() = alternativer
@@ -59,13 +66,6 @@ private fun KodeverkResponse.Alternativ.Verdigruppe.valgteVisningsnavn() = alter
     .map { it.visningsnavn }
 
 private data class TittelOgValg(
-    val tittel: String,
+    val tittel: String?,
     val valg: List<String>,
-) {
-    companion object {
-        fun empty() = TittelOgValg(
-            tittel = "",
-            valg = emptyList(),
-        )
-    }
-}
+)

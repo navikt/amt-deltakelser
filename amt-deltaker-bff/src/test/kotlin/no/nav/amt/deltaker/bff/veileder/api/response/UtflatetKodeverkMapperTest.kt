@@ -21,18 +21,25 @@ class UtflatetKodeverkMapperTest {
                     id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     alternativer = listOf(
-                        KodeverkResponse.Alternativ.Verdigruppe(
+                        KodeverkResponse.Alternativ.Gruppe(
                             id = UUID.randomUUID(),
-                            visningsnavn = "Lærefag",
-                            seleksjonstype = KodeverkResponse.Seleksjonstype.FLERVALG,
+                            visningsnavn = "Helse- og oppvekstfag",
                             alternativer = listOf(
-                                KodeverkResponse.Alternativ.Verdi(
-                                    id = valgtLaerefagId,
-                                    visningsnavn = "Helsearbeiderfaget",
-                                ),
-                                KodeverkResponse.Alternativ.Verdi(
-                                    id = ikkeValgtLaerefagId,
-                                    visningsnavn = "Barne- og ungdomsarbeiderfaget",
+                                KodeverkResponse.Alternativ.Verdigruppe(
+                                    id = UUID.randomUUID(),
+                                    visningsnavn = "Lærefag",
+                                    representerer = "larefag",
+                                    seleksjonstype = KodeverkResponse.Seleksjonstype.FLERVALG,
+                                    alternativer = listOf(
+                                        KodeverkResponse.Alternativ.Verdi(
+                                            id = valgtLaerefagId,
+                                            visningsnavn = "Helsearbeiderfaget",
+                                        ),
+                                        KodeverkResponse.Alternativ.Verdi(
+                                            id = ikkeValgtLaerefagId,
+                                            visningsnavn = "Barne- og ungdomsarbeiderfaget",
+                                        ),
+                                    ),
                                 ),
                             ),
                         ),
@@ -53,7 +60,7 @@ class UtflatetKodeverkMapperTest {
         )
 
         utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
-            tittel = "Utdanningsprogram",
+            tittel = "Helse- og oppvekstfag",
             valg = listOf("Helsearbeiderfaget", "Truckførerbevis"),
             valgteKodeverkIder = setOf(valgtLaerefagId),
             valgteSertifiseringer = sertifiseringValg,
