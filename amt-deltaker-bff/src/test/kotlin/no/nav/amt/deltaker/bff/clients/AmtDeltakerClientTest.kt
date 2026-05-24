@@ -4,16 +4,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.ktor.serialization.jackson3.jackson
-import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
@@ -40,10 +31,10 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.CountingCache
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.withLogCapture
-import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -51,6 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.util.UUID
 import kotlin.reflect.KClass
 
 class AmtDeltakerClientTest {
@@ -87,32 +79,12 @@ class AmtDeltakerClientTest {
 
         @Test
         fun `skal bruke cache ved gjentatt kall for samme deltaker`() = runTest {
-            var requestCount = 0
-            val client = AmtDeltakerClient(
-                baseUrl = DELTAKER_BASE_URL,
-                scope = "scope",
-                httpClient = HttpClient(MockEngine) {
-                    install(ContentNegotiation) { jackson() }
-                    engine {
-                        addHandler {
-                            requestCount++
-                            if (requestCount == 1) {
-                                respond(
-                                    content = ByteReadChannel(objectMapper.writeValueAsBytes(PersonIdentResponse("12345678901"))),
-                                    status = HttpStatusCode.OK,
-                                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                                )
-                            } else {
-                                respond(
-                                    content = ByteReadChannel("server error"),
-                                    status = HttpStatusCode.InternalServerError,
-                                    headers = headersOf(HttpHeaders.ContentType, ContentType.Text.Plain.toString()),
-                                )
-                            }
-                        }
-                    }
-                },
-                azureAdTokenClient = mockAzureAdClient(),
+            val countingCache = CountingCache<UUID, String>()
+            val client = createDeltakerClient(
+                expectedUrl = expectedUrl,
+                statusCode = HttpStatusCode.OK,
+                responseBody = PersonIdentResponse("12345678901"),
+                personIdentCache = countingCache,
             )
 
             val first = client.getPersonidentForDeltaker(deltakerInTest.id)
@@ -120,7 +92,7 @@ class AmtDeltakerClientTest {
 
             first shouldBe "12345678901"
             second shouldBe "12345678901"
-            requestCount shouldBe 1
+            countingCache.putCount shouldBe 1
         }
     }
 
@@ -753,6 +725,7 @@ class AmtDeltakerClientTest {
             expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
+            personIdentCache: CountingCache<UUID, String>? = null,
         ) = AmtDeltakerClient(
             baseUrl = DELTAKER_BASE_URL,
             scope = "scope",
@@ -762,6 +735,7 @@ class AmtDeltakerClientTest {
                 statusCode = statusCode,
             ),
             azureAdTokenClient = mockAzureAdClient(),
+            personIdentCache = personIdentCache ?: CountingCache(),
         )
     }
 }

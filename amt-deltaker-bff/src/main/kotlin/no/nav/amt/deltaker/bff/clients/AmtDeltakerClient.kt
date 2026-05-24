@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.clients
 
+import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -23,6 +24,10 @@ class AmtDeltakerClient(
     scope: String,
     httpClient: HttpClient,
     azureAdTokenClient: AzureAdTokenClient,
+    private val personIdentCache: Cache<UUID, String> = Caffeine
+        .newBuilder()
+        .expireAfterWrite(ofMinutes(15))
+        .build(),
 ) : ApiClientBase(
         baseUrl = baseUrl,
         scope = scope,
@@ -30,11 +35,6 @@ class AmtDeltakerClient(
         azureAdTokenClient = azureAdTokenClient,
     ) {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    private val personIdentCache = Caffeine
-        .newBuilder()
-        .expireAfterWrite(ofMinutes(15))
-        .build<UUID, String>()
 
     suspend fun getPersonidentForDeltaker(deltakerId: UUID): String = personIdentCache.getIfPresent(deltakerId)
         ?: performGet("personident/$deltakerId")
