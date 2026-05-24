@@ -93,6 +93,7 @@ class AuthenticationTest {
                 sporbarhetsloggService = mockk(),
                 deltakerRepository = mockk(),
                 deltakerlisteService = mockk(),
+                deltakerlisteRepository = mockk(),
                 unleash = mockk(),
                 commonUnleashToggle = mockk(),
                 tiltakskoordinatorTilgangskontrollService = mockk(),

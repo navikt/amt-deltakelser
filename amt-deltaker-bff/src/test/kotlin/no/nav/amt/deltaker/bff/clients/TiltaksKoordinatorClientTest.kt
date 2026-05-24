@@ -13,11 +13,10 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdateringResponse
-import no.nav.amt.internapi.deltaker.request.PageRequest
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
@@ -131,11 +130,6 @@ class TiltaksKoordinatorClientTest {
         private val gjennomforingId = UUID.randomUUID()
         private val deltakereRequest = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
-            pageRequest = PageRequest(
-                sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
-                page = 2,
-                pageSize = 50,
-            ),
         )
         private val deltakerInTest = lagDeltaker()
         private val deltakerOppdateringInTest = deltakerInTest.toDeltakeroppdatering()

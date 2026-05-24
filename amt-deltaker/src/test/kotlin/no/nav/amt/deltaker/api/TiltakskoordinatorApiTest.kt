@@ -23,15 +23,14 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.internapi.deltaker.request.PageRequest
-import no.nav.amt.internapi.deltaker.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
-import no.nav.amt.internapi.deltaker.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
+import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
@@ -124,11 +123,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         val gjennomforingId = UUID.randomUUID()
         val request = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
-            pageRequest = PageRequest(
-                sort = TiltaksKoordinatorDeltakerlisteRequest.SortColumn.NAVN,
-                page = 2,
-                pageSize = 50,
-            ),
         )
         val deltakerResponse = mockk<TiltakskoordinatorDeltakerResponse>(relaxed = true)
         val expectedResponse = PaginatedResult(
