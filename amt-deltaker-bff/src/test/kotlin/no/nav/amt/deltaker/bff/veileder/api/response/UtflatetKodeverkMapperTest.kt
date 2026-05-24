@@ -69,7 +69,7 @@ class UtflatetKodeverkMapperTest {
                 KodeverkResponse.Alternativ.Verdigruppe(
                     id = UUID.randomUUID(),
                     visningsnavn = "Bransje",
-                    representerer = "bransjer",
+                    representerer = "bransje",
                     seleksjonstype = KodeverkResponse.Seleksjonstype.ENKELTVALG,
                     alternativer = listOf(
                         KodeverkResponse.Alternativ.Verdi(

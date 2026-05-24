@@ -5,7 +5,7 @@ import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
 private const val UTDANNINGSPROGRAM_VISNINGSNAVN = "Utdanningsprogram"
-private const val BRANSJER_REPRESENTERER = "bransjer"
+private const val BRANSJER_REPRESENTERER = "bransje"
 private const val KURSTYPE_REPRESENTERER = "kurstype"
 
 private val REPRESENTERER_SOM_SKAL_VISE_TITTEL = setOf(
