@@ -109,11 +109,10 @@ fun Routing.registerKladdApi(
 
         delete("/kladd/{deltakerId}") {
             val deltakerId = call.getDeltakerId()
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
 
             tilgangskontrollService.verifiserSkrivetilgang(
                 navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = personident,
+                norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
             )
 
             if (!pameldingService.slettKladd(deltakerId)) {

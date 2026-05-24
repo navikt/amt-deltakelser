@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.bff.clients
 
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
@@ -13,6 +15,7 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
 import org.slf4j.LoggerFactory
+import java.time.Duration.ofMinutes
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -21,6 +24,10 @@ class AmtDeltakerClient(
     scope: String,
     httpClient: HttpClient,
     azureAdTokenClient: AzureAdTokenClient,
+    private val personIdentCache: Cache<UUID, String> = Caffeine
+        .newBuilder()
+        .expireAfterWrite(ofMinutes(15))
+        .build(),
 ) : ApiClientBase(
         baseUrl = baseUrl,
         scope = scope,
@@ -29,9 +36,12 @@ class AmtDeltakerClient(
     ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun getPersonidentForDeltaker(deltakerId: UUID): PersonIdentResponse = performGet("personident/$deltakerId")
-        .failIfNotSuccess("Fant ikke personident for deltaker $deltakerId i amt-deltaker.")
-        .body()
+    suspend fun getPersonidentForDeltaker(deltakerId: UUID): String = personIdentCache.getIfPresent(deltakerId)
+        ?: performGet("personident/$deltakerId")
+            .failIfNotSuccess("Fant ikke personident for deltaker $deltakerId i amt-deltaker.")
+            .body<PersonIdentResponse>()
+            .personident
+            .also { personIdentCache.put(deltakerId, it) }
 
     suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse = performGet("deltaker/$deltakerId")
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")

@@ -38,11 +38,10 @@ fun Routing.registerInnbyggerApi(
          */
         get("/innbygger/{deltakerId}") {
             val deltakerId = call.getDeltakerId()
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
 
             tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
                 rekvirentPersonident = call.getPersonIdent(),
-                ressursPersonident = personident,
+                ressursPersonident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
             )
 
             val deltakerResponse = amtDeltakerClient
@@ -63,10 +62,9 @@ fun Routing.registerInnbyggerApi(
         post("/innbygger/{deltakerId}/godkjenn-utkast") {
             val deltakerId = call.getDeltakerId()
 
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
             tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
                 rekvirentPersonident = call.getPersonIdent(),
-                ressursPersonident = personident,
+                ressursPersonident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
             )
             pameldingClient.innbyggerGodkjennUtkast(deltakerId)
             val deltakerResponse = amtDeltakerClient
@@ -82,10 +80,9 @@ fun Routing.registerInnbyggerApi(
         get("/innbygger/{deltakerId}/historikk") {
             val deltakerId = call.getDeltakerId()
 
-            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
             tilgangskontrollService.verifiserInnbyggersTilgangTilDeltaker(
                 rekvirentPersonident = call.getPersonIdent(),
-                ressursPersonident = personident,
+                ressursPersonident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
             )
             val data = amtDeltakerClient.getDeltakerHistorikkData(deltakerId)
             val historikkResponse = DeltakerHistorikkResponse.fromModels(

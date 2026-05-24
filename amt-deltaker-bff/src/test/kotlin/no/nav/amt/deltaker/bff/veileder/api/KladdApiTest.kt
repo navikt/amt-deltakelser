@@ -40,7 +40,7 @@ class KladdApiTest : IntegrationTestBase() {
     fun setup() {
         coEvery {
             amtDeltakerClient.getPersonidentForDeltaker(any())
-        } returns PersonIdentResponse(deltakerInTest.navBruker.personident)
+        } returns PersonIdentResponse(deltakerInTest.navBruker.personident).personident
     }
 
     @Test

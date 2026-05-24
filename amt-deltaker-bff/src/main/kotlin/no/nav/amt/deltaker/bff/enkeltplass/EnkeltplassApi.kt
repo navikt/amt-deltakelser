@@ -20,10 +20,12 @@ import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getTerm
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.tilUtflatetKodeverk
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 
 fun Routing.registerEnkeltplassApi(
     amtDeltakerClient: AmtDeltakerClient,
@@ -36,6 +38,26 @@ fun Routing.registerEnkeltplassApi(
             get("/kodeverk-sertifiseringer/sok/{term}") {
                 val sertifiseringer = kodeverkClient.sertifiseringSok(call.getTerm())
                 call.respond(sertifiseringer)
+            }
+
+            get("/kodeverk/{deltakerId}") {
+                val deltakerId = call.getDeltakerId()
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
+
+                tilgangskontrollService.verifiserLesetilgang(
+                    navAnsattAzureId = call.getNavAnsattAzureId(),
+                    norskIdent = personident,
+                )
+
+                val gjennomforing = amtDeltakerClient.getDeltaker(deltakerId).gjennomforing
+                val kodeverk = kodeverkClient.hentKodeverk(gjennomforing.tiltakstype.tiltakskode)
+
+                call.respond(
+                    kodeverk.settValgt(
+                        kodeverkValg = gjennomforing.kodeverkValg,
+                        sertifiseringValg = gjennomforing.sertifiseringValg,
+                    ),
+                )
             }
 
             /*
@@ -52,8 +74,6 @@ fun Routing.registerEnkeltplassApi(
                     norskIdent = request.personident,
                 )
 
-                val kodeverk = kodeverkClient.hentKodeverk(request.tiltakskode)
-
                 val response = enkeltplassClient
                     .opprettKladd(request.tiltakskode, request.personident)
                     .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
@@ -61,7 +81,7 @@ fun Routing.registerEnkeltplassApi(
                     .let {
                         DeltakerResponse.fromDeltakerModel(
                             deltaker = it,
-                            kodeverkResponse = kodeverk,
+                            utflatetKodeverk = null,
                         )
                     }
 
@@ -76,7 +96,7 @@ fun Routing.registerEnkeltplassApi(
              */
             post("/oppdater-kladd/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
                 val oppdaterEnkeltplassKladdRequest = call.receive<OppdaterEnkeltplassKladdRequest>()
 
@@ -101,7 +121,7 @@ fun Routing.registerEnkeltplassApi(
              */
             post("/utkast/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
                 val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
 
@@ -119,12 +139,21 @@ fun Routing.registerEnkeltplassApi(
                             endretAv = call.getNavIdent(),
                         ),
                     ).let { ModelMapper.toDeltaker(it) }
-                    .let {
-                        val kodeverk = kodeverkClient.hentKodeverk(it.gjennomforing.tiltak.tiltakskode)
+                    .let { deltakerModel ->
+                        val utflatetKodeverk = if (deltakerModel.gjennomforing.type == GjennomforingType.Enkeltplass) {
+                            kodeverkClient
+                                .hentKodeverk(deltakerModel.gjennomforing.tiltak.tiltakskode)
+                                .tilUtflatetKodeverk(
+                                    kodeverkValg = deltakerModel.gjennomforing.kodeverkValg,
+                                    sertifiseringValg = deltakerModel.gjennomforing.sertifiseringValg,
+                                )
+                        } else {
+                            null
+                        }
 
                         DeltakerResponse.fromDeltakerModel(
-                            deltaker = it,
-                            kodeverkResponse = kodeverk,
+                            deltaker = deltakerModel,
+                            utflatetKodeverk = utflatetKodeverk,
                         )
                     }
 
@@ -139,7 +168,7 @@ fun Routing.registerEnkeltplassApi(
              */
             post("/utkast/{deltakerId}/del-med-innbygger") {
                 val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident
+                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
                 val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
 
@@ -173,7 +202,7 @@ fun Routing.registerEnkeltplassApi(
 
                 tilgangskontrollService.verifiserSkrivetilgang(
                     navAnsattAzureId = call.getNavAnsattAzureId(),
-                    norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId).personident,
+                    norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
                 )
 
                 val pameldingRequest: EnkeltplassPameldingRequest = call.receive()

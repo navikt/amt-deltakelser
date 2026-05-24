@@ -8,10 +8,12 @@ import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
@@ -39,7 +41,8 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setup() {
-        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns PersonIdentResponse(PERSONIDENT_IN_TEST)
+        coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerInTest.id) } returns
+            PersonIdentResponse(PERSONIDENT_IN_TEST).personident
         every { tilgangskontrollService.verifiserSkrivetilgang(any<UUID>(), any<String>()) } just runs
 
         val mockHttpResponse = mockk<HttpResponse>()
@@ -82,6 +85,77 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Assert
             response.status shouldBe HttpStatusCode.OK
             response.body<List<SertifiseringResponse>>() shouldBe expectedResponse
+        }
+    }
+
+    @Nested
+    inner class KodeverkForDeltakerTests {
+        @Test
+        fun `skal returnere Unauthorized nar tilgang mangler`() {
+            val response = withTestApplicationContext { client ->
+                client.get("/enkeltplass/kodeverk/${deltakerInTest.id}")
+            }
+
+            response.status shouldBe HttpStatusCode.Unauthorized
+        }
+
+        @Test
+        fun `skal returnere Forbidden nar veileder ikke har lesetilgang til bruker`() {
+            every { tilgangskontrollService.verifiserLesetilgang(any(), any()) } throws AuthorizationException("")
+
+            val response = withTestApplicationContext { client ->
+                client.get("/enkeltplass/kodeverk/${deltakerInTest.id}") {
+                    bearerAuth(bearerTokenInTest)
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `skal returnere kodeverk med valgte verdier`() = runTest {
+            val verdiId = UUID.randomUUID()
+            val deltakerResponse = lagDeltakerResponse(id = deltakerInTest.id).let {
+                it.copy(gjennomforing = it.gjennomforing.copy(kodeverkValg = setOf(verdiId)))
+            }
+            val tiltakskode = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
+
+            val kodeverkFraClient = KodeverkResponse(
+                tiltakskode = tiltakskode,
+                alternativer = listOf(
+                    KodeverkResponse.Alternativ.Verdigruppe(
+                        id = UUID.randomUUID(),
+                        visningsnavn = "Bransje",
+                        seleksjonstype = KodeverkResponse.Seleksjonstype.ENKELTVALG,
+                        alternativer = listOf(
+                            KodeverkResponse.Alternativ.Verdi(
+                                id = verdiId,
+                                visningsnavn = "Bygg",
+                                valgt = false,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            coEvery { amtDeltakerClient.getDeltaker(deltakerInTest.id) } returns deltakerResponse
+            coEvery { kodeverkClient.hentKodeverk(tiltakskode) } returns kodeverkFraClient
+
+            val response = withTestApplicationContext { client ->
+                client.get("/enkeltplass/kodeverk/${deltakerInTest.id}") {
+                    bearerAuth(bearerTokenInTest)
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+            response.body<KodeverkResponse>() shouldBe kodeverkFraClient.settValgt(
+                kodeverkValg = deltakerResponse.gjennomforing.kodeverkValg,
+                sertifiseringValg = deltakerResponse.gjennomforing.sertifiseringValg,
+            )
+
+            coVerify(exactly = 1) { amtDeltakerClient.getDeltaker(deltakerInTest.id) }
+            coVerify(exactly = 1) { kodeverkClient.hentKodeverk(tiltakskode) }
+            verify(exactly = 1) { tilgangskontrollService.verifiserLesetilgang(any(), any()) }
         }
     }
 

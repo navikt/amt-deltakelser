@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
+import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
@@ -30,6 +31,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
+import no.nav.amt.lib.testing.utils.CountingCache
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.withLogCapture
@@ -40,9 +42,60 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.util.UUID
 import kotlin.reflect.KClass
 
 class AmtDeltakerClientTest {
+    @Nested
+    inner class GetPersonidentForDeltaker {
+        val expectedUrl = "$DELTAKER_BASE_URL/personident/${deltakerInTest.id}"
+        val expectedErrorMessage = "Fant ikke personident for deltaker ${deltakerInTest.id} i amt-deltaker."
+        val getPersonidentLambda: suspend (AmtDeltakerClient) -> String =
+            { client -> client.getPersonidentForDeltaker(deltakerInTest.id) }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(
+                exceptionType = expectedExceptionType,
+                statusCode = statusCode,
+                expectedUrl = expectedUrl,
+                expectedErrorMessage = expectedErrorMessage,
+                block = getPersonidentLambda,
+            )
+        }
+
+        @Test
+        fun `skal returnere personident`() = runTest {
+            val client = createDeltakerClient(
+                expectedUrl = expectedUrl,
+                statusCode = HttpStatusCode.OK,
+                responseBody = PersonIdentResponse("12345678901"),
+            )
+
+            client.getPersonidentForDeltaker(deltakerInTest.id) shouldBe "12345678901"
+        }
+
+        @Test
+        fun `skal bruke cache ved gjentatt kall for samme deltaker`() = runTest {
+            val countingCache = CountingCache<UUID, String>()
+            val client = createDeltakerClient(
+                expectedUrl = expectedUrl,
+                statusCode = HttpStatusCode.OK,
+                responseBody = PersonIdentResponse("12345678901"),
+                personIdentCache = countingCache,
+            )
+
+            val first = client.getPersonidentForDeltaker(deltakerInTest.id)
+            val second = client.getPersonidentForDeltaker(deltakerInTest.id)
+
+            first shouldBe "12345678901"
+            second shouldBe "12345678901"
+            countingCache.putCount shouldBe 1
+        }
+    }
+
     @Nested
     inner class GetDeltaker {
         val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}"
@@ -672,6 +725,7 @@ class AmtDeltakerClientTest {
             expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
+            personIdentCache: CountingCache<UUID, String>? = null,
         ) = AmtDeltakerClient(
             baseUrl = DELTAKER_BASE_URL,
             scope = "scope",
@@ -681,6 +735,7 @@ class AmtDeltakerClientTest {
                 statusCode = statusCode,
             ),
             azureAdTokenClient = mockAzureAdClient(),
+            personIdentCache = personIdentCache ?: CountingCache(),
         )
     }
 }
