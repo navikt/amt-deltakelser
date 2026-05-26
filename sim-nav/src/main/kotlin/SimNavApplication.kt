@@ -1,3 +1,4 @@
+import aooppfolgingskontor.aoOppfolgingskontorFakeRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
@@ -11,6 +12,7 @@ fun Application.simNavModule(kafkaPublisher: KafkaPublisher) {
         veilarboppfolgingFakeRoutes()
         bronnoysundFakeRoutes()
         norgFakeRoutes()
+        aoOppfolgingskontorFakeRoutes()
         pdlFakeRoutes()
         nomFakeRoutes()
         kafkaFakeRoutes(kafkaPublisher)

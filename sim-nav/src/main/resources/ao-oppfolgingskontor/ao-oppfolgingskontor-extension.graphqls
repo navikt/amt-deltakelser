@@ -1,0 +1,13 @@
+extend type Query {
+    kontorTilhorigheter(ident: ID!): KontorTilhorigheter!
+}
+
+type KontorTilhorigheter {
+    arbeidsoppfolging: Arbeidsoppfolging
+}
+
+type Arbeidsoppfolging {
+    kontorId: String!
+    kontorNavn: String!
+}
+

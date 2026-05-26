@@ -1,0 +1,15 @@
+{
+  "defaultIdent": "11111111111",
+  "kontorTilhorigheter": {
+	"11111111111": {
+	  "arbeidsoppfolging": {
+		"kontorId": "1234",
+		"kontorNavn": "NAV Testkontor"
+	  }
+	},
+	"22222222222": {
+	  "arbeidsoppfolging": null
+	}
+  }
+}
+
