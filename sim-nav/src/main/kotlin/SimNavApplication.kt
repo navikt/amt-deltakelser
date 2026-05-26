@@ -1,7 +1,7 @@
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
+import pdl.pdlFakeRoutes
 
 fun Application.simNavModule(kafkaPublisher: KafkaPublisher) {
     routing {

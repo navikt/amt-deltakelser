@@ -1,13 +1,17 @@
+package pdl
+
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import graphql.ExecutionInput
 import io.ktor.http.*
 import io.ktor.server.routing.*
+import readRequestBody
+import respondJson
 
 const val PDL_PATH_PREFIX = "/pdl"
 
-private const val PDL_DATA_PATH = "/pdl-data.json"
+private const val PDL_DATA_PATH = "/pdl/pdl-data.json"
 
 private val pdlObjectMapper = jacksonObjectMapper()
 private val pdlFakeData: PdlFakeData = loadPdlFakeData()

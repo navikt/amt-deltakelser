@@ -1,12 +1,14 @@
+package pdl
+
 import graphql.GraphQL
+import graphql.scalars.ExtendedScalars
 import graphql.schema.DataFetcher
 import graphql.schema.GraphQLSchema
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
-import graphql.scalars.ExtendedScalars
 
-private const val PDL_SCHEMA_RESOURCE = "/pdl.graphqls"
+private const val PDL_SCHEMA_RESOURCE = "/pdl/pdl.graphqls"
 
 /**
  * Minimal schema-first GraphQL-java setup for PDL.
