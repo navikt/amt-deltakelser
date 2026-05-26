@@ -46,7 +46,7 @@ class EndreAvslutningExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -83,7 +83,7 @@ class EndreAvslutningExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -118,7 +118,7 @@ class EndreAvslutningExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             )

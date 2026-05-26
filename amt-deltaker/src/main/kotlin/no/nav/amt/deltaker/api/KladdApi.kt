@@ -11,6 +11,7 @@ import no.nav.amt.deltaker.api.response.SharedResponseMappers.opprettKladdRespon
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.veileder.KladdService
+import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -40,7 +41,7 @@ fun Routing.registerKladdApi(
             }
             kladdService.oppdaterKladd(
                 deltaker = deltaker,
-                innhold = kladdRequest.innhold.toInnholdModel(deltaker),
+                innhold = kladdRequest.innhold.toInnholdModel(deltaker.deltakerliste.tiltakstype),
                 bakgrunnsinformasjon = kladdRequest.bakgrunnsinformasjon,
                 deltakelsesprosent = kladdRequest.deltakelsesprosent,
                 dagerPerUke = kladdRequest.dagerPerUke,

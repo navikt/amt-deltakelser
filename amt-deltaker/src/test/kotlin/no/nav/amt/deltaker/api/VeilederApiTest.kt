@@ -28,16 +28,17 @@ import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -86,27 +87,22 @@ class VeilederApiTest : IntegrationTestBase() {
         val innholdRequest = EndretInnholdRequest(
             endretAv = randomIdent(),
             endretAvEnhet = randomEnhetsnummer(),
-            deltakelsesinnhold = Deltakelsesinnhold(
-                ledetekst = "ledetekst",
-                innhold = listOf(
-                    Innhold(
-                        tekst = "tekst",
-                        innholdskode = "kode",
-                        valgt = true,
-                        beskrivelse = "beskrivelse",
-                    ),
+            innholdselementer = listOf(
+                InnholdsElementRequest(
+                    innholdskode = "kode",
+                    beskrivelse = "beskrivelse",
                 ),
             ),
         )
 
-        val innholdEndring = innholdRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = innholdEndring)))
         val deltaker = TestData.lagDeltaker(
             innhold = Deltakelsesinnhold(
                 ledetekst = "test",
-                innhold = innholdEndring.innhold,
+                innhold = innholdRequest.innholdselementer.toInnholdModel(TestData.lagTiltakstype()),
             ),
         )
+        val innholdEndring = innholdRequest.toEndring(deltaker.deltakerliste.tiltakstype)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = innholdEndring)))
 
         runEndringTest(innholdRequest, deltaker, historikk)
     }

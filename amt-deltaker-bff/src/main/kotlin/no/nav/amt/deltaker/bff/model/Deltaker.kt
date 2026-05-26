@@ -48,7 +48,7 @@ data class Deltaker(
     val opprettet: LocalDateTime,
 ) {
     // Flere typer endringer medfører endring i historikk
-    // Henter alle deltakelsesmengder som er gjendende innenfor perioden personen har deltatt
+    // Henter alle deltakelsesmengder som er gjeldende innenfor perioden personen har deltatt
     // sortert på Endringens siste mod dato
     val deltakelsesmengderFraHistorikk: Deltakelsesmengder
         get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()

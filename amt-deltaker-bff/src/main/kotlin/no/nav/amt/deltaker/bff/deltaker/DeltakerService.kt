@@ -38,6 +38,7 @@ class DeltakerService(
         oppdaterDeltaker(
             deltakeroppdatering = deltakeroppdatering,
             beforeUpsert = {
+                // gjøres også i amt-deltaker
                 if (endringRequest is ReaktiverDeltakelseRequest) {
                     slettKladdIfExists(
                         deltakerlisteId = deltaker.deltakerliste.id,

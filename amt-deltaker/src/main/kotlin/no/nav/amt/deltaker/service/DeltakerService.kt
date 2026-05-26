@@ -16,7 +16,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
-import no.nav.amt.deltaker.veileder.endring.extensions.oppdaterDeltaker
+import no.nav.amt.deltaker.veileder.endring.extensions.anvendPaaDeltaker
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -108,11 +108,10 @@ class DeltakerService(
         require(eksisterendeDeltaker.navBruker.harAktivOppfolgingsperiode || endringRequest.kanIverksettesUtenAktivOppfolging()) {
             "Kan ikke utføre endring ${endringRequest.javaClass.simpleName} på deltaker $deltakerId uten aktiv oppfølgingsperiode"
         }
-
-        val endring = endringRequest.toEndring()
+        val endring = endringRequest.toEndring(eksisterendeDeltaker.deltakerliste.tiltakstype)
 
         val updateResult = endring
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = eksisterendeDeltaker,
                 getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
             ).getOrElse {

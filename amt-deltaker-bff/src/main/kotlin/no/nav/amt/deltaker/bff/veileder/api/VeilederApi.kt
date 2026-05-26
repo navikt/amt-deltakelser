@@ -44,7 +44,6 @@ import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.tilUtflatetKodeverk
@@ -58,7 +57,6 @@ import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
-import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.objectMapper
@@ -99,7 +97,7 @@ fun Routing.registerVeilederApi(
     ) {
         /*
         Alle disse sjekkene er flyttet til amt-deltaker, ivaretas i valideringen på endringstype
-        men denne beholdes her fram til toggelen er påskrudd i prod for å hindre lagring i lokal database når
+        men denne beholdes her fram til toggelen er påskrudd i prod for å hindre lagring i lokal database
         når endringen egentlig ikke er gyldig
          */
         if (!deltaker.kanEndres) {
@@ -131,54 +129,68 @@ fun Routing.registerVeilederApi(
         }
     }
 
-    suspend fun ApplicationCall.handleEndring(
-        request: EndringRequestFromFrontend,
-        produceEndringRequest: (deltaker: Deltaker, endretAv: String, endretAvEnhet: String) -> EndringRequest,
+    suspend fun ApplicationCall.handleEndringOld(
+        frontendRequest: EndringRequestFromFrontend,
+        amtDeltakerRequest: EndringRequest,
     ) {
+        // Alt dette skal slettes når toggelen er testet
         val deltakerId = this.getDeltakerId()
-        val response = if (unleashToggle.prioriterSynkronKommunikasjon()) {
-            val deltaker = amtDeltakerClient
-                .getDeltaker(deltakerId)
-                .let { ModelMapper.toDeltaker(it) }
+        val navAnsattAzureId = this.getNavAnsattAzureId()
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        tilgangskontrollService.verifiserSkrivetilgang(
+            navAnsattAzureId = navAnsattAzureId,
+            norskIdent = deltaker.navBruker.personident,
+        )
+        illegalUpdateGuard(
+            deltaker = deltaker,
+            tillatEndringUtenOppfPeriode = frontendRequest.tillattEndringUtenAktivOppfolgingsperiode(),
+            request = frontendRequest,
+        )
 
-            tilgangskontrollService.verifiserSkrivetilgang(
-                navAnsattAzureId = this.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
-            )
-            request.valider(deltaker)
+        frontendRequest.valider(deltaker)
 
-            amtDeltakerClient
-                .getDeltaker(deltaker.id)
-                .let { ModelMapper.toDeltaker(it) }
-                .let { DeltakerResponse.fromDeltakerModel(it) }
-        } else {
-            // Alt dette skal slettes når dette er testet
-            val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val oppdatertDeltaker = deltakerService.oppdaterDeltaker(
+            deltaker = deltaker,
+            endringRequest = amtDeltakerRequest,
+        )
 
-            tilgangskontrollService.verifiserSkrivetilgang(
-                navAnsattAzureId = this.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
-            )
-            illegalUpdateGuard(
-                deltaker = deltaker,
-                tillatEndringUtenOppfPeriode = request.tillattEndringUtenAktivOppfolgingsperiode(),
-                request = request,
-            )
+        this.respond(komplettDeltakerResponse(oppdatertDeltaker))
+    }
 
-            request.valider(deltaker)
-
-            val oppdatertDeltaker = deltakerService.oppdaterDeltaker(
-                deltaker = deltaker,
-                endringRequest = produceEndringRequest(
-                    deltaker,
-                    this.getNavIdent(),
-                    this.getEnhetsnummer(),
-                ),
-            )
-
-            komplettDeltakerResponse(oppdatertDeltaker)
+    suspend fun ApplicationCall.handleEndring(
+        frontendRequest: EndringRequestFromFrontend,
+        amtDeltakerRequest: EndringRequest,
+    ) {
+        if (!unleashToggle.prioriterSynkronKommunikasjon()) {
+            this.handleEndringOld(frontendRequest, amtDeltakerRequest)
+            return
         }
-        this.respond(response)
+        require(unleashToggle.prioriterSynkronKommunikasjon()) {
+            "Toggle må være påskrudd for å bruke denne metoden"
+        }
+        val deltakerId = this.getDeltakerId()
+
+        val deltaker = amtDeltakerClient
+            .getDeltaker(deltakerId)
+            .let { ModelMapper.toDeltaker(it) }
+
+        tilgangskontrollService.verifiserSkrivetilgang(
+            navAnsattAzureId = this.getNavAnsattAzureId(),
+            norskIdent = deltaker.navBruker.personident,
+        )
+        frontendRequest.valider(deltaker)
+
+        amtDeltakerClient
+            .postEndreDeltaker(
+                deltakerId = deltaker.id,
+                requestBody = amtDeltakerRequest,
+            )
+
+        amtDeltakerClient
+            .getDeltaker(deltaker.id)
+            .let { ModelMapper.toDeltaker(it) }
+            .let { DeltakerResponse.fromDeltakerModel(it) }
+            .also { this.respond(it) }
     }
 
     authenticate(AuthLevel.VEILEDER.name) {
@@ -253,119 +265,125 @@ fun Routing.registerVeilederApi(
 
         post("/deltaker/{deltakerId}/bakgrunnsinformasjon") {
             val request = call.receive<EndreBakgrunnsinformasjonRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                BakgrunnsinformasjonRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = BakgrunnsinformasjonRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     bakgrunnsinformasjon = request.bakgrunnsinformasjon,
-                )
-            }
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/innhold") {
             val request = call.receive<EndreInnholdRequest>()
-            call.handleEndring(request) { deltaker, endretAv, endretAvEnhet ->
-                EndretInnholdRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
-                    deltakelsesinnhold = Deltakelsesinnhold(
-                        innhold = request.innhold.toInnholdModel(deltaker),
-                        ledetekst = deltaker.deltakerliste.tiltak.innhold
-                            ?.ledetekst,
-                    ),
-                )
-            }
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = EndretInnholdRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
+                    innholdselementer = request.innhold,
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/deltakelsesmengde") {
             val request = call.receive<EndreDeltakelsesmengdeRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                DeltakelsesmengdeRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = DeltakelsesmengdeRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     forslagId = request.forslagId,
                     deltakelsesprosent = request.deltakelsesprosent,
                     dagerPerUke = request.dagerPerUke,
                     gyldigFra = request.gyldigFra,
                     begrunnelse = request.begrunnelse,
-                )
-            }
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/startdato") {
             val request = call.receive<EndreStartdatoRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                StartdatoRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = StartdatoRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     forslagId = request.forslagId,
                     startdato = request.startdato,
                     sluttdato = request.sluttdato,
                     begrunnelse = request.begrunnelse,
-                )
-            }
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/sluttdato") {
             val request = call.receive<EndreSluttdatoRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                SluttdatoRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = SluttdatoRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     forslagId = request.forslagId,
                     sluttdato = request.sluttdato,
                     begrunnelse = request.begrunnelse,
-                )
-            }
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/sluttarsak") {
             val request = call.receive<EndreSluttarsakRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                SluttarsakRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = SluttarsakRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     forslagId = request.forslagId,
                     aarsak = request.aarsak,
                     begrunnelse = request.begrunnelse,
-                )
-            }
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/ikke-aktuell") {
             val request = call.receive<IkkeAktuellRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     forslagId = request.forslagId,
                     aarsak = request.aarsak,
                     begrunnelse = request.begrunnelse,
-                )
-            }
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/reaktiver") {
             val request = call.receive<ReaktiverDeltakelseRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     begrunnelse = request.begrunnelse,
-                )
-            }
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/avslutt") {
             val request = call.receive<AvsluttDeltakelseRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
+            val endretAv = call.getNavIdent()
+            call.handleEndring(
+                frontendRequest = request,
                 // code-review note: Denne logikken bør flyttes til amt-deltaker
-                when {
+                amtDeltakerRequest = when {
                     request.harDeltatt() && request.harFullfort() -> {
                         require(request.sluttdato != null) { "Sluttdato er påkrevd for å avslutte deltakelse" }
                         no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest(
                             endretAv = endretAv,
-                            endretAvEnhet = endretAvEnhet,
+                            endretAvEnhet = call.getEnhetsnummer(),
                             forslagId = request.forslagId,
                             sluttdato = request.sluttdato,
                             aarsak = request.aarsak,
@@ -379,7 +397,7 @@ fun Routing.registerVeilederApi(
                         require(request.sluttdato != null) { "Sluttdato er påkrevd for å avbryte deltakelse" }
                         AvbrytDeltakelseRequest(
                             endretAv = endretAv,
-                            endretAvEnhet = endretAvEnhet,
+                            endretAvEnhet = call.getEnhetsnummer(),
                             forslagId = request.forslagId,
                             sluttdato = request.sluttdato,
                             aarsak = request.aarsak,
@@ -391,25 +409,26 @@ fun Routing.registerVeilederApi(
                         require(request.aarsak != null) { "Årsak er påkrevd for å sette deltaker til ikke aktuell" }
                         no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest(
                             endretAv = endretAv,
-                            endretAvEnhet = endretAvEnhet,
+                            endretAvEnhet = call.getEnhetsnummer(),
                             forslagId = request.forslagId,
                             aarsak = request.aarsak,
                             begrunnelse = request.begrunnelse,
                         )
                     }
-                }
-            }
+                },
+            )
         }
 
         post("/deltaker/{deltakerId}/endre-avslutning") {
             val request = call.receive<EndreAvslutningRequest>()
 
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
+            call.handleEndring(
+                frontendRequest = request,
                 // code-review note: Denne logikken bør flyttes til amt-deltaker
-                if (request.harDeltatt()) {
+                amtDeltakerRequest = if (request.harDeltatt()) {
                     no.nav.amt.internapi.deltaker.request.EndreAvslutningRequest(
-                        endretAv = endretAv,
-                        endretAvEnhet = endretAvEnhet,
+                        endretAv = call.getNavIdent(),
+                        endretAvEnhet = call.getEnhetsnummer(),
                         forslagId = request.forslagId,
                         sluttdato = request.sluttdato,
                         aarsak = request.aarsak,
@@ -419,39 +438,41 @@ fun Routing.registerVeilederApi(
                 } else {
                     require(request.aarsak != null) { "Årsak er påkrevd for å sette deltaker til ikke aktuell" }
                     no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest(
-                        endretAv = endretAv,
-                        endretAvEnhet = endretAvEnhet,
+                        endretAv = call.getNavIdent(),
+                        endretAvEnhet = call.getEnhetsnummer(),
                         forslagId = request.forslagId,
                         aarsak = request.aarsak,
                         begrunnelse = request.begrunnelse,
                     )
-                }
-            }
+                },
+            )
         }
 
         post("/deltaker/{deltakerId}/forleng") {
             val request = call.receive<ForlengDeltakelseRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     forslagId = request.forslagId,
                     sluttdato = request.sluttdato,
                     begrunnelse = request.begrunnelse,
-                )
-            }
+                ),
+            )
         }
 
         post("/deltaker/{deltakerId}/fjern-oppstartsdato") {
             val request = call.receive<FjernOppstartsdatoRequest>()
-            call.handleEndring(request) { _, endretAv, endretAvEnhet ->
-                no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest(
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
+            call.handleEndring(
+                frontendRequest = request,
+                amtDeltakerRequest = no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest(
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                     forslagId = request.forslagId,
                     begrunnelse = request.begrunnelse,
-                )
-            }
+                ),
+            )
         }
 
         // kaller ikke amt-deltaker

@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.deltaker.request.toInnholdModel
 
 data class EndreInnholdRequest(
     val innhold: List<InnholdsElementRequest>,
@@ -25,8 +26,9 @@ data class EndreInnholdRequest(
         }
     }
 
-    private fun deltakerErEndret(deltaker: Deltaker): Boolean = deltaker.deltakelsesinnhold?.innhold != innhold.toInnholdModel(deltaker)
+    private fun deltakerErEndret(deltaker: Deltaker): Boolean =
+        deltaker.deltakelsesinnhold?.innhold != innhold.toInnholdModel(deltaker.deltakerliste.tiltak)
 
     private fun deltakerErEndret(deltaker: DeltakerModel): Boolean =
-        deltaker.deltakelsesinnhold?.innhold != innhold.toInnholdModel(deltaker)
+        deltaker.deltakelsesinnhold?.innhold != innhold.toInnholdModel(deltaker.gjennomforing.tiltak)
 }

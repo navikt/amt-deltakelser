@@ -18,7 +18,7 @@ class EndreSluttarsakExtensionsTest {
     fun `endret sluttarsak`() {
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()

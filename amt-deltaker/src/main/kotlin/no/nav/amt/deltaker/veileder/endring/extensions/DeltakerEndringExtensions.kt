@@ -8,7 +8,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import java.util.UUID
 
-fun DeltakerEndring.Endring.oppdaterDeltaker(
+fun DeltakerEndring.Endring.anvendPaaDeltaker(
     deltaker: Deltaker,
     getDeltakelsemengder: (deltakerId: UUID) -> Deltakelsesmengder,
 ): Result<VellykketEndring> = runCatching {

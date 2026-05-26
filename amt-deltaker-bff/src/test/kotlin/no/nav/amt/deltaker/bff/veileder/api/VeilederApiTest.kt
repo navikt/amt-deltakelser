@@ -11,6 +11,7 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
+import io.mockk.mockk
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.model.Deltaker
@@ -526,6 +527,7 @@ class VeilederApiTest : IntegrationTestBase() {
             // handleEndring henter deltakeren via amtDeltakerClient både før (til validering)
             // og etter oppdateringen. `returnsMany` gir forskjellig svar på de to kallene.
             coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returnsMany listOf(foerResponse, etterResponse)
+            coEvery { amtDeltakerClient.postEndreDeltaker(deltaker.id, any()) } returns mockk()
 
             // Koden kjøres så mockene må settes opp men det er ikke noe som brukes for responsen når toggele er på
             setupMocks(deltaker, oppdatert)

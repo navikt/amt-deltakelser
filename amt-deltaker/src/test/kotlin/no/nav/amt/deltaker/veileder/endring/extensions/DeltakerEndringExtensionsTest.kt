@@ -25,7 +25,7 @@ class DeltakerEndringExtensionsTest {
 
         val resultat = reaktiverDeltakelseRequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -46,7 +46,7 @@ class DeltakerEndringExtensionsTest {
 
         val resultat = reaktiverDeltakelseRequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -69,7 +69,7 @@ class DeltakerEndringExtensionsTest {
 
         val resultat = ikkeAktuellRequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -92,7 +92,7 @@ class DeltakerEndringExtensionsTest {
 
         ikkeAktuellRequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeFailure()

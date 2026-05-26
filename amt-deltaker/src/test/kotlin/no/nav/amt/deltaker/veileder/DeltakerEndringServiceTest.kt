@@ -16,9 +16,9 @@ import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
 import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -81,12 +81,21 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
         // Arrange
         val deltaker = no.nav.amt.deltaker.utils.data.TestData
             .lagDeltaker()
+        val tiltaksinnhold = deltaker.deltakerliste.tiltakstype.innhold!!
+            .innholdselementer[0]
+        val nyttInnhold = InnholdsElementRequest(innholdskode = tiltaksinnhold.innholdskode, beskrivelse = null)
+        val expectedInnhold = Innhold(
+            innholdskode = nyttInnhold.innholdskode,
+            beskrivelse = nyttInnhold.beskrivelse,
+            valgt = true,
+            tekst = tiltaksinnhold.tekst,
+        )
         TestRepository.insert(deltaker)
 
         val endringsrequest = EndretInnholdRequest(
             endretAv = navAnsattInTest.navIdent,
             endretAvEnhet = navEnhetInTest.enhetsnummer,
-            deltakelsesinnhold = Deltakelsesinnhold("tekst", listOf(Innhold("Tekst", "kode", true, null))),
+            innholdselementer = listOf(nyttInnhold),
         )
 
         // Act
@@ -99,8 +108,9 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
 
         // Assert
         assertSoftly(resultat.shouldBeInstanceOf<DeltakerEndring.Endring.EndreInnhold>()) {
-            innhold shouldBe endringsrequest.deltakelsesinnhold.innhold
-            ledetekst shouldBe endringsrequest.deltakelsesinnhold.ledetekst
+            innhold shouldBe listOf(expectedInnhold)
+            ledetekst shouldBe deltaker.deltakerliste.tiltakstype.innhold!!
+                .ledetekst
         }
 
         assertSoftly(deltakerEndringRepository.getForDeltaker(deltaker.id).first()) {
@@ -108,8 +118,9 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
             endretAvEnhet shouldBe navEnhetInTest.id
 
             assertSoftly(endring.shouldBeInstanceOf<DeltakerEndring.Endring.EndreInnhold>()) {
-                innhold shouldBe endringsrequest.deltakelsesinnhold.innhold
-                ledetekst shouldBe endringsrequest.deltakelsesinnhold.ledetekst
+                innhold shouldBe listOf(expectedInnhold)
+                ledetekst shouldBe deltaker.deltakerliste.tiltakstype.innhold!!
+                    .ledetekst
             }
         }
 

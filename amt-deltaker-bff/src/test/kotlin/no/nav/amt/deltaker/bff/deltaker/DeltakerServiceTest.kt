@@ -33,6 +33,7 @@ import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
 import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
@@ -219,10 +220,11 @@ class DeltakerServiceTest {
                 EndretInnholdRequest(
                     endretAv = "~endretAv~",
                     endretAvEnhet = navEnhet.enhetsnummer,
-                    deltakelsesinnhold = Deltakelsesinnhold(
-                        ledetekst = "~ledetekst~",
-                        innhold = listOf(Innhold("tekst,", "innholdskode,", true, "beskrivelse")),
-                    ),
+                    // "annet" er det eneste innholdselementet som alltid finnes på tiltakstypen
+                    // (lagt til av getInnholdselementer i InnholdUtils). For andre koder må de
+                    // matche tiltakstype.innhold.innholdselementer, ellers filtreres de bort av
+                    // EndretInnholdRequest.toInnholdModel.
+                    innholdselementer = listOf(InnholdsElementRequest("annet", "beskrivelse")),
                 ),
                 DeltakelsesmengdeRequest(
                     endretAv = "~endretAv~",
@@ -318,7 +320,7 @@ class DeltakerServiceTest {
                     .endre(
                         lagDeltakerEndring(
                             deltakerId = deltaker.id,
-                            endring = endringRequest.toEndring(),
+                            endring = endringRequest.toEndring(deltaker.deltakerliste.tiltak),
                         ),
                     ).toDeltakerEndringResponse()
 
@@ -332,8 +334,15 @@ class DeltakerServiceTest {
                         oppdatertDeltaker.bakgrunnsinformasjon shouldBe endringRequest.bakgrunnsinformasjon
 
                     is EndretInnholdRequest -> {
-                        oppdatertDeltaker.deltakelsesinnhold.shouldNotBeNull().innhold shouldBe endringRequest.deltakelsesinnhold.innhold
-                        oppdatertDeltaker.deltakelsesinnhold.ledetekst shouldBe endringRequest.deltakelsesinnhold.ledetekst
+                        // toInnholdModel mapper InnholdsElementRequest -> Innhold ved å slå opp
+                        // mot tiltakstypens innholdselementer. For "annet" blir det
+                        // Innhold("Annet", "annet", valgt = true, beskrivelse = request.beskrivelse).
+                        val forventetInnhold = endringRequest.innholdselementer.map {
+                            Innhold(tekst = "Annet", innholdskode = it.innholdskode, valgt = true, beskrivelse = it.beskrivelse)
+                        }
+                        oppdatertDeltaker.deltakelsesinnhold.shouldNotBeNull().innhold shouldBe forventetInnhold
+                        oppdatertDeltaker.deltakelsesinnhold.ledetekst shouldBe deltaker.deltakerliste.tiltak.innhold
+                            ?.ledetekst
                     }
 
                     is DeltakelsesmengdeRequest -> {

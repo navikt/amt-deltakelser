@@ -167,7 +167,7 @@ class AmtDeltakerClientTest {
                     requestBody = EndretInnholdRequest(
                         endretAv = "~endretAv~",
                         endretAvEnhet = "~endretAvEnhet~",
-                        deltakelsesinnhold = innhold,
+                        innholdselementer = emptyList(),
                     ),
                 )
             }

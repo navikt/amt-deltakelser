@@ -2,6 +2,7 @@ package no.nav.amt.internapi.deltaker.request
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 
 /*
     Endringsrequest er en dto for å kommunisere alle endringer som kan gjøres på en deltaker
@@ -12,7 +13,20 @@ sealed interface EndringRequest {
     val endretAv: String
     val endretAvEnhet: String
 
-    fun toEndring(): DeltakerEndring.Endring
+    /**
+     * Konverterer requesten til en [DeltakerEndring.Endring]. De fleste requests kan konverteres
+     * uten ekstra kontekst — overstyr denne.
+     */
+    fun toEndring(): DeltakerEndring.Endring = error(
+        "${this::class.simpleName} må kalles via toEndring(deltaker)",
+    )
+
+    /**
+     * Overload for requests som trenger data fra deltakerens tiltakstype (f.eks.
+     * [EndretInnholdRequest] som henter `ledetekst` fra tiltakstypens registreringsinnhold).
+     * Default delegerer til den parameterløse varianten.
+     */
+    fun toEndring(tiltak: Tiltakstype): DeltakerEndring.Endring = toEndring()
 
     fun kanIverksettesUtenAktivOppfolging() = when (this) {
         is BakgrunnsinformasjonRequest,

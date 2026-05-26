@@ -25,9 +25,9 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.sanitize
-import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.request.valider
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -91,7 +91,7 @@ fun Routing.registerKladdApi(
                     pamelding = Pamelding(
                         deltakelsesinnhold = Deltakelsesinnhold(
                             deltaker.deltakelsesinnhold?.ledetekst,
-                            request.innhold.toInnholdModel(deltaker),
+                            request.innhold.toInnholdModel(deltaker.deltakerliste.tiltak),
                         ),
                         bakgrunnsinformasjon = request.bakgrunnsinformasjon,
                         deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
