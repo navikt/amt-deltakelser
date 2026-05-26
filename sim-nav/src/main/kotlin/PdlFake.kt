@@ -14,11 +14,12 @@ private val pdlFakeData: PdlFakeData = loadPdlFakeData()
 private val pdlGraphql = createPdlGraphql(
     hentPersonDataFetcher = { environment ->
         val ident = environment.getArgument<String>("ident") ?: ""
-        pdlFakeData.findPerson(ident).toGraphqlPerson()
+        pdlFakeData.findPerson(ident)
     },
     hentIdenterDataFetcher = { environment ->
         val ident = environment.getArgument<String>("ident") ?: ""
-        val grupper = environment.getArgument<List<String>?>("grupper")
+        val grupper = environment.getArgument<List<Any?>?>("grupper")
+            ?.mapNotNull { it?.toString() }
         val historikk = environment.getArgument<Boolean?>("historikk")
 
         mapOf(
@@ -80,35 +81,15 @@ fun Route.pdlFakeRoutes() {
     }
 }
 
-private fun PdlPersonFixture.toGraphqlPerson(): Map<String, Any?> = mapOf(
-    "falskIdentitet" to mapOf("erFalsk" to erFalskIdentitet),
-    "navn" to listOf(
-        mapOf(
-            "fornavn" to fornavn,
-            "mellomnavn" to mellomnavn,
-            "etternavn" to etternavn,
-        ),
-    ),
-    "foedselsdato" to listOf(mapOf("foedselsaar" to foedselsaar)),
-    "telefonnummer" to telefonnummer,
-    "adressebeskyttelse" to listOf(mapOf("gradering" to adressebeskyttelse)),
-    "bostedsadresse" to bostedsadresse,
-    "oppholdsadresse" to oppholdsadresse,
-    "kontaktadresse" to kontaktadresse,
-)
-
 private fun PdlPersonFixture.filteredIdenter(
     grupper: List<String>?,
     historikk: Boolean?,
-): List<Map<String, Any?>> {
+): List<IdentInformasjonFixture> {
     val includeHistorical = historikk == true
 
     return identer.filter { identInfo ->
-        val gruppe = identInfo["gruppe"] as? String
-        val identIsHistorical = identInfo["historisk"] as? Boolean ?: false
-
-        val isRequestedGroup = grupper.isNullOrEmpty() || (gruppe != null && grupper.contains(gruppe))
-        val isRequestedHistoricalState = includeHistorical || !identIsHistorical
+        val isRequestedGroup = grupper.isNullOrEmpty() || grupper.contains(identInfo.gruppe)
+        val isRequestedHistoricalState = includeHistorical || !identInfo.historisk
 
         isRequestedGroup && isRequestedHistoricalState
     }
@@ -143,16 +124,79 @@ private data class PdlFakeData(
 }
 
 private data class PdlPersonFixture(
+    val falskIdentitet: FalskIdentitetFixture,
+    val navn: List<NavnFixture>,
+    val foedselsdato: List<FoedselsdatoFixture>,
+    val adressebeskyttelse: List<AdressebeskyttelseFixture>,
+    val identer: List<IdentInformasjonFixture>,
+    val telefonnummer: List<TelefonnummerFixture>,
+    val bostedsadresse: List<BostedsadresseFixture>,
+    val oppholdsadresse: List<OppholdsadresseFixture>,
+    val kontaktadresse: List<KontaktadresseFixture>,
+)
+
+private data class FalskIdentitetFixture(
+    val erFalsk: Boolean,
+)
+
+private data class NavnFixture(
     val fornavn: String,
     val mellomnavn: String?,
     val etternavn: String,
-    val foedselsaar: Int,
-    val erFalskIdentitet: Boolean,
-    val adressebeskyttelse: String,
-    val identer: List<Map<String, Any?>>,
-    val telefonnummer: List<Map<String, Any?>>,
-    val bostedsadresse: List<Map<String, Any?>>,
-    val oppholdsadresse: List<Map<String, Any?>>,
-    val kontaktadresse: List<Map<String, Any?>>,
 )
 
+private data class FoedselsdatoFixture(
+    val foedselsaar: Int,
+)
+
+private data class AdressebeskyttelseFixture(
+    val gradering: String,
+)
+
+private data class IdentInformasjonFixture(
+    val ident: String,
+    val historisk: Boolean,
+    val gruppe: String,
+)
+
+private data class TelefonnummerFixture(
+    val landskode: String,
+    val nummer: String,
+    val prioritet: Int,
+)
+
+private data class BostedsadresseFixture(
+    val coAdressenavn: String?,
+    val vegadresse: VegadresseFixture?,
+    val matrikkeladresse: MatrikkeladresseFixture?,
+)
+
+private data class OppholdsadresseFixture(
+    val coAdressenavn: String?,
+    val vegadresse: VegadresseFixture?,
+    val matrikkeladresse: MatrikkeladresseFixture?,
+)
+
+private data class KontaktadresseFixture(
+    val coAdressenavn: String?,
+    val vegadresse: VegadresseFixture?,
+    val postboksadresse: PostboksadresseFixture?,
+)
+
+private data class VegadresseFixture(
+    val husnummer: String?,
+    val husbokstav: String?,
+    val adressenavn: String?,
+    val tilleggsnavn: String?,
+    val postnummer: String?,
+)
+
+private data class MatrikkeladresseFixture(
+    val tilleggsnavn: String?,
+    val postnummer: String?,
+)
+
+private data class PostboksadresseFixture(
+    val postboks: String,
+    val postnummer: String?,
+)

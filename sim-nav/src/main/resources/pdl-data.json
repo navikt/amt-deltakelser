@@ -2,12 +2,26 @@
   "defaultIdent": "11111111111",
   "persons": {
 	"11111111111": {
-	  "fornavn": "Ola",
-	  "mellomnavn": null,
-	  "etternavn": "Nordmann",
-	  "foedselsaar": 1990,
-	  "erFalskIdentitet": false,
-	  "adressebeskyttelse": "UGRADERT",
+	  "falskIdentitet": {
+		"erFalsk": false
+	  },
+	  "navn": [
+		{
+		  "fornavn": "Ola",
+		  "mellomnavn": null,
+		  "etternavn": "Nordmann"
+		}
+	  ],
+	  "foedselsdato": [
+		{
+		  "foedselsaar": 1990
+		}
+	  ],
+	  "adressebeskyttelse": [
+		{
+		  "gradering": "UGRADERT"
+		}
+	  ],
 	  "identer": [
 		{
 		  "ident": "11111111111",
@@ -53,12 +67,26 @@
 	  ]
 	},
 	"22222222222": {
-	  "fornavn": "Kari",
-	  "mellomnavn": "Q",
-	  "etternavn": "Nordmann",
-	  "foedselsaar": 1985,
-	  "erFalskIdentitet": false,
-	  "adressebeskyttelse": "FORTROLIG",
+	  "falskIdentitet": {
+		"erFalsk": false
+	  },
+	  "navn": [
+		{
+		  "fornavn": "Kari",
+		  "mellomnavn": "Q",
+		  "etternavn": "Nordmann"
+		}
+	  ],
+	  "foedselsdato": [
+		{
+		  "foedselsaar": 1985
+		}
+	  ],
+	  "adressebeskyttelse": [
+		{
+		  "gradering": "FORTROLIG"
+		}
+	  ],
 	  "identer": [
 		{
 		  "ident": "22222222222",
