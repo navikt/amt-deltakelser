@@ -1,0 +1,186 @@
+# Hentet fra https://github.com/navikt/nom/blob/main/libs/graphql-by-staterepo/graphql-by-staterepo-core/src/main/resources/graphql/types.graphqls
+# commit #94571cc
+
+type OrgEnhet {
+    id: ID!
+    navn: String!
+    gyldigFom: Date!
+    gyldigTom: Date
+    remedyEnhetId: String
+    nomNivaa: NomNivaa
+    organiseringer (retning: Retning, utvalg: PeriodiskUtvalgArg = AKTIVE) : [Organisering!]!
+    leder: [OrgEnhetsLeder!]! @deprecated(reason: "leder er erstattet med ledere")  # Deprekert Nov.2025
+    ledere (utvalg: PeriodiskUtvalgArg = AKTIVE): [OrgEnhetsLeder!]!
+    orgEnhetsType: OrgEnhetsType
+    koblinger: [OrgEnhetsKobling!]! @deprecated(reason: "koblinger er erstattet med orgTilknytninger")  # Deprekert Nov.2025
+    orgTilknytninger (utvalg: PeriodiskUtvalgArg = AKTIVE): [OrgTilknytning!]!
+    agressoId: ID! @deprecated(reason: "agressoId er erstattet med agressoInfo.agressoId")  # Deprekert Nov.2025
+    orgNiv: String! @deprecated(reason: "orgNiv er erstattet med agressoInfo.agressoOrgNiv")  # Deprekert Nov.2025
+    agressoOrgenhetType: String @deprecated(reason: "agressoOrgenhetType er erstattet med agressoInfo.agressoOrgenhetType")  # Deprekert Nov.2025
+    agressoInfo: AgressoInfo
+}
+
+type Organisering {
+    retning: Retning!
+    orgEnhet : OrgEnhet!
+    gyldigFom: Date!
+    gyldigTom: Date
+}
+
+type Ressurs {
+    navIdent: String! @deprecated(reason: "navIdent er erstattet med navident")
+    navident: String!
+    personIdent: String! @deprecated(reason: "personIdent er erstattet med personident")
+    personident: String!
+    fornavn: String
+    etternavn: String
+    visningsNavn: String @deprecated(reason: "visningsNavn er erstattet med visningsnavn")
+    visningsnavn: String
+    epost: String
+    primaryTelefon: String
+    telefon: [Telefon]!
+    sektor: [Sektor!]! @deprecated(reason: "sektor er erstattet med gjeldendeSektor") # Deprekert Nov.2025
+    gjeldendeSektor: Sektor!
+    identType: IdentType!
+    startdato: Date
+    sluttdato: Date
+    ledere (utvalg: PeriodiskUtvalgArg = AKTIVE): [RessursLeder!]!
+    lederFor (utvalg: PeriodiskUtvalgArg = AKTIVE): [LederOrgEnhet!]!
+    orgTilknytning: [RessursOrgTilknytning!]! @deprecated(reason: "orgTilknytning er erstattet med orgTilknytninger") # Deprekert Nov.2025
+    orgTilknytninger (utvalg: PeriodiskUtvalgArg = AKTIVE): [RessursOrgTilknytning!]!
+    gjeldendeTilknytningtype: TilknytningType
+    primaryFysiskBrukersted: String
+}
+
+type RessursLeder {
+    erDagligOppfolging: Boolean
+    ressurs: Ressurs!
+    orgEnhet: OrgEnhet!
+    gyldigFom: Date!
+    gyldigTom: Date
+}
+
+type OrgEnhetsLeder {
+    ressurs: Ressurs!
+    gyldigFom: Date!
+    gyldigTom: Date
+}
+
+type LederOrgEnhet {
+    orgEnhet: OrgEnhet!
+    gyldigFom: Date!
+    gyldigTom: Date
+}
+
+type OrgEnhetsKobling { # Deprekeres
+    ressurs: Ressurs!
+    gyldigFom: Date!
+    gyldigTom: Date
+}
+
+type OrgTilknytning {
+    ressurs: Ressurs!
+    gyldigFom: Date!
+    gyldigTom: Date
+    erDagligOppfolging: Boolean
+    sektor: Sektor
+    tilknytningType: TilknytningType
+}
+
+type RessursOrgTilknytning {
+    orgEnhet: OrgEnhet!
+    gyldigFom: Date!
+    gyldigTom: Date
+    erDagligOppfolging: Boolean
+    sektor: Sektor
+    tilknytningType: TilknytningType
+}
+
+type AgressoInfo {
+    agressoId: ID
+    agressoOrgenhetType: String
+    agressoOrgNiv: String
+}
+
+enum Retning {
+    over,
+    under,
+}
+
+enum PeriodiskUtvalgArg {
+    ALLE,
+    AKTIVE,
+    HISTORISKE,
+    FREMTIDIGE
+}
+
+type Telefon {
+    nummer: String!
+    type: TelefonType!
+    beskrivelse: String
+}
+
+enum TelefonType {
+    NAV_TJENESTE_TELEFON,
+    NAV_KONTOR_TELEFON,
+    PRIVAT_TELEFON
+}
+
+enum Sektor {
+    NAV_STATLIG,
+    NAV_KOMMUNAL,
+    EKSTERN
+}
+
+enum NomNivaa {
+    LINJEENHET
+    DRIFTSENHET
+    ARBEIDSOMRAADE
+}
+
+enum OrgEnhetsType {
+    ARBEIDSLIVSSENTER
+    NAV_ARBEID_OG_YTELSER
+    ARBEIDSRAADGIVNING
+    DIREKTORAT
+    #    DIR - Hvis det skulle finnes DIR type på Enhet i NOM, konverteres denne til DIREKTORAT i GQL
+    FYLKE
+    NAV_FAMILIE_OG_PENSJONSYTELSER
+    HJELPEMIDLER_OG_TILRETTELEGGING
+    KLAGEINSTANS
+    NAV_KONTAKTSENTER
+    KONTROLL_KONTROLLENHET
+    NAV_KONTOR
+    TILTAK
+    NAV_OKONOMITJENESTE
+}
+
+enum TilknytningType {
+    ANNET,
+    ARBEIDSTRENING,
+    EKSTERN_SAMARBEIDSPARTNER,
+    FAST,
+    HELFO,
+    INGEN,
+    JOBBSPESIALIST,
+    KONSULENT,
+    LAERLING,
+    MIDLERTIDIG,
+    PENSJONIST,
+    PRAKSISARBEID,
+    RIKSREVISJONEN,
+    SKATTEETATEN,
+    STATSFORVALTEREN,
+    STUDENT,
+    UFORUTSETT_BEHOV,
+    UTDANNINGSSTILLINGER,
+    VIKAR
+}
+
+enum IdentType {
+    ROBOT,
+    STANDARD,
+    VIKAFOSSEN,
+    UTENLANDSK_KONSULENT,
+    UKJENT
+}

@@ -1,0 +1,163 @@
+# Hentet fra https://github.com/navikt/nom/blob/main/libs/graphql-by-staterepo/graphql-by-staterepo-core/src/main/resources/graphql/query.graphqls
+# commit #38e65ee
+
+scalar Date
+scalar DateTime
+scalar JSON
+
+type Query {
+    search(term: String!, ressursFilter: RessursSearchFilter, orgEnhetFilter: OrgEnhetSearchFilter): [SearchResult!]!
+    searchRessurs(term: String!, filter: RessursSearchFilter): [Ressurs!]!
+    searchOrgEnhet(term: String!, filter: OrgEnhetSearchFilter): [OrgEnhet!]!
+    organisasjonsenhet(where: OrgEnhetSearch!): OrgEnhet @deprecated(reason: "Bruk orgEnhet query med samme parametre")
+    orgEnhet(where: OrgEnhetSearch!): OrgEnhet
+    organisasjonsenheter(where: OrgEnheterSearch): [OrgEnhetResult!]! @deprecated(reason: "Bruk orgEnheter query med samme parametre")
+    orgEnheter(where: OrgEnheterSearch, filter: OrgEnheterSearchFilter): [OrgEnhetResult!]!
+    ressurs(where: RessursSearch!): Ressurs
+    ressurser(where: RessurserSearch, filter: RessurserSearchFilter): [RessursResult!]!
+}
+
+union SearchResult = Ressurs | OrgEnhet
+
+input RessursSearchFilter {
+    sektorSelection: SektorSelection! = ALLE
+    statusSelection: StatusSelection! = ALLE
+    limit: ResultLimit! = LIMIT_30
+}
+
+input OrgEnhetSearchFilter {
+    orgnivSelection: OrgnivSelection! = ALLE
+    gyldigTomSelection: GyldigTomSelection! = ALLE
+    limit: ResultLimit! = LIMIT_30
+}
+
+input OrgEnhetSearch {
+    id: String
+    agressoId: String
+    orgNiv: String  @deprecated(reason: "orgEnhetsKategori er erstattet med agressoOrgNiv")
+    agressoOrgNiv: String
+    navn: String
+}
+
+input OrgEnheterSearch {
+    ider: [String!]
+    agressoIder: [String!]
+    orgEnhetsKategori: [NomNivaa!] @deprecated(reason: "orgEnhetsKategori er erstattet med nomNivaa")
+    nomNivaa: [NomNivaa!] @deprecated(reason:"Benytt heller nomNivaa filter i OrgEnheterSearchFilter objektet")
+    orgNiv: String  @deprecated(reason: "orgNiv er erstattet med agressoOrgNiv")
+    agressoOrgNiv: String
+}
+
+input OrgEnheterSearchFilter {
+    lovnodeSelection: LovnodeSelection = ALLE
+    organiseringSelection: OrganiseringSelection = ALLE
+    organisertUnderOrgEnhetId: String
+    nomNivaaSelection: [NomNivaa!]
+    periodiskUtvalg: PeriodiskUtvalgArg = ALLE
+}
+
+input RessursSearch {
+    navIdent: String    @deprecated(reason: "navIdent er erstattet med navident")
+    navident: String
+    telefonNummer: String
+    personIdent: String     @deprecated(reason: "personIdent er erstattet med personident")
+    personident: String
+}
+
+input RessurserSearch {
+    navIdenter: [String!] @deprecated(reason: "navIdenter er erstattet med navidenter")
+    navidenter: [String!]
+    personIdenter: [String!] @deprecated(reason: "personIdenter er erstattet med personidenter")
+    personidenter: [String!]
+}
+
+input RessurserSearchFilter {
+    gjeldendeSektorSelection: SektorSelection = ALLE
+    identTypeSelection: IdentTypeSelection = ALLE
+    periodiskUtvalg: PeriodiskUtvalgArg = ALLE
+}
+
+type OrgEnhetResult {
+    code: ResultCode!
+    id: String  @deprecated(reason: "id er erstattet med agressoId")
+    agressoId: String
+    nomId: String
+    orgNiv: String  @deprecated(reason: "orgNiv er erstattet med agressoOrgNiv")
+    agressoOrgNiv: String
+    organisasjonsenhet: OrgEnhet    @deprecated(reason: "organisasjonsenhet er erstattet med orgEnhet")
+    orgEnhet: OrgEnhet
+}
+
+type RessursResult {
+    code: ResultCode!
+    id: String!
+    ressurs: Ressurs
+}
+
+enum ResultCode {
+    OK,
+    NOT_FOUND,
+    NOT_IN_FILTER,
+    ERROR
+}
+
+enum SektorSelection{
+    EKSTERN,
+    STATLIG,
+    KOMMUNAL,
+    IKKE_EKSTERN,
+    ALLE
+}
+
+enum IdentTypeSelection {
+    ROBOT,
+    STANDARD,
+    VIKAFOSSEN,
+    UTENLANDSK_KONSULENT,
+    UKJENT,
+    ALLE
+}
+
+enum StatusSelection{
+    AKTIV,
+    INAKTIV,
+    ALLE
+}
+
+enum GyldigTomSelection {
+    IKKE_PASSERT,
+    PASSERT,
+    ALLE
+}
+
+enum OrgnivSelection {
+    ORGNIV_ORGENHET,
+    IKKE_ORGNIV_ORGENHET,
+    ALLE
+}
+
+enum LovnodeSelection {
+    LOVNODE_ENHET,
+    IKKE_LOVNODE_ENHET,
+    ALLE
+}
+
+enum OrganiseringSelection {
+    UNDER_TOPPNODE_NAV,
+    UNDER_HELFO,
+    UNDER_SKATT,
+    UNDER_RIKSREVISJONEN,
+    UNDER_VIKAFOSSEN,
+    UNDER_ANGITT_ORGENHET,
+    ALLE
+}
+
+enum ResultLimit {
+    LIMIT_10,
+    LIMIT_20,
+    LIMIT_30,
+    LIMIT_50,
+    LIMIT_100,
+    LIMIT_200,
+    UNLIMITED,
+}
