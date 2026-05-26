@@ -1,5 +1,7 @@
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import graphql.ExecutionInput
 import io.ktor.http.*
 import io.ktor.server.routing.*
 
@@ -9,6 +11,23 @@ private const val PDL_DATA_PATH = "/pdl-data.json"
 
 private val pdlObjectMapper = jacksonObjectMapper()
 private val pdlFakeData: PdlFakeData = loadPdlFakeData()
+private val pdlGraphql = createPdlGraphql(
+    hentPersonDataFetcher = { environment ->
+        val ident = environment.getArgument<String>("ident") ?: ""
+        pdlFakeData.findPerson(ident).toGraphqlPerson()
+    },
+    hentIdenterDataFetcher = { environment ->
+        val ident = environment.getArgument<String>("ident") ?: ""
+        val grupper = environment.getArgument<List<String>?>("grupper")
+        val historikk = environment.getArgument<Boolean?>("historikk")
+
+        mapOf(
+            "identer" to pdlFakeData
+                .findPerson(ident)
+                .filteredIdenter(grupper = grupper, historikk = historikk),
+        )
+    },
+)
 
 fun Route.pdlFakeRoutes() {
     route(PDL_PATH_PREFIX) {
@@ -24,72 +43,44 @@ fun Route.pdlFakeRoutes() {
                     return@post
                 }
 
-            val query = request.path("query").asText("")
-            val ident = request.path("variables").path("ident").asText("")
-            val person = pdlFakeData.findPerson(ident)
-
-            val response = when (detectPdlOperation(query)) {
-                PdlOperation.HENT_PERSON -> graphqlData(
-                    mapOf(
-                        "hentPerson" to person.toHentPersonResponse(),
-                        "hentIdenter" to mapOf("identer" to person.identer),
-                    ),
-                )
-
-                PdlOperation.HENT_PERSON_FODSELSAAR -> graphqlData(
-                    mapOf(
-                        "hentPerson" to mapOf(
-                            "foedselsdato" to listOf(mapOf("foedselsaar" to person.foedselsaar)),
-                        ),
-                    ),
-                )
-
-                PdlOperation.HENT_ADRESSEBESKYTTELSE -> graphqlData(
-                    mapOf(
-                        "hentPerson" to mapOf(
-                            "adressebeskyttelse" to listOf(mapOf("gradering" to person.adressebeskyttelse)),
-                        ),
-                    ),
-                )
-
-                PdlOperation.HENT_TELEFON -> graphqlData(
-                    mapOf(
-                        "hentPerson" to mapOf("telefonnummer" to person.telefonnummer),
-                    ),
-                )
-
-                PdlOperation.HENT_IDENTER -> graphqlData(
-                    mapOf(
-                        "hentIdenter" to mapOf("identer" to person.identer),
-                    ),
-                )
-
-                PdlOperation.UNKNOWN -> graphqlError("Unsupported PDL query")
+            val query = request.path("query").asText("").trim()
+            if (query.isBlank()) {
+                respondJson(call, HttpStatusCode.BadRequest, graphqlError("Missing GraphQL query"))
+                return@post
             }
 
-            val status = if (response.contains("\"errors\"")) HttpStatusCode.BadRequest else HttpStatusCode.OK
+            val variablesNode = request.path("variables")
+            if (!variablesNode.isMissingNode && !variablesNode.isNull && !variablesNode.isObject) {
+                respondJson(call, HttpStatusCode.BadRequest, graphqlError("'variables' must be a JSON object"))
+                return@post
+            }
+
+            val variables: Map<String, Any?> = if (variablesNode.isObject) {
+                pdlObjectMapper.convertValue(variablesNode)
+            } else {
+                emptyMap()
+            }
+
+            val operationName = request.path("operationName")
+                .asText("")
+                .takeIf { it.isNotBlank() }
+
+            val executionInput = ExecutionInput.newExecutionInput()
+                .query(query)
+                .operationName(operationName)
+                .variables(variables)
+                .build()
+
+            val executionResult = pdlGraphql.execute(executionInput)
+            val response = pdlObjectMapper.writeValueAsString(executionResult.toSpecification())
+            val status = if (executionResult.errors.isEmpty()) HttpStatusCode.OK else HttpStatusCode.BadRequest
+
             respondJson(call, status, response)
         }
     }
 }
 
-private fun detectPdlOperation(query: String): PdlOperation {
-    val compact = query.replace("\n", " ")
-
-    return when {
-        compact.contains("hentPerson") && compact.contains("falskIdentitet") && compact.contains("hentIdenter") -> PdlOperation.HENT_PERSON
-        compact.contains("foedselsdato") -> PdlOperation.HENT_PERSON_FODSELSAAR
-        compact.contains("hentPerson") && compact.contains("adressebeskyttelse") && !compact.contains("telefonnummer") && !compact.contains(
-            "navn"
-        ) -> PdlOperation.HENT_ADRESSEBESKYTTELSE
-
-        compact.contains("hentPerson") && compact.contains("telefonnummer") && !compact.contains("hentIdenter") && !compact.contains("navn") -> PdlOperation.HENT_TELEFON
-        compact.contains("hentIdenter") && !compact.contains("hentPerson") -> PdlOperation.HENT_IDENTER
-        else -> PdlOperation.UNKNOWN
-    }
-}
-
-private fun PdlPersonFixture.toHentPersonResponse(): Map<String, Any?> = mapOf(
+private fun PdlPersonFixture.toGraphqlPerson(): Map<String, Any?> = mapOf(
     "falskIdentitet" to mapOf("erFalsk" to erFalskIdentitet),
     "navn" to listOf(
         mapOf(
@@ -98,6 +89,7 @@ private fun PdlPersonFixture.toHentPersonResponse(): Map<String, Any?> = mapOf(
             "etternavn" to etternavn,
         ),
     ),
+    "foedselsdato" to listOf(mapOf("foedselsaar" to foedselsaar)),
     "telefonnummer" to telefonnummer,
     "adressebeskyttelse" to listOf(mapOf("gradering" to adressebeskyttelse)),
     "bostedsadresse" to bostedsadresse,
@@ -105,7 +97,22 @@ private fun PdlPersonFixture.toHentPersonResponse(): Map<String, Any?> = mapOf(
     "kontaktadresse" to kontaktadresse,
 )
 
-private fun graphqlData(data: Any): String = pdlObjectMapper.writeValueAsString(mapOf("data" to data))
+private fun PdlPersonFixture.filteredIdenter(
+    grupper: List<String>?,
+    historikk: Boolean?,
+): List<Map<String, Any?>> {
+    val includeHistorical = historikk == true
+
+    return identer.filter { identInfo ->
+        val gruppe = identInfo["gruppe"] as? String
+        val identIsHistorical = identInfo["historisk"] as? Boolean ?: false
+
+        val isRequestedGroup = grupper.isNullOrEmpty() || (gruppe != null && grupper.contains(gruppe))
+        val isRequestedHistoricalState = includeHistorical || !identIsHistorical
+
+        isRequestedGroup && isRequestedHistoricalState
+    }
+}
 
 private fun graphqlError(message: String): String = pdlObjectMapper.writeValueAsString(
     mapOf(
@@ -125,14 +132,6 @@ private fun loadPdlFakeData(): PdlFakeData {
     return stream.use { pdlObjectMapper.readValue(it) }
 }
 
-private enum class PdlOperation {
-    HENT_PERSON,
-    HENT_PERSON_FODSELSAAR,
-    HENT_ADRESSEBESKYTTELSE,
-    HENT_TELEFON,
-    HENT_IDENTER,
-    UNKNOWN,
-}
 
 private data class PdlFakeData(
     val defaultIdent: String,

@@ -1,4 +1,5 @@
 import graphql.GraphQL
+import graphql.schema.DataFetcher
 import graphql.schema.GraphQLSchema
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
@@ -17,7 +18,26 @@ fun createPdlGraphql(): GraphQL {
     return GraphQL.newGraphQL(executableSchema).build()
 }
 
-fun createPdlExecutableSchema(): GraphQLSchema {
+fun createPdlGraphql(
+    hentPersonDataFetcher: DataFetcher<Any?>,
+    hentIdenterDataFetcher: DataFetcher<Any?>,
+): GraphQL {
+    val executableSchema = createPdlExecutableSchema(
+        hentPersonDataFetcher = hentPersonDataFetcher,
+        hentIdenterDataFetcher = hentIdenterDataFetcher,
+    )
+    return GraphQL.newGraphQL(executableSchema).build()
+}
+
+fun createPdlExecutableSchema(): GraphQLSchema = createPdlExecutableSchema(
+    hentPersonDataFetcher = DataFetcher { null },
+    hentIdenterDataFetcher = DataFetcher { null },
+)
+
+fun createPdlExecutableSchema(
+    hentPersonDataFetcher: DataFetcher<Any?>,
+    hentIdenterDataFetcher: DataFetcher<Any?>,
+): GraphQLSchema {
     val typeDefinitionRegistry = loadPdlTypeDefinitions()
 
     val runtimeWiring = RuntimeWiring.newRuntimeWiring()
@@ -26,8 +46,8 @@ fun createPdlExecutableSchema(): GraphQLSchema {
         .scalar(ExtendedScalars.GraphQLLong)
         .type("Query") { typeWiring ->
             typeWiring
-                .dataFetcher("hentPerson") { null }
-                .dataFetcher("hentIdenter") { null }
+                .dataFetcher("hentPerson", hentPersonDataFetcher)
+                .dataFetcher("hentIdenter", hentIdenterDataFetcher)
         }
         .build()
 
