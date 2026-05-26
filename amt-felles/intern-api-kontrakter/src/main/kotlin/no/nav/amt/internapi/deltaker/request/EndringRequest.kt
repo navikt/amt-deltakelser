@@ -15,11 +15,12 @@ sealed interface EndringRequest {
 
     /**
      * Konverterer requesten til en [DeltakerEndring.Endring]. De fleste requests kan konverteres
-     * uten ekstra kontekst — overstyr denne.
+     * uten ekstra kontekst og må implementere denne.
+     *
+     * Requests som trenger data fra deltakerens tiltakstype (f.eks. [EndretInnholdRequest])
+     * skal overstyre denne til å feile eksplisitt og i stedet implementere [toEndring].
      */
-    fun toEndring(): DeltakerEndring.Endring = error(
-        "${this::class.simpleName} må kalles via toEndring(deltaker)",
-    )
+    fun toEndring(): DeltakerEndring.Endring
 
     /**
      * Overload for requests som trenger data fra deltakerens tiltakstype (f.eks.

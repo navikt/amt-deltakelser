@@ -8,6 +8,10 @@ data class EndretInnholdRequest(
     override val endretAvEnhet: String,
     val innholdselementer: List<InnholdsElementRequest>,
 ) : EndringRequest {
+    override fun toEndring(): DeltakerEndring.Endring = error(
+        "${this::class.simpleName} må kalles via toEndring(tiltak) for å hente ledetekst fra tiltakstypen",
+    )
+
     override fun toEndring(tiltak: Tiltakstype) = DeltakerEndring.Endring.EndreInnhold(
         ledetekst = tiltak.innhold?.ledetekst,
         innhold = innholdselementer.toInnholdModel(tiltak),

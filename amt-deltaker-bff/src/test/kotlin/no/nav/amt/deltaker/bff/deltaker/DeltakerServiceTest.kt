@@ -220,10 +220,6 @@ class DeltakerServiceTest {
                 EndretInnholdRequest(
                     endretAv = "~endretAv~",
                     endretAvEnhet = navEnhet.enhetsnummer,
-                    // "annet" er det eneste innholdselementet som alltid finnes på tiltakstypen
-                    // (lagt til av getInnholdselementer i InnholdUtils). For andre koder må de
-                    // matche tiltakstype.innhold.innholdselementer, ellers filtreres de bort av
-                    // EndretInnholdRequest.toInnholdModel.
                     innholdselementer = listOf(InnholdsElementRequest("annet", "beskrivelse")),
                 ),
                 DeltakelsesmengdeRequest(
@@ -334,9 +330,6 @@ class DeltakerServiceTest {
                         oppdatertDeltaker.bakgrunnsinformasjon shouldBe endringRequest.bakgrunnsinformasjon
 
                     is EndretInnholdRequest -> {
-                        // toInnholdModel mapper InnholdsElementRequest -> Innhold ved å slå opp
-                        // mot tiltakstypens innholdselementer. For "annet" blir det
-                        // Innhold("Annet", "annet", valgt = true, beskrivelse = request.beskrivelse).
                         val forventetInnhold = endringRequest.innholdselementer.map {
                             Innhold(tekst = "Annet", innholdskode = it.innholdskode, valgt = true, beskrivelse = it.beskrivelse)
                         }

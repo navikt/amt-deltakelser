@@ -103,7 +103,7 @@ fun validerDeltakelsesmengde(
             ),
         ),
     ) {
-        "Deltakelsesmengdeendringen er ikke en reel endring"
+        "Deltakelsesmengdeendringen er ikke en reell endring"
     }
 }
 
@@ -116,7 +116,10 @@ fun validerNyDeltakelsesmengde(
 ): Boolean {
     val siste = deltakelsesmengde?.sisteDeltakelsesmengde ?: return true
 
-    return if (siste.dagerPerUke != nyDeltakelsesmengde.dagerPerUke || siste.deltakelsesprosent != nyDeltakelsesmengde.deltakelsesprosent) {
+    return if (
+        !(siste.dagerPerUke?.equals(nyDeltakelsesmengde.dagerPerUke) ?: (nyDeltakelsesmengde.dagerPerUke == null)) ||
+        siste.deltakelsesprosent != nyDeltakelsesmengde.deltakelsesprosent
+    ) {
         true
     } else {
         nyDeltakelsesmengde.gyldigFra < siste.gyldigFra
