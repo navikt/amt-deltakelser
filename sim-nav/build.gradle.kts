@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":amt-lib:models"))
     implementation(platform(libs.ktor.bom))
     implementation("com.graphql-java:graphql-java:22.4")
+    implementation("com.graphql-java:graphql-java-extended-scalars:22.0")
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.kafka.clients)
