@@ -16,6 +16,16 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.hasChanges(deltakelsemengder:
 fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(deltaker: Deltaker): VellykketEndring {
     val nyDeltakelsesmengde = this.toDeltakelsesmengde(LocalDateTime.now())
 
+    val startdato = deltaker.startdato
+    require(startdato == null || nyDeltakelsesmengde.gyldigFra >= startdato) {
+        "gyldigFra (${nyDeltakelsesmengde.gyldigFra}) kan ikke være før startdato ($startdato)"
+    }
+
+    val sluttdato = deltaker.sluttdato
+    require(sluttdato == null || nyDeltakelsesmengde.gyldigFra <= sluttdato) {
+        "gyldigFra (${nyDeltakelsesmengde.gyldigFra}) kan ikke være etter sluttdato ($sluttdato)"
+    }
+
     return if (nyDeltakelsesmengde.gyldigFra <= LocalDate.now()) {
         VellykketEndring(
             deltaker.copy(

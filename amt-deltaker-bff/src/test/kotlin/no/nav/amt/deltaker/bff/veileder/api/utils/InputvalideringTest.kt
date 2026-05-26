@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.input
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -354,5 +355,99 @@ class InputvalideringTest {
                 opprinneligDeltaker = deltaker,
             )
         }
+    }
+
+    @Test
+    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er lik startdato - kaster ikke exception`() {
+        val startdato = LocalDate.now().plusDays(5)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = startdato,
+            sluttdato = LocalDate.now().plusMonths(3),
+        )
+        val request = EndreDeltakelsesmengdeRequest(
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = startdato,
+            forslagId = null,
+        )
+
+        shouldNotThrow<IllegalArgumentException> { request.valider(deltaker) }
+    }
+
+    @Test
+    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er foer startdato, status VENTER_PA_OPPSTART - kaster exception`() {
+        val startdato = LocalDate.now().plusDays(10)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = startdato,
+            sluttdato = LocalDate.now().plusMonths(3),
+        )
+        val request = EndreDeltakelsesmengdeRequest(
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = startdato.minusDays(1),
+            forslagId = null,
+        )
+
+        shouldThrow<IllegalArgumentException> { request.valider(deltaker) }
+    }
+
+    @Test
+    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er foer startdato, status DELTAR - kaster exception`() {
+        val startdato = LocalDate.now().minusMonths(1)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = startdato,
+            sluttdato = LocalDate.now().plusMonths(3),
+        )
+        val request = EndreDeltakelsesmengdeRequest(
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = startdato.minusDays(1),
+            forslagId = null,
+        )
+
+        shouldThrow<IllegalArgumentException> { request.valider(deltaker) }
+    }
+
+    @Test
+    fun `EndreDeltakelsesmengdeRequest valider - startdato null - validerer ikke gyldigFra mot startdato`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = null,
+            sluttdato = null,
+        )
+        val request = EndreDeltakelsesmengdeRequest(
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = LocalDate.now().minusMonths(2),
+            forslagId = null,
+        )
+
+        shouldNotThrow<IllegalArgumentException> { request.valider(deltaker) }
+    }
+
+    @Test
+    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra etter sluttdato - kaster exception`() {
+        val sluttdato = LocalDate.now().plusMonths(1)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = sluttdato,
+        )
+        val request = EndreDeltakelsesmengdeRequest(
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = sluttdato.plusDays(1),
+            forslagId = null,
+        )
+
+        shouldThrow<IllegalArgumentException> { request.valider(deltaker) }
     }
 }

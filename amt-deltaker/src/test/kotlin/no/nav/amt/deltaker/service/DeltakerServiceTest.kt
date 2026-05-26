@@ -856,8 +856,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `upsertEndretDeltaker - endret deltakelsesmengde - upserter endring`() = runTest {
             // Arrange
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData
-                .lagDeltaker()
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                startdato = LocalDate.now().minusMonths(3),
+                sluttdato = LocalDate.now().plusMonths(3),
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
                 deltakerId = deltaker.id,
                 opprettetAv = navAnsattInTest,

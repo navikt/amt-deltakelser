@@ -193,6 +193,79 @@ class DeltakelsesmengderPeriodeTest {
     }
 
     @Test
+    fun `DeltakelsesmengderPeriode - initialDeltakelsesmengde gyldigFra tidligere enn startdato - justeres til startdato`() {
+        // Reproduserer produksjonsproblemet: mengde opprettet uten startdato (gyldigFra = opprettelsesdato),
+        // startdato settes til en FREMTIDIG dato men uten tilhørende EndreStartdato i historikk.
+        // periode(startdato, sluttdato) skal aldri returnere mengde med gyldigFra < startdato.
+        val vedtakGyldigFra = "2024-01-01".toDate()
+        val startdato = "2024-01-10".toDate()
+
+        val vedtak = TestData.lagVedtak(fattet = vedtakGyldigFra.atStartOfDay())
+
+        // Ingen EndreStartdato/LeggTilOppstartsdato i historikk – toDeltakelsesmengder justerer ikke gyldigFra
+        val historikk = TestData.lagDeltakerHistorikk(listOf(vedtak))
+        val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(startdato, null)
+
+        // gyldigFra må ALDRI være før startdato
+        deltakelsesmengder.all { it.gyldigFra >= startdato } shouldBe true
+        deltakelsesmengder.first().gyldigFra shouldBe startdato
+    }
+
+    @Test
+    fun `DeltakelsesmengderPeriode - sluttdato endres, fremtidig mengde etter ny sluttdato ekskluderes`() {
+        // Docs-scenario 03.01.2025: Sluttdato endres til 15.01
+        // Fremtidig mengde gyldigFra 01.02 skal ikke lenger vises
+        val startdato = "2024-12-10".toDate()
+        val nySluttdato = "2025-01-15".toDate()
+
+        val vedtak = TestData.lagVedtak(fattet = startdato.atStartOfDay())
+        val fremtidigMengde = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            dagerPerUke = null,
+            gyldigFra = "2025-02-01".toDate(),
+            opprettet = "2025-01-02".toDateTime(),
+        )
+        val historikk = TestData.lagDeltakerHistorikk(
+            vedtak = listOf(vedtak),
+            endringerFraArrangor = listOf(TestData.lagLeggTilOppstartsdato(startdato, opprettet = startdato.atStartOfDay())),
+            endringer = listOf(fremtidigMengde),
+        )
+
+        val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(startdato, nySluttdato)
+
+        // Fremtidig mengde (01.02) er etter ny sluttdato (15.01) – skal ikke inkluderes
+        deltakelsesmengder.none { it.gyldigFra > nySluttdato } shouldBe true
+        deltakelsesmengder.size shouldBe 1
+        deltakelsesmengder.first().gyldigFra shouldBe startdato
+    }
+
+    @Test
+    fun `DeltakelsesmengderPeriode - sluttdato forlenges, fremtidig mengde innenfor ny sluttdato inkluderes igjen`() {
+        // Docs-scenario 05.01.2025: Sluttdato endres til 31.03 – mengde 01.02 blir gyldig igjen
+        val startdato = "2024-12-10".toDate()
+        val nySluttdato = "2025-03-31".toDate()
+
+        val vedtak = TestData.lagVedtak(fattet = startdato.atStartOfDay())
+        val fremtidigMengde = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            dagerPerUke = null,
+            gyldigFra = "2025-02-01".toDate(),
+            opprettet = "2025-01-02".toDateTime(),
+        )
+        val historikk = TestData.lagDeltakerHistorikk(
+            vedtak = listOf(vedtak),
+            endringerFraArrangor = listOf(TestData.lagLeggTilOppstartsdato(startdato, opprettet = startdato.atStartOfDay())),
+            endringer = listOf(fremtidigMengde),
+        )
+
+        val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(startdato, nySluttdato)
+
+        // Fremtidig mengde (01.02) er etter startdato og FØR ny sluttdato (31.03) – skal inkluderes
+        deltakelsesmengder.size shouldBe 2
+        deltakelsesmengder.last().gyldigFra shouldBe "2025-02-01".toDate()
+    }
+
+    @Test
     fun `DeltakelsesmengderPeriode - flere endringer med samme gyldigFra - returnerer riktig deltakelsesmengde`() {
         val fraDato = "2024-01-01".toDate()
         val tilDato = "2024-01-31".toDate()

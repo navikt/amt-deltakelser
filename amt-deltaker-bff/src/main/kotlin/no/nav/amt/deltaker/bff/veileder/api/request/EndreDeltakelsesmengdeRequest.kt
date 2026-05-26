@@ -7,7 +7,6 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.validerDagerPerUke
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesProsent
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesmengde
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDate
 import java.util.UUID
 
@@ -28,8 +27,8 @@ data class EndreDeltakelsesmengdeRequest(
             }
         }
 
-        if (deltaker.status.type != DeltakerStatus.Type.VENTER_PA_OPPSTART && deltaker.startdato != null) {
-            require(!gyldigFra.isBefore(deltaker.startdato)) {
+        deltaker.startdato?.let {
+            require(!gyldigFra.isBefore(it)) {
                 "Deltakelsesmengde kan ikke endres før deltaker sin startdato"
             }
         }

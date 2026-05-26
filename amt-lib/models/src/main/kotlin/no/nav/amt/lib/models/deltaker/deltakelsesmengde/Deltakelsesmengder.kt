@@ -125,10 +125,17 @@ class Deltakelsesmengder(
         fraOgMed: LocalDate,
         tilOgMed: LocalDate?,
     ): List<Deltakelsesmengde> {
-        val initialDeltakelsesmengde =
+        // Finn den originale initialmengden (kan ha gyldigFra < fraOgMed)
+        val originalInitial =
             deltakelsesmengder
                 .filter { it.gyldigFra <= fraOgMed }
                 .maxByOrNull { it.gyldigFra }
+
+        // Juster gyldigFra til fraOgMed slik at den aldri er før startdato i det returnerte resultatet.
+        // Dette håndterer tilfeller der mengden ble opprettet uten startdato (f.eks. gyldigFra = i dag)
+        // og startdato senere ble satt til en fremtidig dato uten at historikk-folden justerte gyldigFra.
+        val initialDeltakelsesmengde = originalInitial
+            ?.let { if (it.gyldigFra < fraOgMed) it.copy(gyldigFra = fraOgMed) else it }
 
         val endringerIPerioden =
             deltakelsesmengder
@@ -140,7 +147,7 @@ class Deltakelsesmengder(
                             it.gyldigFra in fraOgMed..tilOgMed
                         }
 
-                    it != initialDeltakelsesmengde && mengdeErIPerioden
+                    it !== originalInitial && mengdeErIPerioden
                 }
 
         return listOfNotNull(initialDeltakelsesmengde) + endringerIPerioden
