@@ -1,11 +1,11 @@
 package pdl
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.response.respondText
 import respondGraphqlFake
+import shared.loadJsonResource
 
 const val PDL_PATH_PREFIX = "/pdl"
 
@@ -60,9 +60,7 @@ private fun PdlPersonFixture.filteredIdenter(
 
 
 private fun loadPdlFakeData(): PdlFakeData {
-    val stream = object {}.javaClass.getResourceAsStream(PDL_DATA_PATH)
-        ?: throw IllegalStateException("Missing resource: $PDL_DATA_PATH")
-    return stream.use { pdlObjectMapper.readValue(it) }
+    return loadJsonResource(pdlObjectMapper, PDL_DATA_PATH)
 }
 
 

@@ -1,11 +1,11 @@
 package nom
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.response.respondText
 import respondGraphqlFake
+import shared.loadJsonResource
 
 const val NOM_PATH_PREFIX = "/nom"
 
@@ -63,9 +63,7 @@ private fun NomFakeData.toRessurserResult(navidenter: List<String>): List<Any?> 
 
 
 private fun loadNomFakeData(): NomFakeData {
-    val stream = object {}.javaClass.getResourceAsStream(NOM_DATA_PATH)
-        ?: throw IllegalStateException("Missing resource: $NOM_DATA_PATH")
-    return stream.use { nomObjectMapper.readValue(it) }
+    return loadJsonResource(nomObjectMapper, NOM_DATA_PATH)
 }
 
 private data class NomFakeData(

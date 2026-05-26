@@ -1,11 +1,11 @@
 package aooppfolgingskontor
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.response.respondText
 import respondGraphqlFake
+import shared.loadJsonResource
 
 const val AO_OPPFOLGINGSKONTOR_PATH_PREFIX = "/ao-oppfolgingskontor"
 
@@ -33,9 +33,7 @@ fun Route.aoOppfolgingskontorFakeRoutes() {
 }
 
 private fun loadAoOppfolgingskontorFakeData(): AoOppfolgingskontorFakeData {
-    val stream = object {}.javaClass.getResourceAsStream(AO_OPPFOLGINGSKONTOR_DATA_PATH)
-        ?: throw IllegalStateException("Missing resource: $AO_OPPFOLGINGSKONTOR_DATA_PATH")
-    return stream.use { aoOppfolgingskontorObjectMapper.readValue(it) }
+    return loadJsonResource(aoOppfolgingskontorObjectMapper, AO_OPPFOLGINGSKONTOR_DATA_PATH)
 }
 
 private data class AoOppfolgingskontorFakeData(
