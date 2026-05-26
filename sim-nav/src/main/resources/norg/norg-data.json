@@ -1,0 +1,17 @@
+{
+  "enheter": {
+    "1234": {
+      "navn": "NAV Testheim",
+      "enhetNr": "1234"
+    },
+    "5678": {
+      "navn": "NAV Annet",
+      "enhetNr": "5678"
+    },
+    "0315": {
+      "navn": "NAV Oslo",
+      "enhetNr": "0315"
+    }
+  }
+}
+

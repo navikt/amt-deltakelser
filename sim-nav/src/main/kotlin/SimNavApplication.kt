@@ -10,6 +10,7 @@ fun Application.simNavModule(kafkaPublisher: KafkaPublisher) {
         poaoTilgangFakeRoutes()
         veilarboppfolgingFakeRoutes()
         bronnoysundFakeRoutes()
+        norgFakeRoutes()
         pdlFakeRoutes()
         nomFakeRoutes()
         kafkaFakeRoutes(kafkaPublisher)

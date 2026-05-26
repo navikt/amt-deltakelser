@@ -31,6 +31,7 @@ fun main() {
     println("Set UNLEASH_SERVER_API_URL=http://localhost:$SIM_NAV_HTTP_PORT$UNLEASH_PATH_PREFIX/api and UNLEASH_SERVER_API_TOKEN=dummy")
     println("Set POAO_TILGANG_URL=http://localhost:$SIM_NAV_HTTP_PORT$POAO_TILGANG_PATH_PREFIX")
     println("Set app.env.brreg-url=http://localhost:$SIM_NAV_HTTP_PORT$BRONNOYSUND_PATH_PREFIX")
+    println("Set NORG_URL=http://localhost:$SIM_NAV_HTTP_PORT$NORG_PATH_PREFIX")
     println("Set PDL_URL=http://localhost:$SIM_NAV_HTTP_PORT${PDL_PATH_PREFIX}")
     println("Set NOM_URL=http://localhost:$SIM_NAV_HTTP_PORT${NOM_PATH_PREFIX}")
     println("Set veilarboppfolging.url=http://localhost:$SIM_NAV_HTTP_PORT")
