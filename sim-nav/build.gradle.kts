@@ -21,6 +21,7 @@ repositories {
 dependencies {
     implementation(project(":amt-lib:models"))
     implementation(platform(libs.ktor.bom))
+    implementation("com.graphql-java:graphql-java:22.4")
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.kafka.clients)
@@ -46,3 +47,4 @@ application {
 tasks.test {
     useJUnitPlatform()
 }
+
