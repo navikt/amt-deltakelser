@@ -5,7 +5,7 @@ import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 
-// Hører egentlig hjemme i amt-deltaker men flyttes til lib
+// Hører egentlig hjemme i amt-deltaker men flyttes til lib fordi modellen brukes midlertidig også i bff
 fun List<InnholdsElementRequest>.toInnholdModel(tiltak: Tiltakstype) = this.mapNotNull { valgtInnholdElement ->
     val tiltaksinnhold = getInnholdselementer(
         innholdselementer = tiltak.innhold
