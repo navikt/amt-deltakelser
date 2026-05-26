@@ -1,13 +1,11 @@
 package pdl
 
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import graphql.ExecutionInput
 import io.ktor.http.*
 import io.ktor.server.routing.*
-import readRequestBody
-import respondJson
+import io.ktor.server.response.respondText
+import respondGraphqlFake
 
 const val PDL_PATH_PREFIX = "/pdl"
 
@@ -37,50 +35,11 @@ private val pdlGraphql = createPdlGraphql(
 fun Route.pdlFakeRoutes() {
     route(PDL_PATH_PREFIX) {
         get {
-            respondJson(call, HttpStatusCode.OK, "{\"status\":\"ok\"}")
+            call.respondText(text = "{\"status\":\"ok\"}", contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
         }
 
         post("graphql") {
-            val body = readRequestBody(call)
-            val request = runCatching { pdlObjectMapper.readTree(body) }
-                .getOrElse {
-                    respondJson(call, HttpStatusCode.BadRequest, graphqlError("Invalid JSON payload"))
-                    return@post
-                }
-
-            val query = request.path("query").asText("").trim()
-            if (query.isBlank()) {
-                respondJson(call, HttpStatusCode.BadRequest, graphqlError("Missing GraphQL query"))
-                return@post
-            }
-
-            val variablesNode = request.path("variables")
-            if (!variablesNode.isMissingNode && !variablesNode.isNull && !variablesNode.isObject) {
-                respondJson(call, HttpStatusCode.BadRequest, graphqlError("'variables' must be a JSON object"))
-                return@post
-            }
-
-            val variables: Map<String, Any?> = if (variablesNode.isObject) {
-                pdlObjectMapper.convertValue(variablesNode)
-            } else {
-                emptyMap()
-            }
-
-            val operationName = request.path("operationName")
-                .asText("")
-                .takeIf { it.isNotBlank() }
-
-            val executionInput = ExecutionInput.newExecutionInput()
-                .query(query)
-                .operationName(operationName)
-                .variables(variables)
-                .build()
-
-            val executionResult = pdlGraphql.execute(executionInput)
-            val response = pdlObjectMapper.writeValueAsString(executionResult.toSpecification())
-            val status = if (executionResult.errors.isEmpty()) HttpStatusCode.OK else HttpStatusCode.BadRequest
-
-            respondJson(call, status, response)
+            respondGraphqlFake(call, pdlObjectMapper, pdlGraphql)
         }
     }
 }
@@ -99,17 +58,6 @@ private fun PdlPersonFixture.filteredIdenter(
     }
 }
 
-private fun graphqlError(message: String): String = pdlObjectMapper.writeValueAsString(
-    mapOf(
-        "errors" to listOf(
-            mapOf(
-                "message" to message,
-                "extensions" to mapOf("code" to "BAD_REQUEST"),
-            ),
-        ),
-        "data" to null,
-    ),
-)
 
 private fun loadPdlFakeData(): PdlFakeData {
     val stream = object {}.javaClass.getResourceAsStream(PDL_DATA_PATH)
