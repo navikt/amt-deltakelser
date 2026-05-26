@@ -37,9 +37,11 @@ class DeltakerlisteRepository {
             session
                 .run(
                     queryOf(
-                        deltakereCountSql(request),
-                        mapOf("deltakerliste_id" to request.gjennomforingId)
-                            .plus(statusFilterParams(request)),
+                        DELTAKERE_COUNT_SQL,
+                        mapOf(
+                            "deltakerliste_id" to request.gjennomforingId,
+                            "statuser" to request.statuser.map { it.name }.toTypedArray(),
+                        ),
                     ).map { row ->
                         CountPerStatusRow(
                             status = DeltakerStatus.Type.valueOf(row.string("type")),
@@ -185,50 +187,44 @@ class DeltakerlisteRepository {
             val harAktivtForslagCount: Int,
         )
 
-        private fun statusFilterSql(request: TiltaksKoordinatorDeltakerlisteRequest) = request.statuser
-            .takeIf { it.isNotEmpty() }
-            ?.let { " AND ds.type = ANY(:statuser)" }
-            ?: ""
-
-        private fun statusFilterParams(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.statuser.isNotEmpty()) {
-            mapOf("statuser" to request.statuser.map { it.name }.toTypedArray())
-        } else {
-            emptyMap<String, Any>()
-        }
-
-        private fun deltakereCountSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
+        private val DELTAKERE_COUNT_SQL =
             """
+            WITH d AS (
+                SELECT id
+                FROM deltaker
+                WHERE deltakerliste_id = :deltakerliste_id
+            ),
+            uh_flags AS (
+                SELECT
+                    deltaker_id,
+                    BOOL_OR(hendelse->>'type' IN ('InnbyggerGodkjennUtkast', 'NavGodkjennUtkast')) AS er_ny_deltaker,
+                    BOOL_OR(hendelse->>'type' IN ('IkkeAktuell', 'AvsluttDeltakelse', 'AvbrytDeltakelse', 'ReaktiverDeltakelse')) AS har_oppdatering_fra_nav
+                FROM 
+                    ulest_hendelse AS uh
+                    JOIN d ON d.id = uh.deltaker_id
+                GROUP BY deltaker_id
+            )
+            
             SELECT
                 ds.type,
                 COUNT(*) AS count,
-                COUNT(*) FILTER (WHERE uh_flags.er_ny_deltaker) AS er_ny_deltaker_count,
-                COUNT(*) FILTER (WHERE uh_flags.har_oppdatering_fra_nav) AS har_oppdatering_fra_nav_count,
-                COUNT(*) FILTER (WHERE af.har_aktivt) AS har_aktivt_forslag_count
-            FROM
-                deltaker d
-                JOIN nav_bruker nb ON d.person_id = nb.person_id
-                JOIN deltaker_status ds ON
-                    d.id = ds.deltaker_id
-                    ${statusFilterSql(request)}
-                LEFT JOIN (
-                    SELECT
-                        deltaker_id,
-                        BOOL_OR(hendelse->>'type' IN ('InnbyggerGodkjennUtkast', 'NavGodkjennUtkast')) AS er_ny_deltaker,
-                        BOOL_OR(hendelse->>'type' IN ('IkkeAktuell', 'AvsluttDeltakelse', 'AvbrytDeltakelse', 'ReaktiverDeltakelse')) AS har_oppdatering_fra_nav
-                    FROM ulest_hendelse
-                    GROUP BY deltaker_id
-                ) uh_flags ON uh_flags.deltaker_id = d.id
+                COUNT(*) FILTER (WHERE uh.er_ny_deltaker)         AS er_ny_deltaker_count,
+                COUNT(*) FILTER (WHERE uh.har_oppdatering_fra_nav) AS har_oppdatering_fra_nav_count,
+                COUNT(*) FILTER (WHERE af.har_aktivt)             AS har_aktivt_forslag_count
+            FROM 
+                d
+                JOIN deltaker_status ds
+                    ON ds.deltaker_id = d.id
+                    AND ds.type = ANY(:statuser)
+                LEFT JOIN uh_flags uh ON uh.deltaker_id = d.id
                 LEFT JOIN LATERAL (
                     SELECT true AS har_aktivt
                     FROM forslag f
-                    WHERE
-                        f.deltaker_id = d.id
-                        AND f.status->>'type' = 'VenterPaSvar'
+                    WHERE f.deltaker_id = d.id
+                    AND f.status->>'type' = 'VenterPaSvar'
                     LIMIT 1
                 ) af ON true
-            WHERE 
-                d.deltakerliste_id = :deltakerliste_id
-            GROUP BY ds.type
+            GROUP BY ds.type;                
             """.trimIndent()
 
         private val col = prefixColumn("dl")
