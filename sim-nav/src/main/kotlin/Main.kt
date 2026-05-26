@@ -1,5 +1,6 @@
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import nom.NOM_PATH_PREFIX
 import pdl.PDL_PATH_PREFIX
 import java.util.concurrent.CountDownLatch
 
@@ -31,6 +32,7 @@ fun main() {
     println("Set POAO_TILGANG_URL=http://localhost:$SIM_NAV_HTTP_PORT$POAO_TILGANG_PATH_PREFIX")
     println("Set app.env.brreg-url=http://localhost:$SIM_NAV_HTTP_PORT$BRONNOYSUND_PATH_PREFIX")
     println("Set PDL_URL=http://localhost:$SIM_NAV_HTTP_PORT${PDL_PATH_PREFIX}")
+    println("Set NOM_URL=http://localhost:$SIM_NAV_HTTP_PORT${NOM_PATH_PREFIX}")
     println("Set veilarboppfolging.url=http://localhost:$SIM_NAV_HTTP_PORT")
     println("Set AZURE_OPENID_CONFIG_ISSUER=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID")
     println("Set AZURE_OPENID_CONFIG_JWKS_URI=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/jwks")
