@@ -1,6 +1,5 @@
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
@@ -12,9 +11,6 @@ private val personidentRegex = Regex("\"(\\d{11})\"")
 fun Route.poaoTilgangFakeRoutes() {
     route(POAO_TILGANG_PATH_PREFIX) {
 
-        get("api") {
-            respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")
-        }
 
         post("api/v1/policy/evaluate") {
             val body = readRequestBody(call)
