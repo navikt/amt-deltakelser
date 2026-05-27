@@ -20,7 +20,7 @@ fun startMockOAuth2Server(): MockOAuth2Server {
                     "sub" to "11111111-1111-1111-1111-111111111111",
                     "azp" to "amt-deltaker-bff",
                     "groups" to emptyList<String>(),
-                    "aud" to listOf("amt-deltaker", "amt-arrangor"),
+                    "aud" to listOf("amt-deltaker", "amt-arrangor", "amt-person-service"),
                 ),
             ),
             RequestMapping(
