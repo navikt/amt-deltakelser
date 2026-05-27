@@ -9,14 +9,15 @@ import java.util.concurrent.CountDownLatch
 private const val SIM_NAV_HTTP_PORT = 9002
 
 fun main() {
-    val kafkaPublisher = KafkaPublisher()
+    val bronnoysundSimulator = BronnoysundSimulator()
+    val kafkaPublisher = KafkaPublisher(bronnoysundSimulator)
     val mockOAuth2Server = startMockOAuth2Server()
 
     val simNavHttpServer = embeddedServer(
         factory = Netty,
         port = SIM_NAV_HTTP_PORT,
         module = {
-            simNavModule(kafkaPublisher)
+            simNavModule(kafkaPublisher, bronnoysundSimulator)
         },
     ).start(wait = false)
 

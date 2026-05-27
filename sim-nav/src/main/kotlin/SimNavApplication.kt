@@ -7,13 +7,13 @@ import kafka.kafkaFakeRoutes
 import nom.nomFakeRoutes
 import pdl.pdlFakeRoutes
 
-fun Application.simNavModule(kafkaPublisher: KafkaPublisher) {
+fun Application.simNavModule(kafkaPublisher: KafkaPublisher, bronnoysundSimulator: BronnoysundSimulator) {
     routing {
         unleashFakeRoutes()
         poaoTilgangFakeRoutes()
         veilarboppfolgingFakeRoutes()
         veilarbvedtaksstotteFakeRoutes()
-        bronnoysundFakeRoutes()
+        bronnoysundFakeRoutes(bronnoysundSimulator)
         norgFakeRoutes()
         aoOppfolgingskontorFakeRoutes()
         pdlFakeRoutes()

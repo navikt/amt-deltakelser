@@ -1,5 +1,6 @@
 package kafka
 
+import BronnoysundSimulator
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -23,11 +24,9 @@ import java.util.*
 private const val DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
 private const val DEFAULT_GJENNOMFORING_ENKELTPLASS_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2"
 private const val DEFAULT_TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v3"
-private const val BRONNOYSUND_DATA_PATH = "/bronnoysund-data.json"
-
-private val DEFAULT_ARRANGOR_ORGNR: String = loadDefaultArrangorOrgnr()
 
 class KafkaPublisher(
+    private val bronnoysundSimulator: BronnoysundSimulator,
     bootstrapServers: String = getenvOrProperty("KAFKA_BOOTSTRAP_SERVERS", DEFAULT_BOOTSTRAP_SERVERS),
     private val gjennomforingEnkeltplassTopic: String = getenvOrProperty(
         "KAFKA_GJENNOMFORING_ENKELTPLASS_TOPIC",
@@ -62,7 +61,7 @@ class KafkaPublisher(
             opprettetTidspunkt = now,
             oppdatertTidspunkt = now,
             tiltakskode = Tiltakskode.entries.first(),
-            arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = DEFAULT_ARRANGOR_ORGNR),
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = bronnoysundSimulator.firstOrganisasjonsnummer()),
             pameldingType = GjennomforingPameldingType.entries.first(),
             status = GjennomforingStatusType.entries.first(),
             oppstart = Oppstartstype.entries.first(),
@@ -102,22 +101,4 @@ private fun getenvOrProperty(name: String, defaultValue: String): String {
     return System.getenv(name) ?: System.getProperty(name) ?: defaultValue
 }
 
-private fun loadDefaultArrangorOrgnr(): String {
-    val stream = object {}.javaClass.getResourceAsStream(BRONNOYSUND_DATA_PATH)
-        ?: throw IllegalStateException("Missing resource: $BRONNOYSUND_DATA_PATH")
-
-    return stream.use {
-        val root = jacksonObjectMapper().readTree(it)
-        val enheter = root.path("enheter")
-        val organisasjonsnummer = enheter.takeIf { it.isArray && it.size() > 0 }
-            ?.get(0)
-            ?.path("organisasjonsnummer")
-            ?.asText()
-            ?.takeIf { it.isNotBlank() }
-
-        organisasjonsnummer ?: throw IllegalStateException(
-            "Missing first enheter.organisasjonsnummer in resource: $BRONNOYSUND_DATA_PATH",
-        )
-    }
-}
 
