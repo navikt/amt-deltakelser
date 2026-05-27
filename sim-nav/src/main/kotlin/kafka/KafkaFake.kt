@@ -1,5 +1,6 @@
 package kafka
 
+import BronnoysundSimulator
 import io.ktor.http.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
@@ -17,6 +18,7 @@ private const val KAFKA_PAGE_PATH = "/kafka"
 
 fun Route.kafkaFakeRoutes(
     kafkaPublisher: KafkaPublisher,
+    bronnoysundSimulator: BronnoysundSimulator,
 ) {
     get(KAFKA_PAGE_PATH) {
         call.respondHtml(HttpStatusCode.OK) {
@@ -27,6 +29,7 @@ fun Route.kafkaFakeRoutes(
                 tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
                 gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
                 tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
+                arrangorOptions = bronnoysundSimulator.allEnheter(),
             )
         }
     }
@@ -44,6 +47,7 @@ fun Route.kafkaFakeRoutes(
                         tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
                         gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
                         tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
+                        arrangorOptions = bronnoysundSimulator.allEnheter(),
                     )
                 }
             } catch (exception: Exception) {
@@ -55,6 +59,7 @@ fun Route.kafkaFakeRoutes(
                         tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
                         gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
                         tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
+                        arrangorOptions = bronnoysundSimulator.allEnheter(),
                     )
                 }
             }
@@ -74,6 +79,7 @@ fun Route.kafkaFakeRoutes(
                         tiltakstypeDefaults = payload,
                         gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
                         tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
+                        arrangorOptions = bronnoysundSimulator.allEnheter(),
                     )
                 }
             } catch (exception: Exception) {
@@ -85,6 +91,7 @@ fun Route.kafkaFakeRoutes(
                         tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
                         gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
                         tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
+                        arrangorOptions = bronnoysundSimulator.allEnheter(),
                     )
                 }
             }

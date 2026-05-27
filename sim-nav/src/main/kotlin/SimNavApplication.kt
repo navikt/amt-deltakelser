@@ -19,7 +19,7 @@ fun Application.simNavModule(kafkaPublisher: KafkaPublisher, bronnoysundSimulato
         pdlFakeRoutes()
         nomFakeRoutes()
         krrProxyFakeRoutes()
-        kafkaFakeRoutes(kafkaPublisher)
+        kafkaFakeRoutes(kafkaPublisher, bronnoysundSimulator)
 
         // Keep previous behavior for unknown paths.
         route("{...}") {

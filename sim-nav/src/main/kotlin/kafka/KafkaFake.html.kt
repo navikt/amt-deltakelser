@@ -19,6 +19,7 @@ fun HTML.kafkaPublishPage(
     tiltakstypeDefaults: TiltakstypeDto,
     gjennomforingPath: String,
     tiltakstypePath: String,
+    arrangorOptions: List<Pair<String, String>>,
 ) {
     head {
         title("Sim-nav Kafka publisher")
@@ -52,7 +53,7 @@ fun HTML.kafkaPublishPage(
 
             section {
                 h2 { +"Gjennomforing enkeltplass" }
-                gjennomforingForm(gjennomforingDefaults, gjennomforingPath)
+                gjennomforingForm(gjennomforingDefaults, gjennomforingPath, arrangorOptions)
             }
 
             section {
@@ -66,6 +67,7 @@ fun HTML.kafkaPublishPage(
 private fun FlowContent.gjennomforingForm(
     defaults: GjennomforingV2KafkaPayload.Enkeltplass,
     actionPath: String,
+    arrangorOptions: List<Pair<String, String>>,
 ) {
     form(action = actionPath, method = FormMethod.post) {
         div("field") {
@@ -91,11 +93,17 @@ private fun FlowContent.gjennomforingForm(
         }
         enumField("Tiltakskode", "tiltakskode", Tiltakskode.entries.map { it.name }, defaults.tiltakskode.name)
         div("field") {
-            label { +"Arrangor organisasjonsnummer" }
-            input(type = InputType.text, name = "arrangorOrganisasjonsnummer") {
-                value = defaults.arrangor.organisasjonsnummer
+            label { +"Arrangør" }
+            select {
+                name = "arrangorOrganisasjonsnummer"
                 required = true
-                pattern = "[0-9]{9}"
+                arrangorOptions.forEach { (orgnr, navn) ->
+                    option {
+                        value = orgnr
+                        selected = orgnr == defaults.arrangor.organisasjonsnummer
+                        +"$orgnr – $navn"
+                    }
+                }
             }
         }
         enumField("Pameldingstype", "pameldingType", GjennomforingPameldingType.entries.map { it.name }, defaults.pameldingType.name)

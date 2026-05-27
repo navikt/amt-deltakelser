@@ -1,11 +1,9 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.route
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.zip.GZIPOutputStream
@@ -27,6 +25,11 @@ class BronnoysundSimulator {
     fun firstOrganisasjonsnummer(): String =
         data.enheter.firstOrNull()?.get("organisasjonsnummer")?.toString()
             ?: throw IllegalStateException("No enheter found in Bronnoysund data")
+
+    fun allEnheter(): List<Pair<String, String>> =
+        data.enheter.map {
+            it["organisasjonsnummer"].toString() to it["navn"].toString()
+        }
 
     fun moderenhetOppdateringerJson(call: ApplicationCall): String {
         val filtered = filterOppdateringer(call, data.oppdateringer.enheter)
