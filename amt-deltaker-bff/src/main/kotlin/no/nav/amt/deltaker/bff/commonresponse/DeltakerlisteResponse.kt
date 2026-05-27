@@ -1,6 +1,7 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.amt.deltaker.bff.commonresponse
 
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
+import no.nav.amt.deltaker.bff.veileder.api.response.TilgjengeligInnholdResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -9,7 +10,6 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
 
-// Burde brukes av både veileder og innbygger
 data class DeltakerlisteResponse(
     val deltakerlisteId: UUID,
     val deltakerlisteNavn: String,
@@ -21,7 +21,6 @@ data class DeltakerlisteResponse(
     val sluttdato: LocalDate?,
     val status: GjennomforingStatusType?,
     val tilgjengeligInnhold: TilgjengeligInnholdResponse?,
-    val erEnkeltplassUtenRammeavtale: Boolean,
     val erEnkeltplass: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
@@ -63,7 +62,6 @@ data class DeltakerlisteResponse(
                     innhold = tiltak.innhold,
                     tiltakstype = tiltak.tiltakskode,
                 ),
-                erEnkeltplassUtenRammeavtale = erEnkeltplass, // TODO: Denne skal fjernes når frontend er klar
                 erEnkeltplass = erEnkeltplass,
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,

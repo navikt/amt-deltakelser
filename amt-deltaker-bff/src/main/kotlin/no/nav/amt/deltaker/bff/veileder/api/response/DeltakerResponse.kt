@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
+import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
@@ -73,8 +74,6 @@ data class DeltakerResponse(
                         innhold = deltakerliste.tiltak.innhold,
                         tiltakstype = deltakerliste.tiltak.tiltakskode,
                     ),
-                    // midlertidig løsning inntil vi vet ner om det foreligger rammeavtale eller ikke
-                    erEnkeltplassUtenRammeavtale = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
                     erEnkeltplass = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
                     oppmoteSted = deltakerliste.oppmoteSted,
                     pameldingstype = deltakerliste.pameldingstype,

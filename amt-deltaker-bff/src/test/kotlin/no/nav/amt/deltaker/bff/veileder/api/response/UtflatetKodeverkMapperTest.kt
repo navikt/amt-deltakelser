@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
