@@ -268,4 +268,61 @@ class DeltakelsesmengderStartdatoTest {
         deltakelsesmengder.last().gyldigFra shouldBe deltakelsesmengde2.gyldigFra
         deltakelsesmengder.last().deltakelsesprosent shouldBe deltakelsesmengde2.deltakelsesprosent
     }
+
+    @Test
+    fun `startdato fjernet og lagt til pa nytt - mengde justeres til ny startdato`() {
+        // Scenario: mengde uten startdato (gyldigFra = opprettelsesdato), startdato settes,
+        // fjernes (FjernOppstartsdato), og settes igjen – resultatet skal ha gyldigFra = ny startdato
+        val vedtak = TestData.lagVedtak(fattet = "2024-10-15".toDateTime())
+        val startdato1 = "2024-10-30".toDate()
+        val startdato2 = "2024-11-05".toDate()
+
+        val endreDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 42,
+            gyldigFra = "2024-10-15".toDate(), // Satt uten startdato, gyldigFra = opprettelsesdato
+            opprettet = "2024-10-15".toDateTime(),
+        )
+
+        val historikk = TestData.lagDeltakerHistorikk(
+            listOf(vedtak),
+            endringerFraArrangor = listOf(
+                TestData.lagLeggTilOppstartsdato(startdato1, opprettet = "2024-10-25".toDateTime()),
+            ),
+            endringer = listOf(
+                endreDeltakelsesmengde,
+                TestData.lagFjernOppstartsdato(opprettet = "2024-10-28".toDateTime()),
+                TestData.lagEndreStartdato(startdato2, opprettet = "2024-10-29".toDateTime()),
+            ),
+        )
+
+        val deltakelsesmengder = historikk.toDeltakelsesmengder()
+
+        deltakelsesmengder.size shouldBe 1
+        // gyldigFra skal justeres til ny startdato (startdato2), ikke forbli på gammel dato
+        deltakelsesmengder.first().gyldigFra shouldBe startdato2
+    }
+
+    @Test
+    fun `startdato fjernet - ingen ny startdato - mengde finnes fortsatt i historikk`() {
+        // Scenario: startdato settes og fjernes – deltaker.startdato = null
+        // Mengden skal fortsatt finnes i toDeltakelsesmengder()
+        val vedtak = TestData.lagVedtak(fattet = "2024-10-15".toDateTime())
+        val startdato = "2024-10-30".toDate()
+
+        val historikk = TestData.lagDeltakerHistorikk(
+            listOf(vedtak),
+            endringerFraArrangor = listOf(
+                TestData.lagLeggTilOppstartsdato(startdato, opprettet = "2024-10-25".toDateTime()),
+            ),
+            endringer = listOf(
+                TestData.lagFjernOppstartsdato(opprettet = "2024-10-28".toDateTime()),
+            ),
+        )
+
+        // Med startdato=null brukes toDeltakelsesmengder() direkte uten periode-filter
+        val deltakelsesmengder = historikk.toDeltakelsesmengder()
+
+        // Mengde fra vedtak skal fortsatt finnes
+        deltakelsesmengder.size shouldBe 1
+    }
 }

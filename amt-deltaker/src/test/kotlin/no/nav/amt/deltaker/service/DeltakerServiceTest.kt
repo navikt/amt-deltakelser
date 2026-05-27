@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.service
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
@@ -856,8 +857,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `upsertEndretDeltaker - endret deltakelsesmengde - upserter endring`() = runTest {
             // Arrange
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData
-                .lagDeltaker()
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                startdato = LocalDate.now().minusMonths(3),
+                sluttdato = LocalDate.now().plusMonths(3),
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
                 deltakerId = deltaker.id,
                 opprettetAv = navAnsattInTest,
@@ -913,8 +918,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `upsertEndretDeltaker - fremtidig deltakelsesmengde - upserter endring, endrer ikke deltaker`() = runTest {
             // Arrange
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData
-                .lagDeltaker()
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                startdato = LocalDate.now().minusMonths(3),
+                sluttdato = LocalDate.now().plusMonths(3),
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
                 deltakerId = deltaker.id,
                 opprettetAv = navAnsattInTest,
@@ -941,6 +950,78 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             // Assert
             resultat.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
             resultat.dagerPerUke shouldBe deltaker.dagerPerUke
+        }
+
+        @Test
+        fun `upsertEndretDeltaker - deltakelsesmengde gyldigFra foer startdato - kaster IllegalArgumentException`() = runTest {
+            // Arrange
+            val startdato = LocalDate.now().plusDays(10)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                startdato = startdato,
+                sluttdato = LocalDate.now().plusMonths(3),
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+            )
+            TestRepository.insertAll(deltaker, vedtak)
+
+            val endringsrequest = DeltakelsesmengdeRequest(
+                endretAv = navAnsattInTest.navIdent,
+                endretAvEnhet = navEnhetInTest.enhetsnummer,
+                deltakelsesprosent = 50,
+                dagerPerUke = null,
+                forslagId = null,
+                begrunnelse = "begrunnelse",
+                gyldigFra = startdato.minusDays(1), // Én dag før startdato
+            )
+
+            // Act & Assert - skal kaste slik at Ktor returnerer 400 Bad Request
+            shouldThrow<IllegalArgumentException> {
+                deltakerService.upsertEndretDeltaker(
+                    deltakerId = deltaker.id,
+                    endringRequest = endringsrequest,
+                )
+            }
+        }
+
+        @Test
+        fun `upsertEndretDeltaker - deltakelsesmengde gyldigFra etter sluttdato - kaster IllegalArgumentException`() = runTest {
+            // Arrange
+            val sluttdato = LocalDate.now().plusMonths(1)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = sluttdato,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+            )
+            TestRepository.insertAll(deltaker, vedtak)
+
+            val endringsrequest = DeltakelsesmengdeRequest(
+                endretAv = navAnsattInTest.navIdent,
+                endretAvEnhet = navEnhetInTest.enhetsnummer,
+                deltakelsesprosent = 50,
+                dagerPerUke = null,
+                forslagId = null,
+                begrunnelse = "begrunnelse",
+                gyldigFra = sluttdato.plusDays(1), // Én dag etter sluttdato
+            )
+
+            // Act & Assert - skal kaste slik at Ktor returnerer 400 Bad Request
+            shouldThrow<IllegalArgumentException> {
+                deltakerService.upsertEndretDeltaker(
+                    deltakerId = deltaker.id,
+                    endringRequest = endringsrequest,
+                )
+            }
         }
 
         @Test

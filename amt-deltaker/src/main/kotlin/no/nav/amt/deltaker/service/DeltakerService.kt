@@ -17,8 +17,10 @@ import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
 import no.nav.amt.deltaker.veileder.endring.extensions.anvendPaaDeltaker
+import no.nav.amt.deltaker.veileder.endring.extensions.validerGyldigFra
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -109,6 +111,11 @@ class DeltakerService(
             "Kan ikke utføre endring ${endringRequest.javaClass.simpleName} på deltaker $deltakerId uten aktiv oppfølgingsperiode"
         }
         val endring = endringRequest.toEndring(eksisterendeDeltaker.deltakerliste.tiltakstype)
+
+        // Valider gyldigFra utenfor runCatching slik at ugyldige datoer gir 400 Bad Request
+        if (endring is DeltakerEndring.Endring.EndreDeltakelsesmengde) {
+            endring.validerGyldigFra(eksisterendeDeltaker)
+        }
 
         val updateResult = endring
             .anvendPaaDeltaker(

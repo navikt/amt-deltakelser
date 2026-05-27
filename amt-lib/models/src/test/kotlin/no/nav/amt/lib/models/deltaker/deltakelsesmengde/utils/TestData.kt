@@ -136,6 +136,15 @@ object TestData {
         endret = opprettet,
     )
 
+    fun lagFjernOppstartsdato(
+        opprettet: LocalDateTime,
+        deltakerId: UUID = UUID.randomUUID(),
+    ) = lagDeltakerEndring(
+        deltakerId = deltakerId,
+        endring = DeltakerEndring.Endring.FjernOppstartsdato(begrunnelse = null),
+        endret = opprettet,
+    )
+
     private fun lagDeltakerEndring(
         id: UUID = UUID.randomUUID(),
         deltakerId: UUID = UUID.randomUUID(),
