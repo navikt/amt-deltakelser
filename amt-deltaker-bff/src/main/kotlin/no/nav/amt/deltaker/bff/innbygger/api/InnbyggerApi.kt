@@ -20,6 +20,9 @@ import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.tilUtflatetKodeverk
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 
@@ -28,6 +31,7 @@ fun Routing.registerInnbyggerApi(
     amtDeltakerClient: AmtDeltakerClient,
     tilgangskontrollService: TilgangskontrollService,
     pameldingClient: PaameldingClient,
+    kodeverkClient: KodeverkClient,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
@@ -47,7 +51,23 @@ fun Routing.registerInnbyggerApi(
             val deltakerResponse = amtDeltakerClient
                 .getDeltaker(deltakerId)
                 .let { ModelMapper.toDeltaker(it) }
-                .let { deltaker -> InnbyggerDeltakerResponse.fromModel(deltaker) }
+                .let { deltakerModel ->
+                    val utflatetKodeverk = deltakerModel.gjennomforing.tiltak.tiltakskode
+                        .takeIf { deltakerModel.gjennomforing.type == GjennomforingType.Enkeltplass }
+                        ?.let { tiltakskode ->
+                            kodeverkClient
+                                .hentKodeverk(tiltakskode)
+                                .tilUtflatetKodeverk(
+                                    kodeverkValg = deltakerModel.gjennomforing.kodeverkValg,
+                                    sertifiseringValg = deltakerModel.gjennomforing.sertifiseringValg,
+                                )
+                        }
+
+                    InnbyggerDeltakerResponse.fromModel(
+                        deltaker = deltakerModel,
+                        utflatetKodeverk = utflatetKodeverk,
+                    )
+                }
 
             scope.launch { deltakerService.oppdaterSistBesokt(deltakerId) }
 
@@ -70,7 +90,12 @@ fun Routing.registerInnbyggerApi(
             val deltakerResponse = amtDeltakerClient
                 .getDeltaker(deltakerId)
                 .let { ModelMapper.toDeltaker(it) }
-                .let { deltaker -> InnbyggerDeltakerResponse.fromModel(deltaker) }
+                .let { deltaker ->
+                    InnbyggerDeltakerResponse.fromModel(
+                        deltaker = deltaker,
+                        utflatetKodeverk = null,
+                    )
+                }
 
             MetricRegister.GODKJENT_UTKAST.inc()
 

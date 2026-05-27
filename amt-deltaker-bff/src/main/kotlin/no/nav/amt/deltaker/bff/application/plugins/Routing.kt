@@ -174,6 +174,7 @@ fun Application.configureRouting(
             amtDeltakerClient = amtDeltakerClient,
             tilgangskontrollService = tilgangskontrollService,
             pameldingClient = paameldingClient,
+            kodeverkClient = kodeverkClient,
         )
 
         registerUnleashApi(unleash)
