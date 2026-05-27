@@ -24,6 +24,7 @@ dependencies {
     implementation("com.graphql-java:graphql-java:22.4")
     implementation("com.graphql-java:graphql-java-extended-scalars:22.0")
     implementation(libs.ktor.server.core)
+    implementation("io.ktor:ktor-server-html-builder-jvm")
     implementation(libs.ktor.server.netty)
     implementation(libs.kafka.clients)
     implementation(libs.jackson.module.kotlin)

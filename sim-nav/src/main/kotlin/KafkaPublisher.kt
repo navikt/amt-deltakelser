@@ -53,17 +53,23 @@ class KafkaPublisher(
     private val producer: Producer<UUID, String> = createProducer(bootstrapServers),
     private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()),
 ) {
-    fun publishGjennomforingEnkeltplass() {
-        val payload = STATIC_ENKELTPLASS_GJENNOMFORING
+    fun publishGjennomforingEnkeltplass(
+        payload: GjennomforingV2KafkaPayload.Enkeltplass = STATIC_ENKELTPLASS_GJENNOMFORING,
+    ) {
         val message = objectMapper.writeValueAsString(payload)
         producer.send(ProducerRecord(gjennomforingEnkeltplassTopic, payload.id, message)).get()
     }
 
-    fun publishTiltakstypeEnkeltplassArbeidsmarkedsopplaering() {
-        val payload = STATIC_ENKELTPLASS_AMO_TILTAKSTYPE
+    fun publishTiltakstypeEnkeltplassArbeidsmarkedsopplaering(
+        payload: TiltakstypeDto = STATIC_ENKELTPLASS_AMO_TILTAKSTYPE,
+    ) {
         val message = objectMapper.writeValueAsString(payload)
         producer.send(ProducerRecord(tiltakstypeTopic, payload.id, message)).get()
     }
+
+    fun defaultGjennomforingEnkeltplass() = STATIC_ENKELTPLASS_GJENNOMFORING
+
+    fun defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering() = STATIC_ENKELTPLASS_AMO_TILTAKSTYPE
 
     fun close() {
         producer.flush()
