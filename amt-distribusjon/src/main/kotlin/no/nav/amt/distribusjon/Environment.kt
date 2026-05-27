@@ -26,6 +26,7 @@ data class Environment(
     val dokdistfordelingUrl: String = getEnvVar(DOKDISTFORDELING_URL_KEY),
     val dokdistfordelingScope: String = getEnvVar(DOKDISTFORDELING_SCOPE_KEY),
     val leaderElectorUrl: String = getEnvVar(LEADER_ELECTOR_URL),
+    val port: Int = getEnvVar(PORT).ifBlank { "8080" }.toInt(),
     val preAuthorizedApps: List<PreAuthorizedApp> = getEnvVar(
         varName = AZURE_APP_PRE_AUTHORIZED_APPS,
         defaultValue = objectMapper.writeValueAsString(emptyList<PreAuthorizedApp>()),
@@ -58,6 +59,7 @@ data class Environment(
 
         const val LEADER_ELECTOR_URL = "ELECTOR_GET_URL"
 
+        const val PORT = "PORT"
         const val HTTP_REQUEST_TIMEOUT_MILLIS = 20_000L
         const val HTTP_CONNECT_TIMEOUT_MILLIS = 10_000L
         const val HTTP_SOCKET_TIMEOUT_MILLIS = 15_000L

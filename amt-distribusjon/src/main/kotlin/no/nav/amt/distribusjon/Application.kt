@@ -1,23 +1,16 @@
 package no.nav.amt.distribusjon
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.engine.cio.endpoint
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
-import io.ktor.http.isSuccess
-import io.ktor.serialization.jackson3.jackson
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopPreparing
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.log
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson3.*
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.distribusjon.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.distribusjon.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
@@ -62,11 +55,13 @@ import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
 import no.nav.amt.lib.utils.leaderelection.LeaderProvider
 import kotlin.time.Duration.Companion.seconds
 
+val env = Environment()
+
 fun main() {
     embeddedServer(
         factory = Netty,
         configure = {
-            connector { port = 8080 }
+            connector { port = env.port }
             shutdownGracePeriod = 10.seconds.inWholeMilliseconds
             shutdownTimeout = 20.seconds.inWholeMilliseconds
         },
@@ -77,9 +72,8 @@ fun main() {
 fun Application.module() {
     configureSerialization()
 
-    val environment = Environment()
 
-    Database.init(config = environment.databaseConfig)
+    Database.init(config = env.databaseConfig)
 
     val httpClient = HttpClient(CIO) {
         engine {
@@ -125,29 +119,29 @@ fun Application.module() {
         httpClient.get(path).body<Leader>()
     }
 
-    val leaderElection = LeaderElectionClient(leaderProvider, environment.leaderElectorUrl)
+    val leaderElection = LeaderElectionClient(leaderProvider, env.leaderElectorUrl)
     val jobManager = JobManager(leaderElection::isLeader, ::isReady)
 
     val azureAdTokenClient = AzureAdTokenClient(
-        azureAdTokenUrl = environment.azureAdTokenUrl,
-        clientId = environment.azureClientId,
-        clientSecret = environment.azureClientSecret,
+        azureAdTokenUrl = env.azureAdTokenUrl,
+        clientId = env.azureClientId,
+        clientSecret = env.azureClientSecret,
         httpClient = httpClient,
     )
 
-    val pdfgenClient = PdfgenClient(httpClient, environment)
-    val amtPersonClient = AmtPersonClient(httpClient, azureAdTokenClient, environment)
+    val pdfgenClient = PdfgenClient(httpClient, env)
+    val amtPersonClient = AmtPersonClient(httpClient, azureAdTokenClient, env)
     val amtDeltakerClient = AmtDeltakerClient(
-        baseUrl = environment.amtDeltakerUrl,
-        scope = environment.amtDeltakerScope,
+        baseUrl = env.amtDeltakerUrl,
+        scope = env.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
-    val veilarboppfolgingClient = VeilarboppfolgingClient(httpClient, azureAdTokenClient, environment)
-    val dokarkivClient = DokarkivClient(httpClient, azureAdTokenClient, environment)
-    val dokdistkanalClient = DokdistkanalClient(httpClient, azureAdTokenClient, environment)
-    val dokdistfordelingClient = DokdistfordelingClient(httpClient, azureAdTokenClient, environment)
+    val veilarboppfolgingClient = VeilarboppfolgingClient(httpClient, azureAdTokenClient, env)
+    val dokarkivClient = DokarkivClient(httpClient, azureAdTokenClient, env)
+    val dokdistkanalClient = DokdistkanalClient(httpClient, azureAdTokenClient, env)
+    val dokdistfordelingClient = DokdistfordelingClient(httpClient, azureAdTokenClient, env)
 
     val digitalBrukerService = DigitalBrukerService(dokdistkanalClient, veilarboppfolgingClient)
 
@@ -197,7 +191,7 @@ fun Application.module() {
     )
     consumers.forEach { it.start() }
 
-    configureAuthentication(environment)
+    configureAuthentication(env)
     configureRouting(digitalBrukerService, tiltakshendelseService)
     configureMonitoring()
 
