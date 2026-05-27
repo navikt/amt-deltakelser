@@ -31,6 +31,7 @@ data class Environment(
     val unleashUrl: String = getEnvVar(UNLEASH_SERVER_API_URL),
     val unleashApiToken: String = getEnvVar(UNLEASH_SERVER_API_TOKEN),
     val appName: String = "amt-deltaker-bff",
+    val port: Int = getEnvVar(PORT).ifBlank { "8080" }.toInt(),
     val preAuthorizedApp: List<PreAuthorizedApp> = getEnvVar(
         AZURE_APP_PRE_AUTHORIZED_APPS,
         objectMapper.writeValueAsString(
@@ -90,6 +91,7 @@ data class Environment(
 
         const val ELECTOR_PATH = "ELECTOR_PATH"
 
+        const val PORT = "PORT"
         const val HTTP_REQUEST_TIMEOUT_MILLIS = 10_000L
         const val HTTP_CONNECT_TIMEOUT_MILLIS = 5_000L
         const val HTTP_SOCKET_TIMEOUT_MILLIS = 15_000L

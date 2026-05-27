@@ -2,29 +2,19 @@ package no.nav.amt.deltaker.bff
 
 import io.getunleash.DefaultUnleash
 import io.getunleash.util.UnleashConfig
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.jackson3.jackson
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopPreparing
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.log
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.jackson3.*
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
-import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
-import no.nav.amt.deltaker.bff.application.plugins.configureHTTP
-import no.nav.amt.deltaker.bff.application.plugins.configureMonitoring
-import no.nav.amt.deltaker.bff.application.plugins.configureRequestValidation
-import no.nav.amt.deltaker.bff.application.plugins.configureRouting
-import no.nav.amt.deltaker.bff.application.plugins.configureSerialization
+import no.nav.amt.deltaker.bff.application.plugins.*
 import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
@@ -87,18 +77,19 @@ import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.common.audit_log.log.AuditLoggerImpl
-import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder as TiltakskoordinatorResponseBuilder
+
+val env = Environment()
 
 fun main() {
     embeddedServer(
         factory = Netty,
         configure = {
             connector {
-                port = 8080
+                port = env.port
             }
             shutdownGracePeriod = 10.seconds.inWholeMilliseconds
             shutdownTimeout = 20.seconds.inWholeMilliseconds
@@ -110,9 +101,8 @@ fun main() {
 fun Application.module() {
     configureSerialization()
 //    configureHTTP()
-    val environment = Environment()
 
-    Database.init(environment.databaseConfig)
+    Database.init(env.databaseConfig)
 
     val httpClient = HttpClient(CIO.create()) {
         install(ContentNegotiation) {
@@ -126,74 +116,74 @@ fun Application.module() {
         }
     }
 
-    val leaderElection = LeaderElection(httpClient, environment.electorPath)
+    val leaderElection = LeaderElection(httpClient, env.electorPath)
 
     val azureAdTokenClient = AzureAdTokenClient(
-        azureAdTokenUrl = environment.azureAdTokenUrl,
-        clientId = environment.azureClientId,
-        clientSecret = environment.azureClientSecret,
+        azureAdTokenUrl = env.azureAdTokenUrl,
+        clientId = env.azureClientId,
+        clientSecret = env.azureClientSecret,
         httpClient = httpClient,
     )
 
     val amtArrangorClient = AmtArrangorClient(
-        baseUrl = environment.amtArrangorUrl,
-        scope = environment.amtArrangorScope,
+        baseUrl = env.amtArrangorUrl,
+        scope = env.amtArrangorScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val amtPersonServiceClient = AmtPersonServiceClient(
-        baseUrl = environment.amtPersonServiceUrl,
-        scope = environment.amtPersonServiceScope,
+        baseUrl = env.amtPersonServiceUrl,
+        scope = env.amtPersonServiceScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val amtDeltakerClient = AmtDeltakerClient(
-        baseUrl = environment.amtDeltakerUrl,
-        scope = environment.amtDeltakerScope,
+        baseUrl = env.amtDeltakerUrl,
+        scope = env.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val paameldingClient = PaameldingClient(
-        baseUrl = environment.amtDeltakerUrl,
-        scope = environment.amtDeltakerScope,
+        baseUrl = env.amtDeltakerUrl,
+        scope = env.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val tiltakskoordinatorClient = TiltakskoordinatorClient(
-        baseUrl = environment.amtDeltakerUrl,
-        scope = environment.amtDeltakerScope,
+        baseUrl = env.amtDeltakerUrl,
+        scope = env.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val amtDistribusjonClient = AmtDistribusjonClient(
-        baseUrl = environment.amtDistribusjonUrl,
-        scope = environment.amtDistribusjonScope,
+        baseUrl = env.amtDistribusjonUrl,
+        scope = env.amtDistribusjonScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val arrangorsokClient = ArrangorsokClient(
-        baseUrl = environment.mulighetsrommetApiUrl,
-        scope = environment.mulighetsrommetApiScope,
+        baseUrl = env.mulighetsrommetApiUrl,
+        scope = env.mulighetsrommetApiScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val enkeltplassClient = EnkeltplassClient(
-        baseUrl = environment.amtDeltakerUrl,
-        scope = environment.amtDeltakerScope,
+        baseUrl = env.amtDeltakerUrl,
+        scope = env.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val kodeverkClient = KodeverkClient(
-        baseUrl = environment.mulighetsrommetApiUrl,
-        scope = environment.mulighetsrommetApiScope,
+        baseUrl = env.mulighetsrommetApiUrl,
+        scope = env.mulighetsrommetApiScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
@@ -201,10 +191,10 @@ fun Application.module() {
     val unleash = DefaultUnleash(
         UnleashConfig
             .builder()
-            .appName(environment.appName)
-            .instanceId(environment.appName)
-            .unleashAPI("${environment.unleashUrl}/api")
-            .apiKey(environment.unleashApiToken)
+            .appName(env.appName)
+            .instanceId(env.appName)
+            .unleashAPI("${env.unleashUrl}/api")
+            .apiKey(env.unleashApiToken)
             .build(),
     )
 
@@ -244,8 +234,8 @@ fun Application.module() {
 
     val poaoTilgangCachedClient = ConfigurablePoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
-            baseUrl = environment.poaoTilgangUrl,
-            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
+            baseUrl = env.poaoTilgangUrl,
+            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(env.poaoTilgangScope) } },
         ),
         cacheDuration = Duration.ofSeconds(1)
     )
@@ -352,7 +342,7 @@ fun Application.module() {
     )
     consumers.forEach { it.start() }
 
-    configureAuthentication(environment)
+    configureAuthentication(env)
     configureRequestValidation()
     configureRouting(
         tilgangskontrollService = tilgangskontrollService,
