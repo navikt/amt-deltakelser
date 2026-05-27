@@ -12,9 +12,6 @@ private val veilarbvedtaksstotteFakeData: VeilarbvedtaksstotteFakeData = loadVei
 
 fun Route.veilarbvedtaksstotteFakeRoutes() {
     route(VEILARBVEDTAKSSTOTTE_PATH_PREFIX) {
-        get {
-            respondJson(call, HttpStatusCode.OK, "{\"status\":\"ok\"}")
-        }
 
         post("api/hent-gjeldende-14a-vedtak") {
             val fnr = readFnrFromBody(readRequestBody(call))

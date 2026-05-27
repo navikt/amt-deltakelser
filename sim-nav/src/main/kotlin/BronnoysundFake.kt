@@ -25,13 +25,6 @@ private val underenheterByOrgNr: Map<String, Map<String, Any?>> =
 
 fun Route.bronnoysundFakeRoutes() {
     route(BRONNOYSUND_PATH_PREFIX) {
-        get {
-            respondJson(call, HttpStatusCode.OK, "{\"status\":\"ok\"}")
-        }
-
-        get("/") {
-            respondJson(call, HttpStatusCode.OK, "{\"status\":\"ok\"}")
-        }
 
         get("enhetsregisteret/api/oppdateringer/enheter") {
             respondJson(call, HttpStatusCode.OK, moderenhetOppdateringerJson(call))

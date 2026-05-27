@@ -8,9 +8,6 @@ const val UNLEASH_PATH_PREFIX = "/unleash"
 
 fun Route.unleashFakeRoutes() {
     route(UNLEASH_PATH_PREFIX) {
-        get {
-            respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")
-        }
 
         get("api") {
             respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")

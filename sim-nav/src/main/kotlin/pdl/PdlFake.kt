@@ -1,9 +1,7 @@
 package pdl
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.http.*
 import io.ktor.server.routing.*
-import io.ktor.server.response.respondText
 import respondGraphqlFake
 import shared.loadJsonResource
 
@@ -34,9 +32,6 @@ private val pdlGraphql = createPdlGraphql(
 
 fun Route.pdlFakeRoutes() {
     route(PDL_PATH_PREFIX) {
-        get {
-            call.respondText(text = "{\"status\":\"ok\"}", contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
-        }
 
         post("graphql") {
             respondGraphqlFake(call, pdlObjectMapper, pdlGraphql)

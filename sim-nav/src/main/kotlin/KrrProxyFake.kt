@@ -2,7 +2,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import shared.loadJsonResource
@@ -16,9 +15,6 @@ private val krrProxyFakeData: KrrProxyFakeData = loadKrrProxyFakeData()
 
 fun Route.krrProxyFakeRoutes() {
     route(KRR_PROXY_PATH_PREFIX) {
-        get {
-            respondJson(call, HttpStatusCode.OK, "{\"status\":\"ok\"}")
-        }
 
         post("rest/v1/personer") {
             val request = krrProxyObjectMapper.readValue<PostPersonerRequest>(readRequestBody(call))

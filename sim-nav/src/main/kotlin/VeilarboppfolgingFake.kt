@@ -12,9 +12,6 @@ private val veilarboppfolgingFakeData: VeilarboppfolgingFakeData = loadVeilarbop
 
 fun Route.veilarboppfolgingFakeRoutes() {
     route(VEILARBOPPFOLGING_PATH_PREFIX) {
-        get {
-            respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")
-        }
 
         post("api/v3/hent-veileder") {
             val fnr = readFnrFromBody(readRequestBody(call))

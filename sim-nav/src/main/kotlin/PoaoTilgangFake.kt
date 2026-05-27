@@ -11,9 +11,6 @@ private val personidentRegex = Regex("\"(\\d{11})\"")
 
 fun Route.poaoTilgangFakeRoutes() {
     route(POAO_TILGANG_PATH_PREFIX) {
-        get {
-            respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")
-        }
 
         get("api") {
             respondJson(call, HttpStatusCode.OK, """{"status":"ok"}""")

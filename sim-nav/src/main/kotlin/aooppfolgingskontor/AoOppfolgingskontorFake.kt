@@ -1,9 +1,7 @@
 package aooppfolgingskontor
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.http.*
 import io.ktor.server.routing.*
-import io.ktor.server.response.respondText
 import respondGraphqlFake
 import shared.loadJsonResource
 
@@ -22,9 +20,6 @@ private val aoOppfolgingskontorGraphql = createAoOppfolgingskontorGraphql(
 
 fun Route.aoOppfolgingskontorFakeRoutes() {
     route(AO_OPPFOLGINGSKONTOR_PATH_PREFIX) {
-        get {
-            call.respondText(text = "{\"status\":\"ok\"}", contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
-        }
 
         post("graphql") {
             respondGraphqlFake(call, aoOppfolgingskontorObjectMapper, aoOppfolgingskontorGraphql)

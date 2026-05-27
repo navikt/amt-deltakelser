@@ -13,9 +13,6 @@ private val norgFakeData: NorgFakeData = loadNorgFakeData()
 
 fun Route.norgFakeRoutes() {
     route(NORG_PATH_PREFIX) {
-        get {
-            respondJson(call, HttpStatusCode.OK, "{\"status\":\"ok\"}")
-        }
 
         get("norg2/api/v1/enhet/{enhetId}") {
             val enhetId = call.parameters["enhetId"]
