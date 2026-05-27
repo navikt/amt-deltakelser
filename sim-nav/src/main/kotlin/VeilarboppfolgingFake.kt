@@ -2,6 +2,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.routing.*
+import java.util.UUID
 
 const val VEILARBOPPFOLGING_PATH_PREFIX = "/veilarboppfolging"
 
@@ -34,6 +35,35 @@ fun Route.veilarboppfolgingFakeRoutes() {
                 veilarboppfolgingObjectMapper.writeValueAsString(person.oppfolgingsperioder),
             )
         }
+
+        post("api/v3/hent-manuell") {
+            val fnr = readFnrFromBody(readRequestBody(call))
+            val person = veilarboppfolgingFakeData.findPerson(fnr)
+
+            respondJson(
+                call,
+                HttpStatusCode.OK,
+                veilarboppfolgingObjectMapper.writeValueAsString(
+                    mapOf("erUnderManuellOppfolging" to person.erUnderManuellOppfolging),
+                ),
+            )
+        }
+
+        post("api/v3/sak/{oppfolgingsperiodeId}") {
+            val oppfolgingsperiodeId = call.parameters["oppfolgingsperiodeId"]
+                ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+
+            if (oppfolgingsperiodeId == null) {
+                respondJson(call, HttpStatusCode.BadRequest, "{\"error\":\"invalid oppfolgingsperiodeId\"}")
+            } else {
+                val sak = mapOf(
+                    "oppfolgingsperiodeId" to oppfolgingsperiodeId,
+                    "sakId" to (oppfolgingsperiodeId.mostSignificantBits and Long.MAX_VALUE),
+                    "fagsaksystem" to "VEILARBOPPFOLGING",
+                )
+                respondJson(call, HttpStatusCode.OK, veilarboppfolgingObjectMapper.writeValueAsString(sak))
+            }
+        }
     }
 }
 
@@ -58,6 +88,7 @@ private data class VeilarboppfolgingFakeData(
 private data class VeilarboppfolgingPersonFixture(
     val veilederIdent: String,
     val oppfolgingsperioder: List<OppfolgingsperiodeFixture>,
+    val erUnderManuellOppfolging: Boolean = false,
 )
 
 private data class OppfolgingsperiodeFixture(
