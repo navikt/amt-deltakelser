@@ -2,6 +2,8 @@ import aooppfolgingskontor.aoOppfolgingskontorFakeRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
+import kafka.KafkaPublisher
+import kafka.kafkaFakeRoutes
 import nom.nomFakeRoutes
 import pdl.pdlFakeRoutes
 

@@ -1,6 +1,7 @@
+import aooppfolgingskontor.AO_OPPFOLGINGSKONTOR_PATH_PREFIX
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import aooppfolgingskontor.AO_OPPFOLGINGSKONTOR_PATH_PREFIX
+import kafka.KafkaPublisher
 import nom.NOM_PATH_PREFIX
 import pdl.PDL_PATH_PREFIX
 import java.util.concurrent.CountDownLatch
