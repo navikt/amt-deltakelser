@@ -395,7 +395,6 @@ class InputvalideringTest {
         shouldThrow<IllegalArgumentException> { request.valider(deltaker) }
     }
 
-
     @Test
     fun `EndreDeltakelsesmengdeRequest valider - startdato null - validerer ikke gyldigFra mot startdato`() {
         val deltaker = TestData.lagDeltaker(

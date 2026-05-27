@@ -921,7 +921,8 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
                 startdato = LocalDate.now().minusMonths(3),
                 sluttdato = LocalDate.now().plusMonths(3),
-                status = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
                 deltakerId = deltaker.id,
@@ -958,7 +959,8 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
                 startdato = startdato,
                 sluttdato = LocalDate.now().plusMonths(3),
-                status = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
                 deltakerId = deltaker.id,
@@ -993,7 +995,8 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
                 startdato = LocalDate.now().minusMonths(1),
                 sluttdato = sluttdato,
-                status = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
                 deltakerId = deltaker.id,

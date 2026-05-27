@@ -64,7 +64,6 @@ class EndreDeltakelsesmengdeExtensionsTest {
             ).shouldBeSuccess()
     }
 
-
     @Test
     fun `oppdaterDeltaker - startdato er null - gyldigFra valideres ikke mot startdato - returnerer success`() {
         val deltaker = TestData.lagDeltaker(
@@ -89,7 +88,6 @@ class EndreDeltakelsesmengdeExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
     }
-
 
     @Test
     fun `oppdaterDeltaker - gyldigFra er lik sluttdato - returnerer success`() {
