@@ -2,6 +2,7 @@ package kafka
 
 import brreg.BronnoysundSimulator
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
@@ -21,17 +22,7 @@ fun Route.kafkaFakeRoutes(
     bronnoysundSimulator: BronnoysundSimulator,
 ) {
     get(KAFKA_PAGE_PATH) {
-        call.respondHtml(HttpStatusCode.OK) {
-            kafkaPublishPage(
-                message = null,
-                isError = false,
-                gjennomforingDefaults = kafkaPublisher.defaultGjennomforingEnkeltplass(),
-                tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
-                gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
-                tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
-                arrangorOptions = bronnoysundSimulator.allEnheter(),
-            )
-        }
+        call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator)
     }
 
     route(KAFKA_ENKELTPLASS_GJENNOMFORING_PATH) {
@@ -39,29 +30,9 @@ fun Route.kafkaFakeRoutes(
             try {
                 val payload = call.receiveParameters().toGjennomforingPayload()
                 kafkaPublisher.publishGjennomforingEnkeltplass(payload)
-                call.respondHtml(HttpStatusCode.Accepted) {
-                    kafkaPublishPage(
-                        message = "Publiserte gjennomforing med id ${payload.id}",
-                        isError = false,
-                        gjennomforingDefaults = payload,
-                        tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
-                        gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
-                        tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
-                        arrangorOptions = bronnoysundSimulator.allEnheter(),
-                    )
-                }
+                call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator, "Publiserte gjennomforing med id ${payload.id}", status = HttpStatusCode.Accepted)
             } catch (exception: Exception) {
-                call.respondHtml(HttpStatusCode.BadRequest) {
-                    kafkaPublishPage(
-                        message = "Kunne ikke publisere gjennomforing: ${exception.message ?: "ukjent feil"}",
-                        isError = true,
-                        gjennomforingDefaults = kafkaPublisher.defaultGjennomforingEnkeltplass(),
-                        tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
-                        gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
-                        tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
-                        arrangorOptions = bronnoysundSimulator.allEnheter(),
-                    )
-                }
+                call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator, "Kunne ikke publisere gjennomforing: ${exception.message ?: "ukjent feil"}", isError = true, status = HttpStatusCode.BadRequest)
             }
         }
     }
@@ -71,31 +42,31 @@ fun Route.kafkaFakeRoutes(
             try {
                 val payload = call.receiveParameters().toTiltakstypePayload()
                 kafkaPublisher.publishTiltakstypeEnkeltplassArbeidsmarkedsopplaering(payload)
-                call.respondHtml(HttpStatusCode.Accepted) {
-                    kafkaPublishPage(
-                        message = "Publiserte tiltakstype med id ${payload.id}",
-                        isError = false,
-                        gjennomforingDefaults = kafkaPublisher.defaultGjennomforingEnkeltplass(),
-                        tiltakstypeDefaults = payload,
-                        gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
-                        tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
-                        arrangorOptions = bronnoysundSimulator.allEnheter(),
-                    )
-                }
+                call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator, "Publiserte tiltakstype med id ${payload.id}", status = HttpStatusCode.Accepted)
             } catch (exception: Exception) {
-                call.respondHtml(HttpStatusCode.BadRequest) {
-                    kafkaPublishPage(
-                        message = "Kunne ikke publisere tiltakstype: ${exception.message ?: "ukjent feil"}",
-                        isError = true,
-                        gjennomforingDefaults = kafkaPublisher.defaultGjennomforingEnkeltplass(),
-                        tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
-                        gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
-                        tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
-                        arrangorOptions = bronnoysundSimulator.allEnheter(),
-                    )
-                }
+                call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator, "Kunne ikke publisere tiltakstype: ${exception.message ?: "ukjent feil"}", isError = true, status = HttpStatusCode.BadRequest)
             }
         }
+    }
+}
+
+private suspend fun ApplicationCall.respondKafkaPage(
+    kafkaPublisher: KafkaPublisher,
+    bronnoysundSimulator: BronnoysundSimulator,
+    message: String? = null,
+    isError: Boolean = false,
+    status: HttpStatusCode = HttpStatusCode.OK,
+) {
+    respondHtml(status) {
+        kafkaPublishPage(
+            message = message,
+            isError = isError,
+            gjennomforingDefaults = kafkaPublisher.defaultGjennomforingEnkeltplass(),
+            tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
+            gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
+            tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
+            arrangorOptions = bronnoysundSimulator.allEnheter(),
+        )
     }
 }
 
@@ -126,13 +97,9 @@ private fun Parameters.toTiltakstypePayload(): TiltakstypeDto {
     )
 }
 
-private fun Parameters.required(name: String): String {
-    return get(name)?.takeIf { it.isNotBlank() }
-        ?: throw IllegalArgumentException("Mangler felt '$name'")
-}
+private fun Parameters.required(name: String): String =
+    get(name)?.takeIf { it.isNotBlank() } ?: throw IllegalArgumentException("Mangler felt '$name'")
 
 private fun Parameters.optional(name: String): String? = get(name)?.takeIf { it.isNotBlank() }
 
 private fun String.toOffsetDateTimeUtc() = LocalDateTime.parse(this).atOffset(ZoneOffset.UTC)
-
-
