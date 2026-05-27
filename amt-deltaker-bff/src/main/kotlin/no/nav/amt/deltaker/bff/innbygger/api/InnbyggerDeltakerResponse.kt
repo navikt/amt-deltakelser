@@ -30,10 +30,16 @@ data class InnbyggerDeltakerResponse(
     val prisinformasjon: String?,
 ) {
     companion object {
-        fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
+        fun fromModel(
+            deltaker: DeltakerModel,
+            utflatetKodeverk: DeltakerlisteResponse.UtflatetKodeverk?,
+        ) = with(deltaker) {
             InnbyggerDeltakerResponse(
                 deltakerId = id,
-                deltakerliste = DeltakerlisteResponse.fromModel(deltaker.gjennomforing),
+                deltakerliste = DeltakerlisteResponse.fromModel(
+                    gjennomforingModel = deltaker.gjennomforing,
+                    kodeverk = utflatetKodeverk,
+                ),
                 status = status,
                 startdato = startdato,
                 sluttdato = sluttdato,

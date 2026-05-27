@@ -140,16 +140,17 @@ fun Routing.registerEnkeltplassApi(
                         ),
                     ).let { ModelMapper.toDeltaker(it) }
                     .let { deltakerModel ->
-                        val utflatetKodeverk = if (deltakerModel.gjennomforing.type == GjennomforingType.Enkeltplass) {
-                            kodeverkClient
-                                .hentKodeverk(deltakerModel.gjennomforing.tiltak.tiltakskode)
-                                .tilUtflatetKodeverk(
-                                    kodeverkValg = deltakerModel.gjennomforing.kodeverkValg,
-                                    sertifiseringValg = deltakerModel.gjennomforing.sertifiseringValg,
-                                )
-                        } else {
-                            null
-                        }
+
+                        val utflatetKodeverk = deltakerModel.gjennomforing.tiltak.tiltakskode
+                            .takeIf { deltakerModel.gjennomforing.type == GjennomforingType.Enkeltplass }
+                            ?.let { tiltakskode ->
+                                kodeverkClient
+                                    .hentKodeverk(tiltakskode)
+                                    .tilUtflatetKodeverk(
+                                        kodeverkValg = deltakerModel.gjennomforing.kodeverkValg,
+                                        sertifiseringValg = deltakerModel.gjennomforing.sertifiseringValg,
+                                    )
+                            }
 
                         DeltakerResponse.fromDeltakerModel(
                             deltaker = deltakerModel,
