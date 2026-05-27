@@ -6,6 +6,7 @@ import io.ktor.server.netty.*
 import kafka.KafkaPublisher
 import nom.NOM_PATH_PREFIX
 import pdl.PDL_PATH_PREFIX
+import pdl.PdlSimulator
 import java.util.concurrent.CountDownLatch
 
 private const val SIM_NAV_HTTP_PORT = 9002
@@ -13,13 +14,15 @@ private const val SIM_NAV_HTTP_PORT = 9002
 fun main() {
     val bronnoysundSimulator = BronnoysundSimulator()
     val kafkaPublisher = KafkaPublisher(bronnoysundSimulator)
+    val pdlSimulator = PdlSimulator()
+    val norgSimulator = NorgSimulator()
     val mockOAuth2Server = startMockOAuth2Server()
 
     val simNavHttpServer = embeddedServer(
         factory = Netty,
         port = SIM_NAV_HTTP_PORT,
         module = {
-            simNavModule(kafkaPublisher, bronnoysundSimulator)
+            simNavModule(kafkaPublisher, bronnoysundSimulator, pdlSimulator, norgSimulator)
         },
     ).start(wait = false)
 
@@ -47,6 +50,7 @@ fun main() {
     println("Set AZURE_OPENID_CONFIG_JWKS_URI=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/jwks")
     println("Set AZURE_OPENID_CONFIG_TOKEN_ENDPOINT=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/token")
     println("Kafka UI: http://localhost:$SIM_NAV_HTTP_PORT/kafka")
+    println("nav-veileders-flate launcher: http://localhost:$SIM_NAV_HTTP_PORT/nav-veileders-flate")
     println("POST (form) http://localhost:$SIM_NAV_HTTP_PORT/kafka/tiltakstype/enkeltplass-amo")
     println("POST (form) http://localhost:$SIM_NAV_HTTP_PORT/kafka/gjennomforing/enkeltplass")
 
