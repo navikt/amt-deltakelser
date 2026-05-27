@@ -16,8 +16,8 @@ import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
-import no.nav.amt.deltaker.veileder.endring.extensions.validerGyldigFra
 import no.nav.amt.deltaker.veileder.endring.extensions.anvendPaaDeltaker
+import no.nav.amt.deltaker.veileder.endring.extensions.validerGyldigFra
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
