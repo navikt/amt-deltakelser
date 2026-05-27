@@ -32,7 +32,7 @@ class ForlengDeltakelseExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -60,7 +60,7 @@ class ForlengDeltakelseExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -88,7 +88,7 @@ class ForlengDeltakelseExtensionsTest {
 
         endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeFailure()

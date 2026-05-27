@@ -32,7 +32,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
 
         request
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -58,7 +58,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
 
         request
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -83,7 +83,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
 
         request
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -109,7 +109,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
 
         request
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -135,7 +135,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
 
         val resultat = request
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -163,7 +163,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
 
         val resultat = request
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()

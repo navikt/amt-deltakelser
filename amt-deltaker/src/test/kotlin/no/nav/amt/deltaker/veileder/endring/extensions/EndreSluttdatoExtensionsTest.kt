@@ -102,7 +102,7 @@ class EndreSluttdatoExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = { _ -> deltakelsesmengderMedFremtidig },
             ).shouldBeSuccess()

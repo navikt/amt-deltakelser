@@ -49,8 +49,8 @@ data class EndreDeltakelsesmengdeRequest(
             }
         }
 
-        if (deltaker.status.type != DeltakerStatus.Type.VENTER_PA_OPPSTART && deltaker.startdato != null) {
-            require(!gyldigFra.isBefore(deltaker.startdato)) {
+        deltaker.startdato?.let {
+            require(!gyldigFra.isBefore(it)) {
                 "Deltakelsesmengde kan ikke endres før deltaker sin startdato"
             }
         }
