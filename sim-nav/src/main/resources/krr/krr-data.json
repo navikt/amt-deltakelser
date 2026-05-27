@@ -1,0 +1,13 @@
+{
+  "personer": {
+	"01017012345": {
+	  "epostadresse": "sim.person@nav.no",
+	  "mobiltelefonnummer": "40000000"
+	},
+	"02028054321": {
+	  "epostadresse": null,
+	  "mobiltelefonnummer": "41111111"
+	}
+  }
+}
+

@@ -10,11 +10,13 @@ fun Application.simNavModule(kafkaPublisher: KafkaPublisher) {
         unleashFakeRoutes()
         poaoTilgangFakeRoutes()
         veilarboppfolgingFakeRoutes()
+        veilarbvedtaksstotteFakeRoutes()
         bronnoysundFakeRoutes()
         norgFakeRoutes()
         aoOppfolgingskontorFakeRoutes()
         pdlFakeRoutes()
         nomFakeRoutes()
+        krrProxyFakeRoutes()
         kafkaFakeRoutes(kafkaPublisher)
 
         // Keep previous behavior for unknown paths.
