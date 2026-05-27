@@ -47,7 +47,10 @@ data class Deltaker(
     val kanEndres: Boolean, // finnes ikke i amt-deltaker
     val opprettet: LocalDateTime,
 ) {
-    val deltakelsesmengder: Deltakelsesmengder
+    // Flere typer endringer medfører endring i historikk
+    // Henter alle deltakelsesmengder som er gjeldende innenfor perioden personen har deltatt
+    // sortert på Endringens siste mod dato
+    val deltakelsesmengderFraHistorikk: Deltakelsesmengder
         get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()
 
     val fattetVedtak

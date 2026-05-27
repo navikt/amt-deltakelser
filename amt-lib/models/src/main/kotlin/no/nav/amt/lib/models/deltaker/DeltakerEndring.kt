@@ -12,6 +12,7 @@ import java.util.UUID
     som intern domenemodell i amt-deltaker-bff (blant annet)
     https://www.figma.com/board/AIPGnJY7UEFfADbShTPBWh/Domenemodell-Endringer?node-id=0-1&p=f&t=QDpzR8FzLQuPDWiY-0
     OBS! Deltakerhistorikk lagres som json i amt-deltaker-bff db så nye felter her må være optional
+    Endring lagres i amt-deltaker deltaker_endring.endring som json
  */
 data class DeltakerEndring(
     val id: UUID,

@@ -60,7 +60,7 @@ class DeltakerEndringService(
         val deltakerEndring = DeltakerEndring(
             id = UUID.randomUUID(),
             deltakerId = endringResultat.deltaker.id,
-            endring = endringRequest.toEndring(),
+            endring = endringRequest.toEndring(endringResultat.deltaker.deltakerliste.tiltakstype),
             endretAv = endretAvNavAnsatt.id,
             endretAvEnhet = navEnhet.id,
             endret = LocalDateTime.now(),

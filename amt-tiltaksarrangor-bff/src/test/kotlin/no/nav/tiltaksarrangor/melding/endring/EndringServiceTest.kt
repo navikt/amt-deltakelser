@@ -43,6 +43,13 @@ class EndringServiceTest(
                 startdato = LocalDate.now().plusWeeks(7),
                 sluttdato = LocalDate.now().plusWeeks(42),
             )
+
+            val cache = mutableMapOf<UUID, Melding>()
+            val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
+                cache[UUID.fromString(k)] = objectMapper.readValue(v)
+            }
+            consumer.start()
+
             val oppdatertDeltaker = endringService.endreDeltaker(
                 deltaker = deltaker,
                 deltakerliste = deltakerliste,
@@ -53,10 +60,13 @@ class EndringServiceTest(
             oppdatertDeltaker.startDato shouldBe request.startdato
             oppdatertDeltaker.sluttDato shouldBe request.sluttdato
 
-            assertProducedEndring(
+            awaitProducedEndring(
+                cache = cache,
                 deltakerId = deltaker.id,
                 endringstype = EndringFraArrangor.LeggTilOppstartsdato::class,
             )
+
+            runBlocking { consumer.close() }
         }
     }
 
@@ -82,18 +92,11 @@ class EndringServiceTest(
     }
 }
 
-fun <T : EndringFraArrangor.Endring> assertProducedEndring(
+fun <T : EndringFraArrangor.Endring> awaitProducedEndring(
+    cache: MutableMap<UUID, Melding>,
     deltakerId: UUID,
     endringstype: KClass<T>,
 ) {
-    val cache = mutableMapOf<UUID, Melding>()
-
-    val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
-        cache[UUID.fromString(k)] = objectMapper.readValue(v)
-    }
-
-    consumer.start()
-
     await().untilAsserted {
         val endring = cache.firstNotNullOf {
             when (val endring = it.value) {
@@ -113,6 +116,4 @@ fun <T : EndringFraArrangor.Endring> assertProducedEndring(
 
         endring.endring::class shouldBe endringstype
     }
-
-    runBlocking { consumer.close() }
 }

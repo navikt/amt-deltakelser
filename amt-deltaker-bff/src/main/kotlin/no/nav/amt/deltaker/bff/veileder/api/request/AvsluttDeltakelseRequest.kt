@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.harEndretSluttaarsak
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerAarsaksBeskrivelse
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
@@ -42,7 +43,30 @@ data class AvsluttDeltakelseRequest(
         }
     }
 
+    override fun valider(deltaker: DeltakerModel) {
+        validerAarsaksBeskrivelse(aarsak?.beskrivelse)
+        validerBegrunnelse(begrunnelse)
+        validerDeltakerKanEndres(deltaker)
+
+        require(deltaker.status.type in kanAvslutteDeltakelse) { statusTypeErrorText }
+
+        if (harDeltatt()) {
+            require(sluttdato != null) {
+                "Må angi sluttdato for deltaker som har deltatt"
+            }
+        }
+        sluttdato?.let { validerSluttdatoForDeltaker(it, deltaker.startdato, deltaker) }
+
+        require(deltakerErEndret(deltaker)) {
+            "Kan ikke avslutte deltakelse med uendret sluttdato og årsak"
+        }
+    }
+
     private fun deltakerErEndret(deltaker: Deltaker): Boolean = deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET ||
+        deltaker.sluttdato != sluttdato ||
+        harEndretSluttaarsak(deltaker.status.aarsak, aarsak)
+
+    private fun deltakerErEndret(deltaker: DeltakerModel): Boolean = deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET ||
         deltaker.sluttdato != sluttdato ||
         harEndretSluttaarsak(deltaker.status.aarsak, aarsak)
 

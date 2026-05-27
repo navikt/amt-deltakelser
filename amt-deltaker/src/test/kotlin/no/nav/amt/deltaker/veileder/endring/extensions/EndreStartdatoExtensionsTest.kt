@@ -30,7 +30,7 @@ class EndreStartdatoExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -57,7 +57,7 @@ class EndreStartdatoExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -83,7 +83,7 @@ class EndreStartdatoExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -113,7 +113,7 @@ class EndreStartdatoExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -139,7 +139,7 @@ class EndreStartdatoExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -170,7 +170,7 @@ class EndreStartdatoExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -205,7 +205,7 @@ class EndreStartdatoExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()

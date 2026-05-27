@@ -31,7 +31,7 @@ class AvsluttDeltakelseExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltakerSomDeltar,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -57,7 +57,7 @@ class AvsluttDeltakelseExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltakerSomDeltar,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -83,7 +83,7 @@ class AvsluttDeltakelseExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltakerSomHarSluttet,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
@@ -116,7 +116,7 @@ class AvsluttDeltakelseExtensionsTest {
 
         val resultat = endringsrequest
             .toEndring()
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = deltakerSomHarSluttet,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()

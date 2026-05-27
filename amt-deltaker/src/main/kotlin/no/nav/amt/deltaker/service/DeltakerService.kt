@@ -16,13 +16,14 @@ import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
-import no.nav.amt.deltaker.veileder.endring.extensions.oppdaterDeltaker
+import no.nav.amt.deltaker.veileder.endring.extensions.anvendPaaDeltaker
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -43,6 +44,7 @@ class DeltakerService(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
+    private val unleashToggle: CommonUnleashToggle,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -99,10 +101,17 @@ class DeltakerService(
         val eksisterendeDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
-        val endring = endringRequest.toEndring()
+        require(unleashToggle.erKometMasterForTiltakstype(eksisterendeDeltaker.deltakerliste.tiltakstype.tiltakskode)) {
+            "Kan ikke utføre endring på deltaker $deltakerId på tiltakstype ${eksisterendeDeltaker.deltakerliste.tiltakstype.tiltakskode} som komet ikke eier"
+        }
+
+        require(eksisterendeDeltaker.navBruker.harAktivOppfolgingsperiode || endringRequest.kanIverksettesUtenAktivOppfolging()) {
+            "Kan ikke utføre endring ${endringRequest.javaClass.simpleName} på deltaker $deltakerId uten aktiv oppfølgingsperiode"
+        }
+        val endring = endringRequest.toEndring(eksisterendeDeltaker.deltakerliste.tiltakstype)
 
         val updateResult = endring
-            .oppdaterDeltaker(
+            .anvendPaaDeltaker(
                 deltaker = eksisterendeDeltaker,
                 getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
             ).getOrElse {

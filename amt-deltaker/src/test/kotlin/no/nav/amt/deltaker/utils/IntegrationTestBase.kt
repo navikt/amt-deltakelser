@@ -292,6 +292,7 @@ abstract class IntegrationTestBase {
             forslagRepository = forslagRepository,
             endringFraArrangorRepository = endringFraArrangorRepository,
             importertFraArenaRepository = importertFraArenaRepository,
+            unleashToggle = unleashToggle,
         )
     }
     protected open val tiltaksansvarligService: TiltaksansvarligService by lazy {

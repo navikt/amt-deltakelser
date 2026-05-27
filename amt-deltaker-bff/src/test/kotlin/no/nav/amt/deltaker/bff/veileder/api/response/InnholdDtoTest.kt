@@ -3,9 +3,9 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
@@ -34,7 +34,7 @@ class InnholdDtoTest {
         val valgtInnhold = listOf(
             InnholdsElementRequest(innholdselement.innholdskode, null),
             InnholdsElementRequest(annetInnholdselement.innholdskode, annetBeskrivelse),
-        ).toInnholdModel(deltaker = deltaker)
+        ).toInnholdModel(deltaker.deltakerliste.tiltak)
         valgtInnhold shouldBe listOf(
             innholdselement.toInnhold(true),
             annetInnholdselement.toInnhold(true, annetBeskrivelse),
@@ -100,7 +100,7 @@ class InnholdDtoTest {
             ),
         )
 
-        val valgtInnhold = innholdRequest.innhold.toInnholdModel(deltaker = deltaker)
+        val valgtInnhold = innholdRequest.innhold.toInnholdModel(deltaker.deltakerliste.tiltak)
 
         valgtInnhold.size shouldBe 2
         valgtInnhold.find { it.innholdskode == "arbeidspraksis" } shouldBe Innhold("Arbeidspraksis", "arbeidspraksis", true, null)

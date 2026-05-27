@@ -23,8 +23,8 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.toInnholdModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -72,7 +72,7 @@ fun Routing.registerPameldingApi(
                     pamelding = Pamelding(
                         deltakelsesinnhold = Deltakelsesinnhold(
                             ledetekst = deltaker.deltakelsesinnhold?.ledetekst,
-                            innhold = request.innhold.toInnholdModel(deltaker),
+                            innhold = request.innhold.toInnholdModel(deltaker.deltakerliste.tiltak),
                         ),
                         bakgrunnsinformasjon = request.bakgrunnsinformasjon,
                         deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
@@ -129,7 +129,7 @@ fun Routing.registerPameldingApi(
                     deltakerId = deltaker.id,
                     pamelding = Pamelding(
                         deltakelsesinnhold = Deltakelsesinnhold(
-                            innhold = request.innhold.toInnholdModel(deltaker),
+                            innhold = request.innhold.toInnholdModel(deltaker.deltakerliste.tiltak),
                             ledetekst = deltaker.deltakerliste.tiltak.innhold
                                 ?.ledetekst,
                         ),

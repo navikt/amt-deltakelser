@@ -338,6 +338,49 @@ object TestData {
         sistEndretAvEnhet = "~enhet2~",
     )
 
+    fun lagDeltakerResponse(deltaker: Deltaker) = lagDeltakerResponse(
+        id = deltaker.id,
+        startdato = deltaker.startdato,
+        sluttdato = deltaker.sluttdato,
+        dagerPerUke = deltaker.dagerPerUke,
+        status = deltaker.status,
+        deltakelsesprosent = deltaker.deltakelsesprosent,
+        bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
+        deltakelsesinnhold = deltaker.deltakelsesinnhold,
+        sistEndret = deltaker.sistEndret,
+        erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
+        opprettet = deltaker.opprettet,
+        endringsforslagFraArrangor = deltaker.historikk
+            .filterIsInstance<DeltakerHistorikk.Forslag>()
+            .map { it.forslag },
+        navBruker = lagNavBrukerResponse(
+            personident = deltaker.navBruker.personident,
+            fornavn = deltaker.navBruker.fornavn,
+            mellomnavn = deltaker.navBruker.mellomnavn,
+            etternavn = deltaker.navBruker.etternavn,
+            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+            oppfolgingsperioder = deltaker.navBruker.oppfolgingsperioder,
+            innsatsgruppe = deltaker.navBruker.innsatsgruppe,
+            adresse = deltaker.navBruker.adresse,
+            erSkjermet = deltaker.navBruker.erSkjermet,
+            telefon = deltaker.navBruker.telefon,
+            epost = deltaker.navBruker.epost,
+        ),
+        deltakerliste = lagGjennomforingResponse(
+            id = deltaker.deltakerliste.id,
+            tiltakstype = deltaker.deltakerliste.tiltak,
+            navn = deltaker.deltakerliste.navn,
+            status = deltaker.deltakerliste.status,
+            startDato = deltaker.deltakerliste.startDato!!,
+            sluttDato = deltaker.deltakerliste.sluttDato,
+            oppstart = deltaker.deltakerliste.oppstart,
+            apentForPamelding = deltaker.deltakerliste.apentForPamelding,
+            oppmoteSted = deltaker.deltakerliste.oppmoteSted ?: "~oppmoteSted~",
+            pameldingType = deltaker.deltakerliste.pameldingstype,
+        ),
+        vedtaksinformasjon = lagVedtaksinformasjonResponse(),
+    )
+
     fun lagDeltakerResponse(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBrukerResponse = lagNavBrukerResponse(),
@@ -354,6 +397,7 @@ object TestData {
         vedtaksinformasjon: VedtaksinformasjonResponse? = lagVedtaksinformasjonResponse(),
         endringsforslagFraArrangor: List<Forslag> = listOf(lagForslag()),
         prisinformasjon: String? = null,
+        opprettet: LocalDateTime = LocalDateTime.now(),
     ) = DeltakerResponse(
         id = id,
         status = status,
@@ -369,7 +413,7 @@ object TestData {
         erManueltDeltMedArrangor = erManueltDeltMedArrangor,
         kilde = Kilde.KOMET,
         sistEndret = sistEndret,
-        opprettet = LocalDateTime.now(),
+        opprettet = opprettet,
         erLaastForEndringer = false,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
         prisinformasjon = prisinformasjon,

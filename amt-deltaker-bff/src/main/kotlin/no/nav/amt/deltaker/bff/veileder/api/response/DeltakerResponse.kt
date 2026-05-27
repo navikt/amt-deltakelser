@@ -117,8 +117,18 @@ data class DeltakerResponse(
                 importertFraArena = ImportertFraArenaResponse.fromDeltaker(this),
                 harAdresse = navBruker.adresse != null,
                 deltakelsesmengder = DeltakelsesmengderResponse(
-                    nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let { DeltakelsesmengdeResponse.fromDeltakelsesmengde(it) },
-                    sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let { DeltakelsesmengdeResponse.fromDeltakelsesmengde(it) },
+                    nesteDeltakelsesmengde = deltakelsesmengderFraHistorikk.nesteGjeldende?.let {
+                        DeltakelsesmengdeResponse
+                            .fromDeltakelsesmengde(
+                                it,
+                            )
+                    },
+                    sisteDeltakelsesmengde = deltakelsesmengderFraHistorikk.lastOrNull()?.let {
+                        DeltakelsesmengdeResponse
+                            .fromDeltakelsesmengde(
+                                it,
+                            )
+                    },
                 ),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
