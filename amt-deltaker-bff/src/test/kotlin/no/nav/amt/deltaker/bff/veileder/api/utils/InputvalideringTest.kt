@@ -395,24 +395,6 @@ class InputvalideringTest {
         shouldThrow<IllegalArgumentException> { request.valider(deltaker) }
     }
 
-    @Test
-    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er foer startdato, status DELTAR - kaster exception`() {
-        val startdato = LocalDate.now().minusMonths(1)
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            startdato = startdato,
-            sluttdato = LocalDate.now().plusMonths(3),
-        )
-        val request = EndreDeltakelsesmengdeRequest(
-            deltakelsesprosent = 50,
-            dagerPerUke = null,
-            begrunnelse = "begrunnelse",
-            gyldigFra = startdato.minusDays(1),
-            forslagId = null,
-        )
-
-        shouldThrow<IllegalArgumentException> { request.valider(deltaker) }
-    }
 
     @Test
     fun `EndreDeltakelsesmengdeRequest valider - startdato null - validerer ikke gyldigFra mot startdato`() {

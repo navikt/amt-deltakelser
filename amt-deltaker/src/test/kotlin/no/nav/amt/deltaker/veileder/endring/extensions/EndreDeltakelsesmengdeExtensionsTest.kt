@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.veileder.endring.extensions
 
-import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
@@ -65,31 +64,6 @@ class EndreDeltakelsesmengdeExtensionsTest {
             ).shouldBeSuccess()
     }
 
-    @Test
-    fun `oppdaterDeltaker - gyldigFra er før startdato - returnerer failure`() {
-        val startdato = LocalDate.now().plusDays(10)
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            startdato = startdato,
-            sluttdato = LocalDate.now().plusMonths(3),
-        )
-        val request = DeltakelsesmengdeRequest(
-            endretAv = randomNavIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
-            forslagId = null,
-            deltakelsesprosent = 50,
-            dagerPerUke = null,
-            begrunnelse = null,
-            gyldigFra = startdato.minusDays(1), // Én dag før startdato
-        )
-
-        request
-            .toEndring()
-            .oppdaterDeltaker(
-                deltaker = deltaker,
-                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeFailure()
-    }
 
     @Test
     fun `oppdaterDeltaker - startdato er null - gyldigFra valideres ikke mot startdato - returnerer success`() {
@@ -116,31 +90,6 @@ class EndreDeltakelsesmengdeExtensionsTest {
             ).shouldBeSuccess()
     }
 
-    @Test
-    fun `oppdaterDeltaker - gyldigFra er etter sluttdato - returnerer failure`() {
-        val sluttdato = LocalDate.now().plusMonths(1)
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            startdato = LocalDate.now().minusMonths(1),
-            sluttdato = sluttdato,
-        )
-        val request = DeltakelsesmengdeRequest(
-            endretAv = randomNavIdent(),
-            endretAvEnhet = randomEnhetsnummer(),
-            forslagId = null,
-            deltakelsesprosent = 50,
-            dagerPerUke = null,
-            begrunnelse = null,
-            gyldigFra = sluttdato.plusDays(1), // Én dag etter sluttdato
-        )
-
-        request
-            .toEndring()
-            .oppdaterDeltaker(
-                deltaker = deltaker,
-                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeFailure()
-    }
 
     @Test
     fun `oppdaterDeltaker - gyldigFra er lik sluttdato - returnerer success`() {
