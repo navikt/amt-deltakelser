@@ -49,12 +49,10 @@ private fun loadVeilarboppfolgingFakeData(): VeilarboppfolgingFakeData {
 }
 
 private data class VeilarboppfolgingFakeData(
-    val defaultFnr: String,
     val persons: Map<String, VeilarboppfolgingPersonFixture>,
 ) {
     fun findPerson(fnr: String): VeilarboppfolgingPersonFixture = persons[fnr]
-        ?: persons[defaultFnr]
-        ?: error("No Veilarboppfolging fixture found for fnr '$fnr' and missing default fixture '$defaultFnr'")
+        ?: error("No Veilarboppfolging fixture found for fnr '$fnr'")
 }
 
 private data class VeilarboppfolgingPersonFixture(

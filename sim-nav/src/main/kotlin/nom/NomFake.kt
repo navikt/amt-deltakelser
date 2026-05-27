@@ -39,7 +39,7 @@ private fun readStringList(value: Any?): List<String>? {
 
 private fun NomFakeData.toRessurserResult(navidenter: List<String>): List<Any?> =
     navidenter.map { navident ->
-        val ressurs = resources[navident] ?: resources[defaultNavident]
+        val ressurs = resources[navident]
 
         if (ressurs != null && ressurs.navident == navident) {
             mapOf(
@@ -62,7 +62,6 @@ private fun loadNomFakeData(): NomFakeData {
 }
 
 private data class NomFakeData(
-    val defaultNavident: String,
     val resources: Map<String, NomRessursFixture>,
 )
 

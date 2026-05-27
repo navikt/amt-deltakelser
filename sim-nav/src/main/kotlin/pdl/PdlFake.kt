@@ -60,12 +60,10 @@ private fun loadPdlFakeData(): PdlFakeData {
 
 
 private data class PdlFakeData(
-    val defaultIdent: String,
     val persons: Map<String, PdlPersonFixture>,
 ) {
     fun findPerson(ident: String): PdlPersonFixture = persons[ident]
-        ?: persons[defaultIdent]
-        ?: error("No PDL fixture found for ident '$ident' and missing default fixture '$defaultIdent'")
+        ?: error("No PDL fixture found for ident '$ident'")
 }
 
 private data class PdlPersonFixture(

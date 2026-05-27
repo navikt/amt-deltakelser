@@ -44,12 +44,10 @@ private fun loadVeilarbvedtaksstotteFakeData(): VeilarbvedtaksstotteFakeData {
 }
 
 private data class VeilarbvedtaksstotteFakeData(
-    val defaultFnr: String,
     val persons: Map<String, VeilarbvedtaksstottePersonFixture>,
 ) {
     fun findPerson(fnr: String): VeilarbvedtaksstottePersonFixture = persons[fnr]
-        ?: persons[defaultFnr]
-        ?: error("No Veilarbvedtaksstotte fixture found for fnr '$fnr' and missing default fixture '$defaultFnr'")
+        ?: error("No Veilarbvedtaksstotte fixture found for fnr '$fnr'")
 }
 
 private data class VeilarbvedtaksstottePersonFixture(

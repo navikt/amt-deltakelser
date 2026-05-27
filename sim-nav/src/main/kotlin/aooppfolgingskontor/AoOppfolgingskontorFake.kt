@@ -32,12 +32,10 @@ private fun loadAoOppfolgingskontorFakeData(): AoOppfolgingskontorFakeData {
 }
 
 private data class AoOppfolgingskontorFakeData(
-    val defaultIdent: String,
     val kontorTilhorigheter: Map<String, KontorTilhorigheterFixture>,
 ) {
     fun findKontorTilhorigheter(ident: String): KontorTilhorigheterFixture = kontorTilhorigheter[ident]
-        ?: kontorTilhorigheter[defaultIdent]
-        ?: error("No ao-oppfolgingskontor fixture found for ident '$ident' and missing default fixture '$defaultIdent'")
+        ?: error("No ao-oppfolgingskontor fixture found for ident '$ident'")
 }
 
 private data class KontorTilhorigheterFixture(
