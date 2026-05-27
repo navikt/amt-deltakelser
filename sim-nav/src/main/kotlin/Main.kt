@@ -1,4 +1,6 @@
 import aooppfolgingskontor.AO_OPPFOLGINGSKONTOR_PATH_PREFIX
+import brreg.BRONNOYSUND_PATH_PREFIX
+import brreg.BronnoysundSimulator
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kafka.KafkaPublisher
@@ -33,7 +35,7 @@ fun main() {
     println("Mock OAuth2 server started on http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID")
     println("Set UNLEASH_SERVER_API_URL=http://localhost:$SIM_NAV_HTTP_PORT$UNLEASH_PATH_PREFIX/api and UNLEASH_SERVER_API_TOKEN=dummy")
     println("Set POAO_TILGANG_URL=http://localhost:$SIM_NAV_HTTP_PORT$POAO_TILGANG_PATH_PREFIX")
-    println("Set app.env.brreg-url=http://localhost:$SIM_NAV_HTTP_PORT$BRONNOYSUND_PATH_PREFIX")
+    println("Set app.env.brreg-url=http://localhost:$SIM_NAV_HTTP_PORT${BRONNOYSUND_PATH_PREFIX}")
     println("Set NORG_URL=http://localhost:$SIM_NAV_HTTP_PORT$NORG_PATH_PREFIX")
     println("Set AO_OPPFOLGINGSKONTOR_URL=http://localhost:$SIM_NAV_HTTP_PORT$AO_OPPFOLGINGSKONTOR_PATH_PREFIX")
     println("Set PDL_URL=http://localhost:$SIM_NAV_HTTP_PORT${PDL_PATH_PREFIX}")

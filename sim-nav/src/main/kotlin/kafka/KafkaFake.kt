@@ -1,6 +1,6 @@
 package kafka
 
-import BronnoysundSimulator
+import brreg.BronnoysundSimulator
 import io.ktor.http.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*

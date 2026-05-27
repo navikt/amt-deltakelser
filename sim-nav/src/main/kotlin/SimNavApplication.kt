@@ -1,4 +1,6 @@
 import aooppfolgingskontor.aoOppfolgingskontorFakeRoutes
+import brreg.BronnoysundSimulator
+import brreg.bronnoysundFakeRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
