@@ -161,6 +161,7 @@ data class OpplaringKategoriseringResponse(
          *   (ett enkelt valg eller flere samtidig).
          * @property alternativer Verdiene brukeren kan velge mellom.
          */
+        @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
         data class Verdigruppe(
             override val id: UUID?,
             override val visningsnavn: String,

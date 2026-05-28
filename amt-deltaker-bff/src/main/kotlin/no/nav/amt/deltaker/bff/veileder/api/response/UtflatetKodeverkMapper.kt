@@ -5,8 +5,8 @@ import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
-private const val BRANSJE_REPRESENTERER = "bransjeId"
-private const val KURSTYPE_REPRESENTERER = "kurstype"
+internal const val BRANSJE_REPRESENTERER = "bransjeId"
+internal const val KURSTYPE_REPRESENTERER = "kurstypeId"
 
 // Begge bruker valgt verdi som tittel — ikke kategorinavnet
 private val REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL = setOf(BRANSJE_REPRESENTERER, KURSTYPE_REPRESENTERER)

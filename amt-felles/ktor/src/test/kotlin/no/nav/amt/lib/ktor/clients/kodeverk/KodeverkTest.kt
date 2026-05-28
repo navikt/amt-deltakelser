@@ -6,9 +6,60 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class KodeverkTest {
+    @Test
+    fun `should deserialize response from Mulighetsrommet`() {
+        val json =
+            """
+            {
+              "tiltakskode": "ARBEIDSMARKEDSOPPLAERING",
+              "alternativer": [
+                {
+                  "type": "UtdanningGruppe",
+                  "id": "11111111-1111-1111-1111-111111111111",
+                  "visningsnavn": "Helse og oppvekst",
+                  "representerer": "utdanning",
+                  "pakrevd": true,
+                  "utdanninger": [
+                    {
+                      "id": "22222222-2222-2222-2222-222222222222",
+                      "visningsnavn": "Helsearbeiderfag",
+                      "larefag": {
+                        "id": "33333333-3333-3333-3333-333333333333",
+                        "visningsnavn": "Lærefag",
+                        "pakrevd": false,
+                        "representerer": "larefag",
+                        "seleksjonstype": "FLERVALG",
+                        "alternativer": [
+                          {
+                            "id": "44444444-4444-4444-4444-444444444444",
+                            "visningsnavn": "Helsearbeider",
+                            "valgt": false
+                          },
+                          {
+                            "id": "55555555-5555-5555-5555-555555555555",
+                            "visningsnavn": "Ambulansefag",
+                            "valgt": true
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "sertifiseringValg": []
+            }
+            """.trimIndent()
+
+        val result = objectMapper.readValue<OpplaringKategoriseringResponse>(json)
+
+        result.tiltakskode shouldBe Tiltakskode.ARBEIDSMARKEDSOPPLAERING
+        result.alternativer.size shouldBe 2
+    }
+
     @Test
     fun `should deserialize response from Mulighetsrommet without type on Verdi`() {
         // JSON matching what the remote server (kotlinx.serialization) produces:
@@ -60,7 +111,7 @@ class KodeverkTest {
             }
             """.trimIndent()
 
-        val result = objectMapper.readValue(json, OpplaringKategoriseringResponse::class.java)
+        val result = objectMapper.readValue<OpplaringKategoriseringResponse>(json)
 
         result.tiltakskode shouldBe Tiltakskode.ARBEIDSMARKEDSOPPLAERING
         result.alternativer.size shouldBe 3
