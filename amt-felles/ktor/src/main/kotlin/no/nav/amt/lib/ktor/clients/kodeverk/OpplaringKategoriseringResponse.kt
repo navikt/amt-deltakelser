@@ -74,6 +74,17 @@ data class OpplaringKategoriseringResponse(
         FLERVALG,
     }
 
+    enum class Representerer {
+        KURSTYPE_ID,
+        BRANSJE_ID,
+        SERTIFISERINGER,
+        FORERKORT,
+        INNHOLDSELEMENTER,
+        NORSKPROVE,
+        UTDANNINGSPROGRAM_ID,
+        LAREFAG,
+    }
+
     /**
      * Et element i kodeverk-hierarkiet.
      *
@@ -112,7 +123,7 @@ data class OpplaringKategoriseringResponse(
         data class UtdanningGruppe(
             override val id: UUID? = null,
             override val visningsnavn: String,
-            val representerer: String,
+            val representerer: Representerer,
             val pakrevd: Boolean,
             val utdanninger: List<UtdanningValg>,
         ) : Container {
@@ -141,8 +152,8 @@ data class OpplaringKategoriseringResponse(
         data class Verdigruppe(
             override val id: UUID?,
             override val visningsnavn: String,
-            val pakrevd: Boolean = false, // TODO: Fjern default
-            val representerer: String = "", // TODO: Fjern default
+            val pakrevd: Boolean,
+            val representerer: Representerer,
             val seleksjonstype: Seleksjonstype,
             val alternativer: List<Verdi>,
         ) : Container
@@ -165,7 +176,7 @@ data class OpplaringKategoriseringResponse(
         data class VerdigruppeSok(
             override val id: UUID?,
             override val visningsnavn: String,
-            val representerer: String? = null,
+            val representerer: Representerer? = null,
             val seleksjonstype: Seleksjonstype,
             val kilde: Kilde,
         ) : Container {

@@ -19,7 +19,7 @@ class OpplaringKategoriseringResponseTest {
                   "type": "UtdanningGruppe",
                   "id": "11111111-1111-1111-1111-111111111111",
                   "visningsnavn": "Helse og oppvekst",
-                  "representerer": "utdanning",
+                  "representerer": "UTDANNINGSPROGRAM_ID",
                   "pakrevd": true,
                   "utdanninger": [
                     {
@@ -29,7 +29,7 @@ class OpplaringKategoriseringResponseTest {
                         "id": "33333333-3333-3333-3333-333333333333",
                         "visningsnavn": "Lærefag",
                         "pakrevd": false,
-                        "representerer": "larefag",
+                        "representerer": "LAREFAG",
                         "seleksjonstype": "FLERVALG",
                         "alternativer": [
                           {
@@ -71,6 +71,8 @@ class OpplaringKategoriseringResponseTest {
                     id = UUID.randomUUID(),
                     visningsnavn = "Førerkortklasser",
                     seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
+                    pakrevd = true,
+                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
                     alternativer = listOf(
                         OpplaringKategoriseringResponse.Alternativ.Verdi(id = verdiAId, visningsnavn = "B", valgt = true),
                         OpplaringKategoriseringResponse.Alternativ.Verdi(id = verdiBId, visningsnavn = "C", valgt = false),
@@ -98,6 +100,8 @@ class OpplaringKategoriseringResponseTest {
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                     id = UUID.randomUUID(),
                     visningsnavn = "Førerkortklasser",
+                    pakrevd = true,
+                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
                     seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                     alternativer = listOf(
                         OpplaringKategoriseringResponse.Alternativ.Verdi(id = verdiId, visningsnavn = "B", valgt = true),
