@@ -81,12 +81,12 @@ private fun HTML.navVeiledersFlateLauncherPage(
 
                 div("field") {
                     label {
-                        htmlFor = "initial_person_ident"
+                        htmlFor = "veileder_person_ident"
                         +"Veileder"
                     }
                     select {
-                        id = "initial_person_ident"
-                        name = "initial_person_ident"
+                        id = "veileder_person_ident"
+                        name = "veileder_person_ident"
                         required = true
                         personOptions.forEachIndexed { index, option ->
                             option {
@@ -100,12 +100,12 @@ private fun HTML.navVeiledersFlateLauncherPage(
 
                 div("field") {
                     label {
-                        htmlFor = "initial_enhet_id"
+                        htmlFor = "enhet_id"
                         +"Enhet"
                     }
                     select {
-                        id = "initial_enhet_id"
-                        name = "initial_enhet_id"
+                        id = "enhet_id"
+                        name = "enhet_id"
                         required = true
                         unitOptions.forEach { option ->
                             option {
