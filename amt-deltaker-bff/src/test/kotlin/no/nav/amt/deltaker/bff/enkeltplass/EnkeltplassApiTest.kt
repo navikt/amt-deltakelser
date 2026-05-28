@@ -26,7 +26,7 @@ import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
@@ -120,15 +120,15 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
             val tiltakskode = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
 
-            val kodeverkFraClient = KodeverkResponse(
+            val kodeverkFraClient = OpplaringKategoriseringResponse(
                 tiltakskode = tiltakskode,
                 alternativer = listOf(
-                    KodeverkResponse.Alternativ.Verdigruppe(
+                    OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                         id = UUID.randomUUID(),
                         visningsnavn = "Bransje",
-                        seleksjonstype = KodeverkResponse.Seleksjonstype.ENKELTVALG,
+                        seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
                         alternativer = listOf(
-                            KodeverkResponse.Alternativ.Verdi(
+                            OpplaringKategoriseringResponse.Alternativ.Verdi(
                                 id = verdiId,
                                 visningsnavn = "Bygg",
                                 valgt = false,
@@ -148,7 +148,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             response.status shouldBe HttpStatusCode.OK
-            response.body<KodeverkResponse>() shouldBe kodeverkFraClient.settValgt(
+            response.body<OpplaringKategoriseringResponse>() shouldBe kodeverkFraClient.settValgt(
                 kodeverkValg = deltakerResponse.gjennomforing.kodeverkValg,
                 sertifiseringValg = deltakerResponse.gjennomforing.sertifiseringValg,
             )
@@ -199,7 +199,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             @Test
             fun `skal returnere OK nar kladd er opprettet`() = runTest {
                 // Arrange
-                coEvery { kodeverkClient.hentKodeverk(any()) } returns KodeverkResponse(
+                coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
                     tiltakskode = requestInTest.tiltakskode,
                     alternativer = emptyList(),
                 )
@@ -316,7 +316,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         @Test
         fun `skal returnere OK nar utkast er oppdatert`() = runTest {
             // Arrange
-            coEvery { kodeverkClient.hentKodeverk(any()) } returns KodeverkResponse(
+            coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
                 tiltakskode = deltakerInTest.deltakerliste.tiltak.tiltakskode,
                 alternativer = emptyList(),
             )

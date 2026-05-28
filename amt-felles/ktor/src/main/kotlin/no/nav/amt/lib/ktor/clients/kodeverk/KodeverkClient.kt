@@ -16,7 +16,7 @@ class KodeverkClient(
     scope: String,
     httpClient: HttpClient,
     azureAdTokenClient: AzureAdTokenClient,
-    private val kodeverkCache: Cache<Tiltakskode, KodeverkResponse> = Caffeine
+    private val kodeverkCache: Cache<Tiltakskode, OpplaringKategoriseringResponse> = Caffeine
         .newBuilder()
         .expireAfterWrite(Duration.ofMinutes(15))
         .build(),
@@ -26,11 +26,11 @@ class KodeverkClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun hentKodeverk(tiltakskode: Tiltakskode): KodeverkResponse = kodeverkCache.getIfPresent(tiltakskode)
+    suspend fun hentKodeverk(tiltakskode: Tiltakskode): OpplaringKategoriseringResponse = kodeverkCache.getIfPresent(tiltakskode)
         ?: performGet("api/kodeverk/opplaring/kategorisering") {
             parameter("tiltakskode", tiltakskode)
         }.failIfNotSuccess("Kunne ikke hente kodeverk for tiltakskode $tiltakskode fra Mulighetsrommet")
-            .body<KodeverkResponse>()
+            .body<OpplaringKategoriseringResponse>()
             .also { kodeverkCache.put(tiltakskode, it) }
 
     suspend fun sertifiseringSok(term: String): List<SertifiseringResponse> = performGet("api/kodeverk/opplaring/sertifiseringer/sok") {

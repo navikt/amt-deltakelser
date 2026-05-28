@@ -1,17 +1,17 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkResponse
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
-private const val BRANSJE_REPRESENTERER = "bransje"
+private const val BRANSJE_REPRESENTERER = "bransjeId"
 private const val KURSTYPE_REPRESENTERER = "kurstype"
 
 // Begge bruker valgt verdi som tittel — ikke kategorinavnet
 private val REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL = setOf(BRANSJE_REPRESENTERER, KURSTYPE_REPRESENTERER)
 
-fun KodeverkResponse.tilUtflatetKodeverk(
+fun OpplaringKategoriseringResponse.tilUtflatetKodeverk(
     kodeverkValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
 ): DeltakerlisteResponse.UtflatetKodeverk {
@@ -27,25 +27,42 @@ fun KodeverkResponse.tilUtflatetKodeverk(
     )
 }
 
-private fun KodeverkResponse.Alternativ.Container.tilTittelOgValg(sertifiseringValg: Set<SertifiseringValg>): TittelOgValg = when (this) {
-    is KodeverkResponse.Alternativ.Gruppe -> tilTittelOgValg()
-    is KodeverkResponse.Alternativ.Verdigruppe -> TittelOgValg(
-        tittel = tittel(),
-        valg = if (representerer in REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL) emptyList() else valgteVisningsnavn(),
-    )
+private fun OpplaringKategoriseringResponse.Alternativ.Container.tilTittelOgValg(sertifiseringValg: Set<SertifiseringValg>): TittelOgValg =
+    when (this) {
+        is OpplaringKategoriseringResponse.Alternativ.Gruppe -> tilTittelOgValg()
+        is OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe -> tilTittelOgValg()
+        is OpplaringKategoriseringResponse.Alternativ.Verdigruppe -> TittelOgValg(
+            tittel = tittel(),
+            valg = if (representerer in REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL) emptyList() else valgteVisningsnavn(),
+        )
 
-    is KodeverkResponse.Alternativ.VerdigruppeSok -> TittelOgValg(
-        tittel = null,
-        valg = sertifiseringValg.map { it.navn },
+        is OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok -> TittelOgValg(
+            tittel = null,
+            valg = sertifiseringValg.map { it.navn },
+        )
+    }
+
+private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilTittelOgValg(): TittelOgValg {
+    val valgtToppnivaaGruppe = utdanninger
+        .firstOrNull { utdanningValg ->
+            utdanningValg.larefag.alternativer.any { vg -> vg.valgt }
+        }
+
+    return TittelOgValg(
+        tittel = valgtToppnivaaGruppe?.visningsnavn,
+        valg = valgtToppnivaaGruppe
+            ?.larefag
+            ?.valgteVisningsnavn()
+            ?: emptyList(),
     )
 }
 
-private fun KodeverkResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg {
+private fun OpplaringKategoriseringResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg {
     val valgtToppnivaaGruppe = alternativer
-        .filterIsInstance<KodeverkResponse.Alternativ.Gruppe>()
+        .filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Gruppe>()
         .firstOrNull { gruppe ->
             gruppe.alternativer
-                .filterIsInstance<KodeverkResponse.Alternativ.Verdigruppe>()
+                .filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Verdigruppe>()
                 .any { vg -> vg.alternativer.any { it.valgt } }
         }
 
@@ -53,20 +70,20 @@ private fun KodeverkResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg {
         tittel = valgtToppnivaaGruppe?.visningsnavn,
         valg = valgtToppnivaaGruppe
             ?.alternativer
-            ?.filterIsInstance<KodeverkResponse.Alternativ.Verdigruppe>()
+            ?.filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Verdigruppe>()
             ?.flatMap { it.valgteVisningsnavn() }
             ?: emptyList(),
     )
 }
 
-private fun KodeverkResponse.Alternativ.Verdigruppe.tittel(): String? =
+private fun OpplaringKategoriseringResponse.Alternativ.Verdigruppe.tittel(): String? =
     if (representerer in REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL) {
         alternativer.firstOrNull { it.valgt }?.visningsnavn
     } else {
         null
     }
 
-private fun KodeverkResponse.Alternativ.Verdigruppe.valgteVisningsnavn() = alternativer
+private fun OpplaringKategoriseringResponse.Alternativ.Verdigruppe.valgteVisningsnavn() = alternativer
     .filter { it.valgt }
     .map { it.visningsnavn }
 
