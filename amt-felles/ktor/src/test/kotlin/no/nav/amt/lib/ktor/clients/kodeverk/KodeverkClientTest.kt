@@ -21,7 +21,7 @@ class KodeverkClientTest {
     inner class HentKodeverk {
         val tiltakskodeInTest = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING
 
-        val hentKodeverkLambda: suspend (KodeverkClient) -> KodeverkResponse =
+        val hentKodeverkLambda: suspend (KodeverkClient) -> OpplaringKategoriseringResponse =
             { client -> client.hentKodeverk(tiltakskodeInTest) }
 
         @ParameterizedTest
@@ -42,7 +42,7 @@ class KodeverkClientTest {
         fun `hentKodeverk skal returnere kodeverk`() = runTest {
             runHappyPathTest(
                 expectedUrl = KODEVERK_EXPECTED_URL,
-                expectedResponse = KodeverkResponse(
+                expectedResponse = OpplaringKategoriseringResponse(
                     tiltakskode = tiltakskodeInTest,
                     alternativer = emptyList(),
                 ),
@@ -52,11 +52,11 @@ class KodeverkClientTest {
 
         @Test
         fun `skal bruke cache ved andre kall til hentKodeverk`() = runTest {
-            val countingCache = CountingCache<Tiltakskode, KodeverkResponse>()
+            val countingCache = CountingCache<Tiltakskode, OpplaringKategoriseringResponse>()
 
             val kodeverkClient = createKodeverkClient(
                 expectedUrl = KODEVERK_EXPECTED_URL,
-                responseBody = KodeverkResponse(
+                responseBody = OpplaringKategoriseringResponse(
                     tiltakskode = tiltakskodeInTest,
                     alternativer = emptyList(),
                 ),
@@ -148,7 +148,7 @@ class KodeverkClientTest {
             expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
-            cache: CountingCache<Tiltakskode, KodeverkResponse>? = null,
+            cache: CountingCache<Tiltakskode, OpplaringKategoriseringResponse>? = null,
         ) = if (cache == null) {
             KodeverkClient(
                 baseUrl = KODEVERK_BASE_URL,

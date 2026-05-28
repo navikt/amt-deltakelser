@@ -24,7 +24,7 @@ import java.util.UUID
  *   Verdiene kommer fra et eksternt søk ([Alternativ.VerdigruppeSok]) og lagres separat
  *   fra det statiske kodeverket i [alternativer].
  */
-data class KodeverkResponse(
+data class OpplaringKategoriseringResponse(
     val tiltakskode: Tiltakskode,
     val alternativer: List<Alternativ.Container>,
     val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
@@ -40,7 +40,7 @@ data class KodeverkResponse(
     fun settValgt(
         kodeverkValg: Set<UUID>,
         sertifiseringValg: Set<SertifiseringValg>,
-    ): KodeverkResponse = copy(
+    ): OpplaringKategoriseringResponse = copy(
         alternativer = alternativer.map { it.settValgt(kodeverkValg) },
         sertifiseringValg = sertifiseringValg,
     )
@@ -49,6 +49,17 @@ data class KodeverkResponse(
         is Alternativ.Gruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })
         is Alternativ.Verdigruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })
         is Alternativ.VerdigruppeSok -> this
+        is Alternativ.UtdanningGruppe -> copy(
+            utdanninger = utdanninger.map {
+                it.copy(
+                    larefag = it.larefag.copy(
+                        alternativer = it.larefag.alternativer.map { verdi ->
+                            verdi.settValgt(kodeverkValg)
+                        },
+                    ),
+                )
+            },
+        )
     }
 
     private fun Alternativ.Verdi.settValgt(kodeverkValg: Set<UUID>): Alternativ.Verdi = copy(valgt = id in kodeverkValg)
@@ -76,6 +87,7 @@ data class KodeverkResponse(
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes(
         JsonSubTypes.Type(value = Alternativ.Gruppe::class, name = "Gruppe"),
+        JsonSubTypes.Type(value = Alternativ.UtdanningGruppe::class, name = "UtdanningGruppe"),
         JsonSubTypes.Type(value = Alternativ.Verdigruppe::class, name = "Verdigruppe"),
         JsonSubTypes.Type(value = Alternativ.VerdigruppeSok::class, name = "VerdigruppeSok"),
         JsonSubTypes.Type(value = Alternativ.Verdi::class, name = "Verdi"),
@@ -111,8 +123,29 @@ data class KodeverkResponse(
         data class Gruppe(
             override val id: UUID?,
             override val visningsnavn: String,
+            val representerer: String? = null,
+            val pakrevd: Boolean = false,
             val alternativer: List<Container>,
         ) : Container
+
+        /**
+         * Gruppering for utdanningsprogram og lærefag
+         *
+         * Muliggjør at valg av program, gir andre muligheter for lærefag
+         */
+        data class UtdanningGruppe(
+            override val id: UUID? = null,
+            override val visningsnavn: String,
+            val representerer: String,
+            val pakrevd: Boolean,
+            val utdanninger: List<UtdanningValg>,
+        ) : Container {
+            data class UtdanningValg(
+                val id: UUID,
+                val visningsnavn: String,
+                val larefag: Verdigruppe,
+            )
+        }
 
         /**
          * En valgbar gruppe — det innerste nivået i hierarkiet som inneholder
@@ -124,15 +157,16 @@ data class KodeverkResponse(
          *
          * @property id Unik identifikator for verdigruppen.
          * @property visningsnavn Navnet som vises i UI (f.eks. "Bransje").
-         * @property representerer Hva verdigruppen representerer (f.eks. "bransje").
          * @property seleksjonstype Hvordan brukeren kan velge blant verdiene
          *   (ett enkelt valg eller flere samtidig).
          * @property alternativer Verdiene brukeren kan velge mellom.
          */
+        @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
         data class Verdigruppe(
             override val id: UUID?,
             override val visningsnavn: String,
-            val representerer: String? = null,
+            val pakrevd: Boolean = false, // TODO: Fjern default
+            val representerer: String = "", // TODO: Fjern default
             val seleksjonstype: Seleksjonstype,
             val alternativer: List<Verdi>,
         ) : Container
