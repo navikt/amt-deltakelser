@@ -57,7 +57,7 @@ class KodeverkTest {
         val result = objectMapper.readValue<OpplaringKategoriseringResponse>(json)
 
         result.tiltakskode shouldBe Tiltakskode.ARBEIDSMARKEDSOPPLAERING
-        result.alternativer.size shouldBe 2
+        result.alternativer.size shouldBe 1
     }
 
     @Test
