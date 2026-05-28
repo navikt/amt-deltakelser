@@ -20,7 +20,7 @@ class UtflatetKodeverkMapperTest {
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
                     id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
-                    representerer = "utdanningsprogram",
+                    representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
                     utdanninger = listOf(
                         OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.UtdanningValg(
@@ -29,7 +29,8 @@ class UtflatetKodeverkMapperTest {
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                                 id = UUID.randomUUID(),
                                 visningsnavn = "Lærefag",
-                                representerer = "larefag",
+                                representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
+                                pakrevd = true,
                                 seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                                 alternativer = listOf(
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
@@ -73,7 +74,8 @@ class UtflatetKodeverkMapperTest {
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                     id = UUID.randomUUID(),
                     visningsnavn = "Bransje",
-                    representerer = BRANSJE_REPRESENTERER,
+                    pakrevd = true,
+                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                     seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
                     alternativer = listOf(
                         OpplaringKategoriseringResponse.Alternativ.Verdi(
@@ -84,8 +86,9 @@ class UtflatetKodeverkMapperTest {
                 ),
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                     id = UUID.randomUUID(),
+                    pakrevd = false,
                     visningsnavn = "Førerkortklasse",
-                    representerer = "forerkortklasse",
+                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
                     seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                     alternativer = listOf(
                         OpplaringKategoriseringResponse.Alternativ.Verdi(
@@ -129,8 +132,9 @@ class UtflatetKodeverkMapperTest {
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                     id = UUID.randomUUID(),
+                    pakrevd = true,
                     visningsnavn = "Kurstype",
-                    representerer = KURSTYPE_REPRESENTERER,
+                    representerer = OpplaringKategoriseringResponse.Representerer.KURSTYPE_ID,
                     seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
                     alternativer = listOf(
                         OpplaringKategoriseringResponse.Alternativ.Verdi(
@@ -162,8 +166,9 @@ class UtflatetKodeverkMapperTest {
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                     id = UUID.randomUUID(),
+                    pakrevd = true,
                     visningsnavn = "Bransje",
-                    representerer = BRANSJE_REPRESENTERER,
+                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                     seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
                     alternativer = listOf(
                         OpplaringKategoriseringResponse.Alternativ.Verdi(

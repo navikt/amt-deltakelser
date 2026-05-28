@@ -55,7 +55,7 @@ object SertifiseringValgRepository {
                     queryOf(sql, deltakerlisteId)
                         .map { row ->
                             SertifiseringValg(
-                                id = row.int("sertifisering_id"),
+                                id = row.long("sertifisering_id"),
                                 navn = row.string("sertifisering_navn"),
                             )
                         }.asList,

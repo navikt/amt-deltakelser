@@ -125,7 +125,9 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 alternativer = listOf(
                     OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                         id = UUID.randomUUID(),
+                        pakrevd = true,
                         visningsnavn = "Bransje",
+                        representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                         seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
                         alternativer = listOf(
                             OpplaringKategoriseringResponse.Alternativ.Verdi(

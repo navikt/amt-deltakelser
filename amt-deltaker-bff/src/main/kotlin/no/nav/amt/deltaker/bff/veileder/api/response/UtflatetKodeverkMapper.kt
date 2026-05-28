@@ -5,11 +5,11 @@ import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
-internal const val BRANSJE_REPRESENTERER = "bransjeId"
-internal const val KURSTYPE_REPRESENTERER = "kurstypeId"
-
 // Begge bruker valgt verdi som tittel — ikke kategorinavnet
-private val REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL = setOf(BRANSJE_REPRESENTERER, KURSTYPE_REPRESENTERER)
+private val REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL = setOf(
+    OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+    OpplaringKategoriseringResponse.Representerer.KURSTYPE_ID,
+)
 
 fun OpplaringKategoriseringResponse.tilUtflatetKodeverk(
     kodeverkValg: Set<UUID>,
@@ -29,7 +29,6 @@ fun OpplaringKategoriseringResponse.tilUtflatetKodeverk(
 
 private fun OpplaringKategoriseringResponse.Alternativ.Container.tilTittelOgValg(sertifiseringValg: Set<SertifiseringValg>): TittelOgValg =
     when (this) {
-        is OpplaringKategoriseringResponse.Alternativ.Gruppe -> tilTittelOgValg()
         is OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe -> tilTittelOgValg()
         is OpplaringKategoriseringResponse.Alternativ.Verdigruppe -> TittelOgValg(
             tittel = tittel(),
@@ -45,7 +44,7 @@ private fun OpplaringKategoriseringResponse.Alternativ.Container.tilTittelOgValg
 private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilTittelOgValg(): TittelOgValg {
     val valgtToppnivaaGruppe = utdanninger
         .firstOrNull { utdanningValg ->
-            utdanningValg.larefag.alternativer.any { vg -> vg.valgt }
+            utdanningValg.larefag.alternativer.any { verdi -> verdi.valgt }
         }
 
     return TittelOgValg(
@@ -53,25 +52,6 @@ private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilTittel
         valg = valgtToppnivaaGruppe
             ?.larefag
             ?.valgteVisningsnavn()
-            ?: emptyList(),
-    )
-}
-
-private fun OpplaringKategoriseringResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg {
-    val valgtToppnivaaGruppe = alternativer
-        .filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Gruppe>()
-        .firstOrNull { gruppe ->
-            gruppe.alternativer
-                .filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Verdigruppe>()
-                .any { vg -> vg.alternativer.any { it.valgt } }
-        }
-
-    return TittelOgValg(
-        tittel = valgtToppnivaaGruppe?.visningsnavn,
-        valg = valgtToppnivaaGruppe
-            ?.alternativer
-            ?.filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Verdigruppe>()
-            ?.flatMap { it.valgteVisningsnavn() }
             ?: emptyList(),
     )
 }
