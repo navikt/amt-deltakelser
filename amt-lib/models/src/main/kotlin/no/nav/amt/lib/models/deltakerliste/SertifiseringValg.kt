@@ -1,6 +1,6 @@
 package no.nav.amt.lib.models.deltakerliste
 
 data class SertifiseringValg(
-    val id: Int,
+    val id: Long,
     val navn: String,
 )

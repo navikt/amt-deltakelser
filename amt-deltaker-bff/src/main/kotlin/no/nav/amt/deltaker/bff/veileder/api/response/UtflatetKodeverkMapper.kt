@@ -44,7 +44,7 @@ private fun OpplaringKategoriseringResponse.Alternativ.Container.tilTittelOgValg
 private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilTittelOgValg(): TittelOgValg {
     val valgtToppnivaaGruppe = utdanninger
         .firstOrNull { utdanningValg ->
-            utdanningValg.larefag.alternativer.any { vg -> vg.valgt }
+            utdanningValg.larefag.alternativer.any { verdi -> verdi.valgt }
         }
 
     return TittelOgValg(
