@@ -29,7 +29,6 @@ fun OpplaringKategoriseringResponse.tilUtflatetKodeverk(
 
 private fun OpplaringKategoriseringResponse.Alternativ.Container.tilTittelOgValg(sertifiseringValg: Set<SertifiseringValg>): TittelOgValg =
     when (this) {
-        is OpplaringKategoriseringResponse.Alternativ.Gruppe -> tilTittelOgValg()
         is OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe -> tilTittelOgValg()
         is OpplaringKategoriseringResponse.Alternativ.Verdigruppe -> TittelOgValg(
             tittel = tittel(),
@@ -53,25 +52,6 @@ private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilTittel
         valg = valgtToppnivaaGruppe
             ?.larefag
             ?.valgteVisningsnavn()
-            ?: emptyList(),
-    )
-}
-
-private fun OpplaringKategoriseringResponse.Alternativ.Gruppe.tilTittelOgValg(): TittelOgValg {
-    val valgtToppnivaaGruppe = alternativer
-        .filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Gruppe>()
-        .firstOrNull { gruppe ->
-            gruppe.alternativer
-                .filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Verdigruppe>()
-                .any { vg -> vg.alternativer.any { it.valgt } }
-        }
-
-    return TittelOgValg(
-        tittel = valgtToppnivaaGruppe?.visningsnavn,
-        valg = valgtToppnivaaGruppe
-            ?.alternativer
-            ?.filterIsInstance<OpplaringKategoriseringResponse.Alternativ.Verdigruppe>()
-            ?.flatMap { it.valgteVisningsnavn() }
             ?: emptyList(),
     )
 }

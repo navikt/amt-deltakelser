@@ -13,12 +13,12 @@ import java.util.UUID
  * valgene som er aktuelle for tiltaket — for eksempel bransjer, førerkortklasser
  * eller sertifiseringer.
  *
- * Hierarkiet kan inneholde flere nivåer: rene grupperingsnoder ([Alternativ.Gruppe])
+ * Hierarkiet kan inneholde flere nivåer: rene grupperingsnoder ([Alternativ.UtdanningGruppe])
  * for å organisere innholdet, og innerste valgbare grupper ([Alternativ.Verdigruppe])
  * som inneholder de konkrete [Alternativ.Verdi]-ene brukeren kan velge mellom.
  *
  * @property tiltakskode Tiltakskoden kodeverket gjelder for.
- * @property alternativer Toppnivå-containere i kodeverket — enten [Alternativ.Gruppe]
+ * @property alternativer Toppnivå-containere i kodeverket — enten [Alternativ.UtdanningGruppe]
  *   eller [Alternativ.Verdigruppe]. Kan ikke inneholde [Alternativ.Verdi] direkte.
  * @property sertifiseringValg Sertifiseringer valgt for en enkeltplass-gjennomføring.
  *   Verdiene kommer fra et eksternt søk ([Alternativ.VerdigruppeSok]) og lagres separat
@@ -46,7 +46,6 @@ data class OpplaringKategoriseringResponse(
     )
 
     private fun Alternativ.Container.settValgt(kodeverkValg: Set<UUID>): Alternativ.Container = when (this) {
-        is Alternativ.Gruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })
         is Alternativ.Verdigruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })
         is Alternativ.VerdigruppeSok -> this
         is Alternativ.UtdanningGruppe -> copy(
@@ -79,14 +78,13 @@ data class OpplaringKategoriseringResponse(
      * Et element i kodeverk-hierarkiet.
      *
      * Et alternativ er enten en [Container] som inneholder andre alternativer
-     * ([Gruppe] eller [Verdigruppe]), eller en konkret valgbar [Verdi].
+     * ([UtdanningGruppe] eller [Verdigruppe]), eller en konkret valgbar [Verdi].
      *
      * @property id Unik identifikator for alternativet.
      * @property visningsnavn Navnet som vises i UI.
      */
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes(
-        JsonSubTypes.Type(value = Alternativ.Gruppe::class, name = "Gruppe"),
         JsonSubTypes.Type(value = Alternativ.UtdanningGruppe::class, name = "UtdanningGruppe"),
         JsonSubTypes.Type(value = Alternativ.Verdigruppe::class, name = "Verdigruppe"),
         JsonSubTypes.Type(value = Alternativ.VerdigruppeSok::class, name = "VerdigruppeSok"),
@@ -98,35 +96,13 @@ data class OpplaringKategoriseringResponse(
 
         /**
          * Et alternativ som kan inneholde andre alternativer — enten en ren
-         * grupperingsnode ([Gruppe]) eller en valgbar gruppe med [Verdi]-er
+         * grupperingsnode ([UtdanningGruppe]) eller en valgbar gruppe med [Verdi]-er
          * ([Verdigruppe]).
          *
          * En [Verdi] er ikke en [Container] og kan derfor ikke inneholde andre
          * alternativer.
          */
         sealed interface Container : Alternativ
-
-        /**
-         * En ren grupperingsnode som inneholder andre [Container]-er.
-         *
-         * Brukes for å støtte mer enn to nivåer i hierarkiet — f.eks. en
-         * overordnet kategori som inneholder flere [Verdigruppe]-r eller
-         * nestede [Gruppe]-r. En [Gruppe] har ingen [Seleksjonstype] siden
-         * brukeren ikke velger direkte fra den; valgene skjer i de underliggende
-         * [Verdigruppe]-ene.
-         *
-         * @property id Unik identifikator for gruppen.
-         * @property visningsnavn Navnet som vises i UI.
-         * @property alternativer Underliggende containere — kan ikke inneholde
-         *   [Verdi]-er direkte.
-         */
-        data class Gruppe(
-            override val id: UUID?,
-            override val visningsnavn: String,
-            val representerer: String? = null,
-            val pakrevd: Boolean = false,
-            val alternativer: List<Container>,
-        ) : Container
 
         /**
          * Gruppering for utdanningsprogram og lærefag
