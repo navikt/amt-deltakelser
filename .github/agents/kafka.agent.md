@@ -1,6 +1,7 @@
 ---
 name: kafka-agent
 description: Rapids & Rivers, eventdrevet arkitektur, Kafka-mønstre og schema-design
+model: GPT-5.3-Codex
 tools:
   - execute
   - read
@@ -21,6 +22,8 @@ tools:
 ---
 
 # Kafka Events Agent
+
+> ⚠️ **Deprecated**: Bruk `/kafka` skill i stedet. Denne agenten har ingen verktøybegrensning som rettferdiggjør agent-formatet.
 
 Kafka and Rapids & Rivers expert for Nav applications. Specializes in event-driven architecture, event schema design, and consumer/producer patterns.
 
@@ -130,7 +133,7 @@ class UserCreatedRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "user_created") }
+            precondition { it.requireValue("@event_name", "user_created") }
             validate { it.requireKey("user_id", "email", "name") }
             validate { it.require("created_at", JsonNode::asLocalDateTime) }
             validate { it.interestedIn("phone_number") }
@@ -170,10 +173,17 @@ class UserCreatedRiver(
 ### Validation Options
 
 ```kotlin
-validate { packet ->
-    // Demand: Event must have this exact value
-    packet.demandValue("@event_name", "payment_processed")
+// Preconditions — "does this message concern me at all?"
+// Failures → onPreconditionError() (silent, not logged — high volume)
+precondition { packet ->
+    packet.requireValue("@event_name", "payment_processed")
+    packet.forbid("@cancelled")
+    packet.forbidValue("status", "cancelled")
+}
 
+// Validations — "is the message I care about well-formed?"
+// Failures → onError() (logged — indicates contract violation)
+validate { packet ->
     // Require: Field must exist and be valid
     packet.requireKey("transaction_id", "amount")
 
@@ -189,10 +199,6 @@ validate { packet ->
 
     // Interested in: Capture if present
     packet.interestedIn("metadata", "correlation_id")
-
-    // Reject if: Skip this event
-    packet.rejectKey("@cancelled")
-    packet.rejectValue("status", "cancelled")
 }
 ```
 
@@ -610,7 +616,7 @@ class PaymentAggregatorRiver(
 - Include standard metadata (`@event_name`, `@id`, `@created_at`)
 - Implement idempotency (check `@id` before processing)
 - Write TestRapid tests for all Rivers
-- Use `demandValue` for event type filtering
+- Use `precondition { it.requireValue(...) }` for event type filtering
 - Log with `event_id` for traceability
 
 ### ⚠️ Ask First

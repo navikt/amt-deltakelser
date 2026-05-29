@@ -341,7 +341,7 @@ Use the Rapids & Rivers pattern for event-driven architecture:
 class MyEventRiver(rapidsConnection: RapidsConnection) : River.PacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "my_event") }
+            precondition { it.requireValue("@event_name", "my_event") }
             validate { it.requireKey("required_field") }
             validate { it.interestedIn("optional_field") }
         }.register(this)
@@ -589,6 +589,7 @@ fun Route.userRoutes(service: UserService) {
 - Add Prometheus metrics for business operations
 - Use Flyway for database migrations
 - Implement all three health endpoints
+- Preserve existing code structure when making targeted fixes — don't rename, restructure, or refactor working code beyond the task at hand
 
 ### ⚠️ Ask First
 

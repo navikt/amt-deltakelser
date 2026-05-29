@@ -1,6 +1,7 @@
 ---
 name: kafka-topic
 description: Legg til Kafka-topic-konfigurasjon i Nais-manifest og lag Rapids & Rivers event handler
+model: GPT-5.3-Codex
 ---
 
 You are helping configure Kafka integration for a Nav application using the Rapids & Rivers pattern.
@@ -35,7 +36,7 @@ import no.nav.helse.rapids_rivers.*
 class YourEventRiver(rapidsConnection: RapidsConnection) : River.PacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "your_event_name") }
+            precondition { it.requireValue("@event_name", "your_event_name") }
             validate { it.requireKey("required_field_1", "required_field_2") }
             validate { it.interestedIn("optional_field") }
         }.register(this)
@@ -232,3 +233,16 @@ Remind the user to:
 2. Add the new event to the team's event catalog
 3. Update the README with event flow diagrams
 4. Configure appropriate Kafka topic permissions in Nais
+
+## Forstå koden
+
+After generating the handler, explain:
+
+1. **precondition vs validate vs interestedIn** — Two-tier validation in Rapids & Rivers. Preconditions filter silently (high volume), validate failures indicate contract violations (should log). Why this design?
+2. **Idempotens** — What happens if the same event is delivered twice (Kafka guarantees at-least-once)? How should the handler deal with this?
+3. **Publiser-mønsteret** — Why `context.publish(ident, ...)` uses an identifier for partitioning. What would happen with random partitioning to ordering guarantees?
+4. **Dead-letter-håndtering** — What happens when `onPacket` throws? Where does the failed message go, and how do you recover?
+
+🔴 **Rød sone**: Event-driven architecture has subtle failure modes (ordering, duplication, poison pills) that are hard to debug in production. Understand the semantics before wiring up new rivers.
+
+Still gjerne spørsmål om valgene over.

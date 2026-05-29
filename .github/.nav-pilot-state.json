@@ -1,44 +1,44 @@
 {
   "collection": "kotlin-backend",
-  "version": "2026.04.20-194821-8b2cb9f",
-  "source_sha": "8b2cb9f",
+  "version": "2026.05.29-104411-b927f3a",
+  "source_sha": "b927f3a",
   "installed_at": "2026-04-13T19:38:21Z",
   "files": [
     {
       "path": ".github/agents/auth.agent.md",
-      "hash": "97b03fd441f35a44"
+      "hash": "fb975bbc3b6d9cd4"
     },
     {
       "path": ".github/agents/auth.metadata.json",
-      "hash": "d73a7d97ffc8fbdc"
+      "hash": "53e33f056bb4dd87"
     },
     {
       "path": ".github/agents/kafka.agent.md",
-      "hash": "0b87e50b3d4178de"
+      "hash": "a0f5501d6e8843c7"
     },
     {
       "path": ".github/agents/kafka.metadata.json",
-      "hash": "e4005595c72b492d"
+      "hash": "e9132697df874641"
     },
     {
       "path": ".github/agents/nais.agent.md",
-      "hash": "fa07ad8cfdf54a4a"
+      "hash": "c5a977cd971007ef"
     },
     {
       "path": ".github/agents/nais.metadata.json",
-      "hash": "f809c96bd1e50342"
+      "hash": "a7f144819bd5ecb6"
     },
     {
       "path": ".github/agents/observability.agent.md",
-      "hash": "ba87267d1d23aee2"
+      "hash": "dc896b1966b009c0"
     },
     {
       "path": ".github/agents/observability.metadata.json",
-      "hash": "835caa20ba892f48"
+      "hash": "fbcabb3369d530f4"
     },
     {
       "path": ".github/agents/security-champion.agent.md",
-      "hash": "3081dcf0ddde695d"
+      "hash": "5ccba48b66938fd0"
     },
     {
       "path": ".github/agents/security-champion.metadata.json",
@@ -46,7 +46,7 @@
     },
     {
       "path": ".github/agents/nav-pilot.agent.md",
-      "hash": "3179adb5db9ae3af"
+      "hash": "d04fd3fc8eef124b"
     },
     {
       "path": ".github/agents/nav-pilot.metadata.json",
@@ -66,7 +66,7 @@
     },
     {
       "path": ".github/skills/observability-setup/",
-      "hash": "533cfb6d1dd88af3"
+      "hash": "78181a920d929a23"
     },
     {
       "path": ".github/skills/security-review/",
@@ -78,11 +78,11 @@
     },
     {
       "path": ".github/skills/nav-plan/",
-      "hash": "0849265460ea23e2"
+      "hash": "0a160744cf2b4e82"
     },
     {
       "path": ".github/skills/nav-deep-interview/",
-      "hash": "42e9aab52e591ef0"
+      "hash": "eeb3399ecd4e352c"
     },
     {
       "path": ".github/skills/nav-architecture-review/",
@@ -90,15 +90,15 @@
     },
     {
       "path": ".github/skills/nav-troubleshoot/",
-      "hash": "ce043cf29ce427b1"
+      "hash": "e9900d58d91ee0ee"
     },
     {
       "path": ".github/instructions/kotlin-ktor.instructions.md",
-      "hash": "aacb5351ab3f2799"
+      "hash": "495a1016fde29289"
     },
     {
       "path": ".github/instructions/kotlin-spring.instructions.md",
-      "hash": "0a6fca898f27e2d6"
+      "hash": "bdf9d1bfd4121803"
     },
     {
       "path": ".github/instructions/testing.instructions.md",
@@ -122,15 +122,15 @@
     },
     {
       "path": ".github/prompts/spring-boot-endpoint.prompt.md",
-      "hash": "3b5f6099fe5f457b"
+      "hash": "3e68aab2f5cbe402"
     },
     {
       "path": ".github/prompts/kafka-topic.prompt.md",
-      "hash": "42b1991baee572a6"
+      "hash": "d485c12c7b6d44d6"
     },
     {
       "path": ".github/prompts/nais-manifest.prompt.md",
-      "hash": "7b1e6ac5b4115c3f"
+      "hash": "8576571223ffef8a"
     }
   ]
 }
