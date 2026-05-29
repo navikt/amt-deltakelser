@@ -8,8 +8,6 @@ metadata:
 spec:
   image: {{image}}
   port: 8080
-  ingresses:
-    - https://amt-deltaker-bff.intern.dev.nav.no
   prometheus:
     enabled: true
     path: /internal/prometheus
