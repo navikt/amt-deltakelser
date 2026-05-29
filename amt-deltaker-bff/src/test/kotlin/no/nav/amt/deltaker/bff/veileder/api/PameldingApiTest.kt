@@ -7,7 +7,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.mockk
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
@@ -132,7 +131,7 @@ class PameldingApiTest : IntegrationTestBase() {
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
         coEvery { pameldingService.avbrytUtkast(deltaker, any(), any()) } returns Unit
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns deltaker.navBruker.personident
-        coEvery { paameldingClient.avbrytUtkast(any(), any(), any()) } returns mockk()
+        coEvery { paameldingClient.avbrytUtkast(any(), any(), any()) } returns Unit
 
         withTestApplicationContext { httpClient ->
             httpClient.post("/pamelding/${deltaker.id}/avbryt") { noBodyRequest() }.apply {

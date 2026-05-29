@@ -66,19 +66,19 @@ class PaameldingClientTest {
         )
         val utkast = lagUtkast(deltakerInTest.id, deltakerListe, opprettTestDeltakelseRequest)
 
-        val utkastLambda: suspend (PaameldingClient) -> DeltakerResponse =
+        val deltakerLambda: suspend (PaameldingClient) -> DeltakerResponse =
             { client -> client.utkast(utkast) }
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
-            runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, utkastLambda)
+            runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, deltakerLambda)
         }
 
         @Test
-        fun `skal returnere UtkastResponse`() {
-            runHappyPathTest(expectedUrl, deltakerResponseInTest, utkastLambda)
+        fun `skal returnere DeltakerResponse`() {
+            runHappyPathTest(expectedUrl, deltakerResponseInTest, deltakerLambda)
         }
     }
 

@@ -13,7 +13,6 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
-import no.nav.amt.internapi.paamelding.response.UtkastResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.Vurdering
@@ -120,24 +119,6 @@ internal object SharedResponseMappers {
     ): Vurdering? = vurderingRepository
         .getForDeltaker(deltakerId)
         .maxByOrNull { it.gyldigFra }
-
-    fun utkastResponseFromDeltaker(
-        deltaker: Deltaker,
-        historikk: List<DeltakerHistorikk>,
-    ) = with(deltaker) {
-        UtkastResponse(
-            id = id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = deltakelsesinnhold,
-            status = status,
-            historikk = historikk,
-            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-        )
-    }
 
     fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) = with(deltaker) {
         OpprettKladdResponse(

@@ -101,7 +101,6 @@ fun Routing.registerPameldingApi(
            Direktepåmelding av deltaker uten at utkast/deltakelsen er delt med innbygger
            Handling: "Meld på uten å dele utkast"
            Status Kladd/Utkast -> Venter på oppstart/søkt inn
-           @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
          */
         post("/pamelding/{deltakerId}/utenGodkjenning") {
             val request = call.receive<PameldingUtenGodkjenningRequest>()
