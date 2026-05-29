@@ -20,6 +20,7 @@ fun OpplaringKategoriseringResponse.tilUtflatetKodeverk(
         .map { it.tilTittelOgValg(sertifiseringValg) }
 
     return DeltakerlisteResponse.UtflatetKodeverk(
+        tiltakskode = tiltakskode,
         tittel = tittelOgValg.firstOrNull { it.tittel != null }?.tittel,
         valg = tittelOgValg.flatMap { it.valg },
         valgteKodeverkIder = kodeverkValg,

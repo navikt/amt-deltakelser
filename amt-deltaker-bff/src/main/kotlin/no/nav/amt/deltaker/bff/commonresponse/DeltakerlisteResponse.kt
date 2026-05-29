@@ -32,6 +32,7 @@ data class DeltakerlisteResponse(
     )
 
     data class UtflatetKodeverk(
+        val tiltakskode: Tiltakskode,
         val tittel: String? = null,
         val valg: List<String>,
         val valgteKodeverkIder: Set<UUID>,

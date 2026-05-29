@@ -55,6 +55,7 @@ class UtflatetKodeverkMapperTest {
         )
 
         utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             tittel = "Helse- og oppvekstfag",
             valg = listOf("Helsearbeiderfaget"),
             valgteKodeverkIder = setOf(valgtLaerefagId),
@@ -116,6 +117,7 @@ class UtflatetKodeverkMapperTest {
         )
 
         utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             tittel = "Bygg og anlegg",
             valg = listOf("B - Personbil", "Truckførerbevis"),
             valgteKodeverkIder = setOf(valgtBransjeId, valgtForerkortId),
@@ -152,6 +154,7 @@ class UtflatetKodeverkMapperTest {
         )
 
         utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
             tittel = "Grunnleggende ferdigheter",
             valg = emptyList(),
             valgteKodeverkIder = setOf(valgtKurstypeId),
@@ -186,6 +189,7 @@ class UtflatetKodeverkMapperTest {
         )
 
         utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             tittel = null,
             valg = emptyList(),
             valgteKodeverkIder = emptySet(),
