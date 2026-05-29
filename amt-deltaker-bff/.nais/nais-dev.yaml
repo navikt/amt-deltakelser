@@ -8,6 +8,8 @@ metadata:
 spec:
   image: {{image}}
   port: 8080
+  ingresses:
+    - https://amt-deltaker-bff.intern.dev.nav.no
   prometheus:
     enabled: true
     path: /internal/prometheus
@@ -42,7 +44,7 @@ spec:
         groups:
           - id: {{ad_rolle_tiltak_koordinator}}
     sidecar:
-      enabled: true
+      enabled: false
   leaderElection: true
   kafka:
     pool: nav-dev
