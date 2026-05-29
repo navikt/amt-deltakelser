@@ -13,7 +13,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
@@ -41,8 +40,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangServ
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
-import no.nav.amt.deltaker.bff.testdata.TestdataService
-import no.nav.amt.deltaker.bff.testdata.registerTestdataApi
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
@@ -90,7 +87,6 @@ fun Application.configureRouting(
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     ulestHendelseRepository: UlestHendelseRepository,
-    testdataService: TestdataService,
     kodeverkClient: KodeverkClient,
     tiltakskoordinatorResponseBuilder: ResponseBuilder,
     tiltakskoordinatorClient: TiltakskoordinatorClient,
@@ -149,12 +145,9 @@ fun Application.configureRouting(
 
         registerPameldingApi(
             tilgangskontrollService = tilgangskontrollService,
-            deltakerRepository = deltakerRepository,
-            pameldingService = pameldingService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            forslageRepository = forslagRepository,
             amtDistribusjonClient = amtDistribusjonClient,
+            amtDeltakerClient = amtDeltakerClient,
+            pameldingClient = paameldingClient,
         )
 
         registerKladdApi(
@@ -199,10 +192,6 @@ fun Application.configureRouting(
         registerUlestHendelseApi(ulestHendelseRepository)
 
         registerArrangorsokApi(arrangorsokClient = arrangorsokClient)
-
-        if (!Environment.isProd()) {
-            registerTestdataApi(testdataService)
-        }
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

@@ -3,11 +3,11 @@ package no.nav.amt.deltaker.bff.clients
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.model.Utkast
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
-import no.nav.amt.internapi.paamelding.response.UtkastResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
@@ -46,10 +46,11 @@ class PaameldingClient(
             .failIfNotSuccess("Kunne ikke slette kladd i amt-deltaker.")
     }
 
-    suspend fun utkast(utkast: Utkast): UtkastResponse = performPost(
+    suspend fun utkast(utkast: Utkast) = performPost(
         urlSubPath = "pamelding/${utkast.deltakerId}",
         requestBody = DtoMappers.utkastRequestFromUtkast(utkast),
-    ).failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker for deltaker ${utkast.deltakerId}").body()
+    ).failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker for deltaker ${utkast.deltakerId}")
+        .body<DeltakerResponse>()
 
     suspend fun avbrytUtkast(
         deltakerId: UUID,
@@ -62,8 +63,9 @@ class PaameldingClient(
         ).failIfNotSuccess("Kunne ikke avbryte utkast i amt-deltaker for deltaker $deltakerId")
     }
 
-    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): UtkastResponse = performPost(
+    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID) = performPost(
         urlSubPath = "pamelding/$deltakerId/innbygger/godkjenn-utkast",
         requestBody = null,
-    ).failIfNotSuccess("Kunne ikke fatte vedtak i amt-deltaker for deltaker $deltakerId").body()
+    ).failIfNotSuccess("Kunne ikke fatte vedtak i amt-deltaker for deltaker $deltakerId")
+        .body<DeltakerResponse>()
 }

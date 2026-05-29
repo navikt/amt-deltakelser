@@ -6,12 +6,11 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.clients.DtoMappers.opprettKladdResponseFromDeltaker
+import no.nav.amt.deltaker.bff.clients.Testdata.lagUtkast
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
-import no.nav.amt.deltaker.bff.testdata.TestdataService.Companion.lagUtkast
 import no.nav.amt.deltaker.bff.utils.TestData
-import no.nav.amt.deltaker.bff.utils.toUtkastResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
-import no.nav.amt.internapi.paamelding.response.UtkastResponse
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
@@ -65,10 +64,9 @@ class PaameldingClientTest {
             deltakelsesprosent = 60,
             dagerPerUke = 3,
         )
-
         val utkast = lagUtkast(deltakerInTest.id, deltakerListe, opprettTestDeltakelseRequest)
 
-        val utkastLambda: suspend (PaameldingClient) -> UtkastResponse =
+        val utkastLambda: suspend (PaameldingClient) -> DeltakerResponse =
             { client -> client.utkast(utkast) }
 
         @ParameterizedTest
@@ -80,7 +78,7 @@ class PaameldingClientTest {
 
         @Test
         fun `skal returnere UtkastResponse`() {
-            runHappyPathTest(expectedUrl, utkastResponseInTest, utkastLambda)
+            runHappyPathTest(expectedUrl, deltakerResponseInTest, utkastLambda)
         }
     }
 
@@ -133,7 +131,7 @@ class PaameldingClientTest {
     inner class InnbyggerGodkjennUtkast {
         val expectedUrl = "$DELTAKER_BASE_URL/pamelding/${deltakerInTest.id}/innbygger/godkjenn-utkast"
         val expectedErrorMessage = "Kunne ikke fatte vedtak i amt-deltaker for deltaker ${deltakerInTest.id}"
-        val innbyggerGodkjennUtkastLambda: suspend (PaameldingClient) -> UtkastResponse =
+        val innbyggerGodkjennUtkastLambda: suspend (PaameldingClient) -> DeltakerResponse =
             { client -> client.innbyggerGodkjennUtkast(deltakerInTest.id) }
 
         @ParameterizedTest
@@ -147,7 +145,7 @@ class PaameldingClientTest {
         fun `skal returnere UtkastResponse`() {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
-                expectedResponse = utkastResponseInTest,
+                expectedResponse = deltakerResponseInTest,
                 block = innbyggerGodkjennUtkastLambda,
             )
         }
@@ -156,7 +154,7 @@ class PaameldingClientTest {
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
         private val deltakerInTest = TestData.lagDeltaker()
-        private val utkastResponseInTest = deltakerInTest.toUtkastResponse()
+        private val deltakerResponseInTest = TestData.lagDeltakerResponse(deltakerInTest)
 
         private fun runFailureTest(
             exceptionType: KClass<out Throwable>,

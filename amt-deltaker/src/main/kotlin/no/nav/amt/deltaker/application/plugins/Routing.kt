@@ -116,7 +116,7 @@ fun Application.configureRouting(
 
         registerPameldingApi(
             pameldingService = pameldingService,
-            historikkService = deltakerHistorikkService,
+            deltakerResponseBuilder = deltakerResponseBuilder,
         )
         registerKladdApi(
             kladdService = kladdService,

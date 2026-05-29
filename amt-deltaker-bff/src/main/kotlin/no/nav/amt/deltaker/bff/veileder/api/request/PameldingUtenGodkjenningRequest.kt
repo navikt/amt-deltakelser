@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBakgrunnsinformasjon
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDagerPerUke
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesProsent
@@ -25,6 +26,20 @@ data class PameldingUtenGodkjenningRequest(
             innhold,
             deltaker.deltakerliste.tiltak.innhold,
             deltaker.deltakerliste.tiltak.tiltakskode,
+        )
+    }
+
+    fun valider(deltaker: DeltakerModel) {
+        require(deltaker.status.type in kanMeldePaDirekteStatuser) {
+            "Kan ikke melde på direkte for deltaker med status ${deltaker.status.type}"
+        }
+        validerBakgrunnsinformasjon(bakgrunnsinformasjon)
+        validerDeltakelsesProsent(deltakelsesprosent)
+        validerDagerPerUke(dagerPerUke)
+        validerDeltakelsesinnhold(
+            innhold,
+            deltaker.gjennomforing.tiltak.innhold,
+            deltaker.gjennomforing.tiltak.tiltakskode,
         )
     }
 

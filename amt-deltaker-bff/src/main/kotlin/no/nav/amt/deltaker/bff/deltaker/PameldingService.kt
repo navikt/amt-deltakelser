@@ -1,12 +1,10 @@
 package no.nav.amt.deltaker.bff.deltaker
 
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
-import no.nav.amt.deltaker.bff.clients.DtoMappers.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Kladd
-import no.nav.amt.deltaker.bff.model.Utkast
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
@@ -85,14 +83,6 @@ class PameldingService(
         log.info("Upserted kladd for deltaker med id ${deltaker.id}")
 
         return deltakerRepository.get(deltaker.id).getOrThrow()
-    }
-
-    suspend fun upsertUtkast(utkast: Utkast): Deltaker {
-        navEnhetService.hentOpprettEllerOppdaterNavEnhet(utkast.pamelding.endretAvEnhet)
-        val deltakeroppdatering = paameldingClient.utkast(utkast).toDeltakeroppdatering()
-
-        deltakerService.oppdaterDeltaker(deltakeroppdatering)
-        return deltakerRepository.get(utkast.deltakerId).getOrThrow()
     }
 
     suspend fun slettKladd(deltakerId: UUID): Boolean {
