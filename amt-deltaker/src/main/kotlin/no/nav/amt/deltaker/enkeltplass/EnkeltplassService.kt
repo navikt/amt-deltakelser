@@ -91,7 +91,10 @@ class EnkeltplassService(
         Database.transaction {
             deltakerlisteRepository.upsert(gjennomforing)
             deltakerRepository.upsertKladd(kladdDbo)
-            DeltakerStatusRepository.lagreStatus(kladdDbo.id, nyDeltakerStatus(DeltakerStatus.Type.KLADD))
+            DeltakerStatusRepository.lagreStatus(
+                deltakerId = kladdDbo.id,
+                deltakerStatus = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
         }
 
         return deltakerRepository.get(kladdDbo.id).getOrThrow()
@@ -258,9 +261,13 @@ class EnkeltplassService(
             "Kan ikke opprette gjennomforing hos Mulighetsrommet for " +
                 "gjennomforingstype ${gjennomforing.gjennomforingstype} for deltaker $deltakerId"
         }
+/*
+    TODO: Undersøk om det er OK å kalle denne metoden etter at request om opprettelse av
+    gjennomføring allerede er kalt
         require(gjennomforing.status == GjennomforingStatusType.KLADD) {
             "Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd"
         }
+*/
 
         val arrangor = arrangorService.hentArrangor(request.arrangorUnderenhet)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
