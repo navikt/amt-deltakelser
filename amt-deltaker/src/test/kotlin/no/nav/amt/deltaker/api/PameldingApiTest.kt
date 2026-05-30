@@ -7,18 +7,15 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.Runs
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import no.nav.amt.deltaker.api.response.SharedResponseMappers.utkastResponseFromDeltaker
-import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.utils.objectMapper
@@ -26,8 +23,8 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class PameldingApiTest : IntegrationTestBase() {
-    override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
     override val pameldingService = mockk<PameldingService>()
+    override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
@@ -42,9 +39,8 @@ class PameldingApiTest : IntegrationTestBase() {
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
-        val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
-
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
+        coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
         coEvery { pameldingService.upsertUtkast(deltaker.id, any()) } returns deltaker
 
         withTestApplicationContext { client ->
@@ -53,12 +49,7 @@ class PameldingApiTest : IntegrationTestBase() {
                     postRequest(utkastRequest)
                 }.apply {
                     status shouldBe HttpStatusCode.OK
-                    bodyAsText() shouldBe objectMapper.writeValueAsString(
-                        utkastResponseFromDeltaker(
-                            deltaker = deltaker,
-                            historikk = historikk,
-                        ),
-                    )
+                    bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerResponse)
                 }
         }
     }

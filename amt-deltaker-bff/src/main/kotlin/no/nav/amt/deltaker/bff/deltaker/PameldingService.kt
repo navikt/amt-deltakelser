@@ -1,13 +1,10 @@
 package no.nav.amt.deltaker.bff.deltaker
 
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
-import no.nav.amt.deltaker.bff.clients.DtoMappers.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Kladd
-import no.nav.amt.deltaker.bff.model.Utkast
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -19,7 +16,6 @@ class PameldingService(
     private val deltakerService: DeltakerService,
     private val navBrukerService: NavBrukerService,
     private val paameldingClient: PaameldingClient,
-    private val navEnhetService: NavEnhetService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -87,14 +83,6 @@ class PameldingService(
         return deltakerRepository.get(deltaker.id).getOrThrow()
     }
 
-    suspend fun upsertUtkast(utkast: Utkast): Deltaker {
-        navEnhetService.hentOpprettEllerOppdaterNavEnhet(utkast.pamelding.endretAvEnhet)
-        val deltakeroppdatering = paameldingClient.utkast(utkast).toDeltakeroppdatering()
-
-        deltakerService.oppdaterDeltaker(deltakeroppdatering)
-        return deltakerRepository.get(utkast.deltakerId).getOrThrow()
-    }
-
     suspend fun slettKladd(deltakerId: UUID): Boolean {
         // deltaker kan være null hvis det er en enkelplass eller det er usync mellom databaser
         val deltaker = deltakerRepository.get(deltakerId).getOrNull()
@@ -108,35 +96,6 @@ class PameldingService(
             deltakerService.deleteDeltaker(deltakerId)
         }
         return true
-    }
-
-    suspend fun avbrytUtkast(
-        deltaker: Deltaker,
-        avbruttAvEnhet: String,
-        avbruttAv: String,
-    ) {
-        navEnhetService.hentOpprettEllerOppdaterNavEnhet(avbruttAvEnhet)
-        paameldingClient.avbrytUtkast(deltaker.id, avbruttAv, avbruttAvEnhet)
-
-        val forrigeDeltaker = deltakerRepository
-            .getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id)
-            .filter { it.id !== deltaker.id && it.paameldtDato != null }
-            .sortedByDescending { it.paameldtDato }
-            .firstOrNull() ?: return
-
-        if (forrigeDeltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT &&
-            forrigeDeltaker.status.type != DeltakerStatus.Type.AVBRUTT_UTKAST &&
-            forrigeDeltaker.status.aarsak?.type != DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-        ) {
-            laasOppDeltaker(forrigeDeltaker)
-        }
-    }
-
-    private fun laasOppDeltaker(deltaker: Deltaker) {
-        deltakerRepository.settKanEndres(deltaker.id, true)
-        log.info(
-            "Har låst opp tidligere deltaker ${deltaker.id} for endringer pga avbrutt utkast på nåværende deltaker",
-        )
     }
 
     fun getKladder(personident: String): List<Deltaker> = deltakerRepository.getMany(personident).filter {

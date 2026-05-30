@@ -7,16 +7,15 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import no.nav.amt.deltaker.api.response.SharedResponseMappers.utkastResponseFromDeltaker
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 
 fun Routing.registerPameldingApi(
     pameldingService: PameldingService,
-    historikkService: DeltakerHistorikkService,
+    deltakerResponseBuilder: DeltakerResponseBuilder,
 ) {
     authenticate("SYSTEM") {
         route("/pamelding") {
@@ -29,28 +28,19 @@ fun Routing.registerPameldingApi(
 
              */
             post("/{deltakerId}") {
-                val deltaker = pameldingService.upsertUtkast(
-                    deltakerId = call.getDeltakerId(),
-                    utkast = call.receive<UtkastRequest>(),
-                )
-
-                call.respond(
-                    utkastResponseFromDeltaker(
-                        deltaker = deltaker,
-                        historikk = historikkService.getForDeltaker(deltaker.id),
-                    ),
-                )
+                pameldingService
+                    .upsertUtkast(
+                        deltakerId = call.getDeltakerId(),
+                        utkast = call.receive<UtkastRequest>(),
+                    ).let { deltakerResponseBuilder.buildDeltakerResponse(it) }
+                    .let { call.respond(it) }
             }
 
             post("/{deltakerId}/innbygger/godkjenn-utkast") {
-                val oppdatertDeltaker = pameldingService.innbyggerGodkjennUtkast(call.getDeltakerId())
-
-                call.respond(
-                    utkastResponseFromDeltaker(
-                        deltaker = oppdatertDeltaker,
-                        historikk = historikkService.getForDeltaker(oppdatertDeltaker.id),
-                    ),
-                )
+                pameldingService
+                    .innbyggerGodkjennUtkast(call.getDeltakerId())
+                    .let { deltakerResponseBuilder.buildDeltakerResponse(it) }
+                    .also { call.respond(it) }
             }
 
             post("/{deltakerId}/avbryt") {

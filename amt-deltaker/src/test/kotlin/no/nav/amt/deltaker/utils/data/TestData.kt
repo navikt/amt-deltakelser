@@ -3,6 +3,10 @@ package no.nav.amt.deltaker.utils.data
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
+import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -321,4 +325,70 @@ object TestData {
 
         else -> Oppstartstype.LOPENDE
     }
+
+    fun lagDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse(
+        id = deltaker.id,
+        status = deltaker.status,
+        navBruker = lagNavBrukerResponse(deltaker.navBruker),
+        gjennomforing = lagGjennomforingResponse(deltaker.deltakerliste),
+        startdato = deltaker.startdato,
+        sluttdato = deltaker.sluttdato,
+        dagerPerUke = deltaker.dagerPerUke,
+        deltakelsesprosent = deltaker.deltakelsesprosent,
+        bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
+        deltakelsesinnhold = deltaker.deltakelsesinnhold,
+        vedtaksinformasjon = null,
+        erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
+        kilde = deltaker.kilde,
+        sistEndret = deltaker.sistEndret,
+        opprettet = deltaker.opprettet,
+        soktInnDato = null,
+        deltakelsesmengder = DeltakelsesmengderResponse(
+            nesteDeltakelsesmengde = null,
+            sisteDeltakelsesmengde = null,
+        ),
+        erLaastForEndringer = false,
+        endringsforslagFraArrangor = emptyList(),
+        prisinformasjon = deltaker.deltakerliste.prisinformasjon,
+        sisteVurdering = null,
+        importertFraArena = null,
+    )
+
+    fun lagNavBrukerResponse(navBruker: NavBruker): NavBrukerResponse = NavBrukerResponse(
+        personident = navBruker.personident,
+        fornavn = navBruker.fornavn,
+        mellomnavn = navBruker.mellomnavn,
+        etternavn = navBruker.etternavn,
+        telefon = navBruker.telefon,
+        epost = navBruker.epost,
+        erSkjermet = navBruker.erSkjermet,
+        adresse = navBruker.adresse,
+        adressebeskyttelse = navBruker.adressebeskyttelse,
+        oppfolgingsperioder = navBruker.oppfolgingsperioder,
+        innsatsgruppe = navBruker.innsatsgruppe,
+        navVeileder = null,
+        navEnhet = null,
+        erDigital = true,
+    )
+
+    fun lagGjennomforingResponse(deltakerliste: Deltakerliste): GjennomforingResponse = GjennomforingResponse(
+        id = deltakerliste.id,
+        type = deltakerliste.gjennomforingstype,
+        tiltakstype = deltakerliste.tiltakstype,
+        navn = deltakerliste.navn,
+        status = deltakerliste.status,
+        startDato = deltakerliste.startDato,
+        sluttDato = deltakerliste.sluttDato,
+        antallPlasser = deltakerliste.antallPlasser,
+        oppstart = deltakerliste.oppstart,
+        apentForPamelding = deltakerliste.apentForPamelding,
+        oppmoteSted = deltakerliste.oppmoteSted,
+        arrangor = deltakerliste.arrangor?.let {
+            no.nav.amt.internapi.deltaker.response.ArrangorResponse(
+                navn = it.navn,
+                organisasjonsnummer = it.organisasjonsnummer,
+            )
+        },
+        pameldingstype = deltakerliste.pameldingstype,
+    )
 }
