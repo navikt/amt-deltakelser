@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.bff.model.Utkast
 import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
-import no.nav.amt.internapi.paamelding.response.UtkastResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 
@@ -38,20 +37,6 @@ object DtoMappers {
             godkjentAvNav = utkast.godkjentAvNav,
         )
     }
-
-    // benyttes i PaameldingService og TiltakskoordinatorService
-    fun UtkastResponse.toDeltakeroppdatering() = Deltakeroppdatering(
-        id = id,
-        startdato = startdato,
-        sluttdato = sluttdato,
-        dagerPerUke = dagerPerUke,
-        deltakelsesprosent = deltakelsesprosent,
-        bakgrunnsinformasjon = bakgrunnsinformasjon,
-        deltakelsesinnhold = deltakelsesinnhold,
-        status = status,
-        historikk = historikk,
-        erManueltDeltMedArrangor = false,
-    )
 
     // benyttes i DeltakerService
     fun DeltakerEndringResponse.toDeltakeroppdatering() = Deltakeroppdatering(

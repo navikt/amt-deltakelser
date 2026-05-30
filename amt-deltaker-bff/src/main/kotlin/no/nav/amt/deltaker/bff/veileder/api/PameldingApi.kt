@@ -11,16 +11,13 @@ import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
-import no.nav.amt.deltaker.bff.deltaker.PameldingService
+import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
+import no.nav.amt.deltaker.bff.clients.ModelMapper
+import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Pamelding
 import no.nav.amt.deltaker.bff.model.Utkast
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -31,22 +28,10 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 fun Routing.registerPameldingApi(
     tilgangskontrollService: TilgangskontrollService,
-    deltakerRepository: DeltakerRepository,
-    pameldingService: PameldingService,
-    navAnsattService: NavAnsattService,
-    navEnhetService: NavEnhetService,
-    forslageRepository: ForslagRepository,
     amtDistribusjonClient: AmtDistribusjonClient,
+    amtDeltakerClient: AmtDeltakerClient,
+    pameldingClient: PaameldingClient,
 ) {
-    // duplikat i DeltakerApi
-    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
-        deltaker = deltaker,
-        ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
-        digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslageRepository.getForDeltaker(deltaker.id),
-    )
-
     authenticate(AuthLevel.VEILEDER.name) {
         /*
             Oppretter/endrer utkast for en deltaker.
@@ -55,10 +40,13 @@ fun Routing.registerPameldingApi(
             @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
          */
         post("/pamelding/{deltakerId}") {
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val request = call.receive<UtkastRequest>()
+
+            val deltaker = amtDeltakerClient
+                .getDeltaker(call.getDeltakerId())
+                .let { ModelMapper.toDeltaker(it) }
             val digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident)
 
-            val request = call.receive<UtkastRequest>()
             request.valider(deltaker, digitalBruker)
 
             tilgangskontrollService.verifiserSkrivetilgang(
@@ -66,38 +54,40 @@ fun Routing.registerPameldingApi(
                 norskIdent = deltaker.navBruker.personident,
             )
 
-            val oppdatertDeltaker = pameldingService.upsertUtkast(
-                Utkast(
-                    deltakerId = deltaker.id,
-                    pamelding = Pamelding(
-                        deltakelsesinnhold = Deltakelsesinnhold(
-                            ledetekst = deltaker.deltakelsesinnhold?.ledetekst,
-                            innhold = request.innhold.toInnholdModel(deltaker.deltakerliste.tiltak),
-                        ),
-                        bakgrunnsinformasjon = request.bakgrunnsinformasjon,
-                        deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
-                        dagerPerUke = request.dagerPerUke?.toFloat(),
-                        endretAv = call.getNavIdent(),
-                        endretAvEnhet = call.getEnhetsnummer(),
+            val utkast = Utkast(
+                deltakerId = deltaker.id,
+                pamelding = Pamelding(
+                    deltakelsesinnhold = Deltakelsesinnhold(
+                        ledetekst = deltaker.deltakelsesinnhold?.ledetekst,
+                        innhold = request.innhold.toInnholdModel(deltaker.gjennomforing.tiltak),
                     ),
-                    godkjentAvNav = false,
+                    bakgrunnsinformasjon = request.bakgrunnsinformasjon,
+                    deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
+                    dagerPerUke = request.dagerPerUke?.toFloat(),
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                 ),
+                godkjentAvNav = false,
             )
 
             MetricRegister.DELT_UTKAST.inc()
 
-            call.respond(komplettDeltakerResponse(oppdatertDeltaker))
+            pameldingClient
+                .utkast(utkast)
+                .let { ModelMapper.toDeltaker(it) }
+                .let { DeltakerResponse.fromDeltakerModel(it) }
+                .also { call.respond(it) }
         }
 
         post("/pamelding/{deltakerId}/avbryt") {
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val deltakerId = call.getDeltakerId()
+            val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
             tilgangskontrollService.verifiserSkrivetilgang(
                 navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
+                norskIdent = personident,
             )
-
-            pameldingService.avbrytUtkast(
-                deltaker = deltaker,
+            pameldingClient.avbrytUtkast(
+                deltakerId = deltakerId,
                 avbruttAv = call.getNavIdent(),
                 avbruttAvEnhet = call.getEnhetsnummer(),
             )
@@ -111,11 +101,12 @@ fun Routing.registerPameldingApi(
            Direktepåmelding av deltaker uten at utkast/deltakelsen er delt med innbygger
            Handling: "Meld på uten å dele utkast"
            Status Kladd/Utkast -> Venter på oppstart/søkt inn
-           @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
          */
         post("/pamelding/{deltakerId}/utenGodkjenning") {
             val request = call.receive<PameldingUtenGodkjenningRequest>()
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val deltaker = amtDeltakerClient
+                .getDeltaker(call.getDeltakerId())
+                .let { ModelMapper.toDeltaker(it) }
 
             request.valider(deltaker)
             tilgangskontrollService.verifiserSkrivetilgang(
@@ -124,24 +115,24 @@ fun Routing.registerPameldingApi(
             )
 
             // kaller paameldingClient.utkast
-            pameldingService.upsertUtkast(
-                Utkast(
-                    deltakerId = deltaker.id,
-                    pamelding = Pamelding(
-                        deltakelsesinnhold = Deltakelsesinnhold(
-                            innhold = request.innhold.toInnholdModel(deltaker.deltakerliste.tiltak),
-                            ledetekst = deltaker.deltakerliste.tiltak.innhold
-                                ?.ledetekst,
-                        ),
-                        bakgrunnsinformasjon = request.bakgrunnsinformasjon,
-                        deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
-                        dagerPerUke = request.dagerPerUke?.toFloat(),
-                        endretAv = call.getNavIdent(),
-                        endretAvEnhet = call.getEnhetsnummer(),
+            val utkast = Utkast(
+                deltakerId = deltaker.id,
+                pamelding = Pamelding(
+                    deltakelsesinnhold = Deltakelsesinnhold(
+                        innhold = request.innhold.toInnholdModel(deltaker.gjennomforing.tiltak),
+                        ledetekst = deltaker.gjennomforing.tiltak.innhold
+                            ?.ledetekst,
                     ),
-                    godkjentAvNav = true,
+                    bakgrunnsinformasjon = request.bakgrunnsinformasjon,
+                    deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
+                    dagerPerUke = request.dagerPerUke?.toFloat(),
+                    endretAv = call.getNavIdent(),
+                    endretAvEnhet = call.getEnhetsnummer(),
                 ),
+                godkjentAvNav = true,
             )
+
+            pameldingClient.utkast(utkast)
 
             if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
                 MetricRegister.MELDT_PA_DIREKTE_MED_UTKAST.inc()

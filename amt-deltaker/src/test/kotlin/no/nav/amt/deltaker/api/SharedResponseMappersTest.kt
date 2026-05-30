@@ -21,37 +21,6 @@ import java.util.UUID
 
 class SharedResponseMappersTest {
     @Test
-    fun `utkastResponseFromDeltaker - mapper deltakerfelter og inkluderer historikk`() {
-        // Arrange
-        val deltaker = TestData.lagDeltaker(
-            startdato = LocalDate.now(),
-            sluttdato = LocalDate.now().plusMonths(3),
-            dagerPerUke = 4F,
-            deltakelsesprosent = 80F,
-            bakgrunnsinformasjon = "~bakgrunn~",
-            erManueltDeltMedArrangor = true,
-        )
-        val historikk = emptyList<DeltakerHistorikk>()
-
-        // Act
-        val response = SharedResponseMappers.utkastResponseFromDeltaker(deltaker, historikk)
-
-        // Assert
-        assertSoftly(response) {
-            id shouldBe deltaker.id
-            startdato shouldBe deltaker.startdato.shouldNotBeNull()
-            sluttdato shouldBe deltaker.sluttdato.shouldNotBeNull()
-            dagerPerUke shouldBe deltaker.dagerPerUke.shouldNotBeNull()
-            deltakelsesprosent shouldBe deltaker.deltakelsesprosent.shouldNotBeNull()
-            bakgrunnsinformasjon shouldBe deltaker.bakgrunnsinformasjon.shouldNotBeNull()
-            deltakelsesinnhold shouldBe deltaker.deltakelsesinnhold
-            status shouldBe deltaker.status
-            this.historikk shouldBe historikk
-            erManueltDeltMedArrangor shouldBe true
-        }
-    }
-
-    @Test
     fun `opprettKladdResponseFromDeltaker - mapper deltakerlisteId og deltakelsesinnhold (non-null)`() {
         // Arrange
         val deltaker = TestData.lagDeltaker(

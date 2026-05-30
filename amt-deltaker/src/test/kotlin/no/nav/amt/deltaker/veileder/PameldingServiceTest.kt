@@ -347,53 +347,56 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         }
     }
 
-    @Test
-    fun `avbrytUtkast - utkast finnes - oppdaterer deltaker og vedtak`() = runTest {
-        // Arrange
-        val sistEndretAvNavAnsatt = lagNavAnsatt()
-        val sistEndretAvNavEnhet = lagNavEnhet()
-        TestRepository.insertAll(sistEndretAvNavAnsatt, sistEndretAvNavEnhet)
+    @Nested
+    inner class AvbrytUtkastTests {
+        @Test
+        fun `avbrytUtkast - utkast finnes - oppdaterer deltaker og vedtak`() = runTest {
+            // Arrange
+            val sistEndretAvNavAnsatt = lagNavAnsatt()
+            val sistEndretAvNavEnhet = lagNavEnhet()
+            TestRepository.insertAll(sistEndretAvNavAnsatt, sistEndretAvNavEnhet)
 
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            startdato = null,
-            sluttdato = null,
-        )
-        val vedtak = lagVedtak(
-            deltakerVedVedtak = deltaker,
-            opprettetAv = sistEndretAvNavAnsatt,
-            opprettetAvEnhet = sistEndretAvNavEnhet,
-            fattet = null,
-            gyldigTil = null,
-        )
-        TestRepository.insert(
-            deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()),
-            vedtak = vedtak,
-        )
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                startdato = null,
+                sluttdato = null,
+            )
+            val vedtak = lagVedtak(
+                deltakerVedVedtak = deltaker,
+                opprettetAv = sistEndretAvNavAnsatt,
+                opprettetAvEnhet = sistEndretAvNavEnhet,
+                fattet = null,
+                gyldigTil = null,
+            )
+            TestRepository.insert(
+                deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()),
+                vedtak = vedtak,
+            )
 
-        val avbrytUtkastRequest = AvbrytUtkastRequest(
-            avbruttAv = sistEndretAvNavAnsatt.navIdent,
-            avbruttAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
-        )
+            val avbrytUtkastRequest = AvbrytUtkastRequest(
+                avbruttAv = sistEndretAvNavAnsatt.navIdent,
+                avbruttAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+            )
 
-        // Act
-        pameldingService.avbrytUtkast(deltaker.id, avbrytUtkastRequest)
+            // Act
+            pameldingService.avbrytUtkast(deltaker.id, avbrytUtkastRequest)
 
-        // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
-            status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
-            vedtaksinformasjon shouldBe null
+            // Assert
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+                status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
+                vedtaksinformasjon shouldBe null
+            }
+
+            assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()) {
+                fattet shouldBe null
+                fattetAvNav shouldBe false
+                gyldigTil shouldNotBe null
+                sistEndretAv shouldBe sistEndretAvNavAnsatt.id
+                sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
+            }
+
+            outboxService.assertProducedHendelse<HendelseType.AvbrytUtkast>(deltaker.id)
         }
-
-        assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()) {
-            fattet shouldBe null
-            fattetAvNav shouldBe false
-            gyldigTil shouldNotBe null
-            sistEndretAv shouldBe sistEndretAvNavAnsatt.id
-            sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
-        }
-
-        outboxService.assertProducedHendelse<HendelseType.AvbrytUtkast>(deltaker.id)
     }
 
     @Nested

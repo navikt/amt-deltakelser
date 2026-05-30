@@ -191,6 +191,76 @@ class DeltakerLaaseServiceTest {
         }
     }
 
+    @Nested
+    inner class AvbrytUtkastScenarioTests {
+        // Når et utkast avbrytes, settes vedtaket sitt `gyldig_til` (se PameldingService.avbrytUtkast +
+        // VedtakService.avbrytVedtak). SQL-spørringen i DeltakerRepository.getDeltakelserForLaaseSjekk
+        // filtrerer `LEFT JOIN vedtak ... AND v.gyldig_til IS NULL`, slik at en AVBRUTT_UTKAST-deltakelse
+        // får `vedtakFattet = null`. Da sorteres den bak en eldre deltakelse som har et fattet vedtak,
+        // og den eldre frigjøres automatisk — uten å trenge eksplisitt "lås opp"-logikk.
+
+        @Test
+        fun `avbrutt utkast med null vedtakFattet skal frigi forrige HAR_SLUTTET-deltakelse`() {
+            val forrigeHarSluttet = tidligereDeltakerInTest
+            val avbruttUtkast = deltakerInTest
+
+            every {
+                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
+                    personident = forrigeHarSluttet.navBruker.personident,
+                    deltakerlisteId = forrigeHarSluttet.deltakerliste.id,
+                )
+            } returns listOf(
+                laaseInfo(
+                    id = avbruttUtkast.id,
+                    statusType = DeltakerStatus.Type.AVBRUTT_UTKAST,
+                    statusGyldigFra = LocalDateTime.now(),
+                    vedtakFattet = null, // gyldig_til satt → filtreres ut av SQL
+                ),
+                laaseInfo(
+                    id = forrigeHarSluttet.id,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    statusGyldigFra = LocalDateTime.now().minusMonths(2),
+                    vedtakFattet = LocalDateTime.now().minusMonths(3),
+                ),
+            )
+
+            sut.erLaastForEndringer(forrigeHarSluttet) shouldBe false
+            sut.erLaastForEndringer(avbruttUtkast) shouldBe true
+        }
+
+        @Test
+        fun `avbrutt utkast med null vedtakFattet skal frigi forrige FEILREGISTRERT-deltakelse`() {
+            // NB! Adferdsendring fra tidligere bff-logikk, som eksplisitt holdt FEILREGISTRERT/
+            // SAMARBEIDET_AVBRUTT låst etter avbrutt utkast. I ny modell utledes lås kun ut fra
+            // "hvem er nyeste relevante deltakelse", uten unntak for disse statusene.
+            val forrigeFeilregistrert = tidligereDeltakerInTest
+            val avbruttUtkast = deltakerInTest
+
+            every {
+                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
+                    personident = forrigeFeilregistrert.navBruker.personident,
+                    deltakerlisteId = forrigeFeilregistrert.deltakerliste.id,
+                )
+            } returns listOf(
+                laaseInfo(
+                    id = avbruttUtkast.id,
+                    statusType = DeltakerStatus.Type.AVBRUTT_UTKAST,
+                    statusGyldigFra = LocalDateTime.now(),
+                    vedtakFattet = null,
+                ),
+                laaseInfo(
+                    id = forrigeFeilregistrert.id,
+                    statusType = DeltakerStatus.Type.FEILREGISTRERT,
+                    statusGyldigFra = LocalDateTime.now().minusMonths(2),
+                    vedtakFattet = LocalDateTime.now().minusMonths(3),
+                ),
+            )
+
+            sut.erLaastForEndringer(forrigeFeilregistrert) shouldBe false
+            sut.erLaastForEndringer(avbruttUtkast) shouldBe true
+        }
+    }
+
     private fun laaseInfo(
         id: UUID,
         statusType: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,

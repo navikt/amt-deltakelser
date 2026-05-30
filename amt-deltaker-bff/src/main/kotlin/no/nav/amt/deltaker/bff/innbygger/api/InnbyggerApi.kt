@@ -86,9 +86,8 @@ fun Routing.registerInnbyggerApi(
                 rekvirentPersonident = call.getPersonIdent(),
                 ressursPersonident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
             )
-            pameldingClient.innbyggerGodkjennUtkast(deltakerId)
-            val deltakerResponse = amtDeltakerClient
-                .getDeltaker(deltakerId)
+            val deltakerResponse = pameldingClient
+                .innbyggerGodkjennUtkast(deltakerId)
                 .let { ModelMapper.toDeltaker(it) }
                 .let { deltaker ->
                     InnbyggerDeltakerResponse.fromModel(

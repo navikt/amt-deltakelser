@@ -33,7 +33,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangServ
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
-import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
@@ -73,7 +72,6 @@ abstract class IntegrationTestBase {
     protected val tiltakskoordinatorClient: TiltakskoordinatorClient = mockk()
     protected open val tiltakskoordinatorResponseBuilder: ResponseBuilder = mockk()
     protected val ulestHendelseRepository: UlestHendelseRepository = mockk()
-    protected val testdataService: TestdataService = mockk()
     protected val selfServiceTilgangskontrollService: SelfServiceTilgangService = mockk()
     protected open val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient = poaoTilgangCachedClient,
@@ -129,7 +127,6 @@ abstract class IntegrationTestBase {
                     tiltakskoordinatorService = tiltakskoordinatorService,
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
                     ulestHendelseRepository = ulestHendelseRepository,
-                    testdataService = testdataService,
                     paameldingClient = paameldingClient,
                     kodeverkClient = kodeverkClient,
                     selfServiceTilgangService = selfServiceTilgangskontrollService,

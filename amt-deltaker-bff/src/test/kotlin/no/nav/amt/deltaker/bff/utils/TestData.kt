@@ -8,7 +8,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorDelt
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.internapi.deltaker.getInnholdselementer
-import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
@@ -164,10 +163,10 @@ object TestData {
         ledetekst = "Beskrivelse av tiltaket",
         innhold = listOf(
             Innhold(
-                tekst = "~tekst~",
-                innholdskode = "~kode~",
+                tekst = "Tekst",
+                innholdskode = "kode",
                 valgt = true,
-                beskrivelse = "~beskrivelse~",
+                beskrivelse = null,
             ),
         ),
     )
@@ -176,7 +175,7 @@ object TestData {
         navn: String = "Arrangor 1",
         organisasjonsnummer: String = no.nav.amt.lib.testing.utils.TestData
             .randomOrgnr(),
-    ) = ArrangorResponse(
+    ) = no.nav.amt.internapi.deltaker.response.ArrangorResponse(
         navn = navn,
         organisasjonsnummer = organisasjonsnummer,
     )

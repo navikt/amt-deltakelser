@@ -58,7 +58,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.DeltakerEndringHendelseConsumer
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.testdata.TestdataService
 import no.nav.amt.deltaker.bff.tiltak.TiltakConsumer
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorConsumer
@@ -273,7 +272,6 @@ fun Application.module() {
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
-        navEnhetService = navEnhetService,
         paameldingClient = paameldingClient,
     )
 
@@ -310,13 +308,6 @@ fun Application.module() {
     )
 
     val tiltakRepository = TiltakRepository()
-
-    val testdataService = TestdataService(
-        pameldingService = pameldingService,
-        deltakerlisteService = deltakerlisteService,
-        arrangorMeldingProducer = arrangorMeldingProducer,
-        deltakerRepository = deltakerRepository,
-    )
 
     val unleashToggle = CommonUnleashToggle(unleash)
     val consumers = listOf(
@@ -372,7 +363,6 @@ fun Application.module() {
         tiltakskoordinatorService = tiltakskoordinatorService,
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
         ulestHendelseRepository = ulestHendelseRepository,
-        testdataService = testdataService,
         selfServiceTilgangService = selfServiceTilgangService,
         kodeverkClient = kodeverkClient,
         tiltakskoordinatorClient = tiltakskoordinatorClient,

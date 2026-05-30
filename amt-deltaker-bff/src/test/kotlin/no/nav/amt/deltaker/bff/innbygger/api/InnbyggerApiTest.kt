@@ -11,7 +11,6 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.clients.ModelMapper
@@ -101,7 +100,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `godkjenn-utkast - deltaker finnes ikke - returnerer 404`() {
-        coEvery { paameldingClient.innbyggerGodkjennUtkast(any()) } returns mockk()
+        coEvery { paameldingClient.innbyggerGodkjennUtkast(any()) } throws NoSuchElementException()
         coEvery { amtDeltakerClient.getDeltaker(any()) } throws NoSuchElementException()
 
         withTestApplicationContext { httpClient ->
@@ -115,7 +114,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
         val deltakerResponse = TestData.lagDeltakerResponse()
         val deltakerId = deltakerResponse.id
 
-        coEvery { paameldingClient.innbyggerGodkjennUtkast(deltakerId) } returns mockk()
+        coEvery { paameldingClient.innbyggerGodkjennUtkast(deltakerId) } returns deltakerResponse
         coEvery { amtDeltakerClient.getDeltaker(deltakerId) } returns deltakerResponse
 
         val expected = InnbyggerDeltakerResponse.fromModel(

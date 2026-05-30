@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
-import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBakgrunnsinformasjon
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDagerPerUke
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakelsesProsent
@@ -17,7 +17,7 @@ data class UtkastRequest(
     private val kanUpserteUtkastStatuser = listOf(DeltakerStatus.Type.KLADD, DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
 
     fun valider(
-        deltaker: Deltaker,
+        deltaker: DeltakerModel,
         digitalBruker: Boolean,
     ) {
         require(digitalBruker) {
@@ -31,8 +31,8 @@ data class UtkastRequest(
         validerDagerPerUke(dagerPerUke)
         validerDeltakelsesinnhold(
             innhold,
-            deltaker.deltakerliste.tiltak.innhold,
-            deltaker.deltakerliste.tiltak.tiltakskode,
+            deltaker.gjennomforing.tiltak.innhold,
+            deltaker.gjennomforing.tiltak.tiltakskode,
         )
     }
 }

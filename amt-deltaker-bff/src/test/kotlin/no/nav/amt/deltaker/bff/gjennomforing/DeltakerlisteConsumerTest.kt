@@ -89,7 +89,6 @@ class DeltakerlisteConsumerTest {
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
         ),
-        navEnhetService = navEnhetService,
         paameldingClient = mockk(relaxed = true),
     )
 
