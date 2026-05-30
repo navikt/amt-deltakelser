@@ -129,7 +129,6 @@ class PameldingApiTest : IntegrationTestBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        coEvery { pameldingService.avbrytUtkast(deltaker, any(), any()) } returns Unit
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns deltaker.navBruker.personident
         coEvery { paameldingClient.avbrytUtkast(any(), any(), any()) } returns Unit
 

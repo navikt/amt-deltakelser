@@ -57,7 +57,6 @@ class NavBrukerConsumerTest {
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
-        navEnhetService = navEnhetService,
         paameldingClient = mockk(relaxed = true),
     )
 

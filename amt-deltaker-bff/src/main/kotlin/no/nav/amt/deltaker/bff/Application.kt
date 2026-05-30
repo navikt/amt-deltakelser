@@ -272,7 +272,6 @@ fun Application.module() {
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
-        navEnhetService = navEnhetService,
         paameldingClient = paameldingClient,
     )
 

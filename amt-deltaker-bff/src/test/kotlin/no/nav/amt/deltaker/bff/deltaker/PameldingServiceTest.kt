@@ -64,7 +64,6 @@ class PameldingServiceTest {
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
         ),
-        navEnhetService = navEnhetService,
         paameldingClient = paameldingClient,
     )
 
