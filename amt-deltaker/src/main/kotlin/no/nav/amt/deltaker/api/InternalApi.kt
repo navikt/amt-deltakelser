@@ -326,6 +326,7 @@ fun Routing.registerInternalApi(
                             ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),
                         ansvarligEnhet = ansvarligEnhet,
                         opprettetAv = opprettetAv,
+                        kategorisering = null, // TODO: Skal denne være null?
                     ),
                 )
             }

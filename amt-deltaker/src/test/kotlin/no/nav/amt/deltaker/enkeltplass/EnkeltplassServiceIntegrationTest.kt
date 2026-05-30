@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -61,6 +62,12 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         coEvery { personServiceClient.hentNavEnhet(sistEndretAvNavEnhet.id) } returns sistEndretAvNavEnhet
         coEvery { personServiceClient.hentNavAnsatt(sistEndretAvNavAnsatt.id) } returns sistEndretAvNavAnsatt
         coEvery { personServiceClient.hentNavBruker(navBrukerInTest.personident) } returns navBrukerInTest
+
+        coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
+            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            alternativer = emptyList(),
+            sertifiseringValg = emptySet(),
+        )
 
         TiltakRepository().upsert(tiltakInTest)
     }

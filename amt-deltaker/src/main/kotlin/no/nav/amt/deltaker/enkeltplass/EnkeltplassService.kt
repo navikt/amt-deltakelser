@@ -22,6 +22,8 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -31,6 +33,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
@@ -49,6 +52,7 @@ class EnkeltplassService(
     private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val arrangorService: ArrangorService,
+    private val kodeverkClient: KodeverkClient,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
@@ -165,7 +169,11 @@ class EnkeltplassService(
     }
 
     // benyttes av PameldingService#innbyggerGodkjennUtkast
-    fun publiserGjennomforing(deltaker: Deltaker) {
+    // kan ikke være suspending fordi den kalles i en transaksjon, derfor må kodeverk sendes inn som parameter
+    fun publiserGjennomforing(
+        deltaker: Deltaker,
+        kodeverk: OpplaringKategoriseringResponse?,
+    ) {
         val vedtak = vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id)
         val ansvarligEnhet = navEnhetRepository.getOrThrow(vedtak.opprettetAvEnhet)
         val ansvarligNavAnsatt = navAnsattRepository.getOrThrow(vedtak.opprettetAv)
@@ -182,7 +190,12 @@ class EnkeltplassService(
             }.organisasjonsnummer,
             ansvarligEnhet = ansvarligEnhet.enhetsnummer,
             opprettetAv = ansvarligNavAnsatt.navIdent,
+            kategorisering = kodeverk?.toOpplaringKategorisering(
+                kodeverkValg = KodeverkValgRepository.hentKodeverkValg(gjennomforing.id),
+                sertifiseringValg = SertifiseringValgRepository.hentSertifiseringValg(gjennomforing.id),
+            ),
         )
+
         gjennomforingRequestProducer.produce(payload)
     }
 
@@ -211,29 +224,6 @@ class EnkeltplassService(
                 ),
             )
 
-            oppdaterKladdRequest.kodeverkValg?.let { kodeverkValg ->
-                if (kodeverkValg.isNotEmpty()) {
-                    KodeverkValgRepository.lagreKodeverkValg(
-                        deltakerlisteId = deltaker.deltakerliste.id,
-                        valg = kodeverkValg,
-                    )
-                } else {
-                    KodeverkValgRepository.deleteForGjennomforing(deltaker.deltakerliste.id)
-                }
-            }
-
-            oppdaterKladdRequest.sertifiseringValg?.let { sertifiseringValg ->
-                // insert-only, sletter eksisterende valg før insert
-                SertifiseringValgRepository.deleteForGjennomforing(deltaker.deltakerliste.id)
-
-                if (sertifiseringValg.isNotEmpty()) {
-                    SertifiseringValgRepository.lagreSertifiseringValg(
-                        deltakerlisteId = deltaker.deltakerliste.id,
-                        sertifiseringValg = sertifiseringValg,
-                    )
-                }
-            }
-
             deltakerRepository.updateEnkeltplassKladd(
                 lagDeltakerUpdateDbo(
                     deltaker = deltaker,
@@ -241,6 +231,12 @@ class EnkeltplassService(
                     sluttdato = oppdaterKladdRequest.sluttdato,
                     beskrivelse = oppdaterKladdRequest.beskrivelse,
                 ),
+            )
+
+            lagreKodeverkValg(
+                deltakerlisteId = deltaker.deltakerliste.id,
+                kodeverkValg = oppdaterKladdRequest.kodeverkValg,
+                sertifiseringValg = oppdaterKladdRequest.sertifiseringValg,
             )
         }
     }
@@ -256,6 +252,7 @@ class EnkeltplassService(
     ): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         val gjennomforing = deltaker.deltakerliste
+        val request = decoratedRequest.wrappedRequest
 
         require(gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
             "Kan ikke opprette gjennomforing hos Mulighetsrommet for " +
@@ -265,34 +262,39 @@ class EnkeltplassService(
             "Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd"
         }
 
-        val arrangor = arrangorService.hentArrangor(decoratedRequest.wrappedRequest.arrangorUnderenhet)
+        val arrangor = arrangorService.hentArrangor(request.arrangorUnderenhet)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
+        val kodeverk = kodeverkClient.hentKodeverk(gjennomforing.tiltakstype.tiltakskode)
 
         return Database.transaction {
             deltakerService.lagreDeltakerStatus(
                 deltakerId = deltaker.id,
                 nyDeltakerStatus = nyDeltakerStatus(type = nyStatus),
-                erDeltakerSluttdatoEndret = deltaker.sluttdato != decoratedRequest.wrappedRequest.sluttdato,
+                erDeltakerSluttdatoEndret = deltaker.sluttdato != request.sluttdato,
             )
 
             deltakerlisteRepository.update(
                 EnkeltplassGjennomforingUpdateDbo(
                     id = gjennomforing.id,
-                    prisinformasjon = decoratedRequest.wrappedRequest.prisinformasjon,
+                    prisinformasjon = request.prisinformasjon,
                     arrangorId = arrangor.id,
                 ),
             )
 
-            // TODO: kodeverk: Kodeverk, sertifiseringer
-
             deltakerRepository.updateEnkeltplassKladd(
                 lagDeltakerUpdateDbo(
                     deltaker = deltaker,
-                    startdato = decoratedRequest.wrappedRequest.startdato,
-                    sluttdato = decoratedRequest.wrappedRequest.sluttdato,
-                    beskrivelse = decoratedRequest.wrappedRequest.beskrivelse,
+                    startdato = request.startdato,
+                    sluttdato = request.sluttdato,
+                    beskrivelse = request.beskrivelse,
                 ),
+            )
+
+            lagreKodeverkValg(
+                deltakerlisteId = gjennomforing.id,
+                kodeverkValg = request.kodeverkValg,
+                sertifiseringValg = request.sertifiseringValg,
             )
 
             val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
@@ -311,10 +313,14 @@ class EnkeltplassService(
                 GjennomforingRequestPayload.OpprettEnkeltplass(
                     gjennomforingId = deltakerMedVedtak.deltakerliste.id,
                     tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
-                    prisinformasjon = decoratedRequest.wrappedRequest.prisinformasjon,
-                    organisasjonsnummer = decoratedRequest.wrappedRequest.arrangorUnderenhet,
+                    prisinformasjon = request.prisinformasjon,
+                    organisasjonsnummer = request.arrangorUnderenhet,
                     ansvarligEnhet = decoratedRequest.endretAvEnhet,
                     opprettetAv = decoratedRequest.endretAv,
+                    kategorisering = kodeverk.toOpplaringKategorisering(
+                        kodeverkValg = request.kodeverkValg,
+                        sertifiseringValg = request.sertifiseringValg,
+                    ),
                 ),
             )
 
@@ -329,6 +335,35 @@ class EnkeltplassService(
         eksisterendeArrangor
     } else {
         arrangorService.hentArrangor(organisasjonsnummer)
+    }
+
+    private fun lagreKodeverkValg(
+        deltakerlisteId: UUID,
+        kodeverkValg: Set<UUID>?,
+        sertifiseringValg: Set<SertifiseringValg>?,
+    ) {
+        kodeverkValg?.let { internalKodeverkValg ->
+            if (internalKodeverkValg.isNotEmpty()) {
+                KodeverkValgRepository.lagreKodeverkValg(
+                    deltakerlisteId = deltakerlisteId,
+                    valg = internalKodeverkValg,
+                )
+            } else {
+                KodeverkValgRepository.deleteForGjennomforing(deltakerlisteId)
+            }
+        }
+
+        sertifiseringValg?.let { internalSertifiseringValg ->
+            // insert-only, sletter eksisterende valg før insert
+            SertifiseringValgRepository.deleteForGjennomforing(deltakerlisteId)
+
+            if (sertifiseringValg.isNotEmpty()) {
+                SertifiseringValgRepository.lagreSertifiseringValg(
+                    deltakerlisteId = deltakerlisteId,
+                    sertifiseringValg = internalSertifiseringValg,
+                )
+            }
+        }
     }
 
     companion object {
@@ -347,5 +382,16 @@ class EnkeltplassService(
                 innhold = beskrivelse?.let { listOf(Innhold.createFritekstInnhold(it)) } ?: emptyList(),
             ),
         )
+
+        private fun OpplaringKategoriseringResponse.toOpplaringKategorisering(
+            kodeverkValg: Set<UUID>?,
+            sertifiseringValg: Set<SertifiseringValg>?,
+        ): GjennomforingRequestPayload.OpprettEnkeltplass.OpplaringKategorisering =
+            GjennomforingRequestPayload.OpprettEnkeltplass.OpplaringKategorisering(
+                verdier = kodeverkValg
+                    ?.let { grupperKodeverkvalgPerRepresenterer(it) }
+                    ?: emptyMap(),
+                sertifiseringer = sertifiseringValg ?: emptySet(),
+            )
     }
 }

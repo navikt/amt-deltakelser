@@ -29,6 +29,28 @@ data class OpplaringKategoriseringResponse(
     val alternativer: List<Alternativ.Container>,
     val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
 ) {
+    private fun List<Alternativ.Verdi>.hentValgte(kodeverkValg: Set<UUID>): Set<UUID> = this
+        .filter { alt -> alt.id in kodeverkValg }
+        .map { alt -> alt.id }
+        .toSet()
+
+    fun grupperKodeverkvalgPerRepresenterer(kodeverkValg: Set<UUID>): Map<Representerer, Set<UUID>> = alternativer
+        .mapNotNull {
+            when (it) {
+                is Alternativ.VerdigruppeSok -> null
+
+                is Alternativ.Verdigruppe ->
+                    it.representerer to it.alternativer.hentValgte(kodeverkValg)
+
+                is Alternativ.UtdanningGruppe ->
+                    it.representerer to it.utdanninger
+                        .flatMap { utdanningValg ->
+                            utdanningValg.larefag.alternativer.hentValgte(kodeverkValg)
+                        }.toSet()
+            }
+        }.filter { it.second.isNotEmpty() }
+        .toMap()
+
     /**
      * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true` for alle
      * verdier med `id` i [kodeverkValg], og `false` for alle øvrige.

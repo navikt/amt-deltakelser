@@ -27,11 +27,13 @@ import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -64,6 +66,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         mockkObject(SertifiseringValgRepository)
         every { SertifiseringValgRepository.deleteForGjennomforing(any()) } just Runs
         every { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) } just Runs
+        coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
+            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            alternativer = emptyList(),
+        )
     }
 
     @AfterEach
@@ -433,7 +439,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             mockVedtakOgAnsvarlige(deltaker)
 
             val exception = shouldThrow<IllegalStateException> {
-                enkeltplassService.publiserGjennomforing(deltaker)
+                enkeltplassService.publiserGjennomforing(deltaker, null)
             }
 
             exception.message shouldBe "Kan ikke publisere gjennomføring ${deltaker.deltakerliste.id}: prisinformasjon mangler"
@@ -448,7 +454,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             mockVedtakOgAnsvarlige(deltaker)
 
             val exception = shouldThrow<IllegalStateException> {
-                enkeltplassService.publiserGjennomforing(deltaker)
+                enkeltplassService.publiserGjennomforing(deltaker, null)
             }
 
             exception.message shouldBe "Kan ikke publisere gjennomføring ${deltaker.deltakerliste.id}: arrangør mangler"
