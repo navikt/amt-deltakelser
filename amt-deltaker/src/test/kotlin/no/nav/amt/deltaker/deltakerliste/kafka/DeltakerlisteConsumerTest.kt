@@ -111,7 +111,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `skal produsere deltaker pa topics nar status for gjennomforing er endret fra kladd`() = runTest {
+        fun `skal produsere deltaker pa topic`() = runTest {
             // Arrange
             arrange()
             val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
@@ -129,33 +129,6 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             verify {
                 deltakerProducerService.produce(
                     deltaker = match { it.id == deltakerInTest.id },
-                    forcedUpdate = any(),
-                    publiserTilDeltakerV1 = any(),
-                    publiserTilDeltakerEksternV1 = any(),
-                    publiserTilDeltakerV2 = any(),
-                )
-            }
-        }
-
-        @Test
-        fun `skal ikke produsere deltaker pa topics nar status for gjennomforing er uendret`() = runTest {
-            // Arrange
-            arrange()
-            val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
-                arrangor = arrangorInTest,
-                deltakerliste = deltakerlisteInTest,
-            )
-
-            // Act
-            gjennomforingConsumer.consume(
-                key = enkeltplassPayloadInTest.id,
-                value = objectMapper.writeValueAsString(enkeltplassPayloadInTest),
-            )
-
-            // Assert
-            verify(exactly = 0) {
-                deltakerProducerService.produce(
-                    deltaker = any(),
                     forcedUpdate = any(),
                     publiserTilDeltakerV1 = any(),
                     publiserTilDeltakerEksternV1 = any(),

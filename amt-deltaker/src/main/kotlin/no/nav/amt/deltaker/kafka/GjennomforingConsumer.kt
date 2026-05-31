@@ -88,12 +88,11 @@ class GjennomforingConsumer(
                 deltakerlisteRepository.upsert(gjennomforing)
 
                 if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
-                    // hvis deltakerliste for enkeltplass og status er endret, publiser deltaker
-                    if (eksisterendeDeltakerliste.status != gjennomforing.status) {
-                        deltakerProducerService.produce(
-                            deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
-                        )
-                    }
+                    // hvis vi mottar melding for enkeltplass, er det fordi vi har sendt en endring på
+                    // gjennomføring til Mulighetsrommet
+                    deltakerProducerService.produce(
+                        deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
+                    )
                 } else {
                     handterDeltakere(
                         deltakerlisteFromPayload = gjennomforing,
