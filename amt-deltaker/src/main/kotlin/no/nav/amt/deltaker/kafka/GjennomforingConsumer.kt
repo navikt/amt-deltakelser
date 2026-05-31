@@ -10,7 +10,6 @@ import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.database.Database
@@ -88,20 +87,17 @@ class GjennomforingConsumer(
             Database.transaction {
                 deltakerlisteRepository.upsert(gjennomforing)
 
-                if (!tiltakstype.tiltakskode.erEnkeltplass()) {
+                if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+                    // hvis deltakerliste for enkeltplass og status er endret, publiser deltaker
+                    if (eksisterendeDeltakerliste.status != gjennomforing.status) {
+                        deltakerProducerService.produce(
+                            deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
+                        )
+                    }
+                } else {
                     handterDeltakere(
                         deltakerlisteFromPayload = gjennomforing,
                         eksisterendeDeltakerliste = eksisterendeDeltakerliste,
-                    )
-                }
-
-                // hvis deltakerliste er for enkeltplass, publiser deltaker
-                if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
-                    eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
-                    gjennomforing.status != GjennomforingStatusType.KLADD
-                ) {
-                    deltakerProducerService.produce(
-                        deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
                     )
                 }
             }
