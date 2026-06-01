@@ -72,6 +72,12 @@ spec:
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write,ddl,role"
+          - name: "pgaudit.log_parameter"
+            value: "on"
         diskAutoresize: true
         insights:
           enabled: true
