@@ -122,7 +122,6 @@ abstract class IntegrationTestBase {
                     deltakerlisteService = deltakerlisteService,
                     deltakerlisteRepository = deltakerlisteRepository,
                     unleash = unleash,
-                    commonUnleashToggle = commonUnleashToggle,
                     tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
                     tiltakskoordinatorService = tiltakskoordinatorService,
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,

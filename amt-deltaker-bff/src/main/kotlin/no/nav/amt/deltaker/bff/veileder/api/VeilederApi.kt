@@ -56,7 +56,6 @@ import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -71,7 +70,6 @@ fun Routing.registerVeilederApi(
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
-    unleashToggle: CommonUnleashToggle,
     kodeverkClient: KodeverkClient,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -89,9 +87,6 @@ fun Routing.registerVeilederApi(
         frontendRequest: EndringRequestFromFrontend,
         amtDeltakerRequest: EndringRequest,
     ) {
-        require(unleashToggle.prioriterSynkronKommunikasjon()) {
-            "Toggle må være påskrudd for å bruke denne metoden"
-        }
         val deltakerId = this.getDeltakerId()
 
         val deltaker = amtDeltakerClient

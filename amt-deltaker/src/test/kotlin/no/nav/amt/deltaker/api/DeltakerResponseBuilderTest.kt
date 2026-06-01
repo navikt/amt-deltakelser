@@ -351,7 +351,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         every { forslagRepository.getForDeltaker(any()) } returns expectedForslag
 
         // Act
-        val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+        val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
         // Assert
         assertSoftly(deltakerResponse) {
@@ -439,7 +439,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, emptyList())
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -471,7 +471,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -517,7 +517,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), fremtidig))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             val fremtidigResponse = DeltakelsesmengdeResponse(
@@ -566,7 +566,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), innenforPeriode))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             // Vedtaket før startdato avgrenses til startdato, og endringen innenfor blir siste/neste
@@ -603,7 +603,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -645,7 +645,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(importertFraArena))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -705,7 +705,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -779,7 +779,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             // nesteDeltakelsesmengde = den fremtidige endringen (50%/2 dager fra +14 dager)
@@ -839,7 +839,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), endringFraArrangor))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
 
             // Assert
             // Regresjonstest: EndringFraArrangor må være en del av historikken som hentes til

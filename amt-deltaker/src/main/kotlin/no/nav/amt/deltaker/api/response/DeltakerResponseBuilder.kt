@@ -42,7 +42,7 @@ class DeltakerResponseBuilder(
 ) {
     suspend fun buildDeltakerResponse(
         deltaker: Deltaker,
-        includeKodeverk: Boolean = false,
+        includeKodeverk: Boolean = true,
     ): DeltakerResponse {
         val endringsforslagForDeltaker =
             SharedResponseMappers.hentEndringsforslagVenterPaSvar(forslagRepository, deltaker.id)

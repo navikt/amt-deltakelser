@@ -44,10 +44,7 @@ fun Routing.registerVeilederApi(
                     .get(call.getDeltakerId())
                     .getOrThrow()
                     .let {
-                        deltakerResponseBuilder.buildDeltakerResponse(
-                            deltaker = it,
-                            includeKodeverk = true,
-                        )
+                        deltakerResponseBuilder.buildDeltakerResponse(it)
                     }
 
                 call.respond(deltakerResponse)
