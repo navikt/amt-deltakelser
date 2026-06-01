@@ -12,7 +12,6 @@ import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.Vurdering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -42,30 +41,6 @@ class SharedResponseMappersTest {
             bakgrunnsinformasjon shouldBe deltaker.bakgrunnsinformasjon.shouldNotBeNull()
             deltakelsesinnhold shouldBe deltaker.deltakelsesinnhold.shouldNotBeNull()
             status shouldBe deltaker.status
-        }
-    }
-
-    @Test
-    fun `deltakerEndringResponseFromDeltaker - mapper felter og inkluderer historikk`() {
-        // Arrange
-        val deltaker = TestData.lagDeltaker()
-        val endring = TestData.lagDeltakerEndring(deltakerId = deltaker.id)
-        val historikk = listOf(DeltakerHistorikk.Endring(endring))
-
-        // Act
-        val response = SharedResponseMappers.deltakerEndringResponseFromDeltaker(deltaker, historikk)
-
-        // Assert
-        assertSoftly(response) {
-            id shouldBe deltaker.id
-            startdato shouldBe deltaker.startdato
-            sluttdato shouldBe deltaker.sluttdato
-            dagerPerUke shouldBe deltaker.dagerPerUke
-            deltakelsesprosent shouldBe deltaker.deltakelsesprosent
-            bakgrunnsinformasjon shouldBe deltaker.bakgrunnsinformasjon
-            deltakelsesinnhold shouldBe deltaker.deltakelsesinnhold
-            status shouldBe deltaker.status
-            this.historikk shouldBe historikk
         }
     }
 

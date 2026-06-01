@@ -131,7 +131,6 @@ fun Application.configureRouting(
         registerVeilederApi(
             tilgangskontrollService = tilgangskontrollService,
             deltakerRepository = deltakerRepository,
-            deltakerService = deltakerService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             forslagRepository = forslagRepository,

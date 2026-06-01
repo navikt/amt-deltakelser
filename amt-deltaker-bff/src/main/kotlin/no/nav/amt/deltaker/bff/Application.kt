@@ -264,7 +264,6 @@ fun Application.module() {
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         amtDeltakerClient = amtDeltakerClient,
-        navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
     )
 

@@ -8,7 +8,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
@@ -23,7 +23,6 @@ import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
-import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -122,7 +121,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreBakgrunnsinformasjon {
-        val endreBakgrunnsinformasjonLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreBakgrunnsinformasjonLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -160,7 +159,7 @@ class AmtDeltakerClientTest {
     @Nested
     inner class EndreInnhold {
         val innhold = Deltakelsesinnhold(null, emptyList())
-        val endreInnholdLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreInnholdLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -197,7 +196,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreDeltakelsesmengde {
-        val endreDeltakelsesmengdeLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreDeltakelsesmengdeLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -238,7 +237,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreStartdato {
-        val endreStartdatoLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreStartdatoLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -278,7 +277,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreSluttdato {
-        val endreSluttdatoLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreSluttdatoLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -317,7 +316,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreSluttaarsak {
-        val endreSluttaarsakLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreSluttaarsakLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -359,7 +358,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class ForlengDeltakelse {
-        val forlengDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val forlengDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -398,7 +397,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class IkkeAktuell {
-        val ikkeAktuellLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val ikkeAktuellLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -440,7 +439,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class ReaktiverDeltakelse {
-        val reaktiverDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val reaktiverDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -477,7 +476,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class AvsluttDeltakelse {
-        val avsluttDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val avsluttDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -521,7 +520,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class AvbrytDeltakelse {
-        val avbrytDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val avbrytDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -564,7 +563,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class FjernOppstartsdato {
-        val fjernOppstartsdatoLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val fjernOppstartsdatoLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -682,7 +681,7 @@ class AmtDeltakerClientTest {
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
         private val deltakerInTest = lagDeltaker()
-        private val deltakerEndringResponseInTest = deltakerInTest.toDeltakerEndringResponse()
+        private val deltakerEndringResponseInTest = lagDeltakerResponse(deltakerInTest)
         private val expectedEndreDeltakerUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/endre-deltaker"
 
         private inline fun <reified T : EndringRequest> createExpectedErrorMessage() =
