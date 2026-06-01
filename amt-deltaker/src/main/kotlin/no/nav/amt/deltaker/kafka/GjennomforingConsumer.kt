@@ -88,7 +88,8 @@ class GjennomforingConsumer(
             Database.transaction {
                 deltakerlisteRepository.upsert(gjennomforing)
 
-                if (!tiltakstype.tiltakskode.erEnkeltplass()) {
+                if (!tiltakstype.tiltakskode.erArenaEnkeltplass()) {
+                    // Fiks for arenadata hvor deltakerliste er avsluttet mens deltaker er aktiv. Da skal deltakelsen fortsette å være aktiv
                     handterDeltakere(
                         deltakerlisteFromPayload = gjennomforing,
                         eksisterendeDeltakerliste = eksisterendeDeltakerliste,

@@ -117,8 +117,9 @@ class DeltakerResponseBuilder(
         deltakerliste: Deltakerliste,
         includeKodeverk: Boolean,
     ): GjennomforingResponse {
-        val skalHenteEnkeltplassValg = includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass
-
+        val skalHenteEnkeltplassValg =
+            includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
+                !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
         val kodeverkValg =
             if (skalHenteEnkeltplassValg) {
                 KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
