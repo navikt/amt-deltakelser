@@ -73,7 +73,6 @@ spec:
           - name: cloudsql.logical_decoding
             value: "on"
         diskAutoresize: true
-        highAvailability: false
         insights:
           enabled: true
   observability:

@@ -16,10 +16,17 @@ spec:
           - name: amt-tiltaksarrangor-bff
             envVarPrefix: DB
         diskAutoresize: true
-        highAvailability: false
         pointInTimeRecovery: true
         insights:
           enabled: true
+        flags:
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write,ddl,role"
+          - name: "pgaudit.log_parameter"
+            value: "on"
+
   port: 8080
   ingresses:
     - https://amt-tiltaksarrangor-bff.intern.nav.no
