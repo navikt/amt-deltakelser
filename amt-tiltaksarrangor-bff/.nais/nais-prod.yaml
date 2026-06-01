@@ -46,8 +46,8 @@ spec:
     timeout: 3
 
   replicas:
-    min: 0
-    max: 0
+    min: 2
+    max: 3
     scalingStrategy:
       cpu:
         thresholdPercentage: 300
