@@ -9,37 +9,13 @@ import java.util.UUID
 
 class TiltakshendelseRepository {
     fun upsert(tiltakshendelse: Tiltakshendelse) {
-        val sql =
-            """
-            INSERT INTO tiltakshendelse (
-                id, 
-                type, 
-                deltaker_id, 
-                forslag_id, 
-                hendelser, 
-                personident, 
-                aktiv, 
-                tekst, 
-                tiltakskode
-            )
-            VALUES (
-                :id, 
-                :type, 
-                :deltaker_id, 
-                :forslag_id, 
-                :hendelser, 
-                :personident, 
-                :aktiv, 
-                :tekst, 
-                :tiltakskode
-            )
-            ON CONFLICT (id) DO UPDATE SET
-                hendelser = :hendelser,
-                personident = :personident,
-                aktiv = :aktiv,
-                tekst = :tekst,
-                modified_at = CURRENT_TIMESTAMP                
-            """.trimIndent()
+        val sql = if (tiltakshendelse.forslagId == null) {
+            // Utkast har ikke forslagId og må derfor håndteres med konflikt på primærnøkkelen (id).
+            createUpsertSql(ID_COLUMN)
+        } else {
+            // Forslag håndteres med konflikt på unik forslagId for å støtte idempotent reprosessering.
+            createUpsertSql(FORSLAG_ID_COLUMN)
+        }
 
         val params = mapOf(
             "id" to tiltakshendelse.id,
@@ -119,5 +95,40 @@ class TiltakshendelseRepository {
             tiltakskode = Tiltakskode.valueOf(row.string("tiltakskode")),
             opprettet = row.localDateTime("created_at"),
         )
+
+        private const val ID_COLUMN = "id"
+        private const val FORSLAG_ID_COLUMN = "forslag_id"
+
+        private fun createUpsertSql(conflictColumn: String) =
+            """
+            INSERT INTO tiltakshendelse (
+                id,
+                type,
+                deltaker_id,
+                forslag_id,
+                hendelser,
+                personident,
+                aktiv,
+                tekst,
+                tiltakskode
+            )
+            VALUES (
+                :id,
+                :type,
+                :deltaker_id,
+                :forslag_id,
+                :hendelser,
+                :personident,
+                :aktiv,
+                :tekst,
+                :tiltakskode
+            )
+            ON CONFLICT ($conflictColumn) DO UPDATE SET
+                hendelser = :hendelser,
+                personident = :personident,
+                aktiv = :aktiv,
+                tekst = :tekst,
+                modified_at = CURRENT_TIMESTAMP
+            """.trimIndent()
     }
 }
