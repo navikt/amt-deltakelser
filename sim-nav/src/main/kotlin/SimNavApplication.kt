@@ -3,6 +3,7 @@ import brreg.BronnoysundSimulator
 import brreg.bronnoysundFakeRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import kafka.KafkaPublisher
 import kafka.kafkaFakeRoutes
@@ -16,6 +17,8 @@ fun Application.simNavModule(
     norgSimulator: NorgSimulator,
 ) {
     routing {
+        altinn3FakeRoutes()
+        maskinportenFakeRoutes()
         unleashFakeRoutes()
         poaoTilgangFakeRoutes()
         veilarboppfolgingFakeRoutes()
@@ -32,9 +35,8 @@ fun Application.simNavModule(
         // Keep previous behavior for unknown paths.
         route("{...}") {
             handle {
-                respondJson(call, HttpStatusCode.NotFound, "{\"error\":\"not found\"}")
+                respondJson(call, HttpStatusCode.NotFound, """{"error":"not found", "uri": "${this.call.request.uri}"}""")
             }
         }
     }
 }
-

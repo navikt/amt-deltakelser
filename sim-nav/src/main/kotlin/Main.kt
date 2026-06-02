@@ -37,6 +37,7 @@ fun main() {
     println("Sim-nav HTTP stub started on port $SIM_NAV_HTTP_PORT")
     println("Mock OAuth2 server started on http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID")
     println("Set UNLEASH_SERVER_API_URL=http://localhost:$SIM_NAV_HTTP_PORT$UNLEASH_PATH_PREFIX/api and UNLEASH_SERVER_API_TOKEN=dummy")
+    println("Set ALTINN3_URL=http://localhost:$SIM_NAV_HTTP_PORT$ALTINN3_PATH_PREFIX")
     println("Set POAO_TILGANG_URL=http://localhost:$SIM_NAV_HTTP_PORT$POAO_TILGANG_PATH_PREFIX")
     println("Set app.env.brreg-url=http://localhost:$SIM_NAV_HTTP_PORT${BRONNOYSUND_PATH_PREFIX}")
     println("Set NORG_URL=http://localhost:$SIM_NAV_HTTP_PORT$NORG_PATH_PREFIX")
@@ -56,5 +57,3 @@ fun main() {
 
     CountDownLatch(1).await()
 }
-
-
