@@ -43,7 +43,6 @@ class TiltakskoordinatorServiceIntegrationTest {
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         amtDeltakerClient = amtDeltakerClient,
-        navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
     )
     private val amtDistribusjonClient = mockk<AmtDistribusjonClient>()

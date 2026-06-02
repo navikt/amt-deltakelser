@@ -53,7 +53,6 @@ import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.registerHealthApi
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -82,7 +81,6 @@ fun Application.configureRouting(
     deltakerlisteService: DeltakerlisteService,
     deltakerlisteRepository: DeltakerlisteRepository,
     unleash: Unleash,
-    commonUnleashToggle: CommonUnleashToggle,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
@@ -131,7 +129,6 @@ fun Application.configureRouting(
         registerVeilederApi(
             tilgangskontrollService = tilgangskontrollService,
             deltakerRepository = deltakerRepository,
-            deltakerService = deltakerService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             forslagRepository = forslagRepository,
@@ -139,7 +136,6 @@ fun Application.configureRouting(
             amtDistribusjonClient = amtDistribusjonClient,
             amtDeltakerClient = amtDeltakerClient,
             sporbarhetsloggService = sporbarhetsloggService,
-            unleashToggle = commonUnleashToggle,
             kodeverkClient = kodeverkClient,
         )
 

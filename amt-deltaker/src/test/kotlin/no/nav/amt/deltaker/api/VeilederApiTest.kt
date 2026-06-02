@@ -13,7 +13,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.amt.deltaker.api.response.SharedResponseMappers.deltakerEndringResponseFromDeltaker
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
@@ -55,6 +55,7 @@ import java.util.UUID
 class VeilederApiTest : IntegrationTestBase() {
     override val deltakerService: DeltakerService = mockk()
     override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
+    override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
@@ -451,7 +452,9 @@ class VeilederApiTest : IntegrationTestBase() {
         deltaker: Deltaker,
         historikk: List<DeltakerHistorikk.Endring>,
     ) {
+        val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
         coEvery { deltakerService.upsertEndretDeltaker(deltaker.id, request) } returns deltaker
+        coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         withTestApplicationContext { client ->
@@ -460,13 +463,7 @@ class VeilederApiTest : IntegrationTestBase() {
             }
 
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe
-                objectMapper.writeValueAsString(
-                    deltakerEndringResponseFromDeltaker(
-                        deltaker = deltaker,
-                        historikk = historikk,
-                    ),
-                )
+            response.bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerResponse)
         }
 
         coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }

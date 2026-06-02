@@ -1,15 +1,10 @@
 package no.nav.amt.deltaker.bff.deltaker
 
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.clients.DtoMappers.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.model.AKTIVE_STATUSER
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.internapi.deltaker.request.EndringForslagRequest
-import no.nav.amt.internapi.deltaker.request.EndringRequest
-import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -19,55 +14,9 @@ import java.util.UUID
 class DeltakerService(
     private val deltakerRepository: DeltakerRepository,
     private val amtDeltakerClient: AmtDeltakerClient,
-    private val navEnhetService: NavEnhetService,
     private val forslagRepository: ForslagRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    suspend fun oppdaterDeltaker(
-        deltaker: Deltaker,
-        endringRequest: EndringRequest,
-    ): Deltaker {
-        navEnhetService.hentOpprettEllerOppdaterNavEnhet(endringRequest.endretAvEnhet)
-        val deltakeroppdatering = amtDeltakerClient
-            .postEndreDeltaker(
-                deltakerId = deltaker.id,
-                requestBody = endringRequest,
-            ).toDeltakeroppdatering()
-
-        oppdaterDeltaker(
-            deltakeroppdatering = deltakeroppdatering,
-            beforeUpsert = {
-                // gjøres også i amt-deltaker
-                if (endringRequest is ReaktiverDeltakelseRequest) {
-                    slettKladdIfExists(
-                        deltakerlisteId = deltaker.deltakerliste.id,
-                        personident = deltaker.navBruker.personident,
-                    )
-                }
-            },
-            afterUpsert = {
-                if (endringRequest is EndringForslagRequest) {
-                    // Forslag skal ikke lengre vises for nav veileder når det er godkjent
-                    endringRequest.forslagId?.let { forslagId -> forslagRepository.delete(forslagId) }
-                }
-            },
-        )
-
-        return deltaker.oppdater(deltakeroppdatering)
-    }
-
-    /**
-     * Benyttes av [oppdaterDeltaker] og kaller ikke amt-deltaker
-     */
-    private fun slettKladdIfExists(
-        deltakerlisteId: UUID,
-        personident: String,
-    ) {
-        deltakerRepository.getKladdForDeltakerliste(deltakerlisteId, personident).onSuccess { deltaker ->
-            deleteDeltaker(deltaker.id)
-        }
-    }
 
     // benyttes av DeltakerV2Consumer
     fun oppdaterDeltakerLaas(

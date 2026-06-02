@@ -8,7 +8,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.EndringRequest
-import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
@@ -67,9 +66,9 @@ class AmtDeltakerClient(
     suspend fun postEndreDeltaker(
         deltakerId: UUID,
         requestBody: EndringRequest,
-    ): DeltakerEndringResponse = performPost("deltaker/$deltakerId/$ENDRE_DELTAKER_URL_SEGMENT", requestBody)
+    ) = performPost("deltaker/$deltakerId/$ENDRE_DELTAKER_URL_SEGMENT", requestBody)
         .failIfNotSuccess("Kunne ikke oppdatere deltaker $deltakerId med ${requestBody::class.java.simpleName} i amt-deltaker")
-        .body()
+        .body<DeltakerResponse>()
 
     companion object Endepunkt {
         const val ENDRE_DELTAKER_URL_SEGMENT = "endre-deltaker"

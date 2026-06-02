@@ -9,7 +9,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
-import no.nav.amt.deltaker.api.response.SharedResponseMappers.deltakerEndringResponseFromDeltaker
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -45,10 +44,7 @@ fun Routing.registerVeilederApi(
                     .get(call.getDeltakerId())
                     .getOrThrow()
                     .let {
-                        deltakerResponseBuilder.buildDeltakerResponse(
-                            deltaker = it,
-                            includeKodeverk = true,
-                        )
+                        deltakerResponseBuilder.buildDeltakerResponse(it)
                     }
 
                 call.respond(deltakerResponse)
@@ -59,9 +55,7 @@ fun Routing.registerVeilederApi(
                     deltakerId = call.getDeltakerId(),
                     endringRequest = call.receive<EndringRequest>(),
                 )
-                val historikk = historikkService.getForDeltaker(deltaker.id)
-
-                call.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))
+                call.respond(deltakerResponseBuilder.buildDeltakerResponse(deltaker))
             }
 
             get("/{deltakerId}/historikk") {

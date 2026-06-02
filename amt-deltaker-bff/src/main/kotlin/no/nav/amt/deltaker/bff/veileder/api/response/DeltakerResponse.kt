@@ -74,7 +74,7 @@ data class DeltakerResponse(
                         innhold = deltakerliste.tiltak.innhold,
                         tiltakstype = deltakerliste.tiltak.tiltakskode,
                     ),
-                    erEnkeltplass = deltakerliste.tiltak.tiltakskode.erEnkeltplass(),
+                    erEnkeltplass = deltakerliste.tiltak.tiltakskode.erArenaEnkeltplass(),
                     oppmoteSted = deltakerliste.oppmoteSted,
                     pameldingstype = deltakerliste.pameldingstype,
                 ),

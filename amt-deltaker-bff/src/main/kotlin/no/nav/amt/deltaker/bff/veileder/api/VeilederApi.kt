@@ -10,7 +10,6 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import jakarta.ws.rs.ForbiddenException
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
@@ -19,12 +18,10 @@ import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
-import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getForslagId
 import no.nav.amt.deltaker.bff.model.Deltaker
-import no.nav.amt.deltaker.bff.model.STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
@@ -57,10 +54,8 @@ import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -68,7 +63,6 @@ import org.slf4j.LoggerFactory
 fun Routing.registerVeilederApi(
     tilgangskontrollService: TilgangskontrollService,
     deltakerRepository: DeltakerRepository,
-    deltakerService: DeltakerService,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     forslagRepository: ForslagRepository,
@@ -76,7 +70,6 @@ fun Routing.registerVeilederApi(
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
-    unleashToggle: CommonUnleashToggle,
     kodeverkClient: KodeverkClient,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -90,84 +83,10 @@ fun Routing.registerVeilederApi(
         forslag = forslagRepository.getForDeltaker(deltaker.id),
     )
 
-    fun illegalUpdateGuard(
-        deltaker: Deltaker,
-        tillatEndringUtenOppfPeriode: Boolean,
-        request: EndringRequestFromFrontend,
-    ) {
-        /*
-        Alle disse sjekkene er flyttet til amt-deltaker, ivaretas i valideringen på endringstype
-        men denne beholdes her fram til toggelen er påskrudd i prod for å hindre lagring i lokal database
-        når endringen egentlig ikke er gyldig
-         */
-        if (!deltaker.kanEndres) {
-            // Finnes i amt-deltaker https://github.com/navikt/amt-deltakelser/blob/5d30c9f514cc1d03f640cfc46775ab742b0b2d91/amt-deltaker/src/main/kotlin/no/nav/amt/deltaker/service/DeltakerService.kt#L104
-            val kanEndreAvsluttetDeltakelse = request.tillattForLaastAvsluttetDeltakelse() &&
-                deltaker.status.type in STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING &&
-                deltaker.harSluttetForMindreEnnToMndSiden()
-
-            if (!kanEndreAvsluttetDeltakelse) {
-                log.error("Kan ikke endre deltaker med id ${deltaker.id} som er låst")
-                throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")
-            }
-        }
-
-        if (deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
-            // Finnes i amt-deltaker https://github.com/navikt/amt-deltakelser/blob/5d30c9f514cc1d03f640cfc46775ab742b0b2d91/amt-deltaker/src/main/kotlin/no/nav/amt/deltaker/service/DeltakerService.kt#L104
-            throw ForbiddenException("Kan ikke endre låst deltaker ${deltaker.id}")
-        }
-
-        if (!unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltak.tiltakskode)) {
-            // Valideres i amt-deltaker
-            throw ForbiddenException("Kan ikke utføre endring på deltaker ${deltaker.id}")
-        }
-
-        if (!deltaker.navBruker.harAktivOppfolgingsperiode && !tillatEndringUtenOppfPeriode) {
-            // Valideres i amt-deltaker
-            log.warn("Kan ikke endre deltaker med id ${deltaker.id} som ikke har aktiv oppfølgingsperiode")
-            throw IllegalArgumentException("Kan ikke endre deltaker som ikke har aktiv oppfølgingsperiode")
-        }
-    }
-
-    suspend fun ApplicationCall.handleEndringOld(
-        frontendRequest: EndringRequestFromFrontend,
-        amtDeltakerRequest: EndringRequest,
-    ) {
-        // Alt dette skal slettes når toggelen er testet
-        val deltakerId = this.getDeltakerId()
-        val navAnsattAzureId = this.getNavAnsattAzureId()
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-        tilgangskontrollService.verifiserSkrivetilgang(
-            navAnsattAzureId = navAnsattAzureId,
-            norskIdent = deltaker.navBruker.personident,
-        )
-        illegalUpdateGuard(
-            deltaker = deltaker,
-            tillatEndringUtenOppfPeriode = frontendRequest.tillattEndringUtenAktivOppfolgingsperiode(),
-            request = frontendRequest,
-        )
-
-        frontendRequest.valider(deltaker)
-
-        val oppdatertDeltaker = deltakerService.oppdaterDeltaker(
-            deltaker = deltaker,
-            endringRequest = amtDeltakerRequest,
-        )
-
-        this.respond(komplettDeltakerResponse(oppdatertDeltaker))
-    }
-
     suspend fun ApplicationCall.handleEndring(
         frontendRequest: EndringRequestFromFrontend,
         amtDeltakerRequest: EndringRequest,
     ) {
-        if (!unleashToggle.prioriterSynkronKommunikasjon()) {
-            this.handleEndringOld(frontendRequest, amtDeltakerRequest)
-            return
-        }
-        require(unleashToggle.prioriterSynkronKommunikasjon()) {
-            "Toggle må være påskrudd for å bruke denne metoden"
-        }
         val deltakerId = this.getDeltakerId()
 
         val deltaker = amtDeltakerClient
@@ -184,11 +103,7 @@ fun Routing.registerVeilederApi(
             .postEndreDeltaker(
                 deltakerId = deltaker.id,
                 requestBody = amtDeltakerRequest,
-            )
-
-        amtDeltakerClient
-            .getDeltaker(deltaker.id)
-            .let { ModelMapper.toDeltaker(it) }
+            ).let { ModelMapper.toDeltaker(it) }
             .let { DeltakerResponse.fromDeltakerModel(it) }
             .also { this.respond(it) }
     }
