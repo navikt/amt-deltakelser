@@ -9,11 +9,13 @@ import io.ktor.server.routing.*
 import no.nav.amt.lib.models.deltaker.InnsatsgruppeV2
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka.TiltakstypeDto
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
 
 private const val KAFKA_ENKELTPLASS_GJENNOMFORING_PATH = "/kafka/gjennomforing/enkeltplass"
+private const val KAFKA_GRUPPE_GJENNOMFORING_PATH = "/kafka/gjennomforing/gruppe"
 private const val KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH = "/kafka/tiltakstype/enkeltplass-amo"
 private const val KAFKA_PAGE_PATH = "/kafka"
 
@@ -33,6 +35,18 @@ fun Route.kafkaFakeRoutes(
                 call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator, "Publiserte gjennomforing med id ${payload.id}", status = HttpStatusCode.Accepted)
             } catch (exception: Exception) {
                 call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator, "Kunne ikke publisere gjennomforing: ${exception.message ?: "ukjent feil"}", isError = true, status = HttpStatusCode.BadRequest)
+            }
+        }
+    }
+
+    route(KAFKA_GRUPPE_GJENNOMFORING_PATH) {
+        post {
+            try {
+                val payload = call.receiveParameters().toGjennomforingGruppePayload()
+                kafkaPublisher.publishGjennomforingGruppe(payload)
+                call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator, "Publiserte gruppe-gjennomforing med id ${payload.id}", status = HttpStatusCode.Accepted)
+            } catch (exception: Exception) {
+                call.respondKafkaPage(kafkaPublisher, bronnoysundSimulator, "Kunne ikke publisere gruppe-gjennomforing: ${exception.message ?: "ukjent feil"}", isError = true, status = HttpStatusCode.BadRequest)
             }
         }
     }
@@ -61,9 +75,11 @@ private suspend fun ApplicationCall.respondKafkaPage(
         kafkaPublishPage(
             message = message,
             isError = isError,
-            gjennomforingDefaults = kafkaPublisher.defaultGjennomforingEnkeltplass(),
+            enkeltplassDefaults = kafkaPublisher.defaultGjennomforingEnkeltplass(),
+            gruppeDefaults = kafkaPublisher.defaultGjennomforingGruppe(),
             tiltakstypeDefaults = kafkaPublisher.defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
-            gjennomforingPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
+            enkeltplassPath = KAFKA_ENKELTPLASS_GJENNOMFORING_PATH,
+            gruppePath = KAFKA_GRUPPE_GJENNOMFORING_PATH,
             tiltakstypePath = KAFKA_ENKELTPLASS_TILTAKSTYPE_PATH,
             arrangorOptions = bronnoysundSimulator.allEnheter(),
         )
@@ -97,9 +113,33 @@ private fun Parameters.toTiltakstypePayload(): TiltakstypeDto {
     )
 }
 
+private fun Parameters.toGjennomforingGruppePayload(): GjennomforingV2KafkaPayload.Gruppe {
+    return GjennomforingV2KafkaPayload.Gruppe(
+        id = UUID.fromString(required("id")),
+        opprettetTidspunkt = required("opprettetTidspunkt").toOffsetDateTimeUtc(),
+        oppdatertTidspunkt = required("oppdatertTidspunkt").toOffsetDateTimeUtc(),
+        tiltakskode = enumValueOf(required("tiltakskode")),
+        arrangor = GjennomforingV2KafkaPayload.Arrangor(required("arrangorOrganisasjonsnummer")),
+        pameldingType = enumValueOf(required("pameldingType")),
+        status = enumValueOf(required("status")),
+        oppstart = enumValueOf(required("oppstart")),
+        navn = required("navn"),
+        startDato = required("startDato").toLocalDate(),
+        sluttDato = optional("sluttDato")?.toLocalDate(),
+        tilgjengeligForArrangorFraOgMedDato = optional("tilgjengeligForArrangorFraOgMedDato")?.toLocalDate(),
+        apentForPamelding = required("apentForPamelding").toBooleanStrict(),
+        antallPlasser = required("antallPlasser").toInt(),
+        deltidsprosent = required("deltidsprosent").toDouble(),
+        oppmoteSted = optional("oppmoteSted"),
+    )
+}
+
 private fun Parameters.required(name: String): String =
     get(name)?.takeIf { it.isNotBlank() } ?: throw IllegalArgumentException("Mangler felt '$name'")
 
 private fun Parameters.optional(name: String): String? = get(name)?.takeIf { it.isNotBlank() }
 
 private fun String.toOffsetDateTimeUtc() = LocalDateTime.parse(this).atOffset(ZoneOffset.UTC)
+
+private fun String.toLocalDate() = LocalDate.parse(this)
+

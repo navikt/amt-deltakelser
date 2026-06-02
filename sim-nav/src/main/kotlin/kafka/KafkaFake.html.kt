@@ -15,9 +15,11 @@ private val DATE_TIME_INPUT_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofP
 fun HTML.kafkaPublishPage(
     message: String?,
     isError: Boolean,
-    gjennomforingDefaults: GjennomforingV2KafkaPayload.Enkeltplass,
+    enkeltplassDefaults: GjennomforingV2KafkaPayload.Enkeltplass,
+    gruppeDefaults: GjennomforingV2KafkaPayload.Gruppe,
     tiltakstypeDefaults: TiltakstypeDto,
-    gjennomforingPath: String,
+    enkeltplassPath: String,
+    gruppePath: String,
     tiltakstypePath: String,
     arrangorOptions: List<Pair<String, String>>,
 ) {
@@ -42,7 +44,7 @@ fun HTML.kafkaPublishPage(
     }
     body {
         main {
-            h1 { +"Sim-nav Kafka publisher" }
+            h1 { +"Sim Valp (?)" }
             p { +"Fyll ut skjemaene under for manuell publisering av Kafka-meldinger." }
 
             if (message != null) {
@@ -52,19 +54,24 @@ fun HTML.kafkaPublishPage(
             }
 
             section {
-                h2 { +"Gjennomforing enkeltplass" }
-                gjennomforingForm(gjennomforingDefaults, gjennomforingPath, arrangorOptions)
+                h2 { +"Gjennomføring enkeltplass" }
+                gjennomforingEnkeltplassForm(enkeltplassDefaults, enkeltplassPath, arrangorOptions)
             }
 
             section {
-                h2 { +"Tiltakstype enkeltplass AMO" }
+                h2 { +"Gjennomføring gruppe" }
+                gjennomforingGruppeForm(gruppeDefaults, gruppePath, arrangorOptions)
+            }
+
+            section {
+                h2 { +"Tiltakstype" }
                 tiltakstypeForm(tiltakstypeDefaults, tiltakstypePath)
             }
         }
     }
 }
 
-private fun FlowContent.gjennomforingForm(
+private fun FlowContent.gjennomforingEnkeltplassForm(
     defaults: GjennomforingV2KafkaPayload.Enkeltplass,
     actionPath: String,
     arrangorOptions: List<Pair<String, String>>,
@@ -116,6 +123,105 @@ private fun FlowContent.gjennomforingForm(
             }
         }
         button(type = ButtonType.submit) { +"Publiser gjennomforing" }
+    }
+}
+
+private fun FlowContent.gjennomforingGruppeForm(
+    defaults: GjennomforingV2KafkaPayload.Gruppe,
+    actionPath: String,
+    arrangorOptions: List<Pair<String, String>>,
+) {
+    form(action = actionPath, method = FormMethod.post) {
+        div("field") {
+            label { +"ID" }
+            input(type = InputType.text, name = "id") {
+                value = defaults.id.toString()
+                required = true
+            }
+        }
+        div("field") {
+            label { +"Opprettet tidspunkt (UTC)" }
+            input(type = InputType.dateTimeLocal, name = "opprettetTidspunkt") {
+                value = defaults.opprettetTidspunkt.toLocalDateTime().format(DATE_TIME_INPUT_FORMATTER)
+                required = true
+            }
+        }
+        div("field") {
+            label { +"Oppdatert tidspunkt (UTC)" }
+            input(type = InputType.dateTimeLocal, name = "oppdatertTidspunkt") {
+                value = defaults.oppdatertTidspunkt.toLocalDateTime().format(DATE_TIME_INPUT_FORMATTER)
+                required = true
+            }
+        }
+        enumField("Tiltakskode", "tiltakskode", Tiltakskode.entries.map { it.name }, defaults.tiltakskode.name)
+        div("field") {
+            label { +"Arrangør" }
+            select {
+                name = "arrangorOrganisasjonsnummer"
+                required = true
+                arrangorOptions.forEach { (orgnr, navn) ->
+                    option {
+                        value = orgnr
+                        selected = orgnr == defaults.arrangor.organisasjonsnummer
+                        +"$orgnr – $navn"
+                    }
+                }
+            }
+        }
+        enumField("Pameldingstype", "pameldingType", GjennomforingPameldingType.entries.map { it.name }, defaults.pameldingType.name)
+        enumField("Status", "status", GjennomforingStatusType.entries.map { it.name }, defaults.status.name)
+        enumField("Oppstart", "oppstart", Oppstartstype.entries.map { it.name }, defaults.oppstart.name)
+        div("field") {
+            label { +"Navn" }
+            input(type = InputType.text, name = "navn") {
+                value = defaults.navn
+                required = true
+            }
+        }
+        div("field") {
+            label { +"Startdato" }
+            input(type = InputType.date, name = "startDato") {
+                value = defaults.startDato.toString()
+                required = true
+            }
+        }
+        div("field") {
+            label { +"Sluttdato (valgfri)" }
+            input(type = InputType.date, name = "sluttDato") {
+                value = defaults.sluttDato?.toString().orEmpty()
+            }
+        }
+        div("field") {
+            label { +"Tilgjengelig for arrangor fra og med dato (valgfri)" }
+            input(type = InputType.date, name = "tilgjengeligForArrangorFraOgMedDato") {
+                value = defaults.tilgjengeligForArrangorFraOgMedDato?.toString().orEmpty()
+            }
+        }
+        booleanField("Apent for pamelding", "apentForPamelding", defaults.apentForPamelding)
+        div("field") {
+            label { +"Antall plasser" }
+            input(type = InputType.number, name = "antallPlasser") {
+                value = defaults.antallPlasser.toString()
+                min = "0"
+                required = true
+            }
+        }
+        div("field") {
+            label { +"Deltidsprosent" }
+            input(type = InputType.number, name = "deltidsprosent") {
+                value = defaults.deltidsprosent.toString()
+                step = "0.1"
+                min = "0"
+                required = true
+            }
+        }
+        div("field") {
+            label { +"Oppmotested (valgfri)" }
+            input(type = InputType.text, name = "oppmoteSted") {
+                value = defaults.oppmoteSted.orEmpty()
+            }
+        }
+        button(type = ButtonType.submit) { +"Publiser gruppe-gjennomforing" }
     }
 }
 
@@ -175,5 +281,13 @@ private fun FORM.enumField(
             }
         }
     }
+}
+
+private fun FORM.booleanField(
+    labelText: String,
+    name: String,
+    selectedValue: Boolean,
+) {
+    enumField(labelText, name, listOf(true.toString(), false.toString()), selectedValue.toString())
 }
 

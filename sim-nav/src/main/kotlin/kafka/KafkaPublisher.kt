@@ -17,40 +17,40 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.apache.kafka.common.serialization.UUIDSerializer
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.*
 
-private const val DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
-private const val DEFAULT_GJENNOMFORING_ENKELTPLASS_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2"
-private const val DEFAULT_TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v3"
+private const val SISTE_TILTAKSGJENNOMFORINGER_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2"
+private const val SISTE_TILTAKSTYPER_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v3"
+private const val KAFKA_SERVER: String = "localhost:9092"
 
 class KafkaPublisher(
     private val bronnoysundSimulator: BronnoysundSimulator,
-    bootstrapServers: String = getenvOrProperty("KAFKA_BOOTSTRAP_SERVERS", DEFAULT_BOOTSTRAP_SERVERS),
-    private val gjennomforingEnkeltplassTopic: String = getenvOrProperty(
-        "KAFKA_GJENNOMFORING_ENKELTPLASS_TOPIC",
-        DEFAULT_GJENNOMFORING_ENKELTPLASS_TOPIC,
-    ),
-    private val tiltakstypeTopic: String = getenvOrProperty(
-        "KAFKA_TILTAKSTYPE_TOPIC",
-        DEFAULT_TILTAKSTYPE_TOPIC,
-    ),
-    private val producer: Producer<UUID, String> = createProducer(bootstrapServers),
-    private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()),
 ) {
+    private val producer: Producer<UUID, String> = createProducer(KAFKA_SERVER)
+    private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+
     fun publishGjennomforingEnkeltplass(
         payload: GjennomforingV2KafkaPayload.Enkeltplass = defaultGjennomforingEnkeltplass(),
     ) {
         val message = objectMapper.writeValueAsString(payload)
-        producer.send(ProducerRecord(gjennomforingEnkeltplassTopic, payload.id, message)).get()
+        producer.send(ProducerRecord(SISTE_TILTAKSGJENNOMFORINGER_TOPIC, payload.id, message)).get()
+    }
+
+    fun publishGjennomforingGruppe(
+        payload: GjennomforingV2KafkaPayload.Gruppe = defaultGjennomforingGruppe(),
+    ) {
+        val message = objectMapper.writeValueAsString(payload)
+        producer.send(ProducerRecord(SISTE_TILTAKSGJENNOMFORINGER_TOPIC, payload.id, message)).get()
     }
 
     fun publishTiltakstypeEnkeltplassArbeidsmarkedsopplaering(
         payload: TiltakstypeDto = defaultTiltakstypeEnkeltplassArbeidsmarkedsopplaering(),
     ) {
         val message = objectMapper.writeValueAsString(payload)
-        producer.send(ProducerRecord(tiltakstypeTopic, payload.id, message)).get()
+        producer.send(ProducerRecord(SISTE_TILTAKSTYPER_TOPIC, payload.id, message)).get()
     }
 
     fun defaultGjennomforingEnkeltplass(): GjennomforingV2KafkaPayload.Enkeltplass {
@@ -66,6 +66,30 @@ class KafkaPublisher(
             status = GjennomforingStatusType.entries.first(),
             oppstart = Oppstartstype.entries.first(),
             prisinformasjon = null,
+        )
+    }
+
+    fun defaultGjennomforingGruppe(): GjennomforingV2KafkaPayload.Gruppe {
+        val now = OffsetDateTime.now(ZoneOffset.UTC)
+        val startDato = LocalDate.now(ZoneOffset.UTC)
+
+        return GjennomforingV2KafkaPayload.Gruppe(
+            id = UUID.randomUUID(),
+            opprettetTidspunkt = now,
+            oppdatertTidspunkt = now,
+            tiltakskode = Tiltakskode.entries.first(),
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = bronnoysundSimulator.firstOrganisasjonsnummer()),
+            pameldingType = GjennomforingPameldingType.entries.first(),
+            status = GjennomforingStatusType.entries.first(),
+            oppstart = Oppstartstype.entries.first(),
+            navn = "Default gruppegjennomforing",
+            startDato = startDato,
+            sluttDato = startDato.plusDays(30),
+            tilgjengeligForArrangorFraOgMedDato = null,
+            apentForPamelding = true,
+            antallPlasser = 10,
+            deltidsprosent = 100.0,
+            oppmoteSted = null,
         )
     }
 
@@ -95,10 +119,6 @@ private fun createProducer(bootstrapServers: String): Producer<UUID, String> {
     }
 
     return KafkaProducer(properties)
-}
-
-private fun getenvOrProperty(name: String, defaultValue: String): String {
-    return System.getenv(name) ?: System.getProperty(name) ?: defaultValue
 }
 
 
