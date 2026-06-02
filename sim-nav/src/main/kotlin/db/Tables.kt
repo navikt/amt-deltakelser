@@ -1,5 +1,6 @@
+package db
+
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.datetime
 
 /**
  * Database tables for sim-nav simulators.
@@ -7,7 +8,7 @@ import org.jetbrains.exposed.sql.javatime.datetime
  */
 
 object ValpGjennomforing : Table("valp_gjennomforing") {
-    val id = text("id").primaryKey()
+    val id = text("id")
     val tiltakskode = text("tiltakskode")
     val arrangorOrganisasjonsnummer = text("arrangor_organisasjonsnummer")
     val pameldingType = text("pamelding_type")
@@ -25,16 +26,20 @@ object ValpGjennomforing : Table("valp_gjennomforing") {
     val deltidsprosent = text("deltidsprosent").nullable()
     val oppmoteSted = text("oppmote_sted").nullable()
     val type = text("type") // "enkeltplass" or "gruppe"
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+    val createdAt = text("created_at")
+    val updatedAt = text("updated_at")
+
+    override val primaryKey = PrimaryKey(id)
 }
 
 object ValpTiltakstype : Table("valp_tiltakstype") {
-    val id = text("id").primaryKey()
+    val id = text("id")
     val navn = text("navn")
     val tiltakskode = text("tiltakskode")
     val innsatsgrupper = text("innsatsgrupper") // JSON-serialized list
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+    val createdAt = text("created_at")
+    val updatedAt = text("updated_at")
+
+    override val primaryKey = PrimaryKey(id)
 }
 

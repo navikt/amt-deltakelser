@@ -1,6 +1,7 @@
 import aooppfolgingskontor.AO_OPPFOLGINGSKONTOR_PATH_PREFIX
 import brreg.BRONNOYSUND_PATH_PREFIX
 import brreg.BronnoysundSimulator
+import db.DatabaseSchema
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kafka.KafkaPublisher

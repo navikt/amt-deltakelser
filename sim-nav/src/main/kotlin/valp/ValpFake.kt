@@ -2,8 +2,8 @@ package valp
 
 import DatabaseConfig
 import DbOperations
-import ValpGjennomforing
-import ValpTiltakstype
+import db.ValpGjennomforing
+import db.ValpTiltakstype
 import io.ktor.http.*
 import io.ktor.server.html.*
 import io.ktor.server.routing.*
