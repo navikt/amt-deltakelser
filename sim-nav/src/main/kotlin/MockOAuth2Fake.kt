@@ -7,7 +7,7 @@ const val MOCK_OAUTH2_PORT = 9000
 const val MOCK_OAUTH2_ISSUER_ID = "azure"
 
 fun startMockOAuth2Server(): MockOAuth2Server {
-    val tokenCallback = RequestMappingTokenCallback(
+    val azureMock = RequestMappingTokenCallback(
         issuerId = MOCK_OAUTH2_ISSUER_ID,
         tokenExpiry = 315360000,
         requestMappings = listOf(
@@ -53,10 +53,26 @@ fun startMockOAuth2Server(): MockOAuth2Server {
         ),
     )
 
+    val tokenXMock = RequestMappingTokenCallback(
+        issuerId = "tokenx",
+        tokenExpiry = 315360000,
+        requestMappings = listOf(
+            RequestMapping(
+                requestParam = "client_id",
+                match = "amt-tiltaksarrangor-flate",
+                claims = mapOf(
+                    "pid" to "12345678910",
+                    "aud" to listOf("amt-tiltaksarrangor-bff"),
+                    "sub" to "11111111-1111-1111-1111-111111111111",
+                ),
+            ),
+        ),
+    )
+
     return MockOAuth2Server(
         OAuth2Config(
             interactiveLogin = true,
-            tokenCallbacks = setOf(tokenCallback),
+            tokenCallbacks = setOf(azureMock, tokenXMock),
         ),
     ).also {
         it.start(MOCK_OAUTH2_PORT)
