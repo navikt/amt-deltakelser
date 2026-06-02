@@ -50,6 +50,15 @@ fun startMockOAuth2Server(): MockOAuth2Server {
                     "oid" to "11111111-1111-1111-1111-111111111111",
                 ),
             ),
+            RequestMapping(
+                requestParam = "scope",
+                match = "api://amt-altinn/.default",
+                claims = mapOf(
+                    "aud" to listOf("amt-altinn"),
+                    "sub" to "11111111-1111-1111-1111-111111111111",
+                    "oid" to "11111111-1111-1111-1111-111111111111",
+                ),
+            ),
         ),
     )
 
