@@ -71,7 +71,7 @@ fun startMockOAuth2Server(): MockOAuth2Server {
                 requestParam = "client_id",
                 match = "amt-tiltaksarrangor-flate",
                 claims = mapOf(
-                    "pid" to "12345678910",
+                    "pid" to "01019050188",
                     "aud" to listOf("amt-tiltaksarrangor-bff"),
                     "sub" to "11111111-1111-1111-1111-111111111111",
                 ),

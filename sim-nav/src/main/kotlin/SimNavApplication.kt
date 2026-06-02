@@ -16,6 +16,8 @@ fun Application.simNavModule(
     pdlSimulator: pdl.PdlSimulator,
     norgSimulator: NorgSimulator,
 ) {
+    // install(RequestDebugPlugin)
+
     routing {
         altinn3FakeRoutes()
         maskinportenFakeRoutes()
