@@ -8,13 +8,13 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class TiltakshendelseRepository {
-    fun upsert(tiltakshendelse: Tiltakshendelse) {
+    fun upsert(tiltakshendelse: Tiltakshendelse): Tiltakshendelse {
         val sql = if (tiltakshendelse.forslagId == null) {
             // Utkast har ikke forslagId og må derfor håndteres med konflikt på primærnøkkelen (id).
-            createUpsertSql(ID_COLUMN)
+            UPSERT_BY_ID_SQL
         } else {
             // Forslag håndteres med konflikt på unik forslagId for å støtte idempotent reprosessering.
-            createUpsertSql(FORSLAG_ID_COLUMN)
+            UPSERT_BY_FORSLAG_ID_SQL
         }
 
         val params = mapOf(
@@ -29,7 +29,11 @@ class TiltakshendelseRepository {
             "tiltakskode" to tiltakshendelse.tiltakskode.name,
         )
 
-        Database.query { session -> session.update(queryOf(sql, params)) }
+        return Database.query { session ->
+            session.run(
+                queryOf(sql, params).map(::rowMapper).asSingle,
+            ) ?: error("Klarte ikke å upserte tiltakshendelse ${tiltakshendelse.id}")
+        }
     }
 
     fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
@@ -99,6 +103,9 @@ class TiltakshendelseRepository {
         private const val ID_COLUMN = "id"
         private const val FORSLAG_ID_COLUMN = "forslag_id"
 
+        private val UPSERT_BY_ID_SQL = createUpsertSql(ID_COLUMN)
+        private val UPSERT_BY_FORSLAG_ID_SQL = createUpsertSql(FORSLAG_ID_COLUMN)
+
         private fun createUpsertSql(conflictColumn: String) =
             """
             INSERT INTO tiltakshendelse (
@@ -124,11 +131,12 @@ class TiltakshendelseRepository {
                 :tiltakskode
             )
             ON CONFLICT ($conflictColumn) DO UPDATE SET
-                hendelser = :hendelser,
-                personident = :personident,
-                aktiv = :aktiv,
-                tekst = :tekst,
+                hendelser = EXCLUDED.hendelser,
+                personident = EXCLUDED.personident,
+                aktiv = EXCLUDED.aktiv,
+                tekst = EXCLUDED.tekst,
                 modified_at = CURRENT_TIMESTAMP
+            RETURNING *
             """.trimIndent()
     }
 }
