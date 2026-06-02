@@ -7,12 +7,14 @@ import kafka.KafkaPublisher
 import nom.NOM_PATH_PREFIX
 import pdl.PDL_PATH_PREFIX
 import pdl.PdlSimulator
+import valp.VALP_PATH_PREFIX
 import java.util.concurrent.CountDownLatch
 
 private const val SIM_NAV_HTTP_PORT = 9002
 
 fun main() {
     DatabaseConfig.initialize()
+    DatabaseSchema.initialize()
 
     val bronnoysundSimulator = BronnoysundSimulator()
     val kafkaPublisher = KafkaPublisher(bronnoysundSimulator)
@@ -55,6 +57,7 @@ fun main() {
     println("Set AZURE_OPENID_CONFIG_TOKEN_ENDPOINT=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/token")
     println("Kafka UI: http://localhost:$SIM_NAV_HTTP_PORT/kafka")
     println("nav-veileders-flate launcher: http://localhost:$SIM_NAV_HTTP_PORT/nav-veileders-flate")
+    println("Valp (database view): http://localhost:$SIM_NAV_HTTP_PORT$VALP_PATH_PREFIX")
     println("POST (form) http://localhost:$SIM_NAV_HTTP_PORT/kafka/tiltakstype/enkeltplass-amo")
     println("POST (form) http://localhost:$SIM_NAV_HTTP_PORT/kafka/gjennomforing/enkeltplass")
 

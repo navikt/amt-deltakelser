@@ -9,6 +9,7 @@ import kafka.KafkaPublisher
 import kafka.kafkaFakeRoutes
 import nom.nomFakeRoutes
 import pdl.pdlFakeRoutes
+import valp.valpFakeRoutes
 
 fun Application.simNavModule(
     kafkaPublisher: KafkaPublisher,
@@ -30,6 +31,7 @@ fun Application.simNavModule(
         aoOppfolgingskontorFakeRoutes()
         pdlFakeRoutes(pdlSimulator)
         nomFakeRoutes()
+        valpFakeRoutes()
         navVeiledersFlateLauncherRoutes(pdlSimulator, norgSimulator)
         krrProxyFakeRoutes()
         kafkaFakeRoutes(kafkaPublisher, bronnoysundSimulator)
