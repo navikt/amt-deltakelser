@@ -66,6 +66,22 @@ fun startMockOAuth2Server(): MockOAuth2Server {
                     "sub" to "11111111-1111-1111-1111-111111111111",
                 ),
             ),
+            RequestMapping(
+                requestParam = "client_id",
+                match = "amt-tiltaksarrangor-bff",
+                claims = mapOf(
+                    "sub" to "11111111-1111-1111-1111-111111111111",
+                    "aud" to listOf("amt-arrangor"),
+                ),
+            ),
+            RequestMapping(
+                requestParam = "audience",
+                match = "amt-arrangor",
+                claims = mapOf(
+                    "sub" to "11111111-1111-1111-1111-111111111111",
+                    "aud" to listOf("amt-arrangor"),
+                ),
+            ),
         ),
     )
 
