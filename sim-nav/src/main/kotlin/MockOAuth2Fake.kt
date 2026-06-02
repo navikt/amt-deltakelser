@@ -57,6 +57,7 @@ fun startMockOAuth2Server(): MockOAuth2Server {
                     "aud" to listOf("amt-altinn"),
                     "sub" to "11111111-1111-1111-1111-111111111111",
                     "oid" to "11111111-1111-1111-1111-111111111111",
+                    "roles" to listOf("access_as_application")
                 ),
             ),
         ),
