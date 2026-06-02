@@ -41,7 +41,14 @@ class TiltakshendelseService(
 
     suspend fun handleForslag(forslag: Forslag) {
         when (forslag.status) {
-            is Forslag.Status.VenterPaSvar -> opprettStartHendelse(forslag)
+            is Forslag.Status.VenterPaSvar -> {
+                if (tiltakshendelseRepository.getForslagHendelse(forslag.id).isSuccess) {
+                    log.info("Tiltakshendelse for forslag ${forslag.id} finnes allerede. Ignorerer duplikat VenterPaSvar.")
+                    return
+                }
+
+                opprettStartHendelse(forslag)
+            }
 
             is Forslag.Status.Godkjent,
             is Forslag.Status.Avvist,
@@ -103,9 +110,9 @@ class TiltakshendelseService(
     }
 
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {
-        tiltakshendelseRepository.upsert(tiltakshendelse)
-        tiltakshendelseProducer.produce(tiltakshendelse)
-        log.info("Upsertet tiltakshendelse ${tiltakshendelse.id}")
+        val lagretTiltakshendelse = tiltakshendelseRepository.upsert(tiltakshendelse)
+        tiltakshendelseProducer.produce(lagretTiltakshendelse)
+        log.info("Upsertet tiltakshendelse ${lagretTiltakshendelse.id}")
     }
 }
 
