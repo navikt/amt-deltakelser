@@ -12,6 +12,8 @@ import java.util.concurrent.CountDownLatch
 private const val SIM_NAV_HTTP_PORT = 9002
 
 fun main() {
+    DatabaseConfig.initialize()
+
     val bronnoysundSimulator = BronnoysundSimulator()
     val kafkaPublisher = KafkaPublisher(bronnoysundSimulator)
     val pdlSimulator = PdlSimulator()
@@ -31,6 +33,7 @@ fun main() {
             simNavHttpServer.stop(gracePeriodMillis = 0, timeoutMillis = 0)
             mockOAuth2Server.shutdown()
             kafkaPublisher.close()
+            DatabaseConfig.shutdown()
         },
     )
 

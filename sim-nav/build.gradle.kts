@@ -31,6 +31,13 @@ dependencies {
     implementation(libs.jackson.datatype.jsr310)
     implementation(libs.mock.oauth2.server)
 
+    // Database
+    implementation(libs.postgresql)
+    implementation(libs.hikari)
+    implementation("org.jetbrains.exposed:exposed-core:0.43.0")
+    implementation("org.jetbrains.exposed:exposed-dao:0.43.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.43.0")
+
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
