@@ -148,6 +148,7 @@ class TiltakskoordinatorResponseBuilderTest {
             sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
             navBruker.ikkeDigitalOgManglerAdresse shouldBe false
             navBruker.navEnhet shouldBe "NAV Enhet"
+            kanEndres shouldBe true
         }
     }
 

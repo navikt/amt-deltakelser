@@ -67,13 +67,18 @@ class DeltakerLaaseService(
         deltakerId: UUID,
         deltakelserForPerson: List<DeltakelseLaaseInfo>,
     ): Boolean {
+        require(deltakelserForPerson.isNotEmpty()) { "Deltaker-id $deltakerId har ingen deltakelser" }
+
         // hvis det kun finnes en deltakelse på personen, så skal den ikke være låst
         deltakelserForPerson.singleOrNull()?.let { return false }
 
         val sortert = deltakelserForPerson
             .sortedWith(
                 compareByDescending<DeltakelseLaaseInfo> {
-                    paameldtTidspunkt(it.vedtakFattet, it.innsoektDatoFraArena)
+                    paameldtTidspunkt(
+                        vedtakFattet = it.vedtakFattet,
+                        innsoektDatoFraArena = it.innsoektDatoFraArena,
+                    )
                 }.thenByDescending { it.statusGyldigFra },
             )
 
@@ -89,11 +94,13 @@ class DeltakerLaaseService(
         }
     }
 
-    private fun paameldtTidspunkt(
-        vedtakFattet: LocalDateTime?,
-        innsoektDatoFraArena: LocalDate?,
-    ): LocalDateTime? = listOfNotNull(
-        vedtakFattet,
-        innsoektDatoFraArena?.atStartOfDay(),
-    ).maxOrNull()
+    companion object {
+        fun paameldtTidspunkt(
+            vedtakFattet: LocalDateTime?,
+            innsoektDatoFraArena: LocalDate?,
+        ): LocalDateTime? = listOfNotNull(
+            vedtakFattet,
+            innsoektDatoFraArena?.atStartOfDay(),
+        ).maxOrNull()
+    }
 }

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.veileder
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -34,12 +35,33 @@ class DeltakerLaaseServiceTest {
     @Nested
     inner class ErLaastForEndringerTests {
         @Test
+        fun `skal kaste feil hvis deltaker ikke har deltakelse`() {
+            // Arrange
+            every {
+                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
+                    personIdenter = setOf(deltakerInTest.navBruker.personident),
+                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                )
+            } returns mapOf(
+                deltakerInTest.navBruker.personident to emptyList(),
+            )
+
+            // Act
+            val thrown = shouldThrow<IllegalArgumentException> {
+                sut.erLaastForEndringer(deltakerInTest)
+            }
+
+            // Assert
+            thrown.message shouldBe "Deltaker-id ${deltakerInTest.id} har ingen deltakelser"
+        }
+
+        @Test
         fun `skal returnere false hvis deltaker ikke har tidligere deltakelser`() {
             // Arrange
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
-                    setOf(deltakerInTest.navBruker.personident),
-                    deltakerInTest.deltakerliste.id,
+                    personIdenter = setOf(deltakerInTest.navBruker.personident),
+                    gjennomforingId = deltakerInTest.deltakerliste.id,
                 )
             } returns mapOf(
                 deltakerInTest.navBruker.personident to listOf(

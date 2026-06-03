@@ -77,7 +77,8 @@ class TiltakskoordinatorResponseBuilder(
 
         val ikkeDigitalOgManglerAdresse = !(erDigital || row.harAdresse)
 
-        val erLaastForEndringer = deltakerIdToErLaastForEndringerMap.getOrDefault(row.id, false)
+        val erLaastForEndringer = deltakerIdToErLaastForEndringerMap[row.id]
+            ?: throw NoSuchElementException("Fant ikke deltaker-id ${row.id} i map")
 
         return TiltakskoordinatorDeltakerResponse(
             id = row.id,

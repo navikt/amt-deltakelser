@@ -571,7 +571,7 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetDeltakelserForLaaseSjekkTests {
         @Test
-        fun `ingen treff i database - returnerer tom liste`() {
+        fun `ingen treff i database - returnerer tomt map`() {
             // Act
             val resultat = deltakerRepository.getDeltakelserForLaaseSjekk(
                 personIdenter = setOf("12345678901"),
@@ -724,7 +724,7 @@ class DeltakerRepositoryTest {
 
             // Assert
             resultat.values
-                .flatMap { laaseInfo -> laaseInfo.map { laaseInfo -> laaseInfo.id } }
+                .flatMap { laaseInfoList -> laaseInfoList.map { laaseInfo -> laaseInfo.id } }
                 .toSet() shouldBe setOf(tidligere.id, aktiv.id)
         }
     }
