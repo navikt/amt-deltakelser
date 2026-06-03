@@ -20,6 +20,7 @@ fun Application.simNavModule(
     // install(RequestDebugPlugin)
 
     routing {
+        simNavHomeRoutes()
         altinn3FakeRoutes()
         maskinportenFakeRoutes()
         unleashFakeRoutes()

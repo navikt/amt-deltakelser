@@ -6,6 +6,8 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import sharedui.simNavHeader
+import sharedui.simNavHeaderStyles
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -23,6 +25,7 @@ fun HTML.valpPage(
 ) {
     head {
         title("Valp - Simulator")
+        simNavHeaderStyles()
         style {
             unsafe {
                 raw(
@@ -81,6 +84,7 @@ fun HTML.valpPage(
         }
     }
     body {
+        simNavHeader(VALP_PATH_PREFIX)
         h1 { +"Valp - Simulator" }
 
         if (message != null) {
@@ -205,9 +209,11 @@ fun HTML.valpGjennomforingFormPage(
 ) {
     head {
         title("New gjennomforing - Valp")
+        simNavHeaderStyles()
         formPageStyles()
     }
     body {
+        simNavHeader(VALP_PATH_PREFIX)
         h1 { +"Ny gjennomforing" }
         p {
             a(href = backPath) { +"<- Tilbake" }
@@ -265,9 +271,11 @@ fun HTML.valpTiltakstypeFormPage(
 ) {
     head {
         title("New tiltakstype - Valp")
+        simNavHeaderStyles()
         formPageStyles()
     }
     body {
+        simNavHeader(VALP_PATH_PREFIX)
         h1 { +"Ny tiltakstype" }
         p {
             a(href = backPath) { +"<- Tilbake" }
@@ -297,9 +305,11 @@ fun HTML.valpGjennomforingEditFormPage(
 ) {
     head {
         title("Edit gjennomforing - Valp")
+        simNavHeaderStyles()
         formPageStyles()
     }
     body {
+        simNavHeader(VALP_PATH_PREFIX)
         h1 { +"Rediger gjennomforing" }
         p {
             a(href = backPath) { +"<- Tilbake" }
@@ -345,9 +355,11 @@ fun HTML.valpTiltakstypeEditFormPage(
 ) {
     head {
         title("Edit tiltakstype - Valp")
+        simNavHeaderStyles()
         formPageStyles()
     }
     body {
+        simNavHeader(VALP_PATH_PREFIX)
         h1 { +"Rediger tiltakstype" }
         p {
             a(href = backPath) { +"<- Tilbake" }

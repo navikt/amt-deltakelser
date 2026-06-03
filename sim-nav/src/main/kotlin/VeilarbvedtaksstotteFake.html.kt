@@ -1,6 +1,8 @@
 import kotlinx.html.*
 import no.nav.amt.lib.models.deltaker.InnsatsgruppeV2
 import pdl.PdlDataSource
+import sharedui.simNavHeader
+import sharedui.simNavHeaderStyles
 
 data class VeilarbvedtaksstotteFnrOption(
     val fnr: String,
@@ -34,6 +36,7 @@ fun HTML.veilarbvedtaksstottePage(
 ) {
     head {
         title("Veilarbvedtaksstotte - Simulator")
+        simNavHeaderStyles()
         style {
             unsafe {
                 raw(
@@ -73,7 +76,9 @@ fun HTML.veilarbvedtaksstottePage(
     }
 
     body {
-        h1 { +"Veilarbvedtaksstotte - Simulator" }
+        simNavHeader(VEILARBVEDTAKSSTOTTE_PATH_PREFIX)
+        h1 { +"Veilarbvedtaksstotte" }
+        p { +"Tjeneste for fatting av 14a-vedtak (vedtak om oppfølging)" }
 
         if (message != null) {
             p(classes = "message ${if (isError) "message--error" else "message--ok"}") {
@@ -82,15 +87,15 @@ fun HTML.veilarbvedtaksstottePage(
         }
 
         h2 {
-            +"Persons (${persons.size})"
+            +"Vedtak (${persons.size})"
             a(classes = "add-button", href = newPersonPath) {
-                title = "Add new person"
+                title = "Legg til vedtak"
                 +"+"
             }
         }
 
         if (persons.isEmpty()) {
-            div(classes = "empty") { +"No persons in database" }
+            div(classes = "empty") { +"Ingen vedtak i databasen" }
         } else {
             table {
                 thead {
@@ -98,7 +103,7 @@ fun HTML.veilarbvedtaksstottePage(
                         th { +"Fnr" }
                         th { +"Navn" }
                         th { +"Innsatsgruppe" }
-                        th { +"Actions" }
+                        th { +"Handlinger" }
                     }
                 }
                 tbody {
@@ -108,13 +113,13 @@ fun HTML.veilarbvedtaksstottePage(
                             td { +(pdlNamesByFnr[row.fnr].orEmpty().ifBlank { "-" }) }
                             td { +(row.innsatsgruppe?.name ?: "(ingen)") }
                             td(classes = "actions") {
-                                a(href = "$editPersonPathPrefix/${row.fnr}/edit") { +"Edit" }
+                                a(href = "$editPersonPathPrefix/${row.fnr}/edit") { +"Rediger" }
                                 form(
                                     action = "$editPersonPathPrefix/${row.fnr}/delete",
                                     method = FormMethod.post,
                                     classes = "inline-form",
                                 ) {
-                                    button(type = ButtonType.submit, classes = "danger-link") { +"Delete" }
+                                    button(type = ButtonType.submit, classes = "danger-link") { +"Slett" }
                                 }
                             }
                         }
@@ -133,9 +138,11 @@ fun HTML.veilarbvedtaksstottePersonFormPage(
 ) {
     head {
         title("New person - Veilarbvedtaksstotte")
+        simNavHeaderStyles()
         veilarbvedtaksstotteFormStyles()
     }
     body {
+        simNavHeader(VEILARBVEDTAKSSTOTTE_PATH_PREFIX)
         h1 { +"Ny person" }
         p { a(href = backPath) { +"<- Tilbake" } }
 
@@ -155,9 +162,11 @@ fun HTML.veilarbvedtaksstottePersonEditFormPage(
 ) {
     head {
         title("Edit person - Veilarbvedtaksstotte")
+        simNavHeaderStyles()
         veilarbvedtaksstotteFormStyles()
     }
     body {
+        simNavHeader(VEILARBVEDTAKSSTOTTE_PATH_PREFIX)
         h1 { +"Rediger person" }
         p { a(href = backPath) { +"<- Tilbake" } }
         p { +"Fnr: ${defaults.fnr}${if (personName.isBlank()) "" else " - $personName"}" }

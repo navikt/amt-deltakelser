@@ -1,6 +1,8 @@
 package nom
 
 import kotlinx.html.*
+import sharedui.simNavHeader
+import sharedui.simNavHeaderStyles
 
 fun HTML.nomPage(
     ressurser: List<NomRessursRow>,
@@ -12,6 +14,7 @@ fun HTML.nomPage(
 ) {
     head {
         title("Nom - Simulator")
+        simNavHeaderStyles()
         style {
             unsafe {
                 raw(
@@ -51,7 +54,9 @@ fun HTML.nomPage(
     }
 
     body {
-        h1 { +"Nom - Simulator" }
+        simNavHeader(NOM_PATH_PREFIX)
+        h1 { +"Nom" }
+        p { +"NAV Organisasjonsmaster skal være masterkilde for ressurser, organisasjonsenheter inkl. organisasjonshierarkiet, samt orgtilknytning mellom ressurser og organisasjonsenheter." }
 
         if (message != null) {
             p(classes = "message ${if (isError) "message--error" else "message--ok"}") {
@@ -113,10 +118,12 @@ fun HTML.nomRessursFormPage(
 ) {
     head {
         title("New ressurs - Nom")
+        simNavHeaderStyles()
         nomFormStyles()
     }
 
     body {
+        simNavHeader(NOM_PATH_PREFIX)
         h1 { +"Ny ressurs" }
         p { a(href = backPath) { +"<- Tilbake" } }
 
@@ -136,10 +143,12 @@ fun HTML.nomRessursEditFormPage(
 ) {
     head {
         title("Edit ressurs - Nom")
+        simNavHeaderStyles()
         nomFormStyles()
     }
 
     body {
+        simNavHeader(NOM_PATH_PREFIX)
         h1 { +"Rediger ressurs" }
         p { a(href = backPath) { +"<- Tilbake" } }
         p { +"Navident: ${defaults.navident}" }

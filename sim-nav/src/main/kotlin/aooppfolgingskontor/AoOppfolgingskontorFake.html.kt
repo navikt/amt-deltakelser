@@ -1,6 +1,8 @@
 package aooppfolgingskontor
 
 import kotlinx.html.*
+import sharedui.simNavHeader
+import sharedui.simNavHeaderStyles
 
 fun HTML.aoOppfolgingskontorPage(
     rows: List<AoOppfolgingskontorKontorTilhorighetRow>,
@@ -11,7 +13,8 @@ fun HTML.aoOppfolgingskontorPage(
     pdlNamesByPersonident: Map<String, String>,
 ) {
     head {
-        title("Ao oppfolgingskontor - Simulator")
+        title("Ao-oppfolgingskontor - Simulator")
+        simNavHeaderStyles()
         style {
             unsafe {
                 raw(
@@ -51,7 +54,9 @@ fun HTML.aoOppfolgingskontorPage(
     }
 
     body {
-        h1 { +"Ao oppfolgingskontor - Simulator" }
+        simNavHeader(AO_OPPFOLGINGSKONTOR_PATH_PREFIX)
+        h1 { +"Ao-oppfolgingskontor" }
+        p { +"Leverer informasjon om oppfølgingskontor for arbeidsrettet oppfølging for brukere" }
 
         if (message != null) {
             p(classes = "message ${if (isError) "message--error" else "message--ok"}") {
@@ -110,10 +115,12 @@ fun HTML.aoOppfolgingskontorFormPage(
 ) {
     head {
         title("New kontor-tilhorighet - Ao oppfolgingskontor")
+        simNavHeaderStyles()
         aoOppfolgingskontorFormStyles()
     }
 
     body {
+        simNavHeader(AO_OPPFOLGINGSKONTOR_PATH_PREFIX)
         h1 { +"Ny kontor-tilhorighet" }
         p { a(href = backPath) { +"<- Tilbake" } }
 
@@ -134,10 +141,12 @@ fun HTML.aoOppfolgingskontorEditFormPage(
 ) {
     head {
         title("Edit kontor-tilhorighet - Ao oppfolgingskontor")
+        simNavHeaderStyles()
         aoOppfolgingskontorFormStyles()
     }
 
     body {
+        simNavHeader(AO_OPPFOLGINGSKONTOR_PATH_PREFIX)
         h1 { +"Rediger kontor-tilhorighet" }
         p { a(href = backPath) { +"<- Tilbake" } }
         p { +"Ident: ${defaults.ident}${if (personName.isBlank()) "" else " - $personName"}" }

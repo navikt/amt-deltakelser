@@ -1,5 +1,7 @@
 import kotlinx.html.*
 import pdl.PdlDataSource
+import sharedui.simNavHeader
+import sharedui.simNavHeaderStyles
 
 data class DokdistkanalPersonidentOption(
     val personident: String,
@@ -34,6 +36,7 @@ fun HTML.dokdistkanalPage(
 ) {
     head {
         title("Dokdistkanal - Simulator")
+        simNavHeaderStyles()
         style {
             unsafe {
                 raw(
@@ -73,6 +76,7 @@ fun HTML.dokdistkanalPage(
     }
 
     body {
+        simNavHeader(DOKDISTKANAL_PATH_PREFIX)
         h1 { +"Dokdistkanal - Simulator" }
 
         if (message != null) {
@@ -133,9 +137,11 @@ fun HTML.dokdistkanalPersonFormPage(
 ) {
     head {
         title("New person - Dokdistkanal")
+        simNavHeaderStyles()
         dokdistkanalFormStyles()
     }
     body {
+        simNavHeader(DOKDISTKANAL_PATH_PREFIX)
         h1 { +"Ny person" }
         p { a(href = backPath) { +"<- Tilbake" } }
 
@@ -155,9 +161,11 @@ fun HTML.dokdistkanalPersonEditFormPage(
 ) {
     head {
         title("Edit person - Dokdistkanal")
+        simNavHeaderStyles()
         dokdistkanalFormStyles()
     }
     body {
+        simNavHeader(DOKDISTKANAL_PATH_PREFIX)
         h1 { +"Rediger person" }
         p { a(href = backPath) { +"<- Tilbake" } }
         p { +"Personident: ${defaults.personident}${if (personName.isBlank()) "" else " - $personName"}" }
@@ -219,4 +227,5 @@ private fun FORM.dokdistkanalDistribusjonskanalField(selectedValue: Dokdistkanal
         }
     }
 }
+
 

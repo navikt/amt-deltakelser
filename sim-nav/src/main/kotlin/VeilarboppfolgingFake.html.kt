@@ -1,4 +1,6 @@
 import kotlinx.html.*
+import sharedui.simNavHeader
+import sharedui.simNavHeaderStyles
 
 fun HTML.veilarboppfolgingPage(
     persons: List<VeilarboppfolgingPersonRow>,
@@ -11,6 +13,7 @@ fun HTML.veilarboppfolgingPage(
 ) {
     head {
         title("Veilarboppfolging - Simulator")
+        simNavHeaderStyles()
         style {
             unsafe {
                 raw(
@@ -71,7 +74,8 @@ fun HTML.veilarboppfolgingPage(
     }
 
     body {
-        h1 { +"Veilarboppfolging - Simulator" }
+        h1 { +"Veilarboppfolging" }
+        p { +"Tjeneste som lagrer informasjon om status for arbeidsrette oppfølging for en bruker" }
 
         if (message != null) {
             p(classes = "message ${if (isError) "message--error" else "message--ok"}") {
@@ -94,9 +98,8 @@ fun HTML.veilarboppfolgingPage(
                 thead {
                     tr {
                         th { +"Fnr" }
-                        th { +"PDL-navn" }
+                        th { +"Navn" }
                         th { +"Veileder" }
-                        th { +"Veiledernavn" }
                         th { +"Manuell oppfolging" }
                         th { +"Oppfolgingsperioder" }
                         th { +"Actions" }
@@ -109,8 +112,11 @@ fun HTML.veilarboppfolgingPage(
                                 span(classes = "id") { +row.fnr }
                             }
                             td { +(pdlNamesByFnr[row.fnr]?.takeIf { it.isNotBlank() } ?: "-") }
-                            td { +row.veilederIdent }
-                            td { +(nomNamesByNavident[row.veilederIdent]?.takeIf { it.isNotBlank() } ?: "-") }
+                            td {
+                                +row.veilederIdent
+                                +" "
+                                +(nomNamesByNavident[row.veilederIdent]?.takeIf { it.isNotBlank() } ?: "")
+                            }
                             td { +if (row.erUnderManuellOppfolging) "true" else "false" }
                             td { +row.oppfolgingsperioder.size.toString() }
                             td(classes = "actions") {
@@ -136,10 +142,12 @@ fun HTML.veilarboppfolgingPersonFormPage(
 ) {
     head {
         title("New person - Veilarboppfolging")
+        simNavHeaderStyles()
         veilarboppfolgingFormStyles()
     }
 
     body {
+        simNavHeader(VEILARBOPPFOLGING_PATH_PREFIX)
         h1 { +"Ny person" }
         p { a(href = backPath) { +"<- Tilbake" } }
 
@@ -173,10 +181,12 @@ fun HTML.veilarboppfolgingPersonEditFormPage(
 ) {
     head {
         title("Edit person - Veilarboppfolging")
+        simNavHeaderStyles()
         veilarboppfolgingFormStyles()
     }
 
     body {
+        simNavHeader(VEILARBOPPFOLGING_PATH_PREFIX)
         h1 { +"Rediger person" }
         p { a(href = backPath) { +"<- Tilbake" } }
         p { +"Fnr: ${defaults.fnr}" }
