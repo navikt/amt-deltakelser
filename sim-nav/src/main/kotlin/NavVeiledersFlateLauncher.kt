@@ -4,6 +4,9 @@ import kotlinx.html.*
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import nom.fetchNomRessurser
 import pdl.PdlDataSource
+import sharedui.simNavHeader
+import sharedui.simNavFormPageStyles
+import sharedui.simNavHeaderStyles
 import valp.fetchGjennomforinger
 
 private const val NAV_VEILEDERS_FLATE_LAUNCHER_PATH = "/nav-veileders-flate"
@@ -84,13 +87,11 @@ private fun HTML.navVeiledersFlateLauncherPage(
         title("Start nav-veileders-flate")
         meta(charset = "utf-8")
         meta(name = "viewport", content = "width=device-width, initial-scale=1")
+        simNavHeaderStyles()
+        simNavFormPageStyles(fieldSelector = "select")
         style {
             unsafe {
                 +"""
-                body { font-family: sans-serif; margin: 2rem; max-width: 44rem; }
-                form { border: 1px solid #d8d8d8; border-radius: 6px; padding: 1rem; }
-                .field { margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
-                select, button { max-width: 34rem; padding: 0.45rem; }
                 .inline-choice { display: flex; align-items: center; gap: 0.5rem; }
                 p { margin-top: 0; }
                 """.trimIndent()
@@ -99,6 +100,7 @@ private fun HTML.navVeiledersFlateLauncherPage(
     }
 
     body {
+        simNavHeader(NAV_VEILEDERS_FLATE_LAUNCHER_PATH)
         main {
             h1 { +"Start nav-veileders-flate" }
             p { +"Velg personident, enhet og hvilken inngang du vil starte med." }

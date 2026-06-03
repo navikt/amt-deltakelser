@@ -19,7 +19,7 @@ private fun HTML.simNavHomePage() {
         style {
             unsafe {
                 +"""
-                body { font-family: sans-serif; margin: 2rem; max-width: 60rem; }
+                body { font-family: sans-serif; margin: 2rem; }
                 .intro { margin-bottom: 1rem; }
                 """.trimIndent()
             }
