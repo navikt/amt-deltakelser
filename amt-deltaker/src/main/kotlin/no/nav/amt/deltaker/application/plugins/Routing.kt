@@ -39,6 +39,8 @@ import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.veileder.KladdService
@@ -84,6 +86,8 @@ fun Application.configureRouting(
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
     arrangorService: ArrangorService,
     gjennomforingRequestProducer: GjennomforingRequestProducer,
+    forslagService: ForslagService,
+    forslagRepository: ForslagRepository,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -130,6 +134,8 @@ fun Application.configureRouting(
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             arrangorService = arrangorService,
+            forslagService = forslagService,
+            forslagRepository = forslagRepository,
         )
         registerEnkeltplassApi(
             enkeltplassService = enkeltplassService,

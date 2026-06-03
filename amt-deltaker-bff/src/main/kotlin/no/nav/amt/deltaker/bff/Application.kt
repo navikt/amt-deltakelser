@@ -64,9 +64,7 @@ import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorConsumer
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka.ArrangorMeldingConsumer
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.lib.kafka.Producer
@@ -253,8 +251,6 @@ fun Application.module() {
     val deltakerRepository = DeltakerRepository()
 
     val forslagRepository = ForslagRepository()
-    val arrangorMeldingProducer = ArrangorMeldingProducer(outboxService)
-    val forslagService = ForslagService(forslagRepository, navAnsattService, navEnhetService, arrangorMeldingProducer)
 
     val vurderingRepository = VurderingRepository()
 
@@ -345,7 +341,6 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
-        forslagService = forslagService,
         amtDistribusjonClient = amtDistribusjonClient,
         amtDeltakerClient = amtDeltakerClient,
         arrangorsokClient = arrangorsokClient,

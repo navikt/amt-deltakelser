@@ -41,7 +41,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
 import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi
@@ -71,7 +70,6 @@ fun Application.configureRouting(
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     forslagRepository: ForslagRepository,
-    forslagService: ForslagService,
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     arrangorsokClient: ArrangorsokClient,
@@ -128,12 +126,7 @@ fun Application.configureRouting(
 
         registerVeilederApi(
             tilgangskontrollService = tilgangskontrollService,
-            deltakerRepository = deltakerRepository,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
             forslagRepository = forslagRepository,
-            forslagService = forslagService,
-            amtDistribusjonClient = amtDistribusjonClient,
             amtDeltakerClient = amtDeltakerClient,
             sporbarhetsloggService = sporbarhetsloggService,
             kodeverkClient = kodeverkClient,

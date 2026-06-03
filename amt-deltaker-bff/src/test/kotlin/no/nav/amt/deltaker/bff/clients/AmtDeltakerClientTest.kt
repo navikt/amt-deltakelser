@@ -47,7 +47,7 @@ import kotlin.reflect.KClass
 class AmtDeltakerClientTest {
     @Nested
     inner class GetPersonidentForDeltaker {
-        val expectedUrl = "$DELTAKER_BASE_URL/personident/${deltakerInTest.id}"
+        val expectedUrl = "$DELTAKER_BASE_URL/personident/deltaker/${deltakerInTest.id}"
         val expectedErrorMessage = "Fant ikke personident for deltaker ${deltakerInTest.id} i amt-deltaker."
         val getPersonidentLambda: suspend (AmtDeltakerClient) -> String =
             { client -> client.getPersonidentForDeltaker(deltakerInTest.id) }
@@ -113,7 +113,7 @@ class AmtDeltakerClientTest {
         fun `skal returnere DeltakerResponse`() {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
-                expectedResponse = TestData.lagDeltakerResponse(deltakerInTest.id),
+                expectedResponse = lagDeltakerResponse(deltakerInTest.id),
                 block = getDeltakerLambda,
             )
         }

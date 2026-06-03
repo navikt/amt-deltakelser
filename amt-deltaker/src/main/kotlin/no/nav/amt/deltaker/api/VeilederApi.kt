@@ -10,13 +10,17 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.extensions.getDeltakerId
+import no.nav.amt.deltaker.extensions.getForslagId
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
+import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.internapi.PersonIdentResponse
+import no.nav.amt.internapi.deltaker.request.AvvisForslagRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import java.time.ZonedDateTime
@@ -29,13 +33,46 @@ fun Routing.registerVeilederApi(
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     arrangorService: ArrangorService,
+    forslagService: ForslagService,
+    forslagRepository: ForslagRepository,
 ) {
     authenticate("SYSTEM") {
-        get("/personident/{deltakerId}") {
+        get("/personident/deltaker/{deltakerId}") {
             val personident = deltakerRepository
                 .getPersonidentForDeltaker(call.getDeltakerId())
 
             call.respond(PersonIdentResponse(personident))
+        }
+
+        get("/personident/forslag/{forslagId}") {
+            val personident = deltakerRepository
+                .getPersonidentForForslag(call.getForslagId())
+
+            call.respond(PersonIdentResponse(personident))
+        }
+
+        post("/avvis-forslag/{forslagId}") {
+            /*
+             Avvis forslag kommer fra frontend som en egen type request, og ikke som en EndringRequest med forslagId (som godkjenning av forslag),
+             fordi godkjenning av forslag har en Endring som skal iverksettes på deltaker(oppdatere, publisere)
+             */
+            val forslagId = call.getForslagId()
+            val request = call.receive<AvvisForslagRequest>()
+            val deltakerId = forslagRepository.get(forslagId).getOrThrow().deltakerId
+
+            forslagService.avvisForslag(
+                forslagId = forslagId,
+                begrunnelse = request.begrunnelse,
+                avvistAvAnsatt = request.avvistAvAnsatt,
+                avvistAvEnhet = request.avvistAvEnhet,
+            )
+
+            val deltakerResponse = deltakerRepository
+                .get(deltakerId)
+                .getOrThrow()
+                .let { deltakerResponseBuilder.buildDeltakerResponse(it) }
+
+            call.respond(deltakerResponse)
         }
 
         route("/deltaker") {

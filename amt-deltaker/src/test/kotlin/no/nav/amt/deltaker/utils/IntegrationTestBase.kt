@@ -263,6 +263,8 @@ abstract class IntegrationTestBase {
             arrangorMeldingProducer = arrangorMeldingProducer,
             deltakerRepository = deltakerRepository,
             deltakerProducerService = deltakerProducerService,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
         )
     }
 
@@ -459,6 +461,8 @@ abstract class IntegrationTestBase {
                     arrangorService = arrangorService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,
                     tiltaksansvarligService = tiltaksansvarligService,
+                    forslagService = forslagService,
+                    forslagRepository = forslagRepository,
                 )
                 setUpTestRoute()
 

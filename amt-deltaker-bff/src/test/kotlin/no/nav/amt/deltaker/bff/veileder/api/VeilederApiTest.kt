@@ -109,6 +109,9 @@ class VeilederApiTest : IntegrationTestBase() {
         every { forslagRepository.get(any()) } returns Result.success(lagForslag())
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns
             PersonIdentResponse(deltaker.navBruker.personident).personident
+        coEvery { amtDeltakerClient.getPersonidentForForslag(any()) } returns
+            PersonIdentResponse(deltaker.navBruker.personident).personident
+
         coEvery { amtDeltakerClient.getDeltaker(any()) } returns lagDeltakerResponse()
 
         withTestApplicationContext { httpClient ->
@@ -238,6 +241,7 @@ class VeilederApiTest : IntegrationTestBase() {
             // og etter oppdateringen. `returnsMany` gir forskjellig svar på de to kallene.
             coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returnsMany listOf(foerResponse)
             coEvery { amtDeltakerClient.postEndreDeltaker(deltaker.id, any()) } returns etterResponse
+            coEvery { amtDeltakerClient.avvisForslag(any(), any()) } returns etterResponse
 
             // Koden kjøres så mockene må settes opp men det er ikke noe som brukes for responsen når toggele er på
             setupMocks(deltaker, oppdatert)
@@ -482,10 +486,13 @@ class VeilederApiTest : IntegrationTestBase() {
             val deltaker = lagDeltaker()
             val forslag = lagForslag(deltakerId = deltaker.id)
 
-            coEvery { forslagService.avvisForslag(forslag, any(), any(), any()) } just Runs
+            coEvery { amtDeltakerClient.getPersonidentForForslag(forslag.id) } returns
+                PersonIdentResponse(deltaker.navBruker.personident).personident
             every { forslagRepository.get(forslag.id) } returns Result.success(forslag)
 
-            val expected = deltakerResponseInTest(deltaker, setupMocks(deltaker, deltaker))
+            val expected = setupMocksLocal(deltaker, deltaker)
+
+            every { forslagRepository.delete(forslag.id) } just Runs
 
             withTestApplicationContext { httpClient ->
                 httpClient.post("/forslag/${forslag.id}/avvis") { createPostRequest(avvisForslagRequest) }.apply {
@@ -543,7 +550,9 @@ class VeilederApiTest : IntegrationTestBase() {
         forslagId = null,
     )
     private val fjernOppstartsdatoRequest = FjernOppstartsdatoRequest("begrunnelse", null)
-    private val avvisForslagRequest = AvvisForslagRequest("Avvist fordi..")
+    private val avvisForslagRequest = AvvisForslagRequest(
+        begrunnelse = "Avvist fordi..",
+    )
 
     private fun setupMocks(
         deltaker: Deltaker,
@@ -578,18 +587,5 @@ class VeilederApiTest : IntegrationTestBase() {
         coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns enheter
 
         return Pair(ansatte, enhet)
-    }
-
-    companion object {
-        private fun deltakerResponseInTest(
-            deltaker: Deltaker,
-            mocks: Pair<Map<UUID, NavAnsatt>, NavEnhet?>,
-        ) = DeltakerResponse.fromDeltaker(
-            deltaker = deltaker,
-            ansatte = mocks.first,
-            vedtakSistEndretAvEnhet = mocks.second,
-            digitalBruker = true,
-            forslag = emptyList(),
-        )
     }
 }

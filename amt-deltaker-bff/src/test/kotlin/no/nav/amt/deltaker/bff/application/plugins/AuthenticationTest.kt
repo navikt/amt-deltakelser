@@ -85,7 +85,6 @@ class AuthenticationTest {
                 navAnsattService = mockk(),
                 navEnhetService = mockk(),
                 forslagRepository = mockk(),
-                forslagService = mockk(),
                 amtDistribusjonClient = mockk(),
                 amtDeltakerClient = mockk(),
                 arrangorsokClient = mockk(),

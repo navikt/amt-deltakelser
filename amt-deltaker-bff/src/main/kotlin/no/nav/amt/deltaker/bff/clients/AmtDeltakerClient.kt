@@ -7,6 +7,7 @@ import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import no.nav.amt.internapi.PersonIdentResponse
+import no.nav.amt.internapi.deltaker.request.AvvisForslagRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
@@ -36,11 +37,18 @@ class AmtDeltakerClient(
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun getPersonidentForDeltaker(deltakerId: UUID): String = personIdentCache.getIfPresent(deltakerId)
-        ?: performGet("personident/$deltakerId")
+        ?: performGet("personident/deltaker/$deltakerId")
             .failIfNotSuccess("Fant ikke personident for deltaker $deltakerId i amt-deltaker.")
             .body<PersonIdentResponse>()
             .personident
             .also { personIdentCache.put(deltakerId, it) }
+
+    suspend fun getPersonidentForForslag(forslagId: UUID): String = personIdentCache.getIfPresent(forslagId)
+        ?: performGet("personident/forslag/$forslagId")
+            .failIfNotSuccess("Fant ikke personident for forslag $forslagId i amt-deltaker.")
+            .body<PersonIdentResponse>()
+            .personident
+            .also { personIdentCache.put(forslagId, it) }
 
     suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse = performGet("deltaker/$deltakerId")
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
@@ -68,6 +76,13 @@ class AmtDeltakerClient(
         requestBody: EndringRequest,
     ) = performPost("deltaker/$deltakerId/$ENDRE_DELTAKER_URL_SEGMENT", requestBody)
         .failIfNotSuccess("Kunne ikke oppdatere deltaker $deltakerId med ${requestBody::class.java.simpleName} i amt-deltaker")
+        .body<DeltakerResponse>()
+
+    suspend fun avvisForslag(
+        forslagId: UUID,
+        request: AvvisForslagRequest,
+    ) = performPost("avvis-forslag/$forslagId", request)
+        .failIfNotSuccess("Kunne ikke avvise forslag $forslagId med ${request::class.java.simpleName} i amt-deltaker")
         .body<DeltakerResponse>()
 
     companion object Endepunkt {
