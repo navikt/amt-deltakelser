@@ -2,7 +2,6 @@ import io.ktor.server.html.*
 import io.ktor.server.routing.*
 import kotlinx.html.*
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import nom.fetchNomRessurser
 import pdl.PdlDataSource
 import sharedui.simNavHeader
 import sharedui.simNavFormPageStyles
@@ -33,12 +32,18 @@ private fun loadNavVeiledersFlateOptions(
     pdlDataSource: PdlDataSource,
     norgDataSource: NorgDataSource,
 ): NavVeiledersFlateOptions {
-    val persons = fetchNomRessurser()
-        .sortedBy { it.navident }
-        .map { ressurs ->
+    val pdlNamesByFnr = buildVeilarbvedtaksstotteFnrOptions(pdlDataSource).associate { option ->
+        option.fnr to option.label.substringAfter(" - ").takeIf { it != option.fnr }.orEmpty()
+    }
+
+    val persons = fetchVeilarbvedtaksstottePersons()
+        .sortedWith(compareBy({ pdlNamesByFnr[it.fnr].orEmpty().ifBlank { it.fnr } }, { it.fnr }))
+        .map { person ->
+            val personName = pdlNamesByFnr[person.fnr].orEmpty().ifBlank { person.fnr }
+            val innsatsgruppe = person.innsatsgruppe?.name ?: "(ingen innsatsgruppe)"
             SelectOption(
-                value = ressurs.personident,
-                label = "${ressurs.navident} - ${ressurs.visningsnavn}",
+                value = person.fnr,
+                label = "$personName - $innsatsgruppe",
             )
         }
 
@@ -111,12 +116,12 @@ private fun HTML.navVeiledersFlateLauncherPage(
 
                 div("field") {
                     label {
-                        htmlFor = "veileder_person_ident"
-                        +"Veileder"
+                        htmlFor = "person_ident"
+                        +"Bruker"
                     }
                     select {
-                        id = "veileder_person_ident"
-                        name = "veileder_person_ident"
+                        id = "person_ident"
+                        name = "person_ident"
                         required = true
                         personOptions.forEachIndexed { index, option ->
                             option {
