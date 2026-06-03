@@ -69,7 +69,7 @@ class ForslagServiceTest {
             val begrunnelse = "Avslatt fordi det er ikke relevant"
 
             // Act
-            forslagService.avvisForslag(forslag.id, begrunnelse, UUID.randomUUID(), "ENHET")
+            forslagService.avvisForslag(forslag.id, begrunnelse, "Z123", "ENHET")
 
             // Assert
             val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()
@@ -96,7 +96,7 @@ class ForslagServiceTest {
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
             // Act
-            forslagService.avvisForslag(forslag.id, "Begrunnelse", UUID.randomUUID(), "ENHET")
+            forslagService.avvisForslag(forslag.id, "Begrunnelse", "Z123", "ENHET")
 
             // Assert
             val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()
@@ -114,7 +114,7 @@ class ForslagServiceTest {
             val tidFor = LocalDateTime.now()
 
             // Act
-            forslagService.avvisForslag(forslag.id, "Begrunnelse", UUID.randomUUID(), "ENHET")
+            forslagService.avvisForslag(forslag.id, "Begrunnelse", "Z123", "ENHET")
 
             // Assert
             val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()

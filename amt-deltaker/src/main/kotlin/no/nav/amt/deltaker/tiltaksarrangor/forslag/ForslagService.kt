@@ -43,10 +43,10 @@ class ForslagService(
     suspend fun avvisForslag(
         forslagId: UUID,
         begrunnelse: String,
-        avvistAvAnsatt: UUID,
+        avvistAvAnsattIdent: String,
         avvistAvEnhet: String,
     ) {
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(avvistAvAnsatt)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(avvistAvAnsattIdent)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(avvistAvEnhet)
         val opprinneligForslag = forslagRepository.get(forslagId).getOrThrow()
 

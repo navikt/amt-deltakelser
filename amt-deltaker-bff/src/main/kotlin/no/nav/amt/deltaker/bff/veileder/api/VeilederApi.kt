@@ -386,7 +386,7 @@ fun Routing.registerVeilederApi(
                     forslagId = forslagId,
                     request = no.nav.amt.internapi.deltaker.request.AvvisForslagRequest(
                         begrunnelse = request.begrunnelse,
-                        avvistAvAnsatt = navAnsattAzureId,
+                        avvistAvAnsattIdent = call.getNavIdent(),
                         avvistAvEnhet = call.getEnhetsnummer(),
                     ),
                 ).let { ModelMapper.toDeltaker(it) }

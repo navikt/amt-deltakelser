@@ -115,7 +115,7 @@ class VeilederApiTest : IntegrationTestBase() {
         val forslagId = UUID.randomUUID()
         val avvisForslagRequest = AvvisForslagRequest(
             begrunnelse = "begrunnelse",
-            avvistAvAnsatt = UUID.randomUUID(),
+            avvistAvAnsattIdent = "Z123",
             avvistAvEnhet = "Enhet",
         )
         val deltaker = lagDeltaker()
@@ -129,7 +129,7 @@ class VeilederApiTest : IntegrationTestBase() {
             forslagService.avvisForslag(
                 forslagId,
                 avvisForslagRequest.begrunnelse,
-                avvisForslagRequest.avvistAvAnsatt,
+                avvisForslagRequest.avvistAvAnsattIdent,
                 avvisForslagRequest.avvistAvEnhet,
             )
         } just Runs

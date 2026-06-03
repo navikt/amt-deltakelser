@@ -63,7 +63,7 @@ fun Routing.registerVeilederApi(
             forslagService.avvisForslag(
                 forslagId = forslagId,
                 begrunnelse = request.begrunnelse,
-                avvistAvAnsatt = request.avvistAvAnsatt,
+                avvistAvAnsattIdent = request.avvistAvAnsattIdent,
                 avvistAvEnhet = request.avvistAvEnhet,
             )
 
