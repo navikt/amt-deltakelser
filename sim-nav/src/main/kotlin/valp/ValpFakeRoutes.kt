@@ -1,6 +1,7 @@
 package valp
 
 import DatabaseConfig
+import brreg.BronnoysundSimulator
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
@@ -17,7 +18,7 @@ private const val VALP_GJENNOMFORING_GRUPPE_CREATE_PATH = "$VALP_PATH_PREFIX/gje
 private const val VALP_TILTAKSTYPE_NEW_PATH = "$VALP_PATH_PREFIX/tiltakstype/new"
 private const val VALP_TILTAKSTYPE_CREATE_PATH = "$VALP_PATH_PREFIX/tiltakstype"
 
-fun Route.valpFakeRoutes() {
+fun Route.valpFakeRoutes(bronnoysundSimulator: BronnoysundSimulator) {
     get(VALP_PATH_PREFIX) {
         call.respondValpOverview(
             message = call.request.queryParameters["message"],
@@ -32,6 +33,7 @@ fun Route.valpFakeRoutes() {
                 gruppeDefaults = defaultGjennomforingGruppeFormDefaults(),
                 enkeltplassActionPath = VALP_GJENNOMFORING_ENKELTPLASS_CREATE_PATH,
                 gruppeActionPath = VALP_GJENNOMFORING_GRUPPE_CREATE_PATH,
+                arrangorOptions = bronnoysundSimulator.allEnheter(),
                 backPath = VALP_PATH_PREFIX,
             )
         }

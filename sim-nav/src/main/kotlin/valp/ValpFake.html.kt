@@ -1,6 +1,15 @@
 package valp
 
 import kotlinx.html.*
+import no.nav.amt.lib.models.deltaker.InnsatsgruppeV2
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+private val DATE_TIME_INPUT_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
 
 fun HTML.valpPage(
     gjennomforings: List<GjennomforingRow>,
@@ -181,6 +190,7 @@ fun HTML.valpGjennomforingFormPage(
     gruppeDefaults: GjennomforingFormDefaults,
     enkeltplassActionPath: String,
     gruppeActionPath: String,
+    arrangorOptions: List<Pair<String, String>>,
     backPath: String,
 ) {
     head {
@@ -195,15 +205,15 @@ fun HTML.valpGjennomforingFormPage(
         section {
             h2 { +"Gjennomforing enkeltplass" }
             form(action = enkeltplassActionPath, method = FormMethod.post) {
-                textField("ID", "id", enkeltplassDefaults.id)
-                textField("Tiltakskode", "tiltakskode", enkeltplassDefaults.tiltakskode)
-                textField("Arrangor organisasjonsnummer", "arrangorOrganisasjonsnummer", enkeltplassDefaults.arrangorOrganisasjonsnummer)
-                textField("Pameldingstype", "pameldingType", enkeltplassDefaults.pameldingType)
-                textField("Status", "status", enkeltplassDefaults.status)
-                textField("Oppstart", "oppstart", enkeltplassDefaults.oppstart)
+                textField("ID", "id", enkeltplassDefaults.id.toString())
+                enumField("Tiltakskode", "tiltakskode", Tiltakskode.entries.map { it.name }, enkeltplassDefaults.tiltakskode.name)
+                arrangorField("Arrangor", "arrangorOrganisasjonsnummer", arrangorOptions, enkeltplassDefaults.arrangorOrganisasjonsnummer)
+                enumField("Pameldingstype", "pameldingType", GjennomforingPameldingType.entries.map { it.name }, enkeltplassDefaults.pameldingType.name)
+                enumField("Status", "status", GjennomforingStatusType.entries.map { it.name }, enkeltplassDefaults.status.name)
+                enumField("Oppstart", "oppstart", Oppstartstype.entries.map { it.name }, enkeltplassDefaults.oppstart.name)
                 dateTimeField("Opprettet tidspunkt (UTC)", "opprettetTidspunkt", enkeltplassDefaults.opprettetTidspunkt)
                 dateTimeField("Oppdatert tidspunkt (UTC)", "oppdatertTidspunkt", enkeltplassDefaults.oppdatertTidspunkt)
-                textField("Prisinformasjon (valgfri)", "prisinformasjon", enkeltplassDefaults.prisinformasjon, required = false)
+                textField("Prisinformasjon (valgfri)", "prisinformasjon", enkeltplassDefaults.prisinformasjon.orEmpty(), required = false)
                 button(type = ButtonType.submit) { +"Lagre enkeltplass" }
             }
         }
@@ -211,12 +221,12 @@ fun HTML.valpGjennomforingFormPage(
         section {
             h2 { +"Gjennomforing gruppe" }
             form(action = gruppeActionPath, method = FormMethod.post) {
-                textField("ID", "id", gruppeDefaults.id)
-                textField("Tiltakskode", "tiltakskode", gruppeDefaults.tiltakskode)
-                textField("Arrangor organisasjonsnummer", "arrangorOrganisasjonsnummer", gruppeDefaults.arrangorOrganisasjonsnummer)
-                textField("Pameldingstype", "pameldingType", gruppeDefaults.pameldingType)
-                textField("Status", "status", gruppeDefaults.status)
-                textField("Oppstart", "oppstart", gruppeDefaults.oppstart)
+                textField("ID", "id", gruppeDefaults.id.toString())
+                enumField("Tiltakskode", "tiltakskode", Tiltakskode.entries.map { it.name }, gruppeDefaults.tiltakskode.name)
+                arrangorField("Arrangor", "arrangorOrganisasjonsnummer", arrangorOptions, gruppeDefaults.arrangorOrganisasjonsnummer)
+                enumField("Pameldingstype", "pameldingType", GjennomforingPameldingType.entries.map { it.name }, gruppeDefaults.pameldingType.name)
+                enumField("Status", "status", GjennomforingStatusType.entries.map { it.name }, gruppeDefaults.status.name)
+                enumField("Oppstart", "oppstart", Oppstartstype.entries.map { it.name }, gruppeDefaults.oppstart.name)
                 dateTimeField("Opprettet tidspunkt (UTC)", "opprettetTidspunkt", gruppeDefaults.opprettetTidspunkt)
                 dateTimeField("Oppdatert tidspunkt (UTC)", "oppdatertTidspunkt", gruppeDefaults.oppdatertTidspunkt)
                 textField("Navn", "navn", gruppeDefaults.navn)
@@ -229,8 +239,8 @@ fun HTML.valpGjennomforingFormPage(
                     required = false,
                 )
                 booleanField("Apent for pamelding", "apentForPamelding", gruppeDefaults.apentForPamelding)
-                textField("Antall plasser", "antallPlasser", gruppeDefaults.antallPlasser, type = InputType.number)
-                textField("Deltidsprosent", "deltidsprosent", gruppeDefaults.deltidsprosent, type = InputType.number)
+                textField("Antall plasser", "antallPlasser", gruppeDefaults.antallPlasser.toString(), type = InputType.number)
+                textField("Deltidsprosent", "deltidsprosent", gruppeDefaults.deltidsprosent.toString(), type = InputType.number)
                 textField("Oppmotested (valgfri)", "oppmoteSted", gruppeDefaults.oppmoteSted, required = false)
                 button(type = ButtonType.submit) { +"Lagre gruppe" }
             }
@@ -253,10 +263,15 @@ fun HTML.valpTiltakstypeFormPage(
             a(href = backPath) { +"<- Tilbake" }
         }
         form(action = actionPath, method = FormMethod.post) {
-            textField("ID", "id", defaults.id)
+            textField("ID", "id", defaults.id.toString())
             textField("Navn", "navn", defaults.navn)
-            textField("Tiltakskode", "tiltakskode", defaults.tiltakskode)
-            textField("Innsatsgrupper (JSON)", "innsatsgrupper", defaults.innsatsgrupper)
+            enumField("Tiltakskode", "tiltakskode", Tiltakskode.entries.map { it.name }, defaults.tiltakskode.name)
+            multiEnumField(
+                labelText = "Innsatsgrupper",
+                name = "innsatsgrupper",
+                options = InnsatsgruppeV2.entries.map { it.name },
+                selectedValues = defaults.innsatsgrupper.map { it.name }.toSet(),
+            )
             button(type = ButtonType.submit) { +"Lagre tiltakstype" }
         }
     }
@@ -304,10 +319,10 @@ private fun FORM.dateField(
 private fun FORM.dateTimeField(
     labelText: String,
     name: String,
-    value: String,
+    value: LocalDateTime,
     required: Boolean = true,
 ) {
-    textField(labelText, name, value, required = required, type = InputType.dateTimeLocal)
+    textField(labelText, name, value.format(DATE_TIME_INPUT_FORMATTER), required = required, type = InputType.dateTimeLocal)
 }
 
 private fun FORM.enumField(
@@ -332,7 +347,52 @@ private fun FORM.enumField(
     }
 }
 
-private fun FORM.booleanField(labelText: String, name: String, selectedValue: String) {
-    enumField(labelText, name, listOf("true", "false"), selectedValue)
+private fun FORM.booleanField(labelText: String, name: String, selectedValue: Boolean) {
+    enumField(labelText, name, listOf("true", "false"), selectedValue.toString())
+}
+
+private fun FORM.arrangorField(
+    labelText: String,
+    name: String,
+    options: List<Pair<String, String>>,
+    selectedValue: String,
+) {
+    div("field") {
+        label { +labelText }
+        select {
+            this.name = name
+            required = true
+            options.forEach { (orgnr, navn) ->
+                option {
+                    value = orgnr
+                    selected = orgnr == selectedValue
+                    +"$orgnr - $navn"
+                }
+            }
+        }
+    }
+}
+
+private fun FORM.multiEnumField(
+    labelText: String,
+    name: String,
+    options: List<String>,
+    selectedValues: Set<String>,
+) {
+    div("field") {
+        label { +labelText }
+        select {
+            this.name = name
+            multiple = true
+            attributes["size"] = options.size.toString()
+            options.forEach { value ->
+                option {
+                    this.value = value
+                    selected = selectedValues.contains(value)
+                    +value
+                }
+            }
+        }
+    }
 }
 

@@ -3,14 +3,16 @@ package valp
 import DbOperations
 import db.ValpGjennomforing
 import db.ValpTiltakstype
+import no.nav.amt.lib.models.deltaker.InnsatsgruppeV2
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.util.UUID
-
-private val DATE_TIME_INPUT_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
 
 data class GjennomforingRow(
     val id: String,
@@ -31,87 +33,82 @@ data class TiltakstypeRow(
 )
 
 data class GjennomforingFormDefaults(
-    val id: String,
-    val type: String,
-    val tiltakskode: String,
+    val id: UUID,
+    val tiltakskode: Tiltakskode,
     val arrangorOrganisasjonsnummer: String,
-    val pameldingType: String,
-    val status: String,
-    val oppstart: String,
-    val opprettetTidspunkt: String,
-    val oppdatertTidspunkt: String,
-    val prisinformasjon: String,
+    val pameldingType: GjennomforingPameldingType,
+    val status: GjennomforingStatusType,
+    val oppstart: Oppstartstype,
+    val opprettetTidspunkt: LocalDateTime,
+    val oppdatertTidspunkt: LocalDateTime,
+    val prisinformasjon: String?,
     val navn: String,
     val startDato: String,
     val sluttDato: String,
     val tilgjengeligForArrangorFraOgMedDato: String,
-    val apentForPamelding: String,
-    val antallPlasser: String,
-    val deltidsprosent: String,
+    val apentForPamelding: Boolean,
+    val antallPlasser: Int,
+    val deltidsprosent: Double,
     val oppmoteSted: String,
 )
 
 data class TiltakstypeFormDefaults(
-    val id: String,
+    val id: UUID,
     val navn: String,
-    val tiltakskode: String,
-    val innsatsgrupper: String,
+    val tiltakskode: Tiltakskode,
+    val innsatsgrupper: Set<InnsatsgruppeV2>,
 )
 
 fun defaultGjennomforingEnkeltplassFormDefaults(now: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)): GjennomforingFormDefaults {
-    val nowString = now.format(DATE_TIME_INPUT_FORMATTER)
     return GjennomforingFormDefaults(
-        id = UUID.randomUUID().toString(),
-        type = "enkeltplass",
-        tiltakskode = "",
+        id = UUID.randomUUID(),
+        tiltakskode = Tiltakskode.entries.first(),
         arrangorOrganisasjonsnummer = "",
-        pameldingType = "LOPENDE",
-        status = "GJENNOMFORES",
-        oppstart = "LOPENDE",
-        opprettetTidspunkt = nowString,
-        oppdatertTidspunkt = nowString,
+        pameldingType = GjennomforingPameldingType.entries.first(),
+        status = GjennomforingStatusType.entries.first(),
+        oppstart = Oppstartstype.entries.first(),
+        opprettetTidspunkt = now,
+        oppdatertTidspunkt = now,
         prisinformasjon = "",
         navn = "",
         startDato = "",
         sluttDato = "",
         tilgjengeligForArrangorFraOgMedDato = "",
-        apentForPamelding = "true",
-        antallPlasser = "",
-        deltidsprosent = "",
+        apentForPamelding = true,
+        antallPlasser = 0,
+        deltidsprosent = 0.0,
         oppmoteSted = "",
     )
 }
 
 fun defaultGjennomforingGruppeFormDefaults(now: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)): GjennomforingFormDefaults {
-    val nowString = now.format(DATE_TIME_INPUT_FORMATTER)
     return GjennomforingFormDefaults(
-        id = UUID.randomUUID().toString(),
-        type = "gruppe",
-        tiltakskode = "",
+        id = UUID.randomUUID(),
+        tiltakskode = Tiltakskode.entries.first(),
         arrangorOrganisasjonsnummer = "",
-        pameldingType = "LOPENDE",
-        status = "GJENNOMFORES",
-        oppstart = "LOPENDE",
-        opprettetTidspunkt = nowString,
-        oppdatertTidspunkt = nowString,
+        pameldingType = GjennomforingPameldingType.entries.first(),
+        status = GjennomforingStatusType.entries.first(),
+        oppstart = Oppstartstype.entries.first(),
+        opprettetTidspunkt = now,
+        oppdatertTidspunkt = now,
         prisinformasjon = "",
         navn = "",
         startDato = "",
         sluttDato = "",
         tilgjengeligForArrangorFraOgMedDato = "",
-        apentForPamelding = "true",
-        antallPlasser = "10",
-        deltidsprosent = "100",
+        apentForPamelding = true,
+        antallPlasser = 10,
+        deltidsprosent = 100.0,
         oppmoteSted = "",
     )
 }
 
 fun defaultTiltakstypeFormDefaults(): TiltakstypeFormDefaults {
     return TiltakstypeFormDefaults(
-        id = UUID.randomUUID().toString(),
+        id = UUID.randomUUID(),
         navn = "",
-        tiltakskode = "",
-        innsatsgrupper = "[]",
+        tiltakskode = Tiltakskode.entries.first(),
+        innsatsgrupper = emptySet(),
     )
 }
 
@@ -149,23 +146,23 @@ fun insertGjennomforing(form: GjennomforingFormInput) {
     val now = LocalDateTime.now(ZoneOffset.UTC).toString()
     DbOperations.inTransaction {
         ValpGjennomforing.insert {
-            it[id] = form.id
+            it[id] = form.id.toString()
             it[type] = form.type
-            it[tiltakskode] = form.tiltakskode
+            it[tiltakskode] = form.tiltakskode.name
             it[arrangorOrganisasjonsnummer] = form.arrangorOrganisasjonsnummer
-            it[pameldingType] = form.pameldingType
-            it[status] = form.status
-            it[oppstart] = form.oppstart
-            it[opprettetTidspunkt] = form.opprettetTidspunkt
-            it[oppdatertTidspunkt] = form.oppdatertTidspunkt
+            it[pameldingType] = form.pameldingType.name
+            it[status] = form.status.name
+            it[oppstart] = form.oppstart.name
+            it[opprettetTidspunkt] = form.opprettetTidspunkt.toString()
+            it[oppdatertTidspunkt] = form.oppdatertTidspunkt.toString()
             it[prisinformasjon] = form.prisinformasjon
             it[navn] = form.navn
-            it[startDato] = form.startDato
-            it[sluttDato] = form.sluttDato
-            it[tilgjengeligForArrangorFraOgMedDato] = form.tilgjengeligForArrangorFraOgMedDato
-            it[apentForPamelding] = form.apentForPamelding
-            it[antallPlasser] = form.antallPlasser
-            it[deltidsprosent] = form.deltidsprosent
+            it[startDato] = form.startDato?.toString()
+            it[sluttDato] = form.sluttDato?.toString()
+            it[tilgjengeligForArrangorFraOgMedDato] = form.tilgjengeligForArrangorFraOgMedDato?.toString()
+            it[apentForPamelding] = form.apentForPamelding?.toString()
+            it[antallPlasser] = form.antallPlasser?.toString()
+            it[deltidsprosent] = form.deltidsprosent?.toString()
             it[oppmoteSted] = form.oppmoteSted
             it[createdAt] = now
             it[updatedAt] = now
@@ -177,14 +174,18 @@ fun insertTiltakstype(form: TiltakstypeFormInput) {
     val now = LocalDateTime.now(ZoneOffset.UTC).toString()
     DbOperations.inTransaction {
         ValpTiltakstype.insert {
-            it[id] = form.id
+            it[id] = form.id.toString()
             it[navn] = form.navn
-            it[tiltakskode] = form.tiltakskode
-            it[innsatsgrupper] = form.innsatsgrupper
+            it[tiltakskode] = form.tiltakskode.name
+            it[innsatsgrupper] = form.innsatsgrupper.toJsonArrayText()
             it[createdAt] = now
             it[updatedAt] = now
         }
     }
+}
+
+private fun Set<InnsatsgruppeV2>.toJsonArrayText(): String {
+    return joinToString(prefix = "[", postfix = "]") { "\"${it.name}\"" }
 }
 
 
