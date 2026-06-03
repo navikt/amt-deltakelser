@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.repository.DbUtils.sqlPlaceholders
+import no.nav.amt.deltaker.repository.DeltakerRepository.Companion.buildDeltakerSql
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -98,6 +99,23 @@ class DeltakerRepository {
                 mapOf("deltaker_id" to deltakerId),
             ).map { it.string("personident") }.asSingle,
         ) ?: throw NoSuchElementException("Ingen deltaker med id $deltakerId")
+    }
+
+    fun getPersonidentForForslag(forslagId: UUID): String = Database.query { session ->
+        val sql =
+            """
+            select nb.personident as personident
+            from forslag f
+            join deltaker d on f.deltaker_id = d.id
+            join nav_bruker nb on d.person_id = nb.person_id
+            where f.id = :forslag_id
+            """.trimIndent()
+        session.run(
+            queryOf(
+                sql,
+                mapOf("forslag_id" to forslagId),
+            ).map { it.string("personident") }.asSingle,
+        ) ?: throw NoSuchElementException("Ingen forslag med id $forslagId")
     }
 
     fun upsert(deltaker: Deltaker) {

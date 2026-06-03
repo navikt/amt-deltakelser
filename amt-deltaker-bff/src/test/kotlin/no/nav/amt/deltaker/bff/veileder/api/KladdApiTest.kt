@@ -51,7 +51,6 @@ class KladdApiTest : IntegrationTestBase() {
         coEvery { pameldingService.opprettKladd(any(), any()) } returns deltakerInTest
         every { navAnsattService.hentAnsatteForDeltaker(deltakerInTest) } returns ansatte
         every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
-        every { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
         withTestApplicationContext { httpClient ->

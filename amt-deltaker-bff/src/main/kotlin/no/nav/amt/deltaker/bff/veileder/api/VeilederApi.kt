@@ -17,15 +17,10 @@ import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.ModelMapper
-import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getForslagId
-import no.nav.amt.deltaker.bff.model.Deltaker
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.bff.veileder.api.request.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.AvvisForslagRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.DeltakerRequest
@@ -52,7 +47,6 @@ import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
-import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.objectMapper
@@ -62,26 +56,12 @@ import org.slf4j.LoggerFactory
 
 fun Routing.registerVeilederApi(
     tilgangskontrollService: TilgangskontrollService,
-    deltakerRepository: DeltakerRepository,
-    navAnsattService: NavAnsattService,
-    navEnhetService: NavEnhetService,
     forslagRepository: ForslagRepository,
-    forslagService: ForslagService,
-    amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
     kodeverkClient: KodeverkClient,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
-
-    // Skal slettes når alt er flyttet til amt-deltaker
-    suspend fun komplettDeltakerResponse(deltaker: Deltaker): DeltakerResponse = DeltakerResponse.fromDeltaker(
-        deltaker = deltaker,
-        ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
-        vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
-        digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslagRepository.getForDeltaker(deltaker.id),
-    )
 
     suspend fun ApplicationCall.handleEndring(
         frontendRequest: EndringRequestFromFrontend,
@@ -390,25 +370,32 @@ fun Routing.registerVeilederApi(
             )
         }
 
-        // kaller ikke amt-deltaker
         post("/forslag/{forslagId}/avvis") {
+            val forslagId = call.getForslagId()
+            val navAnsattAzureId = call.getNavAnsattAzureId()
             val request = call.receive<AvvisForslagRequest>()
-            val forslag = forslagRepository.get(call.getForslagId()).getOrThrow()
-            val deltaker = deltakerRepository.get(forslag.deltakerId).getOrThrow()
+            val personident = amtDeltakerClient.getPersonidentForForslag(forslagId)
 
             tilgangskontrollService.verifiserSkrivetilgang(
-                navAnsattAzureId = call.getNavAnsattAzureId(),
-                norskIdent = deltaker.navBruker.personident,
+                navAnsattAzureId = navAnsattAzureId,
+                norskIdent = personident,
             )
 
-            forslagService.avvisForslag(
-                opprinneligForslag = forslag,
-                begrunnelse = request.begrunnelse,
-                avvistAvAnsatt = call.getNavIdent(),
-                avvistAvEnhet = call.getEnhetsnummer(),
-            )
-
-            call.respond(komplettDeltakerResponse(deltaker))
+            amtDeltakerClient
+                .avvisForslag(
+                    forslagId = forslagId,
+                    request = no.nav.amt.internapi.deltaker.request.AvvisForslagRequest(
+                        begrunnelse = request.begrunnelse,
+                        avvistAvAnsattIdent = call.getNavIdent(),
+                        avvistAvEnhet = call.getEnhetsnummer(),
+                    ),
+                ).let { ModelMapper.toDeltaker(it) }
+                .let { DeltakerResponse.fromDeltakerModel(it) }
+                .also {
+                    // Usikker på om forslag hentes fra bff db noen steder så beholder denne midlertidig:
+                    forslagRepository.delete(forslagId)
+                    call.respond(it)
+                }
         }
     }
 }

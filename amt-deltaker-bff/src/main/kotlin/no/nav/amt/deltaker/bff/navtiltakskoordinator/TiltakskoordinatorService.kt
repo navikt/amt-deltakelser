@@ -31,30 +31,6 @@ class TiltakskoordinatorService(
 ) {
     suspend fun getMany(deltakerIder: List<UUID>) = deltakerRepository.getMany(deltakerIder).toTiltakskoordinatorsDeltaker()
 
-    suspend fun getDeltaker(deltakerId: UUID): TiltakskoordinatorsDeltaker {
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-        val sisteVurdering = vurderingService.getSisteVurderingForDeltaker(deltaker.id)
-        val navVeileder = deltaker.navBruker.navVeilederId?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
-        val navEnhet = deltaker.navBruker.navEnhetId?.let { navEnhetService.hentEnhet(it) }
-        val forslag = forslagRepository.getForDeltaker(deltaker.id)
-        val ulesteHendelser = ulestHendelseRepository.getForDeltaker(deltakerId)
-
-        if (deltaker.navBruker.adresse == null) {
-            val digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident)
-            return deltaker.toTiltakskoordinatorsDeltaker(
-                sisteVurdering,
-                navEnhet,
-                navVeileder,
-                null,
-                !digitalBruker,
-                forslag,
-                ulesteHendelser,
-            )
-        }
-
-        return deltaker.toTiltakskoordinatorsDeltaker(sisteVurdering, navEnhet, navVeileder, null, false, forslag, ulesteHendelser)
-    }
-
     suspend fun endreDeltakere(
         deltakerIder: List<UUID>,
         endring: EndringFraTiltakskoordinator.Endring,

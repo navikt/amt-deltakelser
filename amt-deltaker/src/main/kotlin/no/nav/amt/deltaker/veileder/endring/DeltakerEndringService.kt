@@ -49,6 +49,8 @@ class DeltakerEndringService(
     ): DeltakerEndring {
         val navEnhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
 
+        // Når nav veileder godkjenner et Forslag så kommer requesten med en forslagId
+        // Dette er forskjellig fra når forslag avvises
         val godkjentForslag = endringRequest.getForslagId()?.let { forslagId ->
             forslagService.godkjennForslag(
                 forslagId = forslagId,

@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -555,6 +556,15 @@ class DeltakerRepositoryTest {
         val deltaker = lagDeltaker()
         TestRepository.insertAll(deltaker)
         deltakerRepository.getPersonidentForDeltaker(deltaker.id) shouldBe deltaker.navBruker.personident
+    }
+
+    @Test
+    fun `getPersonidentForForslag - returnerer personident`() {
+        val deltaker = lagDeltaker()
+        val forslag = lagForslag(deltakerId = deltaker.id)
+
+        TestRepository.insertAll(deltaker, forslag)
+        deltakerRepository.getPersonidentForForslag(forslag.id) shouldBe deltaker.navBruker.personident
     }
 
     @Nested
