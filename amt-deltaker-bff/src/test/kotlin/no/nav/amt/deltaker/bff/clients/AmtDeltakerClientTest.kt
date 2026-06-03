@@ -77,7 +77,7 @@ class AmtDeltakerClientTest {
         }
 
         @Test
-        fun `skal bruke cache ved gjentatt kall for samme deltaker`() = runTest {
+        fun `skal bruke deltaker cache ved gjentatt kall for samme deltaker`() = runTest {
             val countingCache = CountingCache<UUID, String>()
             val client = createDeltakerClient(
                 expectedUrl = expectedUrl,
@@ -92,6 +92,30 @@ class AmtDeltakerClientTest {
             first shouldBe "12345678901"
             second shouldBe "12345678901"
             countingCache.putCount shouldBe 1
+        }
+    }
+
+    @Nested
+    inner class GetPersonindentForForslag {
+        val expectedUrl = "$DELTAKER_BASE_URL/personident/forslag/${deltakerInTest.id}"
+
+        @Test
+        fun `skal bruke cache ved gjentatt kall for samme forslag`() = runTest {
+            val cache = CountingCache<UUID, String>()
+            val personIdent = PersonIdentResponse("12345678901")
+            val client = createDeltakerClient(
+                expectedUrl = expectedUrl,
+                statusCode = HttpStatusCode.OK,
+                responseBody = personIdent,
+                personIdentForslagCache = cache,
+            )
+
+            val first = client.getPersonidentForForslag(deltakerInTest.id)
+            val second = client.getPersonidentForForslag(deltakerInTest.id)
+
+            first shouldBe personIdent.personident
+            second shouldBe personIdent.personident
+            cache.putCount shouldBe 1
         }
     }
 
@@ -725,6 +749,7 @@ class AmtDeltakerClientTest {
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
             personIdentCache: CountingCache<UUID, String>? = null,
+            personIdentForslagCache: CountingCache<UUID, String>? = null,
         ) = AmtDeltakerClient(
             baseUrl = DELTAKER_BASE_URL,
             scope = "scope",
@@ -734,7 +759,8 @@ class AmtDeltakerClientTest {
                 statusCode = statusCode,
             ),
             azureAdTokenClient = mockAzureAdClient(),
-            personIdentCache = personIdentCache ?: CountingCache(),
+            personIdentDeltakerCache = personIdentCache ?: CountingCache(),
+            personIdentForslagCache = personIdentForslagCache ?: CountingCache(),
         )
     }
 }

@@ -24,9 +24,13 @@ class AmtDeltakerClient(
     scope: String,
     httpClient: HttpClient,
     azureAdTokenClient: AzureAdTokenClient,
-    private val personIdentCache: Cache<UUID, String> = Caffeine
+    private val personIdentDeltakerCache: Cache<UUID, String> = Caffeine
         .newBuilder()
         .expireAfterWrite(ofMinutes(15))
+        .build(),
+    private val personIdentForslagCache: Cache<UUID, String> = Caffeine
+        .newBuilder()
+        .expireAfterWrite(ofMinutes(60))
         .build(),
 ) : ApiClientBase(
         baseUrl = baseUrl,
@@ -36,19 +40,19 @@ class AmtDeltakerClient(
     ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun getPersonidentForDeltaker(deltakerId: UUID): String = personIdentCache.getIfPresent(deltakerId)
+    suspend fun getPersonidentForDeltaker(deltakerId: UUID): String = personIdentDeltakerCache.getIfPresent(deltakerId)
         ?: performGet("personident/deltaker/$deltakerId")
             .failIfNotSuccess("Fant ikke personident for deltaker $deltakerId i amt-deltaker.")
             .body<PersonIdentResponse>()
             .personident
-            .also { personIdentCache.put(deltakerId, it) }
+            .also { personIdentDeltakerCache.put(deltakerId, it) }
 
-    suspend fun getPersonidentForForslag(forslagId: UUID): String = personIdentCache.getIfPresent(forslagId)
+    suspend fun getPersonidentForForslag(forslagId: UUID): String = personIdentForslagCache.getIfPresent(forslagId)
         ?: performGet("personident/forslag/$forslagId")
             .failIfNotSuccess("Fant ikke personident for forslag $forslagId i amt-deltaker.")
             .body<PersonIdentResponse>()
             .personident
-            .also { personIdentCache.put(forslagId, it) }
+            .also { personIdentForslagCache.put(forslagId, it) }
 
     suspend fun getDeltaker(deltakerId: UUID): DeltakerResponse = performGet("deltaker/$deltakerId")
         .failIfNotSuccess("Fant ikke deltaker $deltakerId i amt-deltaker.")
