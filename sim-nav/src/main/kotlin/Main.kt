@@ -48,6 +48,7 @@ fun main() {
     println("Set app.env.brreg-url=http://localhost:$SIM_NAV_HTTP_PORT${BRONNOYSUND_PATH_PREFIX}")
     println("Set NORG_URL=http://localhost:$SIM_NAV_HTTP_PORT$NORG_PATH_PREFIX")
     println("Set AO_OPPFOLGINGSKONTOR_URL=http://localhost:$SIM_NAV_HTTP_PORT$AO_OPPFOLGINGSKONTOR_PATH_PREFIX")
+    println("Set DOKDISTKANAL_URL=http://localhost:$SIM_NAV_HTTP_PORT$DOKDISTKANAL_PATH_PREFIX")
     println("Set PDL_URL=http://localhost:$SIM_NAV_HTTP_PORT${PDL_PATH_PREFIX}")
     println("Set NOM_URL=http://localhost:$SIM_NAV_HTTP_PORT${NOM_PATH_PREFIX}")
     println("Set digdir-krr-proxy.url=http://localhost:$SIM_NAV_HTTP_PORT$KRR_PROXY_PATH_PREFIX")
@@ -61,6 +62,7 @@ fun main() {
     println("Valp (database view): http://localhost:$SIM_NAV_HTTP_PORT$VALP_PATH_PREFIX")
     println("Veilarboppfolging (database view): http://localhost:$SIM_NAV_HTTP_PORT$VEILARBOPPFOLGING_PATH_PREFIX")
     println("Nom (database view): http://localhost:$SIM_NAV_HTTP_PORT$NOM_PATH_PREFIX")
+    println("Dokdistkanal (database view): http://localhost:$SIM_NAV_HTTP_PORT$DOKDISTKANAL_PATH_PREFIX")
     println("POST (form) http://localhost:$SIM_NAV_HTTP_PORT/kafka/tiltakstype/enkeltplass-amo")
     println("POST (form) http://localhost:$SIM_NAV_HTTP_PORT/kafka/gjennomforing/enkeltplass")
 

@@ -18,6 +18,7 @@ object DatabaseSchema {
                     NomRessurs,
                     AoOppfolgingskontorKontorTilhorighet,
                     VeilarbvedtaksstottePerson,
+                    DokdistkanalPerson,
                 )
                 println("✓ Database schema initialized")
             }

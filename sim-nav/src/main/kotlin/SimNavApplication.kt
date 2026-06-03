@@ -26,6 +26,7 @@ fun Application.simNavModule(
         poaoTilgangFakeRoutes()
         veilarboppfolgingFakeRoutes(pdlSimulator)
         veilarbvedtaksstotteFakeRoutes(pdlSimulator)
+        dokdistkanalFakeRoutes(pdlSimulator)
         bronnoysundFakeRoutes(bronnoysundSimulator)
         norgFakeRoutes(norgSimulator)
         aoOppfolgingskontorFakeRoutes(

@@ -92,6 +92,15 @@ object VeilarbvedtaksstottePerson : Table("veilarbvedtaksstotte_person") {
     override val primaryKey = PrimaryKey(fnr)
 }
 
+object DokdistkanalPerson : Table("dokdistkanal_person") {
+    val personident = text("personident")
+    val distribusjonskanal = text("distribusjonskanal")
+    val createdAt = text("created_at")
+    val updatedAt = text("updated_at")
+
+    override val primaryKey = PrimaryKey(personident)
+}
+
 private fun Table.jsonb(name: String): Column<String> {
     return this.registerColumn<String>(name, JsonbTextColumnType())
 }
