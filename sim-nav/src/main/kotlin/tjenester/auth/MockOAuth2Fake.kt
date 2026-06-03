@@ -98,6 +98,14 @@ private class SimNavAzureTokenCallback : OAuth2TokenCallback {
                 )
             }
 
+            clientId == "frontend-innbygger-client-id" -> {
+                mapOf(
+                    "oid" to "11111111-1111-1111-1111-111111111111",
+                    "groups" to emptyList<String>(),
+                    "aud" to listOf("amt-deltaker-bff"),
+                )
+            }
+
             "api://amt-distribusjon/.default" in scopes -> mapOf(
                 "aud" to listOf("amt-distribusjon"),
                 "sub" to "11111111-1111-1111-1111-111111111111",

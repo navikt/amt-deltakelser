@@ -19,7 +19,12 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 
-private const val LOCAL_BFF_PROXY_PATH_PREFIX = "/amt-deltaker-bff"
+const val LOCAL_BFF_PROXY_PORT = 9100
+const val LOCAL_BFF_PROXY_PATH_PREFIX = "/amt-deltaker-bff"
+const val LOCAL_BFF_SOURCE_HEADER = "x-local-app-source"
+private const val NAV_VEILEDERS_FLATE_SOURCE = "nav-veileders-flate"
+private const val NAV_VEILEDERS_CLIENT_ID = "frontend-client-id"
+private const val INNBYGGERS_CLIENT_ID = "frontend-innbygger-client-id"
 private const val LOCAL_BFF_TARGET_BASE_URL = "http://localhost:8080"
 private const val LOCAL_TOKEN_ENDPOINT = "http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/token"
 
@@ -27,12 +32,18 @@ private val localBffHttpClient: HttpClient = HttpClient.newBuilder().followRedir
 private val localBffObjectMapper = jacksonObjectMapper()
 
 @Volatile
-private var cachedLocalDevJwt: String? = null
+private var cachedLocalDevJwts: Map<String, String> = emptyMap()
 private val localDevJwtLock = Any()
 
 fun invalidateLocalDevJwtCache() {
     synchronized(localDevJwtLock) {
-        cachedLocalDevJwt = null
+        cachedLocalDevJwts = emptyMap()
+    }
+}
+
+fun Application.localAmtDeltakerBffProxyModule() {
+    routing {
+        localAmtDeltakerBffProxyRoutes()
     }
 }
 
@@ -46,7 +57,10 @@ fun Route.localAmtDeltakerBffProxyRoutes() {
 }
 
 private suspend fun proxyBffRequest(call: ApplicationCall) {
-    if (FrontendAuthState.getNavIdent() == null) {
+    val requestSource = call.request.header(LOCAL_BFF_SOURCE_HEADER)?.takeIf { it.isNotBlank() } ?: "unknown"
+    val clientId = clientIdForSource(requestSource)
+
+    if (clientId == NAV_VEILEDERS_CLIENT_ID && FrontendAuthState.getNavIdent() == null) {
         respondJson(
             call = call,
             status = HttpStatusCode.BadGateway,
@@ -56,7 +70,7 @@ private suspend fun proxyBffRequest(call: ApplicationCall) {
     }
 
     val targetUri = buildTargetUri(call.request.uri)
-    val accessToken = resolveLocalDevJwt()
+    val accessToken = resolveLocalDevJwt(clientId)
 
     if (accessToken == null) {
         respondJson(
@@ -79,6 +93,7 @@ private suspend fun proxyBffRequest(call: ApplicationCall) {
             requestBody?.let { HttpRequest.BodyPublishers.ofString(it) } ?: HttpRequest.BodyPublishers.noBody(),
         )
         .header(HttpHeaders.Authorization, "Bearer $accessToken")
+        .header(LOCAL_BFF_SOURCE_HEADER, requestSource)
         .apply {
             call.request.headers.names().forEach { headerName ->
                 if (headerName.equals(HttpHeaders.Authorization, ignoreCase = true) ||
@@ -128,24 +143,29 @@ private fun buildTargetUri(requestUri: String): URI {
     return URI.create("$LOCAL_BFF_TARGET_BASE_URL$normalizedPath")
 }
 
-private suspend fun resolveLocalDevJwt(): String? {
-    cachedLocalDevJwt?.let { return it }
+private fun clientIdForSource(source: String): String =
+    if (source == NAV_VEILEDERS_FLATE_SOURCE) NAV_VEILEDERS_CLIENT_ID else INNBYGGERS_CLIENT_ID
+
+private suspend fun resolveLocalDevJwt(clientId: String): String? {
+    synchronized(localDevJwtLock) {
+        cachedLocalDevJwts[clientId]?.let { return it }
+    }
 
     val fetchedToken = withContext(Dispatchers.IO) {
-        fetchLocalDevJwt()
+        fetchLocalDevJwt(clientId)
     } ?: return null
 
     return synchronized(localDevJwtLock) {
-        cachedLocalDevJwt?.let { return@synchronized it }
-        cachedLocalDevJwt = fetchedToken
-        fetchedToken
+        cachedLocalDevJwts[clientId]?.let { return@synchronized it }
+        cachedLocalDevJwts = cachedLocalDevJwts + (clientId to fetchedToken)
+        cachedLocalDevJwts.getValue(clientId)
     }
 }
 
-private fun fetchLocalDevJwt(): String? {
+private fun fetchLocalDevJwt(clientId: String): String? {
     val formBody = listOf(
         "grant_type" to "client_credentials",
-        "client_id" to "frontend-client-id",
+        "client_id" to clientId,
         "client_secret" to "frontend-secret",
         "aud" to "amt-deltaker-bff",
     ).joinToString("&") { (key, value) ->

@@ -7,7 +7,10 @@ import tjenester.ALTINN3_PATH_PREFIX
 import tjenester.auth.MOCK_OAUTH2_ISSUER_ID
 import tjenester.auth.MOCK_OAUTH2_PORT
 import tjenester.auth.startMockOAuth2Server
+import tjenester.intern.LOCAL_BFF_PROXY_PATH_PREFIX
+import tjenester.intern.LOCAL_BFF_PROXY_PORT
 import tjenester.intern.UNLEASH_PATH_PREFIX
+import tjenester.intern.localAmtDeltakerBffProxyModule
 import tjenester.nav.KRR_PROXY_PATH_PREFIX
 import tjenester.nav.POAO_TILGANG_PATH_PREFIX
 import tjenester.nav.aooppfolgingskontor.AO_OPPFOLGINGSKONTOR_PATH_PREFIX
@@ -27,7 +30,7 @@ fun main() {
     DatabaseConfig.initialize()
     DatabaseSchema.initialize()
 
-    val bronnoysundSimulator = _root_ide_package_.tjenester.brreg.BronnoysundSimulator()
+    val bronnoysundSimulator = tjenester.brreg.BronnoysundSimulator()
     val kafkaPublisher = KafkaPublisher(bronnoysundSimulator)
     val pdlSimulator = PdlSimulator()
     val norgSimulator = NorgSimulator()
@@ -41,8 +44,17 @@ fun main() {
         },
     ).start(wait = false)
 
+    val localBffProxyServer = embeddedServer(
+        factory = Netty,
+        port = LOCAL_BFF_PROXY_PORT,
+        module = {
+            localAmtDeltakerBffProxyModule()
+        },
+    ).start(wait = false)
+
     Runtime.getRuntime().addShutdownHook(
         Thread {
+            localBffProxyServer.stop(gracePeriodMillis = 0, timeoutMillis = 0)
             simNavHttpServer.stop(gracePeriodMillis = 0, timeoutMillis = 0)
             mockOAuth2Server.shutdown()
             kafkaPublisher.close()
@@ -51,6 +63,7 @@ fun main() {
     )
 
     println("Sim-nav HTTP stub started on port $SIM_NAV_HTTP_PORT")
+    println("Local BFF proxy started on port $LOCAL_BFF_PROXY_PORT")
     println("Mock OAuth2 server started on http://localhost:${MOCK_OAUTH2_PORT}/${MOCK_OAUTH2_ISSUER_ID}")
     println("Set UNLEASH_SERVER_API_URL=http://localhost:$SIM_NAV_HTTP_PORT${UNLEASH_PATH_PREFIX}/api and UNLEASH_SERVER_API_TOKEN=dummy")
     println("Set ALTINN3_URL=http://localhost:$SIM_NAV_HTTP_PORT${ALTINN3_PATH_PREFIX}")
@@ -67,7 +80,7 @@ fun main() {
     println("Set AZURE_OPENID_CONFIG_ISSUER=http://localhost:${MOCK_OAUTH2_PORT}/${MOCK_OAUTH2_ISSUER_ID}")
     println("Set AZURE_OPENID_CONFIG_JWKS_URI=http://localhost:${MOCK_OAUTH2_PORT}/${MOCK_OAUTH2_ISSUER_ID}/jwks")
     println("Set AZURE_OPENID_CONFIG_TOKEN_ENDPOINT=http://localhost:${MOCK_OAUTH2_PORT}/${MOCK_OAUTH2_ISSUER_ID}/token")
-    println("Local BFF proxy: http://localhost:$SIM_NAV_HTTP_PORT/amt-deltaker-bff/*")
+    println("Local BFF proxy: http://localhost:$LOCAL_BFF_PROXY_PORT$LOCAL_BFF_PROXY_PATH_PREFIX/*")
     println("Kafka UI: http://localhost:$SIM_NAV_HTTP_PORT/kafka")
     println("nav-veileders-flate launcher: http://localhost:$SIM_NAV_HTTP_PORT/nav-veileders-flate")
     println("Valp (database view): http://localhost:$SIM_NAV_HTTP_PORT${VALP_PATH_PREFIX}")

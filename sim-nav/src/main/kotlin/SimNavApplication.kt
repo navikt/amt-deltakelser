@@ -6,7 +6,6 @@ import io.ktor.server.routing.*
 import kafka.KafkaPublisher
 import tjenester.altinn3FakeRoutes
 import tjenester.brreg.bronnoysundFakeRoutes
-import tjenester.intern.localAmtDeltakerBffProxyRoutes
 import tjenester.intern.unleashFakeRoutes
 import tjenester.maskinportenFakeRoutes
 import tjenester.nav.aooppfolgingskontor.AoOppfolgingskontorNorgKontorOption
@@ -56,7 +55,6 @@ fun Application.simNavModule(
         nomFakeRoutes(pdlSimulator)
         valpFakeRoutes(bronnoysundSimulator, kafkaPublisher)
         navVeiledersFlateLauncherRoutes(pdlSimulator, norgSimulator)
-        localAmtDeltakerBffProxyRoutes()
         krrProxyFakeRoutes()
 
         // Keep previous behavior for unknown paths.
