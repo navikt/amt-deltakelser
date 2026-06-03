@@ -3,20 +3,9 @@ import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
 import java.time.Duration
 
-/**
- * Manages database connections for sim-nav.
- * Optionally connects to PostgreSQL for dynamic data storage.
- * Environment variables:
- * - DB_ENABLED: "true" or "false" (default: false)
- * - DB_HOST: PostgreSQL host (default: localhost)
- * - DB_PORT: PostgreSQL port (default: 5432)
- * - DB_NAME: Database name (default: simnav-db)
- * - DB_USER: Database user (default: myuser)
- * - DB_PASSWORD: Database password (default: mypassword)
- */
 object DatabaseConfig {
 
-    private var dataSource: HikariDataSource? = null
+    private lateinit var dataSource: HikariDataSource
 
     fun initialize() {
         try {
@@ -43,7 +32,7 @@ object DatabaseConfig {
             dataSource = HikariDataSource(config)
 
             // Initialize Exposed with the datasource
-            Database.connect(dataSource!!)
+            Database.connect(dataSource)
 
             println("✓ Database connected: $jdbcUrl")
         } catch (e: Exception) {
@@ -53,10 +42,8 @@ object DatabaseConfig {
     }
 
     fun shutdown() {
-        dataSource?.close()
-        dataSource = null
+        dataSource.close()
     }
 
-    fun isConnected(): Boolean = dataSource != null && !dataSource!!.isClosed
 }
 

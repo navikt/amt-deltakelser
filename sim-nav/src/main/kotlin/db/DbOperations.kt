@@ -12,12 +12,7 @@ object DbOperations {
      */
     fun <T> inTransaction(block: () -> T): T {
         return try {
-            if (DatabaseConfig.isConnected()) {
-                transaction {
-                    block()
-                }
-            } else {
-                // Database not connected, execute block anyway (for in-memory mode)
+            transaction {
                 block()
             }
         } catch (e: Exception) {

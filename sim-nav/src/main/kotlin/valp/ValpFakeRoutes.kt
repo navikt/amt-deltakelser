@@ -1,6 +1,5 @@
 package valp
 
-import DatabaseConfig
 import brreg.BronnoysundSimulator
 import io.ktor.server.application.*
 import io.ktor.server.html.*
@@ -54,11 +53,6 @@ fun Route.valpFakeRoutes(
     }
 
     post(VALP_GJENNOMFORING_ENKELTPLASS_CREATE_PATH) {
-        if (!DatabaseConfig.isConnected()) {
-            call.redirectToValp("Database is not connected. Could not create gjennomforing.", isError = true)
-            return@post
-        }
-
         try {
             val form = call.receiveParameters().toGjennomforingEnkeltplassFormInput()
             insertGjennomforing(form)
@@ -74,11 +68,6 @@ fun Route.valpFakeRoutes(
     }
 
     post(VALP_GJENNOMFORING_GRUPPE_CREATE_PATH) {
-        if (!DatabaseConfig.isConnected()) {
-            call.redirectToValp("Database is not connected. Could not create gjennomforing.", isError = true)
-            return@post
-        }
-
         try {
             val form = call.receiveParameters().toGjennomforingGruppeFormInput()
             insertGjennomforing(form)
@@ -94,11 +83,6 @@ fun Route.valpFakeRoutes(
     }
 
     post(VALP_TILTAKSTYPE_CREATE_PATH) {
-        if (!DatabaseConfig.isConnected()) {
-            call.redirectToValp("Database is not connected. Could not create tiltakstype.", isError = true)
-            return@post
-        }
-
         try {
             val form = call.receiveParameters().toTiltakstypeFormInput()
             insertTiltakstype(form)
@@ -118,8 +102,8 @@ private suspend fun ApplicationCall.respondValpOverview(
     message: String?,
     isError: Boolean,
 ) {
-    val gjennomforings = if (DatabaseConfig.isConnected()) fetchGjennomforinger() else emptyList()
-    val tiltakstyper = if (DatabaseConfig.isConnected()) fetchTiltakstyper() else emptyList()
+    val gjennomforings = fetchGjennomforinger()
+    val tiltakstyper = fetchTiltakstyper()
 
     respondHtml {
         valpPage(

@@ -6,7 +6,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import kafka.KafkaPublisher
-import kafka.kafkaFakeRoutes
 import nom.nomFakeRoutes
 import pdl.pdlFakeRoutes
 import valp.valpFakeRoutes
@@ -34,7 +33,6 @@ fun Application.simNavModule(
         valpFakeRoutes(bronnoysundSimulator, kafkaPublisher)
         navVeiledersFlateLauncherRoutes(pdlSimulator, norgSimulator)
         krrProxyFakeRoutes()
-        kafkaFakeRoutes(kafkaPublisher, bronnoysundSimulator)
 
         // Keep previous behavior for unknown paths.
         route("{...}") {
