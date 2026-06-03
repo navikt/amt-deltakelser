@@ -7,6 +7,7 @@ fun HTML.veilarboppfolgingPage(
     newPersonPath: String,
     editPersonPathPrefix: String,
     pdlNamesByFnr: Map<String, String>,
+    nomNamesByNavident: Map<String, String>,
 ) {
     head {
         title("Veilarboppfolging - Simulator")
@@ -95,6 +96,7 @@ fun HTML.veilarboppfolgingPage(
                         th { +"Fnr" }
                         th { +"PDL-navn" }
                         th { +"Veileder" }
+                        th { +"Veiledernavn" }
                         th { +"Manuell oppfolging" }
                         th { +"Oppfolgingsperioder" }
                         th { +"Actions" }
@@ -108,6 +110,7 @@ fun HTML.veilarboppfolgingPage(
                             }
                             td { +(pdlNamesByFnr[row.fnr]?.takeIf { it.isNotBlank() } ?: "-") }
                             td { +row.veilederIdent }
+                            td { +(nomNamesByNavident[row.veilederIdent]?.takeIf { it.isNotBlank() } ?: "-") }
                             td { +if (row.erUnderManuellOppfolging) "true" else "false" }
                             td { +row.oppfolgingsperioder.size.toString() }
                             td(classes = "actions") {

@@ -29,7 +29,7 @@ fun Application.simNavModule(
         norgFakeRoutes(norgSimulator)
         aoOppfolgingskontorFakeRoutes()
         pdlFakeRoutes(pdlSimulator)
-        nomFakeRoutes()
+        nomFakeRoutes(pdlSimulator)
         valpFakeRoutes(bronnoysundSimulator, kafkaPublisher)
         navVeiledersFlateLauncherRoutes(pdlSimulator, norgSimulator)
         krrProxyFakeRoutes()

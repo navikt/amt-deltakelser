@@ -1,6 +1,7 @@
 import io.ktor.server.html.*
 import io.ktor.server.routing.*
 import kotlinx.html.*
+import nom.fetchNomRessurser
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import pdl.PdlDataSource
 import valp.fetchGjennomforinger
@@ -29,17 +30,12 @@ private fun loadNavVeiledersFlateOptions(
     pdlDataSource: PdlDataSource,
     norgDataSource: NorgDataSource,
 ): NavVeiledersFlateOptions {
-    val persons = pdlDataSource.allPersons()
-        .toList()
-        .sortedBy { (personident, _) -> personident }
-        .map { (personident, person) ->
-            val displayName = person.navn.firstOrNull()?.let {
-                listOfNotNull(it.fornavn, it.mellomnavn, it.etternavn)
-                    .joinToString(" ")
-            }
+    val persons = fetchNomRessurser()
+        .sortedBy { it.navident }
+        .map { ressurs ->
             SelectOption(
-                value = personident,
-                label = if (displayName.isNullOrBlank()) personident else "$personident - $displayName",
+                value = ressurs.personident,
+                label = "${ressurs.navident} - ${ressurs.visningsnavn}",
             )
         }
 

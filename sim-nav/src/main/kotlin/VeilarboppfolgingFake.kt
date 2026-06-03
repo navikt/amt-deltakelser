@@ -6,6 +6,7 @@ import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import nom.fetchNomRessurser
 import nom.fetchNomVeilederOptions
 import pdl.PdlDataSource
 import java.net.URLEncoder
@@ -230,6 +231,7 @@ private suspend fun ApplicationCall.respondVeilarboppfolgingOverview(
     pdlNamesByFnr: Map<String, String>,
 ) {
     val persons = fetchVeilarboppfolgingPersons()
+    val nomNamesByNavident = fetchNomRessurser().associate { it.navident to it.visningsnavn }
 
     respondHtml {
         veilarboppfolgingPage(
@@ -239,6 +241,7 @@ private suspend fun ApplicationCall.respondVeilarboppfolgingOverview(
             newPersonPath = VEILARBOPPFOLGING_PERSON_NEW_PATH,
             editPersonPathPrefix = "$VEILARBOPPFOLGING_PATH_PREFIX/person",
             pdlNamesByFnr = pdlNamesByFnr,
+            nomNamesByNavident = nomNamesByNavident,
         )
     }
 }

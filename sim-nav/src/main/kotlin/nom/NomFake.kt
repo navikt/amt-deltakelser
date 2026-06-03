@@ -7,6 +7,7 @@ import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import pdl.PdlDataSource
 import respondGraphqlFake
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -26,21 +27,51 @@ private val nomGraphql = createNomGraphql(
     },
 )
 
-fun Route.nomFakeRoutes() {
+fun Route.nomFakeRoutes(pdlDataSource: PdlDataSource) {
+    val pdlPersons = pdlDataSource.allPersons()
+    val pdlNamesByPersonident = pdlPersons
+        .mapValues { (_, person) ->
+            person.navn.firstOrNull()?.let {
+                listOfNotNull(it.fornavn, it.mellomnavn, it.etternavn).joinToString(" ")
+            }.orEmpty()
+        }
+    val personidentOptions = pdlPersons.keys
+        .filter { it.matches(Regex("\\d{11}")) }
+        .distinct()
+        .sorted()
+        .map { personident ->
+            val name = pdlNamesByPersonident[personident].orEmpty()
+            NomPersonidentOption(
+                personident = personident,
+                label = if (name.isBlank()) personident else "$personident - $name",
+            )
+        }
+    val validPersonidenter = personidentOptions.map { it.personident }.toSet()
+    val pdlFornavn = pdlPersons.mapValues { (_, p) -> p.navn.firstOrNull()?.fornavn.orEmpty() }
+    val pdlEtternavn = pdlPersons.mapValues { (_, p) -> p.navn.firstOrNull()?.etternavn.orEmpty() }
+
     route(NOM_PATH_PREFIX) {
         get {
             call.respondNomOverview(
                 message = call.request.queryParameters["message"],
                 isError = call.request.queryParameters["isError"].toBoolean(),
+                pdlNamesByPersonident = pdlNamesByPersonident,
             )
         }
 
         get("ressurs/new") {
+            val suggestedNavident = nextNavident()
+            val firstPersonident = personidentOptions.firstOrNull()?.personident.orEmpty()
+
             call.respondHtml {
                 nomRessursFormPage(
-                    defaults = defaultNomRessursFormDefaults(),
+                    defaults = defaultNomRessursFormDefaults().copy(
+                        navident = suggestedNavident,
+                        personident = firstPersonident,
+                    ),
                     actionPath = NOM_RESSURS_CREATE_PATH,
                     backPath = NOM_PATH_PREFIX,
+                    personidentOptions = personidentOptions,
                 )
             }
         }
@@ -58,13 +89,14 @@ fun Route.nomFakeRoutes() {
                     defaults = existing.toFormDefaults(),
                     actionPath = ressursEditPath(navident),
                     backPath = NOM_PATH_PREFIX,
+                    personidentOptions = personidentOptions,
                 )
             }
         }
 
         post("ressurs") {
             try {
-                val form = call.receiveParameters().toNomRessursFormInput()
+                val form = call.receiveParameters().toNomRessursCreateInput(validPersonidenter, pdlFornavn, pdlEtternavn)
                 if (fetchNomRessursByNavident(form.navident) != null) {
                     call.redirectToNom("Ressurs ${form.navident} already exists", isError = true)
                     return@post
@@ -88,7 +120,7 @@ fun Route.nomFakeRoutes() {
             }
 
             try {
-                val form = call.receiveParameters().toNomRessursFormInput(navident)
+                val form = call.receiveParameters().toNomRessursEditInput(validPersonidenter, navident)
                 val updated = updateNomRessurs(form)
                 if (!updated) {
                     call.redirectToNom("Could not update ressurs $navident", isError = true)
@@ -159,6 +191,7 @@ private fun toRessurserResult(navidenter: List<String>): List<Any?> {
 private suspend fun ApplicationCall.respondNomOverview(
     message: String?,
     isError: Boolean,
+    pdlNamesByPersonident: Map<String, String>,
 ) {
     val ressurser = fetchNomRessurser()
 
@@ -169,16 +202,54 @@ private suspend fun ApplicationCall.respondNomOverview(
             isError = isError,
             newRessursPath = NOM_RESSURS_NEW_PATH,
             editRessursPathPrefix = "$NOM_PATH_PREFIX/ressurs",
+            pdlNamesByPersonident = pdlNamesByPersonident,
         )
     }
 }
 
-private fun Parameters.toNomRessursFormInput(navidentOverride: String? = null): NomRessursFormInput {
-    val navident = (navidentOverride ?: required("navident")).uppercase()
+private fun Parameters.toNomRessursCreateInput(
+    validPersonidenter: Set<String>,
+    pdlFornavn: Map<String, String>,
+    pdlEtternavn: Map<String, String>,
+): NomRessursFormInput {
+    val navident = required("navident").uppercase()
     require(navident.matches(Regex("[A-Z]\\d{6}"))) { "Field 'navident' must match pattern [A-Z]\\d{6}" }
+    val personident = required("personident")
+    require(validPersonidenter.contains(personident)) { "Field 'personident' must reference an existing PDL person" }
+
+    val fornavn = pdlFornavn[personident].orEmpty()
+    val etternavn = pdlEtternavn[personident].orEmpty()
+    val visningsnavn = listOfNotNull(fornavn.takeIf { it.isNotBlank() }, etternavn.takeIf { it.isNotBlank() })
+        .joinToString(" ")
+    val epost = if (fornavn.isNotBlank() && etternavn.isNotBlank()) {
+        "${fornavn.lowercase()}.${etternavn.lowercase()}@nav.sim.no"
+    } else {
+        ""
+    }
 
     return NomRessursFormInput(
         navident = navident,
+        personident = personident,
+        visningsnavn = visningsnavn,
+        fornavn = fornavn,
+        etternavn = etternavn,
+        epost = epost,
+        primaryTelefon = null,
+        telefon = emptyList(),
+        orgTilknytning = emptyList(),
+    )
+}
+
+private fun Parameters.toNomRessursEditInput(
+    validPersonidenter: Set<String>,
+    navidentOverride: String,
+): NomRessursFormInput {
+    val personident = required("personident")
+    require(validPersonidenter.contains(personident)) { "Field 'personident' must reference an existing PDL person" }
+
+    return NomRessursFormInput(
+        navident = navidentOverride,
+        personident = personident,
         visningsnavn = required("visningsnavn"),
         fornavn = required("fornavn"),
         etternavn = required("etternavn"),

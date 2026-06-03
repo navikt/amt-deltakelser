@@ -16,6 +16,7 @@ import java.time.ZoneOffset
 
 data class NomRessursRow(
     val navident: String,
+    val personident: String,
     val visningsnavn: String,
     val fornavn: String,
     val etternavn: String,
@@ -27,6 +28,7 @@ data class NomRessursRow(
 
 data class NomRessursFormDefaults(
     val navident: String,
+    val personident: String,
     val visningsnavn: String,
     val fornavn: String,
     val etternavn: String,
@@ -38,6 +40,7 @@ data class NomRessursFormDefaults(
 
 data class NomRessursFormInput(
     val navident: String,
+    val personident: String,
     val visningsnavn: String,
     val fornavn: String,
     val etternavn: String,
@@ -52,8 +55,14 @@ data class NomVeilederOption(
     val label: String,
 )
 
+data class NomPersonidentOption(
+    val personident: String,
+    val label: String,
+)
+
 data class NomRessursFixture(
     val navident: String,
+    val personident: String,
     val visningsnavn: String,
     val fornavn: String,
     val etternavn: String,
@@ -61,7 +70,12 @@ data class NomRessursFixture(
     val primaryTelefon: String?,
     val telefon: List<NomTelefonFixture>,
     val orgTilknytning: List<NomOrgTilknytningFixture>,
-)
+) {
+    // Deprecated aliases still present in Nom GraphQL schema.
+    val navIdent: String = navident
+    val personIdent: String = personident
+    val visningsNavn: String = visningsnavn
+}
 
 data class NomTelefonFixture(
     val nummer: String,
@@ -84,6 +98,7 @@ private val nomJsonMapper = jacksonObjectMapper().findAndRegisterModules()
 fun defaultNomRessursFormDefaults(): NomRessursFormDefaults {
     return NomRessursFormDefaults(
         navident = "",
+        personident = "",
         visningsnavn = "",
         fornavn = "",
         etternavn = "",
@@ -115,6 +130,7 @@ fun insertNomRessurs(form: NomRessursFormInput) {
     DbOperations.inTransaction {
         NomRessurs.insert {
             it[navident] = form.navident
+            it[personident] = form.personident
             it[visningsnavn] = form.visningsnavn
             it[fornavn] = form.fornavn
             it[etternavn] = form.etternavn
@@ -132,6 +148,7 @@ fun updateNomRessurs(form: NomRessursFormInput): Boolean {
     val now = LocalDateTime.now(ZoneOffset.UTC).toString()
     val updatedRows = DbOperations.inTransaction {
         NomRessurs.update({ NomRessurs.navident eq form.navident }) {
+            it[personident] = form.personident
             it[visningsnavn] = form.visningsnavn
             it[fornavn] = form.fornavn
             it[etternavn] = form.etternavn
@@ -169,9 +186,19 @@ fun fetchNomVeilederOptions(): List<NomVeilederOption> {
     }
 }
 
+fun fetchNomPersonidentOptions(): List<NomPersonidentOption> {
+    return fetchNomRessurser().map { row ->
+        NomPersonidentOption(
+            personident = row.personident,
+            label = "${row.personident} - ${row.visningsnavn}",
+        )
+    }
+}
+
 fun NomRessursRow.toRessursFixture(): NomRessursFixture {
     return NomRessursFixture(
         navident = navident,
+        personident = personident,
         visningsnavn = visningsnavn,
         fornavn = fornavn,
         etternavn = etternavn,
@@ -185,6 +212,7 @@ fun NomRessursRow.toRessursFixture(): NomRessursFixture {
 fun NomRessursRow.toFormDefaults(): NomRessursFormDefaults {
     return NomRessursFormDefaults(
         navident = navident,
+        personident = personident,
         visningsnavn = visningsnavn,
         fornavn = fornavn,
         etternavn = etternavn,
@@ -199,9 +227,20 @@ fun parseNomTelefonJson(value: String): List<NomTelefonFixture> = nomJsonMapper.
 
 fun parseNomOrgTilknytningJson(value: String): List<NomOrgTilknytningFixture> = nomJsonMapper.readValue(value)
 
+fun nextNavident(): String {
+    val existing = DbOperations.inTransaction {
+        NomRessurs.selectAll().map { it[NomRessurs.navident] }
+    }
+    val maxNumber = existing
+        .mapNotNull { Regex("[A-Z](\\d+)").matchEntire(it)?.groupValues?.get(1)?.toLongOrNull() }
+        .maxOrNull() ?: 0L
+    return "Z%06d".format(maxNumber + 1)
+}
+
 private fun ResultRow.toRessursRow(): NomRessursRow {
     return NomRessursRow(
         navident = this[NomRessurs.navident],
+        personident = this[NomRessurs.personident],
         visningsnavn = this[NomRessurs.visningsnavn],
         fornavn = this[NomRessurs.fornavn],
         etternavn = this[NomRessurs.etternavn],

@@ -8,6 +8,7 @@ fun HTML.nomPage(
     isError: Boolean,
     newRessursPath: String,
     editRessursPathPrefix: String,
+    pdlNamesByPersonident: Map<String, String>,
 ) {
     head {
         title("Nom - Simulator")
@@ -73,6 +74,7 @@ fun HTML.nomPage(
                 thead {
                     tr {
                         th { +"Navident" }
+                        th { +"Personident" }
                         th { +"Visningsnavn" }
                         th { +"Epost" }
                         th { +"Telefon" }
@@ -84,6 +86,7 @@ fun HTML.nomPage(
                     ressurser.forEach { row ->
                         tr {
                             td { span(classes = "id") { +row.navident } }
+                            td { span(classes = "id") { +row.personident } }
                             td { +row.visningsnavn }
                             td { +row.epost }
                             td { +row.telefon.size.toString() }
@@ -106,6 +109,7 @@ fun HTML.nomRessursFormPage(
     defaults: NomRessursFormDefaults,
     actionPath: String,
     backPath: String,
+    personidentOptions: List<NomPersonidentOption>,
 ) {
     head {
         title("New ressurs - Nom")
@@ -118,13 +122,7 @@ fun HTML.nomRessursFormPage(
 
         form(action = actionPath, method = FormMethod.post) {
             nomTextField("Navident", "navident", defaults.navident)
-            nomTextField("Visningsnavn", "visningsnavn", defaults.visningsnavn)
-            nomTextField("Fornavn", "fornavn", defaults.fornavn)
-            nomTextField("Etternavn", "etternavn", defaults.etternavn)
-            nomTextField("Epost", "epost", defaults.epost)
-            nomTextField("Primary telefon (valgfri)", "primaryTelefon", defaults.primaryTelefon, required = false)
-            nomJsonTextArea("Telefon (JSON array)", "telefon", defaults.telefonJson)
-            nomJsonTextArea("Org-tilknytning (JSON array)", "orgTilknytning", defaults.orgTilknytningJson)
+            nomPersonidentField(personidentOptions, defaults.personident)
             button(type = ButtonType.submit) { +"Lagre" }
         }
     }
@@ -134,6 +132,7 @@ fun HTML.nomRessursEditFormPage(
     defaults: NomRessursFormDefaults,
     actionPath: String,
     backPath: String,
+    personidentOptions: List<NomPersonidentOption>,
 ) {
     head {
         title("Edit ressurs - Nom")
@@ -146,6 +145,7 @@ fun HTML.nomRessursEditFormPage(
         p { +"Navident: ${defaults.navident}" }
 
         form(action = actionPath, method = FormMethod.post) {
+            nomPersonidentField(personidentOptions, defaults.personident)
             nomTextField("Visningsnavn", "visningsnavn", defaults.visningsnavn)
             nomTextField("Fornavn", "fornavn", defaults.fornavn)
             nomTextField("Etternavn", "etternavn", defaults.etternavn)
@@ -194,6 +194,23 @@ private fun FORM.nomJsonTextArea(labelText: String, name: String, value: String)
             this.name = name
             required = true
             +value
+        }
+    }
+}
+
+private fun FORM.nomPersonidentField(options: List<NomPersonidentOption>, selectedValue: String) {
+    div("field") {
+        label { +"Personident" }
+        select {
+            name = "personident"
+            required = true
+            options.forEachIndexed { index, option ->
+                option {
+                    value = option.personident
+                    selected = selectedValue == option.personident || (selectedValue.isBlank() && index == 0)
+                    +option.label
+                }
+            }
         }
     }
 }

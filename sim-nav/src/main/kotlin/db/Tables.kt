@@ -59,6 +59,7 @@ object VeilarboppfolgingPerson : Table("veilarboppfolging_person") {
 
 object NomRessurs : Table("nom_ressurs") {
     val navident = text("navident")
+    val personident = text("personident")
     val visningsnavn = text("visningsnavn")
     val fornavn = text("fornavn")
     val etternavn = text("etternavn")
