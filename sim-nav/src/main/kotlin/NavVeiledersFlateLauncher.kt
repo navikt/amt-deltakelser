@@ -1,13 +1,13 @@
 import io.ktor.server.html.*
-import io.ktor.server.request.receiveParameters
-import io.ktor.server.response.respondRedirect
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.html.*
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import nom.fetchNomRessurser
 import pdl.PdlDataSource
-import sharedui.simNavHeader
 import sharedui.simNavFormPageStyles
+import sharedui.simNavHeader
 import sharedui.simNavHeaderStyles
 import valp.fetchGjennomforinger
 import java.net.URLEncoder
@@ -72,11 +72,10 @@ private fun loadNavVeiledersFlateOptions(
             )
         }
 
-    val currentFrontendNavIdent = FrontendAuthState.currentNavIdent()
-    val currentFrontendNavIdentLabel = veiledere
-        .firstOrNull { it.value == currentFrontendNavIdent }
-        ?.label
-        ?: currentFrontendNavIdent
+    val currentFrontendNavIdent = FrontendAuthState.getNavIdent()
+    val currentFrontendNavIdentLabel = currentFrontendNavIdent?.let { navIdent ->
+        veiledere.firstOrNull { it.value == navIdent }?.label ?: navIdent
+    } ?: "Ikke satt enda"
 
     val pdlNamesByFnr = buildVeilarbvedtaksstotteFnrOptions(pdlDataSource).associate { option ->
         option.fnr to option.label.substringAfter(" - ").takeIf { it != option.fnr }.orEmpty()
@@ -139,7 +138,7 @@ private fun HTML.navVeiledersFlateLauncherPage(
     unitOptions: List<SelectOption>,
     deltakerlisteOptions: List<SelectOption>,
     tiltakskodeOptions: List<SelectOption>,
-    currentFrontendNavIdent: String,
+    currentFrontendNavIdent: String?,
     currentFrontendNavIdentLabel: String,
 ) {
     head {
@@ -157,6 +156,7 @@ private fun HTML.navVeiledersFlateLauncherPage(
                 .message--error { background: #fff5f5; border: 1px solid #ffc9c9; }
                 .frontend-auth-panel { border: 1px solid #d8d8d8; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; background: #fafafa; }
                 .frontend-auth-panel__current { font-weight: 600; margin-bottom: 0.75rem; }
+                .frontend-auth-panel__hint { margin-bottom: 0.75rem; color: #595959; }
                 .frontend-auth-panel form { border: 0; padding: 0; border-radius: 0; background: transparent; }
                 p { margin-top: 0; }
                 """.trimIndent()
@@ -181,6 +181,11 @@ private fun HTML.navVeiledersFlateLauncherPage(
                 p(classes = "frontend-auth-panel__current") {
                     +"Aktiv NAVident i frontend-token: $currentFrontendNavIdentLabel"
                 }
+                if (currentFrontendNavIdent == null) {
+                    p(classes = "frontend-auth-panel__hint") {
+                        +"Frontend-token kan ikke hentes for proxy før NAVident er valgt."
+                    }
+                }
                 form(action = NAV_VEILEDERS_FLATE_FRONTEND_AUTH_PATH, method = FormMethod.post) {
                     div("field") {
                         label {
@@ -191,6 +196,11 @@ private fun HTML.navVeiledersFlateLauncherPage(
                             id = "navident"
                             name = "navident"
                             required = true
+                            option {
+                                value = ""
+                                selected = currentFrontendNavIdent == null
+                                +"Velg veileder"
+                            }
                             veilederOptions.forEach { option ->
                                 option {
                                     value = option.value
@@ -337,7 +347,7 @@ private data class NavVeiledersFlateOptions(
     val units: List<SelectOption>,
     val deltakerlister: List<SelectOption>,
     val tiltakskoder: List<SelectOption>,
-    val currentFrontendNavIdent: String,
+    val currentFrontendNavIdent: String?,
     val currentFrontendNavIdentLabel: String,
 )
 

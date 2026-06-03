@@ -1,10 +1,9 @@
 object FrontendAuthState {
-    private const val DEFAULT_NAV_IDENT = "Z123456"
-
     @Volatile
-    private var currentFrontendNavIdent: String = DEFAULT_NAV_IDENT
+    private var currentFrontendNavIdent: String? = null
 
-    fun currentNavIdent(): String = currentFrontendNavIdent
+    fun requireNavIdent(): String = currentFrontendNavIdent!!
+    fun getNavIdent(): String? = currentFrontendNavIdent
 
     fun updateNavIdent(navIdent: String) {
         currentFrontendNavIdent = navIdent

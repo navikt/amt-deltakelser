@@ -1,13 +1,8 @@
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.request.httpMethod
-import io.ktor.server.request.receiveText
-import io.ktor.server.request.uri
-import io.ktor.server.response.respondBytes
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -45,6 +40,15 @@ fun Route.localAmtDeltakerBffProxyRoutes() {
 }
 
 private suspend fun proxyBffRequest(call: ApplicationCall) {
+    if (FrontendAuthState.getNavIdent() == null) {
+        respondJson(
+            call = call,
+            status = HttpStatusCode.BadGateway,
+            body = """{"error":"frontend NAVident is not configured. Set it in sim-nav at /nav-veileders-flate"}""",
+        )
+        return
+    }
+
     val targetUri = buildTargetUri(call.request.uri)
     val accessToken = resolveLocalDevJwt()
 
