@@ -73,6 +73,25 @@ object NomRessurs : Table("nom_ressurs") {
     override val primaryKey = PrimaryKey(navident)
 }
 
+object AoOppfolgingskontorKontorTilhorighet : Table("ao_oppfolgingskontor_kontor_tilhorighet") {
+    val ident = text("ident")
+    val arbeidsoppfolgingKontorId = text("arbeidsoppfolging_kontor_id").nullable()
+    val arbeidsoppfolgingKontorNavn = text("arbeidsoppfolging_kontor_navn").nullable()
+    val createdAt = text("created_at")
+    val updatedAt = text("updated_at")
+
+    override val primaryKey = PrimaryKey(ident)
+}
+
+object VeilarbvedtaksstottePerson : Table("veilarbvedtaksstotte_person") {
+    val fnr = text("fnr")
+    val innsatsgruppe = text("innsatsgruppe").nullable()
+    val createdAt = text("created_at")
+    val updatedAt = text("updated_at")
+
+    override val primaryKey = PrimaryKey(fnr)
+}
+
 private fun Table.jsonb(name: String): Column<String> {
     return this.registerColumn<String>(name, JsonbTextColumnType())
 }

@@ -1,4 +1,5 @@
 import aooppfolgingskontor.aoOppfolgingskontorFakeRoutes
+import aooppfolgingskontor.AoOppfolgingskontorNorgKontorOption
 import brreg.BronnoysundSimulator
 import brreg.bronnoysundFakeRoutes
 import io.ktor.http.*
@@ -24,10 +25,19 @@ fun Application.simNavModule(
         unleashFakeRoutes()
         poaoTilgangFakeRoutes()
         veilarboppfolgingFakeRoutes(pdlSimulator)
-        veilarbvedtaksstotteFakeRoutes()
+        veilarbvedtaksstotteFakeRoutes(pdlSimulator)
         bronnoysundFakeRoutes(bronnoysundSimulator)
         norgFakeRoutes(norgSimulator)
-        aoOppfolgingskontorFakeRoutes()
+        aoOppfolgingskontorFakeRoutes(
+            pdlDataSource = pdlSimulator,
+            norgOptions = norgSimulator.allEnheter().map { enhet ->
+                AoOppfolgingskontorNorgKontorOption(
+                    kontorId = enhet.enhetNr,
+                    kontorNavn = enhet.navn,
+                    label = "${enhet.enhetNr} - ${enhet.navn}",
+                )
+            },
+        )
         pdlFakeRoutes(pdlSimulator)
         nomFakeRoutes(pdlSimulator)
         valpFakeRoutes(bronnoysundSimulator, kafkaPublisher)

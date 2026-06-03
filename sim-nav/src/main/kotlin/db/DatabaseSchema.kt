@@ -11,7 +11,14 @@ object DatabaseSchema {
     fun initialize() {
         try {
             transaction {
-                SchemaUtils.createMissingTablesAndColumns(ValpGjennomforing, ValpTiltakstype, VeilarboppfolgingPerson, NomRessurs)
+                SchemaUtils.createMissingTablesAndColumns(
+                    ValpGjennomforing,
+                    ValpTiltakstype,
+                    VeilarboppfolgingPerson,
+                    NomRessurs,
+                    AoOppfolgingskontorKontorTilhorighet,
+                    VeilarbvedtaksstottePerson,
+                )
                 println("✓ Database schema initialized")
             }
         } catch (e: Exception) {
