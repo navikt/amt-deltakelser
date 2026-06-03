@@ -15,25 +15,33 @@ const val VEILARBOPPFOLGING_PATH_PREFIX = "/veilarboppfolging"
 
 private const val VEILARBOPPFOLGING_PERSON_NEW_PATH = "$VEILARBOPPFOLGING_PATH_PREFIX/person/new"
 private const val VEILARBOPPFOLGING_PERSON_CREATE_PATH = "$VEILARBOPPFOLGING_PATH_PREFIX/person"
-private const val VEILARBOPPFOLGING_PERSON_EDIT_PATH = "$VEILARBOPPFOLGING_PATH_PREFIX/person/{fnr}/edit"
-private const val VEILARBOPPFOLGING_PERSON_DELETE_PATH = "$VEILARBOPPFOLGING_PATH_PREFIX/person/{fnr}/delete"
 
 private val veilarboppfolgingObjectMapper = jacksonObjectMapper().findAndRegisterModules()
 
 fun Route.veilarboppfolgingFakeRoutes(pdlDataSource: PdlDataSource) {
-    ensureVeilarboppfolgingSeedData(pdlDataSource)
-
-    val fnrOptions = pdlDataSource.allPersons().keys
+    val pdlPersons = pdlDataSource.allPersons()
+    val pdlNamesByFnr = pdlPersons
+        .mapValues { (_, person) ->
+            person.navn.firstOrNull()?.let {
+                listOfNotNull(it.fornavn, it.mellomnavn, it.etternavn).joinToString(" ")
+            }.orEmpty()
+        }
+    val fnrOptions = pdlPersons.keys
         .filter { it.matches(Regex("\\d{11}")) }
         .distinct()
         .sorted()
-    val validFnrs = fnrOptions.toSet()
+        .map { fnr ->
+            val navn = pdlNamesByFnr[fnr].orEmpty()
+            if (navn.isBlank()) FnrOption(fnr, fnr) else FnrOption(fnr, "$fnr - $navn")
+        }
+    val validFnrs = fnrOptions.map { it.fnr }.toSet()
 
     route(VEILARBOPPFOLGING_PATH_PREFIX) {
         get {
             call.respondVeilarboppfolgingOverview(
                 message = call.request.queryParameters["message"],
                 isError = call.request.queryParameters["isError"].toBoolean(),
+                pdlNamesByFnr = pdlNamesByFnr,
             )
         }
 
@@ -212,6 +220,7 @@ private fun findPersonForApi(
 private suspend fun ApplicationCall.respondVeilarboppfolgingOverview(
     message: String?,
     isError: Boolean,
+    pdlNamesByFnr: Map<String, String>,
 ) {
     val persons = fetchVeilarboppfolgingPersons()
 
@@ -222,9 +231,15 @@ private suspend fun ApplicationCall.respondVeilarboppfolgingOverview(
             isError = isError,
             newPersonPath = VEILARBOPPFOLGING_PERSON_NEW_PATH,
             editPersonPathPrefix = "$VEILARBOPPFOLGING_PATH_PREFIX/person",
+            pdlNamesByFnr = pdlNamesByFnr,
         )
     }
 }
+
+data class FnrOption(
+    val fnr: String,
+    val label: String,
+)
 
 private fun personEditPath(fnr: String): String = "$VEILARBOPPFOLGING_PATH_PREFIX/person/$fnr/edit"
 

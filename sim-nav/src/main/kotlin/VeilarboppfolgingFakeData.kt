@@ -7,14 +7,10 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
-import pdl.PdlDataSource
-import shared.loadJsonResource
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-private const val VEILARBOPPFOLGING_DATA_PATH = "/veilarboppfolging/veilarboppfolging-data.json"
-
-private val veilarboppfolgingSeedObjectMapper = jacksonObjectMapper().findAndRegisterModules()
+private val veilarboppfolgingObjectMapper = jacksonObjectMapper().findAndRegisterModules()
 
 data class VeilarboppfolgingPersonRow(
     val fnr: String,
@@ -35,10 +31,6 @@ data class VeilarboppfolgingPersonFormInput(
     val veilederIdent: String,
     val oppfolgingsperioder: List<OppfolgingsperiodeFixture>,
     val erUnderManuellOppfolging: Boolean,
-)
-
-data class VeilarboppfolgingFakeData(
-    val persons: Map<String, VeilarboppfolgingPersonFixture>,
 )
 
 data class VeilarboppfolgingPersonFixture(
@@ -76,7 +68,7 @@ fun insertVeilarboppfolgingPerson(form: VeilarboppfolgingPersonFormInput) {
         VeilarboppfolgingPerson.insert {
             it[fnr] = form.fnr
             it[veilederIdent] = form.veilederIdent
-            it[oppfolgingsperioder] = veilarboppfolgingSeedObjectMapper.writeValueAsString(form.oppfolgingsperioder)
+            it[oppfolgingsperioder] = veilarboppfolgingObjectMapper.writeValueAsString(form.oppfolgingsperioder)
             it[erUnderManuellOppfolging] = form.erUnderManuellOppfolging
             it[createdAt] = now
             it[updatedAt] = now
@@ -89,7 +81,7 @@ fun updateVeilarboppfolgingPerson(form: VeilarboppfolgingPersonFormInput): Boole
     val updatedRows = DbOperations.inTransaction {
         VeilarboppfolgingPerson.update({ VeilarboppfolgingPerson.fnr eq form.fnr }) {
             it[veilederIdent] = form.veilederIdent
-            it[oppfolgingsperioder] = veilarboppfolgingSeedObjectMapper.writeValueAsString(form.oppfolgingsperioder)
+            it[oppfolgingsperioder] = veilarboppfolgingObjectMapper.writeValueAsString(form.oppfolgingsperioder)
             it[erUnderManuellOppfolging] = form.erUnderManuellOppfolging
             it[updatedAt] = now
         }
@@ -106,41 +98,11 @@ fun deleteVeilarboppfolgingPerson(fnr: String): Boolean {
     return deletedRows > 0
 }
 
-fun ensureVeilarboppfolgingSeedData(pdlDataSource: PdlDataSource) {
-    val existingRows = DbOperations.inTransaction { VeilarboppfolgingPerson.selectAll().count() }
-    if (existingRows > 0L) {
-        return
-    }
-
-    val validFnrs = pdlDataSource.allPersons().keys
-        .asSequence()
-        .filter { it.matches(Regex("\\d{11}")) }
-        .toSet()
-
-    val seedData: VeilarboppfolgingFakeData = loadJsonResource(veilarboppfolgingSeedObjectMapper, VEILARBOPPFOLGING_DATA_PATH)
-    val now = LocalDateTime.now(ZoneOffset.UTC).toString()
-
-    DbOperations.inTransaction {
-        seedData.persons.forEach { (fnr, person) ->
-            if (validFnrs.contains(fnr)) {
-                VeilarboppfolgingPerson.insert {
-                    it[VeilarboppfolgingPerson.fnr] = fnr
-                    it[veilederIdent] = person.veilederIdent
-                    it[oppfolgingsperioder] = veilarboppfolgingSeedObjectMapper.writeValueAsString(person.oppfolgingsperioder)
-                    it[erUnderManuellOppfolging] = person.erUnderManuellOppfolging
-                    it[createdAt] = now
-                    it[updatedAt] = now
-                }
-            }
-        }
-    }
-}
-
 fun VeilarboppfolgingPersonRow.toFormDefaults(): VeilarboppfolgingPersonFormDefaults {
     return VeilarboppfolgingPersonFormDefaults(
         fnr = fnr,
         veilederIdent = veilederIdent,
-        oppfolgingsperioderJson = veilarboppfolgingSeedObjectMapper
+        oppfolgingsperioderJson = veilarboppfolgingObjectMapper
             .writerWithDefaultPrettyPrinter()
             .writeValueAsString(oppfolgingsperioder),
         erUnderManuellOppfolging = erUnderManuellOppfolging,
@@ -159,7 +121,7 @@ private fun ResultRow.toPersonRow(): VeilarboppfolgingPersonRow {
     return VeilarboppfolgingPersonRow(
         fnr = this[VeilarboppfolgingPerson.fnr],
         veilederIdent = this[VeilarboppfolgingPerson.veilederIdent],
-        oppfolgingsperioder = veilarboppfolgingSeedObjectMapper.readValue(this[VeilarboppfolgingPerson.oppfolgingsperioder]),
+        oppfolgingsperioder = veilarboppfolgingObjectMapper.readValue(this[VeilarboppfolgingPerson.oppfolgingsperioder]),
         erUnderManuellOppfolging = this[VeilarboppfolgingPerson.erUnderManuellOppfolging],
     )
 }

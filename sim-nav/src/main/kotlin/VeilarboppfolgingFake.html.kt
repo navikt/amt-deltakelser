@@ -6,6 +6,7 @@ fun HTML.veilarboppfolgingPage(
     isError: Boolean,
     newPersonPath: String,
     editPersonPathPrefix: String,
+    pdlNamesByFnr: Map<String, String>,
 ) {
     head {
         title("Veilarboppfolging - Simulator")
@@ -92,6 +93,7 @@ fun HTML.veilarboppfolgingPage(
                 thead {
                     tr {
                         th { +"Fnr" }
+                        th { +"PDL-navn" }
                         th { +"Veileder" }
                         th { +"Manuell oppfolging" }
                         th { +"Oppfolgingsperioder" }
@@ -104,6 +106,7 @@ fun HTML.veilarboppfolgingPage(
                             td {
                                 span(classes = "id") { +row.fnr }
                             }
+                            td { +(pdlNamesByFnr[row.fnr]?.takeIf { it.isNotBlank() } ?: "-") }
                             td { +row.veilederIdent }
                             td { +if (row.erUnderManuellOppfolging) "true" else "false" }
                             td { +row.oppfolgingsperioder.size.toString() }
@@ -125,7 +128,7 @@ fun HTML.veilarboppfolgingPersonFormPage(
     defaults: VeilarboppfolgingPersonFormDefaults,
     actionPath: String,
     backPath: String,
-    fnrOptions: List<String>,
+    fnrOptions: List<FnrOption>,
 ) {
     head {
         title("New person - Veilarboppfolging")
@@ -142,11 +145,11 @@ fun HTML.veilarboppfolgingPersonFormPage(
                 select {
                     name = "fnr"
                     required = true
-                    fnrOptions.forEachIndexed { index, fnr ->
+                    fnrOptions.forEachIndexed { index, option ->
                         option {
-                            value = fnr
-                            selected = defaults.fnr == fnr || (defaults.fnr.isBlank() && index == 0)
-                            +fnr
+                            value = option.fnr
+                            selected = defaults.fnr == option.fnr || (defaults.fnr.isBlank() && index == 0)
+                            +option.label
                         }
                     }
                 }
