@@ -11,7 +11,7 @@ object DatabaseSchema {
     fun initialize() {
         try {
             transaction {
-                SchemaUtils.create(ValpGjennomforing, ValpTiltakstype)
+                SchemaUtils.create(ValpGjennomforing, ValpTiltakstype, VeilarboppfolgingPerson)
                 println("✓ Database schema initialized")
             }
         } catch (e: Exception) {

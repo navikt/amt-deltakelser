@@ -23,7 +23,7 @@ fun Application.simNavModule(
         maskinportenFakeRoutes()
         unleashFakeRoutes()
         poaoTilgangFakeRoutes()
-        veilarboppfolgingFakeRoutes()
+        veilarboppfolgingFakeRoutes(pdlSimulator)
         veilarbvedtaksstotteFakeRoutes()
         bronnoysundFakeRoutes(bronnoysundSimulator)
         norgFakeRoutes(norgSimulator)

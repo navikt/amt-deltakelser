@@ -59,6 +59,7 @@ fun main() {
     println("Kafka UI: http://localhost:$SIM_NAV_HTTP_PORT/kafka")
     println("nav-veileders-flate launcher: http://localhost:$SIM_NAV_HTTP_PORT/nav-veileders-flate")
     println("Valp (database view): http://localhost:$SIM_NAV_HTTP_PORT$VALP_PATH_PREFIX")
+    println("Veilarboppfolging (database view): http://localhost:$SIM_NAV_HTTP_PORT$VEILARBOPPFOLGING_PATH_PREFIX")
     println("POST (form) http://localhost:$SIM_NAV_HTTP_PORT/kafka/tiltakstype/enkeltplass-amo")
     println("POST (form) http://localhost:$SIM_NAV_HTTP_PORT/kafka/gjennomforing/enkeltplass")
 

@@ -43,3 +43,14 @@ object ValpTiltakstype : Table("valp_tiltakstype") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object VeilarboppfolgingPerson : Table("veilarboppfolging_person") {
+    val fnr = text("fnr")
+    val veilederIdent = text("veileder_ident")
+    val oppfolgingsperioder = text("oppfolgingsperioder") // JSON-serialized list
+    val erUnderManuellOppfolging = bool("er_under_manuell_oppfolging")
+    val createdAt = text("created_at")
+    val updatedAt = text("updated_at")
+
+    override val primaryKey = PrimaryKey(fnr)
+}
+
