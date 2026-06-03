@@ -1,15 +1,21 @@
 import io.ktor.server.html.*
+import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.*
 import kotlinx.html.*
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import nom.fetchNomRessurser
 import pdl.PdlDataSource
 import sharedui.simNavHeader
 import sharedui.simNavFormPageStyles
 import sharedui.simNavHeaderStyles
 import valp.fetchGjennomforinger
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 private const val NAV_VEILEDERS_FLATE_LAUNCHER_PATH = "/nav-veileders-flate"
 private const val NAV_VEILEDERS_FLATE_URL = "http://localhost:3004"
+private const val NAV_VEILEDERS_FLATE_FRONTEND_AUTH_PATH = "$NAV_VEILEDERS_FLATE_LAUNCHER_PATH/frontend-auth"
 
 fun Route.navVeiledersFlateLauncherRoutes(
     pdlDataSource: PdlDataSource,
@@ -19,12 +25,37 @@ fun Route.navVeiledersFlateLauncherRoutes(
         val navVeiledersFlateOptions = loadNavVeiledersFlateOptions(pdlDataSource, norgDataSource)
         call.respondHtml {
             navVeiledersFlateLauncherPage(
+                message = call.request.queryParameters["message"],
+                isError = call.request.queryParameters["isError"].toBoolean(),
                 personOptions = navVeiledersFlateOptions.persons,
+                veilederOptions = navVeiledersFlateOptions.veiledere,
                 unitOptions = navVeiledersFlateOptions.units,
                 deltakerlisteOptions = navVeiledersFlateOptions.deltakerlister,
                 tiltakskodeOptions = navVeiledersFlateOptions.tiltakskoder,
+                currentFrontendNavIdent = navVeiledersFlateOptions.currentFrontendNavIdent,
+                currentFrontendNavIdentLabel = navVeiledersFlateOptions.currentFrontendNavIdentLabel,
             )
         }
+    }
+
+    post(NAV_VEILEDERS_FLATE_FRONTEND_AUTH_PATH) {
+        val submittedNavIdent = call.receiveParameters()["navident"]?.trim().orEmpty()
+        val validVeiledere = fetchNomRessurser().associateBy { it.navident }
+
+        if (submittedNavIdent.isBlank()) {
+            call.redirectToNavVeiledersFlateLauncher("Velg en NAVident", isError = true)
+            return@post
+        }
+
+        val veileder = validVeiledere[submittedNavIdent]
+        if (veileder == null) {
+            call.redirectToNavVeiledersFlateLauncher("Ukjent NAVident: $submittedNavIdent", isError = true)
+            return@post
+        }
+
+        FrontendAuthState.updateNavIdent(submittedNavIdent)
+        invalidateLocalDevJwtCache()
+        call.redirectToNavVeiledersFlateLauncher("Oppdatert frontend-NAVident til ${veileder.navident} - ${veileder.visningsnavn}")
     }
 }
 
@@ -32,6 +63,21 @@ private fun loadNavVeiledersFlateOptions(
     pdlDataSource: PdlDataSource,
     norgDataSource: NorgDataSource,
 ): NavVeiledersFlateOptions {
+    val veiledere = fetchNomRessurser()
+        .sortedBy { it.navident }
+        .map {
+            SelectOption(
+                value = it.navident,
+                label = "${it.navident} - ${it.visningsnavn}",
+            )
+        }
+
+    val currentFrontendNavIdent = FrontendAuthState.currentNavIdent()
+    val currentFrontendNavIdentLabel = veiledere
+        .firstOrNull { it.value == currentFrontendNavIdent }
+        ?.label
+        ?: currentFrontendNavIdent
+
     val pdlNamesByFnr = buildVeilarbvedtaksstotteFnrOptions(pdlDataSource).associate { option ->
         option.fnr to option.label.substringAfter(" - ").takeIf { it != option.fnr }.orEmpty()
     }
@@ -76,17 +122,25 @@ private fun loadNavVeiledersFlateOptions(
 
     return NavVeiledersFlateOptions(
         persons = persons,
+        veiledere = veiledere,
         units = units,
         deltakerlister = deltakerlister,
         tiltakskoder = tiltakskoder,
+        currentFrontendNavIdent = currentFrontendNavIdent,
+        currentFrontendNavIdentLabel = currentFrontendNavIdentLabel,
     )
 }
 
 private fun HTML.navVeiledersFlateLauncherPage(
+    message: String?,
+    isError: Boolean,
     personOptions: List<SelectOption>,
+    veilederOptions: List<SelectOption>,
     unitOptions: List<SelectOption>,
     deltakerlisteOptions: List<SelectOption>,
     tiltakskodeOptions: List<SelectOption>,
+    currentFrontendNavIdent: String,
+    currentFrontendNavIdentLabel: String,
 ) {
     head {
         title("Start nav-veileders-flate")
@@ -98,6 +152,12 @@ private fun HTML.navVeiledersFlateLauncherPage(
             unsafe {
                 +"""
                 .inline-choice { display: flex; align-items: center; gap: 0.5rem; }
+                .message { padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; }
+                .message--ok { background: #ebfbee; border: 1px solid #b2f2bb; }
+                .message--error { background: #fff5f5; border: 1px solid #ffc9c9; }
+                .frontend-auth-panel { border: 1px solid #d8d8d8; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; background: #fafafa; }
+                .frontend-auth-panel__current { font-weight: 600; margin-bottom: 0.75rem; }
+                .frontend-auth-panel form { border: 0; padding: 0; border-radius: 0; background: transparent; }
                 p { margin-top: 0; }
                 """.trimIndent()
             }
@@ -109,6 +169,40 @@ private fun HTML.navVeiledersFlateLauncherPage(
         main {
             h1 { +"Start nav-veileders-flate" }
             p { +"Velg personident, enhet og hvilken inngang du vil starte med." }
+
+            if (message != null) {
+                p(classes = "message ${if (isError) "message--error" else "message--ok"}") {
+                    +message
+                }
+            }
+
+            section(classes = "frontend-auth-panel") {
+                h2 { +"Frontend NAVident" }
+                p(classes = "frontend-auth-panel__current") {
+                    +"Aktiv NAVident i frontend-token: $currentFrontendNavIdentLabel"
+                }
+                form(action = NAV_VEILEDERS_FLATE_FRONTEND_AUTH_PATH, method = FormMethod.post) {
+                    div("field") {
+                        label {
+                            htmlFor = "navident"
+                            +"Innlogget veileder"
+                        }
+                        select {
+                            id = "navident"
+                            name = "navident"
+                            required = true
+                            veilederOptions.forEach { option ->
+                                option {
+                                    value = option.value
+                                    selected = option.value == currentFrontendNavIdent
+                                    +option.label
+                                }
+                            }
+                        }
+                    }
+                    button(type = ButtonType.submit) { +"Oppdater NAVident" }
+                }
+            }
 
             form(action = NAV_VEILEDERS_FLATE_URL, method = FormMethod.get) {
                 id = "nav-veileders-flate-form"
@@ -239,14 +333,25 @@ private fun HTML.navVeiledersFlateLauncherPage(
 
 private data class NavVeiledersFlateOptions(
     val persons: List<SelectOption>,
+    val veiledere: List<SelectOption>,
     val units: List<SelectOption>,
     val deltakerlister: List<SelectOption>,
     val tiltakskoder: List<SelectOption>,
+    val currentFrontendNavIdent: String,
+    val currentFrontendNavIdentLabel: String,
 )
 
 private data class SelectOption(
     val value: String,
     val label: String,
 )
+
+private suspend fun io.ktor.server.application.ApplicationCall.redirectToNavVeiledersFlateLauncher(
+    message: String,
+    isError: Boolean = false,
+) {
+    val encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8)
+    respondRedirect("$NAV_VEILEDERS_FLATE_LAUNCHER_PATH?message=$encodedMessage&isError=$isError")
+}
 
 
