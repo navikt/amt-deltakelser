@@ -15,8 +15,8 @@ import java.util.UUID
  * Kun den nyeste relevante deltakelsen for en person i en deltakerliste kan
  * endres. Eldre deltakelser låses for å bevare historikk.
  *
- * Slår opp i samme spissede SQL-spørring ([DeltakerRepository.getDeltakelserForLaaseSjekk])
- * — slim SELECT uten JOIN til deltakerliste/arrangør/tiltak/vedtaksdetaljer.
+ * Alle oppslag går gjennom samme spissede SQL-spørring
+ * ([DeltakerRepository.getDeltakelserForLaaseSjekk]) — både for enkelt-deltaker- og bulk-varianten.
  */
 class DeltakerLaaseService(
     private val deltakerRepository: DeltakerRepository,
@@ -26,23 +26,49 @@ class DeltakerLaaseService(
     /**
      * Sjekker om en [deltaker] er låst for endringer.
      *
+     * Tynn wrapper rundt [erLaastForEndringerForDeltakere] med én deltaker.
+     *
      * @return `true` dersom deltakeren er låst, ellers `false`
      */
-    fun erLaastForEndringer(deltaker: Deltaker): Boolean {
-        val deltakelser = deltakerRepository.getDeltakelserForLaaseSjekk(
-            personident = deltaker.navBruker.personident,
-            deltakerlisteId = deltaker.deltakerliste.id,
+    fun erLaastForEndringer(deltaker: Deltaker): Boolean = erLaastForEndringerForDeltakere(
+        deltakerIdToPersonIdentMap = mapOf(deltaker.id to deltaker.navBruker.personident),
+        gjennomforingId = deltaker.deltakerliste.id,
+    ).getValue(deltaker.id)
+
+    /**
+     * Bulk-variant. Beregner låsing for alle [deltakerIdToPersonIdentMap] i samme deltakerliste i én spisset
+     * SQL-spørring (slim SELECT, ingen JOIN til deltakerliste/arrangør/tiltak/vedtaksdetaljer).
+     * Egnet for store kall som tiltakskoordinator-lista.
+     *
+     * Forutsetter at alle deltakere hører til **samme deltakerliste**.
+     *
+     * @return Map fra deltaker-id til hvorvidt deltakeren er låst for endringer.
+     */
+    fun erLaastForEndringerForDeltakere(
+        deltakerIdToPersonIdentMap: Map<UUID, String>,
+        gjennomforingId: UUID,
+    ): Map<UUID, Boolean> {
+        if (deltakerIdToPersonIdentMap.isEmpty()) return emptyMap()
+
+        val deltakelserPerPerson = deltakerRepository.getDeltakelserForLaaseSjekk(
+            personIdenter = deltakerIdToPersonIdentMap.values.toSet(),
+            gjennomforingId = gjennomforingId,
         )
-        require(deltakelser.isNotEmpty()) {
-            "Fant ingen deltakelser i deltakerliste med deltaker-id ${deltaker.id}"
+
+        return deltakerIdToPersonIdentMap.entries.associate { (deltakerId, personIdent) ->
+            deltakerId to erLaastForEndringer(
+                deltakerId = deltakerId,
+                deltakelserForPerson = deltakelserPerPerson[personIdent].orEmpty(),
+            )
         }
-        return erLaastForEndringer(deltaker.id, deltakelser)
     }
 
     private fun erLaastForEndringer(
         deltakerId: UUID,
         deltakelserForPerson: List<DeltakelseLaaseInfo>,
     ): Boolean {
+        require(deltakelserForPerson.isNotEmpty()) { "Deltaker-id $deltakerId har ingen deltakelser" }
+
         // hvis det kun finnes en deltakelse på personen, så skal den ikke være låst
         deltakelserForPerson.singleOrNull()?.let { return false }
 

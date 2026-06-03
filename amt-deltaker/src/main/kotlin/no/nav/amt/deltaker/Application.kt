@@ -440,6 +440,7 @@ fun Application.module() {
         viewRepository = tiltakskoordinatorViewRepository,
         deltakerlisteRepository = deltakerlisteRepository,
         digitalBrukerService = digitalBrukerService,
+        deltakerLaaseService = deltakerLaaseService,
     )
 
     val consumers = listOf(

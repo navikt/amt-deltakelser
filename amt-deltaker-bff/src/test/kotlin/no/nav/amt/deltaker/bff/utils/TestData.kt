@@ -443,6 +443,7 @@ object TestData {
         harAktivtForslag: Boolean = false,
         sisteVurderingstype: Vurderingstype? = null,
         soktInnDato: LocalDate? = LocalDate.now().minusMonths(2),
+        kanEndres: Boolean = true,
     ) = TiltakskoordinatorDeltakerResponse(
         id = id,
         status = status,
@@ -453,6 +454,7 @@ object TestData {
         erManueltDeltMedArrangor = erManueltDeltMedArrangor,
         harAktivtForslag = harAktivtForslag,
         sisteVurderingstype = sisteVurderingstype,
+        kanEndres = kanEndres,
     )
 
     fun lagTiltakskoordinatorNavBrukerResponse(
