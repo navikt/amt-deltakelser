@@ -74,7 +74,6 @@ class TiltakskoordinatorServiceIntegrationTest {
         every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
         every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus =
@@ -110,7 +109,6 @@ class TiltakskoordinatorServiceIntegrationTest {
         every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
         every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus = DeltakerStatus(
@@ -148,7 +146,6 @@ class TiltakskoordinatorServiceIntegrationTest {
         every { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
         every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
         every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus =

@@ -43,7 +43,6 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
-import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -106,7 +105,6 @@ class VeilederApiTest : IntegrationTestBase() {
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Deny("Ikke tilgang", ""))
         every { deltakerRepository.get(any()) } returns Result.success(deltaker)
-        every { forslagRepository.get(any()) } returns Result.success(lagForslag())
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns
             PersonIdentResponse(deltaker.navBruker.personident).personident
         coEvery { amtDeltakerClient.getPersonidentForForslag(any()) } returns
@@ -488,7 +486,6 @@ class VeilederApiTest : IntegrationTestBase() {
 
             coEvery { amtDeltakerClient.getPersonidentForForslag(forslag.id) } returns
                 PersonIdentResponse(deltaker.navBruker.personident).personident
-            every { forslagRepository.get(forslag.id) } returns Result.success(forslag)
 
             val expected = setupMocksLocal(deltaker, deltaker)
 
@@ -557,14 +554,12 @@ class VeilederApiTest : IntegrationTestBase() {
     private fun setupMocks(
         deltaker: Deltaker,
         oppdatertDeltaker: Deltaker?,
-        forslag: List<Forslag> = emptyList(),
     ): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
         every { deltakerRepository.getMany(deltaker.navBruker.personident, deltaker.deltakerliste.id) } returns listOf(deltaker)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns forslag
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns

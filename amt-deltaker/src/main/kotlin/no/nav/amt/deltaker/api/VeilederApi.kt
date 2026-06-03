@@ -54,7 +54,7 @@ fun Routing.registerVeilederApi(
         post("/avvis-forslag/{forslagId}") {
             /*
              Avvis forslag kommer fra frontend som en egen type request, og ikke som en EndringRequest med forslagId (som godkjenning av forslag),
-             fordi godkjenning av forslag har en Endring som skal iverksettes på deltaker(oppdatere, publisere)
+             fordi godkjenning av forslag har en Endring som skal iverksettes på deltaker(oppdatere, publisere), det er ikke tilfellet ved avvisning av forslag
              */
             val forslagId = call.getForslagId()
             val request = call.receive<AvvisForslagRequest>()

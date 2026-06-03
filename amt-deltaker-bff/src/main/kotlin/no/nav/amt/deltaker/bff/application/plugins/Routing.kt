@@ -145,7 +145,6 @@ fun Application.configureRouting(
             pameldingService = pameldingService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
-            forslageRepository = forslagRepository,
             amtDistribusjonClient = amtDistribusjonClient,
             amtDeltakerClient = amtDeltakerClient,
             paameldingClient = paameldingClient,
