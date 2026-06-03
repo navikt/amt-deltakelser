@@ -9,7 +9,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import tjenester.auth.FrontendAuthState
 import tjenester.auth.MOCK_OAUTH2_ISSUER_ID
 import tjenester.auth.MOCK_OAUTH2_PORT
 import java.net.URI
@@ -22,9 +21,6 @@ import java.nio.charset.StandardCharsets
 const val LOCAL_BFF_PROXY_PORT = 9100
 const val LOCAL_BFF_PROXY_PATH_PREFIX = "/amt-deltaker-bff"
 const val LOCAL_BFF_SOURCE_HEADER = "x-local-app-source"
-private const val NAV_VEILEDERS_FLATE_SOURCE = "nav-veileders-flate"
-private const val NAV_VEILEDERS_CLIENT_ID = "frontend-client-id"
-private const val INNBYGGERS_CLIENT_ID = "frontend-innbygger-client-id"
 private const val LOCAL_BFF_TARGET_BASE_URL = "http://localhost:8080"
 private const val LOCAL_TOKEN_ENDPOINT = "http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/token"
 
@@ -58,19 +54,9 @@ fun Route.localAmtDeltakerBffProxyRoutes() {
 
 private suspend fun proxyBffRequest(call: ApplicationCall) {
     val requestSource = call.request.header(LOCAL_BFF_SOURCE_HEADER)?.takeIf { it.isNotBlank() } ?: "unknown"
-    val clientId = clientIdForSource(requestSource)
-
-    if (clientId == NAV_VEILEDERS_CLIENT_ID && FrontendAuthState.getNavIdent() == null) {
-        respondJson(
-            call = call,
-            status = HttpStatusCode.BadGateway,
-            body = """{"error":"frontend NAVident is not configured. Set it in sim-nav at /nav-veileders-flate"}""",
-        )
-        return
-    }
 
     val targetUri = buildTargetUri(call.request.uri)
-    val accessToken = resolveLocalDevJwt(clientId)
+    val accessToken = resolveLocalDevJwt(requestSource)
 
     if (accessToken == null) {
         respondJson(
@@ -142,9 +128,6 @@ private fun buildTargetUri(requestUri: String): URI {
     val normalizedPath = if (forwardedPath.startsWith('/')) forwardedPath else "/$forwardedPath"
     return URI.create("$LOCAL_BFF_TARGET_BASE_URL$normalizedPath")
 }
-
-private fun clientIdForSource(source: String): String =
-    if (source == NAV_VEILEDERS_FLATE_SOURCE) NAV_VEILEDERS_CLIENT_ID else INNBYGGERS_CLIENT_ID
 
 private suspend fun resolveLocalDevJwt(clientId: String): String? {
     synchronized(localDevJwtLock) {

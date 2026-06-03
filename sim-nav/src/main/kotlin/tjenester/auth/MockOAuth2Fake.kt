@@ -89,7 +89,7 @@ private class SimNavAzureTokenCallback : OAuth2TokenCallback {
                 "aud" to listOf("amt-deltaker", "amt-arrangor", "amt-person-service", "amt-distribusjon"),
             )
 
-            clientId == "frontend-client-id" -> {
+            clientId == "nav-veileders-flate" -> {
                 mapOf(
                     "NAVident" to FrontendAuthState.requireNavIdent(),
                     "oid" to "11111111-1111-1111-1111-111111111111",
@@ -98,7 +98,7 @@ private class SimNavAzureTokenCallback : OAuth2TokenCallback {
                 )
             }
 
-            clientId == "frontend-innbygger-client-id" -> {
+            clientId == "innbyggers-flate" -> {
                 mapOf(
                     "oid" to "11111111-1111-1111-1111-111111111111",
                     "groups" to emptyList<String>(),
