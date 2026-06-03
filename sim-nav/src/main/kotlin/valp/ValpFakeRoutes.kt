@@ -7,6 +7,7 @@ import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kafka.KafkaPublisher
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -18,7 +19,10 @@ private const val VALP_GJENNOMFORING_GRUPPE_CREATE_PATH = "$VALP_PATH_PREFIX/gje
 private const val VALP_TILTAKSTYPE_NEW_PATH = "$VALP_PATH_PREFIX/tiltakstype/new"
 private const val VALP_TILTAKSTYPE_CREATE_PATH = "$VALP_PATH_PREFIX/tiltakstype"
 
-fun Route.valpFakeRoutes(bronnoysundSimulator: BronnoysundSimulator) {
+fun Route.valpFakeRoutes(
+    bronnoysundSimulator: BronnoysundSimulator,
+    kafkaPublisher: KafkaPublisher,
+) {
     get(VALP_PATH_PREFIX) {
         call.respondValpOverview(
             message = call.request.queryParameters["message"],
@@ -58,11 +62,12 @@ fun Route.valpFakeRoutes(bronnoysundSimulator: BronnoysundSimulator) {
         try {
             val form = call.receiveParameters().toGjennomforingEnkeltplassFormInput()
             insertGjennomforing(form)
+            kafkaPublisher.publishGjennomforingEnkeltplass(form.toKafkaEnkeltplassPayload())
 
             call.redirectToValp("Created enkeltplass-gjennomforing ${form.id}")
         } catch (exception: Exception) {
             call.redirectToValp(
-                message = "Could not create enkeltplass-gjennomforing: ${exception.message ?: "unknown error"}",
+                message = "Could not create/publish enkeltplass-gjennomforing: ${exception.message ?: "unknown error"}",
                 isError = true,
             )
         }
@@ -77,11 +82,12 @@ fun Route.valpFakeRoutes(bronnoysundSimulator: BronnoysundSimulator) {
         try {
             val form = call.receiveParameters().toGjennomforingGruppeFormInput()
             insertGjennomforing(form)
+            kafkaPublisher.publishGjennomforingGruppe(form.toKafkaGruppePayload())
 
             call.redirectToValp("Created gruppe-gjennomforing ${form.id}")
         } catch (exception: Exception) {
             call.redirectToValp(
-                message = "Could not create gruppe-gjennomforing: ${exception.message ?: "unknown error"}",
+                message = "Could not create/publish gruppe-gjennomforing: ${exception.message ?: "unknown error"}",
                 isError = true,
             )
         }
@@ -96,11 +102,12 @@ fun Route.valpFakeRoutes(bronnoysundSimulator: BronnoysundSimulator) {
         try {
             val form = call.receiveParameters().toTiltakstypeFormInput()
             insertTiltakstype(form)
+            kafkaPublisher.publishTiltakstypeEnkeltplassArbeidsmarkedsopplaering(form.toKafkaTiltakstypePayload())
 
             call.redirectToValp("Created tiltakstype ${form.id}")
         } catch (exception: Exception) {
             call.redirectToValp(
-                message = "Could not create tiltakstype: ${exception.message ?: "unknown error"}",
+                message = "Could not create/publish tiltakstype: ${exception.message ?: "unknown error"}",
                 isError = true,
             )
         }
