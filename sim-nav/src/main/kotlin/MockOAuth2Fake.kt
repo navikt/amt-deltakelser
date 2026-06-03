@@ -35,6 +35,16 @@ fun startMockOAuth2Server(): MockOAuth2Server {
             ),
             RequestMapping(
                 requestParam = "scope",
+                match = "api://amt-distribusjon/.default",
+                claims = mapOf(
+                    "aud" to listOf("amt-distribusjon"),
+                    "sub" to "11111111-1111-1111-1111-111111111111",
+                    "oid" to "11111111-1111-1111-1111-111111111111",
+                    "azp" to "amt-deltaker",
+                ),
+            ),
+            RequestMapping(
+                requestParam = "scope",
                 match = "api://amt-enhetsregister/.default",
                 claims = mapOf(
                     "aud" to listOf("amt-enhetsregister"),
