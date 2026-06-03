@@ -56,7 +56,7 @@ class ResponseBuilder(
             harAktiveForslag = harAktivtForslag,
             erNyDeltaker = erNyDeltaker,
             harOppdateringFraNav = harOppdateringFraNav,
-            kanEndres = true,
+            kanEndres = kanEndres,
             soktInnDato = soktInnDato,
             startdato = startdato,
             sluttdato = sluttdato,

@@ -397,6 +397,7 @@ abstract class IntegrationTestBase {
             viewRepository = tiltakskoordinatorViewRepository,
             deltakerlisteRepository = mockk(),
             digitalBrukerService = digitalBrukerService,
+            deltakerLaaseService = deltakerLaaseService,
         )
     }
 

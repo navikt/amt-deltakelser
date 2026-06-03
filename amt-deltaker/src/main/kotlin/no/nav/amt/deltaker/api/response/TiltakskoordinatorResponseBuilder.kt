@@ -4,10 +4,12 @@ import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
+import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
+import java.util.UUID
 
 /**
  * Bygger spisset respons for tiltakskoordinator-lista (`POST /tiltakskoordinator/deltakere/{gjennomforingId}`).
@@ -25,6 +27,7 @@ class TiltakskoordinatorResponseBuilder(
     private val viewRepository: TiltakskoordinatorViewRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val digitalBrukerService: DigitalBrukerService,
+    private val deltakerLaaseService: DeltakerLaaseService,
 ) {
     /**
      * Henter gjennomføring og deltakere for en gjennomføring-id.
@@ -38,6 +41,12 @@ class TiltakskoordinatorResponseBuilder(
 
         val rows = viewRepository.getDeltakere(request = request)
 
+        // opprett et map med deltaker-id til laase-status for alle deltakere i lista i én spørring
+        val deltakerIdToErLaastForEndringerMap = deltakerLaaseService.erLaastForEndringerForDeltakere(
+            deltakerIdToPersonIdentMap = rows.associate { it.id to it.personident },
+            gjennomforingId = request.gjennomforingId,
+        )
+
         // Hent digital-status for deltakere uten fersk cache-entry
         // HandlingerKnapp i frontend vises kun for GjennomforingPameldingType.TRENGER_GODKJENNING
         val erDigitalFallbackMap = rows
@@ -50,6 +59,7 @@ class TiltakskoordinatorResponseBuilder(
             data = rows.map { row ->
                 buildDeltakerResponse(
                     row = row,
+                    deltakerIdToErLaastForEndringerMap = deltakerIdToErLaastForEndringerMap,
                     erDigitalFallbackMap = erDigitalFallbackMap,
                 )
             },
@@ -58,6 +68,7 @@ class TiltakskoordinatorResponseBuilder(
 
     private fun buildDeltakerResponse(
         row: TiltakskoordinatorDeltakerRow,
+        deltakerIdToErLaastForEndringerMap: Map<UUID, Boolean>,
         erDigitalFallbackMap: Map<String, Boolean>?,
     ): TiltakskoordinatorDeltakerResponse {
         val erDigital = row.erDigitalCached
@@ -65,6 +76,8 @@ class TiltakskoordinatorResponseBuilder(
             ?: true
 
         val ikkeDigitalOgManglerAdresse = !(erDigital || row.harAdresse)
+
+        val erLaastForEndringer = deltakerIdToErLaastForEndringerMap.getOrDefault(row.id, false)
 
         return TiltakskoordinatorDeltakerResponse(
             id = row.id,
@@ -85,6 +98,7 @@ class TiltakskoordinatorResponseBuilder(
             erManueltDeltMedArrangor = row.erManueltDeltMedArrangor,
             harAktivtForslag = row.harAktivtForslag,
             sisteVurderingstype = row.sisteVurderingstype,
+            kanEndres = !erLaastForEndringer,
         )
     }
 

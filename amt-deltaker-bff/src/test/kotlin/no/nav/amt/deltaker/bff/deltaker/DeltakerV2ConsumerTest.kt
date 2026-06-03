@@ -388,7 +388,7 @@ class DeltakerV2ConsumerTest {
 
                     is DeltakerEndring.Endring.EndreInnhold -> {
                         deltakerFraDb.deltakelsesinnhold.shouldNotBeNull().ledetekst shouldBe endring.ledetekst
-                        deltakerFraDb.deltakelsesinnhold!!.innhold shouldBe endring.innhold
+                        deltakerFraDb.deltakelsesinnhold.innhold shouldBe endring.innhold
                     }
 
                     is DeltakerEndring.Endring.EndreDeltakelsesmengde -> {
