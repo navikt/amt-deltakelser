@@ -57,6 +57,7 @@ fun main() {
     println("Set AZURE_OPENID_CONFIG_ISSUER=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID")
     println("Set AZURE_OPENID_CONFIG_JWKS_URI=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/jwks")
     println("Set AZURE_OPENID_CONFIG_TOKEN_ENDPOINT=http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/token")
+    println("Local BFF proxy: http://localhost:$SIM_NAV_HTTP_PORT/amt-deltaker-bff/*")
     println("Kafka UI: http://localhost:$SIM_NAV_HTTP_PORT/kafka")
     println("nav-veileders-flate launcher: http://localhost:$SIM_NAV_HTTP_PORT/nav-veileders-flate")
     println("Valp (database view): http://localhost:$SIM_NAV_HTTP_PORT$VALP_PATH_PREFIX")
