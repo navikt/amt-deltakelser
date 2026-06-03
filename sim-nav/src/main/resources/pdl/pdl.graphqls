@@ -533,7 +533,7 @@ type Folkeregisteridentifikator {
 }
 type Navspersonidentifikator {
     identifikasjonsnummer: String!
-    gyldigFraOgMed: Date #TODO Sett som required etter oppdatering i databasen
+    gyldigFraOgMed: Date #TODO Sett som tjenester.nav.veilarboppfolging.required etter oppdatering i databasen
     gyldigTilOgMed: Date
     metadata: Metadata!
 }

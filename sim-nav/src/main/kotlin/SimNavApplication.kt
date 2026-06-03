@@ -1,20 +1,32 @@
-import aooppfolgingskontor.aoOppfolgingskontorFakeRoutes
-import aooppfolgingskontor.AoOppfolgingskontorNorgKontorOption
-import brreg.BronnoysundSimulator
-import brreg.bronnoysundFakeRoutes
+import http.respondJson
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import kafka.KafkaPublisher
-import nom.nomFakeRoutes
-import pdl.pdlFakeRoutes
-import valp.valpFakeRoutes
+import tjenester.altinn3FakeRoutes
+import tjenester.brreg.bronnoysundFakeRoutes
+import tjenester.intern.localAmtDeltakerBffProxyRoutes
+import tjenester.intern.unleashFakeRoutes
+import tjenester.maskinportenFakeRoutes
+import tjenester.nav.aooppfolgingskontor.AoOppfolgingskontorNorgKontorOption
+import tjenester.nav.aooppfolgingskontor.aoOppfolgingskontorFakeRoutes
+import tjenester.nav.dokdistkanal.dokdistkanalFakeRoutes
+import tjenester.nav.krrProxyFakeRoutes
+import tjenester.nav.nom.nomFakeRoutes
+import tjenester.nav.norg.NorgSimulator
+import tjenester.nav.norg.norgFakeRoutes
+import tjenester.nav.pdl.PdlSimulator
+import tjenester.nav.pdl.pdlFakeRoutes
+import tjenester.nav.poaoTilgangFakeRoutes
+import tjenester.nav.valp.valpFakeRoutes
+import tjenester.nav.veilarboppfolging.veilarboppfolgingFakeRoutes
+import tjenester.nav.veilarbvedtaksstotte.veilarbvedtaksstotteFakeRoutes
 
 fun Application.simNavModule(
     kafkaPublisher: KafkaPublisher,
-    bronnoysundSimulator: BronnoysundSimulator,
-    pdlSimulator: pdl.PdlSimulator,
+    bronnoysundSimulator: tjenester.brreg.BronnoysundSimulator,
+    pdlSimulator: PdlSimulator,
     norgSimulator: NorgSimulator,
 ) {
     // install(RequestDebugPlugin)

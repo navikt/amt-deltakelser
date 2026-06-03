@@ -1,6 +1,6 @@
 package kafka
 
-import brreg.BronnoysundSimulator
+import tjenester.brreg.BronnoysundSimulator
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -27,7 +27,7 @@ private const val SISTE_TILTAKSTYPER_TOPIC = "team-mulighetsrommet.siste-tiltaks
 private const val KAFKA_SERVER: String = "localhost:9092"
 
 class KafkaPublisher(
-    private val bronnoysundSimulator: BronnoysundSimulator,
+    private val bronnoysundSimulator: tjenester.brreg.BronnoysundSimulator,
 ) {
     private val producer: Producer<UUID, String> = createProducer(KAFKA_SERVER)
     private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
