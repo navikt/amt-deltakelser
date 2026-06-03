@@ -17,7 +17,9 @@ fun HTML.valpPage(
     message: String?,
     isError: Boolean,
     newGjennomforingPath: String,
+    editGjennomforingPathPrefix: String,
     newTiltakstypePath: String,
+    editTiltakstypePathPrefix: String,
 ) {
     head {
         title("Valp - Simulator")
@@ -110,6 +112,7 @@ fun HTML.valpPage(
                             th { +"Navn" }
                             th { +"Start Dato" }
                             th { +"Slutt Dato" }
+                            th { +"Actions" }
                             th { +"ID" }
                         }
                     }
@@ -127,6 +130,9 @@ fun HTML.valpPage(
                                 td { +(row.navn ?: "-") }
                                 td { +(row.startDato ?: "-") }
                                 td { +(row.sluttDato ?: "-") }
+                                td {
+                                    a(href = "$editGjennomforingPathPrefix/${row.id}/edit") { +"Edit" }
+                                }
                                 td {
                                     span(classes = "id") {
                                         +row.id
@@ -158,6 +164,7 @@ fun HTML.valpPage(
                             th { +"Navn" }
                             th { +"Tiltakskode" }
                             th { +"Innsatsgrupper" }
+                            th { +"Actions" }
                             th { +"ID" }
                         }
                     }
@@ -170,6 +177,9 @@ fun HTML.valpPage(
                                     span(classes = "id") {
                                         +row.innsatsgrupper
                                     }
+                                }
+                                td {
+                                    a(href = "$editTiltakstypePathPrefix/${row.id}/edit") { +"Edit" }
                                 }
                                 td {
                                     span(classes = "id") {
@@ -273,6 +283,87 @@ fun HTML.valpTiltakstypeFormPage(
                 selectedValues = defaults.innsatsgrupper.map { it.name }.toSet(),
             )
             button(type = ButtonType.submit) { +"Lagre tiltakstype" }
+        }
+    }
+}
+
+fun HTML.valpGjennomforingEditFormPage(
+    id: java.util.UUID,
+    type: String,
+    defaults: GjennomforingFormDefaults,
+    actionPath: String,
+    arrangorOptions: List<Pair<String, String>>,
+    backPath: String,
+) {
+    head {
+        title("Edit gjennomforing - Valp")
+        formPageStyles()
+    }
+    body {
+        h1 { +"Rediger gjennomforing" }
+        p {
+            a(href = backPath) { +"<- Tilbake" }
+        }
+        p { +"ID: $id" }
+        p { +"Oppdatert tidspunkt settes automatisk ved lagring." }
+
+        form(action = actionPath, method = FormMethod.post) {
+            enumField("Tiltakskode", "tiltakskode", Tiltakskode.entries.map { it.name }, defaults.tiltakskode.name)
+            arrangorField("Arrangor", "arrangorOrganisasjonsnummer", arrangorOptions, defaults.arrangorOrganisasjonsnummer)
+            enumField("Pameldingstype", "pameldingType", GjennomforingPameldingType.entries.map { it.name }, defaults.pameldingType.name)
+            enumField("Status", "status", GjennomforingStatusType.entries.map { it.name }, defaults.status.name)
+            enumField("Oppstart", "oppstart", Oppstartstype.entries.map { it.name }, defaults.oppstart.name)
+            dateTimeField("Opprettet tidspunkt (UTC)", "opprettetTidspunkt", defaults.opprettetTidspunkt)
+            textField("Prisinformasjon (valgfri)", "prisinformasjon", defaults.prisinformasjon.orEmpty(), required = false)
+
+            if (type == "gruppe") {
+                textField("Navn", "navn", defaults.navn)
+                dateField("Startdato", "startDato", defaults.startDato)
+                dateField("Sluttdato (valgfri)", "sluttDato", defaults.sluttDato, required = false)
+                dateField(
+                    "Tilgjengelig for arrangor fra og med dato (valgfri)",
+                    "tilgjengeligForArrangorFraOgMedDato",
+                    defaults.tilgjengeligForArrangorFraOgMedDato,
+                    required = false,
+                )
+                booleanField("Apent for pamelding", "apentForPamelding", defaults.apentForPamelding)
+                textField("Antall plasser", "antallPlasser", defaults.antallPlasser.toString(), type = InputType.number)
+                textField("Deltidsprosent", "deltidsprosent", defaults.deltidsprosent.toString(), type = InputType.number)
+                textField("Oppmotested (valgfri)", "oppmoteSted", defaults.oppmoteSted, required = false)
+            }
+
+            button(type = ButtonType.submit) { +"Lagre endringer" }
+        }
+    }
+}
+
+fun HTML.valpTiltakstypeEditFormPage(
+    id: java.util.UUID,
+    defaults: TiltakstypeFormDefaults,
+    actionPath: String,
+    backPath: String,
+) {
+    head {
+        title("Edit tiltakstype - Valp")
+        formPageStyles()
+    }
+    body {
+        h1 { +"Rediger tiltakstype" }
+        p {
+            a(href = backPath) { +"<- Tilbake" }
+        }
+        p { +"ID: $id" }
+
+        form(action = actionPath, method = FormMethod.post) {
+            textField("Navn", "navn", defaults.navn)
+            enumField("Tiltakskode", "tiltakskode", Tiltakskode.entries.map { it.name }, defaults.tiltakskode.name)
+            multiEnumField(
+                labelText = "Innsatsgrupper",
+                name = "innsatsgrupper",
+                options = InnsatsgruppeV2.entries.map { it.name },
+                selectedValues = defaults.innsatsgrupper.map { it.name }.toSet(),
+            )
+            button(type = ButtonType.submit) { +"Lagre endringer" }
         }
     }
 }

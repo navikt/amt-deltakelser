@@ -89,6 +89,66 @@ fun Parameters.toGjennomforingGruppeFormInput(): GjennomforingFormInput {
     )
 }
 
+fun Parameters.toGjennomforingEnkeltplassEditFormInput(id: UUID): GjennomforingFormInput {
+    val now = OffsetDateTime.now(ZoneOffset.UTC)
+    return GjennomforingFormInput(
+        id = id,
+        type = "enkeltplass",
+        tiltakskode = required("tiltakskode").toEnum(),
+        arrangorOrganisasjonsnummer = required("arrangorOrganisasjonsnummer"),
+        pameldingType = required("pameldingType").toEnum(),
+        status = required("status").toEnum(),
+        oppstart = required("oppstart").toEnum(),
+        opprettetTidspunkt = required("opprettetTidspunkt").toOffsetDateTimeUtc(),
+        oppdatertTidspunkt = now,
+        prisinformasjon = optional("prisinformasjon"),
+        navn = null,
+        startDato = null,
+        sluttDato = null,
+        tilgjengeligForArrangorFraOgMedDato = null,
+        apentForPamelding = null,
+        antallPlasser = null,
+        deltidsprosent = null,
+        oppmoteSted = null,
+    )
+}
+
+fun Parameters.toGjennomforingGruppeEditFormInput(id: UUID): GjennomforingFormInput {
+    val now = OffsetDateTime.now(ZoneOffset.UTC)
+    return GjennomforingFormInput(
+        id = id,
+        type = "gruppe",
+        tiltakskode = required("tiltakskode").toEnum(),
+        arrangorOrganisasjonsnummer = required("arrangorOrganisasjonsnummer"),
+        pameldingType = required("pameldingType").toEnum(),
+        status = required("status").toEnum(),
+        oppstart = required("oppstart").toEnum(),
+        opprettetTidspunkt = required("opprettetTidspunkt").toOffsetDateTimeUtc(),
+        oppdatertTidspunkt = now,
+        prisinformasjon = optional("prisinformasjon"),
+        navn = required("navn"),
+        startDato = required("startDato").toLocalDate(),
+        sluttDato = optional("sluttDato")?.toLocalDate(),
+        tilgjengeligForArrangorFraOgMedDato = optional("tilgjengeligForArrangorFraOgMedDato")?.toLocalDate(),
+        apentForPamelding = required("apentForPamelding").toBooleanStrict(),
+        antallPlasser = required("antallPlasser").toInt(),
+        deltidsprosent = required("deltidsprosent").toDouble(),
+        oppmoteSted = optional("oppmoteSted"),
+    )
+}
+
+fun Parameters.toTiltakstypeEditFormInput(id: UUID): TiltakstypeFormInput {
+    return TiltakstypeFormInput(
+        id = id,
+        navn = required("navn"),
+        tiltakskode = required("tiltakskode").toEnum(),
+        innsatsgrupper = getAll("innsatsgrupper")
+            ?.map { it.toEnum<InnsatsgruppeV2>() }
+            ?.toSet()
+            ?: emptySet(),
+    )
+}
+
 fun Parameters.toTiltakstypeFormInput(): TiltakstypeFormInput {
     return TiltakstypeFormInput(
         id = required("id").toUuid(),
