@@ -1,27 +1,124 @@
 package nom
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.html.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import respondGraphqlFake
-import shared.loadJsonResource
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 const val NOM_PATH_PREFIX = "/nom"
 
-private const val NOM_DATA_PATH = "/nom/nom-data.json"
+private const val NOM_RESSURS_NEW_PATH = "$NOM_PATH_PREFIX/ressurs/new"
+private const val NOM_RESSURS_CREATE_PATH = "$NOM_PATH_PREFIX/ressurs"
 
 private val nomObjectMapper = jacksonObjectMapper().findAndRegisterModules()
-private val nomFakeData: NomFakeData = loadNomFakeData()
 private val nomGraphql = createNomGraphql(
     ressurserDataFetcher = { environment ->
         val where = environment.getArgument<Map<String, Any?>?>("where") ?: emptyMap()
         val navidenter = readNavidenter(where)
 
-        nomFakeData.toRessurserResult(navidenter)
+        toRessurserResult(navidenter)
     },
 )
 
 fun Route.nomFakeRoutes() {
     route(NOM_PATH_PREFIX) {
+        get {
+            call.respondNomOverview(
+                message = call.request.queryParameters["message"],
+                isError = call.request.queryParameters["isError"].toBoolean(),
+            )
+        }
+
+        get("ressurs/new") {
+            call.respondHtml {
+                nomRessursFormPage(
+                    defaults = defaultNomRessursFormDefaults(),
+                    actionPath = NOM_RESSURS_CREATE_PATH,
+                    backPath = NOM_PATH_PREFIX,
+                )
+            }
+        }
+
+        get("ressurs/{navident}/edit") {
+            val navident = call.pathNavidentOrRedirect() ?: return@get
+            val existing = fetchNomRessursByNavident(navident)
+            if (existing == null) {
+                call.redirectToNom("Could not find ressurs $navident", isError = true)
+                return@get
+            }
+
+            call.respondHtml {
+                nomRessursEditFormPage(
+                    defaults = existing.toFormDefaults(),
+                    actionPath = ressursEditPath(navident),
+                    backPath = NOM_PATH_PREFIX,
+                )
+            }
+        }
+
+        post("ressurs") {
+            try {
+                val form = call.receiveParameters().toNomRessursFormInput()
+                if (fetchNomRessursByNavident(form.navident) != null) {
+                    call.redirectToNom("Ressurs ${form.navident} already exists", isError = true)
+                    return@post
+                }
+
+                insertNomRessurs(form)
+                call.redirectToNom("Created ressurs ${form.navident}")
+            } catch (exception: Exception) {
+                call.redirectToNom(
+                    message = "Could not create ressurs: ${exception.message ?: "unknown error"}",
+                    isError = true,
+                )
+            }
+        }
+
+        post("ressurs/{navident}/edit") {
+            val navident = call.pathNavidentOrRedirect() ?: return@post
+            if (fetchNomRessursByNavident(navident) == null) {
+                call.redirectToNom("Could not find ressurs $navident", isError = true)
+                return@post
+            }
+
+            try {
+                val form = call.receiveParameters().toNomRessursFormInput(navident)
+                val updated = updateNomRessurs(form)
+                if (!updated) {
+                    call.redirectToNom("Could not update ressurs $navident", isError = true)
+                    return@post
+                }
+
+                call.redirectToNom("Updated ressurs ${form.navident}")
+            } catch (exception: Exception) {
+                call.redirectToNom(
+                    message = "Could not edit ressurs: ${exception.message ?: "unknown error"}",
+                    isError = true,
+                )
+            }
+        }
+
+        post("ressurs/{navident}/delete") {
+            val navident = call.pathNavidentOrRedirect() ?: return@post
+            if (isNomRessursUsedByVeilarboppfolging(navident)) {
+                call.redirectToNom("Could not delete $navident because it is in use by veilarboppfolging", isError = true)
+                return@post
+            }
+
+            val deleted = deleteNomRessurs(navident)
+            if (!deleted) {
+                call.redirectToNom("Could not delete ressurs $navident", isError = true)
+                return@post
+            }
+
+            call.redirectToNom("Deleted ressurs $navident")
+        }
 
         post("graphql") {
             respondGraphqlFake(call, nomObjectMapper, nomGraphql)
@@ -37,9 +134,11 @@ private fun readStringList(value: Any?): List<String>? {
     return entries.mapNotNull { it?.toString() }
 }
 
-private fun NomFakeData.toRessurserResult(navidenter: List<String>): List<Any?> =
-    navidenter.map { navident ->
-        val ressurs = resources[navident]
+private fun toRessurserResult(navidenter: List<String>): List<Any?> {
+    val resourcesByNavident = fetchNomRessurser().associateBy { it.navident }
+
+    return navidenter.map { navident ->
+        val ressurs = resourcesByNavident[navident]?.toRessursFixture()
 
         if (ressurs != null && ressurs.navident == navident) {
             mapOf(
@@ -55,42 +154,67 @@ private fun NomFakeData.toRessurserResult(navidenter: List<String>): List<Any?> 
             )
         }
     }
-
-
-private fun loadNomFakeData(): NomFakeData {
-    return loadJsonResource(nomObjectMapper, NOM_DATA_PATH)
 }
 
-private data class NomFakeData(
-    val resources: Map<String, NomRessursFixture>,
-)
+private suspend fun ApplicationCall.respondNomOverview(
+    message: String?,
+    isError: Boolean,
+) {
+    val ressurser = fetchNomRessurser()
 
-private data class NomRessursFixture(
-    val navident: String,
-    val visningsnavn: String,
-    val fornavn: String,
-    val etternavn: String,
-    val epost: String,
-    val primaryTelefon: String?,
-    val telefon: List<NomTelefonFixture>,
-    val orgTilknytning: List<NomOrgTilknytningFixture>,
-)
+    respondHtml {
+        nomPage(
+            ressurser = ressurser,
+            message = message,
+            isError = isError,
+            newRessursPath = NOM_RESSURS_NEW_PATH,
+            editRessursPathPrefix = "$NOM_PATH_PREFIX/ressurs",
+        )
+    }
+}
 
-private data class NomTelefonFixture(
-    val nummer: String,
-    val type: String,
-)
+private fun Parameters.toNomRessursFormInput(navidentOverride: String? = null): NomRessursFormInput {
+    val navident = (navidentOverride ?: required("navident")).uppercase()
+    require(navident.matches(Regex("[A-Z]\\d{6}"))) { "Field 'navident' must match pattern [A-Z]\\d{6}" }
 
-private data class NomOrgTilknytningFixture(
-    val gyldigFom: String,
-    val gyldigTom: String?,
-    val orgEnhet: NomOrgEnhetFixture,
-    val erDagligOppfolging: Boolean,
-)
+    return NomRessursFormInput(
+        navident = navident,
+        visningsnavn = required("visningsnavn"),
+        fornavn = required("fornavn"),
+        etternavn = required("etternavn"),
+        epost = required("epost"),
+        primaryTelefon = this["primaryTelefon"]?.trim()?.takeIf { it.isNotBlank() },
+        telefon = parseNomTelefonJson(required("telefon")),
+        orgTilknytning = parseNomOrgTilknytningJson(required("orgTilknytning")),
+    )
+}
 
-private data class NomOrgEnhetFixture(
-    val remedyEnhetId: String?,
-)
+private fun Parameters.required(name: String): String {
+    return this[name]?.trim()?.takeIf { it.isNotEmpty() }
+        ?: error("Missing required form field '$name'")
+}
+
+private suspend fun ApplicationCall.pathNavidentOrRedirect(): String? {
+    val navident = parameters["navident"]?.uppercase()
+    if (navident.isNullOrBlank()) {
+        redirectToNom("Missing path parameter 'navident'", isError = true)
+        return null
+    }
+
+    if (!navident.matches(Regex("[A-Z]\\d{6}"))) {
+        redirectToNom("Invalid navident '$navident'", isError = true)
+        return null
+    }
+
+    return navident
+}
+
+private suspend fun ApplicationCall.redirectToNom(message: String, isError: Boolean = false) {
+    val encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8)
+    respondRedirect("$NOM_PATH_PREFIX?message=$encodedMessage&isError=$isError")
+}
+
+private fun ressursEditPath(navident: String): String = "$NOM_PATH_PREFIX/ressurs/$navident/edit"
 
 
 

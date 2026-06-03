@@ -129,6 +129,7 @@ fun HTML.veilarboppfolgingPersonFormPage(
     actionPath: String,
     backPath: String,
     fnrOptions: List<FnrOption>,
+    veilederOptions: List<nom.NomVeilederOption>,
 ) {
     head {
         title("New person - Veilarboppfolging")
@@ -154,6 +155,7 @@ fun HTML.veilarboppfolgingPersonFormPage(
                     }
                 }
             }
+            veilederField(veilederOptions, defaults.veilederIdent)
             veilarboppfolgingFormFields(defaults)
             button(type = ButtonType.submit) { +"Lagre" }
         }
@@ -164,6 +166,7 @@ fun HTML.veilarboppfolgingPersonEditFormPage(
     defaults: VeilarboppfolgingPersonFormDefaults,
     actionPath: String,
     backPath: String,
+    veilederOptions: List<nom.NomVeilederOption>,
 ) {
     head {
         title("Edit person - Veilarboppfolging")
@@ -176,6 +179,7 @@ fun HTML.veilarboppfolgingPersonEditFormPage(
         p { +"Fnr: ${defaults.fnr}" }
 
         form(action = actionPath, method = FormMethod.post) {
+            veilederField(veilederOptions, defaults.veilederIdent)
             veilarboppfolgingFormFields(defaults)
             button(type = ButtonType.submit) { +"Lagre endringer" }
         }
@@ -183,14 +187,6 @@ fun HTML.veilarboppfolgingPersonEditFormPage(
 }
 
 private fun FORM.veilarboppfolgingFormFields(defaults: VeilarboppfolgingPersonFormDefaults) {
-    div("field") {
-        label { +"Veilederident" }
-        input(type = InputType.text, name = "veilederIdent") {
-            value = defaults.veilederIdent
-            required = true
-        }
-    }
-
     div("field") {
         label { +"Er under manuell oppfolging" }
         select {
@@ -216,6 +212,23 @@ private fun FORM.veilarboppfolgingFormFields(defaults: VeilarboppfolgingPersonFo
             name = "oppfolgingsperioder"
             required = true
             +defaults.oppfolgingsperioderJson
+        }
+    }
+}
+
+private fun FORM.veilederField(options: List<nom.NomVeilederOption>, selectedValue: String) {
+    div("field") {
+        label { +"Veilederident" }
+        select {
+            name = "veilederIdent"
+            required = true
+            options.forEachIndexed { index, option ->
+                option {
+                    value = option.navident
+                    selected = selectedValue == option.navident || (selectedValue.isBlank() && index == 0)
+                    +option.label
+                }
+            }
         }
     }
 }

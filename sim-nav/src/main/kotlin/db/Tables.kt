@@ -1,6 +1,9 @@
 package db
 
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
+import org.postgresql.util.PGobject
 
 /**
  * Database tables for sim-nav simulators.
@@ -52,5 +55,42 @@ object VeilarboppfolgingPerson : Table("veilarboppfolging_person") {
     val updatedAt = text("updated_at")
 
     override val primaryKey = PrimaryKey(fnr)
+}
+
+object NomRessurs : Table("nom_ressurs") {
+    val navident = text("navident")
+    val visningsnavn = text("visningsnavn")
+    val fornavn = text("fornavn")
+    val etternavn = text("etternavn")
+    val epost = text("epost")
+    val primaryTelefon = text("primary_telefon").nullable()
+    val telefon = jsonb("telefon")
+    val orgTilknytning = jsonb("org_tilknytning")
+    val createdAt = text("created_at")
+    val updatedAt = text("updated_at")
+
+    override val primaryKey = PrimaryKey(navident)
+}
+
+private fun Table.jsonb(name: String): Column<String> {
+    return this.registerColumn<String>(name, JsonbTextColumnType())
+}
+
+private class JsonbTextColumnType : ColumnType() {
+    override fun sqlType(): String = "JSONB"
+
+    override fun valueFromDB(value: Any): Any {
+        return when (value) {
+            is PGobject -> value.value ?: "null"
+            else -> value.toString()
+        }
+    }
+
+    override fun notNullValueToDB(value: Any): Any {
+        return PGobject().apply {
+            type = "jsonb"
+            this.value = value.toString()
+        }
+    }
 }
 

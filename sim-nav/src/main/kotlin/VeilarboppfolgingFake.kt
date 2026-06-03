@@ -6,6 +6,7 @@ import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import nom.fetchNomVeilederOptions
 import pdl.PdlDataSource
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -46,22 +47,25 @@ fun Route.veilarboppfolgingFakeRoutes(pdlDataSource: PdlDataSource) {
         }
 
         get("person/new") {
+            val nomVeilederOptions = fetchNomVeilederOptions()
             call.respondHtml {
                 veilarboppfolgingPersonFormPage(
                     defaults = VeilarboppfolgingPersonFormDefaults(
                         fnr = "",
-                        veilederIdent = "Z999999",
+                        veilederIdent = nomVeilederOptions.firstOrNull()?.navident.orEmpty(),
                         oppfolgingsperioderJson = "[]",
                         erUnderManuellOppfolging = false,
                     ),
                     actionPath = VEILARBOPPFOLGING_PERSON_CREATE_PATH,
                     backPath = VEILARBOPPFOLGING_PATH_PREFIX,
                     fnrOptions = fnrOptions,
+                    veilederOptions = nomVeilederOptions,
                 )
             }
         }
 
         get("person/{fnr}/edit") {
+            val nomVeilederOptions = fetchNomVeilederOptions()
             val fnr = call.pathFnrOrRedirect(validFnrs) ?: return@get
             val existing = fetchVeilarboppfolgingPersons().firstOrNull { it.fnr == fnr }
             if (existing == null) {
@@ -74,13 +78,15 @@ fun Route.veilarboppfolgingFakeRoutes(pdlDataSource: PdlDataSource) {
                     defaults = existing.toFormDefaults(),
                     actionPath = personEditPath(fnr),
                     backPath = VEILARBOPPFOLGING_PATH_PREFIX,
+                    veilederOptions = nomVeilederOptions,
                 )
             }
         }
 
         post("person") {
             try {
-                val form = call.receiveParameters().toVeilarboppfolgingPersonFormInput()
+                val validVeilederIdenter = fetchNomVeilederOptions().map { it.navident }.toSet()
+                val form = call.receiveParameters().toVeilarboppfolgingPersonFormInput(validVeilederIdenter)
                 if (!validFnrs.contains(form.fnr)) {
                     call.redirectToVeilarboppfolging("Fnr ${form.fnr} does not exist in PDL fake", isError = true)
                     return@post
@@ -109,7 +115,8 @@ fun Route.veilarboppfolgingFakeRoutes(pdlDataSource: PdlDataSource) {
             }
 
             try {
-                val form = call.receiveParameters().toVeilarboppfolgingPersonFormInput(fnr)
+                val validVeilederIdenter = fetchNomVeilederOptions().map { it.navident }.toSet()
+                val form = call.receiveParameters().toVeilarboppfolgingPersonFormInput(validVeilederIdenter, fnr)
                 val updated = updateVeilarboppfolgingPerson(form)
                 if (!updated) {
                     call.redirectToVeilarboppfolging("Could not update person with fnr $fnr", isError = true)
@@ -263,9 +270,16 @@ private suspend fun ApplicationCall.pathFnrOrRedirect(validFnrs: Set<String>): S
     return fnr
 }
 
-private fun Parameters.toVeilarboppfolgingPersonFormInput(fnrOverride: String? = null): VeilarboppfolgingPersonFormInput {
+private fun Parameters.toVeilarboppfolgingPersonFormInput(
+    validVeilederIdenter: Set<String>,
+    fnrOverride: String? = null,
+): VeilarboppfolgingPersonFormInput {
     val fnr = fnrOverride ?: required("fnr")
     val veilederIdent = required("veilederIdent")
+    if (!validVeilederIdenter.contains(veilederIdent)) {
+        error("Field 'veilederIdent' must reference an existing Nom ressurs")
+    }
+
     val erUnderManuellOppfolging = required("erUnderManuellOppfolging").toBooleanStrictOrNull()
         ?: error("Field 'erUnderManuellOppfolging' must be true or false")
     val oppfolgingsperioderJson = required("oppfolgingsperioder")
