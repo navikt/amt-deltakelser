@@ -1,13 +1,10 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.clients.DtoMappers.deltakerOppdateringResponseFromDeltaker
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
@@ -16,6 +13,8 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.Ulest
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
@@ -23,11 +22,8 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import java.time.LocalDateTime
-import java.util.UUID
 
 class TiltakskoordinatorServiceIntegrationTest {
     private val amtDeltakerClient = mockk<AmtDeltakerClient>()
@@ -65,97 +61,70 @@ class TiltakskoordinatorServiceIntegrationTest {
     @Test
     fun `tildelPlass - returnerer og lagrer deltaker med ny status`() = runTest {
         val deltaker = lagDeltaker()
-        val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
         val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
-        every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
-        every { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
-        every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
-        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
-        val nyStatus =
-            DeltakerStatus(UUID.randomUUID(), DeltakerStatus.Type.VENTER_PA_OPPSTART, null, LocalDateTime.now(), null, LocalDateTime.now())
+        val nyStatus = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
 
         coEvery {
             tiltaksKoordinatorClient.tildelPlass(listOf(deltaker.id), navAnsatt.navIdent)
-        } returns listOf(deltakerOppdateringResponseFromDeltaker(deltaker.copy(status = nyStatus)))
+        } returns listOf(lagTiltakskoordinatorDeltakerResponse(id = deltaker.id, status = nyStatus))
 
         val resultatFraAmtDeltaker = tiltakskoordinatorService.endreDeltakere(
             deltakerIder = listOf(deltaker.id),
             endring = EndringFraTiltakskoordinator.TildelPlass,
             endretAv = navAnsatt.navIdent,
         )
-        val resultDeltaker = resultatFraAmtDeltaker.first()
-        resultatFraAmtDeltaker.size shouldBe 1
-        resultDeltaker.status.id shouldNotBe deltaker.status.id
-        resultDeltaker.status.trimMss().copy(id = nyStatus.id) shouldBe nyStatus.trimMss()
 
-        coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.id) } returns navAnsatt
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
+        resultatFraAmtDeltaker.size shouldBe 1
+        val resultDeltaker = resultatFraAmtDeltaker.first()
+        resultDeltaker.id shouldBe deltaker.id
+        resultDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        resultDeltaker.feilkode shouldBe null
     }
 
     @Test
     fun `settPaaVenteliste - returnerer og lagrer deltaker med ny status`() = runTest {
         val deltaker = lagDeltaker()
-        val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
         val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
-        every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
-        every { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
-        every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
-        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
-        val nyStatus = DeltakerStatus(
-            id = UUID.randomUUID(),
-            type = DeltakerStatus.Type.VENTELISTE,
-            aarsak = null,
-            gyldigFra = LocalDateTime.now(),
-            gyldigTil = null,
-            opprettet = LocalDateTime.now(),
-        )
+        val nyStatus = lagDeltakerStatus(DeltakerStatus.Type.VENTELISTE)
 
         coEvery {
             tiltaksKoordinatorClient.settPaaVenteliste(listOf(deltaker.id), navAnsatt.navIdent)
-        } returns listOf(deltakerOppdateringResponseFromDeltaker(deltaker.copy(status = nyStatus)))
+        } returns listOf(lagTiltakskoordinatorDeltakerResponse(id = deltaker.id, status = nyStatus))
 
         val resultatFraAmtDeltaker = tiltakskoordinatorService.endreDeltakere(
             listOf(deltaker.id),
             EndringFraTiltakskoordinator.SettPaaVenteliste,
             navAnsatt.navIdent,
         )
-        val resultDeltaker = resultatFraAmtDeltaker.first()
+
         resultatFraAmtDeltaker.size shouldBe 1
-        resultDeltaker.status.id shouldNotBe deltaker.status.id
-        resultDeltaker.status.trimMss().copy(id = nyStatus.id) shouldBe nyStatus.trimMss()
+        val resultDeltaker = resultatFraAmtDeltaker.first()
+        resultDeltaker.id shouldBe deltaker.id
+        resultDeltaker.status.type shouldBe DeltakerStatus.Type.VENTELISTE
+        resultDeltaker.feilkode shouldBe null
     }
 
     @Test
     fun `settPaaVenteliste - en deltaker feiler i amt-deltaker - returnerer deltaker med feilkode`() = runTest {
         val deltaker = lagDeltaker()
-        val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
         val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
 
         TestRepository.insert(deltaker)
-        every { vurderingService.getSisteVurderingForDeltaker(deltaker.id) } returns null
-        every { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
-        every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
-        every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
-        val nyStatus =
-            DeltakerStatus(UUID.randomUUID(), DeltakerStatus.Type.VENTELISTE, null, LocalDateTime.now(), null, LocalDateTime.now())
+        val nyStatus = lagDeltakerStatus(DeltakerStatus.Type.VENTELISTE)
 
         coEvery {
             tiltaksKoordinatorClient.settPaaVenteliste(listOf(deltaker.id), navAnsatt.navIdent)
         } returns listOf(
-            deltakerOppdateringResponseFromDeltaker(
-                deltaker.copy(status = nyStatus),
+            lagTiltakskoordinatorDeltakerResponse(
+                id = deltaker.id,
+                status = nyStatus,
                 feilkode = DeltakerOppdateringFeilkode.UKJENT,
             ),
         )
@@ -165,18 +134,11 @@ class TiltakskoordinatorServiceIntegrationTest {
             EndringFraTiltakskoordinator.SettPaaVenteliste,
             navAnsatt.navIdent,
         )
-        val resultDeltaker = resultatFraAmtDeltaker.first()
-        resultatFraAmtDeltaker.size shouldBe 1
-        resultatFraAmtDeltaker.first().feilkode shouldBe DeltakerOppdateringFeilkode.UKJENT
 
-        resultDeltaker.status.id shouldNotBe deltaker.status.id
-        resultDeltaker.status.trimMss().copy(id = nyStatus.id) shouldBe nyStatus.trimMss()
+        resultatFraAmtDeltaker.size shouldBe 1
+        val resultDeltaker = resultatFraAmtDeltaker.first()
+        resultDeltaker.id shouldBe deltaker.id
+        resultDeltaker.status.type shouldBe DeltakerStatus.Type.VENTELISTE
+        resultDeltaker.feilkode shouldBe DeltakerOppdateringFeilkode.UKJENT
     }
 }
-
-fun LocalDateTime.atStartOfDay(): LocalDateTime = this.toLocalDate().atStartOfDay()
-
-fun DeltakerStatus.trimMss() = this.copy(
-    opprettet = this.opprettet.atStartOfDay(),
-    gyldigFra = this.gyldigFra.atStartOfDay(),
-)

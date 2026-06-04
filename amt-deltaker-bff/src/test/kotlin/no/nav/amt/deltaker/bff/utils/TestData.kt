@@ -16,6 +16,7 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.toInnhold
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -444,6 +445,7 @@ object TestData {
         sisteVurderingstype: Vurderingstype? = null,
         soktInnDato: LocalDate? = LocalDate.now().minusMonths(2),
         kanEndres: Boolean = true,
+        feilkode: DeltakerOppdateringFeilkode? = null,
     ) = TiltakskoordinatorDeltakerResponse(
         id = id,
         status = status,
@@ -455,6 +457,7 @@ object TestData {
         harAktivtForslag = harAktivtForslag,
         sisteVurderingstype = sisteVurderingstype,
         kanEndres = kanEndres,
+        feilkode = feilkode,
     )
 
     fun lagTiltakskoordinatorNavBrukerResponse(

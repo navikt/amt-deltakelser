@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator
 
-import no.nav.amt.deltaker.bff.clients.DtoMappers.toDeltakeroppdatering
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.model.Deltaker
@@ -13,7 +12,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDe
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
-import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.util.UUID
@@ -35,17 +34,11 @@ class TiltakskoordinatorService(
         deltakerIder: List<UUID>,
         endring: EndringFraTiltakskoordinator.Endring,
         endretAv: String,
-    ): List<TiltakskoordinatorsDeltaker> {
-        val oppdaterteDeltakereResponses = when (endring) {
-            EndringFraTiltakskoordinator.SettPaaVenteliste -> tiltaksKoordinatorClient.settPaaVenteliste(deltakerIder, endretAv)
-            EndringFraTiltakskoordinator.DelMedArrangor -> tiltaksKoordinatorClient.delMedArrangor(deltakerIder, endretAv)
-            EndringFraTiltakskoordinator.TildelPlass -> tiltaksKoordinatorClient.tildelPlass(deltakerIder, endretAv)
-            is EndringFraTiltakskoordinator.Avslag -> throw NotImplementedError("Batch håndtering for avslag er ikke støttet")
-        }
-        val deltakerOppdateringer = oppdaterteDeltakereResponses.map { it.toDeltakeroppdatering() }
-        deltakerService.oppdaterDeltakere(deltakerOppdateringer)
-
-        return oppdaterteDeltakereResponses.toTiltakskoordinatorsDeltakere()
+    ): List<TiltakskoordinatorDeltakerResponse> = when (endring) {
+        EndringFraTiltakskoordinator.SettPaaVenteliste -> tiltaksKoordinatorClient.settPaaVenteliste(deltakerIder, endretAv)
+        EndringFraTiltakskoordinator.DelMedArrangor -> tiltaksKoordinatorClient.delMedArrangor(deltakerIder, endretAv)
+        EndringFraTiltakskoordinator.TildelPlass -> tiltaksKoordinatorClient.tildelPlass(deltakerIder, endretAv)
+        is EndringFraTiltakskoordinator.Avslag -> throw NotImplementedError("Batch håndtering for avslag er ikke støttet")
     }
 
     suspend fun giAvslag(
@@ -86,32 +79,6 @@ class TiltakskoordinatorService(
                     null,
                     ikkeDigitalOgManglerAdresse,
                     forslag.filter { forslag -> forslag.deltakerId == it.id },
-                    ulesteHendelser,
-                )
-            }.filterNot { it.skalSkjules() }
-    }
-
-    private suspend fun List<DeltakerOppdateringResponse>.toTiltakskoordinatorsDeltakere(): List<TiltakskoordinatorsDeltaker> {
-        val deltakere = deltakerRepository.getMany(this.map { it.id })
-        val navEnheter = navEnhetService.hentEnheter(deltakere.mapNotNull { it.navBruker.navEnhetId })
-        val navVeiledere = navAnsattService.hentAnsatte(deltakere.mapNotNull { it.navBruker.navVeilederId })
-        val forslag = forslagRepository.getForDeltakere(this.map { it.id })
-
-        return deltakere
-            .map { deltaker ->
-                val sisteVurdering = vurderingService.getSisteVurderingForDeltaker(deltaker.id)
-                var ikkeDigitalOgManglerAdresse = false
-                if (deltaker.navBruker.adresse == null) {
-                    ikkeDigitalOgManglerAdresse = !amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident)
-                }
-                val ulesteHendelser = ulestHendelseRepository.getForDeltaker(deltaker.id)
-                deltaker.toTiltakskoordinatorsDeltaker(
-                    sisteVurdering,
-                    navEnheter[deltaker.navBruker.navEnhetId],
-                    navVeiledere[deltaker.navBruker.navVeilederId],
-                    first { it.id == deltaker.id }.feilkode,
-                    ikkeDigitalOgManglerAdresse,
-                    forslag.filter { forslag -> forslag.deltakerId == deltaker.id },
                     ulesteHendelser,
                 )
             }.filterNot { it.skalSkjules() }

@@ -9,10 +9,8 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
-import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
 import no.nav.amt.deltaker.extensions.getGjennomforingId
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
-import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
@@ -24,13 +22,11 @@ fun Routing.registerTiltakskoordinatorApi(
     deltakerlisteRepository: DeltakerlisteRepository,
     deltakerResponseBuilder: DeltakerResponseBuilder,
     tiltaksansvarligService: TiltaksansvarligService,
-    deltakerHistorikkService: DeltakerHistorikkService,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
 ) {
-    fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
+    fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResponse() = this.map {
         ResponseMapper.fromDeltakerOppdateringResult(
             oppdateringResult = it,
-            historikk = deltakerHistorikkService.getForDeltaker(it.deltaker.id),
         )
     }
 
@@ -68,7 +64,7 @@ fun Routing.registerTiltakskoordinatorApi(
                         deltakerIder = request.deltakerIder.toSet(),
                         endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
                         endretAvIdent = request.endretAv,
-                    ).toDeltakerOppdateringResult()
+                    ).toDeltakerOppdateringResponse()
                 call.respond(oppdaterteDeltakere)
             }
 
@@ -80,7 +76,7 @@ fun Routing.registerTiltakskoordinatorApi(
                         deltakerIder = deltakerIder.toSet(),
                         endringsType = EndringFraTiltakskoordinator.TildelPlass,
                         endretAvIdent = request.endretAv,
-                    ).toDeltakerOppdateringResult()
+                    ).toDeltakerOppdateringResponse()
 
                 call.respond(oppdaterteDeltakere)
             }
@@ -93,7 +89,7 @@ fun Routing.registerTiltakskoordinatorApi(
                         deltakerIder = deltakerIder.toSet(),
                         endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
                         endretAvIdent = request.endretAv,
-                    ).toDeltakerOppdateringResult()
+                    ).toDeltakerOppdateringResponse()
 
                 call.respond(oppdaterteDeltakere)
             }
@@ -105,7 +101,7 @@ fun Routing.registerTiltakskoordinatorApi(
                         deltakerId = request.deltakerId,
                         avslag = request.avslag,
                         endretAv = request.endretAv,
-                    ).toDeltakerOppdatering(deltakerHistorikkService.getForDeltaker(request.deltakerId))
+                    ).let { ResponseMapper.fromDeltakerOppdateringResult(it) }
 
                 call.respond(deltakeroppdatering)
             }

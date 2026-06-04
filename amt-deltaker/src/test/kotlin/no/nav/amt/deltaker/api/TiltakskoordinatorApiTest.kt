@@ -13,7 +13,7 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
-import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper.toDeltakerOppdatering
+import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
@@ -31,7 +31,6 @@ import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltake
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
@@ -178,17 +177,16 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             ),
             endretAv = "Nav Veiledersen",
         )
-
+        val deltakeroppdateringResult = DeltakerOppdateringResult(deltaker, true, null)
         coEvery {
             tiltaksansvarligService.giAvslag(request.deltakerId, request.avslag, request.endretAv)
-        } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        } returns deltakeroppdateringResult
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/gi-avslag") { postRequest(request) }.apply {
                 status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(
-                    deltaker.toDeltakerOppdatering(historikk),
+                    ResponseMapper.fromDeltakerOppdateringResult(deltakeroppdateringResult),
                 )
             }
         }
@@ -197,12 +195,11 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `del-med-arrangor - har tilgang - returnerer 200`() {
         coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(emptyList())))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse()))
             }
         }
     }
@@ -210,7 +207,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
         coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),
@@ -220,7 +216,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         withTestApplicationContext { client ->
             client.post("$API_PATH/sett-paa-venteliste") { postRequest(request) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(historikk)))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse()))
             }
         }
     }
@@ -228,7 +224,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
         coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),
@@ -238,7 +233,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         withTestApplicationContext { client ->
             client.post("$API_PATH/tildel-plass") { postRequest(request) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse(historikk)))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse()))
             }
         }
     }
@@ -246,7 +241,6 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     companion object {
         private const val API_PATH = "/tiltakskoordinator/deltakere"
         private val deltaker = TestData.lagDeltaker()
-        private val historikk = emptyList<DeltakerHistorikk>()
 
         private val delMedArrangorRequest = DelMedArrangorRequest(
             endretAv = "koordinator",
@@ -259,22 +253,19 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             exception = null,
         )
 
-        private fun Deltaker.toDeltakerResponse(
-            historikk: List<DeltakerHistorikk>,
-            feilkode: DeltakerOppdateringFeilkode? = null,
-        ): DeltakerOppdateringResponse = DeltakerOppdateringResponse(
-            id = id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = deltakelsesinnhold,
-            status = status,
-            historikk = historikk,
-            sistEndret = sistEndret,
-            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            feilkode = feilkode,
-        )
+        private fun Deltaker.toDeltakerResponse(feilkode: DeltakerOppdateringFeilkode? = null): DeltakerOppdateringResponse =
+            DeltakerOppdateringResponse(
+                id = id,
+                startdato = startdato,
+                sluttdato = sluttdato,
+                dagerPerUke = dagerPerUke,
+                deltakelsesprosent = deltakelsesprosent,
+                bakgrunnsinformasjon = bakgrunnsinformasjon,
+                deltakelsesinnhold = deltakelsesinnhold,
+                status = status,
+                sistEndret = sistEndret,
+                erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+                feilkode = feilkode,
+            )
     }
 }

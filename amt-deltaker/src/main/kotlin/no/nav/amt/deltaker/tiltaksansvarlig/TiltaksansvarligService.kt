@@ -35,17 +35,17 @@ class TiltaksansvarligService(
         deltakerId: UUID,
         avslag: EndringFraTiltakskoordinator.Avslag,
         endretAv: String,
-    ): Deltaker {
-        val firstDeltakerOppdateringResult = oppdaterDeltakere(
+    ): DeltakerOppdateringResult {
+        val oppdateringResult = oppdaterDeltakere(
             deltakerIder = setOf(deltakerId),
             endringsType = avslag,
             endretAvIdent = endretAv,
         ).first()
 
-        return if (firstDeltakerOppdateringResult.isSuccess) {
-            firstDeltakerOppdateringResult.deltaker
+        return if (oppdateringResult.isSuccess) {
+            oppdateringResult
         } else {
-            throw firstDeltakerOppdateringResult.exception!!
+            throw oppdateringResult.exception!!
         }
     }
 

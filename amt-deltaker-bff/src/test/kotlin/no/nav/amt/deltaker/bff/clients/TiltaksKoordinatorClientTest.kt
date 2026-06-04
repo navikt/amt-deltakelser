@@ -12,10 +12,8 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
-import no.nav.amt.deltaker.bff.utils.toDeltakeroppdateringResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
-import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
@@ -70,7 +68,7 @@ class TiltaksKoordinatorClientTest {
     inner class DelMedArrangor {
         val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/del-med-arrangor"
         val expectedErrorMessage = "Kunne ikke dele-med-arrangor i amt-deltaker."
-        val delMedArrangorLambda: suspend (TiltakskoordinatorClient) -> List<DeltakerOppdateringResponse> =
+        val delMedArrangorLambda: suspend (TiltakskoordinatorClient) -> List<TiltakskoordinatorDeltakerResponse> =
             { client ->
                 client.delMedArrangor(
                     deltakerIder = listOf(deltakerInTest.id),
@@ -86,10 +84,10 @@ class TiltaksKoordinatorClientTest {
         }
 
         @Test
-        fun `skal returnere liste med DeltakeroppdateringResponse`() {
+        fun `skal returnere liste med TiltakskoordinatorDeltakerResponse`() {
             runHappyPathTest(
                 expectedUrl,
-                listOf(deltakerInTest.toDeltakeroppdateringResponse()),
+                listOf(lagTiltakskoordinatorDeltakerResponse(id = deltakerInTest.id)),
                 delMedArrangorLambda,
             )
         }

@@ -10,7 +10,7 @@ class ResponseBuilder(
      * Bygger liste-respons fra den spissede [TiltakskoordinatorDeltakerResponse] fra amt-deltaker.
      * Henter ulestehendelser i bulk for å unngå N+1-spørringer.
      */
-    fun toDeltakerResponses(
+    fun toDeltakereResponse(
         deltakere: List<TiltakskoordinatorDeltakerResponse>,
         kanSeInnbyggersNavn: (TiltakskoordinatorDeltakerResponse) -> Boolean,
     ): List<DeltakerResponse> {
@@ -51,7 +51,7 @@ class ResponseBuilder(
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
             navEnhet = navBruker.navEnhet,
             erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            feilkode = null,
+            feilkode = feilkode,
             ikkeDigitalOgManglerAdresse = navBruker.ikkeDigitalOgManglerAdresse,
             harAktiveForslag = harAktivtForslag,
             erNyDeltaker = erNyDeltaker,

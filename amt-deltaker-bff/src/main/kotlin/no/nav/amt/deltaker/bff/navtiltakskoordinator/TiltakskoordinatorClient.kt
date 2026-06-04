@@ -9,7 +9,6 @@ import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
-import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
@@ -44,7 +43,7 @@ class TiltakskoordinatorClient(
     suspend fun delMedArrangor(
         deltakerIder: List<UUID>,
         endretAv: String,
-    ): List<DeltakerOppdateringResponse> = performPost(
+    ): List<TiltakskoordinatorDeltakerResponse> = performPost(
         "tiltakskoordinator/deltakere/del-med-arrangor",
         DelMedArrangorRequest(endretAv, deltakerIder),
     ).failIfNotSuccess("Kunne ikke dele-med-arrangor i amt-deltaker. ").body()
@@ -52,7 +51,7 @@ class TiltakskoordinatorClient(
     suspend fun tildelPlass(
         deltakerIder: List<UUID>,
         endretAv: String,
-    ): List<DeltakerOppdateringResponse> = performPost(
+    ): List<TiltakskoordinatorDeltakerResponse> = performPost(
         "tiltakskoordinator/deltakere/tildel-plass",
         DeltakereRequest(deltakerIder, endretAv),
     ).failIfNotSuccess("Kunne ikke tildele plass i amt-deltaker.").body()
@@ -60,7 +59,7 @@ class TiltakskoordinatorClient(
     suspend fun settPaaVenteliste(
         deltakerIder: List<UUID>,
         endretAv: String,
-    ): List<DeltakerOppdateringResponse> = performPost(
+    ): List<TiltakskoordinatorDeltakerResponse> = performPost(
         "tiltakskoordinator/deltakere/sett-paa-venteliste",
         DeltakereRequest(deltakerIder, endretAv),
     ).failIfNotSuccess("Kunne ikke sette på venteliste i amt-deltaker.").body()
@@ -68,7 +67,7 @@ class TiltakskoordinatorClient(
     suspend fun giAvslag(
         avslagRequest: AvslagRequest,
         endretAv: String,
-    ): Deltakeroppdatering {
+    ): Deltakeroppdatering { // TODO: Endre denne også
         val requestBody = GiAvslagRequest(
             deltakerId = avslagRequest.deltakerId,
             avslag = EndringFraTiltakskoordinator.Avslag(

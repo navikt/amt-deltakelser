@@ -82,7 +82,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navAnsattAzureId = call.getNavAnsattAzureId()
 
                 val deltakere = responseBuilder
-                    .toDeltakerResponses(
+                    .toDeltakereResponse(
                         deltakere = deltakerResponses,
                         kanSeInnbyggersNavn = { deltaker ->
                             tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
@@ -132,18 +132,18 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     endretAv = navIdent,
                 )
 
-                val deltakereResponse = oppdaterteDeltakere
-                    .map { deltaker ->
-                        deltaker.toDeltakerResponse(
-                            kanSeInnbyggersNavn = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
-                                navAnsattAzureId = call.getNavAnsattAzureId(),
-                                erSkjermet = deltaker.navBruker.erSkjermet,
-                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                            ),
+                val response = responseBuilder.toDeltakereResponse(
+                    deltakere = oppdaterteDeltakere,
+                    kanSeInnbyggersNavn = { deltaker ->
+                        tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                            navAnsattAzureId = call.getNavAnsattAzureId(),
+                            erSkjermet = deltaker.navBruker.erSkjermet,
+                            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                         )
-                    }
+                    },
+                )
 
-                call.respond(deltakereResponse)
+                call.respond(response)
             }
 
             post("/deltakere/sett-paa-venteliste") {
@@ -162,17 +162,18 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     endretAv = navIdent,
                 )
 
-                val deltakereResponse = oppdaterteDeltakere.map { deltaker ->
-                    deltaker.toDeltakerResponse(
-                        kanSeInnbyggersNavn = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                val response = responseBuilder.toDeltakereResponse(
+                    deltakere = oppdaterteDeltakere,
+                    kanSeInnbyggersNavn = { deltaker ->
+                        tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
                             navAnsattAzureId = call.getNavAnsattAzureId(),
                             erSkjermet = deltaker.navBruker.erSkjermet,
                             adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                        ),
-                    )
-                }
+                        )
+                    },
+                )
 
-                call.respond(deltakereResponse)
+                call.respond(response)
             }
 
             post("/deltakere/del-med-arrangor") {
@@ -190,17 +191,20 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                         deltakerIder = deltakerIder,
                         endring = EndringFraTiltakskoordinator.DelMedArrangor,
                         endretAv = navIdent,
-                    ).map { deltaker ->
-                        deltaker.toDeltakerResponse(
-                            kanSeInnbyggersNavn = tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
-                                navAnsattAzureId = call.getNavAnsattAzureId(),
-                                erSkjermet = deltaker.navBruker.erSkjermet,
-                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                            ),
-                        )
-                    }
+                    )
 
-                call.respond(oppdaterteDeltakere)
+                val response = responseBuilder.toDeltakereResponse(
+                    deltakere = oppdaterteDeltakere,
+                    kanSeInnbyggersNavn = { deltaker ->
+                        tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                            navAnsattAzureId = call.getNavAnsattAzureId(),
+                            erSkjermet = deltaker.navBruker.erSkjermet,
+                            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                        )
+                    },
+                )
+
+                call.respond(response)
             }
 
             post("/deltakere/gi-avslag") {

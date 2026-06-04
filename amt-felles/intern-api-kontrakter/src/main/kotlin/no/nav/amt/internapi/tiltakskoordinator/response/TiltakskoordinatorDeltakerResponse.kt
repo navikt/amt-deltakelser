@@ -23,4 +23,5 @@ data class TiltakskoordinatorDeltakerResponse(
     val harAktivtForslag: Boolean,
     val sisteVurderingstype: Vurderingstype?,
     val kanEndres: Boolean,
+    val feilkode: DeltakerOppdateringFeilkode? = null,
 )
