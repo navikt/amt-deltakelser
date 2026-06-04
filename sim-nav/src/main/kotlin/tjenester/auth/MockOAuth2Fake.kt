@@ -7,46 +7,12 @@ import no.nav.security.mock.oauth2.OAuth2Config
 import no.nav.security.mock.oauth2.extensions.clientIdAsString
 import no.nav.security.mock.oauth2.extensions.scopesWithoutOidcScopes
 import no.nav.security.mock.oauth2.token.OAuth2TokenCallback
-import no.nav.security.mock.oauth2.token.RequestMapping
-import no.nav.security.mock.oauth2.token.RequestMappingTokenCallback
 
 const val MOCK_OAUTH2_PORT = 9000
-const val MOCK_OAUTH2_ISSUER_ID = "azure"
 
 fun startMockOAuth2Server(): MockOAuth2Server {
     val azureMock = SimNavAzureTokenCallback()
-
-    val tokenXMock = RequestMappingTokenCallback(
-        issuerId = "tokenx",
-        tokenExpiry = 315360000,
-        requestMappings = listOf(
-            RequestMapping(
-                requestParam = "client_id",
-                match = "amt-tiltaksarrangor-flate",
-                claims = mapOf(
-                    "pid" to "01019050188",
-                    "aud" to listOf("amt-tiltaksarrangor-bff"),
-                    "sub" to "11111111-1111-1111-1111-111111111111",
-                ),
-            ),
-            RequestMapping(
-                requestParam = "client_id",
-                match = "amt-tiltaksarrangor-bff",
-                claims = mapOf(
-                    "sub" to "11111111-1111-1111-1111-111111111111",
-                    "aud" to listOf("amt-arrangor"),
-                ),
-            ),
-            RequestMapping(
-                requestParam = "audience",
-                match = "amt-arrangor",
-                claims = mapOf(
-                    "sub" to "11111111-1111-1111-1111-111111111111",
-                    "aud" to listOf("amt-arrangor"),
-                ),
-            ),
-        ),
-    )
+    val tokenXMock = TokenXTokenCallback()
 
     return MockOAuth2Server(
         OAuth2Config(
@@ -58,8 +24,59 @@ fun startMockOAuth2Server(): MockOAuth2Server {
     }
 }
 
+private class TokenXTokenCallback : OAuth2TokenCallback {
+    override fun issuerId(): String = "tokenx"
+
+    override fun subject(tokenRequest: TokenRequest): String? = claimsFor(tokenRequest)["sub"] as? String
+
+    override fun typeHeader(tokenRequest: TokenRequest): String = JOSEObjectType.JWT.type
+
+    override fun audience(tokenRequest: TokenRequest): List<String> =
+        when (val audienceClaim = claimsFor(tokenRequest)["aud"]) {
+            is List<*> -> audienceClaim.filterIsInstance<String>()
+            else -> emptyList()
+        }
+
+    override fun addClaims(tokenRequest: TokenRequest): Map<String, Any> = claimsFor(tokenRequest)
+
+    override fun tokenExpiry(): Long = 315360000
+
+    private fun claimsFor(tokenRequest: TokenRequest): Map<String, Any> {
+        val clientId = tokenRequest.clientIdAsString()
+        val audience = tokenRequest.getCustomParameter("audience").orEmpty().firstOrNull()
+
+        return when {
+            clientId == "amt-tiltaksarrangor-flate" -> mapOf(
+                "pid" to "01019050188",
+                "aud" to listOf("amt-tiltaksarrangor-bff"),
+                "sub" to "11111111-1111-1111-1111-111111111111",
+            )
+
+            clientId == "amt-tiltaksarrangor-bff" -> mapOf(
+                "sub" to "11111111-1111-1111-1111-111111111111",
+                "aud" to listOf("amt-arrangor"),
+            )
+
+            audience == "amt-arrangor" -> mapOf(
+                "sub" to "11111111-1111-1111-1111-111111111111",
+                "aud" to listOf("amt-arrangor"),
+            )
+
+            clientId == "innbyggers-flate" -> {
+                mapOf(
+                    "oid" to "11111111-1111-1111-1111-111111111111",
+                    "groups" to emptyList<String>(),
+                    "aud" to listOf("amt-deltaker-bff"),
+                )
+            }
+
+            else -> emptyMap()
+        }
+    }
+}
+
 private class SimNavAzureTokenCallback : OAuth2TokenCallback {
-    override fun issuerId(): String = MOCK_OAUTH2_ISSUER_ID
+    override fun issuerId(): String = "azure"
 
     override fun subject(tokenRequest: TokenRequest): String? = claimsFor(tokenRequest)["sub"] as? String
 
@@ -92,14 +109,6 @@ private class SimNavAzureTokenCallback : OAuth2TokenCallback {
             clientId == "nav-veileders-flate" -> {
                 mapOf(
                     "NAVident" to FrontendAuthState.requireNavIdent(),
-                    "oid" to "11111111-1111-1111-1111-111111111111",
-                    "groups" to emptyList<String>(),
-                    "aud" to listOf("amt-deltaker-bff"),
-                )
-            }
-
-            clientId == "innbyggers-flate" -> {
-                mapOf(
                     "oid" to "11111111-1111-1111-1111-111111111111",
                     "groups" to emptyList<String>(),
                     "aud" to listOf("amt-deltaker-bff"),

@@ -9,7 +9,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import tjenester.auth.MOCK_OAUTH2_ISSUER_ID
 import tjenester.auth.MOCK_OAUTH2_PORT
 import java.net.URI
 import java.net.URLEncoder
@@ -22,7 +21,6 @@ const val LOCAL_BFF_PROXY_PORT = 9100
 const val LOCAL_BFF_PROXY_PATH_PREFIX = "/amt-deltaker-bff"
 const val LOCAL_BFF_SOURCE_HEADER = "x-local-app-source"
 private const val LOCAL_BFF_TARGET_BASE_URL = "http://localhost:8080"
-private const val LOCAL_TOKEN_ENDPOINT = "http://localhost:$MOCK_OAUTH2_PORT/$MOCK_OAUTH2_ISSUER_ID/token"
 
 private val localBffHttpClient: HttpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()
 private val localBffObjectMapper = jacksonObjectMapper()
@@ -54,9 +52,10 @@ fun Route.localAmtDeltakerBffProxyRoutes() {
 
 private suspend fun proxyBffRequest(call: ApplicationCall) {
     val requestSource = call.request.header(LOCAL_BFF_SOURCE_HEADER)?.takeIf { it.isNotBlank() } ?: "unknown"
+    val issuer = if (requestSource == "innbyggers-flate") "tokenx" else "azure"
 
     val targetUri = buildTargetUri(call.request.uri)
-    val accessToken = resolveLocalDevJwt(requestSource)
+    val accessToken = resolveLocalDevJwt(requestSource, issuer)
 
     if (accessToken == null) {
         respondJson(
@@ -129,13 +128,13 @@ private fun buildTargetUri(requestUri: String): URI {
     return URI.create("$LOCAL_BFF_TARGET_BASE_URL$normalizedPath")
 }
 
-private suspend fun resolveLocalDevJwt(clientId: String): String? {
+private suspend fun resolveLocalDevJwt(clientId: String, issuer: String): String? {
     synchronized(localDevJwtLock) {
         cachedLocalDevJwts[clientId]?.let { return it }
     }
 
     val fetchedToken = withContext(Dispatchers.IO) {
-        fetchLocalDevJwt(clientId)
+        fetchLocalDevJwt(clientId, issuer)
     } ?: return null
 
     return synchronized(localDevJwtLock) {
@@ -145,7 +144,7 @@ private suspend fun resolveLocalDevJwt(clientId: String): String? {
     }
 }
 
-private fun fetchLocalDevJwt(clientId: String): String? {
+private fun fetchLocalDevJwt(clientId: String, issuer: String): String? {
     val formBody = listOf(
         "grant_type" to "client_credentials",
         "client_id" to clientId,
@@ -155,7 +154,7 @@ private fun fetchLocalDevJwt(clientId: String): String? {
         "${URLEncoder.encode(key, StandardCharsets.UTF_8)}=${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
     }
 
-    val tokenRequest = HttpRequest.newBuilder(URI.create(LOCAL_TOKEN_ENDPOINT))
+    val tokenRequest = HttpRequest.newBuilder(URI.create("http://localhost:$MOCK_OAUTH2_PORT/$issuer/token"))
         .header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
         .POST(HttpRequest.BodyPublishers.ofString(formBody))
         .build()
