@@ -26,7 +26,7 @@ data class Bff(
 )
 
 val AMT_DELTAKER_BFF = Bff("/amt-deltaker-bff", "http://localhost:8080")
-val AMT_TILTAKSARRANGOR_BFF = Bff("/deltakeroversikt/amt-tiltaksarrangor-bff", "http://localhost:8088")
+val AMT_TILTAKSARRANGOR_BFF = Bff("/amt-tiltaksarrangor-bff", "http://localhost:8088")
 
 private val localBffHttpClient: HttpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()
 private val localBffObjectMapper = jacksonObjectMapper()
