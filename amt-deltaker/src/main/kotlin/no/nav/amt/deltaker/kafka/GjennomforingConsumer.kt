@@ -94,12 +94,14 @@ class GjennomforingConsumer(
                         deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
                     )
                 } else {
-                  if (!tiltakstype.tiltakskode.erArenaEnkeltplass()) {
-                    // Fiks for arenadata hvor deltakerliste er avsluttet mens deltaker er aktiv. Da skal deltakelsen fortsette å være aktiv
-                    handterDeltakere(
-                        deltakerlisteFromPayload = gjennomforing,
-                        eksisterendeDeltakerliste = eksisterendeDeltakerliste,
-                    )
+                    // Fiks for Arena-data hvor deltakerliste er avsluttet mens deltaker er aktiv.
+                    // Da skal deltakelsen fortsette å være aktiv
+                    if (!tiltakstype.tiltakskode.erArenaEnkeltplass()) {
+                        handterDeltakere(
+                            deltakerlisteFromPayload = gjennomforing,
+                            eksisterendeDeltakerliste = eksisterendeDeltakerliste,
+                        )
+                    }
                 }
             }
         } else {
