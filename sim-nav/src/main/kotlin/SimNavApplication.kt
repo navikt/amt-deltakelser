@@ -55,6 +55,7 @@ fun Application.simNavModule(
         nomFakeRoutes(pdlSimulator)
         valpFakeRoutes(bronnoysundSimulator, kafkaPublisher)
         navVeiledersFlateLauncherRoutes(pdlSimulator, norgSimulator)
+        innbyggersFlateLauncherRoutes(pdlSimulator)
         krrProxyFakeRoutes()
 
         // Keep previous behavior for unknown paths.

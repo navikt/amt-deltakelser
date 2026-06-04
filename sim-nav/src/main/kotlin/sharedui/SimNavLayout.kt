@@ -16,6 +16,7 @@ private val simNavMenuItems = listOf(
     SimNavMenuItem("AO oppfolgingskontor", "/ao-oppfolgingskontor"),
     SimNavMenuItem("Dokdistkanal", "/dokdistkanal"),
     SimNavMenuItem("Nav-veileders-flate", "/nav-veileders-flate"),
+    SimNavMenuItem("Innbyggers-flate", "/innbyggers-flate"),
 )
 
 fun HEAD.simNavHeaderStyles() {

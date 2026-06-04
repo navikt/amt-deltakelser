@@ -63,12 +63,13 @@ private class TokenXTokenCallback : OAuth2TokenCallback {
             )
 
             clientId == "innbyggers-flate" -> {
+                val pidOrBlank = FrontendAuthState.getPid() ?: ""
                 mapOf(
                     "oid" to "11111111-1111-1111-1111-111111111111",
                     "groups" to emptyList<String>(),
                     "aud" to listOf("innbygger-client-id"),
                     "acr" to "Level4",
-                    "pid" to "12345678910"
+                    "pid" to pidOrBlank,
                 )
             }
 
