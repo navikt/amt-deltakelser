@@ -72,8 +72,9 @@ fun main() {
 fun Application.module() {
     configureSerialization()
 
+    val environment = env
 
-    Database.init(config = env.databaseConfig)
+    Database.init(config = environment.databaseConfig)
 
     val httpClient = HttpClient(CIO) {
         engine {
@@ -119,21 +120,21 @@ fun Application.module() {
         httpClient.get(path).body<Leader>()
     }
 
-    val leaderElection = LeaderElectionClient(leaderProvider, env.leaderElectorUrl)
+    val leaderElection = LeaderElectionClient(leaderProvider, environment.leaderElectorUrl)
     val jobManager = JobManager(leaderElection::isLeader, ::isReady)
 
     val azureAdTokenClient = AzureAdTokenClient(
-        azureAdTokenUrl = env.azureAdTokenUrl,
-        clientId = env.azureClientId,
-        clientSecret = env.azureClientSecret,
+        azureAdTokenUrl = environment.azureAdTokenUrl,
+        clientId = environment.azureClientId,
+        clientSecret = environment.azureClientSecret,
         httpClient = httpClient,
     )
 
     val pdfgenClient = PdfgenClient(httpClient, env)
     val amtPersonClient = AmtPersonClient(httpClient, azureAdTokenClient, env)
     val amtDeltakerClient = AmtDeltakerClient(
-        baseUrl = env.amtDeltakerUrl,
-        scope = env.amtDeltakerScope,
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
@@ -191,7 +192,7 @@ fun Application.module() {
     )
     consumers.forEach { it.start() }
 
-    configureAuthentication(env)
+    configureAuthentication(environment)
     configureRouting(digitalBrukerService, tiltakshendelseService)
     configureMonitoring()
 

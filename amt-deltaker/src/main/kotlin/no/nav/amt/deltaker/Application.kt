@@ -95,6 +95,7 @@ fun Application.module() {
     configureSerialization()
 
     val environment = env
+
     Database.init(environment.databaseConfig)
 
     val httpClient = HttpClient(CIO.create()) {
@@ -450,7 +451,7 @@ fun Application.module() {
     )
     consumers.forEach { it.start() }
 
-    configureAuthentication(env)
+    configureAuthentication(environment)
 
     configureRequestValidation(
         opprettKladdRequestValidator = opprettKladdRequestValidator,
