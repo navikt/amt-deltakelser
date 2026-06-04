@@ -18,7 +18,6 @@ import no.nav.amt.deltaker.bff.application.plugins.*
 import no.nav.amt.deltaker.bff.auth.SporbarhetsloggService
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.clients.ConfigurablePoaoTilgangCachedClient
 import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
@@ -77,8 +76,8 @@ import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.common.audit_log.log.AuditLoggerImpl
+import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
-import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder as TiltakskoordinatorResponseBuilder
 
@@ -233,12 +232,11 @@ fun Application.module() {
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
     val deltakerlisteService = DeltakerlisteService(deltakerlisteRepository)
 
-    val poaoTilgangCachedClient = ConfigurablePoaoTilgangCachedClient.createDefaultCacheClient(
+    val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
             baseUrl = environment.poaoTilgangUrl,
             tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
         ),
-        cacheDuration = Duration.ofSeconds(1)
     )
 
     val tiltakskoordinatorTilgangRepository = TiltakskoordinatorTilgangRepository()
