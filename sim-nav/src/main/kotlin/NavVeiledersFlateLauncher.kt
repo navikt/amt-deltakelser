@@ -21,8 +21,7 @@ import java.nio.charset.StandardCharsets
 
 private const val NAV_VEILEDERS_FLATE_LAUNCHER_PATH = "/nav-veileders-flate"
 private const val NAV_VEILEDERS_FLATE_URL = "http://localhost:3004"
-private const val NAV_VEILEDERS_FLATE_FRONTEND_AUTH_PATH = "$NAV_VEILEDERS_FLATE_LAUNCHER_PATH/frontend-auth"
-private const val NAV_VEILEDERS_FLATE_BRUKER_PATH = "$NAV_VEILEDERS_FLATE_LAUNCHER_PATH/bruker"
+private const val NAV_VEILEDERS_FLATE_KONTEKST_PATH = "$NAV_VEILEDERS_FLATE_LAUNCHER_PATH/kontekst"
 
 fun Route.navVeiledersFlateLauncherRoutes(
     pdlDataSource: PdlDataSource,
@@ -49,12 +48,21 @@ fun Route.navVeiledersFlateLauncherRoutes(
         }
     }
 
-    post(NAV_VEILEDERS_FLATE_FRONTEND_AUTH_PATH) {
-        val submittedNavIdent = call.receiveParameters()["navident"]?.trim().orEmpty()
-        val validVeiledere = fetchNomRessurser().associateBy { it.navident }
+    post(NAV_VEILEDERS_FLATE_KONTEKST_PATH) {
+        val params = call.receiveParameters()
+        val submittedNavIdent = params["navident"]?.trim().orEmpty()
+        val submittedFnr = params["bruker_fnr"]?.trim().orEmpty()
+        val options = loadNavVeiledersFlateOptions(pdlDataSource, norgDataSource, amtDeltakerRepository)
+        val validVeiledere = options.veiledere.associateBy { it.value }
+        val validBrukere = options.persons.associateBy { it.value }
 
         if (submittedNavIdent.isBlank()) {
             call.redirectToNavVeiledersFlateLauncher("Velg en NAVident", isError = true)
+            return@post
+        }
+
+        if (submittedFnr.isBlank()) {
+            call.redirectToNavVeiledersFlateLauncher("Velg en bruker", isError = true)
             return@post
         }
 
@@ -64,27 +72,15 @@ fun Route.navVeiledersFlateLauncherRoutes(
             return@post
         }
 
-        FrontendAuthState.updateNavIdent(submittedNavIdent)
-        call.redirectToNavVeiledersFlateLauncher("Oppdatert frontend-NAVident til ${veileder.navident} - ${veileder.visningsnavn}")
-    }
-
-    post(NAV_VEILEDERS_FLATE_BRUKER_PATH) {
-        val submittedFnr = call.receiveParameters()["bruker_fnr"]?.trim().orEmpty()
-        val validBrukere = loadNavVeiledersFlateOptions(pdlDataSource, norgDataSource, amtDeltakerRepository)
-            .persons.associate { it.value to it.label }
-
-        if (submittedFnr.isBlank()) {
-            call.redirectToNavVeiledersFlateLauncher("Velg en bruker", isError = true)
-            return@post
-        }
-
-        if (!validBrukere.containsKey(submittedFnr)) {
+        val bruker = validBrukere[submittedFnr]
+        if (bruker == null) {
             call.redirectToNavVeiledersFlateLauncher("Ukjent bruker: $submittedFnr", isError = true)
             return@post
         }
 
+        FrontendAuthState.updateNavIdent(submittedNavIdent)
         VeilederAuthState.updateBrukerFnr(submittedFnr)
-        call.redirectToNavVeiledersFlateLauncher("Oppdatert bruker til ${validBrukere[submittedFnr]}")
+        call.redirectToNavVeiledersFlateLauncher("Oppdatert kontekst til ${veileder.label} og ${bruker.label}")
     }
 }
 
@@ -224,16 +220,19 @@ private fun HTML.navVeiledersFlateLauncherPage(
             }
 
             section(classes = "frontend-auth-panel") {
-                h2 { +"Frontend NAVident" }
+                h2 { +"Kontekst" }
                 p(classes = "frontend-auth-panel__current") {
-                    +"Aktiv NAVident i frontend-token: $currentFrontendNavIdentLabel"
+                    +"Aktiv NAVident: $currentFrontendNavIdentLabel"
                 }
-                if (currentFrontendNavIdent == null) {
+                p(classes = "frontend-auth-panel__current") {
+                    +"Aktiv bruker: $currentBrukerLabel"
+                }
+                if (currentFrontendNavIdent == null || currentBrukerFnr == null) {
                     p(classes = "frontend-auth-panel__hint") {
-                        +"Frontend-token kan ikke hentes for proxy før NAVident er valgt."
+                        +"Velg NAVident og bruker for a aktivere innganger."
                     }
                 }
-                form(action = NAV_VEILEDERS_FLATE_FRONTEND_AUTH_PATH, method = FormMethod.post) {
+                form(action = NAV_VEILEDERS_FLATE_KONTEKST_PATH, method = FormMethod.post) {
                     div("field") {
                         label {
                             htmlFor = "navident"
@@ -257,16 +256,6 @@ private fun HTML.navVeiledersFlateLauncherPage(
                             }
                         }
                     }
-                    button(type = ButtonType.submit) { +"Oppdater NAVident" }
-                }
-            }
-
-            section(classes = "frontend-auth-panel") {
-                h2 { +"Valgt bruker (for deltakerId-rute)" }
-                p(classes = "frontend-auth-panel__current") {
-                    +"Aktiv bruker: $currentBrukerLabel"
-                }
-                form(action = NAV_VEILEDERS_FLATE_BRUKER_PATH, method = FormMethod.post) {
                     div("field") {
                         label {
                             htmlFor = "bruker_fnr"
@@ -290,143 +279,133 @@ private fun HTML.navVeiledersFlateLauncherPage(
                             }
                         }
                     }
-                    button(type = ButtonType.submit) { +"Oppdater bruker" }
+                    button(type = ButtonType.submit) { +"Oppdater kontekst" }
                 }
             }
 
-            form(action = NAV_VEILEDERS_FLATE_URL, method = FormMethod.get) {
-                id = "nav-veileders-flate-form"
-                target = "_blank"
+            if (currentFrontendNavIdent == null || currentBrukerFnr == null) {
+                p { +"Velg kontekst ovenfor for a aktivere alle innganger." }
+            } else {
+                form(action = NAV_VEILEDERS_FLATE_URL, method = FormMethod.get) {
+                    id = "nav-veileders-flate-form"
+                    target = "_blank"
 
-                div("field") {
-                    label {
-                        htmlFor = "person_ident"
-                        +"Bruker"
-                    }
-                    select {
-                        id = "person_ident"
+                    hiddenInput {
                         name = "person_ident"
-                        required = true
-                        personOptions.forEachIndexed { index, option ->
-                            option {
-                                value = option.value
-                                selected = index == 0
-                                +option.label
-                            }
-                        }
+                        value = currentBrukerFnr
                     }
-                }
 
-                div("field") {
-                    label {
-                        htmlFor = "enhet_id"
-                        +"Enhet"
-                    }
-                    select {
-                        id = "enhet_id"
-                        name = "enhet_id"
-                        required = true
-                        unitOptions.forEach { option ->
-                            option {
-                                value = option.value
-                                selected = option.value == "0315"
-                                +option.label
-                            }
-                        }
-                    }
-                }
-
-                div("field") {
-                    label { +"Inngang" }
-
-                    div("inline-choice") {
-                        input(type = InputType.radio) {
-                            id = "route_deltakerliste"
-                            name = "route_mode"
-                            value = "deltakerliste"
-                            checked = true
-                        }
+                    div("field") {
                         label {
-                            htmlFor = "route_deltakerliste"
-                            +"Meld pa med deltakerlisteId"
+                            htmlFor = "enhet_id"
+                            +"Enhet"
                         }
-                    }
-
-                    select {
-                        id = "deltakerliste_id"
-                        required = true
-                        deltakerlisteOptions.forEachIndexed { index, option ->
-                            option {
-                                value = option.value
-                                selected = index == 0
-                                +option.label
-                            }
-                        }
-                    }
-                }
-
-                div("field") {
-                    div("inline-choice") {
-                        input(type = InputType.radio) {
-                            id = "route_tiltakskode"
-                            name = "route_mode"
-                            value = "tiltakskode"
-                        }
-                        label {
-                            htmlFor = "route_tiltakskode"
-                            +"Meld pa med tiltakskode"
-                        }
-                    }
-
-                    select {
-                        id = "tiltakskode"
-                        required = true
-                        tiltakskodeOptions.forEachIndexed { index, option ->
-                            option {
-                                value = option.value
-                                selected = index == 0
-                                +option.label
-                            }
-                        }
-                    }
-                }
-
-                div("field") {
-                    div("inline-choice") {
-                        input(type = InputType.radio) {
-                            id = "route_deltaker"
-                            name = "route_mode"
-                            value = "deltaker"
-                        }
-                        label {
-                            htmlFor = "route_deltaker"
-                            +"Åpne deltakelse med deltakerId"
-                        }
-                    }
-
-                    select {
-                        id = "deltaker_id"
-                        required = true
-                        if (deltakerOptions.isEmpty()) {
-                            option {
-                                value = ""
-                                disabled = true
-                                +"Ingen deltakelser for valgt bruker"
-                            }
-                        } else {
-                            deltakerOptions.forEachIndexed { index, option ->
-                                val statusLabel = option.status?.let { " [$it]" } ?: ""
-                                this@select.option {
-                                    value = option.id.toString()
-                                    selected = index == 0
-                                    +"${option.id} - ${option.deltakerlisteNavn}$statusLabel"
+                        select {
+                            id = "enhet_id"
+                            name = "enhet_id"
+                            required = true
+                            unitOptions.forEach { option ->
+                                option {
+                                    value = option.value
+                                    selected = option.value == "0315"
+                                    +option.label
                                 }
                             }
                         }
                     }
-                }
 
-                button(type = ButtonType.submit) { +"Aapne valgt inngang" }
+                    div("field") {
+                        label { +"Inngang" }
+
+                        div("inline-choice") {
+                            input(type = InputType.radio) {
+                                id = "route_deltakerliste"
+                                name = "route_mode"
+                                value = "deltakerliste"
+                                checked = true
+                            }
+                            label {
+                                htmlFor = "route_deltakerliste"
+                                +"Meld pa med deltakerlisteId"
+                            }
+                        }
+
+                        select {
+                            id = "deltakerliste_id"
+                            required = true
+                            deltakerlisteOptions.forEachIndexed { index, option ->
+                                option {
+                                    value = option.value
+                                    selected = index == 0
+                                    +option.label
+                                }
+                            }
+                        }
+                    }
+
+                    div("field") {
+                        div("inline-choice") {
+                            input(type = InputType.radio) {
+                                id = "route_tiltakskode"
+                                name = "route_mode"
+                                value = "tiltakskode"
+                            }
+                            label {
+                                htmlFor = "route_tiltakskode"
+                                +"Meld pa med tiltakskode"
+                            }
+                        }
+
+                        select {
+                            id = "tiltakskode"
+                            required = true
+                            tiltakskodeOptions.forEachIndexed { index, option ->
+                                option {
+                                    value = option.value
+                                    selected = index == 0
+                                    +option.label
+                                }
+                            }
+                        }
+                    }
+
+                    div("field") {
+                        div("inline-choice") {
+                            input(type = InputType.radio) {
+                                id = "route_deltaker"
+                                name = "route_mode"
+                                value = "deltaker"
+                            }
+                            label {
+                                htmlFor = "route_deltaker"
+                                +"Åpne deltakelse med deltakerId"
+                            }
+                        }
+
+                        select {
+                            id = "deltaker_id"
+                            required = true
+                            if (deltakerOptions.isEmpty()) {
+                                option {
+                                    value = ""
+                                    disabled = true
+                                    +"Ingen deltakelser for valgt bruker"
+                                }
+                            } else {
+                                deltakerOptions.forEachIndexed { index, option ->
+                                    val statusLabel = option.status?.let { " [$it]" } ?: ""
+                                    this@select.option {
+                                        value = option.id.toString()
+                                        selected = index == 0
+                                        +"${option.id} - ${option.deltakerlisteNavn}$statusLabel"
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    button(type = ButtonType.submit) { +"Aapne valgt inngang" }
+                }
             }
 
             script {
@@ -497,5 +476,3 @@ private suspend fun io.ktor.server.application.ApplicationCall.redirectToNavVeil
     val encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8)
     respondRedirect("$NAV_VEILEDERS_FLATE_LAUNCHER_PATH?message=$encodedMessage&isError=$isError")
 }
-
-
