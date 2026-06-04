@@ -98,9 +98,11 @@ private class SimNavAzureTokenCallback : OAuth2TokenCallback {
         val clientId = tokenRequest.clientIdAsString()
         val scopes = tokenRequest.scopesWithoutOidcScopes()
 
+        val navIdentOrEmpty = FrontendAuthState.getNavIdent() ?: ""
+
         return when {
             clientId == "amt-deltaker-bff" -> mapOf(
-                "NAVident" to FrontendAuthState.requireNavIdent(),
+                "NAVident" to navIdentOrEmpty,
                 "oid" to "11111111-1111-1111-1111-111111111111",
                 "sub" to "11111111-1111-1111-1111-111111111111",
                 "azp" to "amt-deltaker-bff",
@@ -110,7 +112,7 @@ private class SimNavAzureTokenCallback : OAuth2TokenCallback {
 
             clientId == "nav-veileders-flate" -> {
                 mapOf(
-                    "NAVident" to FrontendAuthState.requireNavIdent(),
+                    "NAVident" to navIdentOrEmpty,
                     "oid" to "11111111-1111-1111-1111-111111111111",
                     "groups" to emptyList<String>(),
                     "aud" to listOf("amt-deltaker-bff"),
