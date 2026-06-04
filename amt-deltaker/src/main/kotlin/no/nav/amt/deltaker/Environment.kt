@@ -99,11 +99,3 @@ data class Environment(
         fun isLocal(): Boolean = !isDev() && !isProd()
     }
 }
-
-fun getEnvVar(
-    varName: String,
-    defaultValue: String? = null,
-) = System.getenv(varName)
-    ?: System.getProperty(varName)
-    ?: defaultValue
-    ?: if (Environment.isLocal()) "" else error("Missing required variable $varName")
