@@ -120,6 +120,19 @@ private class SimNavAzureTokenCallback : OAuth2TokenCallback {
                 )
             }
 
+            clientId == "tiltakskoordinator-flate" -> {
+                mapOf(
+                    "NAVident" to navIdentOrEmpty,
+                    "oid" to "11111111-1111-1111-1111-111111111111",
+                    "groups" to listOf(
+                        // AD_ROLLE_TILTAKSKOORDINATOR (se konfigurasjon for amt-deltaker-bff)
+                        "c13484a2-3994-4653-9f57-5082c352e656"
+                    ),
+                    "aud" to listOf("amt-deltaker-bff"),
+                )
+            }
+
+
             "api://amt-distribusjon/.default" in scopes -> mapOf(
                 "aud" to listOf("amt-distribusjon"),
                 "sub" to "11111111-1111-1111-1111-111111111111",

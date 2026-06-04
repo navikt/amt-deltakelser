@@ -18,6 +18,7 @@ private val datakilder = listOf(
 
 private val flater = listOf(
     SimNavMenuItem("Nav-veileders-flate", "/nav-veileders-flate"),
+    SimNavMenuItem("Tiltakskoordinator-flate", "/tiltakskoordinator-flate"),
     SimNavMenuItem("Innbyggers-flate", "/innbyggers-flate"),
 )
 
@@ -144,5 +145,3 @@ fun FlowContent.simNavHeader(activePathPrefix: String) {
         }
     }
 }
-
-
