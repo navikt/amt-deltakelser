@@ -172,18 +172,18 @@ spec:
             alert_type: custom
 
         # Unik sjekk i amt-arena-acl
-        - alert: AmtArenaAclFailedMessages
-          expr: amt_arena_acl_ingest_status{app="amt-arena-acl", status="FAILED"} > 0
-          for: 1m
-          annotations:
-            title: 'Appen `{{ $labels.app }}` har problemer med å prosessere meldinger'
-            summary: 'En eller flere Kafka-meldinger er ikke prosessert riktig'
-            action: "Sjekk `arena_data`-tabellen i `{{ $labels.app }}` slik: `select * from arena_data where ingest_status = 'FAILED';`"
-            resolved: '`{{ $labels.app }}` prosesserer meldinger som normalt'
-          labels:
-            namespace: amt
-            severity: critical
-            alert_type: custom
+#        - alert: AmtArenaAclFailedMessages
+#          expr: amt_arena_acl_ingest_status{app="amt-arena-acl", status="FAILED"} > 0
+#          for: 1m
+#          annotations:
+#            title: 'Appen `{{ $labels.app }}` har problemer med å prosessere meldinger'
+#            summary: 'En eller flere Kafka-meldinger er ikke prosessert riktig'
+#            action: "Sjekk `arena_data`-tabellen i `{{ $labels.app }}` slik: `select * from arena_data where ingest_status = 'FAILED';`"
+#            resolved: '`{{ $labels.app }}` prosesserer meldinger som normalt'
+#          labels:
+#            namespace: amt
+#            severity: critical
+#            alert_type: custom
 
         # Unik sjekk i amt-tiltak
         - alert: AmtTiltakFailedMessages
