@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import java.util.Collections.emptySet
 import java.util.UUID
 
 /**
@@ -34,22 +35,33 @@ data class OpplaringKategoriseringResponse(
         .map { alt -> alt.id }
         .toSet()
 
-    fun grupperKodeverkvalgPerRepresenterer(kodeverkValg: Set<UUID>): Map<Representerer, Set<UUID>> = alternativer
-        .mapNotNull {
-            when (it) {
-                is Alternativ.VerdigruppeSok -> null
+    fun grupperKodeverkvalgPerRepresenterer(kodeverkValg: Set<UUID>): Map<Representerer, Set<UUID>> = buildMap {
+        alternativer.forEach { alternativ ->
+            when (alternativ) {
+                is Alternativ.VerdigruppeSok -> Unit
 
-                is Alternativ.Verdigruppe ->
-                    it.representerer to it.alternativer.hentValgte(kodeverkValg)
+                is Alternativ.Verdigruppe -> {
+                    val valgte = alternativ.alternativer.hentValgte(kodeverkValg)
+                    if (valgte.isNotEmpty()) {
+                        put(alternativ.representerer, valgte)
+                    }
+                }
 
-                is Alternativ.UtdanningGruppe ->
-                    it.representerer to it.utdanninger
-                        .flatMap { utdanningValg ->
-                            utdanningValg.larefag.alternativer.hentValgte(kodeverkValg)
-                        }.toSet()
+                is Alternativ.UtdanningGruppe -> {
+                    val utdanningsprogram = alternativ.utdanninger
+                        .firstOrNull { it.id in kodeverkValg }
+                        ?: return@forEach
+
+                    put(Representerer.UTDANNINGSPROGRAM_ID, setOf(utdanningsprogram.id))
+
+                    val valgteLarefag = utdanningsprogram.larefag.alternativer.hentValgte(kodeverkValg)
+                    if (valgteLarefag.isNotEmpty()) {
+                        put(Representerer.LAREFAG, valgteLarefag)
+                    }
+                }
             }
-        }.filter { it.second.isNotEmpty() }
-        .toMap()
+        }
+    }
 
     /**
      * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true` for alle
