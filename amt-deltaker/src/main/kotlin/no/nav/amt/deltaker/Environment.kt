@@ -2,6 +2,7 @@ package no.nav.amt.deltaker
 
 import no.nav.amt.lib.ktor.auth.PreAuthorizedApp
 import no.nav.amt.lib.utils.database.DatabaseConfig
+import no.nav.amt.lib.utils.getEnvVar
 import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
 
@@ -34,6 +35,8 @@ data class Environment(
     val isOppfolgingstilfelleScope: String = getEnvVar(ISOPPFOLGINGSTILFELLE_SCOPE_KEY),
     val amtTiltakUrl: String = getEnvVar(AMT_TILTAK_URL_KEY),
     val amtTiltakScope: String = getEnvVar(AMT_TILTAK_SCOPE_KEY),
+    val mulighetsrommetApiUrl: String = getEnvVar(MULIGHETSROMMET_API_URL_KEY),
+    val mulighetsrommetApiScope: String = getEnvVar(MULIGHETSROMMET_API_SCOPE_KEY),
 ) {
     companion object {
         const val KAFKA_CONSUMER_GROUP_ID = "amt-deltaker-consumer"
@@ -69,6 +72,9 @@ data class Environment(
         const val UNLEASH_SERVER_API_URL = "UNLEASH_SERVER_API_URL"
         const val UNLEASH_SERVER_API_TOKEN = "UNLEASH_SERVER_API_TOKEN"
 
+        const val MULIGHETSROMMET_API_URL_KEY = "MULIGHETSROMMET_API_URL"
+        const val MULIGHETSROMMET_API_SCOPE_KEY = "MULIGHETSROMMET_API_SCOPE"
+
         const val POAO_TILGANG_URL_KEY = "POAO_TILGANG_URL"
         const val POAO_TILGANG_SCOPE_KEY = "POAO_TILGANG_SCOPE"
         const val ISOPPFOLGINGSTILFELLE_URL_KEY = "ISOPPFOLGINGSTILFELLE_URL"
@@ -93,11 +99,3 @@ data class Environment(
         fun isLocal(): Boolean = !isDev() && !isProd()
     }
 }
-
-fun getEnvVar(
-    varName: String,
-    defaultValue: String? = null,
-) = System.getenv(varName)
-    ?: System.getProperty(varName)
-    ?: defaultValue
-    ?: if (Environment.isLocal()) "" else error("Missing required variable $varName")

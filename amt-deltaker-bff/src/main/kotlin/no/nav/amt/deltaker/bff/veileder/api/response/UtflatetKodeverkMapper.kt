@@ -5,70 +5,63 @@ import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
-// Begge bruker valgt verdi som tittel — ikke kategorinavnet
-private val REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL = setOf(
-    OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
-    OpplaringKategoriseringResponse.Representerer.KURSTYPE_ID,
-)
-
 fun OpplaringKategoriseringResponse.tilUtflatetKodeverk(
     kodeverkValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
-): DeltakerlisteResponse.UtflatetKodeverk {
-    val tittelOgValg = settValgt(kodeverkValg, sertifiseringValg)
-        .alternativer
-        .map { it.tilTittelOgValg(sertifiseringValg) }
+): DeltakerlisteResponse.UtflatetKodeverk = if (kodeverkValg.isEmpty()) {
+    DeltakerlisteResponse.UtflatetKodeverk(
+        valgteKategoriseringer = emptySet(),
+        valgteSertifiseringer = sertifiseringValg,
+    )
+} else {
+    val kategoriseringResponseMedValgteElementer = settValgt(kodeverkValg, sertifiseringValg)
 
-    return DeltakerlisteResponse.UtflatetKodeverk(
-        tiltakskode = tiltakskode,
-        tittel = tittelOgValg.firstOrNull { it.tittel != null }?.tittel,
-        valg = tittelOgValg.flatMap { it.valg },
-        valgteKodeverkIder = kodeverkValg,
+    DeltakerlisteResponse.UtflatetKodeverk(
+        valgteKategoriseringer = kategoriseringResponseMedValgteElementer.alternativer.flatMap { it.tilValgteFelt() }.toSet(),
         valgteSertifiseringer = sertifiseringValg,
     )
 }
 
-private fun OpplaringKategoriseringResponse.Alternativ.Container.tilTittelOgValg(sertifiseringValg: Set<SertifiseringValg>): TittelOgValg =
+private fun OpplaringKategoriseringResponse.Alternativ.Container.tilValgteFelt(): Set<DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt> =
     when (this) {
-        is OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe -> tilTittelOgValg()
-        is OpplaringKategoriseringResponse.Alternativ.Verdigruppe -> TittelOgValg(
-            tittel = tittel(),
-            valg = if (representerer in REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL) emptyList() else valgteVisningsnavn(),
-        )
-
-        is OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok -> TittelOgValg(
-            tittel = null,
-            valg = sertifiseringValg.map { it.navn },
-        )
+        is OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe -> tilValgteFeltInternal()
+        is OpplaringKategoriseringResponse.Alternativ.Verdigruppe -> tilValgteFeltInternal()
+        is OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok -> emptySet()
     }
 
-private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilTittelOgValg(): TittelOgValg {
-    val valgtToppnivaaGruppe = utdanninger
-        .firstOrNull { utdanningValg ->
-            utdanningValg.larefag.alternativer.any { verdi -> verdi.valgt }
-        }
+private fun OpplaringKategoriseringResponse.Alternativ.Verdigruppe.tilValgteFeltInternal():
+    Set<DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt> {
+    if (alternativer.none { it.valgt }) return emptySet()
 
-    return TittelOgValg(
-        tittel = valgtToppnivaaGruppe?.visningsnavn,
-        valg = valgtToppnivaaGruppe
-            ?.larefag
-            ?.valgteVisningsnavn()
-            ?: emptyList(),
+    return setOf(
+        DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+            representerer = representerer,
+            valg = alternativer
+                .filter { verdi -> verdi.valgt }
+                .associate { verdi -> verdi.id to verdi.visningsnavn },
+        ),
     )
 }
 
-private fun OpplaringKategoriseringResponse.Alternativ.Verdigruppe.tittel(): String? =
-    if (representerer in REPRESENTERER_SOM_BRUKER_VALGT_VERDI_SOM_TITTEL) {
-        alternativer.firstOrNull { it.valgt }?.visningsnavn
-    } else {
-        null
-    }
+private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilValgteFeltInternal():
+    Set<DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt> {
+    val valgtUtdanningsgruppe = utdanninger
+        .firstOrNull { utdanningValg ->
+            utdanningValg.valgt || utdanningValg.larefag.alternativer.any { verdi -> verdi.valgt }
+        }
+        ?: return emptySet()
 
-private fun OpplaringKategoriseringResponse.Alternativ.Verdigruppe.valgteVisningsnavn() = alternativer
-    .filter { it.valgt }
-    .map { it.visningsnavn }
+    val valgtUtdanningsprogram = DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+        representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
+        valg = mapOf(valgtUtdanningsgruppe.id to valgtUtdanningsgruppe.visningsnavn),
+    )
 
-private data class TittelOgValg(
-    val tittel: String?,
-    val valg: List<String>,
-)
+    val valgteLarefag = DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+        representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
+        valg = valgtUtdanningsgruppe.larefag.alternativer
+            .filter { verdi -> verdi.valgt }
+            .associate { verdi -> verdi.id to verdi.visningsnavn },
+    )
+
+    return setOf(valgtUtdanningsprogram, valgteLarefag)
+}

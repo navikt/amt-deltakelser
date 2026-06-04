@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import java.util.Collections.emptySet
 import java.util.UUID
 
 /**
@@ -29,6 +30,39 @@ data class OpplaringKategoriseringResponse(
     val alternativer: List<Alternativ.Container>,
     val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
 ) {
+    private fun List<Alternativ.Verdi>.hentValgte(kodeverkValg: Set<UUID>): Set<UUID> = this
+        .filter { alt -> alt.id in kodeverkValg }
+        .map { alt -> alt.id }
+        .toSet()
+
+    fun grupperKodeverkvalgPerRepresenterer(kodeverkValg: Set<UUID>): Map<Representerer, Set<UUID>> = buildMap {
+        alternativer.forEach { alternativ ->
+            when (alternativ) {
+                is Alternativ.VerdigruppeSok -> Unit
+
+                is Alternativ.Verdigruppe -> {
+                    val valgte = alternativ.alternativer.hentValgte(kodeverkValg)
+                    if (valgte.isNotEmpty()) {
+                        put(alternativ.representerer, valgte)
+                    }
+                }
+
+                is Alternativ.UtdanningGruppe -> {
+                    val utdanningsprogram = alternativ.utdanninger
+                        .firstOrNull { it.id in kodeverkValg }
+                        ?: return@forEach
+
+                    put(Representerer.UTDANNINGSPROGRAM_ID, setOf(utdanningsprogram.id))
+
+                    val valgteLarefag = utdanningsprogram.larefag.alternativer.hentValgte(kodeverkValg)
+                    if (valgteLarefag.isNotEmpty()) {
+                        put(Representerer.LAREFAG, valgteLarefag)
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true` for alle
      * verdier med `id` i [kodeverkValg], og `false` for alle øvrige.
@@ -51,6 +85,7 @@ data class OpplaringKategoriseringResponse(
         is Alternativ.UtdanningGruppe -> copy(
             utdanninger = utdanninger.map {
                 it.copy(
+                    valgt = it.id in kodeverkValg,
                     larefag = it.larefag.copy(
                         alternativer = it.larefag.alternativer.map { verdi ->
                             verdi.settValgt(kodeverkValg)
@@ -131,6 +166,7 @@ data class OpplaringKategoriseringResponse(
                 val id: UUID,
                 val visningsnavn: String,
                 val larefag: Verdigruppe,
+                val valgt: Boolean = false, // kun internt hos Komet, ikke i kodeverket
             )
         }
 
@@ -176,7 +212,8 @@ data class OpplaringKategoriseringResponse(
         data class VerdigruppeSok(
             override val id: UUID?,
             override val visningsnavn: String,
-            val representerer: Representerer? = null,
+            val pakrevd: Boolean,
+            val representerer: Representerer,
             val seleksjonstype: Seleksjonstype,
             val kilde: Kilde,
         ) : Container {

@@ -74,6 +74,7 @@ import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.outbox.OutboxRecord
@@ -88,6 +89,7 @@ abstract class IntegrationTestBase {
     protected open val personServiceClient: AmtPersonServiceClient = mockk()
     protected open val distribusjonClient: AmtDistribusjonClient = mockk()
     protected open val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient = mockk()
+    protected open val kodeverkClient: KodeverkClient = mockk()
 
     protected open val arrangorRepository: ArrangorRepository = mockk()
     protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
@@ -150,6 +152,7 @@ abstract class IntegrationTestBase {
             distribuerEndringService = distribuerEndringService,
             innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
             enkeltplassService = enkeltplassService,
+            kodeverkClient = kodeverkClient,
         )
     }
 
@@ -324,6 +327,7 @@ abstract class IntegrationTestBase {
             arrangorService = arrangorService,
             navEnhetRepository = navEnhetRepository,
             navAnsattRepository = navAnsattRepository,
+            kodeverkClient = kodeverkClient,
         )
     }
 

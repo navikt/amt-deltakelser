@@ -91,6 +91,7 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
@@ -170,6 +171,13 @@ fun Application.module() {
     val amtDistribusjonClient = AmtDistribusjonClient(
         baseUrl = environment.amtDistribusjonServiceUrl,
         scope = environment.amtDistribusjonServiceScope,
+        azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
+    )
+
+    val kodeverkClient = KodeverkClient(
+        baseUrl = environment.mulighetsrommetApiUrl,
+        scope = environment.mulighetsrommetApiScope,
         azureAdTokenClient = azureAdTokenClient,
         httpClient = httpClient,
     )
@@ -390,6 +398,7 @@ fun Application.module() {
         navAnsattRepository = navAnsattRepository,
         vedtakService = vedtakService,
         arrangorService = arrangorService,
+        kodeverkClient = kodeverkClient,
     )
 
     val pameldingService = PameldingService(
@@ -401,6 +410,7 @@ fun Application.module() {
         distribuerEndringService = distribuerEndringService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
         enkeltplassService = enkeltplassService,
+        kodeverkClient = kodeverkClient,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(

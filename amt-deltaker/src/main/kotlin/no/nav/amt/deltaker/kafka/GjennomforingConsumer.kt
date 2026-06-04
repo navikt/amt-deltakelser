@@ -10,7 +10,6 @@ import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.database.Database
@@ -88,22 +87,21 @@ class GjennomforingConsumer(
             Database.transaction {
                 deltakerlisteRepository.upsert(gjennomforing)
 
-                if (!tiltakstype.tiltakskode.erArenaEnkeltplass()) {
-                    // Fiks for arenadata hvor deltakerliste er avsluttet mens deltaker er aktiv. Da skal deltakelsen fortsette å være aktiv
-                    handterDeltakere(
-                        deltakerlisteFromPayload = gjennomforing,
-                        eksisterendeDeltakerliste = eksisterendeDeltakerliste,
-                    )
-                }
-
-                // hvis deltakerliste er for enkeltplass, publiser deltaker
-                if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
-                    eksisterendeDeltakerliste.status == GjennomforingStatusType.KLADD &&
-                    gjennomforing.status != GjennomforingStatusType.KLADD
-                ) {
+                if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+                    // hvis vi mottar melding for enkeltplass, er det fordi vi har sendt en endring på
+                    // gjennomføring til Mulighetsrommet
                     deltakerProducerService.produce(
                         deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow(),
                     )
+                } else {
+                    // Fiks for Arena-data hvor deltakerliste er avsluttet mens deltaker er aktiv.
+                    // Da skal deltakelsen fortsette å være aktiv
+                    if (!tiltakstype.tiltakskode.erArenaEnkeltplass()) {
+                        handterDeltakere(
+                            deltakerlisteFromPayload = gjennomforing,
+                            eksisterendeDeltakerliste = eksisterendeDeltakerliste,
+                        )
+                    }
                 }
             }
         } else {
