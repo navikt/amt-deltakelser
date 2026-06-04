@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.repository.DbUtils.sqlPlaceholders
+import no.nav.amt.deltaker.repository.DeltakerRepository.Companion.buildDeltakerSql
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -98,6 +99,23 @@ class DeltakerRepository {
                 mapOf("deltaker_id" to deltakerId),
             ).map { it.string("personident") }.asSingle,
         ) ?: throw NoSuchElementException("Ingen deltaker med id $deltakerId")
+    }
+
+    fun getPersonidentForForslag(forslagId: UUID): String = Database.query { session ->
+        val sql =
+            """
+            select nb.personident as personident
+            from forslag f
+            join deltaker d on f.deltaker_id = d.id
+            join nav_bruker nb on d.person_id = nb.person_id
+            where f.id = :forslag_id
+            """.trimIndent()
+        session.run(
+            queryOf(
+                sql,
+                mapOf("forslag_id" to forslagId),
+            ).map { it.string("personident") }.asSingle,
+        ) ?: throw NoSuchElementException("Ingen forslag med id $forslagId")
     }
 
     fun upsert(deltaker: Deltaker) {
@@ -318,16 +336,21 @@ class DeltakerRepository {
      * Unngår dermed tunge JOIN-er til `deltakerliste`, `tiltakstype`, `arrangor` og hele
      * `nav_bruker`-modellen som [buildDeltakerSql] gjør.
      *
-     * @return Alle deltakelser i [deltakerlisteId] for gitt [personident].
+     * Ett kall henter låsedata for alle [personIdenter] i [gjennomforingId].
+     *
+     * @return Map fra personident til alle deltakelser i deltakerlisten for den personen.
      */
     fun getDeltakelserForLaaseSjekk(
-        personident: String,
-        deltakerlisteId: UUID,
-    ): List<DeltakelseLaaseInfo> {
+        personIdenter: Set<String>,
+        gjennomforingId: UUID,
+    ): Map<String, List<DeltakelseLaaseInfo>> {
+        if (personIdenter.isEmpty()) return emptyMap()
+
         val sql =
             """
             SELECT
                 d.id AS id,
+                nb.personident AS personident,
                 ds.type AS status_type,
                 ds.gyldig_fra AS status_gyldig_fra,
                 v.fattet AS vedtak_fattet,
@@ -344,50 +367,60 @@ class DeltakerRepository {
                     AND v.gyldig_til IS NULL
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id
             WHERE 
-                nb.personident = :personident
+                nb.personident = ANY(:personidenter)
                 AND d.deltakerliste_id = :deltakerliste_id
             """.trimIndent()
 
-        return Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    mapOf(
-                        "personident" to personident,
-                        "deltakerliste_id" to deltakerlisteId,
-                    ),
-                ).map { row ->
-                    DeltakelseLaaseInfo(
-                        id = row.uuid("id"),
-                        statusType = DeltakerStatus.Type.valueOf(row.string("status_type")),
-                        statusGyldigFra = row.localDateTime("status_gyldig_fra"),
-                        vedtakFattet = row.localDateTimeOrNull("vedtak_fattet"),
-                        innsoektDatoFraArena = row.localDateOrNull("innsoekt_dato_arena"),
-                    )
-                }.asList,
-            )
-        }
+        return Database
+            .query { session ->
+                session.run(
+                    queryOf(
+                        sql,
+                        mapOf(
+                            "personidenter" to personIdenter.toTypedArray(),
+                            "deltakerliste_id" to gjennomforingId,
+                        ),
+                    ).map { row ->
+                        DeltakelseLaaseInfo(
+                            id = row.uuid("id"),
+                            personident = row.string("personident"),
+                            statusType = DeltakerStatus.Type.valueOf(row.string("status_type")),
+                            statusGyldigFra = row.localDateTime("status_gyldig_fra"),
+                            vedtakFattet = row.localDateTimeOrNull("vedtak_fattet"),
+                            innsoektDatoFraArena = row.localDateOrNull("innsoekt_dato_arena"),
+                        )
+                    }.asList,
+                )
+            }.groupBy { it.personident }
+    }
+
+    fun getSoktInnDato(deltakerId: UUID): LocalDate? {
+        val deltakerIdToSoktInnDatoMap = getSoktInnDatoer(setOf(deltakerId))
+        return deltakerIdToSoktInnDatoMap[deltakerId]
     }
 
     /**
-     * Henter "søkt inn"-dato for én deltaker i ett spisset SQL-oppslag. Erstatter 3 sekvensielle
-     * DB-oppslag (`ImportertFraArenaRepository.getForDeltaker`,
-     * `InnsokPaaFellesOppstartRepository.getForDeltaker` og [VedtakRepository.getForDeltaker]).
+     * Bulk-variant for henting av "søkt inn"-dato. Erstatter 3 sekvensielle DB-oppslag per deltaker
+     * ([ImportertFraArenaRepository.getForDeltaker], [InnsokPaaFellesOppstartRepository.getForDeltaker]
+     * og [VedtakRepository.getForDeltaker]) med **ett** kall som returnerer datoen for alle deltakere.
      *
-     * Bruker følgende prioritet for å finne søkt inn-dato:
+     * Speiler prioriteten i [DeltakerHistorikkService.getSoktInnDato]:
      *   1. `importert_fra_arena.deltaker_ved_import.innsoktDato` (JSONB)
      *   2. `innsok_paa_felles_oppstart.innsokt::date`
      *   3. `vedtak.created_at::date`
      *
      * `COALESCE` velger første ikke-null kandidat i denne rekkefølgen.
      *
-     * @return søkt-inn-dato, eller `null` hvis deltakeren mangler både Arena-import,
-     * innsøk på felles oppstart og vedtak.
+     * @return Map fra deltaker-id til søkt-inn-dato (kan være `null` hvis deltakeren mangler både
+     * Arena-import, innsøk på felles oppstart og vedtak).
      */
-    fun getSoktInnDato(deltakerId: UUID): LocalDate? {
+    fun getSoktInnDatoer(deltakerIder: Set<UUID>): Map<UUID, LocalDate?> {
+        if (deltakerIder.isEmpty()) return emptyMap()
+
         val sql =
             """
             SELECT
+                d.id AS deltaker_id,
                 COALESCE(
                     (ifa.deltaker_ved_import->>'innsoktDato')::date,
                     ipfo.innsokt::date,
@@ -399,17 +432,20 @@ class DeltakerRepository {
                 LEFT JOIN innsok_paa_felles_oppstart ipfo ON ipfo.deltaker_id = d.id
                 LEFT JOIN vedtak v ON v.deltaker_id = d.id
             WHERE 
-                d.id = :deltaker_id
+                d.id = ANY(:deltaker_ider)
             """.trimIndent()
 
-        return Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    mapOf("deltaker_id" to deltakerId),
-                ).map { row -> row.localDateOrNull("sokt_inn_dato") }.asSingle,
-            )
-        }
+        return Database
+            .query { session ->
+                session.run(
+                    queryOf(
+                        sql,
+                        mapOf("deltaker_ider" to deltakerIder.toTypedArray()),
+                    ).map { row ->
+                        row.uuid("deltaker_id") to row.localDateOrNull("sokt_inn_dato")
+                    }.asList,
+                )
+            }.toMap()
     }
 
     fun getDeltakerHvorSluttdatoSkalEndres(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->

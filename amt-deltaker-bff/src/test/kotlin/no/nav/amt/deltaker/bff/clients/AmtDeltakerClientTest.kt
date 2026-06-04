@@ -8,7 +8,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
-import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
@@ -23,7 +23,6 @@ import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
-import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -48,7 +47,7 @@ import kotlin.reflect.KClass
 class AmtDeltakerClientTest {
     @Nested
     inner class GetPersonidentForDeltaker {
-        val expectedUrl = "$DELTAKER_BASE_URL/personident/${deltakerInTest.id}"
+        val expectedUrl = "$DELTAKER_BASE_URL/personident/deltaker/${deltakerInTest.id}"
         val expectedErrorMessage = "Fant ikke personident for deltaker ${deltakerInTest.id} i amt-deltaker."
         val getPersonidentLambda: suspend (AmtDeltakerClient) -> String =
             { client -> client.getPersonidentForDeltaker(deltakerInTest.id) }
@@ -78,7 +77,7 @@ class AmtDeltakerClientTest {
         }
 
         @Test
-        fun `skal bruke cache ved gjentatt kall for samme deltaker`() = runTest {
+        fun `skal bruke deltaker cache ved gjentatt kall for samme deltaker`() = runTest {
             val countingCache = CountingCache<UUID, String>()
             val client = createDeltakerClient(
                 expectedUrl = expectedUrl,
@@ -93,6 +92,30 @@ class AmtDeltakerClientTest {
             first shouldBe "12345678901"
             second shouldBe "12345678901"
             countingCache.putCount shouldBe 1
+        }
+    }
+
+    @Nested
+    inner class GetPersonindentForForslag {
+        val expectedUrl = "$DELTAKER_BASE_URL/personident/forslag/${deltakerInTest.id}"
+
+        @Test
+        fun `skal bruke cache ved gjentatt kall for samme forslag`() = runTest {
+            val cache = CountingCache<UUID, String>()
+            val personIdent = PersonIdentResponse("12345678901")
+            val client = createDeltakerClient(
+                expectedUrl = expectedUrl,
+                statusCode = HttpStatusCode.OK,
+                responseBody = personIdent,
+                personIdentForslagCache = cache,
+            )
+
+            val first = client.getPersonidentForForslag(deltakerInTest.id)
+            val second = client.getPersonidentForForslag(deltakerInTest.id)
+
+            first shouldBe personIdent.personident
+            second shouldBe personIdent.personident
+            cache.putCount shouldBe 1
         }
     }
 
@@ -114,7 +137,7 @@ class AmtDeltakerClientTest {
         fun `skal returnere DeltakerResponse`() {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
-                expectedResponse = TestData.lagDeltakerResponse(deltakerInTest.id),
+                expectedResponse = lagDeltakerResponse(deltakerInTest.id),
                 block = getDeltakerLambda,
             )
         }
@@ -122,7 +145,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreBakgrunnsinformasjon {
-        val endreBakgrunnsinformasjonLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreBakgrunnsinformasjonLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -160,7 +183,7 @@ class AmtDeltakerClientTest {
     @Nested
     inner class EndreInnhold {
         val innhold = Deltakelsesinnhold(null, emptyList())
-        val endreInnholdLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreInnholdLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -197,7 +220,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreDeltakelsesmengde {
-        val endreDeltakelsesmengdeLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreDeltakelsesmengdeLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -238,7 +261,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreStartdato {
-        val endreStartdatoLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreStartdatoLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -278,7 +301,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreSluttdato {
-        val endreSluttdatoLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreSluttdatoLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -317,7 +340,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class EndreSluttaarsak {
-        val endreSluttaarsakLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val endreSluttaarsakLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -359,7 +382,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class ForlengDeltakelse {
-        val forlengDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val forlengDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -398,7 +421,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class IkkeAktuell {
-        val ikkeAktuellLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val ikkeAktuellLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -440,7 +463,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class ReaktiverDeltakelse {
-        val reaktiverDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val reaktiverDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -477,7 +500,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class AvsluttDeltakelse {
-        val avsluttDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val avsluttDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -521,7 +544,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class AvbrytDeltakelse {
-        val avbrytDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val avbrytDeltakelseLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -564,7 +587,7 @@ class AmtDeltakerClientTest {
 
     @Nested
     inner class FjernOppstartsdato {
-        val fjernOppstartsdatoLambda: suspend (AmtDeltakerClient) -> DeltakerEndringResponse =
+        val fjernOppstartsdatoLambda: suspend (AmtDeltakerClient) -> DeltakerResponse =
             { client ->
                 client.postEndreDeltaker(
                     deltakerId = deltakerInTest.id,
@@ -682,7 +705,7 @@ class AmtDeltakerClientTest {
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
         private val deltakerInTest = lagDeltaker()
-        private val deltakerEndringResponseInTest = deltakerInTest.toDeltakerEndringResponse()
+        private val deltakerEndringResponseInTest = lagDeltakerResponse(deltakerInTest)
         private val expectedEndreDeltakerUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/endre-deltaker"
 
         private inline fun <reified T : EndringRequest> createExpectedErrorMessage() =
@@ -726,6 +749,7 @@ class AmtDeltakerClientTest {
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
             personIdentCache: CountingCache<UUID, String>? = null,
+            personIdentForslagCache: CountingCache<UUID, String>? = null,
         ) = AmtDeltakerClient(
             baseUrl = DELTAKER_BASE_URL,
             scope = "scope",
@@ -735,7 +759,8 @@ class AmtDeltakerClientTest {
                 statusCode = statusCode,
             ),
             azureAdTokenClient = mockAzureAdClient(),
-            personIdentCache = personIdentCache ?: CountingCache(),
+            personIdentDeltakerCache = personIdentCache ?: CountingCache(),
+            personIdentForslagCache = personIdentForslagCache ?: CountingCache(),
         )
     }
 }

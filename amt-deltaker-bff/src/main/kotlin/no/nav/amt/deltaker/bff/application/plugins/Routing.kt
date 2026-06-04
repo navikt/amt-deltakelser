@@ -41,7 +41,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
 import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi
@@ -53,7 +52,6 @@ import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.registerHealthApi
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -72,7 +70,6 @@ fun Application.configureRouting(
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     forslagRepository: ForslagRepository,
-    forslagService: ForslagService,
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     arrangorsokClient: ArrangorsokClient,
@@ -82,7 +79,6 @@ fun Application.configureRouting(
     deltakerlisteService: DeltakerlisteService,
     deltakerlisteRepository: DeltakerlisteRepository,
     unleash: Unleash,
-    commonUnleashToggle: CommonUnleashToggle,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
@@ -130,16 +126,9 @@ fun Application.configureRouting(
 
         registerVeilederApi(
             tilgangskontrollService = tilgangskontrollService,
-            deltakerRepository = deltakerRepository,
-            deltakerService = deltakerService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
             forslagRepository = forslagRepository,
-            forslagService = forslagService,
-            amtDistribusjonClient = amtDistribusjonClient,
             amtDeltakerClient = amtDeltakerClient,
             sporbarhetsloggService = sporbarhetsloggService,
-            unleashToggle = commonUnleashToggle,
             kodeverkClient = kodeverkClient,
         )
 
@@ -156,7 +145,6 @@ fun Application.configureRouting(
             pameldingService = pameldingService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
-            forslageRepository = forslagRepository,
             amtDistribusjonClient = amtDistribusjonClient,
             amtDeltakerClient = amtDeltakerClient,
             paameldingClient = paameldingClient,

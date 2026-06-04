@@ -22,7 +22,6 @@ import no.nav.amt.deltaker.bff.model.Kladd
 import no.nav.amt.deltaker.bff.model.Pamelding
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.sanitize
 import no.nav.amt.deltaker.bff.veileder.api.request.valider
@@ -39,7 +38,6 @@ fun Routing.registerKladdApi(
     pameldingService: PameldingService,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
-    forslageRepository: ForslagRepository,
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     paameldingClient: PaameldingClient,
@@ -52,7 +50,7 @@ fun Routing.registerKladdApi(
         ansatte = navAnsattService.hentAnsatteForDeltaker(deltaker),
         vedtakSistEndretAvEnhet = deltaker.vedtaksinformasjon?.sistEndretAvEnhet?.let { navEnhetService.hentEnhet(it) },
         digitalBruker = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident),
-        forslag = forslageRepository.getForDeltaker(deltaker.id),
+        forslag = emptyList(), // Kladd kan ikke ha forslag enda
     )
 
     authenticate(AuthLevel.VEILEDER.name) {

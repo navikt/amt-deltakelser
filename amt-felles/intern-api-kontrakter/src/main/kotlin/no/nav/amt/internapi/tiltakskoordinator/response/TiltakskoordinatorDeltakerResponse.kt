@@ -22,4 +22,5 @@ data class TiltakskoordinatorDeltakerResponse(
     val erManueltDeltMedArrangor: Boolean,
     val harAktivtForslag: Boolean,
     val sisteVurderingstype: Vurderingstype?,
+    val kanEndres: Boolean,
 )

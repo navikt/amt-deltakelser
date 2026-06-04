@@ -49,7 +49,6 @@ class PameldingServiceTest {
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         amtDeltakerClient = mockk(relaxed = true),
-        navEnhetService = navEnhetService,
         forslagRepository = mockk(),
     )
 

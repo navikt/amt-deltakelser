@@ -328,6 +328,8 @@ fun Application.module() {
         arrangorMeldingProducer = ArrangorMeldingProducer(outboxService),
         deltakerRepository = deltakerRepository,
         deltakerProducerService = deltakerProducerService,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
     )
 
     val deltakerEndringService = DeltakerEndringService(
@@ -448,6 +450,7 @@ fun Application.module() {
         viewRepository = tiltakskoordinatorViewRepository,
         deltakerlisteRepository = deltakerlisteRepository,
         digitalBrukerService = digitalBrukerService,
+        deltakerLaaseService = deltakerLaaseService,
     )
 
     val consumers = listOf(
@@ -516,6 +519,8 @@ fun Application.module() {
         arrangorService = arrangorService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
         tiltaksansvarligService = tiltaksansvarligService,
+        forslagService = forslagService,
+        forslagRepository = forslagRepository,
     )
     configureMonitoring()
 

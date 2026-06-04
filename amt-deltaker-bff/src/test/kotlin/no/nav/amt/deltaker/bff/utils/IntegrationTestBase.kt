@@ -34,7 +34,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
@@ -63,7 +62,6 @@ abstract class IntegrationTestBase {
     protected val pameldingService: PameldingService = mockk()
     protected val navAnsattService: NavAnsattService = mockk()
     protected val navEnhetService: NavEnhetService = mockk()
-    protected val forslagService: ForslagService = mockk()
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk()
     protected val deltakerlisteService: DeltakerlisteService = mockk()
 
@@ -112,7 +110,6 @@ abstract class IntegrationTestBase {
                     navAnsattService = navAnsattService,
                     navEnhetService = navEnhetService,
                     forslagRepository = forslagRepository,
-                    forslagService = forslagService,
                     amtDistribusjonClient = amtDistribusjonClient,
                     amtDeltakerClient = amtDeltakerClient,
                     arrangorsokClient = arrangorsokClient,
@@ -122,7 +119,6 @@ abstract class IntegrationTestBase {
                     deltakerlisteService = deltakerlisteService,
                     deltakerlisteRepository = deltakerlisteRepository,
                     unleash = unleash,
-                    commonUnleashToggle = commonUnleashToggle,
                     tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
                     tiltakskoordinatorService = tiltakskoordinatorService,
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,

@@ -13,6 +13,7 @@ import java.util.UUID
 class ForslagRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    // Brukes kun for validering av testresultat
     fun getForDeltaker(deltakerId: UUID): List<Forslag> {
         val query = queryOf(
             """
@@ -56,28 +57,6 @@ class ForslagRepository {
 
         return Database.query { session ->
             session.run(query.map(::rowMapper).asList)
-        }
-    }
-
-    fun get(id: UUID): Result<Forslag> = runCatching {
-        val query = queryOf(
-            """
-            SELECT 
-                id,
-                deltaker_id,
-                arrangoransatt_id,
-                opprettet,
-                begrunnelse,
-                endring,
-                status
-            FROM forslag 
-            WHERE id = :id
-            """.trimIndent(),
-            mapOf("id" to id),
-        ).map(::rowMapper).asSingle
-
-        Database.query { session ->
-            session.run(query) ?: throw NoSuchElementException("Ingen forslag med id $id")
         }
     }
 

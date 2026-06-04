@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.repository
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
@@ -12,6 +13,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -557,18 +559,27 @@ class DeltakerRepositoryTest {
         deltakerRepository.getPersonidentForDeltaker(deltaker.id) shouldBe deltaker.navBruker.personident
     }
 
+    @Test
+    fun `getPersonidentForForslag - returnerer personident`() {
+        val deltaker = lagDeltaker()
+        val forslag = lagForslag(deltakerId = deltaker.id)
+
+        TestRepository.insertAll(deltaker, forslag)
+        deltakerRepository.getPersonidentForForslag(forslag.id) shouldBe deltaker.navBruker.personident
+    }
+
     @Nested
     inner class GetDeltakelserForLaaseSjekkTests {
         @Test
-        fun `ingen treff i database - returnerer tom liste`() {
+        fun `ingen treff i database - returnerer tomt map`() {
             // Act
             val resultat = deltakerRepository.getDeltakelserForLaaseSjekk(
-                personident = "12345678901",
-                deltakerlisteId = UUID.randomUUID(),
+                personIdenter = setOf("12345678901"),
+                gjennomforingId = UUID.randomUUID(),
             )
 
             // Assert
-            resultat shouldBe emptyList()
+            resultat shouldBe emptyMap()
         }
 
         @Test
@@ -587,13 +598,15 @@ class DeltakerRepositoryTest {
 
             // Act
             val resultat = deltakerRepository.getDeltakelserForLaaseSjekk(
-                personident = deltaker.navBruker.personident,
-                deltakerlisteId = deltakerliste.id,
+                setOf(deltaker.navBruker.personident),
+                gjennomforingId = deltakerliste.id,
             )
 
             // Assert
             resultat shouldHaveSize 1
-            assertSoftly(resultat.single()) {
+            resultat.values.first() shouldHaveSize 1
+
+            assertSoftly(resultat.values.first().first()) {
                 id shouldBe deltaker.id
                 statusType shouldBe DeltakerStatus.Type.DELTAR
                 statusGyldigFra shouldBeCloseTo gyldigFra
@@ -625,12 +638,14 @@ class DeltakerRepositoryTest {
 
             // Act
             val resultat = deltakerRepository.getDeltakelserForLaaseSjekk(
-                personident = deltaker.navBruker.personident,
-                deltakerlisteId = deltakerliste.id,
+                personIdenter = setOf(deltaker.navBruker.personident),
+                gjennomforingId = deltakerliste.id,
             )
 
             // Assert
-            resultat.single().vedtakFattet.shouldNotBeNull() shouldBeCloseTo fattet
+            resultat[deltaker.navBruker.personident].shouldNotBeNull()
+
+            resultat[deltaker.navBruker.personident]?.single()?.vedtakFattet shouldBeCloseTo fattet
         }
 
         @Test
@@ -650,12 +665,12 @@ class DeltakerRepositoryTest {
 
             // Act
             val resultat = deltakerRepository.getDeltakelserForLaaseSjekk(
-                personident = deltaker.navBruker.personident,
-                deltakerlisteId = deltakerliste.id,
+                personIdenter = setOf(deltaker.navBruker.personident),
+                gjennomforingId = deltakerliste.id,
             )
 
             // Assert
-            resultat.single().innsoektDatoFraArena shouldBe innsoktDato
+            resultat[deltaker.navBruker.personident]?.first()?.innsoektDatoFraArena shouldBe innsoktDato
         }
 
         @Test
@@ -670,13 +685,12 @@ class DeltakerRepositoryTest {
 
             // Act
             val resultat = deltakerRepository.getDeltakelserForLaaseSjekk(
-                personident = bruker.personident,
-                deltakerlisteId = maalListe.id,
+                personIdenter = setOf(bruker.personident),
+                gjennomforingId = maalListe.id,
             )
 
             // Assert — kun deltakelsen i målliste returneres
-            resultat shouldHaveSize 1
-            resultat.single().id shouldBe maalDeltakelse.id
+            resultat[bruker.personident]?.first()?.id shouldBe maalDeltakelse.id
         }
 
         @Test
@@ -704,13 +718,14 @@ class DeltakerRepositoryTest {
 
             // Act
             val resultat = deltakerRepository.getDeltakelserForLaaseSjekk(
-                personident = bruker.personident,
-                deltakerlisteId = deltakerliste.id,
+                personIdenter = setOf(bruker.personident),
+                gjennomforingId = deltakerliste.id,
             )
 
             // Assert
-            resultat shouldHaveSize 2
-            resultat.map { it.id }.toSet() shouldBe setOf(tidligere.id, aktiv.id)
+            resultat.values
+                .flatMap { laaseInfoList -> laaseInfoList.map { laaseInfo -> laaseInfo.id } }
+                .toSet() shouldBe setOf(tidligere.id, aktiv.id)
         }
     }
 

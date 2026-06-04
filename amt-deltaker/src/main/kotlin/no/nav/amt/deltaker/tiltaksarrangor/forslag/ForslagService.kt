@@ -1,9 +1,12 @@
 package no.nav.amt.deltaker.tiltaksarrangor.forslag
 
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
@@ -13,6 +16,8 @@ class ForslagService(
     private val arrangorMeldingProducer: ArrangorMeldingProducer,
     private val deltakerRepository: DeltakerRepository,
     private val deltakerProducerService: DeltakerProducerService,
+    private val navAnsattService: NavAnsattService,
+    private val navEnhetService: NavEnhetService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -33,6 +38,34 @@ class ForslagService(
             }
         }
         log.info("Lagret forslag ${forslag.id}")
+    }
+
+    suspend fun avvisForslag(
+        forslagId: UUID,
+        begrunnelse: String,
+        avvistAvAnsattIdent: String,
+        avvistAvEnhet: String,
+    ) {
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(avvistAvAnsattIdent)
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(avvistAvEnhet)
+        val opprinneligForslag = forslagRepository.get(forslagId).getOrThrow()
+
+        val avvistForslag = opprinneligForslag.copy(
+            status = Forslag.Status.Avvist(
+                avvistAv = Forslag.NavAnsatt(
+                    id = navAnsatt.id,
+                    enhetId = navEnhet.id,
+                ),
+                avvist = LocalDateTime.now(),
+                begrunnelseFraNav = begrunnelse,
+            ),
+        )
+        Database.transaction {
+            upsertAndProduce(avvistForslag)
+            arrangorMeldingProducer.produce(avvistForslag)
+        }
+
+        log.info("Avvist forslag for deltaker ${opprinneligForslag.deltakerId}")
     }
 
     fun godkjennForslag(

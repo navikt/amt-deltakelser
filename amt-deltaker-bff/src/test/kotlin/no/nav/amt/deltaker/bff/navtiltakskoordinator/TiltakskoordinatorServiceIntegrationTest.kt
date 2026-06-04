@@ -12,8 +12,6 @@ import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
@@ -43,7 +41,6 @@ class TiltakskoordinatorServiceIntegrationTest {
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         amtDeltakerClient = amtDeltakerClient,
-        navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
     )
     private val amtDistribusjonClient = mockk<AmtDistribusjonClient>()
@@ -77,7 +74,6 @@ class TiltakskoordinatorServiceIntegrationTest {
         every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
         every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus =
@@ -99,19 +95,6 @@ class TiltakskoordinatorServiceIntegrationTest {
 
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.id) } returns navAnsatt
         every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
-
-        val deltakerFraDb = tiltakskoordinatorService.getDeltaker(deltaker.id)
-        deltakerFraDb shouldBeCloseTo deltaker
-            .copy(status = nyStatus)
-            .toTiltakskoordinatorsDeltaker(
-                sisteVurdering = null,
-                navEnhet = navEnhet,
-                navVeileder = navAnsatt,
-                feilkode = null,
-                ikkeDigitalOgManglerAdresse = false,
-                forslag = emptyList(),
-                ulesteHendelser = emptyList(),
-            )
     }
 
     @Test
@@ -126,7 +109,6 @@ class TiltakskoordinatorServiceIntegrationTest {
         every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
         every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus = DeltakerStatus(
@@ -151,14 +133,6 @@ class TiltakskoordinatorServiceIntegrationTest {
         resultatFraAmtDeltaker.size shouldBe 1
         resultDeltaker.status.id shouldNotBe deltaker.status.id
         resultDeltaker.status.trimMss().copy(id = nyStatus.id) shouldBe nyStatus.trimMss()
-
-        coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.id) } returns navAnsatt
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
-
-        val deltakerFraDb = tiltakskoordinatorService.getDeltaker(deltaker.id)
-        deltakerFraDb shouldBeCloseTo deltaker
-            .copy(status = nyStatus)
-            .toTiltakskoordinatorsDeltaker(null, navEnhet, navAnsatt, null, false, emptyList(), emptyList())
     }
 
     @Test
@@ -172,7 +146,6 @@ class TiltakskoordinatorServiceIntegrationTest {
         every { navEnhetService.hentEnheter(listOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
         every { navAnsattService.hentAnsatte(listOf(navAnsatt.id)) } returns mapOf(navAnsatt.id to navAnsatt)
         every { forslagRepository.getForDeltakere(any()) } returns emptyList()
-        every { forslagRepository.getForDeltaker(any()) } returns emptyList()
         every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
 
         val nyStatus =
@@ -198,14 +171,6 @@ class TiltakskoordinatorServiceIntegrationTest {
 
         resultDeltaker.status.id shouldNotBe deltaker.status.id
         resultDeltaker.status.trimMss().copy(id = nyStatus.id) shouldBe nyStatus.trimMss()
-
-        coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.id) } returns navAnsatt
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
-
-        val deltakerFraDb = tiltakskoordinatorService.getDeltaker(deltaker.id)
-        deltakerFraDb shouldBeCloseTo deltaker
-            .copy(status = nyStatus)
-            .toTiltakskoordinatorsDeltaker(null, navEnhet, navAnsatt, null, false, emptyList(), emptyList())
     }
 }
 
@@ -215,15 +180,3 @@ fun DeltakerStatus.trimMss() = this.copy(
     opprettet = this.opprettet.atStartOfDay(),
     gyldigFra = this.gyldigFra.atStartOfDay(),
 )
-
-infix fun TiltakskoordinatorsDeltaker.shouldBeCloseTo(expected: TiltakskoordinatorsDeltaker?) {
-    this.copy(
-        status = status.trimMss().copy(
-            id = expected!!.status.id,
-        ),
-    ) shouldBe expected.copy(
-        status = expected.status.trimMss().copy(
-            id = expected.status.id,
-        ),
-    )
-}

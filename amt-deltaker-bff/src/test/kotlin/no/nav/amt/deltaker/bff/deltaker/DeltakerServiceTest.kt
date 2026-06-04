@@ -1,18 +1,13 @@
 package no.nav.amt.deltaker.bff.deltaker
 
-import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
-import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils.sammenlignDeltakere
 import no.nav.amt.deltaker.bff.utils.TestData
@@ -22,22 +17,7 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerKladd
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.deltaker.bff.utils.endre
-import no.nav.amt.deltaker.bff.utils.toDeltakerEndringResponse
 import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
-import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
-import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
-import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
-import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
-import no.nav.amt.internapi.deltaker.request.EndreAvslutningRequest
-import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
-import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
-import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
-import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
-import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
-import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
-import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
-import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
-import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -55,10 +35,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerServiceTest {
-    private val navEnhetService = NavEnhetService(
-        repository = NavEnhetRepository(),
-        amtPersonServiceClient = mockk(relaxed = true),
-    )
     private val forslagRepository = mockk<ForslagRepository>(relaxed = true)
     private val deltakerRepository = DeltakerRepository()
 
@@ -66,7 +42,6 @@ class DeltakerServiceTest {
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         amtDeltakerClient = amtDeltakerClient,
-        navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
     )
 
@@ -202,255 +177,23 @@ class DeltakerServiceTest {
         }
 
         @Test
-        fun `oppdaterDeltaker(endring) - kaller client og returnerer deltaker`() = runTest {
-            val deltaker = lagDeltaker()
-            TestRepository.insert(deltaker)
-
-            val navEnhet = navEnhetService
-                .hentEnhet(
-                    deltaker.navBruker.navEnhetId.shouldNotBeNull(),
-                ).shouldNotBeNull()
-
-            val endringRequests = listOf(
-                BakgrunnsinformasjonRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    bakgrunnsinformasjon = "foo",
-                ),
-                EndretInnholdRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    innholdselementer = listOf(InnholdsElementRequest("annet", "beskrivelse")),
-                ),
-                DeltakelsesmengdeRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    deltakelsesprosent = 50,
-                    dagerPerUke = 2,
-                    gyldigFra = LocalDate.now(),
-                    begrunnelse = null,
-                ),
-                StartdatoRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    startdato = LocalDate.now(),
-                    sluttdato = LocalDate.now().plusWeeks(2),
-                    begrunnelse = null,
-                ),
-                SluttdatoRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    sluttdato = LocalDate.now(),
-                    begrunnelse = null,
-                ),
-                SluttarsakRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    aarsak = DeltakerEndring.Aarsak(
-                        type = DeltakerEndring.Aarsak.Type.ANNET,
-                        beskrivelse = "beskrivelse",
-                    ),
-                    begrunnelse = null,
-                ),
-                ForlengDeltakelseRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    sluttdato = LocalDate.now(),
-                    begrunnelse = "begrunnelse",
-                ),
-                IkkeAktuellRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    DeltakerEndring.Aarsak(
-                        type = DeltakerEndring.Aarsak.Type.ANNET,
-                        beskrivelse = "beskrivelse",
-                    ),
-                    begrunnelse = "begrunnelse",
-                ),
-                AvsluttDeltakelseRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    sluttdato = LocalDate.now(),
-                    aarsak = DeltakerEndring.Aarsak(
-                        type = DeltakerEndring.Aarsak.Type.ANNET,
-                        beskrivelse = "beskrivelse",
-                    ),
-                    begrunnelse = "begrunnelse",
-                    harFullfort = true,
-                ),
-                AvbrytDeltakelseRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    sluttdato = LocalDate.now(),
-                    aarsak = DeltakerEndring.Aarsak(
-                        type = DeltakerEndring.Aarsak.Type.ANNET,
-                        beskrivelse = "beskrivelse",
-                    ),
-                    begrunnelse = "begrunnelse",
-                ),
-                ReaktiverDeltakelseRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    begrunnelse = "begrunnelse",
-                ),
-                FjernOppstartsdatoRequest(
-                    endretAv = "~endretAv~",
-                    endretAvEnhet = navEnhet.enhetsnummer,
-                    forslagId = null,
-                    begrunnelse = "begrunnelse",
-                ),
-            )
-
-            endringRequests.forEach { endringRequest ->
-                coEvery {
-                    amtDeltakerClient.postEndreDeltaker(deltaker.id, endringRequest)
-                } returns deltaker
-                    .endre(
-                        lagDeltakerEndring(
-                            deltakerId = deltaker.id,
-                            endring = endringRequest.toEndring(deltaker.deltakerliste.tiltak),
-                        ),
-                    ).toDeltakerEndringResponse()
-
-                val oppdatertDeltaker = deltakerService.oppdaterDeltaker(
-                    deltaker = deltaker,
-                    endringRequest = endringRequest,
-                )
-
-                when (endringRequest) {
-                    is BakgrunnsinformasjonRequest ->
-                        oppdatertDeltaker.bakgrunnsinformasjon shouldBe endringRequest.bakgrunnsinformasjon
-
-                    is EndretInnholdRequest -> {
-                        val forventetInnhold = endringRequest.innholdselementer.map {
-                            Innhold(tekst = "Annet", innholdskode = it.innholdskode, valgt = true, beskrivelse = it.beskrivelse)
-                        }
-                        oppdatertDeltaker.deltakelsesinnhold.shouldNotBeNull().innhold shouldBe forventetInnhold
-                        oppdatertDeltaker.deltakelsesinnhold.ledetekst shouldBe deltaker.deltakerliste.tiltak.innhold
-                            ?.ledetekst
-                    }
-
-                    is DeltakelsesmengdeRequest -> {
-                        oppdatertDeltaker.deltakelsesprosent shouldBe endringRequest.deltakelsesprosent
-                        oppdatertDeltaker.dagerPerUke shouldBe endringRequest.dagerPerUke
-                    }
-
-                    is StartdatoRequest -> {
-                        oppdatertDeltaker.startdato shouldBe endringRequest.startdato
-                        oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
-                    }
-
-                    is SluttdatoRequest -> oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
-
-                    is SluttarsakRequest ->
-                        oppdatertDeltaker.status.aarsak shouldBe endringRequest.aarsak.toDeltakerStatusAarsak()
-
-                    is ForlengDeltakelseRequest -> oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
-
-                    is IkkeAktuellRequest -> {
-                        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-                        oppdatertDeltaker.status.aarsak shouldBe endringRequest.aarsak.toDeltakerStatusAarsak()
-                    }
-
-                    is AvsluttDeltakelseRequest -> {
-                        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-                        oppdatertDeltaker.status.aarsak shouldBe endringRequest.aarsak?.toDeltakerStatusAarsak()
-                        oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
-                    }
-
-                    is EndreAvslutningRequest -> {
-                        if (endringRequest.harFullfort == true) {
-                            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.FULLFORT
-                        } else {
-                            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
-                        }
-                        oppdatertDeltaker.status.aarsak shouldBe endringRequest.aarsak?.toDeltakerStatusAarsak()
-                    }
-
-                    is AvbrytDeltakelseRequest -> {
-                        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
-                        oppdatertDeltaker.status.aarsak shouldBe endringRequest.aarsak.toDeltakerStatusAarsak()
-                        oppdatertDeltaker.sluttdato shouldBe endringRequest.sluttdato
-                    }
-
-                    is ReaktiverDeltakelseRequest -> {
-                        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-                        oppdatertDeltaker.startdato shouldBe null
-                        oppdatertDeltaker.sluttdato shouldBe null
-                    }
-
-                    is FjernOppstartsdatoRequest -> {
-                        oppdatertDeltaker.startdato shouldBe null
-                        oppdatertDeltaker.sluttdato shouldBe null
-                    }
-                }
-            }
-        }
-
-        @Test
-        fun `oppdaterDeltaker(deltakerOppdatering) - reaktivering med kladd - sletter kladd`() = runTest {
-            val deltakerKladd = lagDeltakerKladd()
-            val deltaker = lagDeltaker(deltakerliste = deltakerKladd.deltakerliste, navBruker = deltakerKladd.navBruker)
-            TestRepository.insert(deltaker)
-            TestRepository.insert(deltakerKladd)
-
-            val navEnhet = navEnhetService
-                .hentEnhet(
-                    deltaker.navBruker.navEnhetId.shouldNotBeNull(),
-                ).shouldNotBeNull()
-
-            val endringRequest = ReaktiverDeltakelseRequest(
-                endretAv = "~endretAv~",
-                endretAvEnhet = navEnhet.enhetsnummer,
-                begrunnelse = "begrunnelse",
-            )
-
-            coEvery {
-                amtDeltakerClient.postEndreDeltaker(deltaker.id, endringRequest)
-            } returns deltaker
-                .endre(
-                    lagDeltakerEndring(
-                        deltakerId = deltaker.id,
-                        endring = endringRequest.toEndring(),
-                    ),
-                ).toDeltakerEndringResponse()
-
-            every { forslagRepository.deleteForDeltaker(deltakerKladd.id) } returns Unit
-
-            deltakerRepository.get(deltakerKladd.id).shouldBeSuccess()
-
-            deltakerService.oppdaterDeltaker(
-                deltaker = deltaker,
-                endringRequest = endringRequest,
-            )
-
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-            deltakerRepository.get(deltakerKladd.id).shouldBeFailure()
-        }
-
-        @Test
         fun `oppdaterDeltaker(deltakerOppdatering) - har ikke andre deltakelser - oppdaterer deltaker`() = runTest {
             val deltaker = lagDeltakerKladd()
             TestRepository.insert(deltaker)
 
             val deltakeroppdatering = Deltakeroppdatering(
                 id = deltaker.id,
-                startdato = null,
-                sluttdato = null,
-                dagerPerUke = null,
+                startdato = LocalDate.now().minusDays(5),
+                sluttdato = LocalDate.now().plusDays(5),
+                dagerPerUke = 3F,
                 deltakelsesprosent = 100F,
                 bakgrunnsinformasjon = "Tekst",
-                deltakelsesinnhold = null,
+                deltakelsesinnhold = Deltakelsesinnhold(
+                    ledetekst = "ny ledetekst",
+                    innhold = listOf(Innhold("tekst", "kode", true, "beskrivelse")),
+                ),
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                // erManueltDeltMedArrangor blir tilsynelatende bevisst ikke skrevet ved enkelt-update — se DeltakerRepository.update
                 erManueltDeltMedArrangor = false,
                 historikk = emptyList(),
             )
@@ -458,7 +201,17 @@ class DeltakerServiceTest {
             deltakerService.oppdaterDeltaker(deltakeroppdatering)
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            assertSoftly(deltakerFraDb) {
+                id shouldBe deltakeroppdatering.id
+                startdato shouldBe deltakeroppdatering.startdato
+                sluttdato shouldBe deltakeroppdatering.sluttdato
+                dagerPerUke shouldBe deltakeroppdatering.dagerPerUke
+                deltakelsesprosent shouldBe deltakeroppdatering.deltakelsesprosent
+                bakgrunnsinformasjon shouldBe deltakeroppdatering.bakgrunnsinformasjon
+                deltakelsesinnhold shouldBe deltakeroppdatering.deltakelsesinnhold
+                status.type shouldBe deltakeroppdatering.status.type
+                status.aarsak shouldBe deltakeroppdatering.status.aarsak
+            }
         }
 
         @Test

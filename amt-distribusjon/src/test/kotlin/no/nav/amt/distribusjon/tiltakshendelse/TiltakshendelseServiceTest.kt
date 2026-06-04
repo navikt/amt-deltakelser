@@ -123,6 +123,39 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             }
 
             @Test
+            fun `reprosessering av samme forslag ignorerer duplikat VenterPaSvar`() = runTest {
+                val deltakerResponse = DeltakerData.lagDeltakerResponse()
+                val forslag = Forslag(
+                    id = UUID.randomUUID(),
+                    deltakerId = deltakerResponse.id,
+                    opprettetAvArrangorAnsattId = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    begrunnelse = "begrunnelse",
+                    endring = Forslag.ForlengDeltakelse(LocalDate.now()),
+                    status = Forslag.Status.VenterPaSvar,
+                )
+
+                coEvery { amtDeltakerClient.getDeltaker(deltakerResponse.id) } returns deltakerResponse
+
+                tiltakshendelseService.handleForslag(forslag)
+                val lagretTiltakshendelse = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
+
+                tiltakshendelseService.handleForslag(forslag)
+                val lagretTiltakshendelseEtterReprosessering = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
+
+                lagretTiltakshendelseEtterReprosessering.id shouldBe lagretTiltakshendelse.id
+
+                verify(exactly = 1) {
+                    outboxService.insertRecord(
+                        key = lagretTiltakshendelse.id,
+                        value = any(),
+                        topic = Environment.TILTAKSHENDELSE_TOPIC,
+                        suppressOutsideTxWarning = any(),
+                    )
+                }
+            }
+
+            @Test
             fun `ny ForlengDeltakelse godkjennes - oppretter ny tiltakshendelse'`() = runTest {
                 // Arrange
                 val deltakerResponse = DeltakerData.lagDeltakerResponse()

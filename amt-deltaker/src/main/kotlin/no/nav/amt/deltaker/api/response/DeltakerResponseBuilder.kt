@@ -42,7 +42,7 @@ class DeltakerResponseBuilder(
 ) {
     suspend fun buildDeltakerResponse(
         deltaker: Deltaker,
-        includeKodeverk: Boolean = false,
+        includeKodeverk: Boolean = true,
     ): DeltakerResponse {
         val endringsforslagForDeltaker =
             SharedResponseMappers.hentEndringsforslagVenterPaSvar(forslagRepository, deltaker.id)
@@ -117,8 +117,9 @@ class DeltakerResponseBuilder(
         deltakerliste: Deltakerliste,
         includeKodeverk: Boolean,
     ): GjennomforingResponse {
-        val skalHenteEnkeltplassValg = includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass
-
+        val skalHenteEnkeltplassValg =
+            includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
+                !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
         val kodeverkValg =
             if (skalHenteEnkeltplassValg) {
                 KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)

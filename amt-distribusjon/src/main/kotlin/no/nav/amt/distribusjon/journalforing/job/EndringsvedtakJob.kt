@@ -46,7 +46,9 @@ class EndringsvedtakJob(
                     log.error("Behandling av endringsvedtak for deltaker med id $deltakerId feilet", e)
                 }
             } else {
-                log.info("Venter med å behandle endringsvedtak for deltaker $deltakerId (nyeste hendelse: $nyesteHendelseOpprettet)")
+                log.info(
+                    "Venter med å behandle endringsvedtak for deltaker $deltakerId (nyeste hendelse: id:${nyesteHendelseOpprettet.hendelse.id})",
+                )
             }
         }
         log.info("Ferdig med å behandle ${ikkeJournalforteEndringsvedtak.size} endringsvedtak")
