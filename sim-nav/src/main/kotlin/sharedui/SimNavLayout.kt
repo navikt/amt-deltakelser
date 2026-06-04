@@ -7,14 +7,16 @@ private data class SimNavMenuItem(
     val path: String,
 )
 
-private val simNavMenuItems = listOf(
-    SimNavMenuItem("Home", "/"),
+private val datakilder = listOf(
     SimNavMenuItem("Valp", "/valp"),
     SimNavMenuItem("Veilarboppfolging", "/veilarboppfolging"),
     SimNavMenuItem("Veilarbvedtaksstotte", "/veilarbvedtaksstotte"),
     SimNavMenuItem("Nom", "/nom"),
     SimNavMenuItem("AO oppfolgingskontor", "/ao-oppfolgingskontor"),
     SimNavMenuItem("Dokdistkanal", "/dokdistkanal"),
+)
+
+private val flater = listOf(
     SimNavMenuItem("Nav-veileders-flate", "/nav-veileders-flate"),
     SimNavMenuItem("Innbyggers-flate", "/innbyggers-flate"),
 )
@@ -118,9 +120,20 @@ fun HEAD.simNavFormPageStyles(
 
 fun FlowContent.simNavHeader(activePathPrefix: String) {
     header(classes = "sim-nav-header") {
-        p(classes = "sim-nav-header__title") { +"Sim-nav features" }
+        p(classes = "sim-nav-header__title") { +"Datakilder" }
         nav(classes = "sim-nav-nav") {
-            simNavMenuItems.forEach { item ->
+            datakilder.forEach { item ->
+                a(
+                    href = item.path,
+                    classes = if (item.path == activePathPrefix) "active" else null,
+                ) {
+                    +item.label
+                }
+            }
+        }
+        p(classes = "sim-nav-header__title") { +"Flater" }
+        nav(classes = "sim-nav-nav") {
+            flater.forEach { item ->
                 a(
                     href = item.path,
                     classes = if (item.path == activePathPrefix) "active" else null,
