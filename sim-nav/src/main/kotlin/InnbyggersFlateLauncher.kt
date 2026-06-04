@@ -1,3 +1,5 @@
+import db.AmtDeltakerRepository
+import db.DeltakerOption
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -15,13 +17,12 @@ private const val INNBYGGERS_FLATE_LAUNCHER_PATH = "/innbyggers-flate"
 private const val INNBYGGERS_FLATE_URL = "http://127.0.0.1:3005"
 private const val INNBYGGERS_FLATE_FRONTEND_AUTH_PATH = "$INNBYGGERS_FLATE_LAUNCHER_PATH/frontend-auth"
 
-private const val STATIC_DELTAKER_ID = "00000000-0000-0000-0000-000000000001"
-
 fun Route.innbyggersFlateLauncherRoutes(
     pdlDataSource: PdlDataSource,
+    amtDeltakerRepository: AmtDeltakerRepository,
 ) {
     get(INNBYGGERS_FLATE_LAUNCHER_PATH) {
-        val options = loadInnbyggersFlateOptions(pdlDataSource)
+        val options = loadInnbyggersFlateOptions(pdlDataSource, amtDeltakerRepository)
         call.respondHtml {
             innbyggersFlateLauncherPage(
                 message = call.request.queryParameters["message"],
@@ -29,13 +30,14 @@ fun Route.innbyggersFlateLauncherRoutes(
                 personOptions = options.persons,
                 currentFrontendPid = options.currentFrontendPid,
                 currentFrontendPidLabel = options.currentFrontendPidLabel,
+                deltakerOptions = options.deltakere,
             )
         }
     }
 
     post(INNBYGGERS_FLATE_FRONTEND_AUTH_PATH) {
         val submittedPid = call.receiveParameters()["pid"]?.trim().orEmpty()
-        val validPids = loadInnbyggersFlateOptions(pdlDataSource).persons.associate { it.value to it.label }
+        val validPids = loadInnbyggersFlateOptions(pdlDataSource, amtDeltakerRepository).persons.associate { it.value to it.label }
 
         if (submittedPid.isBlank()) {
             call.redirectToInnbyggersFlateLauncher("Velg en person", isError = true)
@@ -52,7 +54,10 @@ fun Route.innbyggersFlateLauncherRoutes(
     }
 }
 
-private fun loadInnbyggersFlateOptions(pdlDataSource: PdlDataSource): InnbyggersFlateOptions {
+private fun loadInnbyggersFlateOptions(
+    pdlDataSource: PdlDataSource,
+    amtDeltakerRepository: AmtDeltakerRepository,
+): InnbyggersFlateOptions {
     val persons = pdlDataSource.allPersons()
         .entries
         .sortedBy { (fnr, person) ->
@@ -73,10 +78,17 @@ private fun loadInnbyggersFlateOptions(pdlDataSource: PdlDataSource): Innbyggers
         persons.firstOrNull { it.value == pid }?.label ?: pid
     } ?: "Ikke satt enda"
 
+    val deltakere = currentFrontendPid?.let { pid ->
+        runCatching { amtDeltakerRepository.getDeltakereForPersonident(pid) }
+            .onFailure { println("Failed to fetch deltakere for pid $pid: ${it.message}") }
+            .getOrElse { emptyList() }
+    } ?: emptyList()
+
     return InnbyggersFlateOptions(
         persons = persons,
         currentFrontendPid = currentFrontendPid,
         currentFrontendPidLabel = currentFrontendPidLabel,
+        deltakere = deltakere,
     )
 }
 
@@ -86,6 +98,7 @@ private fun HTML.innbyggersFlateLauncherPage(
     personOptions: List<PersonSelectOption>,
     currentFrontendPid: String?,
     currentFrontendPidLabel: String,
+    deltakerOptions: List<DeltakerOption>,
 ) {
     head {
         title("Start innbyggers-flate")
@@ -103,7 +116,6 @@ private fun HTML.innbyggersFlateLauncherPage(
                 .frontend-auth-panel__current { font-weight: 600; margin-bottom: 0.75rem; }
                 .frontend-auth-panel__hint { margin-bottom: 0.75rem; color: #595959; }
                 .frontend-auth-panel form { border: 0; padding: 0; border-radius: 0; background: transparent; }
-                .static-value { font-family: monospace; background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid #d1d5db; }
                 p { margin-top: 0; }
                 """.trimIndent()
             }
@@ -114,7 +126,7 @@ private fun HTML.innbyggersFlateLauncherPage(
         simNavHeader(INNBYGGERS_FLATE_LAUNCHER_PATH)
         main {
             h1 { +"Start innbyggers-flate" }
-            p { +"Velg innbygger og åpne appen med ønsket deltaker." }
+            p { +"Velg innbygger og åpne appen for ønsket deltakelse." }
 
             if (message != null) {
                 p(classes = "message ${if (isError) "message--error" else "message--ok"}") {
@@ -160,17 +172,55 @@ private fun HTML.innbyggersFlateLauncherPage(
                 }
             }
 
-            form(action = "$INNBYGGERS_FLATE_URL/arbeidsmarkedstiltak/$STATIC_DELTAKER_ID", method = FormMethod.get) {
-                target = "_blank"
+            if (currentFrontendPid != null) {
+                if (deltakerOptions.isEmpty()) {
+                    p { +"Ingen deltakelser funnet for valgt innbygger i amt-deltaker." }
+                } else {
+                    form(method = FormMethod.get) {
+                        id = "innbyggers-flate-form"
+                        target = "_blank"
 
-                div("field") {
-                    label { +"Deltaker-ID (statisk)" }
-                    p {
-                        span(classes = "static-value") { +STATIC_DELTAKER_ID }
+                        div("field") {
+                            label {
+                                htmlFor = "deltaker_id"
+                                +"Deltakelse"
+                            }
+                            select {
+                                id = "deltaker_id"
+                                name = "deltaker_id"
+                                required = true
+                                deltakerOptions.forEachIndexed { index, option ->
+                                    val statusLabel = option.status?.let { " [$it]" } ?: ""
+                                    this@select.option {
+                                        value = option.id.toString()
+                                        selected = index == 0
+                                        +"${option.id} - ${option.deltakerlisteNavn} – $statusLabel"
+                                    }
+                                }
+                            }
+                        }
+
+                        button(type = ButtonType.submit) { +"Åpne innbyggers-flate" }
+                    }
+
+                    script {
+                        unsafe {
+                            +"""
+                            (() => {
+                              const form = document.getElementById('innbyggers-flate-form');
+                              if (!form) return;
+                              form.addEventListener('submit', (e) => {
+                                e.preventDefault();
+                                const deltakerId = document.getElementById('deltaker_id')?.value;
+                                window.open('${INNBYGGERS_FLATE_URL}/arbeidsmarkedstiltak/' + encodeURIComponent(deltakerId), '_blank');
+                              });
+                            })();
+                            """.trimIndent()
+                        }
                     }
                 }
-
-                button(type = ButtonType.submit) { +"Åpne innbyggers-flate" }
+            } else {
+                p { +"Velg innbygger ovenfor for å se tilgjengelige deltakelser." }
             }
         }
     }
@@ -180,6 +230,7 @@ private data class InnbyggersFlateOptions(
     val persons: List<PersonSelectOption>,
     val currentFrontendPid: String?,
     val currentFrontendPidLabel: String,
+    val deltakere: List<DeltakerOption>,
 )
 
 private data class PersonSelectOption(
@@ -194,4 +245,3 @@ private suspend fun io.ktor.server.application.ApplicationCall.redirectToInnbygg
     val encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8)
     respondRedirect("$INNBYGGERS_FLATE_LAUNCHER_PATH?message=$encodedMessage&isError=$isError")
 }
-

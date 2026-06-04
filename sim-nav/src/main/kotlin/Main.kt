@@ -1,3 +1,4 @@
+import db.AmtDeltakerRepository
 import db.DatabaseConfig
 import db.DatabaseSchema
 import io.ktor.server.engine.*
@@ -32,14 +33,15 @@ fun main() {
     val kafkaPublisher = KafkaPublisher(bronnoysundSimulator)
     val pdlSimulator = PdlSimulator()
     val norgSimulator = NorgSimulator()
+    val amtDeltakerRepository = AmtDeltakerRepository()
     val mockOAuth2Server = startMockOAuth2Server()
 
     val simNavHttpServer = embeddedServer(
         factory = Netty,
         port = SIM_NAV_HTTP_PORT,
-        module = {
-            simNavModule(kafkaPublisher, bronnoysundSimulator, pdlSimulator, norgSimulator)
-        },
+            module = {
+                simNavModule(kafkaPublisher, bronnoysundSimulator, pdlSimulator, norgSimulator, amtDeltakerRepository)
+            },
     ).start(wait = false)
 
     val localBffProxyServer = embeddedServer(
@@ -56,6 +58,7 @@ fun main() {
             simNavHttpServer.stop(gracePeriodMillis = 0, timeoutMillis = 0)
             mockOAuth2Server.shutdown()
             kafkaPublisher.close()
+            amtDeltakerRepository.shutdown()
             DatabaseConfig.shutdown()
         },
     )

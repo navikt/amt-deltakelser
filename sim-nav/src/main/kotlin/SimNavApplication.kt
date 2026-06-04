@@ -1,3 +1,4 @@
+import db.AmtDeltakerRepository
 import http.respondJson
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -27,6 +28,7 @@ fun Application.simNavModule(
     bronnoysundSimulator: tjenester.brreg.BronnoysundSimulator,
     pdlSimulator: PdlSimulator,
     norgSimulator: NorgSimulator,
+    amtDeltakerRepository: AmtDeltakerRepository,
 ) {
     // install(RequestDebugPlugin)
 
@@ -55,7 +57,7 @@ fun Application.simNavModule(
         nomFakeRoutes(pdlSimulator)
         valpFakeRoutes(bronnoysundSimulator, kafkaPublisher)
         navVeiledersFlateLauncherRoutes(pdlSimulator, norgSimulator)
-        innbyggersFlateLauncherRoutes(pdlSimulator)
+        innbyggersFlateLauncherRoutes(pdlSimulator, amtDeltakerRepository)
         krrProxyFakeRoutes()
 
         // Keep previous behavior for unknown paths.
