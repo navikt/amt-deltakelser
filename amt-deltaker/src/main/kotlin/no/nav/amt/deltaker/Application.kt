@@ -94,7 +94,8 @@ fun main() {
 fun Application.module() {
     configureSerialization()
 
-    Database.init(env.databaseConfig)
+    val environment = env
+    Database.init(environment.databaseConfig)
 
     val httpClient = HttpClient(CIO.create()) {
         install(ContentNegotiation) {
@@ -110,40 +111,40 @@ fun Application.module() {
 
     val leaderElection = LeaderElection(
         httpClient = httpClient,
-        electorPath = env.electorPath,
+        electorPath = environment.electorPath,
     )
 
     val azureAdTokenClient = AzureAdTokenClient(
-        azureAdTokenUrl = env.azureAdTokenUrl,
-        clientId = env.azureClientId,
-        clientSecret = env.azureClientSecret,
+        azureAdTokenUrl = environment.azureAdTokenUrl,
+        clientId = environment.azureClientId,
+        clientSecret = environment.azureClientSecret,
         httpClient = httpClient,
     )
 
     val amtPersonServiceClient = AmtPersonServiceClient(
-        baseUrl = env.amtPersonServiceUrl,
-        scope = env.amtPersonServiceScope,
+        baseUrl = environment.amtPersonServiceUrl,
+        scope = environment.amtPersonServiceScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val amtArrangorClient = AmtArrangorClient(
-        baseUrl = env.amtArrangorUrl,
-        scope = env.amtArrangorScope,
+        baseUrl = environment.amtArrangorUrl,
+        scope = environment.amtArrangorScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val isOppfolgingsTilfelleClient = IsOppfolgingstilfelleClient(
-        baseUrl = env.isOppfolgingstilfelleUrl,
-        scope = env.isOppfolgingstilfelleScope,
+        baseUrl = environment.isOppfolgingstilfelleUrl,
+        scope = environment.isOppfolgingstilfelleScope,
         azureAdTokenClient = azureAdTokenClient,
         httpClient = httpClient,
     )
 
     val amtDistribusjonClient = AmtDistribusjonClient(
-        baseUrl = env.amtDistribusjonServiceUrl,
-        scope = env.amtDistribusjonServiceScope,
+        baseUrl = environment.amtDistribusjonServiceUrl,
+        scope = environment.amtDistribusjonServiceScope,
         azureAdTokenClient = azureAdTokenClient,
         httpClient = httpClient,
     )
@@ -183,8 +184,8 @@ fun Application.module() {
 
     val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
-            baseUrl = env.poaoTilgangUrl,
-            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(env.poaoTilgangScope) } },
+            baseUrl = environment.poaoTilgangUrl,
+            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
         ),
     )
 
@@ -232,10 +233,10 @@ fun Application.module() {
     val unleash = DefaultUnleash(
         UnleashConfig
             .builder()
-            .appName(env.appName)
-            .instanceId(env.appName)
-            .unleashAPI("${env.unleashUrl}/api")
-            .apiKey(env.unleashApiToken)
+            .appName(environment.appName)
+            .instanceId(environment.appName)
+            .unleashAPI("${environment.unleashUrl}/api")
+            .apiKey(environment.unleashApiToken)
             .build(),
     )
     val unleashToggle = CommonUnleashToggle(unleash)
