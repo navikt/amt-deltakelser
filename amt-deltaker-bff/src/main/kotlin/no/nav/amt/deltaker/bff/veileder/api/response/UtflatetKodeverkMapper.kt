@@ -46,7 +46,9 @@ private fun OpplaringKategoriseringResponse.Alternativ.Verdigruppe.tilValgteFelt
 private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilValgteFeltInternal():
     Set<DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt> {
     val valgtUtdanningsgruppe = utdanninger
-        .firstOrNull { utdanningValg -> utdanningValg.larefag.alternativer.any { verdi -> verdi.valgt } }
+        .firstOrNull { utdanningValg ->
+            utdanningValg.valgt || utdanningValg.larefag.alternativer.any { verdi -> verdi.valgt }
+        }
         ?: return emptySet()
 
     val valgtUtdanningsprogram = DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
