@@ -114,7 +114,6 @@ nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "nav-
 
 # --- POAO ---
 poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "poao-tilgang-version" }
-mock-oauth2-server = { module = "no.nav.security:mock-oauth2-server", version.ref = "mock-oauth2-server-version" }
 
 # --- TMS Varsel Kotlin Builder ---
 tms-varsel-kotlin-builder = { module = "no.nav.tms.varsel:kotlin-builder", version.ref = "tms-varsel-kotlin-builder-version" }
@@ -141,6 +140,7 @@ kotest-assertions-core = { module = "io.kotest:kotest-assertions-core-jvm", vers
 kotest-assertions-json = { module = "io.kotest:kotest-assertions-json-jvm", version.ref = "kotest-version" }
 kotest-assertions-table = { module = "io.kotest:kotest-assertions-table-jvm", version.ref = "kotest-version" }
 
+mock-oauth2-server = { module = "no.nav.security:mock-oauth2-server", version.ref = "mock-oauth2-server-version" }
 mockk = { module = "io.mockk:mockk-jvm", version.ref = "mockk-version" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-version" }
 
