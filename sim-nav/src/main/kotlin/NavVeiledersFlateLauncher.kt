@@ -8,7 +8,6 @@ import sharedui.simNavFormPageStyles
 import sharedui.simNavHeader
 import sharedui.simNavHeaderStyles
 import tjenester.auth.FrontendAuthState
-import tjenester.intern.invalidateLocalDevJwtCache
 import tjenester.nav.nom.fetchNomRessurser
 import tjenester.nav.norg.NorgDataSource
 import tjenester.nav.pdl.PdlDataSource
@@ -59,7 +58,6 @@ fun Route.navVeiledersFlateLauncherRoutes(
         }
 
         FrontendAuthState.updateNavIdent(submittedNavIdent)
-        invalidateLocalDevJwtCache()
         call.redirectToNavVeiledersFlateLauncher("Oppdatert frontend-NAVident til ${veileder.navident} - ${veileder.visningsnavn}")
     }
 }

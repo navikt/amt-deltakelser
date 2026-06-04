@@ -66,7 +66,7 @@ private class TokenXTokenCallback : OAuth2TokenCallback {
                 mapOf(
                     "oid" to "11111111-1111-1111-1111-111111111111",
                     "groups" to emptyList<String>(),
-                    "aud" to listOf("amt-deltaker-bff"),
+                    "aud" to listOf("innbygger-client-id"),
                 )
             }
 

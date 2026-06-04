@@ -25,15 +25,7 @@ private const val LOCAL_BFF_TARGET_BASE_URL = "http://localhost:8080"
 private val localBffHttpClient: HttpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()
 private val localBffObjectMapper = jacksonObjectMapper()
 
-@Volatile
-private var cachedLocalDevJwts: Map<String, String> = emptyMap()
-private val localDevJwtLock = Any()
 
-fun invalidateLocalDevJwtCache() {
-    synchronized(localDevJwtLock) {
-        cachedLocalDevJwts = emptyMap()
-    }
-}
 
 fun Application.localAmtDeltakerBffProxyModule() {
     routing {
@@ -55,7 +47,7 @@ private suspend fun proxyBffRequest(call: ApplicationCall) {
     val issuer = if (requestSource == "innbyggers-flate") "tokenx" else "azure"
 
     val targetUri = buildTargetUri(call.request.uri)
-    val accessToken = resolveLocalDevJwt(requestSource, issuer)
+    val accessToken = withContext(Dispatchers.IO) { fetchLocalDevJwt(requestSource, issuer) }
 
     if (accessToken == null) {
         respondJson(
@@ -128,21 +120,6 @@ private fun buildTargetUri(requestUri: String): URI {
     return URI.create("$LOCAL_BFF_TARGET_BASE_URL$normalizedPath")
 }
 
-private suspend fun resolveLocalDevJwt(clientId: String, issuer: String): String? {
-    synchronized(localDevJwtLock) {
-        cachedLocalDevJwts[clientId]?.let { return it }
-    }
-
-    val fetchedToken = withContext(Dispatchers.IO) {
-        fetchLocalDevJwt(clientId, issuer)
-    } ?: return null
-
-    return synchronized(localDevJwtLock) {
-        cachedLocalDevJwts[clientId]?.let { return@synchronized it }
-        cachedLocalDevJwts = cachedLocalDevJwts + (clientId to fetchedToken)
-        cachedLocalDevJwts.getValue(clientId)
-    }
-}
 
 private fun fetchLocalDevJwt(clientId: String, issuer: String): String? {
     val formBody = listOf(
