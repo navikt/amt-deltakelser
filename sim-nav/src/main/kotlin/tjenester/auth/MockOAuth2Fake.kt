@@ -46,12 +46,6 @@ private class TokenXTokenCallback : OAuth2TokenCallback {
         val audience = tokenRequest.getCustomParameter("audience").orEmpty().firstOrNull()
 
         return when {
-            clientId == "tiltaksarrangor-flate" -> mapOf(
-                "pid" to "01019050188",
-                "aud" to listOf("amt-tiltaksarrangor-bff"),
-                "sub" to "11111111-1111-1111-1111-111111111111",
-            )
-
             clientId == "amt-tiltaksarrangor-bff" -> mapOf(
                 "sub" to "11111111-1111-1111-1111-111111111111",
                 "aud" to listOf("amt-arrangor"),
@@ -72,6 +66,12 @@ private class TokenXTokenCallback : OAuth2TokenCallback {
                     "pid" to pidOrBlank,
                 )
             }
+
+            clientId == "tiltaksarrangor-flate" -> mapOf(
+                "pid" to (FrontendAuthState.getPid() ?: ""),
+                "aud" to listOf("amt-tiltaksarrangor-bff"),
+                "sub" to "11111111-1111-1111-1111-111111111111",
+            )
 
             else -> emptyMap()
         }
@@ -162,4 +162,3 @@ private class SimNavAzureTokenCallback : OAuth2TokenCallback {
         }
     }
 }
-
