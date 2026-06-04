@@ -1,3 +1,5 @@
+import db.AmtDeltakerRepository
+import db.DeltakerOption
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -20,13 +22,15 @@ import java.nio.charset.StandardCharsets
 private const val NAV_VEILEDERS_FLATE_LAUNCHER_PATH = "/nav-veileders-flate"
 private const val NAV_VEILEDERS_FLATE_URL = "http://localhost:3004"
 private const val NAV_VEILEDERS_FLATE_FRONTEND_AUTH_PATH = "$NAV_VEILEDERS_FLATE_LAUNCHER_PATH/frontend-auth"
+private const val NAV_VEILEDERS_FLATE_BRUKER_PATH = "$NAV_VEILEDERS_FLATE_LAUNCHER_PATH/bruker"
 
 fun Route.navVeiledersFlateLauncherRoutes(
     pdlDataSource: PdlDataSource,
     norgDataSource: NorgDataSource,
+    amtDeltakerRepository: AmtDeltakerRepository,
 ) {
     get(NAV_VEILEDERS_FLATE_LAUNCHER_PATH) {
-        val navVeiledersFlateOptions = loadNavVeiledersFlateOptions(pdlDataSource, norgDataSource)
+        val navVeiledersFlateOptions = loadNavVeiledersFlateOptions(pdlDataSource, norgDataSource, amtDeltakerRepository)
         call.respondHtml {
             navVeiledersFlateLauncherPage(
                 message = call.request.queryParameters["message"],
@@ -38,6 +42,9 @@ fun Route.navVeiledersFlateLauncherRoutes(
                 tiltakskodeOptions = navVeiledersFlateOptions.tiltakskoder,
                 currentFrontendNavIdent = navVeiledersFlateOptions.currentFrontendNavIdent,
                 currentFrontendNavIdentLabel = navVeiledersFlateOptions.currentFrontendNavIdentLabel,
+                currentBrukerFnr = navVeiledersFlateOptions.currentBrukerFnr,
+                currentBrukerLabel = navVeiledersFlateOptions.currentBrukerLabel,
+                deltakerOptions = navVeiledersFlateOptions.deltakere,
             )
         }
     }
@@ -60,11 +67,31 @@ fun Route.navVeiledersFlateLauncherRoutes(
         FrontendAuthState.updateNavIdent(submittedNavIdent)
         call.redirectToNavVeiledersFlateLauncher("Oppdatert frontend-NAVident til ${veileder.navident} - ${veileder.visningsnavn}")
     }
+
+    post(NAV_VEILEDERS_FLATE_BRUKER_PATH) {
+        val submittedFnr = call.receiveParameters()["bruker_fnr"]?.trim().orEmpty()
+        val validBrukere = loadNavVeiledersFlateOptions(pdlDataSource, norgDataSource, amtDeltakerRepository)
+            .persons.associate { it.value to it.label }
+
+        if (submittedFnr.isBlank()) {
+            call.redirectToNavVeiledersFlateLauncher("Velg en bruker", isError = true)
+            return@post
+        }
+
+        if (!validBrukere.containsKey(submittedFnr)) {
+            call.redirectToNavVeiledersFlateLauncher("Ukjent bruker: $submittedFnr", isError = true)
+            return@post
+        }
+
+        VeilederAuthState.updateBrukerFnr(submittedFnr)
+        call.redirectToNavVeiledersFlateLauncher("Oppdatert bruker til ${validBrukere[submittedFnr]}")
+    }
 }
 
 private fun loadNavVeiledersFlateOptions(
     pdlDataSource: PdlDataSource,
     norgDataSource: NorgDataSource,
+    amtDeltakerRepository: AmtDeltakerRepository,
 ): NavVeiledersFlateOptions {
     val veiledere = fetchNomRessurser()
         .sortedBy { it.navident }
@@ -122,6 +149,17 @@ private fun loadNavVeiledersFlateOptions(
             )
         }
 
+    val currentBrukerFnr = VeilederAuthState.getBrukerFnr()
+    val currentBrukerLabel = currentBrukerFnr?.let { fnr ->
+        persons.firstOrNull { it.value == fnr }?.label ?: fnr
+    } ?: "Ikke satt enda"
+
+    val deltakere = currentBrukerFnr?.let { fnr ->
+        runCatching { amtDeltakerRepository.getDeltakereForPersonident(fnr) }
+            .onFailure { println("Failed to fetch deltakere for fnr $fnr: ${it.message}") }
+            .getOrElse { emptyList() }
+    } ?: emptyList()
+
     return NavVeiledersFlateOptions(
         persons = persons,
         veiledere = veiledere,
@@ -130,6 +168,9 @@ private fun loadNavVeiledersFlateOptions(
         tiltakskoder = tiltakskoder,
         currentFrontendNavIdent = currentFrontendNavIdent,
         currentFrontendNavIdentLabel = currentFrontendNavIdentLabel,
+        currentBrukerFnr = currentBrukerFnr,
+        currentBrukerLabel = currentBrukerLabel,
+        deltakere = deltakere,
     )
 }
 
@@ -143,6 +184,9 @@ private fun HTML.navVeiledersFlateLauncherPage(
     tiltakskodeOptions: List<SelectOption>,
     currentFrontendNavIdent: String?,
     currentFrontendNavIdentLabel: String,
+    currentBrukerFnr: String?,
+    currentBrukerLabel: String,
+    deltakerOptions: List<DeltakerOption>,
 ) {
     head {
         title("Start nav-veileders-flate")
@@ -214,6 +258,39 @@ private fun HTML.navVeiledersFlateLauncherPage(
                         }
                     }
                     button(type = ButtonType.submit) { +"Oppdater NAVident" }
+                }
+            }
+
+            section(classes = "frontend-auth-panel") {
+                h2 { +"Valgt bruker (for deltakerId-rute)" }
+                p(classes = "frontend-auth-panel__current") {
+                    +"Aktiv bruker: $currentBrukerLabel"
+                }
+                form(action = NAV_VEILEDERS_FLATE_BRUKER_PATH, method = FormMethod.post) {
+                    div("field") {
+                        label {
+                            htmlFor = "bruker_fnr"
+                            +"Velg bruker"
+                        }
+                        select {
+                            id = "bruker_fnr"
+                            name = "bruker_fnr"
+                            required = true
+                            option {
+                                value = ""
+                                selected = currentBrukerFnr == null
+                                +"Velg bruker"
+                            }
+                            personOptions.forEach { option ->
+                                option {
+                                    value = option.value
+                                    selected = option.value == currentBrukerFnr
+                                    +option.label
+                                }
+                            }
+                        }
+                    }
+                    button(type = ButtonType.submit) { +"Oppdater bruker" }
                 }
             }
 
@@ -314,6 +391,41 @@ private fun HTML.navVeiledersFlateLauncherPage(
                     }
                 }
 
+                div("field") {
+                    div("inline-choice") {
+                        input(type = InputType.radio) {
+                            id = "route_deltaker"
+                            name = "route_mode"
+                            value = "deltaker"
+                        }
+                        label {
+                            htmlFor = "route_deltaker"
+                            +"Åpne deltakelse med deltakerId"
+                        }
+                    }
+
+                    select {
+                        id = "deltaker_id"
+                        required = true
+                        if (deltakerOptions.isEmpty()) {
+                            option {
+                                value = ""
+                                disabled = true
+                                +"Ingen deltakelser for valgt bruker"
+                            }
+                        } else {
+                            deltakerOptions.forEachIndexed { index, option ->
+                                val statusLabel = option.status?.let { " [$it]" } ?: ""
+                                this@select.option {
+                                    value = option.id.toString()
+                                    selected = index == 0
+                                    +"${option.id} - ${option.deltakerlisteNavn}$statusLabel"
+                                }
+                            }
+                        }
+                    }
+                }
+
                 button(type = ButtonType.submit) { +"Aapne valgt inngang" }
             }
 
@@ -328,11 +440,17 @@ private fun HTML.navVeiledersFlateLauncherPage(
                         const routeMode = document.querySelector('input[name="route_mode"]:checked')?.value;
                         const deltakerlisteId = document.getElementById('deltakerliste_id')?.value;
                         const tiltakskode = document.getElementById('tiltakskode')?.value;
+                        const deltakerId = document.getElementById('deltaker_id')?.value;
                         const basePath = '/arbeidsmarkedstiltak/deltakelse';
 
-                        const routePath = routeMode === 'tiltakskode'
-                          ? basePath + '/tiltak/' + encodeURIComponent(tiltakskode) + '/'
-                          : basePath + '/' + encodeURIComponent(deltakerlisteId);
+                        let routePath;
+                        if (routeMode === 'tiltakskode') {
+                          routePath = basePath + '/tiltak/' + encodeURIComponent(tiltakskode) + '/';
+                        } else if (routeMode === 'deltaker') {
+                          routePath = basePath + '/deltaker/' + encodeURIComponent(deltakerId);
+                        } else {
+                          routePath = basePath + '/' + encodeURIComponent(deltakerlisteId);
+                        }
 
                         form.action = '${NAV_VEILEDERS_FLATE_URL}' + routePath;
                       });
@@ -352,12 +470,25 @@ private data class NavVeiledersFlateOptions(
     val tiltakskoder: List<SelectOption>,
     val currentFrontendNavIdent: String?,
     val currentFrontendNavIdentLabel: String,
+    val currentBrukerFnr: String?,
+    val currentBrukerLabel: String,
+    val deltakere: List<DeltakerOption>,
 )
 
 private data class SelectOption(
     val value: String,
     val label: String,
 )
+
+object VeilederAuthState {
+    private var brukerFnr: String? = null
+
+    fun updateBrukerFnr(fnr: String) {
+        brukerFnr = fnr
+    }
+
+    fun getBrukerFnr(): String? = brukerFnr
+}
 
 private suspend fun io.ktor.server.application.ApplicationCall.redirectToNavVeiledersFlateLauncher(
     message: String,

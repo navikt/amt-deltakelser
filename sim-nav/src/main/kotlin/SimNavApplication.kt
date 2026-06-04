@@ -56,7 +56,7 @@ fun Application.simNavModule(
         pdlFakeRoutes(pdlSimulator)
         nomFakeRoutes(pdlSimulator)
         valpFakeRoutes(bronnoysundSimulator, kafkaPublisher)
-        navVeiledersFlateLauncherRoutes(pdlSimulator, norgSimulator)
+        navVeiledersFlateLauncherRoutes(pdlSimulator, norgSimulator, amtDeltakerRepository)
         innbyggersFlateLauncherRoutes(pdlSimulator, amtDeltakerRepository)
         krrProxyFakeRoutes()
 
