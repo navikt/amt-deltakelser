@@ -364,7 +364,7 @@ class EnkeltplassService(
             // insert-only, sletter eksisterende valg før insert
             SertifiseringValgRepository.deleteForGjennomforing(deltakerlisteId)
 
-            if (sertifiseringValg.isNotEmpty()) {
+            if (internalSertifiseringValg.isNotEmpty()) {
                 SertifiseringValgRepository.lagreSertifiseringValg(
                     deltakerlisteId = deltakerlisteId,
                     sertifiseringValg = internalSertifiseringValg,
