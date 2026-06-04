@@ -73,6 +73,7 @@ data class OpplaringKategoriseringResponse(
         is Alternativ.UtdanningGruppe -> copy(
             utdanninger = utdanninger.map {
                 it.copy(
+                    valgt = it.id in kodeverkValg,
                     larefag = it.larefag.copy(
                         alternativer = it.larefag.alternativer.map { verdi ->
                             verdi.settValgt(kodeverkValg)
@@ -153,6 +154,7 @@ data class OpplaringKategoriseringResponse(
                 val id: UUID,
                 val visningsnavn: String,
                 val larefag: Verdigruppe,
+                val valgt: Boolean = false, // kun internt hos Komet, ikke i kodeverket
             )
         }
 
@@ -198,7 +200,8 @@ data class OpplaringKategoriseringResponse(
         data class VerdigruppeSok(
             override val id: UUID?,
             override val visningsnavn: String,
-            val representerer: Representerer? = null,
+            val pakrevd: Boolean,
+            val representerer: Representerer,
             val seleksjonstype: Seleksjonstype,
             val kilde: Kilde,
         ) : Container {

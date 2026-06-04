@@ -123,6 +123,8 @@ class OpplaringKategoriseringResponseTest {
             id = sokId,
             visningsnavn = "Sertifiseringer",
             seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
+            pakrevd = true,
+            representerer = OpplaringKategoriseringResponse.Representerer.SERTIFISERINGER,
             kilde = OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok.Kilde.JANZZ_SERTIFISERING,
         )
 

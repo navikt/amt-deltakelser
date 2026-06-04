@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.commonresponse
 
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.veileder.api.response.TilgjengeligInnholdResponse
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -32,12 +33,14 @@ data class DeltakerlisteResponse(
     )
 
     data class UtflatetKodeverk(
-        val tiltakskode: Tiltakskode,
-        val tittel: String? = null,
-        val valg: List<String>,
-        val valgteKodeverkIder: Set<UUID>,
+        val valgteKategoriseringer: Set<ValgteFelt>,
         val valgteSertifiseringer: Set<SertifiseringValg>,
-    )
+    ) {
+        data class ValgteFelt(
+            val representerer: OpplaringKategoriseringResponse.Representerer,
+            val valg: Map<UUID, String>,
+        )
+    }
 
     companion object {
         fun fromModel(
