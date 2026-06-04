@@ -18,35 +18,36 @@ import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 
 const val LOCAL_BFF_PROXY_PORT = 9100
-const val LOCAL_BFF_PROXY_PATH_PREFIX = "/amt-deltaker-bff"
 const val LOCAL_BFF_SOURCE_HEADER = "x-local-app-source"
-private const val LOCAL_BFF_TARGET_BASE_URL = "http://localhost:8080"
+
+data class Bff(
+    val pathPrefix: String,
+    val baseUrl: String
+)
+
+val AMT_DELTAKER_BFF = Bff("/amt-deltaker-bff", "http://localhost:8080")
+val AMT_TILTAKSARRANGOR_BFF = Bff("/deltakeroversikt/amt-tiltaksarrangor-bff", "http://localhost:8088")
 
 private val localBffHttpClient: HttpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()
 private val localBffObjectMapper = jacksonObjectMapper()
 
-
-
 fun Application.localAmtDeltakerBffProxyModule() {
     routing {
-        localAmtDeltakerBffProxyRoutes()
-    }
-}
-
-fun Route.localAmtDeltakerBffProxyRoutes() {
-    route(LOCAL_BFF_PROXY_PATH_PREFIX) {
-        handle { proxyBffRequest(call) }
-        route("{...}") {
+        route("/") {
             handle { proxyBffRequest(call) }
+            route("{...}") {
+                handle { proxyBffRequest(call) }
+            }
         }
     }
 }
 
 private suspend fun proxyBffRequest(call: ApplicationCall) {
     val requestSource = call.request.header(LOCAL_BFF_SOURCE_HEADER)?.takeIf { it.isNotBlank() } ?: "unknown"
-    val issuer = if (requestSource == "innbyggers-flate") "tokenx" else "azure"
+    val issuer = getTokenIssuer(requestSource)
+    val bff = if (requestSource == "tiltaksarrangor-flate") AMT_TILTAKSARRANGOR_BFF else AMT_DELTAKER_BFF
 
-    val targetUri = buildTargetUri(call.request.uri)
+    val targetUri = buildTargetUri(call.request.uri, bff)
     val accessToken = withContext(Dispatchers.IO) { fetchLocalDevJwt(requestSource, issuer) }
 
     if (accessToken == null) {
@@ -114,10 +115,17 @@ private suspend fun proxyBffRequest(call: ApplicationCall) {
     )
 }
 
-private fun buildTargetUri(requestUri: String): URI {
-    val forwardedPath = requestUri.removePrefix(LOCAL_BFF_PROXY_PATH_PREFIX).ifBlank { "/" }
+private fun getTokenIssuer(requestSource: String): String = when (requestSource) {
+    "tiltaksarrangor-flate",
+    "innbyggers-flate" -> "tokenx"
+
+    else -> "azure"
+}
+
+private fun buildTargetUri(requestUri: String, bff: Bff): URI {
+    val forwardedPath = requestUri.removePrefix(bff.pathPrefix).ifBlank { "/" }
     val normalizedPath = if (forwardedPath.startsWith('/')) forwardedPath else "/$forwardedPath"
-    return URI.create("$LOCAL_BFF_TARGET_BASE_URL$normalizedPath")
+    return URI.create("${bff.baseUrl}$normalizedPath")
 }
 
 

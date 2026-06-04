@@ -6,7 +6,6 @@ import io.ktor.server.netty.*
 import kafka.KafkaPublisher
 import tjenester.ALTINN3_PATH_PREFIX
 import tjenester.auth.startMockOAuth2Server
-import tjenester.intern.LOCAL_BFF_PROXY_PATH_PREFIX
 import tjenester.intern.LOCAL_BFF_PROXY_PORT
 import tjenester.intern.UNLEASH_PATH_PREFIX
 import tjenester.intern.localAmtDeltakerBffProxyModule
@@ -77,7 +76,6 @@ fun main() {
     println("Set digdir-krr-proxy.url=http://localhost:$SIM_NAV_HTTP_PORT${KRR_PROXY_PATH_PREFIX}")
     println("Set veilarboppfolging.url=http://localhost:$SIM_NAV_HTTP_PORT")
     println("Set veilarbvedtaksstotte.url=http://localhost:$SIM_NAV_HTTP_PORT")
-    println("Local BFF proxy: http://localhost:$LOCAL_BFF_PROXY_PORT$LOCAL_BFF_PROXY_PATH_PREFIX/*")
     println("Kafka UI: http://localhost:$SIM_NAV_HTTP_PORT/kafka")
     println("nav-veileders-flate launcher: http://localhost:$SIM_NAV_HTTP_PORT/nav-veileders-flate")
     println("tiltakskoordinator-flate launcher: http://localhost:$SIM_NAV_HTTP_PORT/tiltakskoordinator-flate")

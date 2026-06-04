@@ -46,7 +46,7 @@ private class TokenXTokenCallback : OAuth2TokenCallback {
         val audience = tokenRequest.getCustomParameter("audience").orEmpty().firstOrNull()
 
         return when {
-            clientId == "amt-tiltaksarrangor-flate" -> mapOf(
+            clientId == "tiltaksarrangor-flate" -> mapOf(
                 "pid" to "01019050188",
                 "aud" to listOf("amt-tiltaksarrangor-bff"),
                 "sub" to "11111111-1111-1111-1111-111111111111",
