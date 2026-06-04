@@ -67,6 +67,8 @@ private class TokenXTokenCallback : OAuth2TokenCallback {
                     "oid" to "11111111-1111-1111-1111-111111111111",
                     "groups" to emptyList<String>(),
                     "aud" to listOf("innbygger-client-id"),
+                    "acr" to "Level4",
+                    "pid" to "12345678910"
                 )
             }
 
