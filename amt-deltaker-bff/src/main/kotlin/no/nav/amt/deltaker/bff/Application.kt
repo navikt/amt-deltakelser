@@ -100,9 +100,10 @@ fun main() {
 
 fun Application.module() {
     configureSerialization()
-//    configureHTTP()
 
-    Database.init(env.databaseConfig)
+    val environment = env
+
+    Database.init(environment.databaseConfig)
 
     val httpClient = HttpClient(CIO.create()) {
         install(ContentNegotiation) {
@@ -116,74 +117,74 @@ fun Application.module() {
         }
     }
 
-    val leaderElection = LeaderElection(httpClient, env.electorPath)
+    val leaderElection = LeaderElection(httpClient, environment.electorPath)
 
     val azureAdTokenClient = AzureAdTokenClient(
-        azureAdTokenUrl = env.azureAdTokenUrl,
-        clientId = env.azureClientId,
-        clientSecret = env.azureClientSecret,
+        azureAdTokenUrl = environment.azureAdTokenUrl,
+        clientId = environment.azureClientId,
+        clientSecret = environment.azureClientSecret,
         httpClient = httpClient,
     )
 
     val amtArrangorClient = AmtArrangorClient(
-        baseUrl = env.amtArrangorUrl,
-        scope = env.amtArrangorScope,
+        baseUrl = environment.amtArrangorUrl,
+        scope = environment.amtArrangorScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val amtPersonServiceClient = AmtPersonServiceClient(
-        baseUrl = env.amtPersonServiceUrl,
-        scope = env.amtPersonServiceScope,
+        baseUrl = environment.amtPersonServiceUrl,
+        scope = environment.amtPersonServiceScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val amtDeltakerClient = AmtDeltakerClient(
-        baseUrl = env.amtDeltakerUrl,
-        scope = env.amtDeltakerScope,
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val paameldingClient = PaameldingClient(
-        baseUrl = env.amtDeltakerUrl,
-        scope = env.amtDeltakerScope,
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val tiltakskoordinatorClient = TiltakskoordinatorClient(
-        baseUrl = env.amtDeltakerUrl,
-        scope = env.amtDeltakerScope,
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val amtDistribusjonClient = AmtDistribusjonClient(
-        baseUrl = env.amtDistribusjonUrl,
-        scope = env.amtDistribusjonScope,
+        baseUrl = environment.amtDistribusjonUrl,
+        scope = environment.amtDistribusjonScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val arrangorsokClient = ArrangorsokClient(
-        baseUrl = env.mulighetsrommetApiUrl,
-        scope = env.mulighetsrommetApiScope,
+        baseUrl = environment.mulighetsrommetApiUrl,
+        scope = environment.mulighetsrommetApiScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val enkeltplassClient = EnkeltplassClient(
-        baseUrl = env.amtDeltakerUrl,
-        scope = env.amtDeltakerScope,
+        baseUrl = environment.amtDeltakerUrl,
+        scope = environment.amtDeltakerScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
 
     val kodeverkClient = KodeverkClient(
-        baseUrl = env.mulighetsrommetApiUrl,
-        scope = env.mulighetsrommetApiScope,
+        baseUrl = environment.mulighetsrommetApiUrl,
+        scope = environment.mulighetsrommetApiScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     )
@@ -191,10 +192,10 @@ fun Application.module() {
     val unleash = DefaultUnleash(
         UnleashConfig
             .builder()
-            .appName(env.appName)
-            .instanceId(env.appName)
-            .unleashAPI("${env.unleashUrl}/api")
-            .apiKey(env.unleashApiToken)
+            .appName(environment.appName)
+            .instanceId(environment.appName)
+            .unleashAPI("${environment.unleashUrl}/api")
+            .apiKey(environment.unleashApiToken)
             .build(),
     )
 
@@ -234,8 +235,8 @@ fun Application.module() {
 
     val poaoTilgangCachedClient = ConfigurablePoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
-            baseUrl = env.poaoTilgangUrl,
-            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(env.poaoTilgangScope) } },
+            baseUrl = environment.poaoTilgangUrl,
+            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
         ),
         cacheDuration = Duration.ofSeconds(1)
     )
@@ -342,7 +343,7 @@ fun Application.module() {
     )
     consumers.forEach { it.start() }
 
-    configureAuthentication(env)
+    configureAuthentication(environment)
     configureRequestValidation()
     configureRouting(
         tilgangskontrollService = tilgangskontrollService,
