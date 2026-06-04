@@ -130,8 +130,8 @@ fun Application.module() {
         httpClient = httpClient,
     )
 
-    val pdfgenClient = PdfgenClient(httpClient, env)
-    val amtPersonClient = AmtPersonClient(httpClient, azureAdTokenClient, env)
+    val pdfgenClient = PdfgenClient(httpClient, environment)
+    val amtPersonClient = AmtPersonClient(httpClient, azureAdTokenClient, environment)
     val amtDeltakerClient = AmtDeltakerClient(
         baseUrl = environment.amtDeltakerUrl,
         scope = environment.amtDeltakerScope,
@@ -139,10 +139,10 @@ fun Application.module() {
         azureAdTokenClient = azureAdTokenClient,
     )
 
-    val veilarboppfolgingClient = VeilarboppfolgingClient(httpClient, azureAdTokenClient, env)
-    val dokarkivClient = DokarkivClient(httpClient, azureAdTokenClient, env)
-    val dokdistkanalClient = DokdistkanalClient(httpClient, azureAdTokenClient, env)
-    val dokdistfordelingClient = DokdistfordelingClient(httpClient, azureAdTokenClient, env)
+    val veilarboppfolgingClient = VeilarboppfolgingClient(httpClient, azureAdTokenClient, environment)
+    val dokarkivClient = DokarkivClient(httpClient, azureAdTokenClient, environment)
+    val dokdistkanalClient = DokdistkanalClient(httpClient, azureAdTokenClient, environment)
+    val dokdistfordelingClient = DokdistfordelingClient(httpClient, azureAdTokenClient, environment)
 
     val digitalBrukerService = DigitalBrukerService(dokdistkanalClient, veilarboppfolgingClient)
 
