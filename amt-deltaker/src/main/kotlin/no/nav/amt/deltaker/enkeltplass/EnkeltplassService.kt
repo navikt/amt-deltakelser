@@ -182,8 +182,8 @@ class EnkeltplassService(
         val ansvarligNavAnsatt = navAnsattRepository.getOrThrow(vedtak.opprettetAv)
         val gjennomforing = deltaker.deltakerliste
 
-        val payload = GjennomforingRequestPayload.OpprettEnkeltplass(
-            gjennomforingId = deltaker.deltakerliste.id,
+        val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
+            // gjennomforingId = deltaker.deltakerliste.id,
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
             prisinformasjon = checkNotNull(gjennomforing.prisinformasjon) {
                 "Kan ikke publisere gjennomføring ${gjennomforing.id}: prisinformasjon mangler"
@@ -199,7 +199,10 @@ class EnkeltplassService(
             ),
         )
 
-        gjennomforingRequestProducer.produce(payload)
+        produceUpsertGjennomforing(
+            deltaker = deltaker,
+            upsertPayload = upsertPayload,
+        )
     }
 
     private suspend fun oppdaterKladdEllerUtkast(
@@ -261,13 +264,9 @@ class EnkeltplassService(
             "Kan ikke opprette gjennomforing hos Mulighetsrommet for " +
                 "gjennomforingstype ${gjennomforing.gjennomforingstype} for deltaker $deltakerId"
         }
-/*
-    TODO: Undersøk om det er OK å kalle denne metoden etter at request om opprettelse av
-    gjennomføring allerede er kalt
-        require(gjennomforing.status == GjennomforingStatusType.KLADD) {
-            "Kan ikke opprette gjennomforing hos Mulighetsrommet fordi gjennomforing med id ${gjennomforing.id} ikke er i kladd"
+        require(deltaker.status.type == DeltakerStatus.Type.KLADD || deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
+            "Kan ikke opprette gjennomforing hos Mulighetsrommet fordi deltaker $deltakerId i ${deltaker.status.type}"
         }
-*/
 
         val arrangor = arrangorService.hentArrangor(request.arrangorUnderenhet)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
@@ -316,23 +315,46 @@ class EnkeltplassService(
 
             val deltakerMedVedtak = deltakerRepository.get(deltakerId).getOrThrow()
 
-            gjennomforingRequestProducer.produce(
-                GjennomforingRequestPayload.OpprettEnkeltplass(
-                    gjennomforingId = deltakerMedVedtak.deltakerliste.id,
-                    tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
-                    prisinformasjon = request.prisinformasjon,
-                    organisasjonsnummer = request.arrangorUnderenhet,
-                    ansvarligEnhet = decoratedRequest.endretAvEnhet,
-                    opprettetAv = decoratedRequest.endretAv,
-                    kategorisering = kodeverk.toOpplaringKategorisering(
-                        kodeverkValg = request.kodeverkValg,
-                        sertifiseringValg = request.sertifiseringValg,
-                    ),
+            val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
+                tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
+                prisinformasjon = request.prisinformasjon,
+                organisasjonsnummer = request.arrangorUnderenhet,
+                ansvarligEnhet = decoratedRequest.endretAvEnhet,
+                opprettetAv = decoratedRequest.endretAv,
+                kategorisering = kodeverk.toOpplaringKategorisering(
+                    kodeverkValg = request.kodeverkValg,
+                    sertifiseringValg = request.sertifiseringValg,
                 ),
+            )
+
+            produceUpsertGjennomforing(
+                deltaker = deltakerMedVedtak,
+                upsertPayload = upsertPayload,
             )
 
             deltakerMedVedtak
         }
+    }
+
+    private fun produceUpsertGjennomforing(
+        deltaker: Deltaker,
+        upsertPayload: GjennomforingRequestPayload.UpsertEnkeltplass,
+    ) {
+        val gjennomforingPayload = when (val statusType = deltaker.status.type) {
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = upsertPayload,
+            )
+
+            DeltakerStatus.Type.SOKT_INN -> GjennomforingRequestPayload.EnkeltplassSoktInn(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = upsertPayload,
+            )
+
+            else -> throw IllegalStateException("Deltaker ${deltaker.id} har status $statusType")
+        }
+
+        gjennomforingRequestProducer.produce(gjennomforingPayload)
     }
 
     private suspend fun hentArrangorHvisEndret(
@@ -393,8 +415,8 @@ class EnkeltplassService(
         private fun OpplaringKategoriseringResponse.toOpplaringKategorisering(
             kodeverkValg: Set<UUID>?,
             sertifiseringValg: Set<SertifiseringValg>?,
-        ): GjennomforingRequestPayload.OpprettEnkeltplass.OpplaringKategorisering =
-            GjennomforingRequestPayload.OpprettEnkeltplass.OpplaringKategorisering(
+        ): GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering =
+            GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
                 verdier = kodeverkValg
                     ?.let { grupperKodeverkvalgPerRepresenterer(it) }
                     ?: emptyMap(),

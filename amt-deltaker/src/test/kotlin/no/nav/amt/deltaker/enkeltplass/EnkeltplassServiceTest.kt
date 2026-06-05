@@ -54,7 +54,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setup() {
-        every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
+        every { deltakerRepository.get(kladdDeltakerInTest.id) } returns Result.success(kladdDeltakerInTest)
+        every { deltakerRepository.get(utkastDeltakerInTest.id) } returns Result.success(utkastDeltakerInTest)
+        every { deltakerRepository.get(soktInnDeltakerInTest.id) } returns Result.success(soktInnDeltakerInTest)
+
         coEvery { navEnhetService.hentEllerOpprettNavEnhet(navEnhetInTest.enhetsnummer) } returns navEnhetInTest
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsattInTest.navIdent) } returns navAnsattInTest
 
@@ -91,8 +94,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         @Test
         fun `skal kaste exception for deltaker som ikke er enkeltplass`() = runTest {
-            val deltaker = deltakerInTest.copy(
-                deltakerliste = deltakerInTest.deltakerliste.copy(gjennomforingstype = GjennomforingType.Gruppe),
+            val deltaker = kladdDeltakerInTest.copy(
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(gjennomforingstype = GjennomforingType.Gruppe),
             )
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
@@ -106,8 +109,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         @Test
         fun `skal kaste exception for deltaker som ikke er i KLADD status`() = runTest {
-            val deltaker = deltakerInTest.copy(
-                status = deltakerInTest.status.copy(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            val deltaker = kladdDeltakerInTest.copy(
+                status = kladdDeltakerInTest.status.copy(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
@@ -133,13 +136,13 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Act
             enkeltplassService.oppdaterKladd(
-                deltakerId = deltakerInTest.id,
+                deltakerId = kladdDeltakerInTest.id,
                 oppdaterKladdRequest = request,
             )
 
             // Assert
-            verify { SertifiseringValgRepository.deleteForGjennomforing(deltakerInTest.deltakerliste.id) }
-            verify { SertifiseringValgRepository.lagreSertifiseringValg(deltakerInTest.deltakerliste.id, sertifiseringer) }
+            verify { SertifiseringValgRepository.deleteForGjennomforing(kladdDeltakerInTest.deltakerliste.id) }
+            verify { SertifiseringValgRepository.lagreSertifiseringValg(kladdDeltakerInTest.deltakerliste.id, sertifiseringer) }
         }
 
         @Test
@@ -152,12 +155,12 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Act
             enkeltplassService.oppdaterKladd(
-                deltakerId = deltakerInTest.id,
+                deltakerId = kladdDeltakerInTest.id,
                 oppdaterKladdRequest = request,
             )
 
             // Assert
-            verify { SertifiseringValgRepository.deleteForGjennomforing(deltakerInTest.deltakerliste.id) }
+            verify { SertifiseringValgRepository.deleteForGjennomforing(kladdDeltakerInTest.deltakerliste.id) }
             verify(exactly = 0) { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) }
         }
 
@@ -171,7 +174,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Act
             enkeltplassService.oppdaterKladd(
-                deltakerId = deltakerInTest.id,
+                deltakerId = kladdDeltakerInTest.id,
                 oppdaterKladdRequest = request,
             )
 
@@ -187,11 +190,11 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal oppdatere deltaker, sette status UTKAST_TIL_PAMELDING og opprette vedtak`() = runTest {
             every {
                 deltakerService.lagreDeltakerStatus(
-                    deltakerId = deltakerInTest.id,
+                    deltakerId = utkastDeltakerInTest.id,
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING },
                     erDeltakerSluttdatoEndret = any(),
                 )
-            } returns deltakerInTest.status
+            } returns kladdDeltakerInTest.status
 
             every {
                 vedtakService.opprettEllerOppdaterVedtak(
@@ -202,8 +205,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     fattetDato = null,
                 )
             } returns lagVedtak(
-                deltakerId = deltakerInTest.id,
-                deltakerVedVedtak = deltakerInTest,
+                deltakerId = utkastDeltakerInTest.id,
+                deltakerVedVedtak = utkastDeltakerInTest,
             )
 
             every { arrangorRepository.get(any<String>()) } returns arrangorInTest
@@ -211,13 +214,13 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             every { deltakerlisteRepository.update(any()) } just Runs
 
             enkeltplassService.delUtkastMedInnbygger(
-                deltakerId = deltakerInTest.id,
+                deltakerId = utkastDeltakerInTest.id,
                 decoratedRequest = decoratedRequest,
             )
 
             verify {
                 deltakerService.lagreDeltakerStatus(
-                    deltakerId = deltakerInTest.id,
+                    deltakerId = utkastDeltakerInTest.id,
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING },
                     erDeltakerSluttdatoEndret = any(),
                 )
@@ -237,8 +240,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         @Test
         fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
-            val deltaker = deltakerInTest.copy(
-                deltakerliste = deltakerInTest.deltakerliste.copy(
+            val deltaker = kladdDeltakerInTest.copy(
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.KLADD,
                 ),
@@ -253,8 +256,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         @Disabled("Undersøk dette caset nærmere")
         fun `skal kaste exception for gjennomforing som ikke er i KLADD status`() = runTest {
-            val deltaker = deltakerInTest.copy(
-                deltakerliste = deltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
+            val deltaker = kladdDeltakerInTest.copy(
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
             )
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
@@ -270,11 +273,11 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal oppdatere deltaker og vedtak uten aa endre status`() = runTest {
             // Arrange
             every {
-                deltakerRepository.get(deltakerInTest.id)
+                deltakerRepository.get(kladdDeltakerInTest.id)
             } returns
                 Result.success(
-                    deltakerInTest.copy(
-                        status = deltakerInTest.status.copy(
+                    kladdDeltakerInTest.copy(
+                        status = kladdDeltakerInTest.status.copy(
                             type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
                         ),
                     ),
@@ -286,7 +289,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Act
             enkeltplassService.oppdaterUtkast(
-                deltakerId = deltakerInTest.id,
+                deltakerId = kladdDeltakerInTest.id,
                 decoratedRequest = decoratedRequest,
             )
 
@@ -299,8 +302,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         @Test
         fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
-            val deltaker = deltakerInTest.copy(
-                deltakerliste = deltakerInTest.deltakerliste.copy(
+            val deltaker = kladdDeltakerInTest.copy(
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.KLADD,
                 ),
@@ -314,8 +317,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         @Test
         fun `skal kaste exception for gjennomforing som ikke er i KLADD status`() = runTest {
-            val deltaker = deltakerInTest.copy(
-                deltakerliste = deltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
+            val deltaker = kladdDeltakerInTest.copy(
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
             )
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
@@ -330,13 +333,23 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal sette status SOKT_INN, fatte vedtak og publisere OpprettEnkeltplass`() = runTest {
             // Arrange
+            val oppdatertDeltaker = utkastDeltakerInTest.copy(
+                status = soktInnDeltakerInTest.status,
+            )
+
+            every { deltakerRepository.get(utkastDeltakerInTest.id) } returnsMany listOf(
+                Result.success(utkastDeltakerInTest),
+                Result.success(oppdatertDeltaker),
+                Result.success(oppdatertDeltaker),
+            )
+
             every {
                 deltakerService.lagreDeltakerStatus(
-                    deltakerId = deltakerInTest.id,
+                    deltakerId = utkastDeltakerInTest.id,
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.SOKT_INN },
                     erDeltakerSluttdatoEndret = any(),
                 )
-            } returns deltakerInTest.status
+            } returns oppdatertDeltaker.status
 
             every {
                 vedtakService.opprettEllerOppdaterVedtak(
@@ -347,8 +360,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     fattetDato = null,
                 )
             } returns lagVedtak(
-                deltakerId = deltakerInTest.id,
-                deltakerVedVedtak = deltakerInTest,
+                deltakerId = oppdatertDeltaker.id,
+                deltakerVedVedtak = oppdatertDeltaker,
             )
             every { arrangorRepository.get(any<String>()) } returns arrangorInTest
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
@@ -356,14 +369,14 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Act
             enkeltplassService.meldPaaDirekte(
-                deltakerId = deltakerInTest.id,
+                deltakerId = utkastDeltakerInTest.id,
                 decoratedRequest = decoratedRequest,
             )
 
             // Assert
             verify {
                 deltakerService.lagreDeltakerStatus(
-                    deltakerId = deltakerInTest.id,
+                    deltakerId = utkastDeltakerInTest.id,
                     nyDeltakerStatus = match { it.type == DeltakerStatus.Type.SOKT_INN },
                     erDeltakerSluttdatoEndret = any(),
                 )
@@ -380,7 +393,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             verify {
                 outboxService.insertRecord(
                     key = any(),
-                    value = ofType<GjennomforingRequestPayload.OpprettEnkeltplass>(),
+                    value = ofType<GjennomforingRequestPayload.EnkeltplassSoktInn>(),
                     topic = Environment.GJENNOMFORING_REQUEST_TOPIC,
                     suppressOutsideTxWarning = any(),
                 )
@@ -390,9 +403,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal ikke opprette enkeltplass hos Mulighetsrommet for gjennomforing som ikke er enkeltplass`() = runTest {
             // Arrange
-            val deltaker = deltakerInTest.copy(
-                status = deltakerInTest.status.copy(type = DeltakerStatus.Type.KLADD),
-                deltakerliste = deltakerInTest.deltakerliste.copy(
+            val deltaker = kladdDeltakerInTest.copy(
+                status = kladdDeltakerInTest.status.copy(type = DeltakerStatus.Type.KLADD),
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.KLADD,
                 ),
@@ -414,9 +427,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Disabled("Undersøk dette caset nærmere")
         fun `skal ikke opprette enkeltplass hos Mulighetsrommet for deltaker som ikke er kladd`() = runTest {
             // Arrange
-            val deltaker = deltakerInTest.copy(
-                status = deltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
-                deltakerliste = deltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
+            val deltaker = kladdDeltakerInTest.copy(
+                status = kladdDeltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
             )
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
 
@@ -436,8 +449,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     inner class PubliserGjennomforingTests {
         @Test
         fun `skal kaste IllegalStateException naar prisinformasjon mangler`() {
-            val deltaker = deltakerInTest.copy(
-                deltakerliste = deltakerInTest.deltakerliste.copy(prisinformasjon = null),
+            val deltaker = kladdDeltakerInTest.copy(
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(prisinformasjon = null),
             )
             mockVedtakOgAnsvarlige(deltaker)
 
@@ -451,8 +464,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         @Test
         fun `skal kaste IllegalStateException naar arrangor mangler`() {
-            val deltaker = deltakerInTest.copy(
-                deltakerliste = deltakerInTest.deltakerliste.copy(arrangor = null),
+            val deltaker = kladdDeltakerInTest.copy(
+                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(arrangor = null),
             )
             mockVedtakOgAnsvarlige(deltaker)
 
@@ -499,7 +512,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             overordnetArrangorId = null,
         )
 
-        private val deltakerInTest = lagDeltaker(
+        private val kladdDeltakerInTest = lagDeltaker(
             navBruker = lagNavBruker(
                 navEnhetId = navEnhetInTest.id,
                 navVeilederId = navAnsattInTest.id,
@@ -510,6 +523,16 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 status = GjennomforingStatusType.KLADD,
                 prisinformasjon = "1234",
             ),
+        )
+
+        private val utkastDeltakerInTest = kladdDeltakerInTest.copy(
+            id = UUID.randomUUID(),
+            status = kladdDeltakerInTest.status.copy(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        )
+
+        private val soktInnDeltakerInTest = kladdDeltakerInTest.copy(
+            id = UUID.randomUUID(),
+            status = kladdDeltakerInTest.status.copy(type = DeltakerStatus.Type.SOKT_INN),
         )
     }
 }

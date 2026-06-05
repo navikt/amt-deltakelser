@@ -317,16 +317,18 @@ fun Routing.registerInternalApi(
                 val opprettetAv = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv).navIdent
                 val ansvarligEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet).enhetsnummer
                 gjennomforingRequestProducer.produce(
-                    GjennomforingRequestPayload.OpprettEnkeltplass(
+                    GjennomforingRequestPayload.EnkeltplassSoktInn(
                         gjennomforingId = deltaker.deltakerliste.id,
-                        tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-                        prisinformasjon = deltaker.deltakerliste.prisinformasjon
-                            ?: throw IllegalStateException("Enkeltplass må ha prisinformasjon"),
-                        organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
-                            ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),
-                        ansvarligEnhet = ansvarligEnhet,
-                        opprettetAv = opprettetAv,
-                        kategorisering = null, // TODO: Skal denne være null?
+                        payload = GjennomforingRequestPayload.UpsertEnkeltplass(
+                            tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                            prisinformasjon = deltaker.deltakerliste.prisinformasjon
+                                ?: throw IllegalStateException("Enkeltplass må ha prisinformasjon"),
+                            organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
+                                ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),
+                            ansvarligEnhet = ansvarligEnhet,
+                            opprettetAv = opprettetAv,
+                            kategorisering = null, // TODO: Skal denne være null?
+                        ),
                     ),
                 )
             }
