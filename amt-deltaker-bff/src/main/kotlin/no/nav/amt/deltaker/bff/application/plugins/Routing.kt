@@ -19,7 +19,6 @@ import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
-import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
@@ -29,7 +28,6 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.innbygger.api.registerInnbyggerApi
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerlisteApi
@@ -67,14 +65,12 @@ fun Application.configureRouting(
     pameldingService: PameldingService,
     paameldingClient: PaameldingClient,
     navAnsattService: NavAnsattService,
-    navEnhetService: NavEnhetService,
     forslagRepository: ForslagRepository,
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     arrangorsokClient: ArrangorsokClient,
     enkeltplassClient: EnkeltplassClient,
     sporbarhetsloggService: SporbarhetsloggService,
-    deltakerRepository: DeltakerRepository,
     deltakerlisteService: DeltakerlisteService,
     deltakerlisteRepository: DeltakerlisteRepository,
     unleash: Unleash,
@@ -139,13 +135,9 @@ fun Application.configureRouting(
 
         registerKladdApi(
             tilgangskontrollService = tilgangskontrollService,
-            deltakerRepository = deltakerRepository,
-            pameldingService = pameldingService,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            amtDistribusjonClient = amtDistribusjonClient,
             amtDeltakerClient = amtDeltakerClient,
             paameldingClient = paameldingClient,
+            paameldingService = pameldingService,
         )
 
         registerInnbyggerApi(

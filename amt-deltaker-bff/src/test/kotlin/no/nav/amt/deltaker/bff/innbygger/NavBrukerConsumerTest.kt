@@ -56,7 +56,6 @@ class NavBrukerConsumerTest {
     private var pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        navBrukerService = navBrukerService,
         paameldingClient = mockk(relaxed = true),
     )
 

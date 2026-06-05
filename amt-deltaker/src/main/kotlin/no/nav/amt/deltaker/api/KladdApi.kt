@@ -7,7 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.api.response.SharedResponseMappers.opprettKladdResponseFromDeltaker
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.veileder.KladdService
@@ -19,6 +19,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 fun Routing.registerKladdApi(
     kladdService: KladdService,
     deltakerRepository: DeltakerRepository,
+    deltakerResponseBuilder: DeltakerResponseBuilder,
 ) {
     authenticate("SYSTEM") {
         post("/kladd") {
@@ -28,8 +29,9 @@ fun Routing.registerKladdApi(
                 deltakerListeId = opprettKladdRequest.deltakerlisteId,
                 personIdent = opprettKladdRequest.personident,
             )
+            val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = true)
 
-            call.respond(opprettKladdResponseFromDeltaker(deltaker))
+            call.respond(deltakerResponse)
         }
 
         post("/oppdater-kladd/{deltakerId}") {
@@ -39,6 +41,12 @@ fun Routing.registerKladdApi(
             require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
                 "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id ${deltaker.id} har status ${deltaker.status.type}"
             }
+            validerKladdInnhold(
+                kladdRequest.innhold,
+                deltaker.deltakerliste.tiltakstype.innhold,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
+
             kladdService.oppdaterKladd(
                 deltaker = deltaker,
                 innhold = kladdRequest.innhold.toInnholdModel(deltaker.deltakerliste.tiltakstype),

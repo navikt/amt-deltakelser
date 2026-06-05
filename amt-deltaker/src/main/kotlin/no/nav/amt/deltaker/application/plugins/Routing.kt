@@ -125,6 +125,7 @@ fun Application.configureRouting(
         registerKladdApi(
             kladdService = kladdService,
             deltakerRepository = deltakerRepository,
+            deltakerResponseBuilder = deltakerResponseBuilder,
         )
         registerVeilederApi(
             deltakerRepository = deltakerRepository,

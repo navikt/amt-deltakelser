@@ -9,20 +9,13 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerRepository
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Kladd
 import no.nav.amt.deltaker.bff.model.Pamelding
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerKladd
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestRepository
-import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
-import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
@@ -35,16 +28,6 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID
 
 class PameldingServiceTest {
-    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
-    private val navAnsattService = NavAnsattService(
-        repository = NavAnsattRepository(),
-        amtPersonServiceClient = amtPersonServiceClient,
-    )
-    private val navEnhetRepository = NavEnhetRepository()
-    private val navEnhetService = NavEnhetService(
-        repository = navEnhetRepository,
-        amtPersonServiceClient = amtPersonServiceClient,
-    )
     private val deltakerRepository = DeltakerRepository()
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -57,12 +40,6 @@ class PameldingServiceTest {
     private var pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        navBrukerService = NavBrukerService(
-            amtPersonServiceClient = mockk(relaxed = true),
-            navBrukerRepository = NavBrukerRepository(),
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-        ),
         paameldingClient = paameldingClient,
     )
 
@@ -125,24 +102,10 @@ class PameldingServiceTest {
 
             TestRepository.insert(kladdInTest)
             TestRepository.insert(deltakerListeInTest, overordnetArrangorInTest)
+            coEvery { paameldingClient.opprettKladd(any(), any()) } returns lagDeltakerResponse(kladdInTest)
 
-            coEvery { paameldingClient.opprettKladd(any(), any()) } returns OpprettKladdResponse(
-                id = kladdInTest.id,
-                navBruker = kladdInTest.navBruker,
-                deltakerlisteId = kladdInTest.deltakerliste.id,
-                startdato = kladdInTest.startdato,
-                sluttdato = kladdInTest.sluttdato,
-                dagerPerUke = kladdInTest.dagerPerUke,
-                deltakelsesprosent = kladdInTest.deltakelsesprosent,
-                bakgrunnsinformasjon = kladdInTest.bakgrunnsinformasjon,
-                deltakelsesinnhold = kladdInTest.deltakelsesinnhold!!,
-                status = kladdInTest.status,
-            )
-
-            val deltaker = pameldingService.opprettKladd(
-                deltakerlisteId = deltakerListeInTest.id,
-                personIdent = kladdInTest.navBruker.personident,
-            )
+            val deltaker =
+                pameldingService.opprettKladd(personident = kladdInTest.navBruker.personident, deltakerlisteId = deltakerListeInTest.id)
 
             deltaker.id shouldBe deltakerRepository
                 .getMany(kladdInTest.navBruker.personident, deltakerListeInTest.id)
@@ -158,12 +121,10 @@ class PameldingServiceTest {
                 bakgrunnsinformasjon shouldBe null
                 deltakelsesinnhold!!.innhold shouldBe emptyList()
 
-                assertSoftly(it.deltakerliste) {
+                assertSoftly(gjennomforing) {
                     id shouldBe deltakerListeInTest.id
                     navn shouldBe deltakerListeInTest.navn
-                    tiltak.tiltakskode shouldBe deltakerListeInTest.tiltak.tiltakskode
-                    arrangor.arrangor shouldBe arrangorInTest
-                    arrangor.overordnetArrangorNavn shouldBe overordnetArrangorInTest.navn
+                    tiltakstype.tiltakskode shouldBe deltakerListeInTest.tiltak.tiltakskode
                     oppstart shouldBe deltakerListeInTest.oppstart
                 }
             }

@@ -1,17 +1,14 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_ANNET_INNHOLD_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_BAKGRUNNSINFORMASJON_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DAGER_PER_UKE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DELTAKELSESPROSENT
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DAGER_PER_UKE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DELTAKELSESPROSENT
-import no.nav.amt.deltaker.bff.veileder.api.utils.validerKladdInnhold
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 /**
  * Kladd må støtte autolagring, dvs. at vi kan ikke feile selv om påmeldingsskjemaet er uferdig eller inneholder
@@ -26,11 +23,6 @@ fun KladdRequest.sanitize() = KladdRequest(
     deltakelsesprosent = deltakelsesprosent?.clamp(MIN_DELTAKELSESPROSENT, MAX_DELTAKELSESPROSENT),
     dagerPerUke = dagerPerUke?.clamp(MIN_DAGER_PER_UKE, MAX_DAGER_PER_UKE),
 )
-
-fun KladdRequest.valider(deltaker: Deltaker) {
-    validerKladdInnhold(this.innhold, deltaker.deltakerliste.tiltak.innhold, deltaker.deltakerliste.tiltak.tiltakskode)
-    require(deltaker.status.type == DeltakerStatus.Type.KLADD) { "Kladd kan kun oppdateres for deltakere med status KLADD" }
-}
 
 private fun String.sanitize(): String {
     val gyldigLengde = 0..<MAX_BAKGRUNNSINFORMASJON_LENGDE * 2

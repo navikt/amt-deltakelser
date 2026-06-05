@@ -2,9 +2,9 @@ package no.nav.amt.deltaker.bff.deltaker
 
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Kladd
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -14,41 +14,20 @@ import java.util.UUID
 class PameldingService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
-    private val navBrukerService: NavBrukerService,
     private val paameldingClient: PaameldingClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,
-        personIdent: String,
-    ): Deltaker {
-        val eksisterendeDeltaker = deltakerRepository
-            .getMany(personIdent, deltakerlisteId)
-            .firstOrNull { !it.harSluttet() }
-
-        if (eksisterendeDeltaker != null) {
-            log.warn("Deltakeren ${eksisterendeDeltaker.id} er allerede opprettet og deltar fortsatt")
-            return eksisterendeDeltaker
-        }
-
-        val kladdResponse = paameldingClient.opprettKladd(
-            personIdent = personIdent,
+        personident: String,
+    ): DeltakerResponse {
+        val response = paameldingClient.opprettKladd(
+            personIdent = personident,
             deltakerlisteId = deltakerlisteId,
         )
-
-        navBrukerService.upsert(kladdResponse.navBruker)
-
-        Database.transaction {
-            deltakerRepository.opprettKladd(kladdResponse)
-            deltakerService.lagreDeltakerStatus(kladdResponse.id, kladdResponse.status)
-        }
-
-        val deltaker = deltakerRepository.get(kladdResponse.id).getOrThrow()
-
         MetricRegister.OPPRETTET_KLADD.inc()
-
-        return deltaker
+        return response
     }
 
     fun upsertKladd(kladd: Kladd): Deltaker? {
