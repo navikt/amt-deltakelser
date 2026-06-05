@@ -41,7 +41,7 @@ import no.nav.amt.deltaker.bff.innbygger.NavBrukerConsumer
 import no.nav.amt.deltaker.bff.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.job.LeaderElection
-import no.nav.amt.deltaker.bff.job.SlettUtdatertKladdJob
+import no.nav.amt.deltaker.bff.job.TiltakskoordinatorStengTilgangJob
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
@@ -52,7 +52,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltakerlisteProducer
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorStengTilgangJob
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.DeltakerEndringHendelseConsumer
@@ -361,10 +360,11 @@ fun Application.module() {
     )
     configureMonitoring()
 
-    val slettUtdatertKladdJob = SlettUtdatertKladdJob(leaderElection, attributes, deltakerRepository, pameldingService)
-    slettUtdatertKladdJob.startJob()
-
-    val tiltakskoordinatorStengTilgangJob = TiltakskoordinatorStengTilgangJob(leaderElection, attributes, selfServiceTilgangService)
+    val tiltakskoordinatorStengTilgangJob = TiltakskoordinatorStengTilgangJob(
+        leaderElection = leaderElection,
+        attributes = attributes,
+        selfServiceTilgangService = selfServiceTilgangService,
+    )
     tiltakskoordinatorStengTilgangJob.startJob()
 
     attributes.put(isReadyKey, true)

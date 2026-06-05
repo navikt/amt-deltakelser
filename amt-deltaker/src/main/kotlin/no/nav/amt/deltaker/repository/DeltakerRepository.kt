@@ -22,10 +22,28 @@ import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    fun getUtdaterteKladder(sistEndret: LocalDateTime): List<UUID> = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                    SELECT d.id
+                    FROM 
+                        deltaker d
+                        JOIN deltaker_status ds ON d.id = ds.deltaker_id
+                    WHERE 
+                        ds.type = '${DeltakerStatus.Type.KLADD.name}' 
+                        AND d.modified_at < :sist_endret
+                """,
+                mapOf("sist_endret" to sistEndret),
+            ).map { it.uuid("id") }.asList,
+        )
+    }
 
     fun getKladdForDeltakerliste(
         deltakerlisteId: UUID,

@@ -15,7 +15,6 @@ import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -245,15 +244,6 @@ class DeltakerRepository {
         ).map { it.uuid("id") }.asList
 
         return Database.query { session -> session.run(query) }
-    }
-
-    fun getUtdaterteKladder(sistEndret: LocalDateTime): List<Deltaker> = Database.query { session ->
-        session.run(
-            queryOf(
-                getDeltakerSql("ds.type = 'KLADD' AND d.modified_at < :sist_endret"),
-                mapOf("sist_endret" to sistEndret),
-            ).map(::rowMapper).asList,
-        )
     }
 
     fun slettDeltaker(deltakerId: UUID) {
