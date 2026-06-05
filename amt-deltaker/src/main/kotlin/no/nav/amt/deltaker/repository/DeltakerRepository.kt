@@ -32,14 +32,14 @@ class DeltakerRepository {
         session.run(
             queryOf(
                 """
-                    SELECT d.id
-                    FROM 
+                    SELECT DISTINCT d.id
+                    FROM
                         deltaker d
-                        JOIN deltaker_status ds ON 
+                        JOIN deltaker_status ds ON
                             d.id = ds.deltaker_id
                             AND ds.gyldig_til IS NULL
                             AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                    WHERE 
+                    WHERE
                         ds.type = :status_type
                         AND d.modified_at < :sist_endret
                 """,

@@ -74,7 +74,7 @@ class DeltakerRepositoryTest {
             // Arrange - Test for regresjonstesting av gyldig_til filter
             // Deltaker som hadde KLADD status men har nå progrediert til SOKT_INN
             val utdatertTidspunkt = LocalDateTime.now().minusWeeks(3)
-            val nySoktInnStatusTidspunlt = LocalDateTime.now().minusWeeks(1)
+            val nySoktInnStatusTidspunkt = LocalDateTime.now().minusWeeks(1)
 
             val deltaker = lagDeltaker(
                 sistEndret = utdatertTidspunkt,
@@ -82,13 +82,13 @@ class DeltakerRepositoryTest {
 
             TestRepository.insert(deltaker)
 
-            // Avsluttt gammel KLADD status
+            // Avslutt gammel KLADD status
             DeltakerStatusRepository.lagreStatus(
                 deltakerId = deltaker.id,
                 deltakerStatus = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.KLADD,
                     gyldigFra = utdatertTidspunkt,
-                    gyldigTil = nySoktInnStatusTidspunlt,
+                    gyldigTil = nySoktInnStatusTidspunkt,
                 ),
             )
 
@@ -97,7 +97,7 @@ class DeltakerRepositoryTest {
                 deltakerId = deltaker.id,
                 deltakerStatus = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.SOKT_INN,
-                    gyldigFra = nySoktInnStatusTidspunlt,
+                    gyldigFra = nySoktInnStatusTidspunkt,
                     gyldigTil = null,
                 ),
             )
