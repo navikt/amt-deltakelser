@@ -325,8 +325,10 @@ fun Routing.registerInternalApi(
                         gjennomforingId = gjennomforing.id,
                         payload = GjennomforingRequestPayload.UpsertEnkeltplass(
                             tiltakskode = gjennomforing.tiltakstype.tiltakskode,
-                            prisinformasjon = gjennomforing.prisinformasjon
-                                ?: throw IllegalStateException("Enkeltplass må ha prisinformasjon"),
+                            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
+                                aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                                tilleggsopplysninger = gjennomforing.prisinformasjon,
+                            ),
                             organisasjonsnummer = gjennomforing.arrangor?.organisasjonsnummer
                                 ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),
                             ansvarligEnhet = ansvarligEnhet,

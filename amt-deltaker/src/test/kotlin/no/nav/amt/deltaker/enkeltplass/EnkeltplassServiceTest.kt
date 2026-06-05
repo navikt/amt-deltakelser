@@ -521,23 +521,6 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     @Nested
     inner class PubliserGjennomforingTests {
         @Test
-        fun `skal kaste IllegalStateException naar prisinformasjon mangler`() {
-            // Arrange
-            val deltaker = kladdDeltakerInTest.copy(
-                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(prisinformasjon = null),
-            )
-            mockVedtakOgAnsvarlige(deltaker)
-
-            // Act & Assert
-            val exception = shouldThrow<IllegalStateException> {
-                enkeltplassService.publiserGjennomforing(deltaker, null)
-            }
-
-            exception.message shouldBe "Kan ikke publisere gjennomføring ${deltaker.deltakerliste.id}: prisinformasjon mangler"
-            verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
-        }
-
-        @Test
         fun `skal kaste IllegalStateException naar arrangor mangler`() {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(

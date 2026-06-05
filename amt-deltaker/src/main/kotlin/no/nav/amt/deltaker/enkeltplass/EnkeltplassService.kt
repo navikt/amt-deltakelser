@@ -184,9 +184,10 @@ class EnkeltplassService(
 
         val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            prisinformasjon = checkNotNull(gjennomforing.prisinformasjon) {
-                "Kan ikke publisere gjennomføring ${gjennomforing.id}: prisinformasjon mangler"
-            },
+            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
+                aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                tilleggsopplysninger = gjennomforing.prisinformasjon,
+            ),
             organisasjonsnummer = checkNotNull(gjennomforing.arrangor) {
                 "Kan ikke publisere gjennomføring ${gjennomforing.id}: arrangør mangler"
             }.organisasjonsnummer,
@@ -316,7 +317,10 @@ class EnkeltplassService(
 
             val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
                 tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
-                prisinformasjon = request.prisinformasjon,
+                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
+                    aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                    tilleggsopplysninger = request.prisinformasjon,
+                ),
                 organisasjonsnummer = request.arrangorUnderenhet,
                 ansvarligEnhet = decoratedRequest.endretAvEnhet,
                 opprettetAv = decoratedRequest.endretAv,

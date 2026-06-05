@@ -20,20 +20,10 @@ sealed interface GjennomforingRequestPayload {
         val payload: UpsertEnkeltplass,
     ) : GjennomforingRequestPayload
 
-    data class EnkeltplassEndrePrisinformasjon(
-        override val gjennomforingId: UUID,
-        val payload: EnkeltplassPrisinformasjon,
-    ) : GjennomforingRequestPayload
-
-    data class EnkeltplassEndreInnhold(
-        override val gjennomforingId: UUID,
-        val payload: UpsertEnkeltplass.OpplaringKategorisering?,
-    ) : GjennomforingRequestPayload
-
     data class UpsertEnkeltplass(
         val tiltakskode: Tiltakskode,
         val organisasjonsnummer: String,
-        val prisinformasjon: String,
+        val prisinformasjon: Prisinformasjon,
         val ansvarligEnhet: String, // enhetsnummer
         val opprettetAv: String, // Nav-ident
         val kategorisering: OpplaringKategorisering?,
@@ -44,16 +34,26 @@ sealed interface GjennomforingRequestPayload {
         )
     }
 
+    data class EnkeltplassEndrePrisinformasjon(
+        override val gjennomforingId: UUID,
+        val payload: Prisinformasjon,
+    ) : GjennomforingRequestPayload
+
+    data class EnkeltplassEndreInnhold(
+        override val gjennomforingId: UUID,
+        val payload: UpsertEnkeltplass.OpplaringKategorisering?,
+    ) : GjennomforingRequestPayload
+
     @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-    sealed interface EnkeltplassPrisinformasjon {
+    sealed interface Prisinformasjon {
         data class Anskaffelse(
             val pris: Int,
-        ) : EnkeltplassPrisinformasjon
+        ) : Prisinformasjon
 
         data class Tilskudd(
             val tilskudd: Map<Tilskuddstype, Int>,
             val tilleggsopplysninger: String?,
-        ) : EnkeltplassPrisinformasjon {
+        ) : Prisinformasjon {
             enum class Tilskuddstype {
                 TILTAK_DRIFTSTILSKUDD,
                 TILTAK_INVESTERINGER,
@@ -64,7 +64,7 @@ sealed interface GjennomforingRequestPayload {
         data class IngenKostnader(
             val aarsak: Aarsak,
             val tilleggsopplysninger: String?,
-        ) : EnkeltplassPrisinformasjon {
+        ) : Prisinformasjon {
             enum class Aarsak {
                 OPPLAERINGEN_ER_KOSTNADSFRI,
                 OPPLAERINGEN_ER_EGENFINANSIERT,
