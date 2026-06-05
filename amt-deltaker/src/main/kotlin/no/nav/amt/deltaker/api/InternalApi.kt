@@ -312,18 +312,22 @@ fun Routing.registerInternalApi(
             log.info("opprett-gjennomforinger-for-enkeltplass: Starter opprettelse av ${request.gjennomforingIder.size} gjennomføringer")
             request.gjennomforingIder.forEach { gjennomforingId ->
                 val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforingId).getOrThrow()
+                val gjennomforing = deltaker.deltakerliste
+
                 val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
                     ?: throw IllegalStateException("Enkeltplass deltaker ${deltaker.id} må ha vedtak for å kunne opprette gjennomføring")
                 val opprettetAv = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv).navIdent
                 val ansvarligEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet).enhetsnummer
+
                 gjennomforingRequestProducer.produce(
+                    // TODO: Dette blir litt rart for VENTER_PA_OPPSTART
                     GjennomforingRequestPayload.EnkeltplassSoktInn(
-                        gjennomforingId = deltaker.deltakerliste.id,
+                        gjennomforingId = gjennomforing.id,
                         payload = GjennomforingRequestPayload.UpsertEnkeltplass(
-                            tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-                            prisinformasjon = deltaker.deltakerliste.prisinformasjon
+                            tiltakskode = gjennomforing.tiltakstype.tiltakskode,
+                            prisinformasjon = gjennomforing.prisinformasjon
                                 ?: throw IllegalStateException("Enkeltplass må ha prisinformasjon"),
-                            organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
+                            organisasjonsnummer = gjennomforing.arrangor?.organisasjonsnummer
                                 ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),
                             ansvarligEnhet = ansvarligEnhet,
                             opprettetAv = opprettetAv,
