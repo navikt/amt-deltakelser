@@ -183,7 +183,6 @@ class EnkeltplassService(
         val gjennomforing = deltaker.deltakerliste
 
         val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
-            // gjennomforingId = deltaker.deltakerliste.id,
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
             prisinformasjon = checkNotNull(gjennomforing.prisinformasjon) {
                 "Kan ikke publisere gjennomføring ${gjennomforing.id}: prisinformasjon mangler"

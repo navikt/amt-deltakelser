@@ -130,7 +130,7 @@ class PameldingService(
             afterUpsert = { deltaker ->
                 distribuerEndringService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
 
-                if (deltaker.erEnkeltplass) {
+                if (deltaker.erEnkeltplass && deltaker.status.type == DeltakerStatus.Type.SOKT_INN) {
                     enkeltplassService.publiserGjennomforing(
                         deltaker = deltaker,
                         kodeverk = kodeverk,

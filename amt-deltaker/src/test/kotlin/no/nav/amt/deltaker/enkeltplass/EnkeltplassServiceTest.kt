@@ -53,7 +53,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
         setupDatabaseMocks()
-        setupNavEnhentOgAnsattMocks()
+        setupNavEnhetOgAnsattMocks()
         setupKodeverkClientMocks()
         stubDefaultDeltakere()
     }
@@ -74,6 +74,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     }
 
     private fun setupDatabaseMocks() {
+        // Note: MockK cleanup is handled by IntegrationTestBase.init() which calls
+        // clearAllMocks() before each test via @BeforeEach, preventing mock leakage
+        // between tests. No explicit unmockkObject() calls are needed.
         mockkObject(Database)
         every { transaction<Any>(any()) } answers {
             val block = firstArg<() -> Any>()
@@ -85,7 +88,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         every { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) } just Runs
     }
 
-    private fun setupNavEnhentOgAnsattMocks() {
+    private fun setupNavEnhetOgAnsattMocks() {
         coEvery { navEnhetService.hentEllerOpprettNavEnhet(navEnhetInTest.enhetsnummer) } returns navEnhetInTest
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsattInTest.navIdent) } returns navAnsattInTest
     }
@@ -246,11 +249,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal oppdatere deltaker, sette status UTKAST_TIL_PAMELDING og opprette vedtak`() = runTest {
             // Arrange
-            val oppdatertDeltaker = utkastDeltakerInTest.copy(
-                status = utkastDeltakerInTest.status,
-            )
-
-            stubDeltakerSequence(utkastDeltakerInTest, oppdatertDeltaker, oppdatertDeltaker)
+            stubDeltakerSequence(utkastDeltakerInTest, utkastDeltakerInTest, utkastDeltakerInTest)
 
             every {
                 deltakerService.lagreDeltakerStatus(
@@ -552,6 +551,23 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             }
 
             exception.message shouldBe "Kan ikke publisere gjennomføring ${deltaker.deltakerliste.id}: arrangør mangler"
+            verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
+        }
+
+        @Test
+        fun `skal kaste ut-exception for status VENTER_PA_OPPSTART`() {
+            // Arrange
+            val deltaker = kladdDeltakerInTest.copy(
+                status = kladdDeltakerInTest.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+            mockVedtakOgAnsvarlige(deltaker)
+
+            // Act & Assert
+            val exception = shouldThrow<IllegalStateException> {
+                enkeltplassService.publiserGjennomforing(deltaker, null)
+            }
+
+            exception.message shouldBe "Deltaker ${deltaker.id} har status ${DeltakerStatus.Type.VENTER_PA_OPPSTART}"
             verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
         }
     }

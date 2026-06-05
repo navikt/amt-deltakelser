@@ -44,6 +44,7 @@ sealed interface GjennomforingRequestPayload {
         )
     }
 
+    @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     sealed interface EnkeltplassPrisinformasjon {
         data class Anskaffelse(
             val pris: Int,
