@@ -45,26 +45,69 @@ import java.util.UUID
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
 
-    @Test
-    fun `getUtdaterteKladder - finnes en utdatert kladd - returnerer utdatert kladd`() {
-        // Arrange
-        val aktivKladd = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-        )
+    @Nested
+    inner class GetUtdaterteKladderTests {
+        @Test
+        fun `getUtdaterteKladder - finnes en utdatert kladd - returnerer utdatert kladd`() {
+            // Arrange
+            val aktivKladd = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
 
-        val utdatertKladd = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-            sistEndret = LocalDateTime.now().minusWeeks(3),
-        )
+            val utdatertKladd = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                sistEndret = LocalDateTime.now().minusWeeks(3),
+            )
 
-        TestRepository.insertAll(aktivKladd, utdatertKladd)
+            TestRepository.insertAll(aktivKladd, utdatertKladd)
 
-        // Act
-        val utdaterteKladder = deltakerRepository.getUtdaterteKladder(LocalDateTime.now().minusWeeks(2))
+            // Act
+            val utdaterteKladder = deltakerRepository.getUtdaterteKladder(LocalDateTime.now().minusWeeks(2))
 
-        // Assert
-        utdaterteKladder.size shouldBe 1
-        utdaterteKladder.first() shouldBe utdatertKladd.id
+            // Assert
+            utdaterteKladder.size shouldBe 1
+            utdaterteKladder.first() shouldBe utdatertKladd.id
+        }
+
+        @Test
+        fun `getUtdaterteKladder - deltaker med historisk KLADD status (gyldig_til set) men annen aktiv status - returneres ikke`() {
+            // Arrange - Test for regresjonstesting av gyldig_til filter
+            // Deltaker som hadde KLADD status men har nå progrediert til SOKT_INN
+            val utdatertTidspunkt = LocalDateTime.now().minusWeeks(3)
+            val nySoktInnStatusTidspunlt = LocalDateTime.now().minusWeeks(1)
+
+            val deltaker = lagDeltaker(
+                sistEndret = utdatertTidspunkt,
+            )
+
+            TestRepository.insert(deltaker)
+
+            // Avsluttt gammel KLADD status
+            DeltakerStatusRepository.lagreStatus(
+                deltakerId = deltaker.id,
+                deltakerStatus = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.KLADD,
+                    gyldigFra = utdatertTidspunkt,
+                    gyldigTil = nySoktInnStatusTidspunlt,
+                ),
+            )
+
+            // Legg til ny aktiv SOKT_INN status
+            DeltakerStatusRepository.lagreStatus(
+                deltakerId = deltaker.id,
+                deltakerStatus = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.SOKT_INN,
+                    gyldigFra = nySoktInnStatusTidspunlt,
+                    gyldigTil = null,
+                ),
+            )
+
+            // Act
+            val utdaterteKladder = deltakerRepository.getUtdaterteKladder(LocalDateTime.now().minusWeeks(2))
+
+            // Assert - deltaker skal IKKE returneres fordi aktiv status (gyldig_til IS NULL) er SOKT_INN, ikke KLADD
+            utdaterteKladder.shouldBeEmpty()
+        }
     }
 
     @Nested

@@ -35,12 +35,18 @@ class DeltakerRepository {
                     SELECT d.id
                     FROM 
                         deltaker d
-                        JOIN deltaker_status ds ON d.id = ds.deltaker_id
+                        JOIN deltaker_status ds ON 
+                            d.id = ds.deltaker_id
+                            AND ds.gyldig_til IS NULL
+                            AND ds.gyldig_fra <= CURRENT_TIMESTAMP
                     WHERE 
-                        ds.type = '${DeltakerStatus.Type.KLADD.name}' 
+                        ds.type = :status_type
                         AND d.modified_at < :sist_endret
                 """,
-                mapOf("sist_endret" to sistEndret),
+                mapOf(
+                    "status_type" to DeltakerStatus.Type.KLADD.name,
+                    "sist_endret" to sistEndret,
+                ),
             ).map { it.uuid("id") }.asList,
         )
     }
