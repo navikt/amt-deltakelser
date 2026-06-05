@@ -1,10 +1,10 @@
-package no.nav.amt.deltaker.bff.navtiltakskoordinator.auth
+package no.nav.amt.deltaker.bff.job
 
 import io.ktor.util.Attributes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import no.nav.amt.deltaker.bff.job.LeaderElection
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

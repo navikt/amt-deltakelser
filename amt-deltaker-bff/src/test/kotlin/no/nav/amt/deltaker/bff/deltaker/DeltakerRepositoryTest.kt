@@ -14,7 +14,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
-import no.nav.amt.deltaker.bff.utils.DeltakerTestUtils
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -24,7 +23,6 @@ import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -195,19 +193,6 @@ class DeltakerRepositoryTest {
 
             deltakerRepository.getTidligereAvsluttedeDeltakelser(deltaker.id) shouldBe listOf(avsluttetDeltaker.id)
         }
-    }
-
-    @Test
-    fun `getUtdaterteKladder - finnes en utdatert kladd - returnerer utdatert kladd`() {
-        val kladd = TestData.lagDeltakerKladd(sistEndret = LocalDateTime.now().minusDays(2))
-        TestRepository.insert(kladd)
-        val utdatertKladd = TestData.lagDeltakerKladd(sistEndret = LocalDateTime.now().minusDays(20))
-        TestRepository.insert(utdatertKladd)
-
-        val utdaterteKladder = deltakerRepository.getUtdaterteKladder(LocalDateTime.now().minusWeeks(2))
-
-        utdaterteKladder.size shouldBe 1
-        utdaterteKladder.first().id shouldBe utdatertKladd.id
     }
 
     @Test
