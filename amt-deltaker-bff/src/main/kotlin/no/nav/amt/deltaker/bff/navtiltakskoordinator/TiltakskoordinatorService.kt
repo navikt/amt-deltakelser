@@ -28,8 +28,6 @@ class TiltakskoordinatorService(
     private val forslagRepository: ForslagRepository,
     private val ulestHendelseRepository: UlestHendelseRepository,
 ) {
-    suspend fun getMany(deltakerIder: List<UUID>) = deltakerRepository.getMany(deltakerIder).toTiltakskoordinatorsDeltaker()
-
     suspend fun endreDeltakere(
         deltakerIder: List<UUID>,
         endring: EndringFraTiltakskoordinator.Endring,

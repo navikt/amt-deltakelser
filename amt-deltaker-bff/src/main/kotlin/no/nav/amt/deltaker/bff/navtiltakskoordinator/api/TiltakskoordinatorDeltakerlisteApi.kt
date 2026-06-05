@@ -120,9 +120,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navIdent = call.getNavIdent()
                 val deltakerIder = call.receive<List<UUID>>()
 
-                tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(
-                    deltakerIder = deltakerIder,
-                    deltakerlisteId = getDeltakerlisteId(),
+                tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(
+                    gjennomforingId = getDeltakerlisteId(),
                     navIdent = navIdent,
                 )
 
@@ -150,9 +149,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navIdent = call.getNavIdent()
                 val deltakerIder = call.receive<List<UUID>>()
 
-                tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(
-                    deltakerIder = deltakerIder,
-                    deltakerlisteId = getDeltakerlisteId(),
+                tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(
+                    gjennomforingId = getDeltakerlisteId(),
                     navIdent = navIdent,
                 )
 
@@ -180,9 +178,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navIdent = call.getNavIdent()
                 val deltakerIder = call.receive<List<UUID>>()
 
-                tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(
-                    deltakerIder = deltakerIder,
-                    deltakerlisteId = getDeltakerlisteId(),
+                tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(
+                    gjennomforingId = getDeltakerlisteId(),
                     navIdent = navIdent,
                 )
 
@@ -211,9 +208,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val navIdent = call.getNavIdent()
                 val request = call.receive<AvslagRequest>()
 
-                tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(
-                    deltakerIder = listOf(request.deltakerId),
-                    deltakerlisteId = getDeltakerlisteId(),
+                tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(
+                    gjennomforingId = getDeltakerlisteId(),
                     navIdent = navIdent,
                 )
 

@@ -296,7 +296,6 @@ fun Application.module() {
         tilgangskontrollService = tilgangskontrollService,
         deltakerlisteService = deltakerlisteService,
         selfServiceTilgangService = selfServiceTilgangService,
-        tiltakskoordinatorService = tiltakskoordinatorService,
     )
 
     val tiltakRepository = TiltakRepository()

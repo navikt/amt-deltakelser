@@ -5,7 +5,6 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
@@ -29,31 +28,6 @@ import java.util.UUID
 class DeltakerRepositoryTest {
     val deltakerRepository = DeltakerRepository()
     val arrangorRepository = ArrangorRepository()
-
-    @Nested
-    inner class SettKanEndresTests {
-        @Test
-        fun `deltaker finnes ikke - kaster ikke feil`() {
-            shouldNotThrowAny {
-                deltakerRepository.settKanEndres(UUID.randomUUID(), true)
-            }
-        }
-
-        @Test
-        fun `deltaker finnes - oppdaterer deltaker`() {
-            val deltaker = TestData.lagDeltaker()
-            deltaker.kanEndres.shouldBeTrue()
-            TestRepository.insert(deltaker)
-
-            deltakerRepository.settKanEndres(deltaker.id, false)
-
-            deltakerRepository
-                .get(deltaker.id)
-                .shouldBeSuccess()
-                .kanEndres
-                .shouldBeFalse()
-        }
-    }
 
     @Nested
     inner class DisableKanEndresManyTests {
@@ -207,25 +181,6 @@ class DeltakerRepositoryTest {
         val lagretSistBesokt = TestRepository.getDeltakerSistBesokt(deltaker.id)
         lagretSistBesokt.shouldNotBeNull()
         lagretSistBesokt shouldBeCloseTo sistBesokt
-    }
-
-    @Nested
-    inner class GetManyByIdList {
-        @Test
-        fun `getMany - ingen deltakere - returnerer tom liste`() {
-            deltakerRepository.getMany(emptyList()).shouldBeEmpty()
-        }
-
-        @Test
-        fun `getMany - henter flere deltakere`() {
-            val deltaker1 = TestData.lagDeltaker()
-            val deltaker2 = TestData.lagDeltaker()
-
-            TestRepository.insert(deltaker1)
-            TestRepository.insert(deltaker2)
-
-            deltakerRepository.getMany(listOf(deltaker1.id, deltaker2.id)) shouldHaveSize 2
-        }
     }
 
     @Nested

@@ -240,10 +240,11 @@ data class TiltakskoordinatorTilgangContext(
 
     fun medSkjermetDeltaker() {
         deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(erSkjermet = true))
-        deltakerRepository.upsert(deltaker)
     }
 
-    fun medFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.FORTROLIG)
+    fun medFortroligDeltaker() {
+        deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG))
+    }
 
     fun medStengtDeltakerliste() {
         deltakerliste = deltakerliste.copy(
@@ -259,10 +260,5 @@ data class TiltakskoordinatorTilgangContext(
             sluttDato = LocalDate.now(),
         )
         deltakerlisteRepository.upsert(deltakerliste)
-    }
-
-    private fun adressebeskyttetDeltaker(adressebeskyttelse: Adressebeskyttelse?) {
-        deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(adressebeskyttelse = adressebeskyttelse))
-        deltakerRepository.upsert(deltaker)
     }
 }

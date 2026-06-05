@@ -420,7 +420,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @Test
     fun `post del-med-arrangor - mangler tilgang til deltakerliste - returnerer 403`() {
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-        coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws
+        coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws
             AuthorizationException("")
 
         val response = withTestApplicationContext { client ->
@@ -436,7 +436,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `post del-med-arrangor - deltakerliste finnes ikke - returnerer 404`() {
         mockTilgangTilDeltakerliste()
 
-        coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilDeltakereGuard(any(), any(), any()) } throws NoSuchElementException()
+        coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws NoSuchElementException()
 
         val response = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {

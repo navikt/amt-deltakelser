@@ -1,17 +1,27 @@
 package no.nav.amt.deltaker.tiltaksansvarlig.endring
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
+import no.nav.amt.deltaker.utils.assertNotProduced
+import no.nav.amt.deltaker.utils.assertNotProducedHendelse
 import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.shouldBeComparableWith
+import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -29,34 +39,37 @@ import java.util.UUID
 class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
     private val navEnhetInTest = TestData.lagNavEnhet(enhetsnummer = "0326")
     private val navAnsattInTest = TestData.lagNavAnsatt(navEnhetId = navEnhetInTest.id)
+    override val deltakerLaaseService: DeltakerLaaseService = mockk()
 
     @BeforeEach
     fun setup() {
         navEnhetRepository.upsert(navEnhetInTest)
         navAnsattRepository.upsert(navAnsattInTest)
+        every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), any()) } answers {
+            firstArg<Map<UUID, String>>().keys.associateWith { false }
+        }
     }
 
     @Nested
     inner class OppdaterDeltakereTests {
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(
+                tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+            ),
+        )
+
         @Test
         fun `oppdaterDeltakere - sett på venteliste - upserter endring`() = runTest {
             // Arrange
-            val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
-                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
-                    tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-                ),
-            )
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData
-                .lagDeltaker(deltakerliste = deltakerliste)
-            val deltaker2 = no.nav.amt.deltaker.utils.data.TestData
-                .lagDeltaker(deltakerliste = deltakerliste)
+            val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val innsokt = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt = lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsoktPaaKurs(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -118,9 +131,68 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
+        fun `oppdaterDeltakere - en deltaker er låst - upserter ikke endring`() = runTest {
+            // Arrange
+            val laastDeltaker = lagDeltaker(deltakerliste = deltakerliste)
+            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
+            val deltakerIder = setOf(laastDeltaker.id, deltaker2.id)
+            val innsokt = lagInnsoktPaaKurs(
+                deltakerId = laastDeltaker.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            val innsokt2 = lagInnsoktPaaKurs(
+                deltakerId = deltaker2.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), laastDeltaker.deltakerliste.id) } returns mapOf(
+                laastDeltaker.id to true,
+                deltaker2.id to false,
+            )
+
+            TestRepository.insertAll(laastDeltaker, deltaker2, innsokt, innsokt2)
+
+            // Act
+            val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+                deltakerIder = deltakerIder,
+                endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
+                endretAvIdent = navAnsattInTest.navIdent,
+            )
+
+            // Assert
+            endredeDeltakere.size shouldBe 2
+            val laastDeltakerResult = endredeDeltakere.first { it.deltaker.id == laastDeltaker.id }
+
+            laastDeltakerResult.isSuccess shouldBe false
+            laastDeltakerResult.exception shouldBe IllegalStateException("Deltaker ${laastDeltaker.id} er låst for endringer")
+            laastDeltakerResult.deltaker shouldBeComparableWith laastDeltaker
+
+            endredeDeltakere
+                .first {
+                    it.deltaker.id == deltaker2.id
+                }.deltaker shouldBeComparableWith deltaker2.copy(
+                status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTELISTE),
+                startdato = null,
+                sluttdato = null,
+            )
+
+            val historikk1 = deltakerHistorikkService.getForDeltaker(laastDeltaker.id)
+            historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 0
+
+            val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
+            historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+            outboxService.assertNotProducedHendelse<HendelseType.SettPaaVenteliste>(laastDeltaker.id)
+            assertDeltakerNotProduced(laastDeltaker.id)
+            // deltaker2
+            assertDeltakerProduced(deltaker2.id)
+        }
+
+        @Test
         fun `oppdaterDeltakere - tildel plass feiler på upsert - ruller tilbake endringer på samme deltaker`() = runTest {
             // Arrange
-            val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+            val deltakerliste = lagDeltakerliste(
                 tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
                     tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 ),
@@ -131,21 +203,20 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 opprettetAvEnhet = navEnhetInTest,
                 opprettetAv = navAnsattInTest,
             )
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltaker = lagDeltaker(
                 id = deltaker1Id,
                 deltakerliste = deltakerliste,
                 vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
             )
 
-            val deltaker2 = no.nav.amt.deltaker.utils.data.TestData
-                .lagDeltaker(deltakerliste = deltakerliste)
+            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val innsokt = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt = lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsoktPaaKurs(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -205,19 +276,19 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `oppdaterDeltakere - tildel plass - upserter endring, bruker deltakerliste sin start og sluttdato`() = runTest {
             // Arrange
-            val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
-                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
+            val deltakerliste = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 ),
                 startDato = LocalDate.now().plusDays(2),
                 sluttDato = LocalDate.now().plusDays(30),
             )
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
-            val deltaker2 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltaker2 = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
@@ -239,12 +310,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sistEndretAvEnhet = navEnhetInTest,
             )
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val innsokt = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt = lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsoktPaaKurs(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -308,19 +379,19 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `oppdaterDeltakere - tildel plass - upserter endring, dato passert får start og sluttdato null`() = runTest {
             // Arrange
-            val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+            val deltakerliste = lagDeltakerliste(
                 tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
                     tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 ),
                 startDato = LocalDate.now().minusDays(2),
                 sluttDato = LocalDate.now().plusDays(30),
             )
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
-            val deltaker2 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltaker2 = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
@@ -342,12 +413,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sistEndretAv = navAnsattInTest,
                 sistEndretAvEnhet = navEnhetInTest,
             )
-            val innsokt = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt = lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsoktPaaKurs(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -411,19 +482,19 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `oppdaterDeltakere - tildel plass feiler på siste deltaker - ruller tilbake en deltaker`() = runTest {
             // Arrange
-            val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+            val deltakerliste = lagDeltakerliste(
                 tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
                     tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 ),
                 startDato = LocalDate.now().plusDays(2),
                 sluttDato = LocalDate.now().plusDays(30),
             )
-            val deltakerInsert = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltakerInsert = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
-            val deltaker2Insert = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltaker2Insert = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
@@ -438,12 +509,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
 
             val deltakerIder = setOf(deltakerInsert.id, deltaker2Insert.id)
-            val innsokt = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt = lagInnsoktPaaKurs(
                 deltakerId = deltakerInsert.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsoktPaaKurs(
                 deltakerId = deltaker2Insert.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -493,20 +564,20 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `oppdaterDeltakere - del med arrangør - inserter endring og returnerer endret deltaker`() = runTest {
             // Arrange
-            val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+            val deltakerliste = lagDeltakerliste(
                 tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
                     tiltakskode =
                         Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 ),
             )
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             )
-            val deltaker2 = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            val deltaker2 = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
@@ -515,12 +586,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
 
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val innsokt = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt = lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsoktPaaKurs(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -572,6 +643,25 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
+
+        @Test
+        fun `oppdaterDeltakere - deltakere paa ulik deltakerliste - kaster AuthorizationException`() = runTest {
+            // Arrange
+            val laastDeltaker = lagDeltaker()
+            val deltaker2 = lagDeltaker()
+            val deltakerIder = setOf(laastDeltaker.id, deltaker2.id)
+
+            TestRepository.insertAll(laastDeltaker, deltaker2)
+
+            // Act
+            shouldThrow<IllegalArgumentException> {
+                tiltaksansvarligService.oppdaterDeltakere(
+                    deltakerIder = deltakerIder,
+                    endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
+                    endretAvIdent = navAnsattInTest.navIdent,
+                )
+            }
+        }
     }
 
     @Test
@@ -615,5 +705,35 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
         }
+    }
+
+    fun assertDeltakerNotProduced(deltakerId: UUID) {
+        outboxService.assertNotProduced<DeltakerKafkaPayload>(
+            expectedKey = deltakerId,
+            expectedTopic = Environment.DELTAKER_V2_TOPIC,
+        )
+        outboxService.assertNotProduced<DeltakerV1Dto>(
+            expectedKey = deltakerId,
+            expectedTopic = Environment.DELTAKER_V1_TOPIC,
+        )
+        outboxService.assertNotProduced<DeltakerEksternV1Dto>(
+            expectedKey = deltakerId,
+            expectedTopic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
+        )
+    }
+
+    fun assertDeltakerProduced(deltakerId: UUID) {
+        outboxService.assertProduced<DeltakerKafkaPayload>(
+            expectedKey = deltakerId,
+            expectedTopic = Environment.DELTAKER_V2_TOPIC,
+        )
+        outboxService.assertProduced<DeltakerV1Dto>(
+            expectedKey = deltakerId,
+            expectedTopic = Environment.DELTAKER_V1_TOPIC,
+        )
+        outboxService.assertProduced<DeltakerEksternV1Dto>(
+            expectedKey = deltakerId,
+            expectedTopic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
+        )
     }
 }

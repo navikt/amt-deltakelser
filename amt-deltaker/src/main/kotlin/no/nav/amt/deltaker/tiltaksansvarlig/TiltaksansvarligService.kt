@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.DeltakerUtils.sjekkEndringUtfall
+import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -28,6 +29,7 @@ class TiltaksansvarligService(
     private val deltakerProducerService: DeltakerProducerService,
     private val distribuerEndringService: DistribuerEndringService,
     private val vedtakService: VedtakService,
+    private val deltakerLaaseService: DeltakerLaaseService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -61,16 +63,38 @@ class TiltaksansvarligService(
 
         val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAvNavEnhetId)
         val deltakere = deltakerRepository.getMany(deltakerIder)
+
+        val deltakerIdToErLaastForEndringerMap = deltakerLaaseService.erLaastForEndringerForDeltakere(
+            deltakerIdToPersonIdentMap = deltakere.associate { it.id to it.navBruker.personident },
+            gjennomforingId = deltakere.first().deltakerliste.id,
+        )
+
+        val deltakerlister = deltakere
+            .map { it.deltakerliste.id }
+            .distinct()
+
         val tiltakskoder = deltakere
             .map { it.deltakerliste.tiltakstype.tiltakskode }
             .distinct()
 
+        require(deltakerlister.size == 1) { "kan ikke endre på deltakere på flere deltakerlister samtidig. $deltakerlister" }
         require(tiltakskoder.size == 1) { "kan ikke endre på deltakere på flere tiltakskoder samtidig" }
         require(tiltakskoder.first() in Tiltakstype.kursTiltak.plus(Tiltakstype.opplaeringsTiltak)) {
             "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}"
         }
 
         return deltakere.map { deltaker ->
+            val erLaast = deltakerIdToErLaastForEndringerMap[deltaker.id] == true
+            if (erLaast) {
+                log.error(
+                    "Kan ikke utføre endring ${endringsType::class.simpleName} på deltaker ${deltaker.id} fordi den er låst for endringer",
+                )
+                return@map DeltakerOppdateringResult(
+                    deltaker = deltaker,
+                    isSuccess = false,
+                    exception = IllegalStateException("Deltaker ${deltaker.id} er låst for endringer"),
+                )
+            }
             val oppdateringResult = upsertSingleDeltaker(deltaker, endringsType, endretAv, endretAvEnhet)
 
             if (!oppdateringResult.isSuccess) {

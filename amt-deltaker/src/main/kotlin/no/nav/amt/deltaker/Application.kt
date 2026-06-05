@@ -429,6 +429,7 @@ fun Application.module() {
         deltakerProducerService = deltakerProducerService,
         distribuerEndringService = distribuerEndringService,
         vedtakService = vedtakService,
+        deltakerLaaseService = deltakerLaaseService,
     )
 
     val digitalBrukerService = DigitalBrukerService(
