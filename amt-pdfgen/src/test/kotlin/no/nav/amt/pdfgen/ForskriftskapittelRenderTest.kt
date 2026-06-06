@@ -1,6 +1,5 @@
 package no.nav.amt.pdfgen
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -10,12 +9,10 @@ import no.nav.amt.pdfgen.util.DtoBuilders.endringsvedtak
 import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtak
 import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtakVedTildeltPlass
 import no.nav.amt.pdfgen.util.RenderUtils.render
+import no.nav.pdfgen.core.objectMapper
 
 class ForskriftskapittelRenderTest :
     DescribeSpec({
-
-        val objectMapper = ObjectMapper()
-
         describe("JSON-serialisering av Forskriftskapittel") {
             it("skal serialisere KAPITTEL_2 som '2'") {
                 val json = objectMapper.writeValueAsString(Forskriftskapittel.KAPITTEL_2)
@@ -92,7 +89,7 @@ class ForskriftskapittelRenderTest :
                             forskriftskapittel = kapittel,
                         ),
                     )
-                    val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtakWithKapittel)
+                    val doc = render("hovedvedtak-individuell-oppfolging", vedtakWithKapittel)
 
                     doc.text() shouldContain "forskrift om arbeidsmarkedstiltak kapittel ${kapittel.verdi}"
                 }
