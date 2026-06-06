@@ -4,12 +4,14 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.journalforing.pdf.ArrangorDto
+import no.nav.amt.lib.models.journalforing.pdf.AvsenderDto
 import no.nav.amt.lib.models.journalforing.pdf.EndringDto
 import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
 import no.nav.amt.lib.models.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakPdfDto
 import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
 import no.nav.amt.lib.models.journalforing.pdf.InnholdPdfDto
+import no.nav.amt.lib.models.journalforing.pdf.InnsokingsbrevPdfDto
 import no.nav.amt.pdfgen.util.RenderUtils.fixedDate
 
 object DtoBuilders {
@@ -151,6 +153,45 @@ object DtoBuilders {
 
     fun hovedvedtakVedTildeltPlassAvsender() = HovedvedtakVedTildeltPlassPdfDto.AvsenderDto(
         navn = "Nav Saksbehandler",
+        enhet = "Nav Oslo",
+    )
+
+    fun innsokingsbrev(
+        tiltakskode: Tiltakskode = Tiltakskode.JOBBKLUBB,
+        oppstartstype: Oppstartstype = Oppstartstype.FELLES,
+    ) = InnsokingsbrevPdfDto(
+        deltaker = innsokingsbrevDeltaker(),
+        deltakerliste = innsokingsbrevDeltakerliste(tiltakskode, oppstartstype),
+        avsender = innsokingsbrevAvsender(),
+        sidetittel = "Innsøkingsbrev for $tiltakskode",
+        ingressnavn = "Jobbklubb",
+        opprettetDato = fixedDate.minusMonths(1),
+    )
+
+    fun innsokingsbrevDeltaker() = InnsokingsbrevPdfDto.DeltakerDto(
+        fornavn = "Ola",
+        mellomnavn = null,
+        etternavn = "Nordmann",
+        personident = "12345678910",
+        innhold = null,
+    )
+
+    fun innsokingsbrevDeltakerliste(
+        tiltakskode: Tiltakskode = Tiltakskode.JOBBKLUBB,
+        oppstartstype: Oppstartstype = Oppstartstype.FELLES,
+    ) = InnsokingsbrevPdfDto.DeltakerlisteDto(
+        navn = "Jobbklubb",
+        tiltakskode = tiltakskode,
+        ledetekst = "Ledetekst for kurset",
+        arrangor = ArrangorDto("Arrangør AS"),
+        startdato = fixedDate,
+        sluttdato = fixedDate.plusMonths(3),
+        oppmoteSted = "Møtested AS",
+        oppstartstype = oppstartstype,
+    )
+
+    fun innsokingsbrevAvsender() = AvsenderDto(
+        navn = "Nav Veileder",
         enhet = "Nav Oslo",
     )
 }
