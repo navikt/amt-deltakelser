@@ -10,6 +10,7 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -43,6 +44,71 @@ import java.util.UUID
 
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
+
+    @Nested
+    inner class GetUtdaterteKladderTests {
+        @Test
+        fun `getUtdaterteKladder - finnes en utdatert kladd - returnerer utdatert kladd`() {
+            // Arrange
+            val aktivKladd = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+
+            val utdatertKladd = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                sistEndret = LocalDateTime.now().minusWeeks(3),
+            )
+
+            TestRepository.insertAll(aktivKladd, utdatertKladd)
+
+            // Act
+            val utdaterteKladder = deltakerRepository.getUtdaterteKladder(LocalDateTime.now().minusWeeks(2))
+
+            // Assert
+            utdaterteKladder.size shouldBe 1
+            utdaterteKladder.first() shouldBe utdatertKladd.id
+        }
+
+        @Test
+        fun `getUtdaterteKladder - deltaker med historisk KLADD status (gyldig_til set) men annen aktiv status - returneres ikke`() {
+            // Arrange - Test for regresjonstesting av gyldig_til filter
+            // Deltaker som hadde KLADD status men har nå progrediert til SOKT_INN
+            val utdatertTidspunkt = LocalDateTime.now().minusWeeks(3)
+            val nySoktInnStatusTidspunkt = LocalDateTime.now().minusWeeks(1)
+
+            val deltaker = lagDeltaker(
+                sistEndret = utdatertTidspunkt,
+            )
+
+            TestRepository.insert(deltaker)
+
+            // Avslutt gammel KLADD status
+            DeltakerStatusRepository.lagreStatus(
+                deltakerId = deltaker.id,
+                deltakerStatus = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.KLADD,
+                    gyldigFra = utdatertTidspunkt,
+                    gyldigTil = nySoktInnStatusTidspunkt,
+                ),
+            )
+
+            // Legg til ny aktiv SOKT_INN status
+            DeltakerStatusRepository.lagreStatus(
+                deltakerId = deltaker.id,
+                deltakerStatus = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.SOKT_INN,
+                    gyldigFra = nySoktInnStatusTidspunkt,
+                    gyldigTil = null,
+                ),
+            )
+
+            // Act
+            val utdaterteKladder = deltakerRepository.getUtdaterteKladder(LocalDateTime.now().minusWeeks(2))
+
+            // Assert - deltaker skal IKKE returneres fordi aktiv status (gyldig_til IS NULL) er SOKT_INN, ikke KLADD
+            utdaterteKladder.shouldBeEmpty()
+        }
+    }
 
     @Nested
     inner class GetEnkeltplassdeltakerTests {
@@ -781,7 +847,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltaker)
             TestRepository.insertAll(ansatt, enhet)
             val innsoktTidspunkt = LocalDateTime.of(2024, 5, 20, 14, 30)
-            val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsok = TestData.lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsokt = innsoktTidspunkt,
                 innsoktAv = ansatt.id,
@@ -834,7 +900,7 @@ class DeltakerRepositoryTest {
                 deltakerId = deltaker.id,
                 deltakerVedImport = lagDeltakerVedImport(innsoktDato = arenaDato),
             )
-            val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsok = TestData.lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsokt = LocalDateTime.of(2024, 6, 1, 12, 0),
                 innsoktAv = ansatt.id,
@@ -865,7 +931,7 @@ class DeltakerRepositoryTest {
             TestRepository.insertAll(ansatt, enhet)
 
             val innsoktTidspunkt = LocalDateTime.of(2024, 5, 15, 10, 0)
-            val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+            val innsok = TestData.lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsokt = innsoktTidspunkt,
                 innsoktAv = ansatt.id,

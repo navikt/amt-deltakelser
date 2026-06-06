@@ -25,7 +25,7 @@ data class HovedvedtakVedTildeltPlassPdfDto(
         val ledetekst: String?,
         val startdato: LocalDate?,
         val sluttdato: LocalDate?,
-        val forskriftskapittel: String,
+        val forskriftskapittel: Forskriftskapittel,
         val arrangor: ArrangorDto,
         val oppmoteSted: String?,
         val harKursetStartet: Boolean?,

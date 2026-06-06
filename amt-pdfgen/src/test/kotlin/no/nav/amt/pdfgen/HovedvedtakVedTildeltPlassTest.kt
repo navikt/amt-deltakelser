@@ -1,0 +1,100 @@
+package no.nav.amt.pdfgen
+
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtakVedTildeltPlass
+import no.nav.amt.pdfgen.util.RenderUtils.render
+
+class HovedvedtakVedTildeltPlassTest :
+    DescribeSpec({
+
+        describe("Hovedvedtak ved tildelt plass - Felles oppstart") {
+            it("skal rendre med alle obligatoriske felter") {
+                val vedtak = hovedvedtakVedTildeltPlass(
+                    oppstartstype = Oppstartstype.FELLES,
+                )
+                val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
+
+                doc.text() shouldContain "Ola Nordmann"
+                doc.text() shouldContain "12345678910"
+                doc.text() shouldContain "Tiltaksliste"
+                doc.text() shouldContain "Arrangør AS"
+                doc.text() shouldContain "Her og der"
+                doc.text() shouldContain "Nav Saksbehandler"
+                doc.text() shouldContain "Nav Oslo"
+            }
+
+            it("skal rendre kursets starttidspunkt") {
+                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES)
+                val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
+
+                doc.text() shouldContain "Kurset starter"
+            }
+
+            it("skal rendre klagerett når aktivert") {
+                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES)
+                val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
+
+                doc.text() shouldContain "Du har rett til å klage"
+            }
+
+            it("skal ikke vise avtale-kontakt-tekst når kurset ikke har startet") {
+                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES, harKursetStartet = false)
+                val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
+
+                doc.text() shouldNotContain "Nav eller arrangøren tar kontakt med deg for å avtale når du skal begynne"
+            }
+
+            it("skal vise avtale-kontakt-tekst når kurset har startet") {
+                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES, harKursetStartet = true)
+                val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
+
+                doc.text() shouldContain "Nav eller arrangøren tar kontakt med deg for å avtale når du skal begynne"
+            }
+
+            it("skal rendre mellomnavn når tilstede") {
+                val vedtak0 = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES)
+                val vedtak = vedtak0.copy(
+                    deltaker = vedtak0.deltaker.copy(
+                        mellomnavn = "Erik",
+                    ),
+                )
+                val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
+
+                doc.text() shouldContain "Ola Erik Nordmann"
+            }
+        }
+
+        describe("Hovedvedtak ved tildelt plass - Løpende oppstart") {
+            it("skal rendre med alle obligatoriske felter") {
+                val vedtak = hovedvedtakVedTildeltPlass(
+                    oppstartstype = Oppstartstype.LOPENDE,
+                )
+                val doc = render("hovedvedtak-tildelt-plass-loepende-oppstart", vedtak)
+
+                doc.text() shouldContain "Ola Nordmann"
+                doc.text() shouldContain "12345678910"
+                doc.text() shouldContain "Tiltaksliste"
+                doc.text() shouldContain "Arrangør AS"
+                doc.text() shouldContain "Her og der"
+                doc.text() shouldContain "Nav Saksbehandler"
+                doc.text() shouldContain "Nav Oslo"
+            }
+
+            it("skal ikke vise kursets starttidspunkt for løpende oppstart") {
+                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.LOPENDE)
+                val doc = render("hovedvedtak-tildelt-plass-loepende-oppstart", vedtak)
+
+                doc.text() shouldNotContain "Kurset starter"
+            }
+
+            it("skal rendre klagerett når aktivert") {
+                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.LOPENDE)
+                val doc = render("hovedvedtak-tildelt-plass-loepende-oppstart", vedtak)
+
+                doc.text() shouldContain "Du har rett til å klage"
+            }
+        }
+    })

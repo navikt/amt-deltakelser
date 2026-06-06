@@ -39,6 +39,7 @@ import no.nav.amt.deltaker.innbygger.NavBrukerConsumer
 import no.nav.amt.deltaker.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.job.DeltakelsesmengdeUpdateJob
+import no.nav.amt.deltaker.job.SlettUtdatertKladdJob
 import no.nav.amt.deltaker.job.StatusUpdateJob
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
@@ -530,6 +531,14 @@ fun Application.module() {
         deltakerService = deltakerService,
     )
     statusUpdateJob.startJob()
+
+    val slettUtdatertKladdJob = SlettUtdatertKladdJob(
+        leaderElection = leaderElection,
+        attributes = attributes,
+        deltakerRepository = deltakerRepository,
+        kladdService = kladdService,
+    )
+    slettUtdatertKladdJob.startJob()
 
     val deltakelsesmengdeUpdateJob = DeltakelsesmengdeUpdateJob(
         leaderElection = leaderElection,

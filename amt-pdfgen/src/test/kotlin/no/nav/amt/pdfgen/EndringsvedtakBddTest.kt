@@ -11,6 +11,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.journalforing.pdf.EndringDto
 import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.lib.models.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.lib.models.journalforing.pdf.ForslagDto
 import no.nav.amt.pdfgen.util.AssertUtils.assertSectionText
 import no.nav.amt.pdfgen.util.RenderUtils.fixedDate
@@ -37,7 +38,7 @@ class EndringsvedtakBddTest :
                     val body = doc.selectFirst("p").shouldNotBeNull()
                     body.text() shouldBe
                         "Dette er et vedtak etter arbeidsmarkedsloven § 12 og forskrift om arbeidsmarkedstiltak " +
-                        "kapittel ${endringsvedtak.deltakerliste.forskriftskapittel}."
+                        "kapittel ${endringsvedtak.deltakerliste.forskriftskapittel.verdi}."
                 }
             }
         }
@@ -263,7 +264,7 @@ class EndringsvedtakBddTest :
             navn = "Tiltaksliste",
             ledetekst = "Dette er ledeteksten",
             arrangor = EndringsvedtakPdfDto.ArrangorDto("Arrangør AS"),
-            forskriftskapittel = "42",
+            forskriftskapittel = Forskriftskapittel.KAPITTEL_4,
             harKlagerett = klagerett,
             pameldingstype = pameldingstype,
         )
