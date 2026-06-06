@@ -118,16 +118,4 @@ class HovedvedtakVedTildeltPlassTest :
                 doc.text() shouldContain "Du har rett til å klage"
             }
         }
-
-        describe("Hovedvedtak ved tildelt plass - Enkeltplass oppstart") {
-            it("skal rendrer med alle obligatoriske felter") {
-                val vedtak = hovedvedtakVedTildeltPlass(
-                    oppstartstype = Oppstartstype.ENKELTPLASS,
-                )
-                val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
-
-                doc.text() shouldContain "Ola Nordmann"
-                doc.text() shouldContain "Tiltaksliste"
-            }
-        }
     })

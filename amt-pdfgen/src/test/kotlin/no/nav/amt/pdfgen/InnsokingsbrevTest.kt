@@ -35,10 +35,11 @@ class InnsokingsbrevTest :
             }
 
             it("skal rendre ingressnavn") {
-                val brev = innsokingsbrev()
+                val brev0 = innsokingsbrev()
+                val brev = brev0.copy(ingressnavn = "Ingressnavn i test")
                 val doc = render("innsokingsbrev", brev)
 
-                doc.text() shouldContain "Jobbklubb"
+                doc.text() shouldContain "Ingressnavn i test"
             }
 
             it("skal rendre ledetekst når innhold finnes") {
