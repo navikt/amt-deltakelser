@@ -50,6 +50,43 @@ class ForskriftskapittelRenderTest :
             }
         }
 
+        describe("JSON-deserialisering av Forskriftskapittel") {
+            it("skal deserialisere '2' til KAPITTEL_2") {
+                val deserialisert = objectMapper.readValue("\"2\"", Forskriftskapittel::class.java)
+                deserialisert shouldBe Forskriftskapittel.KAPITTEL_2
+            }
+
+            it("skal deserialisere '4' til KAPITTEL_4") {
+                val deserialisert = objectMapper.readValue("\"4\"", Forskriftskapittel::class.java)
+                deserialisert shouldBe Forskriftskapittel.KAPITTEL_4
+            }
+
+            it("skal deserialisere '7' til KAPITTEL_7") {
+                val deserialisert = objectMapper.readValue("\"7\"", Forskriftskapittel::class.java)
+                deserialisert shouldBe Forskriftskapittel.KAPITTEL_7
+            }
+
+            it("skal deserialisere '12' til KAPITTEL_12") {
+                val deserialisert = objectMapper.readValue("\"12\"", Forskriftskapittel::class.java)
+                deserialisert shouldBe Forskriftskapittel.KAPITTEL_12
+            }
+
+            it("skal deserialisere '13' til KAPITTEL_13") {
+                val deserialisert = objectMapper.readValue("\"13\"", Forskriftskapittel::class.java)
+                deserialisert shouldBe Forskriftskapittel.KAPITTEL_13
+            }
+
+            it("skal deserialisere '14' til KAPITTEL_14") {
+                val deserialisert = objectMapper.readValue("\"14\"", Forskriftskapittel::class.java)
+                deserialisert shouldBe Forskriftskapittel.KAPITTEL_14
+            }
+
+            it("skal deserialisere '14A' til KAPITTEL_14A") {
+                val deserialisert = objectMapper.readValue("\"14A\"", Forskriftskapittel::class.java)
+                deserialisert shouldBe Forskriftskapittel.KAPITTEL_14A
+            }
+        }
+
         describe("Rendering av Forskriftskapittel") {
             it("skal rendrer KAPITTEL_2 som '2'") {
                 verifiserForskriftskapittelRendering(Forskriftskapittel.KAPITTEL_2)
