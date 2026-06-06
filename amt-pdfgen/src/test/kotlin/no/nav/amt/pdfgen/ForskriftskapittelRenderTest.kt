@@ -88,38 +88,38 @@ class ForskriftskapittelRenderTest :
         }
 
         describe("Rendering av Forskriftskapittel") {
-            it("skal rendrer KAPITTEL_2 som '2'") {
+            it("skal rendre KAPITTEL_2 som '2'") {
                 verifiserForskriftskapittelRendering(Forskriftskapittel.KAPITTEL_2)
             }
 
-            it("skal rendrer KAPITTEL_4 som '4'") {
+            it("skal rendre KAPITTEL_4 som '4'") {
                 verifiserForskriftskapittelRendering(Forskriftskapittel.KAPITTEL_4)
             }
 
-            it("skal rendrer KAPITTEL_7 som '7'") {
+            it("skal rendre KAPITTEL_7 som '7'") {
                 verifiserForskriftskapittelRendering(Forskriftskapittel.KAPITTEL_7)
             }
 
-            it("skal rendrer KAPITTEL_12 som '12'") {
+            it("skal rendre KAPITTEL_12 som '12'") {
                 verifiserForskriftskapittelRendering(Forskriftskapittel.KAPITTEL_12)
             }
 
-            it("skal rendrer KAPITTEL_13 som '13'") {
+            it("skal rendre KAPITTEL_13 som '13'") {
                 verifiserForskriftskapittelRendering(Forskriftskapittel.KAPITTEL_13)
             }
 
-            it("skal rendrer KAPITTEL_14 som '14'") {
+            it("skal rendre KAPITTEL_14 som '14'") {
                 verifiserForskriftskapittelRendering(Forskriftskapittel.KAPITTEL_14)
             }
 
-            it("skal rendrer KAPITTEL_14A som '14A'") {
+            it("skal rendre KAPITTEL_14A som '14A'") {
                 verifiserForskriftskapittelRendering(Forskriftskapittel.KAPITTEL_14A)
             }
         }
 
         describe("Hovedvedtak med Forskriftskapittel") {
             Forskriftskapittel.entries.forEach { kapittel ->
-                it("skal rendrer hovedvedtak med $kapittel") {
+                it("skal rendre hovedvedtak med $kapittel") {
                     val vedtak = hovedvedtak(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
                     val vedtakWithKapittel = vedtak.copy(
                         deltakerliste = vedtak.deltakerliste.copy(
@@ -135,7 +135,7 @@ class ForskriftskapittelRenderTest :
 
         describe("Endringsvedtak med Forskriftskapittel") {
             Forskriftskapittel.entries.forEach { kapittel ->
-                it("skal rendrer endringsvedtak med $kapittel") {
+                it("skal rendre endringsvedtak med $kapittel") {
                     val vedtak = endringsvedtak()
                     val vedtakWithKapittel = vedtak.copy(
                         deltakerliste = vedtak.deltakerliste.copy(
@@ -151,7 +151,7 @@ class ForskriftskapittelRenderTest :
 
         describe("Hovedvedtak ved tildelt plass med Forskriftskapittel") {
             Forskriftskapittel.entries.forEach { kapittel ->
-                it("skal rendrer hovedvedtak ved tildelt plass med $kapittel") {
+                it("skal rendre hovedvedtak ved tildelt plass med $kapittel") {
                     val vedtak = hovedvedtakVedTildeltPlass(forskriftskapittel = kapittel)
                     val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
 

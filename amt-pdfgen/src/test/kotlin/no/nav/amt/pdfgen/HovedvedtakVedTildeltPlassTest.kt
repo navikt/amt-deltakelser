@@ -11,7 +11,7 @@ class HovedvedtakVedTildeltPlassTest :
     DescribeSpec({
 
         describe("Hovedvedtak ved tildelt plass - Felles oppstart") {
-            it("skal rendrer med alle obligatoriske felter") {
+            it("skal rendre med alle obligatoriske felter") {
                 val vedtak = hovedvedtakVedTildeltPlass(
                     oppstartstype = Oppstartstype.FELLES,
                 )
@@ -26,14 +26,14 @@ class HovedvedtakVedTildeltPlassTest :
                 doc.text() shouldContain "Nav Oslo"
             }
 
-            it("skal rendrer kursets starttidspunkt") {
+            it("skal rendre kursets starttidspunkt") {
                 val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES)
                 val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
 
                 doc.text() shouldContain "Kurset starter"
             }
 
-            it("skal rendrer klagerett når aktivert") {
+            it("skal rendre klagerett når aktivert") {
                 val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES)
                 val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
 
@@ -54,7 +54,7 @@ class HovedvedtakVedTildeltPlassTest :
                 doc.text() shouldContain "Nav eller arrangøren tar kontakt med deg for å avtale når du skal begynne"
             }
 
-            it("skal rendrer mellomnavn når tilstede") {
+            it("skal rendre mellomnavn når tilstede") {
                 val vedtak0 = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES)
                 val vedtak = vedtak0.copy(
                     deltaker = vedtak0.deltaker.copy(
@@ -68,7 +68,7 @@ class HovedvedtakVedTildeltPlassTest :
         }
 
         describe("Hovedvedtak ved tildelt plass - Løpende oppstart") {
-            it("skal rendrer med alle obligatoriske felter") {
+            it("skal rendre med alle obligatoriske felter") {
                 val vedtak = hovedvedtakVedTildeltPlass(
                     oppstartstype = Oppstartstype.LOPENDE,
                 )
@@ -90,7 +90,7 @@ class HovedvedtakVedTildeltPlassTest :
                 doc.text() shouldNotContain "Kurset starter"
             }
 
-            it("skal rendrer klagerett når aktivert") {
+            it("skal rendre klagerett når aktivert") {
                 val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.LOPENDE)
                 val doc = render("hovedvedtak-tildelt-plass-loepende-oppstart", vedtak)
 
