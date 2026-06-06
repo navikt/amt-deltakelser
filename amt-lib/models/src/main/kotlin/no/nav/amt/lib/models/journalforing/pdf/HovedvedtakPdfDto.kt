@@ -29,7 +29,7 @@ data class HovedvedtakPdfDto(
         val tiltakskode: Tiltakskode,
         val ledetekst: String,
         val arrangor: ArrangorDto,
-        val forskriftskapittel: String,
+        val forskriftskapittel: Forskriftskapittel,
         val oppmoteSted: String?,
     )
 
