@@ -27,7 +27,7 @@ data class EndringsvedtakPdfDto(
         val navn: String,
         val ledetekst: String,
         val arrangor: ArrangorDto,
-        val forskriftskapittel: String,
+        val forskriftskapittel: Forskriftskapittel,
         val pameldingstype: GjennomforingPameldingType,
         val harKlagerett: Boolean,
     )
