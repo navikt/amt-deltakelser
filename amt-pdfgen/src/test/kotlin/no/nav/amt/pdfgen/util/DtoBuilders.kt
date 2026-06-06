@@ -117,9 +117,10 @@ object DtoBuilders {
         tiltakskode: Tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
         oppstartstype: Oppstartstype = Oppstartstype.FELLES,
         forskriftskapittel: Forskriftskapittel = Forskriftskapittel.KAPITTEL_14A,
+        harKursetStartet: Boolean = false,
     ) = HovedvedtakVedTildeltPlassPdfDto(
         deltaker = hovedvedtakVedTildeltPlassDeltaker(),
-        deltakerliste = hovedvedtakVedTildeltPlassDeltakerliste(tiltakskode, oppstartstype, forskriftskapittel),
+        deltakerliste = hovedvedtakVedTildeltPlassDeltakerliste(tiltakskode, oppstartstype, forskriftskapittel, harKursetStartet),
         avsender = hovedvedtakVedTildeltPlassAvsender(),
         opprettetDato = fixedDate.minusMonths(1),
     )
@@ -136,6 +137,7 @@ object DtoBuilders {
         tiltakskode: Tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
         oppstartstype: Oppstartstype = Oppstartstype.FELLES,
         forskriftskapittel: Forskriftskapittel = Forskriftskapittel.KAPITTEL_14A,
+        harKursetStartet: Boolean = false,
     ) = HovedvedtakVedTildeltPlassPdfDto.DeltakerlisteDto(
         tiltakskode = tiltakskode,
         tittelNavn = "Tiltaksliste",
@@ -146,7 +148,7 @@ object DtoBuilders {
         forskriftskapittel = forskriftskapittel,
         arrangor = ArrangorDto("Arrangør AS"),
         oppmoteSted = "Her og der",
-        harKursetStartet = false,
+        harKursetStartet = harKursetStartet,
         harKlagerett = true,
         oppstartstype = oppstartstype,
     )

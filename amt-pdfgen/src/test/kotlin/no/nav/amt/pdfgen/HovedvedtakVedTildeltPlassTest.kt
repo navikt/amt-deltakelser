@@ -41,11 +41,18 @@ class HovedvedtakVedTildeltPlassTest :
                 doc.text() shouldContain "Du har rett til å klage"
             }
 
-            it("skal rendrer ikke kurset startet når false") {
-                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES)
+            it("skal ikke vise avtale-kontakt-tekst når kurset ikke har startet") {
+                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES, harKursetStartet = false)
                 val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
 
-                doc.text() shouldNotContain "Kurset har startet"
+                doc.text() shouldNotContain "Nav eller arrangøren tar kontakt med deg for å avtale når du skal begynne"
+            }
+
+            it("skal vise avtale-kontakt-tekst når kurset har startet") {
+                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES, harKursetStartet = true)
+                val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
+
+                doc.text() shouldContain "Nav eller arrangøren tar kontakt med deg for å avtale når du skal begynne"
             }
 
             it("skal rendrer mellomnavn når tilstede") {

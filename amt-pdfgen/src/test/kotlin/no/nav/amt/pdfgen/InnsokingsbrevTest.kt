@@ -89,11 +89,14 @@ class InnsokingsbrevTest :
                     doc.text() shouldNotContain "Når det nærmer seg oppstart av kurset"
                 }
 
-                it("ENKELTPLASS - skal rendre") {
+                it("ENKELTPLASS - skal ikke vise felles-/løpende-tekst eller startdato") {
                     val brev = innsokingsbrev(oppstartstype = Oppstartstype.ENKELTPLASS)
                     val doc = render("innsokingsbrev", brev)
 
                     doc.text() shouldContain "Ola Nordmann"
+                    doc.text() shouldNotContain "Når det nærmer seg oppstart av kurset"
+                    doc.text() shouldNotContain "Nav vurderer søknaden din"
+                    doc.text() shouldNotContain "Kurset starter"
                 }
             }
 
