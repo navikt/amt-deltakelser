@@ -56,8 +56,9 @@ class HovedvedtakVedTildeltPlassTest :
             }
 
             it("skal rendrer mellomnavn når tilstede") {
-                val vedtak = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES).copy(
-                    deltaker = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES).deltaker.copy(
+                val vedtak0 = hovedvedtakVedTildeltPlass(oppstartstype = Oppstartstype.FELLES)
+                val vedtak = vedtak0.copy(
+                    deltaker = vedtak0.deltaker.copy(
                         mellomnavn = "Erik",
                     ),
                 )

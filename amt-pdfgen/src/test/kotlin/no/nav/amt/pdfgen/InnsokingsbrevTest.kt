@@ -61,8 +61,9 @@ class InnsokingsbrevTest :
             }
 
             it("skal rendre mellomnavn når tilstede") {
-                val brev = innsokingsbrev().copy(
-                    deltaker = innsokingsbrev().deltaker.copy(
+                val brev0 = innsokingsbrev()
+                val brev = brev0.copy(
+                    deltaker = brev0.deltaker.copy(
                         mellomnavn = "Erik",
                     ),
                 )
