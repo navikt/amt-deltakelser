@@ -159,8 +159,9 @@ object DtoBuilders {
     fun innsokingsbrev(
         tiltakskode: Tiltakskode = Tiltakskode.JOBBKLUBB,
         oppstartstype: Oppstartstype = Oppstartstype.FELLES,
+        innholdPdfDto: InnholdPdfDto? = null,
     ) = InnsokingsbrevPdfDto(
-        deltaker = innsokingsbrevDeltaker(),
+        deltaker = innsokingsbrevDeltaker(innholdPdfDto),
         deltakerliste = innsokingsbrevDeltakerliste(tiltakskode, oppstartstype),
         avsender = innsokingsbrevAvsender(),
         sidetittel = "Innsøkingsbrev for $tiltakskode",
@@ -168,12 +169,12 @@ object DtoBuilders {
         opprettetDato = fixedDate.minusMonths(1),
     )
 
-    fun innsokingsbrevDeltaker() = InnsokingsbrevPdfDto.DeltakerDto(
+    fun innsokingsbrevDeltaker(innholdPdfDto: InnholdPdfDto? = null) = InnsokingsbrevPdfDto.DeltakerDto(
         fornavn = "Ola",
         mellomnavn = null,
         etternavn = "Nordmann",
         personident = "12345678910",
-        innhold = null,
+        innhold = innholdPdfDto,
     )
 
     fun innsokingsbrevDeltakerliste(
