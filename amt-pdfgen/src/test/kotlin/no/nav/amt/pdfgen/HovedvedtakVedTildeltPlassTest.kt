@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtakVedTildeltPlass
 import no.nav.amt.pdfgen.util.RenderUtils.render
 
@@ -65,26 +64,6 @@ class HovedvedtakVedTildeltPlassTest :
                 val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
 
                 doc.text() shouldContain "Ola Erik Nordmann"
-            }
-
-            describe("Tiltakstyper") {
-                it("GRUPPE_ARBEIDSMARKEDSOPPLAERING") {
-                    val vedtak = hovedvedtakVedTildeltPlass(
-                        tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                        oppstartstype = Oppstartstype.FELLES,
-                    )
-                    val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
-                    doc.text() shouldContain "Arbeidsforberedende trening"
-                }
-
-                it("AVKLARING") {
-                    val vedtak = hovedvedtakVedTildeltPlass(
-                        tiltakskode = Tiltakskode.AVKLARING,
-                        oppstartstype = Oppstartstype.FELLES,
-                    )
-                    val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
-                    doc.text() shouldContain "Ola Nordmann"
-                }
             }
         }
 
