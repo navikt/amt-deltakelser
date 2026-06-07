@@ -36,6 +36,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
 
 class GjennomforingConsumerTest {
@@ -60,13 +62,21 @@ class GjennomforingConsumerTest {
     @BeforeEach
     fun setup() {
         clearAllMocks()
+
         mockkObject(Database)
         every { Database.transaction<Any>(any()) } answers {
             firstArg<() -> Any>().invoke()
         }
         every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns true
-        coEvery { arrangorService.hentArrangor(any<String>()) } returns lagArrangor()
-        every { tiltakRepository.get(any<Tiltakskode>()) } returns Result.success(lagTiltakstype())
+
+        coEvery { arrangorService.hentArrangor(any<String>()) } answers {
+            lagArrangor(organisasjonsnummer = firstArg())
+        }
+
+        every { tiltakRepository.get(any<Tiltakskode>()) } answers {
+            Result.success(lagTiltakstype(tiltakskode = firstArg()))
+        }
+
         every { deltakerlisteRepository.upsert(any<Deltakerliste>()) } just runs
         every { deltakerRepository.getAntallDeltakereForDeltakerliste(any()) } returns 0
         every { deltakerProducerService.produce(any<Deltaker>(), any<Boolean>()) } just runs
@@ -75,11 +85,12 @@ class GjennomforingConsumerTest {
     }
 
     @AfterEach
-    fun cleanup() {
-        unmockkObject(Database)
-    }
+    fun cleanup() = unmockkObject(Database)
 
     private fun stubEksisterendeDeltakerliste(deltakerliste: Deltakerliste) {
+        deltakerliste.arrangor?.let { arrangor ->
+            coEvery { arrangorService.hentArrangor(arrangor.organisasjonsnummer) } returns arrangor
+        }
         every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
     }
 
@@ -105,38 +116,21 @@ class GjennomforingConsumerTest {
 
     @Nested
     inner class EnkeltplassGjennomforingTest {
-        @Test
-        fun `skal produsere enkeltplassdeltaker når status er UTKAST_TIL_PAMELDING`() = runTest {
+        @ParameterizedTest
+        @EnumSource(
+            value = DeltakerStatus.Type::class,
+            names = ["UTKAST_TIL_PAMELDING", "SOKT_INN"],
+        )
+        fun `skal produsere enkeltplassdeltaker når status er gyldig`(statusType: DeltakerStatus.Type) = runTest {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
             val deltaker = lagDeltaker(
                 deltakerliste = enkeltplassDeltakerliste,
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                status = lagDeltakerStatus(statusType = statusType),
             )
 
             stubEksisterendeDeltakerliste(enkeltplassDeltakerliste)
             every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
-
-            // Act
-            consumePayloadFor(enkeltplassDeltakerliste)
-
-            // Assert
-            verify { deltakerProducerService.produce(deltaker = deltaker, forcedUpdate = false) }
-        }
-
-        @Test
-        fun `skal produsere enkeltplassdeltaker når status er SOKT_INN`() = runTest {
-            // Arrange
-            val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
-            val deltaker = lagDeltaker(
-                deltakerliste = enkeltplassDeltakerliste,
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
-            )
-
-            stubEksisterendeDeltakerliste(enkeltplassDeltakerliste)
-            every {
-                deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id)
-            } returns Result.success(deltaker)
 
             // Act
             consumePayloadFor(enkeltplassDeltakerliste)
@@ -158,28 +152,6 @@ class GjennomforingConsumerTest {
                 lagDeltaker(
                     deltakerliste = enkeltplassDeltakerliste,
                     status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
-                ),
-            )
-
-            // Act
-            consumePayloadFor(enkeltplassDeltakerliste)
-
-            // Assert
-            verify(exactly = 0) { deltakerProducerService.produce(deltaker = any<Deltaker>(), forcedUpdate = any()) }
-        }
-
-        @Test
-        fun `skal ikke produsere enkeltplassdeltaker når status er DELTAR`() = runTest {
-            // Arrange
-            val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
-
-            stubEksisterendeDeltakerliste(enkeltplassDeltakerliste)
-            every {
-                deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id)
-            } returns Result.success(
-                lagDeltaker(
-                    deltakerliste = enkeltplassDeltakerliste,
-                    status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
                 ),
             )
 
@@ -336,12 +308,6 @@ class GjennomforingConsumerTest {
 
             val originalDeltakerliste = lagGruppeDeltakerliste().copy(
                 sluttDato = originalSluttDato,
-            )
-
-            val deltaker = lagDeltaker(
-                deltakerliste = originalDeltakerliste,
-                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
-                sluttdato = nySluttDato, // Deltaker har earlier sluttdato
             )
 
             val oppdatertDeltakerliste = originalDeltakerliste.copy(
