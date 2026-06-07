@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlistePayload
+import no.nav.amt.deltaker.utils.data.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -82,11 +83,22 @@ class GjennomforingConsumerTest {
     }
 
     private suspend fun consumePayloadFor(deltakerliste: Deltakerliste) {
+        val payload = when (deltakerliste.gjennomforingstype) {
+            GjennomforingType.Enkeltplass -> lagEnkeltplassDeltakerlistePayload(
+                deltakerliste = deltakerliste.copy(
+                    pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                ),
+            ).copy(
+                id = deltakerliste.id,
+                status = deltakerliste.status,
+            )
+
+            GjennomforingType.Gruppe -> lagDeltakerlistePayload(deltakerliste = deltakerliste)
+        }
+
         consumer.consume(
             key = deltakerliste.id,
-            value = objectMapper.writeValueAsString(
-                lagDeltakerlistePayload(deltakerliste = deltakerliste),
-            ),
+            value = objectMapper.writeValueAsString(payload),
         )
     }
 
@@ -260,8 +272,9 @@ class GjennomforingConsumerTest {
 
     companion object {
         private fun lagEnkeltplassDeltakerliste() = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
             gjennomforingstype = GjennomforingType.Enkeltplass,
-            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
         private fun lagGruppeDeltakerliste(status: GjennomforingStatusType = GjennomforingStatusType.GJENNOMFORES) = lagDeltakerliste(
