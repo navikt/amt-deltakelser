@@ -36,6 +36,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class GjennomforingConsumerTest {
     private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
@@ -120,7 +121,7 @@ class GjennomforingConsumerTest {
             consumePayloadFor(enkeltplassDeltakerliste)
 
             // Assert
-            verify { deltakerProducerService.produce(deltaker) }
+            verify { deltakerProducerService.produce(deltaker = deltaker, forcedUpdate = false) }
         }
 
         @Test
@@ -141,7 +142,7 @@ class GjennomforingConsumerTest {
             consumePayloadFor(enkeltplassDeltakerliste)
 
             // Assert
-            verify { deltakerProducerService.produce(deltaker) }
+            verify { deltakerProducerService.produce(deltaker = deltaker, forcedUpdate = false) }
         }
 
         @Test
@@ -164,7 +165,7 @@ class GjennomforingConsumerTest {
             consumePayloadFor(enkeltplassDeltakerliste)
 
             // Assert
-            verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>()) }
+            verify(exactly = 0) { deltakerProducerService.produce(deltaker = any<Deltaker>(), forcedUpdate = any()) }
         }
 
         @Test
@@ -186,7 +187,7 @@ class GjennomforingConsumerTest {
             consumePayloadFor(enkeltplassDeltakerliste)
 
             // Assert
-            verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>()) }
+            verify(exactly = 0) { deltakerProducerService.produce(deltaker = any<Deltaker>(), forcedUpdate = any()) }
         }
     }
 
@@ -266,7 +267,103 @@ class GjennomforingConsumerTest {
 
             // Assert
             verify(exactly = 0) { deltakerService.avsluttDeltakere(any()) }
-            verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>()) }
+            verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>(), any()) }
+        }
+    }
+
+    @Nested
+    inner class AvgrensSluttdatoerTilTest {
+        @Test
+        fun `avgrensSluttdatoerTil - deltaker har senere sluttdato enn deltakerliste - forcedUpdate er true`() {
+            // Arrange
+            val originalSluttDato = LocalDate.now().plusDays(60)
+            val nySluttDato = LocalDate.now().plusDays(30)
+
+            val originalDeltakerliste = lagGruppeDeltakerliste().copy(
+                sluttDato = originalSluttDato,
+            )
+
+            val deltaker = lagDeltaker(
+                deltakerliste = originalDeltakerliste,
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+                sluttdato = originalSluttDato.plusDays(30), // Deltaker har senere sluttdato
+            )
+
+            val oppdatertDeltakerliste = originalDeltakerliste.copy(
+                sluttDato = nySluttDato,
+            )
+
+            // Mock the repository calls
+            every { deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(originalDeltakerliste.id) } returns listOf(deltaker)
+            every { deltakerRepository.upsert(any<Deltaker>()) } just runs
+            every { deltakerRepository.get(deltaker.id) } returns Result.success(
+                deltaker.copy(sluttdato = nySluttDato),
+            )
+            every { deltakerService.lagreDeltakerStatus(any(), any(), any()) } returns lagDeltakerStatus()
+
+            // Act
+            consumer.avgrensSluttdatoerTil(oppdatertDeltakerliste)
+
+            // Assert
+            verify {
+                deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(originalDeltakerliste.id)
+            }
+            verify {
+                deltakerRepository.upsert(
+                    match { it.id == deltaker.id && it.sluttdato == nySluttDato },
+                )
+            }
+            verify {
+                deltakerService.lagreDeltakerStatus(
+                    deltakerId = deltaker.id,
+                    nyDeltakerStatus = deltaker.status,
+                    erDeltakerSluttdatoEndret = true,
+                )
+            }
+            verify {
+                deltakerProducerService.produce(
+                    deltaker = any<Deltaker>(),
+                    forcedUpdate = true,
+                )
+            }
+        }
+
+        @Test
+        fun `avgrensSluttdatoerTil - deltaker har tidligere sluttdato enn deltakerliste - deltakers sluttdato endres ikke`() {
+            // Arrange
+            val originalSluttDato = LocalDate.now().plusDays(60)
+            val nySluttDato = LocalDate.now().plusDays(30)
+
+            val originalDeltakerliste = lagGruppeDeltakerliste().copy(
+                sluttDato = originalSluttDato,
+            )
+
+            val deltaker = lagDeltaker(
+                deltakerliste = originalDeltakerliste,
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+                sluttdato = nySluttDato, // Deltaker har earlier sluttdato
+            )
+
+            val oppdatertDeltakerliste = originalDeltakerliste.copy(
+                sluttDato = nySluttDato,
+            )
+
+            // Mock the repository calls
+            every { deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(originalDeltakerliste.id) } returns emptyList()
+
+            // Act
+            consumer.avgrensSluttdatoerTil(oppdatertDeltakerliste)
+
+            // Assert - verify no updates were made
+            verify(exactly = 0) {
+                deltakerRepository.upsert(any<Deltaker>())
+            }
+            verify(exactly = 0) {
+                deltakerService.lagreDeltakerStatus(any(), any(), any())
+            }
+            verify(exactly = 0) {
+                deltakerProducerService.produce(any<Deltaker>(), any<Boolean>())
+            }
         }
     }
 
