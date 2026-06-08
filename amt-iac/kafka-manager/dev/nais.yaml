@@ -207,6 +207,12 @@ spec:
                "location": "AIVEN",
                "keyDeserializerType": "STRING",
                "valueDeserializerType": "STRING"
-            }
+            },
+            {
+               "name": "team-mulighetsrommet.gjennomforing-request-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+             }
           ]
         }
