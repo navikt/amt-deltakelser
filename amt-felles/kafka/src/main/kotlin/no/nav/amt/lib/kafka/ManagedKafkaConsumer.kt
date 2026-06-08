@@ -91,21 +91,20 @@ class ManagedKafkaConsumer<K, V>(
 
         log.info("Starting Kafka consumer for topic $topic")
 
-        consumer =
-            KafkaConsumer<K, V>(config).also { kafkaConsumer ->
-                kafkaConsumer.subscribe(
-                    listOf(topic),
-                    ManagedConsumerRebalanceListener(
-                        consumer = kafkaConsumer,
-                        offsetManager = offsetManager,
-                        backoffManager = partitionBackoffManager,
-                    ),
-                )
+        consumer = KafkaConsumer<K, V>(config).also { kafkaConsumer ->
+            kafkaConsumer.subscribe(
+                listOf(topic),
+                ManagedConsumerRebalanceListener(
+                    consumer = kafkaConsumer,
+                    offsetManager = offsetManager,
+                    backoffManager = partitionBackoffManager,
+                ),
+            )
 
-                scope.launch {
-                    kafkaConsumer.use { runLoop(it) }
-                }
+            scope.launch {
+                kafkaConsumer.use { runLoop(it) }
             }
+        }
     }
 
     /**

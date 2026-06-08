@@ -38,10 +38,9 @@ internal class ManagedConsumerRebalanceListener<K, V>(
         log.info("Partitions revoked: $revokedPartitions")
 
         // collect offsets for revoked partitions that are pending commit
-        val offsetsToCommitDuringRebalance =
-            offsetManager
-                .getOffsetsToCommit()
-                .filterKeys { it in revokedPartitions }
+        val offsetsToCommitDuringRebalance = offsetManager
+            .getOffsetsToCommit()
+            .filterKeys { it in revokedPartitions }
 
         // try to commit offsets before losing ownership
         try {
@@ -51,7 +50,10 @@ internal class ManagedConsumerRebalanceListener<K, V>(
             }
         } catch (e: Exception) {
             // log but continue; the new owner will retry from last committed offsets
-            log.error("Failed to commit offsets during partition revoke for $revokedPartitions: $offsetsToCommitDuringRebalance", e)
+            log.error(
+                "Failed to commit offsets during partition revoke for $revokedPartitions: $offsetsToCommitDuringRebalance",
+                e,
+            )
         } finally {
             // remove committed/uncommitted state for revoked partitions
             revokedPartitions.forEach { tp ->

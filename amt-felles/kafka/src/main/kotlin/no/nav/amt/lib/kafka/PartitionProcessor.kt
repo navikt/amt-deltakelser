@@ -49,8 +49,7 @@ internal class PartitionProcessor<K, V>(
     ) {
         for (record in records) {
             val recordInfo =
-                "topic=${record.topic()} key=${record.key()} " +
-                    "partition=${record.partition()} offset=${record.offset()}"
+                "topic=${record.topic()} key=${record.key()} partition=${record.partition()} offset=${record.offset()}"
 
             val shouldSkip = try {
                 skipFilter(record)
@@ -79,8 +78,8 @@ internal class PartitionProcessor<K, V>(
                 log.info("Consumed record in ${System.currentTimeMillis() - start} ms: $recordInfo")
             } catch (ce: CancellationException) {
                 throw ce
-            } catch (t: Throwable) {
-                log.warn("Failed processing record: $recordInfo", t)
+            } catch (exception: Exception) {
+                log.warn("Failed processing record: $recordInfo", exception)
                 offsetManager.markRetry(topicPartition, record.offset())
                 backoffManager.incrementRetryCount(topicPartition)
                 break // stop on first failure in partition
