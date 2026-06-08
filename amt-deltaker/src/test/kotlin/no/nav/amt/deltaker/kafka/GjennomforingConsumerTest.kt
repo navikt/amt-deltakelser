@@ -131,7 +131,10 @@ class GjennomforingConsumerTest {
             every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
 
             // Act
-            consumer.publiserEnkeltplassDeltaker(enkeltplassDeltakerliste)
+            consumer.publiserEnkeltplassDeltaker(
+                gjennomforingId = enkeltplassDeltakerliste.id,
+                gjennomforingType = enkeltplassDeltakerliste.gjennomforingstype,
+            )
 
             // Assert
             verify { deltakerProducerService.produce(deltaker) }
@@ -152,7 +155,10 @@ class GjennomforingConsumerTest {
             every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
 
             // Act
-            consumer.publiserEnkeltplassDeltaker(enkeltplassDeltakerliste)
+            consumer.publiserEnkeltplassDeltaker(
+                gjennomforingId = enkeltplassDeltakerliste.id,
+                gjennomforingType = enkeltplassDeltakerliste.gjennomforingstype,
+            )
 
             // Assert
             verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>()) }
@@ -164,7 +170,10 @@ class GjennomforingConsumerTest {
             val gruppeDeltakerliste = lagGruppeDeltakerliste()
 
             // Act
-            consumer.publiserEnkeltplassDeltaker(gruppeDeltakerliste)
+            consumer.publiserEnkeltplassDeltaker(
+                gjennomforingId = gruppeDeltakerliste.id,
+                gjennomforingType = gruppeDeltakerliste.gjennomforingstype,
+            )
 
             // Assert
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }

@@ -75,7 +75,10 @@ class GjennomforingConsumer(
         if (eksisterendeDeltakerliste != null) {
             if (eksisterendeDeltakerliste == gjennomforing) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")
-                publiserEnkeltplassDeltaker(eksisterendeDeltakerliste)
+                publiserEnkeltplassDeltaker(
+                    gjennomforingId = gjennomforing.id,
+                    gjennomforingType = gjennomforing.gjennomforingstype,
+                )
                 return
             }
 
@@ -98,7 +101,10 @@ class GjennomforingConsumer(
                     )
                 }
 
-                publiserEnkeltplassDeltaker(eksisterendeDeltakerliste)
+                publiserEnkeltplassDeltaker(
+                    gjennomforingId = gjennomforing.id,
+                    gjennomforingType = gjennomforing.gjennomforingstype,
+                )
             }
         } else {
             deltakerlisteRepository.upsert(gjennomforing)
@@ -130,10 +136,13 @@ class GjennomforingConsumer(
      * - KLADD -> UTKAST_TIL_PAMELDING
      * - UTKAST_TIL_PAMELDING -> SOKT_INN
      */
-    internal fun publiserEnkeltplassDeltaker(gjennomforing: Deltakerliste) {
-        if (gjennomforing.gjennomforingstype != GjennomforingType.Enkeltplass) return
+    internal fun publiserEnkeltplassDeltaker(
+        gjennomforingId: UUID,
+        gjennomforingType: GjennomforingType,
+    ) {
+        if (gjennomforingType != GjennomforingType.Enkeltplass) return
 
-        val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforing.id).getOrThrow()
+        val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforingId).getOrThrow()
 
         if (deltaker.status.type in setOf(Type.UTKAST_TIL_PAMELDING, Type.SOKT_INN)) {
             deltakerProducerService.produce(deltaker)
