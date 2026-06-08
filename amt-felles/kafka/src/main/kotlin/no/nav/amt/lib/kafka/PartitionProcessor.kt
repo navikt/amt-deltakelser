@@ -56,10 +56,10 @@ internal class PartitionProcessor<K, V>(
                 skipFilter(record)
             } catch (ce: CancellationException) {
                 throw ce
-            } catch (throwable: Throwable) {
+            } catch (exception: Exception) {
                 log.error(
                     "skipFilter threw exception for record: topic=${record.topic()} partition=${record.partition()} offset=${record.offset()}",
-                    throwable,
+                    exception,
                 )
                 false
             }

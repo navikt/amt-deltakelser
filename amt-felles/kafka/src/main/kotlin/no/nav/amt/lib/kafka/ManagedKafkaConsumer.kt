@@ -142,8 +142,8 @@ class ManagedKafkaConsumer<K, V>(
         } catch (ce: CancellationException) {
             log.info("Consumer coroutine cancelled for $topic")
             throw ce
-        } catch (throwable: Throwable) {
-            log.error("Unexpected error in consumer loop for $topic", throwable)
+        } catch (exception: Exception) {
+            log.error("Unexpected error in consumer loop for $topic", exception)
         } finally {
             offsetManager.commit(consumer)
         }
