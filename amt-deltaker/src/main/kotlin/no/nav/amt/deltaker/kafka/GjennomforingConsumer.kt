@@ -10,7 +10,7 @@ import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltaker.DeltakerStatus.Type
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.database.Database
@@ -70,19 +70,19 @@ class GjennomforingConsumer(
             { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
         )
 
-        val eksisterendeDeltakerliste = deltakerlisteRepository.get(gjennomforingPayload.id).getOrNull()
+        val eksisterendeGjennomforing = deltakerlisteRepository.get(gjennomforingPayload.id).getOrNull()
 
-        if (eksisterendeDeltakerliste != null) {
-            if (eksisterendeDeltakerliste == gjennomforing) {
+        if (eksisterendeGjennomforing != null) {
+            if (eksisterendeGjennomforing == gjennomforing) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")
                 return
             }
 
             // deltakerliste med deltakere kan ikke endre pameldingstype eller oppstartstype
             gjennomforingPayload.assertValidChanges(
-                antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(eksisterendeDeltakerliste.id),
-                eksisterendePameldingstype = eksisterendeDeltakerliste.pameldingstype,
-                eksisterendeOppstartstype = eksisterendeDeltakerliste.oppstart,
+                antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(eksisterendeGjennomforing.id),
+                eksisterendePameldingstype = eksisterendeGjennomforing.pameldingstype,
+                eksisterendeOppstartstype = eksisterendeGjennomforing.oppstart,
             )
 
             Database.transaction {
@@ -93,14 +93,11 @@ class GjennomforingConsumer(
                 if (!tiltakstype.tiltakskode.erArenaEnkeltplass()) {
                     handterDeltakere(
                         deltakerlisteFromPayload = gjennomforing,
-                        eksisterendeDeltakerliste = eksisterendeDeltakerliste,
+                        eksisterendeDeltakerliste = eksisterendeGjennomforing,
                     )
                 }
 
-                publiserEnkeltplassDeltaker(
-                    gjennomforingId = gjennomforing.id,
-                    gjennomforingType = gjennomforing.gjennomforingstype,
-                )
+                publiserEnkeltplassDeltaker(eksisterendeGjennomforing)
             }
         } else {
             deltakerlisteRepository.upsert(gjennomforing)
@@ -132,17 +129,17 @@ class GjennomforingConsumer(
      * - KLADD -> UTKAST_TIL_PAMELDING
      * - UTKAST_TIL_PAMELDING -> SOKT_INN
      */
-    internal fun publiserEnkeltplassDeltaker(
-        gjennomforingId: UUID,
-        gjennomforingType: GjennomforingType,
-    ) {
-        if (gjennomforingType != GjennomforingType.Enkeltplass) return
-
-        val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforingId).getOrThrow()
-
-        if (deltaker.status.type in setOf(Type.UTKAST_TIL_PAMELDING, Type.SOKT_INN)) {
-            deltakerProducerService.produce(deltaker)
+    internal fun publiserEnkeltplassDeltaker(gjennomforing: Deltakerliste) {
+        if (!(
+                gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass &&
+                    gjennomforing.status == GjennomforingStatusType.KLADD
+            )
+        ) {
+            return
         }
+
+        val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforing.id).getOrThrow()
+        deltakerProducerService.produce(deltaker)
     }
 
     internal fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
