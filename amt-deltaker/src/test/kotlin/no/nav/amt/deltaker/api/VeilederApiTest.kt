@@ -367,7 +367,7 @@ class VeilederApiTest : IntegrationTestBase() {
             )
 
             val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = reaktiverDeltakelseRequest.toEndring())))
-            val deltaker = TestData.lagDeltaker(
+            val deltaker = lagDeltaker(
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = null,
                 sluttdato = null,

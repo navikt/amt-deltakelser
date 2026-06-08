@@ -4,7 +4,7 @@ import tools.jackson.databind.JsonNode
 import java.time.LocalDateTime
 
 /**
- * Represents an record that is stored in the outbox, waiting to be published.
+ * Represents a record stored in the outbox, waiting to be published.
  *
  * To store records create a postgres table with the following SQL:
  * ```sql

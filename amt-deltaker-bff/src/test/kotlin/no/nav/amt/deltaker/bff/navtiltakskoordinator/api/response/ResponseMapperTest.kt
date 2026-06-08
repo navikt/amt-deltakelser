@@ -1,6 +1,9 @@
-package no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
+package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper.getDeltakelsesinnholdAnnet
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -8,7 +11,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-class TiltakskoordinatorsDeltakerExtensionsTest {
+class ResponseMapperTest {
     @Nested
     inner class GetDeltakelsesinnholdAnnet {
         @Test

@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.tiltaksarrangor.forslag
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -76,9 +77,9 @@ class ForslagServiceTest {
             assertSoftly {
                 lagredeForslag.id shouldBe forslag.id
                 lagredeForslag.status shouldNotBe forslag.status
-                lagredeForslag.status as? Forslag.Status.Avvist shouldNotBe null
-                (lagredeForslag.status as Forslag.Status.Avvist).let { avvist ->
-                    avvist.begrunnelseFraNav shouldBe begrunnelse
+
+                assertSoftly(lagredeForslag.status.shouldBeInstanceOf<Forslag.Status.Avvist>()) {
+                    begrunnelseFraNav shouldBe begrunnelse
                 }
             }
         }

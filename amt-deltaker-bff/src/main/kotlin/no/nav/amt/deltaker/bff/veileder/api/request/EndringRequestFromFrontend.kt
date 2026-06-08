@@ -21,24 +21,6 @@ sealed interface EndringRequestFromFrontend {
 
         else -> false
     }
-
-    fun tillattEndringUtenAktivOppfolgingsperiode() = when (this) {
-        is EndreBakgrunnsinformasjonRequest,
-        is EndreDeltakelsesmengdeRequest,
-        is EndreInnholdRequest,
-        is EndreStartdatoRequest,
-        is ForlengDeltakelseRequest,
-        is ReaktiverDeltakelseRequest,
-        is FjernOppstartsdatoRequest,
-        -> false
-
-        is AvsluttDeltakelseRequest,
-        is EndreAvslutningRequest,
-        is EndreSluttarsakRequest,
-        is EndreSluttdatoRequest,
-        is IkkeAktuellRequest,
-        -> true
-    }
 }
 
 sealed interface EndringMedForslagRequest : EndringRequestFromFrontend {

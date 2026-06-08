@@ -11,7 +11,7 @@ import java.time.Duration
  * The processor is designed to be run as a background job.
  *
  * It will periodically fetch unprocessed records from the database and publish them to Kafka.
- * If an record fails to be published, it will be marked as failed and will be retried later.
+ * If a record fails to be published, it will be marked as failed and will be retried later.
  * To avoid publishing records out of order for the same key, the processor will not publish any new records for a key/topic
  * if a previous record for the same key/topic has failed.
  *
