@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.veileder.api.utils
 
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
+import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.model.STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.getInnholdselementer
@@ -11,6 +12,7 @@ import no.nav.amt.internapi.deltaker.skalKunHaAnnetBeskrivelse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
@@ -52,6 +54,10 @@ fun validerAarsaksBeskrivelse(tekst: String?) = tekst?.let {
     require(tekst.length <= MAX_AARSAK_BESKRIVELSE_LENGDE) {
         "Beskrivelse kan ikke være lengre enn $MAX_AARSAK_BESKRIVELSE_LENGDE"
     }
+}
+
+fun validerAktivGjennomforing(gjennomforing: GjennomforingModel) = require(gjennomforing.status == GjennomforingStatusType.GJENNOMFORES) {
+    "Gjennomføring status må være GJENNOMFORES men var ${gjennomforing.status}"
 }
 
 fun validerDagerPerUke(n: Int?) = n?.let {
