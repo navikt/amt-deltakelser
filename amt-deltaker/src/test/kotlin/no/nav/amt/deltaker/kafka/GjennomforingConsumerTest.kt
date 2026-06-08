@@ -115,7 +115,7 @@ class GjennomforingConsumerTest {
     @Nested
     inner class PubliserEnkeltplassDeltakerTest {
         @Test
-        fun `skal produsere deltaker når gjennomføringstatus er gyldig for publisering`() {
+        fun `skal produsere deltaker når gjennomforing er enkeltplass i KLADD`() {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
             val deltaker = lagDeltaker(
@@ -131,18 +131,15 @@ class GjennomforingConsumerTest {
         }
 
         @Test
-        fun `skal ikke produsere deltaker når gjennomføringstatus ikke kvalifiserer`() {
+        fun `skal ikke hente eller produsere deltaker nar gjennomforing ikke er KLADD`() {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste(GjennomforingStatusType.GJENNOMFORES)
-            val deltaker = lagDeltaker(
-                deltakerliste = enkeltplassDeltakerliste,
-            )
-            every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
 
             // Act
             consumer.publiserEnkeltplassDeltaker(enkeltplassDeltakerliste)
 
             // Assert
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
             verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>()) }
         }
 
