@@ -400,6 +400,7 @@ fun Application.module() {
         vedtakService = vedtakService,
         arrangorService = arrangorService,
         kodeverkClient = kodeverkClient,
+        deltakerProducerService = deltakerProducerService,
     )
 
     val pameldingService = PameldingService(

@@ -328,6 +328,7 @@ abstract class IntegrationTestBase {
             navEnhetRepository = navEnhetRepository,
             navAnsattRepository = navAnsattRepository,
             kodeverkClient = kodeverkClient,
+            deltakerProducerService = deltakerProducerService,
         )
     }
 

@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.enkeltplass
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.innbygger.NavBrukerService
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -53,6 +54,7 @@ class EnkeltplassService(
     private val vedtakService: VedtakService,
     private val arrangorService: ArrangorService,
     private val kodeverkClient: KodeverkClient,
+    private val deltakerProducerService: DeltakerProducerService,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
@@ -317,6 +319,7 @@ class EnkeltplassService(
 
             val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
                 tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
+                // TODO: Hardkodet IngenKostnader inntil vi får på plass strukturert prisinfo
                 prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
                     aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                     tilleggsopplysninger = request.prisinformasjon,
@@ -334,6 +337,11 @@ class EnkeltplassService(
                 deltaker = deltakerMedVedtak,
                 upsertPayload = upsertPayload,
             )
+
+            // hvis gjennomføring er opprettet, publiser deltaker
+            if (gjennomforing.status != GjennomforingStatusType.KLADD) {
+                deltakerProducerService.produce(deltakerMedVedtak)
+            }
 
             deltakerMedVedtak
         }

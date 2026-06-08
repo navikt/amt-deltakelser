@@ -36,8 +36,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
 
 class GjennomforingConsumerTest {
@@ -116,51 +114,32 @@ class GjennomforingConsumerTest {
 
     @Nested
     inner class PubliserEnkeltplassDeltakerTest {
-        @ParameterizedTest
-        @EnumSource(
-            value = DeltakerStatus.Type::class,
-            names = ["UTKAST_TIL_PAMELDING", "SOKT_INN"],
-        )
-        fun `skal produsere deltaker når status er gyldig for publisering`(statusType: DeltakerStatus.Type) {
+        @Test
+        fun `skal produsere deltaker når gjennomforing er enkeltplass i KLADD`() {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
             val deltaker = lagDeltaker(
                 deltakerliste = enkeltplassDeltakerliste,
-                status = lagDeltakerStatus(statusType = statusType),
             )
             every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
 
             // Act
-            consumer.publiserEnkeltplassDeltaker(
-                gjennomforingId = enkeltplassDeltakerliste.id,
-                gjennomforingType = enkeltplassDeltakerliste.gjennomforingstype,
-            )
+            consumer.publiserEnkeltplassDeltaker(enkeltplassDeltakerliste)
 
             // Assert
             verify { deltakerProducerService.produce(deltaker) }
         }
 
-        @ParameterizedTest
-        @EnumSource(
-            value = DeltakerStatus.Type::class,
-            names = ["KLADD", "DELTAR", "HAR_SLUTTET", "IKKE_AKTUELL", "FEILREGISTRERT", "VENTELISTE", "VURDERES"],
-        )
-        fun `skal ikke produsere deltaker når status ikke kvalifiserer`(statusType: DeltakerStatus.Type) {
+        @Test
+        fun `skal ikke hente eller produsere deltaker nar gjennomforing ikke er KLADD`() {
             // Arrange
-            val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
-            val deltaker = lagDeltaker(
-                deltakerliste = enkeltplassDeltakerliste,
-                status = lagDeltakerStatus(statusType = statusType),
-            )
-            every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
+            val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste(GjennomforingStatusType.GJENNOMFORES)
 
             // Act
-            consumer.publiserEnkeltplassDeltaker(
-                gjennomforingId = enkeltplassDeltakerliste.id,
-                gjennomforingType = enkeltplassDeltakerliste.gjennomforingstype,
-            )
+            consumer.publiserEnkeltplassDeltaker(enkeltplassDeltakerliste)
 
             // Assert
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
             verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>()) }
         }
 
@@ -170,10 +149,7 @@ class GjennomforingConsumerTest {
             val gruppeDeltakerliste = lagGruppeDeltakerliste()
 
             // Act
-            consumer.publiserEnkeltplassDeltaker(
-                gjennomforingId = gruppeDeltakerliste.id,
-                gjennomforingType = gruppeDeltakerliste.gjennomforingstype,
-            )
+            consumer.publiserEnkeltplassDeltaker(gruppeDeltakerliste)
 
             // Assert
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
@@ -373,7 +349,8 @@ class GjennomforingConsumerTest {
     }
 
     companion object {
-        private fun lagEnkeltplassDeltakerliste() = lagDeltakerliste(
+        private fun lagEnkeltplassDeltakerliste(status: GjennomforingStatusType = GjennomforingStatusType.KLADD) = lagDeltakerliste(
+            status = status,
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
             gjennomforingstype = GjennomforingType.Enkeltplass,
             pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,

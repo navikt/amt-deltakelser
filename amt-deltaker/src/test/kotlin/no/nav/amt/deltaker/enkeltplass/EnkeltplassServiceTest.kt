@@ -12,6 +12,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -49,6 +50,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     override val vedtakService = mockk<VedtakService>()
     override val navEnhetService = mockk<NavEnhetService>()
     override val navAnsattService = mockk<NavAnsattService>()
+    override val deltakerProducerService = mockk<DeltakerProducerService>()
 
     @BeforeEach
     fun setup() {
@@ -56,6 +58,15 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         setupNavEnhetOgAnsattMocks()
         setupKodeverkClientMocks()
         stubDefaultDeltakere()
+        every {
+            deltakerProducerService.produce(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } just Runs
     }
 
     private fun stubDefaultDeltakere() {
@@ -309,6 +320,101 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     suppressOutsideTxWarning = any(),
                 )
             }
+            verify(exactly = 0) { deltakerProducerService.produce(any()) }
+        }
+
+        @Test
+        fun `skal ikke publisere deltaker til DELTAKER_V2 naar gjennomforing er KLADD`() = runTest {
+            // Arrange
+            val deltakerMedKladdGjennomforing = utkastDeltakerInTest.copy(
+                deltakerliste = utkastDeltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.KLADD),
+            )
+            stubDeltakerSequence(
+                deltakerMedKladdGjennomforing,
+                deltakerMedKladdGjennomforing,
+                deltakerMedKladdGjennomforing,
+            )
+
+            every {
+                deltakerService.lagreDeltakerStatus(
+                    deltakerId = deltakerMedKladdGjennomforing.id,
+                    nyDeltakerStatus = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                )
+            } returns deltakerMedKladdGjennomforing.status
+
+            every {
+                vedtakService.opprettEllerOppdaterVedtak(
+                    fattetAvNav = false,
+                    endretAv = navAnsattInTest,
+                    endretAvEnhet = navEnhetInTest,
+                    deltaker = any(),
+                    fattetDato = null,
+                )
+            } returns lagVedtak(
+                deltakerId = deltakerMedKladdGjennomforing.id,
+                deltakerVedVedtak = deltakerMedKladdGjennomforing,
+            )
+
+            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
+            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerlisteRepository.update(any()) } just Runs
+
+            // Act
+            enkeltplassService.delUtkastMedInnbygger(
+                deltakerId = deltakerMedKladdGjennomforing.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            verify(exactly = 0) { deltakerProducerService.produce(any()) }
+        }
+
+        @Test
+        fun `skal publisere deltaker til DELTAKER_V2 naar gjennomforing ikke er KLADD`() = runTest {
+            // Arrange
+            val deltakerMedOpprettetGjennomforing = utkastDeltakerInTest.copy(
+                deltakerliste = utkastDeltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
+            )
+            stubDeltakerSequence(
+                deltakerMedOpprettetGjennomforing,
+                deltakerMedOpprettetGjennomforing,
+                deltakerMedOpprettetGjennomforing,
+            )
+
+            every {
+                deltakerService.lagreDeltakerStatus(
+                    deltakerId = deltakerMedOpprettetGjennomforing.id,
+                    nyDeltakerStatus = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                )
+            } returns deltakerMedOpprettetGjennomforing.status
+
+            every {
+                vedtakService.opprettEllerOppdaterVedtak(
+                    fattetAvNav = false,
+                    endretAv = navAnsattInTest,
+                    endretAvEnhet = navEnhetInTest,
+                    deltaker = any(),
+                    fattetDato = null,
+                )
+            } returns lagVedtak(
+                deltakerId = deltakerMedOpprettetGjennomforing.id,
+                deltakerVedVedtak = deltakerMedOpprettetGjennomforing,
+            )
+
+            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
+            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerlisteRepository.update(any()) } just Runs
+
+            // Act
+            enkeltplassService.delUtkastMedInnbygger(
+                deltakerId = deltakerMedOpprettetGjennomforing.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            verify { deltakerProducerService.produce(deltakerMedOpprettetGjennomforing) }
         }
 
         @Test
