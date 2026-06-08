@@ -10,8 +10,6 @@ object TestPostgresContainer {
     private const val POSTGRES_DOCKER_IMAGE_NAME = "postgres:17-alpine"
     private var dbInitialized = false
 
-    val isInitialized: Boolean get() = dbInitialized
-
     fun bootstrap() {
         if (!dbInitialized) {
             if (!container.isRunning) container.start()

@@ -204,15 +204,4 @@ data class Deltaker(
             Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
             -> null
         }
-
-    fun oppdater(oppdatering: Deltakeroppdatering) = this.copy(
-        startdato = oppdatering.startdato,
-        sluttdato = oppdatering.sluttdato,
-        dagerPerUke = oppdatering.dagerPerUke,
-        deltakelsesprosent = oppdatering.deltakelsesprosent,
-        bakgrunnsinformasjon = oppdatering.bakgrunnsinformasjon,
-        deltakelsesinnhold = oppdatering.deltakelsesinnhold,
-        status = oppdatering.status,
-        historikk = oppdatering.historikk,
-    )
 }

@@ -11,24 +11,6 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.shouldBeCloseTo
 
-/**
- * Verifiserer at [Forslag] er sendt til outbox med riktig nøkkel og innhold.
- * Tidligere konsumerte vi fra en ekte Kafka-topic; nå sjekker vi at
- * [OutboxService.insertRecord] er kalt med forventede argumenter.
- */
-fun OutboxService.assertProduced(forslag: Forslag) {
-    verify {
-        insertRecord(
-            key = forslag.id,
-            value = match { value ->
-                value is Forslag && matchesForslag(value, forslag)
-            },
-            topic = Environment.ARRANGOR_MELDING_TOPIC,
-            suppressOutsideTxWarning = any(),
-        )
-    }
-}
-
 fun OutboxService.assertProduced(tilgang: TiltakskoordinatorsDeltakerlistePayload) {
     verify {
         insertRecord(
@@ -64,19 +46,6 @@ fun Producer<String, String>.assertProducedTombstone(tilgang: Tiltakskoordinator
             key = tilgang.id.toString(),
         )
     }
-}
-
-private fun matchesForslag(
-    received: Forslag,
-    expected: Forslag,
-): Boolean {
-    if (received.id != expected.id) return false
-    if (received.deltakerId != expected.deltakerId) return false
-    if (received.endring != expected.endring) return false
-    if (received.begrunnelse != expected.begrunnelse) return false
-    if (received.opprettet != expected.opprettet) return false
-    if (received.opprettetAvArrangorAnsattId != expected.opprettetAvArrangorAnsattId) return false
-    return runCatching { sammenlignForslagStatus(received.status, expected.status) }.isSuccess
 }
 
 fun sammenlignForslagStatus(

@@ -37,7 +37,7 @@ class OutboxServiceTest {
     )
 
     @Test
-    fun `insertRecord creates and persists an record with correct fields`() {
+    fun `insertRecord creates and persists a record with correct fields`() {
         val valueInTest = TestValue("hello", 42)
         val keyInTest = UUID.randomUUID()
         val topicInTest = "test-topic"

@@ -22,7 +22,7 @@ import java.util.stream.Stream
  */
 class LaastAvsluttetDeltakelseValideringTest {
     companion object {
-        private val sluttdatoIGår = LocalDate.now().minusDays(1)
+        private val sluttdatoIGaar = LocalDate.now().minusDays(1)
         private val sluttdatoFireUkerSiden = LocalDate.now().minusWeeks(4)
 
         /** Deltaker som har sluttet nylig og er låst */
@@ -54,7 +54,7 @@ class LaastAvsluttetDeltakelseValideringTest {
             ),
             EndreAvslutningRequest(
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-                sluttdato = sluttdatoIGår,
+                sluttdato = sluttdatoIGaar,
                 begrunnelse = "begrunnelse",
                 forslagId = null,
             ),
@@ -72,7 +72,7 @@ class LaastAvsluttetDeltakelseValideringTest {
             ),
             EndreStartdatoRequest(
                 startdato = LocalDate.now().minusMonths(2),
-                sluttdato = sluttdatoIGår,
+                sluttdato = sluttdatoIGaar,
                 begrunnelse = null,
                 forslagId = null,
             ),
@@ -83,7 +83,7 @@ class LaastAvsluttetDeltakelseValideringTest {
             ),
             // EndreSluttdatoRequest er ikke tillatt for låste deltakere – frontend eksponerer det ikke
             EndreSluttdatoRequest(
-                sluttdato = sluttdatoIGår,
+                sluttdato = sluttdatoIGaar,
                 begrunnelse = "begrunnelse",
                 forslagId = null,
             ),
@@ -111,7 +111,7 @@ class LaastAvsluttetDeltakelseValideringTest {
         fun `skal tillate endring av avsluttende status med sluttdato tilbake i tid for låst nylig avsluttet deltaker`() {
             val request = EndreAvslutningRequest(
                 harFullfort = true,
-                sluttdato = sluttdatoIGår,
+                sluttdato = sluttdatoIGaar,
                 aarsak = null,
                 begrunnelse = "begrunnelse",
                 forslagId = UUID.randomUUID(),
@@ -130,7 +130,7 @@ class LaastAvsluttetDeltakelseValideringTest {
         fun `skal avvise endring for låst deltaker med status IKKE_AKTUELL`() {
             val request = EndreAvslutningRequest(
                 harFullfort = true,
-                sluttdato = sluttdatoIGår,
+                sluttdato = sluttdatoIGaar,
                 aarsak = null,
                 begrunnelse = "begrunnelse",
                 forslagId = UUID.randomUUID(),
@@ -193,7 +193,7 @@ class LaastAvsluttetDeltakelseValideringTest {
         fun `skal avvise endring for låst gammelt avsluttet deltaker`() {
             val request = EndreAvslutningRequest(
                 harFullfort = true,
-                sluttdato = sluttdatoIGår,
+                sluttdato = sluttdatoIGaar,
                 aarsak = null,
                 begrunnelse = "begrunnelse",
                 forslagId = UUID.randomUUID(),

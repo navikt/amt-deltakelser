@@ -54,37 +54,6 @@ fun generateJWT(
         .sign(alg)
 }
 
-fun generateSystemJWT(
-    consumerClientId: String,
-    audience: String,
-    expiry: LocalDateTime? = LocalDateTime.now().plusHours(1),
-    subject: String = "subject",
-    issuer: String = "issuer",
-    groups: List<String> = emptyList(),
-): String {
-    val now = Date()
-    val key = getDefaultRSAKey()
-    val alg = Algorithm.RSA256(key.toRSAPublicKey(), key.toRSAPrivateKey())
-
-    return JWT
-        .create()
-        .withKeyId(KEY_ID)
-        .withSubject(subject)
-        .withIssuer(issuer)
-        .withAudience(audience)
-        .withJWTId(UUID.randomUUID().toString())
-        .withClaim("ver", "1.0")
-        .withClaim("nonce", "myNonce")
-        .withClaim("auth_time", now)
-        .withClaim("nbf", now)
-        .withClaim("azp", consumerClientId)
-        .withClaim("oid", subject)
-        .withClaim("iat", now)
-        .withClaim("exp", Date.from(expiry?.atZone(ZoneId.systemDefault())?.toInstant()))
-        .withClaim("groups", groups)
-        .sign(alg)
-}
-
 fun tokenXToken(
     pid: String,
     env: Environment,
