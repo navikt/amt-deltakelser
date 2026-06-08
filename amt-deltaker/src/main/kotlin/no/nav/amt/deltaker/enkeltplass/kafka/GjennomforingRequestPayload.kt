@@ -61,9 +61,11 @@ sealed interface GjennomforingRequestPayload {
             val tilleggsopplysninger: String?,
         ) : Prisinformasjon {
             enum class Tilskuddstype {
-                TILTAK_DRIFTSTILSKUDD,
-                TILTAK_INVESTERINGER,
-                TILTAK_OPPLAERING_TILSKUDD,
+                SKOLEPENGER,
+                STUDIEREISE,
+                EKSAMENSGEBYR,
+                SEMESTERAVGIFT,
+                INTEGRERT_BOTILBUD,
             }
         }
 
