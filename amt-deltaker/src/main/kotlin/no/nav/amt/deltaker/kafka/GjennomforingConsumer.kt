@@ -75,10 +75,6 @@ class GjennomforingConsumer(
         if (eksisterendeDeltakerliste != null) {
             if (eksisterendeDeltakerliste == gjennomforing) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")
-                publiserEnkeltplassDeltaker(
-                    gjennomforingId = gjennomforing.id,
-                    gjennomforingType = gjennomforing.gjennomforingstype,
-                )
                 return
             }
 
