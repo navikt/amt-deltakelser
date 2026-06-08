@@ -15,6 +15,19 @@ import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
+/**
+ * Konsumerer totrinnskontrollhendelser for enkeltplass fra Kafka.
+ *
+ * Konsumenten filtrerer på relevante hendelser, ignorerer irrelevante typer,
+ * og behandler godkjente økonomihendelser ved å oppdatere deltaker og vedtak.
+ *
+ * I dev-miljø brukes et `skipFilter` for å hoppe over kjente ugyldige meldinger
+ * på lave offsets uten å trigge retry.
+ *
+ * @param deltakerRepository repository for oppslag av enkeltplassdeltakere
+ * @param deltakerService tjeneste for oppdatering og publisering av deltaker
+ * @param vedtakService tjeneste for å fatte vedtak ved godkjent økonomi
+ */
 class TotrinnskontrollConsumer(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
@@ -33,6 +46,15 @@ class TotrinnskontrollConsumer(
         consumeFunc = ::consume,
     )
 
+    /**
+     * Behandler en melding fra Kafka.
+     *
+     * Kaster feil ved tombstone, filtrerer bort irrelevante hendelser,
+     * og prosesserer kun godkjente ENKELTPLASS_OKONOMI-hendelser.
+     *
+     * @param key Kafka-key for meldingen
+     * @param value rå payload fra Kafka (kan være `null` ved tombstone)
+     */
     suspend fun consume(
         key: UUID,
         value: String?,
@@ -50,6 +72,14 @@ class TotrinnskontrollConsumer(
         }
     }
 
+    /**
+     * Prosesserer godkjent totrinnskontroll for en enkeltplassdeltaker.
+     *
+     * Kun deltakere med status `SOKT_INN` behandles. Ved behandling fattes vedtak,
+     * og deltaker settes til status `VENTER_PA_OPPSTART`.
+     *
+     * @param gjennomforingId id for gjennomføringen som brukes til å finne deltaker
+     */
     internal fun processGodkjentTotrinnskontroll(gjennomforingId: UUID) {
         val deltaker = deltakerRepository
             .getEnkeltplassdeltaker(gjennomforingId)
@@ -77,6 +107,14 @@ class TotrinnskontrollConsumer(
         log.info("Totrinnskontrollhendelse behandlet for deltaker ${deltaker.id}")
     }
 
+    /**
+     * Returnerer `true` når payload er en ENKELTPLASS_OKONOMI-hendelse som skal behandles.
+     *
+     * Metoden leser kun ut feltet `type` for å kunne ignorere hendelser med annen
+     * struktur uten å feile deserialisering av resten av payload.
+     *
+     * @param payload rå JSON-payload fra Kafka
+     */
     internal fun skalBehandleTotrinnskontrollHendelse(payload: String): Boolean {
         // Parser kun ut type først – andre hendelsestyper enn ENKELTPLASS_OKONOMI kan ha
         // felter (f.eks. behandletAv) i et annet format enn vår modell, og skal uansett ignoreres.
