@@ -26,6 +26,7 @@ internal class PartitionProcessor<K, V>(
     private val consume: suspend (K, V) -> Unit,
     private val backoffManager: PartitionBackoffManager,
     private val offsetManager: OffsetManager,
+    private val skipFilter: (ConsumerRecord<K, V>) -> Boolean = { false },
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -48,8 +49,27 @@ internal class PartitionProcessor<K, V>(
     ) {
         for (record in records) {
             val recordInfo =
-                "topic=${record.topic()} key=${record.key()} " +
-                    "partition=${record.partition()} offset=${record.offset()}"
+                "topic=${record.topic()} key=${record.key()} partition=${record.partition()} offset=${record.offset()}"
+
+            val shouldSkip = try {
+                skipFilter(record)
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (exception: Exception) {
+                log.error(
+                    "skipFilter threw exception for record: topic=${record.topic()} partition=${record.partition()} offset=${record.offset()}",
+                    exception,
+                )
+                false
+            }
+
+            if (shouldSkip) {
+                log.warn(
+                    "Skipping record (matched skipFilter): topic=${record.topic()} partition=${record.partition()} offset=${record.offset()}",
+                )
+                offsetManager.markProcessed(topicPartition, record.offset() + 1)
+                continue
+            }
 
             try {
                 val start = System.currentTimeMillis()
@@ -58,8 +78,8 @@ internal class PartitionProcessor<K, V>(
                 log.info("Consumed record in ${System.currentTimeMillis() - start} ms: $recordInfo")
             } catch (ce: CancellationException) {
                 throw ce
-            } catch (t: Throwable) {
-                log.warn("Failed processing record: $recordInfo", t)
+            } catch (exception: Exception) {
+                log.warn("Failed processing record: $recordInfo", exception)
                 offsetManager.markRetry(topicPartition, record.offset())
                 backoffManager.incrementRetryCount(topicPartition)
                 break // stop on first failure in partition

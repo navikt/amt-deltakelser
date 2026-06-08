@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import java.util.UUID
@@ -21,6 +22,7 @@ import java.util.UUID
 fun buildManagedKafkaConsumer(
     topic: String,
     consumerGroupId: String = Environment.KAFKA_CONSUMER_GROUP_ID,
+    skipFilter: (ConsumerRecord<UUID, String?>) -> Boolean = { false },
     consumeFunc: suspend (key: UUID, value: String?) -> Unit,
 ): ManagedKafkaConsumer<UUID, String?> {
     val kafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl()
@@ -32,6 +34,7 @@ fun buildManagedKafkaConsumer(
             valueDeserializer = StringDeserializer(),
             groupId = consumerGroupId,
         ),
+        skipFilter = skipFilter,
         consume = consumeFunc,
     )
 }

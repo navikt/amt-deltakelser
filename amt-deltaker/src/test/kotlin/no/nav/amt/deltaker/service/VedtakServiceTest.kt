@@ -321,6 +321,73 @@ class VedtakServiceTest {
         }
     }
 
+    @Nested
+    inner class GodkjentOkonomiFattVedtakTests {
+        @Test
+        fun `godkjentOkonomiFattVedtak - ikke-fattet vedtak finnes - godkjennes og fattes`() {
+            val deltaker = lagDeltakerKladd()
+            val vedtakInTest = TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = null,
+                fattetAvNav = false,
+            )
+            insertVedtak(vedtakInTest)
+
+            val deltakerSomGodkjennes = deltaker.copy(bakgrunnsinformasjon = "Godkjent økonomi")
+
+            runTest {
+                vedtakService.godkjentOkonomiFattVedtak(deltakerSomGodkjennes)
+
+                val fattetVedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
+
+                assertSoftly(fattetVedtak) {
+                    id shouldBe vedtakInTest.id
+                    deltakerId shouldBe deltaker.id
+                    fattet shouldNotBe null
+                    fattetAvNav shouldBe true
+                    deltakerVedVedtak shouldBe deltakerSomGodkjennes.toDeltakerVedVedtak()
+                }
+            }
+        }
+
+        @Test
+        fun `godkjentOkonomiFattVedtak - deltaker har ingen vedtak - kaster feil`() {
+            val deltaker = lagDeltakerKladd()
+
+            val thrown = shouldThrow<IllegalStateException> {
+                vedtakService.godkjentOkonomiFattVedtak(deltaker)
+            }
+
+            thrown.message shouldBe "Deltaker-id ${deltaker.id} har ingen vedtak"
+        }
+
+        @Test
+        fun `godkjentOkonomiFattVedtak - vedtak er allerede fattet - kaster feil`() {
+            val deltaker = lagDeltakerKladd()
+            val vedtakInTest = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
+            insertVedtak(vedtakInTest)
+
+            val thrown = shouldThrow<IllegalArgumentException> {
+                vedtakService.godkjentOkonomiFattVedtak(deltaker)
+            }
+
+            thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
+        }
+
+        @Test
+        fun `godkjentOkonomiFattVedtak - vedtak er avbrutt - kaster feil`() {
+            val deltaker = lagDeltakerKladd()
+            val vedtakInTest = TestData.lagVedtak(gyldigTil = LocalDateTime.now(), deltakerVedVedtak = deltaker)
+            insertVedtak(vedtakInTest)
+
+            val thrown = shouldThrow<IllegalStateException> {
+                vedtakService.godkjentOkonomiFattVedtak(deltaker)
+            }
+
+            thrown.message shouldBe "Deltaker-id ${deltaker.id} har et vedtak som er avbrutt"
+        }
+    }
+
     private fun insertVedtak(vedtak: Vedtak) {
         val navEnhet = no.nav.amt.lib.testing.utils.TestData
             .lagNavEnhet(vedtak.opprettetAvEnhet)
