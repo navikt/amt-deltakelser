@@ -45,7 +45,7 @@ sealed interface GjennomforingRequestPayload {
         val payload: UpsertEnkeltplass.OpplaringKategorisering?,
     ) : GjennomforingRequestPayload
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes(
         JsonSubTypes.Type(value = Prisinformasjon.Anskaffelse::class, name = "EnkeltplassPrisinformasjonAnskaffelse"),
         JsonSubTypes.Type(value = Prisinformasjon.Tilskudd::class, name = "EnkeltplassPrisinformasjonTilskudd"),
