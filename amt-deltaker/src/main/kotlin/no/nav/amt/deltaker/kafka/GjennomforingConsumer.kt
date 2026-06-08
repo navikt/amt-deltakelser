@@ -75,22 +75,7 @@ class GjennomforingConsumer(
         if (eksisterendeDeltakerliste != null) {
             if (eksisterendeDeltakerliste == gjennomforing) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")
-
-                if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
-                    val deltaker = deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow()
-
-                    // for enkeltplassdeltaker opprettet av Nav-veileder, utsettes publisering på deltaker-v2 osv. til
-                    // gjennomføring er opprettet og publisert av Mulighetsrommet (Valp).
-                    //
-                    // Mulige transisjoner for deltakerstatus i dette scenariet:
-                    // - KLADD -> SOKT_INN
-                    // - KLADD -> UTKAST_TIL_PAMELDING
-                    // - UTKAST_TIL_PAMELDING -> SOKT_INN
-                    if (deltaker.status.type in setOf(Type.UTKAST_TIL_PAMELDING, Type.SOKT_INN)) {
-                        deltakerProducerService.produce(deltaker)
-                    }
-                }
-
+                publiserEnkeltplassDeltaker(eksisterendeDeltakerliste)
                 return
             }
 
@@ -113,20 +98,7 @@ class GjennomforingConsumer(
                     )
                 }
 
-                if (eksisterendeDeltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
-                    val deltaker = deltakerRepository.getEnkeltplassdeltaker(eksisterendeDeltakerliste.id).getOrThrow()
-
-                    // for enkeltplassdeltaker opprettet av Nav-veileder, utsettes publisering på deltaker-v2 osv. til
-                    // gjennomføring er opprettet og publisert av Mulighetsrommet (Valp).
-                    //
-                    // Mulige transisjoner for deltakerstatus i dette scenariet:
-                    // - KLADD -> SOKT_INN
-                    // - KLADD -> UTKAST_TIL_PAMELDING
-                    // - UTKAST_TIL_PAMELDING -> SOKT_INN
-                    if (deltaker.status.type in setOf(Type.UTKAST_TIL_PAMELDING, Type.SOKT_INN)) {
-                        deltakerProducerService.produce(deltaker)
-                    }
-                }
+                publiserEnkeltplassDeltaker(eksisterendeDeltakerliste)
             }
         } else {
             deltakerlisteRepository.upsert(gjennomforing)
@@ -146,6 +118,25 @@ class GjennomforingConsumer(
             deltakerlisteFromPayload.sluttDato < eksisterendeDeltakerliste.sluttDato
         ) {
             avgrensSluttdatoerTil(deltakerlisteFromPayload)
+        }
+    }
+
+    /**
+     * For enkeltplassdeltaker opprettet av Nav-veileder, utsettes publisering på deltaker-v2 osv. til
+     * gjennomføring er opprettet og publisert av Mulighetsrommet (Valp).
+     *
+     * Mulige transisjoner for deltakerstatus i dette scenariet:
+     * - KLADD -> SOKT_INN
+     * - KLADD -> UTKAST_TIL_PAMELDING
+     * - UTKAST_TIL_PAMELDING -> SOKT_INN
+     */
+    internal fun publiserEnkeltplassDeltaker(gjennomforing: Deltakerliste) {
+        if (gjennomforing.gjennomforingstype != GjennomforingType.Enkeltplass) return
+
+        val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforing.id).getOrThrow()
+
+        if (deltaker.status.type in setOf(Type.UTKAST_TIL_PAMELDING, Type.SOKT_INN)) {
+            deltakerProducerService.produce(deltaker)
         }
     }
 

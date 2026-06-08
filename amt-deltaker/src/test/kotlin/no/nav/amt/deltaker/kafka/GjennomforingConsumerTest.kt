@@ -115,51 +115,60 @@ class GjennomforingConsumerTest {
     }
 
     @Nested
-    inner class EnkeltplassGjennomforingTest {
+    inner class PubliserEnkeltplassDeltakerTest {
         @ParameterizedTest
         @EnumSource(
             value = DeltakerStatus.Type::class,
             names = ["UTKAST_TIL_PAMELDING", "SOKT_INN"],
         )
-        fun `skal produsere enkeltplassdeltaker når status er gyldig`(statusType: DeltakerStatus.Type) = runTest {
+        fun `skal produsere deltaker når status er gyldig for publisering`(statusType: DeltakerStatus.Type) {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
             val deltaker = lagDeltaker(
                 deltakerliste = enkeltplassDeltakerliste,
                 status = lagDeltakerStatus(statusType = statusType),
             )
-
-            stubEksisterendeDeltakerliste(enkeltplassDeltakerliste)
             every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
 
             // Act
-            consumePayloadFor(enkeltplassDeltakerliste)
+            consumer.publiserEnkeltplassDeltaker(enkeltplassDeltakerliste)
 
             // Assert
-            verify { deltakerProducerService.produce(deltaker = deltaker, forcedUpdate = false) }
+            verify { deltakerProducerService.produce(deltaker) }
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = DeltakerStatus.Type::class,
+            names = ["KLADD", "DELTAR", "HAR_SLUTTET", "IKKE_AKTUELL", "FEILREGISTRERT", "VENTELISTE", "VURDERES"],
+        )
+        fun `skal ikke produsere deltaker når status ikke kvalifiserer`(statusType: DeltakerStatus.Type) {
+            // Arrange
+            val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = enkeltplassDeltakerliste,
+                status = lagDeltakerStatus(statusType = statusType),
+            )
+            every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
+
+            // Act
+            consumer.publiserEnkeltplassDeltaker(enkeltplassDeltakerliste)
+
+            // Assert
+            verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>()) }
         }
 
         @Test
-        fun `skal ikke produsere enkeltplassdeltaker når status er KLADD`() = runTest {
+        fun `skal ikke gjøre noe for gruppedeltakerliste`() {
             // Arrange
-            val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
-
-            stubEksisterendeDeltakerliste(enkeltplassDeltakerliste)
-
-            every {
-                deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id)
-            } returns Result.success(
-                lagDeltaker(
-                    deltakerliste = enkeltplassDeltakerliste,
-                    status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
-                ),
-            )
+            val gruppeDeltakerliste = lagGruppeDeltakerliste()
 
             // Act
-            consumePayloadFor(enkeltplassDeltakerliste)
+            consumer.publiserEnkeltplassDeltaker(gruppeDeltakerliste)
 
             // Assert
-            verify(exactly = 0) { deltakerProducerService.produce(deltaker = any<Deltaker>(), forcedUpdate = any()) }
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
+            verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>()) }
         }
     }
 
@@ -240,6 +249,27 @@ class GjennomforingConsumerTest {
             // Assert
             verify(exactly = 0) { deltakerService.avsluttDeltakere(any()) }
             verify(exactly = 0) { deltakerProducerService.produce(any<Deltaker>(), any()) }
+        }
+
+        @Test
+        fun `skal publisere enkeltplassdeltaker selv om deltakerlisten er uendret`() = runTest {
+            // Arrange
+            val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = enkeltplassDeltakerliste,
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
+            )
+
+            stubEksisterendeDeltakerliste(enkeltplassDeltakerliste)
+            every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
+
+            // Act
+            consumePayloadFor(enkeltplassDeltakerliste)
+
+            // Assert — publiserEnkeltplassDeltaker is called even though deltakerliste is unchanged
+            verify { deltakerProducerService.produce(deltaker) }
+            // Assert — handterDeltakere is NOT called
+            verify(exactly = 0) { deltakerService.avsluttDeltakere(any()) }
         }
     }
 
