@@ -121,13 +121,15 @@ class GjennomforingConsumer(
     }
 
     /**
-     * For enkeltplassdeltaker opprettet av Nav-veileder, utsettes publisering på deltaker-v2 osv. til
-     * gjennomføring er opprettet og publisert av Mulighetsrommet (Valp).
+     * Publiserer enkeltplassdeltaker til deltaker-topic når gjennomføringen fortsatt er i kladd-status.
      *
-     * Mulige transisjoner for deltakerstatus i dette scenariet:
-     * - KLADD -> SOKT_INN
-     * - KLADD -> UTKAST_TIL_PAMELDING
-     * - UTKAST_TIL_PAMELDING -> SOKT_INN
+     * Dette brukes i flyten der Nav-veileder har opprettet deltaker før gjennomføringen er ferdig
+     * opprettet i Mulighetsrommet. Når vi senere mottar oppdatering på gjennomføringen, publiseres
+     * deltakeren slik at nedstrøms konsumenter får oppdatert data.
+     *
+     * Metoden gjør ingenting dersom:
+     * - gjennomføringen ikke er av typen [GjennomforingType.Enkeltplass], eller
+     * - gjennomføringen ikke har status [GjennomforingStatusType.KLADD].
      */
     internal fun publiserEnkeltplassDeltaker(gjennomforing: Deltakerliste) {
         if (!(
