@@ -1,10 +1,12 @@
 package no.nav.amt.lib.kafka
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.lib.kafka.KafkaTestUtils.topicPartition1
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -266,6 +268,59 @@ class PartitionProcessorTest {
 
             // Assert
             coVerify(exactly = 0) { backoffManager.resetRetryCount(topicPartition1) }
+        }
+    }
+
+    @Nested
+    inner class CancellationExceptionTests {
+        @Test
+        fun `skal re-kaste CancellationException fra skipFilter`() = runTest {
+            // Arrange
+            sut = PartitionProcessor(
+                consume = consume,
+                backoffManager = backoffManager,
+                offsetManager = offsetManager,
+                skipFilter = { throw CancellationException("Cancelled") },
+            )
+
+            val records = listOf(
+                createTestRecord(key = "key1", value = "value1", offset = 100L),
+            )
+
+            // Act & Assert
+            shouldThrow<CancellationException> {
+                sut.process(topicPartition1, records)
+            }
+
+            // Skal ikke behandle som retry
+            coVerify(exactly = 0) { offsetManager.markRetry(any(), any()) }
+            coVerify(exactly = 0) { backoffManager.incrementRetryCount(any()) }
+        }
+
+        @Test
+        fun `skal re-kaste CancellationException fra consume`() = runTest {
+            // Arrange
+            coEvery { consume(any(), any()) } throws CancellationException("Cancelled")
+
+            sut = PartitionProcessor(
+                consume = consume,
+                backoffManager = backoffManager,
+                offsetManager = offsetManager,
+                skipFilter = { false },
+            )
+
+            val records = listOf(
+                createTestRecord(key = "key1", value = "value1", offset = 100L),
+            )
+
+            // Act & Assert
+            shouldThrow<CancellationException> {
+                sut.process(topicPartition1, records)
+            }
+
+            // Skal ikke behandle som retry
+            coVerify(exactly = 0) { offsetManager.markRetry(any(), any()) }
+            coVerify(exactly = 0) { backoffManager.incrementRetryCount(any()) }
         }
     }
 }

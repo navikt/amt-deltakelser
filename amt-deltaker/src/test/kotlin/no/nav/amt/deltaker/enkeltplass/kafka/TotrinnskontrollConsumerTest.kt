@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
@@ -108,8 +109,10 @@ class TotrinnskontrollConsumerTest {
                 )
             } answers {
                 @Suppress("UNCHECKED_CAST")
-                val beforeUpsert = args[4] as (no.nav.amt.deltaker.model.Deltaker) -> no.nav.amt.deltaker.model.Deltaker
-                beforeUpsert(deltaker)
+                val beforeUpsert = args[4] as (Deltaker) -> Deltaker
+                val updated = beforeUpsert(deltaker)
+                updated.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+                updated
             }
 
             // Act
@@ -181,8 +184,10 @@ class TotrinnskontrollConsumerTest {
                 )
             } answers {
                 @Suppress("UNCHECKED_CAST")
-                val beforeUpsert = args[4] as (no.nav.amt.deltaker.model.Deltaker) -> no.nav.amt.deltaker.model.Deltaker
-                beforeUpsert(deltaker)
+                val beforeUpsert = args[4] as (Deltaker) -> Deltaker
+                val updated = beforeUpsert(deltaker)
+                updated.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+                updated
             }
 
             // Act

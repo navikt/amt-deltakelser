@@ -54,6 +54,8 @@ internal class PartitionProcessor<K, V>(
 
             val shouldSkip = try {
                 skipFilter(record)
+            } catch (ce: CancellationException) {
+                throw ce
             } catch (throwable: Throwable) {
                 log.error(
                     "skipFilter threw exception for record: topic=${record.topic()} partition=${record.partition()} offset=${record.offset()}",
