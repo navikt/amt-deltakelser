@@ -34,6 +34,7 @@ import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.EnkeltplassDeltakerConsumer
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollConsumer
 import no.nav.amt.deltaker.innbygger.DistribuerEndringProducer
 import no.nav.amt.deltaker.innbygger.NavBrukerConsumer
 import no.nav.amt.deltaker.innbygger.NavBrukerRepository
@@ -477,6 +478,11 @@ fun Application.module() {
             importertFraArenaRepository,
             unleashToggle,
             deltakerProducerService,
+        ),
+        TotrinnskontrollConsumer(
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            vedtakService = vedtakService,
         ),
         ArrangorMeldingConsumer(
             endringFraArrangorService,

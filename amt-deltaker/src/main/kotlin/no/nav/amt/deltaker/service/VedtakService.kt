@@ -43,6 +43,18 @@ class VedtakService(
         return vedtakRepository.upsert(avbruttVedtak)
     }
 
+    fun hentIkkeFattetVedtakOrThrow(deltakerId: UUID): Vedtak {
+        val vedtak = vedtakRepository.getForDeltaker(deltakerId)
+
+        when {
+            vedtak == null -> throw IllegalStateException("Deltaker-id $deltakerId har ingen vedtak")
+            vedtak.gyldigTil != null -> throw IllegalStateException("Deltaker-id $deltakerId har et vedtak som er avbrutt")
+            vedtak.fattet != null -> throw IllegalArgumentException("Deltaker-id $deltakerId har allerede et fattet vedtak")
+        }
+
+        return vedtak
+    }
+
     fun navFattVedtak(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
@@ -66,6 +78,17 @@ class VedtakService(
         )
     }
 
+    fun godkjentOkonomiFattVedtak(deltaker: Deltaker) {
+        val ikkeFattetVedtak = hentIkkeFattetVedtakOrThrow(deltaker.id)
+        val fattetVedtak = ikkeFattetVedtak.copy(
+            fattetAvNav = true,
+            fattet = LocalDateTime.now(),
+            deltakerVedVedtak = deltaker.toDeltakerVedVedtak(),
+        )
+
+        vedtakRepository.upsert(fattetVedtak)
+    }
+
     /**
      Kan bare brukes når deltaker selv godkjenner utkast.
      Hvis Nav fatter vedtaket må [opprettEllerOppdaterVedtak] brukes.
@@ -75,18 +98,6 @@ class VedtakService(
         val fattetVedtak = ikkeFattetVedtak.copy(fattet = LocalDateTime.now())
 
         vedtakRepository.upsert(fattetVedtak)
-    }
-
-    fun hentIkkeFattetVedtakOrThrow(deltakerId: UUID): Vedtak {
-        val vedtak = vedtakRepository.getForDeltaker(deltakerId)
-
-        when {
-            vedtak == null -> throw IllegalStateException("Deltaker-id $deltakerId har ingen vedtak")
-            vedtak.gyldigTil != null -> throw IllegalStateException("Deltaker-id $deltakerId har et vedtak som er avbrutt")
-            vedtak.fattet != null -> throw IllegalArgumentException("Deltaker-id $deltakerId har allerede et fattet vedtak")
-        }
-
-        return vedtak
     }
 
     fun opprettEllerOppdaterVedtak(

@@ -26,6 +26,7 @@ internal class PartitionProcessor<K, V>(
     private val consume: suspend (K, V) -> Unit,
     private val backoffManager: PartitionBackoffManager,
     private val offsetManager: OffsetManager,
+    private val skipFilter: (ConsumerRecord<K, V>) -> Boolean = { false },
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -50,6 +51,24 @@ internal class PartitionProcessor<K, V>(
             val recordInfo =
                 "topic=${record.topic()} key=${record.key()} " +
                     "partition=${record.partition()} offset=${record.offset()}"
+
+            val shouldSkip = try {
+                skipFilter(record)
+            } catch (throwable: Throwable) {
+                log.error(
+                    "skipFilter threw exception for record: topic=${record.topic()} partition=${record.partition()} offset=${record.offset()}",
+                    throwable,
+                )
+                false
+            }
+
+            if (shouldSkip) {
+                log.warn(
+                    "Skipping record (matched skipFilter): topic=${record.topic()} partition=${record.partition()} offset=${record.offset()}",
+                )
+                offsetManager.markProcessed(topicPartition, record.offset() + 1)
+                continue
+            }
 
             try {
                 val start = System.currentTimeMillis()

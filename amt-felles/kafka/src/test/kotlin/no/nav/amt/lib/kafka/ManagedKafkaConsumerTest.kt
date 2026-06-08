@@ -164,4 +164,68 @@ class ManagedKafkaConsumerTest {
             consumed.values.toSet() shouldBe setOf(lastValue)
         }
     }
+
+    @Test
+    fun `ManagedKafkaConsumer - filtrerer records og skipper dem uten aa kalle consume`() = runTest {
+        val key1 = "skip-me"
+        val key2 = "process-me-1"
+        val key3 = "skip-me"
+        val key4 = "process-me-2"
+        val value = "value"
+
+        val consumed = mutableListOf<String>()
+
+        // Produce records before starting consumer
+        produceStringString(ProducerRecord(TOPIC_IN_TEST, key1, value))
+        produceStringString(ProducerRecord(TOPIC_IN_TEST, key2, value))
+        produceStringString(ProducerRecord(TOPIC_IN_TEST, key3, value))
+        produceStringString(ProducerRecord(TOPIC_IN_TEST, key4, value))
+
+        val consumer =
+            ManagedKafkaConsumer(
+                TOPIC_IN_TEST,
+                stringConsumerConfig,
+                skipFilter = { record -> record.key().startsWith("skip") },
+            ) { k: String, v: String ->
+                consumed.add(k)
+            }
+
+        consumer.start()
+
+        eventually {
+            // Only records that don't match the skipFilter should be consumed
+            consumed.toSet() shouldBe setOf(key2, key4)
+            // Filtered records should not be in the consumed list
+            consumed.contains(key1) shouldBe false
+            consumed.contains(key3) shouldBe false
+        }
+
+        consumer.close()
+    }
+
+    @Test
+    fun `ManagedKafkaConsumer - backward compatibility constructor uten skipFilter parameter`() = runTest {
+        val key = "key"
+        val value = "value"
+        val cache = mutableMapOf<String, String>()
+
+        produceStringString(ProducerRecord(TOPIC_IN_TEST, key, value))
+
+        // Use the backward compatibility constructor (secondary constructor) without skipFilter parameter
+        val consumer =
+            ManagedKafkaConsumer(
+                TOPIC_IN_TEST,
+                stringConsumerConfig,
+                1000L,
+            ) { k: String, v: String ->
+                cache[k] = v
+            }
+        consumer.start()
+
+        eventually {
+            cache[key] shouldBe value
+        }
+
+        consumer.close()
+    }
 }

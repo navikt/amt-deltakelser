@@ -5,6 +5,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.WakeupException
 import org.slf4j.LoggerFactory
@@ -31,14 +32,33 @@ import kotlin.coroutines.cancellation.CancellationException
  * @property topic the Kafka topic to consume from
  * @property config the Kafka consumer configuration
  * @property pollTimeoutMs the timeout for each poll in milliseconds (default 1000ms)
- * @property consume a suspending lambda that processes each record
+ * @param skipFilter optional predicate; records matching are skipped (offset committed) without invoking [consume]
+ * @param consume a suspending lambda that processes each record
  */
 class ManagedKafkaConsumer<K, V>(
     private val topic: String,
     private val config: Map<String, *>,
     private val pollTimeoutMs: Long = 1000L,
+    skipFilter: (ConsumerRecord<K, V>) -> Boolean = { false },
     consume: suspend (key: K, value: V) -> Unit,
 ) : Consumer<K, V> {
+    /**
+     * Sekundær constructor for bakoverkompatibilitet.
+     * Opprettholder ABI-kompatibilitet for nedstrøms-prosjekter kompilert mot tidligere versjoner
+     * som ikke har skipFilter-parameteren.
+     *
+     * @param topic Kafka-topic det skal konsumeres fra
+     * @param config Kafka consumer-konfigurasjon
+     * @param pollTimeoutMs tidsavbruddet for hver polling i millisekunder
+     * @param consume en suspenderende lambda som behandler hver record
+     */
+    constructor(
+        topic: String,
+        config: Map<String, *>,
+        pollTimeoutMs: Long = 1000L,
+        consume: suspend (key: K, value: V) -> Unit,
+    ) : this(topic, config, pollTimeoutMs, { false }, consume)
+
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val running = AtomicBoolean(false)
@@ -46,7 +66,7 @@ class ManagedKafkaConsumer<K, V>(
 
     private val partitionBackoffManager = PartitionBackoffManager()
     private val offsetManager = OffsetManager()
-    private val partitionProcessor = PartitionProcessor(consume, partitionBackoffManager, offsetManager)
+    private val partitionProcessor = PartitionProcessor(consume, partitionBackoffManager, offsetManager, skipFilter)
     private val pauseController = PartitionPauseController(partitionBackoffManager)
 
     // single-threaded KafkaConsumer dispatcher

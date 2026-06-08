@@ -43,6 +43,7 @@ data class Environment(
         const val DELTAKERLISTE_V2_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2"
         const val TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v3"
         const val GJENNOMFORING_REQUEST_TOPIC = "team-mulighetsrommet.gjennomforing-request-v1"
+        const val TOTRINNSKONTROLL_TOPIC = "team-mulighetsrommet.totrinnskontroll-v1"
         const val AMT_ARRANGOR_TOPIC = "amt.arrangor-v1"
         const val AMT_NAV_ANSATT_TOPIC = "amt.nav-ansatt-personalia-v1"
         const val AMT_NAV_BRUKER_TOPIC = "amt.nav-bruker-personalia-v1"
