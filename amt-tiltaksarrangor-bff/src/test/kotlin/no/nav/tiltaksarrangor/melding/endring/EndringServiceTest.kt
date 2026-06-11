@@ -2,6 +2,7 @@ package no.nav.tiltaksarrangor.melding.endring
 
 import com.ninjasquad.springmockk.MockkBean
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -98,22 +99,14 @@ fun <T : EndringFraArrangor.Endring> awaitProducedEndring(
     endringstype: KClass<T>,
 ) {
     await().untilAsserted {
-        val endring = cache.firstNotNullOf {
-            when (val endring = it.value) {
-                is EndringFraArrangor -> {
-                    if (endring.deltakerId == deltakerId) {
-                        endring
-                    } else {
-                        null
-                    }
-                }
-
-                is Forslag,
-                is Vurdering,
-                -> null
+        val endring = cache.values.firstNotNullOfOrNull {
+            when (it) {
+                is EndringFraArrangor -> if (it.deltakerId == deltakerId) it else null
+                is Forslag, is Vurdering -> null
             }
         }
 
-        endring.endring::class shouldBe endringstype
+        endring shouldNotBe null
+        endring!!.endring::class shouldBe endringstype
     }
 }
