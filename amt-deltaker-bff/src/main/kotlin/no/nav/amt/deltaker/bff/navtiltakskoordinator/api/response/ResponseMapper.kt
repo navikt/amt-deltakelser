@@ -1,13 +1,13 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.model.DeltakerModel
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.getDeltakelsesinnholdAnnet
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 
@@ -83,5 +83,15 @@ object ResponseMapper {
             koordinatorer = koordinatortilganger,
             erEnkeltplass = type == GjennomforingType.Enkeltplass,
         )
+    }
+
+    internal fun getDeltakelsesinnholdAnnet(
+        harTilgangTilBruker: Boolean,
+        pameldingstype: GjennomforingPameldingType?,
+        deltakelsesinnhold: Deltakelsesinnhold?,
+    ): String? = if (!harTilgangTilBruker || pameldingstype == null || pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK) {
+        null
+    } else {
+        deltakelsesinnhold?.getAnnetFritekstBeskrivelse()
     }
 }
