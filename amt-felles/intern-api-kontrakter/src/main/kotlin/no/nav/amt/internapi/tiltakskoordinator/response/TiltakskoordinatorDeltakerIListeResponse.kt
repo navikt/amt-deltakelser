@@ -12,7 +12,7 @@ import java.util.UUID
  * ingen full vurdering, ingen vedtaksinformasjon, deltakelsesinnhold eller bakgrunnsinformasjon.
  */
 
-data class TiltakskoordinatorDeltakerResponse(
+data class TiltakskoordinatorDeltakerIListeResponse(
     val id: UUID,
     val status: DeltakerStatus,
     val navBruker: TiltakskoordinatorNavBrukerResponse,
@@ -23,5 +23,4 @@ data class TiltakskoordinatorDeltakerResponse(
     val harAktivtForslag: Boolean,
     val sisteVurderingstype: Vurderingstype?,
     val kanEndres: Boolean,
-    val feilkode: DeltakerOppdateringFeilkode? = null,
 )

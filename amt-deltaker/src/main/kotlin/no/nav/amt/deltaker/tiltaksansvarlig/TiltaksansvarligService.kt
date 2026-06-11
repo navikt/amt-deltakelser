@@ -34,11 +34,13 @@ class TiltaksansvarligService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun giAvslag(
+        gjennomforingId: UUID,
         deltakerId: UUID,
         avslag: EndringFraTiltakskoordinator.Avslag,
         endretAv: String,
     ): DeltakerOppdateringResult {
         val oppdateringResult = oppdaterDeltakere(
+            gjennomforingId = gjennomforingId,
             deltakerIder = setOf(deltakerId),
             endringsType = avslag,
             endretAvIdent = endretAv,
@@ -52,6 +54,7 @@ class TiltaksansvarligService(
     }
 
     suspend fun oppdaterDeltakere(
+        gjennomforingId: UUID,
         deltakerIder: Set<UUID>,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAvIdent: String,
@@ -77,8 +80,9 @@ class TiltaksansvarligService(
             .map { it.deltakerliste.tiltakstype.tiltakskode }
             .distinct()
 
-        require(deltakerlister.size == 1) { "kan ikke endre på deltakere på flere deltakerlister samtidig. $deltakerlister" }
-        require(tiltakskoder.size == 1) { "kan ikke endre på deltakere på flere tiltakskoder samtidig" }
+        require(deltakerlister.size == 1 && deltakerlister.first() == gjennomforingId) {
+            "kan ikke endre på deltakere på flere deltakerlister samtidig. $deltakerlister"
+        }
         require(tiltakskoder.first() in Tiltakstype.kursTiltak.plus(Tiltakstype.opplaeringsTiltak)) {
             "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}"
         }
@@ -90,7 +94,7 @@ class TiltaksansvarligService(
                     "Kan ikke utføre endring ${endringsType::class.simpleName} på deltaker ${deltaker.id} fordi den er låst for endringer",
                 )
                 return@map DeltakerOppdateringResult(
-                    deltaker = deltaker,
+                    deltakerId = deltaker.id,
                     isSuccess = false,
                     exception = IllegalStateException("Deltaker ${deltaker.id} er låst for endringer"),
                 )
@@ -124,7 +128,7 @@ class TiltaksansvarligService(
         )
 
         val deltakerToUpdate = sjekkEndringUtfall(deltaker, endring.endring).getOrElse { error ->
-            return DeltakerOppdateringResult(deltaker, false, error)
+            return DeltakerOppdateringResult(deltaker.id, false, error)
         }
 
         val oppdatertDeltaker = deltakerService
@@ -151,14 +155,14 @@ class TiltaksansvarligService(
                 },
             ).getOrElse { throwable ->
                 return DeltakerOppdateringResult(
-                    deltaker = deltaker,
+                    deltakerId = deltaker.id,
                     isSuccess = false,
                     exception = throwable,
                 )
             }
 
         return DeltakerOppdateringResult(
-            deltaker = oppdatertDeltaker,
+            deltakerId = oppdatertDeltaker.id,
             isSuccess = true,
             exception = null,
         )

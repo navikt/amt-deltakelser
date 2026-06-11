@@ -24,12 +24,6 @@ fun Routing.registerTiltakskoordinatorApi(
     tiltaksansvarligService: TiltaksansvarligService,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
 ) {
-    fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResponse() = this.map {
-        ResponseMapper.fromDeltakerOppdateringResult(
-            oppdateringResult = it,
-        )
-    }
-
     authenticate("SYSTEM") {
         get("/gjennomforing/{gjennomforingId}") {
             val gjennomforingId = call.getGjennomforingId()
@@ -59,51 +53,73 @@ fun Routing.registerTiltakskoordinatorApi(
             post("/del-med-arrangor") {
                 val request = call.receive<DelMedArrangorRequest>()
 
-                val oppdaterteDeltakere = tiltaksansvarligService
+                val deltakeroppdateringer = tiltaksansvarligService
                     .oppdaterDeltakere(
+                        gjennomforingId = request.gjennomforingId,
                         deltakerIder = request.deltakerIder.toSet(),
                         endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
                         endretAvIdent = request.endretAv,
-                    ).toDeltakerOppdateringResponse()
-                call.respond(oppdaterteDeltakere)
+                    )
+
+                val response = tiltakskoordinatorResponseBuilder.buildResponse(
+                    request.gjennomforingId,
+                    request.deltakerIder,
+                    deltakeroppdateringer.associate { it.deltakerId to it.exception },
+                )
+                call.respond(response)
             }
 
             post("/tildel-plass") {
                 val request = call.receive<DeltakereRequest>()
                 val deltakerIder = request.deltakere
-                val oppdaterteDeltakere = tiltaksansvarligService
+                val deltakeroppdateringer = tiltaksansvarligService
                     .oppdaterDeltakere(
+                        gjennomforingId = request.gjennomforingId,
                         deltakerIder = deltakerIder.toSet(),
                         endringsType = EndringFraTiltakskoordinator.TildelPlass,
                         endretAvIdent = request.endretAv,
-                    ).toDeltakerOppdateringResponse()
-
-                call.respond(oppdaterteDeltakere)
+                    )
+                val response = tiltakskoordinatorResponseBuilder.buildResponse(
+                    gjennomforingId = request.gjennomforingId,
+                    deltakerIder = request.deltakere,
+                    deltakeroppdateringer.associate { it.deltakerId to it.exception },
+                )
+                call.respond(response)
             }
 
             post("/sett-paa-venteliste") {
                 val request = call.receive<DeltakereRequest>()
                 val deltakerIder = request.deltakere
-                val oppdaterteDeltakere = tiltaksansvarligService
+                val deltakeroppdateringer = tiltaksansvarligService
                     .oppdaterDeltakere(
+                        gjennomforingId = request.gjennomforingId,
                         deltakerIder = deltakerIder.toSet(),
                         endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
                         endretAvIdent = request.endretAv,
-                    ).toDeltakerOppdateringResponse()
-
-                call.respond(oppdaterteDeltakere)
+                    )
+                val response = tiltakskoordinatorResponseBuilder.buildResponse(
+                    gjennomforingId = request.gjennomforingId,
+                    deltakerIder = request.deltakere,
+                    deltakeroppdateringer.associate { it.deltakerId to it.exception },
+                )
+                call.respond(response)
             }
 
             post("/gi-avslag") {
                 val request = call.receive<GiAvslagRequest>()
                 val deltakeroppdatering = tiltaksansvarligService
                     .giAvslag(
+                        gjennomforingId = request.gjennomforingId,
                         deltakerId = request.deltakerId,
                         avslag = request.avslag,
                         endretAv = request.endretAv,
-                    ).let { ResponseMapper.fromDeltakerOppdateringResult(it) }
-
-                call.respond(deltakeroppdatering)
+                    )
+                val response = tiltakskoordinatorResponseBuilder.buildResponse(
+                    gjennomforingId = request.gjennomforingId,
+                    deltakerIder = listOf(request.deltakerId),
+                    listOf(deltakeroppdatering).associate { it.deltakerId to it.exception },
+                )
+                call.respond(response)
             }
         }
     }

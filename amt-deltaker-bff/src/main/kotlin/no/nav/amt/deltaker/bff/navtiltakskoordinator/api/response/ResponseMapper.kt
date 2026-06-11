@@ -1,15 +1,13 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.model.DeltakerModel
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.getDeltakelsesinnholdAnnet
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 
@@ -85,57 +83,5 @@ object ResponseMapper {
             koordinatorer = koordinatortilganger,
             erEnkeltplass = type == GjennomforingType.Enkeltplass,
         )
-    }
-
-    // Brukes av gammel kode som skal slettes
-    fun TiltakskoordinatorsDeltaker.toDeltakerResponse(kanSeInnbyggersNavn: Boolean): DeltakerResponse {
-        val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(kanSeInnbyggersNavn)
-
-        return DeltakerResponse(
-            id = id,
-            fornavn = fornavn,
-            mellomnavn = mellomnavn,
-            etternavn = etternavn,
-            status = DeltakerStatusResponse(
-                type = status.type,
-                aarsak = status.aarsak?.let {
-                    DeltakerStatusAarsakResponse(
-                        it.type,
-                        it.beskrivelse,
-                    )
-                },
-            ),
-            vurdering = vurdering?.vurderingstype,
-            beskyttelsesmarkering = beskyttelsesmarkering,
-            navEnhet = navEnhet,
-            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            feilkode = feilkode,
-            ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
-            harAktiveForslag = forslag.any { f -> f.status == Forslag.Status.VenterPaSvar },
-            erNyDeltaker = ulesteHendelser.any {
-                it.hendelse is UlestHendelseType.InnbyggerGodkjennUtkast ||
-                    it.hendelse is UlestHendelseType.NavGodkjennUtkast
-            },
-            harOppdateringFraNav = ulesteHendelser.any {
-                it.hendelse is UlestHendelseType.IkkeAktuell ||
-                    it.hendelse is UlestHendelseType.AvsluttDeltakelse ||
-                    it.hendelse is UlestHendelseType.AvbrytDeltakelse ||
-                    it.hendelse is UlestHendelseType.ReaktiverDeltakelse
-            },
-            kanEndres = kanEndres,
-            soktInnDato = soktInnDato,
-            startdato = startdato,
-            sluttdato = sluttdato,
-        )
-    }
-
-    internal fun getDeltakelsesinnholdAnnet(
-        harTilgangTilBruker: Boolean,
-        pameldingstype: GjennomforingPameldingType?,
-        deltakelsesinnhold: Deltakelsesinnhold?,
-    ): String? = if (!harTilgangTilBruker || pameldingstype == null || pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK) {
-        null
-    } else {
-        deltakelsesinnhold?.getAnnetFritekstBeskrivelse()
     }
 }

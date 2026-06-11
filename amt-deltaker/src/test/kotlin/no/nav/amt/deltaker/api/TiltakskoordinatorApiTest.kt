@@ -13,7 +13,6 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
-import no.nav.amt.deltaker.api.tiltaksansvarlig.ResponseMapper
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
@@ -28,9 +27,8 @@ import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
-import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
-import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
@@ -123,7 +121,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         val request = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
         )
-        val deltakerResponse = mockk<TiltakskoordinatorDeltakerResponse>(relaxed = true)
+        val deltakerResponse = mockk<TiltakskoordinatorDeltakerIListeResponse>(relaxed = true)
         val expectedResponse = PaginatedResult(
             totalCount = 1,
             pageSize = 50,
@@ -167,6 +165,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `gi-avslag - har tilgang - returnerer 200 og mappet deltakeroppdatering`() {
         val request = GiAvslagRequest(
+            gjennomforingId = deltaker.deltakerliste.id,
             deltakerId = deltaker.id,
             avslag = EndringFraTiltakskoordinator.Avslag(
                 aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
@@ -177,63 +176,122 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             ),
             endretAv = "Nav Veiledersen",
         )
-        val deltakeroppdateringResult = DeltakerOppdateringResult(deltaker, true, null)
+        val deltakeroppdateringResult = DeltakerOppdateringResult(deltaker.id, true, null)
         coEvery {
-            tiltaksansvarligService.giAvslag(request.deltakerId, request.avslag, request.endretAv)
+            tiltaksansvarligService.giAvslag(request.gjennomforingId, request.deltakerId, request.avslag, request.endretAv)
         } returns deltakeroppdateringResult
+
+        val expectedResponse = listOf(
+            DeltakerOppdateringResponse(
+                feilkode = null,
+                deltaker = mockk(relaxed = true),
+            ),
+        )
+        coEvery {
+            tiltakskoordinatorResponseBuilder.buildResponse(
+                gjennomforingId = request.gjennomforingId,
+                deltakerIder = listOf(request.deltakerId),
+                any(),
+            )
+        } returns expectedResponse
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/gi-avslag") { postRequest(request) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(
-                    ResponseMapper.fromDeltakerOppdateringResult(deltakeroppdateringResult),
-                )
+                bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
             }
         }
     }
 
     @Test
     fun `del-med-arrangor - har tilgang - returnerer 200`() {
-        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
+        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any(), any()) } returns
+            listOf(deltaker.toDeltakerOppdateringResult())
+
+        val expectedResponse = listOf(
+            DeltakerOppdateringResponse(
+                feilkode = null,
+                deltaker = mockk(relaxed = true),
+            ),
+        )
+        coEvery {
+            tiltakskoordinatorResponseBuilder.buildResponse(
+                gjennomforingId = delMedArrangorRequest.gjennomforingId,
+                deltakerIder = delMedArrangorRequest.deltakerIder,
+                any(),
+            )
+        } returns expectedResponse
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse()))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
             }
         }
     }
 
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
-        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
+        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any(), any()) } returns
+            listOf(deltaker.toDeltakerOppdateringResult())
 
         val request = DeltakereRequest(
+            gjennomforingId = deltaker.deltakerliste.id,
             deltakere = listOf(deltaker.id),
             endretAv = "Nav Veiledersen",
         )
 
+        val expectedResponse = listOf(
+            DeltakerOppdateringResponse(
+                feilkode = null,
+                deltaker = mockk(relaxed = true),
+            ),
+        )
+        coEvery {
+            tiltakskoordinatorResponseBuilder.buildResponse(
+                gjennomforingId = request.gjennomforingId,
+                deltakerIder = request.deltakere,
+                any(),
+            )
+        } returns expectedResponse
+
         withTestApplicationContext { client ->
             client.post("$API_PATH/sett-paa-venteliste") { postRequest(request) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse()))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
             }
         }
     }
 
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
-        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
+        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any(), any()) } returns
+            listOf(deltaker.toDeltakerOppdateringResult())
 
         val request = DeltakereRequest(
+            gjennomforingId = deltaker.deltakerliste.id,
             deltakere = listOf(deltaker.id),
             endretAv = "Nav Veiledersen",
         )
 
+        val expectedResponse = listOf(
+            DeltakerOppdateringResponse(
+                feilkode = null,
+                deltaker = mockk(relaxed = true),
+            ),
+        )
+        coEvery {
+            tiltakskoordinatorResponseBuilder.buildResponse(
+                gjennomforingId = request.gjennomforingId,
+                deltakerIder = request.deltakere,
+                any(),
+            )
+        } returns expectedResponse
+
         withTestApplicationContext { client ->
             client.post("$API_PATH/tildel-plass") { postRequest(request) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerResponse()))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
             }
         }
     }
@@ -243,29 +301,15 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         private val deltaker = TestData.lagDeltaker()
 
         private val delMedArrangorRequest = DelMedArrangorRequest(
+            gjennomforingId = deltaker.deltakerliste.id,
             endretAv = "koordinator",
             deltakerIder = listOf(UUID.randomUUID()),
         )
 
         private fun Deltaker.toDeltakerOppdateringResult() = DeltakerOppdateringResult(
-            deltaker = this,
+            deltakerId = this.id,
             isSuccess = true,
             exception = null,
         )
-
-        private fun Deltaker.toDeltakerResponse(feilkode: DeltakerOppdateringFeilkode? = null): DeltakerOppdateringResponse =
-            DeltakerOppdateringResponse(
-                id = id,
-                startdato = startdato,
-                sluttdato = sluttdato,
-                dagerPerUke = dagerPerUke,
-                deltakelsesprosent = deltakelsesprosent,
-                bakgrunnsinformasjon = bakgrunnsinformasjon,
-                deltakelsesinnhold = deltakelsesinnhold,
-                status = status,
-                sistEndret = sistEndret,
-                erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-                feilkode = feilkode,
-            )
     }
 }

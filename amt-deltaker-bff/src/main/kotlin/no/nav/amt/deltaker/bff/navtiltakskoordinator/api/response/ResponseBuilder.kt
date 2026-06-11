@@ -1,18 +1,31 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
-import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
+import java.util.UUID
 
 class ResponseBuilder(
     private val ulestHendelseRepository: UlestHendelseRepository,
 ) {
+    fun toOppdatertDeltakerResponse(
+        deltakere: List<DeltakerOppdateringResponse>,
+        kanSeInnbyggersNavn: (TiltakskoordinatorDeltakerIListeResponse) -> Boolean,
+    ) = toDeltakereResponse(
+        deltakere = deltakere.map { it.deltaker },
+        feilkoder = deltakere.associateBy { it.deltaker.id }.mapValues { it.value.feilkode },
+        kanSeInnbyggersNavn = kanSeInnbyggersNavn,
+    )
+
     /**
-     * Bygger liste-respons fra den spissede [TiltakskoordinatorDeltakerResponse] fra amt-deltaker.
+     * Bygger liste-respons fra den spissede [TiltakskoordinatorDeltakerIListeResponse] fra amt-deltaker.
      * Henter ulestehendelser i bulk for å unngå N+1-spørringer.
      */
     fun toDeltakereResponse(
-        deltakere: List<TiltakskoordinatorDeltakerResponse>,
-        kanSeInnbyggersNavn: (TiltakskoordinatorDeltakerResponse) -> Boolean,
+        deltakere: List<TiltakskoordinatorDeltakerIListeResponse>,
+        feilkoder: Map<UUID, DeltakerOppdateringFeilkode?> = emptyMap(),
+        kanSeInnbyggersNavn: (TiltakskoordinatorDeltakerIListeResponse) -> Boolean,
     ): List<DeltakerResponse> {
         val ulesteHendelserPerDeltaker = ulestHendelseRepository
             .getForDeltakere(deltakere.map { it.id }.toSet())
@@ -21,6 +34,7 @@ class ResponseBuilder(
             val ulestFlags = ulesteHendelserPerDeltaker[deltaker.id]
             buildDeltakerResponse(
                 deltaker = deltaker,
+                feilkode = feilkoder[deltaker.id],
                 kanSeInnbyggersNavn = kanSeInnbyggersNavn(deltaker),
                 erNyDeltaker = ulestFlags?.erNyDeltaker == true,
                 harOppdateringFraNav = ulestFlags?.harOppdateringFraNav == true,
@@ -28,11 +42,12 @@ class ResponseBuilder(
         }
     }
 
-    private fun buildDeltakerResponse(
-        deltaker: TiltakskoordinatorDeltakerResponse,
+    fun buildDeltakerResponse(
+        deltaker: TiltakskoordinatorDeltakerIListeResponse,
+        feilkode: DeltakerOppdateringFeilkode?,
         kanSeInnbyggersNavn: Boolean,
-        erNyDeltaker: Boolean,
-        harOppdateringFraNav: Boolean,
+        erNyDeltaker: Boolean = false,
+        harOppdateringFraNav: Boolean = false,
     ): DeltakerResponse = with(deltaker) {
         val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(kanSeInnbyggersNavn)
 

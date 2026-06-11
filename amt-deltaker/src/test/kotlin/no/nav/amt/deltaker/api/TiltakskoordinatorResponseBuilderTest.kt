@@ -50,7 +50,7 @@ class TiltakskoordinatorResponseBuilderTest {
     }
 
     private fun mockDeltakere(rows: List<TiltakskoordinatorDeltakerRow>) {
-        every { viewRepository.getDeltakere(any()) } returns rows
+        every { viewRepository.getDeltakere(any<TiltaksKoordinatorDeltakerlisteRequest>()) } returns rows
     }
 
     @BeforeEach

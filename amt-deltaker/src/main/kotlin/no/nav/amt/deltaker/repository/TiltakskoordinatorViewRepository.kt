@@ -9,6 +9,7 @@ import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
+import java.util.UUID
 
 class TiltakskoordinatorViewRepository {
     /**
@@ -27,18 +28,36 @@ class TiltakskoordinatorViewRepository {
     fun getDeltakere(request: TiltaksKoordinatorDeltakerlisteRequest): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
         session.run(
             queryOf(
-                deltakereSelectSql(request),
+                deltakereSelectSql(statuser = request.statuser, where = "d.deltakerliste_id = :deltakerliste_id"),
                 mapOf("deltakerliste_id" to request.gjennomforingId)
                     .plus(statusFilterParams(request)),
             ).map(::deltakerRowMapper).asList,
         )
     }
 
+    fun getDeltakere(deltakerIder: List<UUID>): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
+        session.run(
+            queryOf(
+                deltakereSelectSql(where = "ds.id = ANY(:deltakerIder)"),
+                mapOf("deltakerIder" to deltakerIder),
+            ).map(::deltakerRowMapper).asList,
+        )
+    }
+
     companion object {
-        private fun statusFilterSql(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.statuser.isNotEmpty()) {
+        // Disse statusene skal aldri vises for tiltakskoordinator
+        val SKJULTE_STATUSER = setOf(
+            DeltakerStatus.Type.KLADD,
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+            DeltakerStatus.Type.AVBRUTT_UTKAST,
+            DeltakerStatus.Type.FEILREGISTRERT,
+            DeltakerStatus.Type.PABEGYNT_REGISTRERING,
+        )
+
+        private fun statusFilterSql(statuser: Set<DeltakerStatus.Type>) = if (statuser.isNotEmpty()) {
             "AND ds.type = ANY(:statuser)"
         } else {
-            "AND ds.type NOT IN ('KLADD', 'UTKAST_TIL_PAMELDING', 'AVBRUTT_UTKAST', 'FEILREGISTRERT', 'PABEGYNT_REGISTRERING')"
+            "AND ds.type NOT IN (${SKJULTE_STATUSER.joinToString(",") { "'${it.name}'" }})"
         }
 
         private fun statusFilterParams(request: TiltaksKoordinatorDeltakerlisteRequest) = if (request.statuser.isNotEmpty()) {
@@ -47,8 +66,10 @@ class TiltakskoordinatorViewRepository {
             emptyMap<String, Any>()
         }
 
-        private fun deltakereSelectSql(request: TiltaksKoordinatorDeltakerlisteRequest) =
-            """
+        private fun deltakereSelectSql(
+            where: String,
+            statuser: Set<DeltakerStatus.Type> = emptySet(),
+        ) = """
             SELECT
                 -- deltaker
                 d.id                            AS "d.id",
@@ -103,7 +124,7 @@ class TiltakskoordinatorViewRepository {
                     d.id = ds.deltaker_id
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                    ${statusFilterSql(request)}
+                    ${statusFilterSql(statuser)}
                 -- Enkel vedtak-JOIN (UNIQUE deltaker_id garanterer maks 1 rad)
                 LEFT JOIN vedtak v ON v.deltaker_id = d.id
                 LEFT JOIN nav_enhet ne ON ne.id = nb.nav_enhet_id
@@ -129,8 +150,7 @@ class TiltakskoordinatorViewRepository {
                     ORDER BY vr.gyldig_fra DESC
                     LIMIT 1
                 ) sv ON true
-            WHERE 
-                d.deltakerliste_id = :deltakerliste_id
+            WHERE $where
             ORDER BY sokt_inn_dato DESC NULLS LAST, d.id ASC
             """.trimIndent()
 

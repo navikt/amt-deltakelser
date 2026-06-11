@@ -31,7 +31,6 @@ import no.nav.amt.deltaker.bff.innbygger.api.registerInnbyggerApi
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerlisteApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerUlestHendelseApi
@@ -80,7 +79,6 @@ fun Application.configureRouting(
     deltakerlisteRepository: DeltakerlisteRepository,
     unleash: Unleash,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
-    tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     ulestHendelseRepository: UlestHendelseRepository,
     kodeverkClient: KodeverkClient,
@@ -168,7 +166,6 @@ fun Application.configureRouting(
 
         registerTiltakskoordinatorDeltakerlisteApi(
             deltakerlisteService = deltakerlisteService,
-            tiltakskoordinatorService = tiltakskoordinatorService,
             tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
             navAnsattService = navAnsattService,
             tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,

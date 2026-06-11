@@ -95,7 +95,6 @@ class AuthenticationTest {
                 deltakerlisteRepository = mockk(),
                 unleash = mockk(),
                 tiltakskoordinatorTilgangskontrollService = mockk(),
-                tiltakskoordinatorService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
                 ulestHendelseRepository = mockk(),
                 paameldingClient = mockk(),

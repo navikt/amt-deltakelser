@@ -27,7 +27,6 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
@@ -66,7 +65,6 @@ abstract class IntegrationTestBase {
     protected val deltakerlisteService: DeltakerlisteService = mockk()
 
     protected val tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService = mockk()
-    protected val tiltakskoordinatorService: TiltakskoordinatorService = mockk()
     protected val tiltakskoordinatorClient: TiltakskoordinatorClient = mockk()
     protected open val tiltakskoordinatorResponseBuilder: ResponseBuilder = mockk()
     protected val ulestHendelseRepository: UlestHendelseRepository = mockk()
@@ -120,7 +118,6 @@ abstract class IntegrationTestBase {
                     deltakerlisteRepository = deltakerlisteRepository,
                     unleash = unleash,
                     tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
-                    tiltakskoordinatorService = tiltakskoordinatorService,
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
                     ulestHendelseRepository = ulestHendelseRepository,
                     paameldingClient = paameldingClient,

@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.shouldBeComparableWith
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
@@ -79,6 +80,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltaker.deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
                 endretAvIdent = navAnsattInTest.navIdent,
@@ -86,21 +88,18 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             endredeDeltakere.size shouldBe 2
-            endredeDeltakere.first { it.deltaker.id == deltaker.id }.deltaker shouldBeComparableWith deltaker.copy(
+            endredeDeltakere.forEach {
+                it.isSuccess shouldBe true
+                it.exception shouldBe null
+            }
+            endredeDeltakere.any { it.deltakerId == deltaker.id } shouldBe true
+            val res = deltakerRepository.getMany(deltakerIder)
+            res.size shouldBe 2
+            res.first { it.id == deltaker.id } shouldBeComparableWith deltaker.copy(
                 status = deltaker.status.copy(type = DeltakerStatus.Type.VENTELISTE),
                 startdato = null,
                 sluttdato = null,
             )
-
-            endredeDeltakere
-                .first {
-                    it.deltaker.id == deltaker2.id
-                }.deltaker shouldBeComparableWith deltaker2.copy(
-                status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTELISTE),
-                startdato = null,
-                sluttdato = null,
-            )
-
             val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
             historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
@@ -155,6 +154,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
                 endretAvIdent = navAnsattInTest.navIdent,
@@ -162,20 +162,16 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             endredeDeltakere.size shouldBe 2
-            val laastDeltakerResult = endredeDeltakere.first { it.deltaker.id == laastDeltaker.id }
+            val laastDeltakerResult = endredeDeltakere.first { it.deltakerId == laastDeltaker.id }
 
             laastDeltakerResult.isSuccess shouldBe false
             laastDeltakerResult.exception shouldBe IllegalStateException("Deltaker ${laastDeltaker.id} er låst for endringer")
-            laastDeltakerResult.deltaker shouldBeComparableWith laastDeltaker
+            laastDeltakerResult.deltakerId shouldBe laastDeltaker.id
 
             endredeDeltakere
                 .first {
-                    it.deltaker.id == deltaker2.id
-                }.deltaker shouldBeComparableWith deltaker2.copy(
-                status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTELISTE),
-                startdato = null,
-                sluttdato = null,
-            )
+                    it.deltakerId == deltaker2.id
+                }.deltakerId shouldBe deltaker2.id
 
             val historikk1 = deltakerHistorikkService.getForDeltaker(laastDeltaker.id)
             historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 0
@@ -193,38 +189,40 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         fun `oppdaterDeltakere - tildel plass feiler på upsert - ruller tilbake endringer på samme deltaker`() = runTest {
             // Arrange
             val deltakerliste = lagDeltakerliste(
-                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
+                tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 ),
             )
-            val deltaker1Id = UUID.randomUUID()
-            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
-                deltakerId = deltaker1Id,
+            val deltaker = lagDeltaker(
+                id = UUID.randomUUID(),
+                deltakerliste = deltakerliste,
+            )
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
                 opprettetAvEnhet = navEnhetInTest,
                 opprettetAv = navAnsattInTest,
             )
-            val deltaker = lagDeltaker(
-                id = deltaker1Id,
-                deltakerliste = deltakerliste,
+            val deltakerMedVedtak = deltaker.copy(
                 vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
             )
 
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
-            val deltakerIder = setOf(deltaker.id, deltaker2.id)
+            val deltakerUtenVedtak = lagDeltaker(deltakerliste = deltakerliste)
+            val deltakerIder = setOf(deltaker.id, deltakerUtenVedtak.id)
             val innsokt = lagInnsoktPaaKurs(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
             val innsokt2 = lagInnsoktPaaKurs(
-                deltakerId = deltaker2.id,
+                deltakerId = deltakerUtenVedtak.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            TestRepository.insertAll(deltaker, deltaker2, innsokt, innsokt2, vedtak)
+            TestRepository.insertAll(deltakerMedVedtak, deltakerUtenVedtak, innsokt, innsokt2, vedtak)
 
             // Act
             val endredeDeltakereResults = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.TildelPlass,
                 endretAvIdent = navAnsattInTest.navIdent,
@@ -232,11 +230,18 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             endredeDeltakereResults.size shouldBe 2
-            endredeDeltakereResults
-                .first {
-                    it.deltaker.id == deltaker.id
-                }.deltaker shouldBeComparableWith deltaker.copy(
-                status = deltaker.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+
+            val suksessResult = endredeDeltakereResults.first { it.deltakerId == deltaker.id }
+            suksessResult.isSuccess shouldBe true
+            suksessResult.exception shouldBe null
+
+            val feiletResult = endredeDeltakereResults.first { it.deltakerId == deltakerUtenVedtak.id }
+            feiletResult.isSuccess shouldBe false
+            feiletResult.exception!!.message shouldBe "Deltaker ${deltakerUtenVedtak.id} mangler et vedtak som kan fattes"
+            val deltakerResult = deltakerRepository.getMany(deltakerIder)
+
+            deltakerResult.first { it.id == deltaker.id } shouldBeComparableWith deltakerMedVedtak.copy(
+                status = deltakerMedVedtak.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = null,
                 sluttdato = null,
                 vedtaksinformasjon = vedtak
@@ -248,20 +253,16 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                     ).tilVedtaksInformasjon(),
             )
 
-            val ikkeEndretDeltakerResult = endredeDeltakereResults.first {
-                it.deltaker.id == deltaker2.id
+            val ikkeEndretDeltakerResult = deltakerResult.first {
+                it.id == deltakerUtenVedtak.id
             }
 
-            ikkeEndretDeltakerResult.deltaker shouldBeComparableWith deltaker2
-
-            ikkeEndretDeltakerResult.isSuccess shouldBe false
-            ikkeEndretDeltakerResult.exception shouldBe
-                IllegalStateException("Deltaker ${deltaker2.id} mangler et vedtak som kan fattes")
+            ikkeEndretDeltakerResult shouldBeComparableWith deltakerUtenVedtak
 
             val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
             historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
-            val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
+            val historikk2 = deltakerHistorikkService.getForDeltaker(deltakerUtenVedtak.id)
             historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 0
 
             outboxService.assertProducedHendelse<HendelseType.TildelPlass>(deltaker.id)
@@ -293,7 +294,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 startdato = null,
                 sluttdato = null,
             )
-            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            val vedtak = lagVedtak(
                 deltakerVedVedtak = deltaker,
                 deltakerId = deltaker.id,
                 opprettetAv = navAnsattInTest,
@@ -301,7 +302,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sistEndretAv = navAnsattInTest,
                 sistEndretAvEnhet = navEnhetInTest,
             )
-            val vedtak2 = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            val vedtak2 = lagVedtak(
                 deltakerVedVedtak = deltaker2,
                 deltakerId = deltaker2.id,
                 opprettetAv = navAnsattInTest,
@@ -331,6 +332,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.TildelPlass,
                 endretAvIdent = navAnsattInTest.navIdent,
@@ -339,13 +341,14 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             // Assert
             endredeDeltakere.size shouldBe 2
 
-            assertSoftly(endredeDeltakere.first { it.deltaker.id == deltaker.id }.deltaker) {
+            val deltakerResult = deltakerRepository.getMany(deltakerIder)
+            assertSoftly(deltakerResult.first { it.id == deltaker.id }) {
                 status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 startdato shouldBe deltakerliste.startDato
                 sluttdato shouldBe deltakerliste.sluttDato
             }
 
-            assertSoftly(endredeDeltakere.first { it.deltaker.id == deltaker2.id }.deltaker) {
+            assertSoftly(deltakerResult.first { it.id == deltaker2.id }) {
                 status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 startdato shouldBe deltakerliste.startDato
                 sluttdato shouldBe deltakerliste.sluttDato
@@ -380,7 +383,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         fun `oppdaterDeltakere - tildel plass - upserter endring, dato passert får start og sluttdato null`() = runTest {
             // Arrange
             val deltakerliste = lagDeltakerliste(
-                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
+                tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 ),
                 startDato = LocalDate.now().minusDays(2),
@@ -397,7 +400,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sluttdato = null,
             )
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            val vedtak = lagVedtak(
                 deltakerVedVedtak = deltaker,
                 deltakerId = deltaker.id,
                 opprettetAv = navAnsattInTest,
@@ -405,7 +408,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sistEndretAv = navAnsattInTest,
                 sistEndretAvEnhet = navEnhetInTest,
             )
-            val vedtak2 = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            val vedtak2 = lagVedtak(
                 deltakerVedVedtak = deltaker2,
                 deltakerId = deltaker2.id,
                 opprettetAv = navAnsattInTest,
@@ -434,6 +437,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.TildelPlass,
                 endretAvIdent = navAnsattInTest.navIdent,
@@ -441,14 +445,14 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             endredeDeltakere.size shouldBe 2
-
-            assertSoftly(endredeDeltakere.first { it.deltaker.id == deltaker.id }.deltaker) {
+            val deltakerResult = deltakerRepository.getMany(deltakerIder)
+            assertSoftly(deltakerResult.first { it.id == deltaker.id }) {
                 status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 startdato shouldBe null
                 sluttdato shouldBe null
             }
 
-            assertSoftly(endredeDeltakere.first { it.deltaker.id == deltaker2.id }.deltaker) {
+            assertSoftly(deltakerResult.first { it.id == deltaker2.id }) {
                 status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 startdato shouldBe null
                 sluttdato shouldBe null
@@ -483,7 +487,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         fun `oppdaterDeltakere - tildel plass feiler på siste deltaker - ruller tilbake en deltaker`() = runTest {
             // Arrange
             val deltakerliste = lagDeltakerliste(
-                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
+                tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 ),
                 startDato = LocalDate.now().plusDays(2),
@@ -499,7 +503,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 startdato = null,
                 sluttdato = null,
             )
-            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            val vedtak = lagVedtak(
                 deltakerVedVedtak = deltakerInsert,
                 deltakerId = deltakerInsert.id,
                 opprettetAv = navAnsattInTest,
@@ -529,6 +533,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val deltakereResult = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.TildelPlass,
                 endretAvIdent = navAnsattInTest.navIdent,
@@ -536,14 +541,14 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             deltakereResult.size shouldBe 2
             deltakereResult.filter { it.isSuccess }.size shouldBe 1
-
-            assertSoftly(deltakereResult.first { it.deltaker.id == deltakerInsert.id }.deltaker) {
+            val deltakerResult = deltakerRepository.getMany(deltakerIder)
+            assertSoftly(deltakerResult.first { it.id == deltakerInsert.id }) {
                 status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 startdato shouldBe deltakerliste.startDato
                 sluttdato shouldBe deltakerliste.sluttDato
             }
 
-            assertSoftly(deltakereResult.first { it.deltaker.id == deltaker2Insert.id }.deltaker) {
+            assertSoftly(deltakerResult.first { it.id == deltaker2Insert.id }) {
                 status.type shouldBe deltaker2Insert.status.type
                 startdato shouldBe deltaker2Insert.startdato
                 sluttdato shouldBe deltaker2Insert.sluttdato
@@ -565,7 +570,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         fun `oppdaterDeltakere - del med arrangør - inserter endring og returnerer endret deltaker`() = runTest {
             // Arrange
             val deltakerliste = lagDeltakerliste(
-                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
+                tiltakstype = lagTiltakstype(
                     tiltakskode =
                         Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 ),
@@ -605,6 +610,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
                 endretAvIdent = navAnsattInTest.navIdent,
@@ -612,13 +618,17 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             endredeDeltakere.size shouldBe 2
-
-            assertSoftly(endredeDeltakere.first { it.deltaker.id == deltaker.id }.deltaker) {
+            endredeDeltakere.forEach {
+                it.isSuccess shouldBe true
+                it.exception shouldBe null
+            }
+            val deltakerResult = deltakerRepository.getMany(deltakerIder)
+            assertSoftly(deltakerResult.first { it.id == deltaker.id }) {
                 status.type shouldBe DeltakerStatus.Type.SOKT_INN
                 erManueltDeltMedArrangor shouldBe true
             }
 
-            assertSoftly(endredeDeltakere.first { it.deltaker.id == deltaker2.id }.deltaker) {
+            assertSoftly(deltakerResult.first { it.id == deltaker2.id }) {
                 status.type shouldBe DeltakerStatus.Type.SOKT_INN
                 erManueltDeltMedArrangor shouldBe true
             }
@@ -656,11 +666,248 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             // Act
             shouldThrow<IllegalArgumentException> {
                 tiltaksansvarligService.oppdaterDeltakere(
+                    gjennomforingId = deltakerliste.id,
                     deltakerIder = deltakerIder,
                     endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
                     endretAvIdent = navAnsattInTest.navIdent,
                 )
             }
+        }
+
+        @Test
+        fun `oppdaterDeltakere - sett på venteliste allerede VENTELISTE - returnerer isSuccess false`() = runTest {
+            // Arrange
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.VENTELISTE),
+            )
+            val innsokt = lagInnsoktPaaKurs(
+                deltakerId = deltaker.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            TestRepository.insertAll(deltaker, innsokt)
+
+            // Act
+            val result = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
+                deltakerIder = setOf(deltaker.id),
+                endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
+                endretAvIdent = navAnsattInTest.navIdent,
+            )
+
+            // Assert
+            result.size shouldBe 1
+            result.first().isSuccess shouldBe false
+            result.first().exception!!.message shouldBe "Ingen gyldig deltakerendring"
+
+            val deltakerResult = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerResult.status.type shouldBe DeltakerStatus.Type.VENTELISTE
+
+            assertDeltakerNotProduced(deltaker.id)
+        }
+
+        @Test
+        fun `oppdaterDeltakere - del med arrangør - deltaker ikke SOKT_INN - returnerer isSuccess false`() = runTest {
+            // Arrange
+            val deltakerliste = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+            )
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.VENTELISTE),
+            )
+            val innsokt = lagInnsoktPaaKurs(
+                deltakerId = deltaker.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            TestRepository.insertAll(deltaker, innsokt)
+
+            // Act
+            val result = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
+                deltakerIder = setOf(deltaker.id),
+                endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
+                endretAvIdent = navAnsattInTest.navIdent,
+            )
+
+            // Assert
+            result.size shouldBe 1
+            result.first().isSuccess shouldBe false
+            result.first().exception!!.message shouldBe "Ingen gyldig deltakerendring"
+
+            val deltakerResult = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerResult.erManueltDeltMedArrangor shouldBe false
+
+            assertDeltakerNotProduced(deltaker.id)
+        }
+
+        @Test
+        fun `oppdaterDeltakere - del med arrangør - allerede delt - returnerer isSuccess false`() = runTest {
+            // Arrange
+            val deltakerliste = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+            )
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                erManueltDeltMedArrangor = true,
+            )
+            val innsokt = lagInnsoktPaaKurs(
+                deltakerId = deltaker.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            TestRepository.insertAll(deltaker, innsokt)
+
+            // Act
+            val result = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
+                deltakerIder = setOf(deltaker.id),
+                endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
+                endretAvIdent = navAnsattInTest.navIdent,
+            )
+
+            // Assert
+            result.size shouldBe 1
+            result.first().isSuccess shouldBe false
+            result.first().exception!!.message shouldBe "Ingen gyldig deltakerendring"
+
+            assertDeltakerNotProduced(deltaker.id)
+        }
+
+        @Test
+        fun `oppdaterDeltakere - deltaker mangler aktiv oppfølgingsperiode - returnerer isSuccess false`() = runTest {
+            // Arrange
+            val navBrukerUtenOppfolging = TestData.lagNavBruker(
+                oppfolgingsperioder = emptyList(),
+            )
+            val deltaker = lagDeltaker(
+                navBruker = navBrukerUtenOppfolging,
+                deltakerliste = deltakerliste,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+            )
+            val innsokt = lagInnsoktPaaKurs(
+                deltakerId = deltaker.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            TestRepository.insertAll(deltaker, innsokt)
+
+            // Act
+            val result = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
+                deltakerIder = setOf(deltaker.id),
+                endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
+                endretAvIdent = navAnsattInTest.navIdent,
+            )
+
+            // Assert
+            result.size shouldBe 1
+            result.first().isSuccess shouldBe false
+            result.first().exception!!.message shouldBe "Nav-bruker mangler aktiv oppfølgingsperiode"
+
+            assertDeltakerNotProduced(deltaker.id)
+        }
+
+        @Test
+        fun `oppdaterDeltakere - deltaker er FEILREGISTRERT - returnerer isSuccess false`() = runTest {
+            // Arrange
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
+            )
+            val innsokt = lagInnsoktPaaKurs(
+                deltakerId = deltaker.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            TestRepository.insertAll(deltaker, innsokt)
+
+            // Act
+            val result = tiltaksansvarligService.oppdaterDeltakere(
+                gjennomforingId = deltakerliste.id,
+                deltakerIder = setOf(deltaker.id),
+                endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
+                endretAvIdent = navAnsattInTest.navIdent,
+            )
+
+            // Assert
+            result.size shouldBe 1
+            result.first().isSuccess shouldBe false
+            result.first().exception!!.message shouldBe "Ingen gyldig deltakerendring"
+
+            assertDeltakerNotProduced(deltaker.id)
+        }
+
+        @Test
+        fun `oppdaterDeltakere - tiltakskode ikke i tillatt sett - kaster IllegalArgumentException`() = runTest {
+            // Arrange
+            val ugyldigDeltakerliste = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+            )
+            val deltaker = lagDeltaker(deltakerliste = ugyldigDeltakerliste)
+            val innsokt = lagInnsoktPaaKurs(
+                deltakerId = deltaker.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            TestRepository.insertAll(deltaker, innsokt)
+
+            // Act & Assert
+            shouldThrow<IllegalArgumentException> {
+                tiltaksansvarligService.oppdaterDeltakere(
+                    gjennomforingId = ugyldigDeltakerliste.id,
+                    deltakerIder = setOf(deltaker.id),
+                    endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
+                    endretAvIdent = navAnsattInTest.navIdent,
+                )
+            }
+        }
+
+        @Test
+        fun `oppdaterDeltakere - tildel plass uten startdato på deltakerliste - kaster IllegalStateException`() = runTest {
+            // Arrange
+            val deltakerlisteUtenStartdato = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+                startDato = null,
+            )
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerlisteUtenStartdato,
+                startdato = null,
+                sluttdato = null,
+            )
+            val vedtak = lagVedtak(
+                deltakerVedVedtak = deltaker,
+                deltakerId = deltaker.id,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+                sistEndretAv = navAnsattInTest,
+                sistEndretAvEnhet = navEnhetInTest,
+            )
+            val innsokt = lagInnsoktPaaKurs(
+                deltakerId = deltaker.id,
+                innsoktAv = navAnsattInTest.id,
+                innsoktAvEnhet = navEnhetInTest.id,
+            )
+            TestRepository.insertAll(deltaker, innsokt, vedtak)
+
+            // Act & Assert
+            val exception = shouldThrow<IllegalStateException> {
+                tiltaksansvarligService.oppdaterDeltakere(
+                    gjennomforingId = deltakerlisteUtenStartdato.id,
+                    deltakerIder = setOf(deltaker.id),
+                    endringsType = EndringFraTiltakskoordinator.TildelPlass,
+                    endretAvIdent = navAnsattInTest.navIdent,
+                )
+            }
+            exception.message shouldBe "Kursdeltaker mangler startdato"
         }
     }
 
@@ -680,30 +927,145 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val oppdateringResult = tiltaksansvarligService.giAvslag(
+                gjennomforingId = deltakerliste.id,
                 deltakerId = deltaker.id,
                 avslag = avslag,
                 endretAv = navAnsatt.navIdent,
             )
 
             // Assert*
-            val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(oppdateringResult.deltaker.id)
+            oppdateringResult.isSuccess shouldBe true
+            oppdateringResult.exception shouldBe null
+            oppdateringResult.deltakerId shouldBe deltaker.id
+
+            val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(oppdateringResult.deltakerId)
             endringer.size shouldBe 1
             (endringer.first().endring is EndringFraTiltakskoordinator.Avslag) shouldBe true
 
-            assertSoftly(oppdateringResult.deltaker) {
+            val deltakerResult = deltakerRepository.get(oppdateringResult.deltakerId).getOrThrow()
+            assertSoftly(deltakerResult) {
                 status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
                 status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.KURS_FULLT
+                status.aarsak?.beskrivelse shouldBe null
                 startdato shouldBe null
                 sluttdato shouldBe null
             }
 
-            outboxService.assertProducedHendelse<HendelseType.Avslag>(oppdateringResult.deltaker.id)
-            outboxService.assertProduced<DeltakerKafkaPayload>(oppdateringResult.deltaker.id, Environment.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(oppdateringResult.deltaker.id, Environment.DELTAKER_V1_TOPIC)
+            outboxService.assertProducedHendelse<HendelseType.Avslag>(oppdateringResult.deltakerId)
+            outboxService.assertProduced<DeltakerKafkaPayload>(oppdateringResult.deltakerId, Environment.DELTAKER_V2_TOPIC)
+            outboxService.assertProduced<DeltakerV1Dto>(oppdateringResult.deltakerId, Environment.DELTAKER_V1_TOPIC)
             outboxService.assertProduced<DeltakerEksternV1Dto>(
-                oppdateringResult.deltaker.id,
+                oppdateringResult.deltakerId,
                 Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
+        }
+    }
+
+    @Test
+    fun `giAvslag - aarsak ANNET med beskrivelse - lagrer beskrivelse`() = runTest {
+        with(EndringFraTiltakskoordinatorCtx()) {
+            // Arrange
+            medInnsok()
+
+            val avslag = EndringFraTiltakskoordinator.Avslag(
+                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                    type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.ANNET,
+                    beskrivelse = "Spesifikk grunn",
+                ),
+                begrunnelse = "Utdypende begrunnelse",
+            )
+
+            // Act
+            val oppdateringResult = tiltaksansvarligService.giAvslag(
+                gjennomforingId = deltakerliste.id,
+                deltakerId = deltaker.id,
+                avslag = avslag,
+                endretAv = navAnsatt.navIdent,
+            )
+
+            // Assert
+            oppdateringResult.isSuccess shouldBe true
+
+            val deltakerResult = deltakerRepository.get(oppdateringResult.deltakerId).getOrThrow()
+            assertSoftly(deltakerResult) {
+                status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+                status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.ANNET
+                status.aarsak?.beskrivelse shouldBe "Spesifikk grunn"
+                startdato shouldBe null
+                sluttdato shouldBe null
+            }
+
+            val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(deltaker.id)
+            val lagretAvslag = endringer.first().endring as EndringFraTiltakskoordinator.Avslag
+            lagretAvslag.aarsak.beskrivelse shouldBe "Spesifikk grunn"
+            lagretAvslag.begrunnelse shouldBe "Utdypende begrunnelse"
+        }
+    }
+
+    @Test
+    fun `giAvslag - deltaker har ugyldig status DELTAR - kaster exception`() = runTest {
+        with(EndringFraTiltakskoordinatorCtx()) {
+            // Arrange
+            medStatusDeltar()
+            medInnsok()
+
+            val avslag = EndringFraTiltakskoordinator.Avslag(
+                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                    type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
+                    beskrivelse = null,
+                ),
+                begrunnelse = null,
+            )
+
+            // Act & Assert
+            shouldThrow<IllegalStateException> {
+                tiltaksansvarligService.giAvslag(
+                    gjennomforingId = deltakerliste.id,
+                    deltakerId = deltaker.id,
+                    avslag = avslag,
+                    endretAv = navAnsatt.navIdent,
+                )
+            }
+
+            val deltakerResult = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerResult.status.type shouldBe DeltakerStatus.Type.DELTAR
+
+            outboxService.assertNotProducedHendelse<HendelseType.Avslag>(deltaker.id)
+            assertDeltakerNotProduced(deltaker.id)
+        }
+    }
+
+    @Test
+    fun `giAvslag - deltaker er låst for endringer - kaster exception`() = runTest {
+        with(EndringFraTiltakskoordinatorCtx()) {
+            // Arrange
+            medInnsok()
+            every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), deltakerliste.id) } returns
+                mapOf(deltaker.id to true)
+
+            val avslag = EndringFraTiltakskoordinator.Avslag(
+                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                    type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
+                    beskrivelse = null,
+                ),
+                begrunnelse = null,
+            )
+
+            // Act & Assert
+            shouldThrow<IllegalStateException> {
+                tiltaksansvarligService.giAvslag(
+                    gjennomforingId = deltakerliste.id,
+                    deltakerId = deltaker.id,
+                    avslag = avslag,
+                    endretAv = navAnsatt.navIdent,
+                )
+            }
+
+            val deltakerResult = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerResult.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+
+            outboxService.assertNotProducedHendelse<HendelseType.Avslag>(deltaker.id)
+            assertDeltakerNotProduced(deltaker.id)
         }
     }
 

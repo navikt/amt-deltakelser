@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.api.response
 
+import io.ktor.network.sockets.SocketTimeoutException
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
@@ -7,8 +8,12 @@ import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
-import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
+import java.net.SocketException
+import java.sql.SQLException
 import java.util.UUID
 
 /**
@@ -32,7 +37,7 @@ class TiltakskoordinatorResponseBuilder(
     /**
      * Henter gjennomføring og deltakere for en gjennomføring-id.
      */
-    suspend fun buildResponse(request: TiltaksKoordinatorDeltakerlisteRequest): PaginatedResult<TiltakskoordinatorDeltakerResponse> {
+    suspend fun buildResponse(request: TiltaksKoordinatorDeltakerlisteRequest): PaginatedResult<TiltakskoordinatorDeltakerIListeResponse> {
         val gjennomforing = deltakerlisteRepository.get(request.gjennomforingId).getOrNull()
             ?: return PaginatedResult(
                 pageSize = 0,
@@ -58,7 +63,7 @@ class TiltakskoordinatorResponseBuilder(
             pageSize = rows.size,
             data = rows.map { row ->
                 buildDeltakerResponse(
-                    row = row,
+                    deltaker = row,
                     deltakerIdToErLaastForEndringerMap = deltakerIdToErLaastForEndringerMap,
                     erDigitalFallbackMap = erDigitalFallbackMap,
                 )
@@ -66,39 +71,64 @@ class TiltakskoordinatorResponseBuilder(
         )
     }
 
+    suspend fun buildResponse(
+        gjennomforingId: UUID,
+        deltakerIder: List<UUID>,
+        feilkoder: Map<UUID, Throwable?>,
+    ): List<DeltakerOppdateringResponse> {
+        val deltakere = viewRepository.getDeltakere(deltakerIder)
+
+        // opprett et map med deltaker-id til laase-status for alle deltakere i lista i én spørring
+        val deltakerIdToErLaastForEndringerMap = deltakerLaaseService.erLaastForEndringerForDeltakere(
+            deltakerIdToPersonIdentMap = deltakere.associate { it.id to it.personident },
+            gjennomforingId = gjennomforingId,
+        )
+
+        return deltakere.map { deltaker ->
+            DeltakerOppdateringResponse(
+                feilkode = feilkoder[deltaker.id]?.toOppdateringFeilkode(),
+                deltaker = buildDeltakerResponse(
+                    deltaker = deltaker,
+                    deltakerIdToErLaastForEndringerMap = deltakerIdToErLaastForEndringerMap,
+                    erDigitalFallbackMap = hentManglendeDigitalStatus(deltakere),
+                ),
+            )
+        }
+    }
+
     private fun buildDeltakerResponse(
-        row: TiltakskoordinatorDeltakerRow,
+        deltaker: TiltakskoordinatorDeltakerRow,
         deltakerIdToErLaastForEndringerMap: Map<UUID, Boolean>,
         erDigitalFallbackMap: Map<String, Boolean>?,
-    ): TiltakskoordinatorDeltakerResponse {
-        val erDigital = row.erDigitalCached
-            ?: erDigitalFallbackMap?.get(row.personident)
+    ): TiltakskoordinatorDeltakerIListeResponse {
+        val erDigital = deltaker.erDigitalCached
+            ?: erDigitalFallbackMap?.get(deltaker.personident)
             ?: true
 
-        val ikkeDigitalOgManglerAdresse = !(erDigital || row.harAdresse)
+        val ikkeDigitalOgManglerAdresse = !(erDigital || deltaker.harAdresse)
 
-        val erLaastForEndringer = deltakerIdToErLaastForEndringerMap[row.id]
-            ?: throw NoSuchElementException("Fant ikke deltaker-id ${row.id} i map")
+        val erLaastForEndringer = deltakerIdToErLaastForEndringerMap[deltaker.id]
+            ?: throw NoSuchElementException("Fant ikke deltaker-id ${deltaker.id} i map")
 
-        return TiltakskoordinatorDeltakerResponse(
-            id = row.id,
-            status = row.status,
+        return TiltakskoordinatorDeltakerIListeResponse(
+            id = deltaker.id,
+            status = deltaker.status,
             navBruker = TiltakskoordinatorNavBrukerResponse(
-                personident = row.personident,
-                fornavn = row.fornavn,
-                mellomnavn = row.mellomnavn,
-                etternavn = row.etternavn,
-                erSkjermet = row.erSkjermet,
-                adressebeskyttelse = row.adressebeskyttelse,
-                navEnhet = row.navEnhetNavn,
+                personident = deltaker.personident,
+                fornavn = deltaker.fornavn,
+                mellomnavn = deltaker.mellomnavn,
+                etternavn = deltaker.etternavn,
+                erSkjermet = deltaker.erSkjermet,
+                adressebeskyttelse = deltaker.adressebeskyttelse,
+                navEnhet = deltaker.navEnhetNavn,
                 ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
             ),
-            startdato = row.startdato,
-            sluttdato = row.sluttdato,
-            soktInnDato = row.soktInnDato,
-            erManueltDeltMedArrangor = row.erManueltDeltMedArrangor,
-            harAktivtForslag = row.harAktivtForslag,
-            sisteVurderingstype = row.sisteVurderingstype,
+            startdato = deltaker.startdato,
+            sluttdato = deltaker.sluttdato,
+            soktInnDato = deltaker.soktInnDato,
+            erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
+            harAktivtForslag = deltaker.harAktivtForslag,
+            sisteVurderingstype = deltaker.sisteVurderingstype,
             kanEndres = !erLaastForEndringer,
         )
     }
@@ -116,5 +146,15 @@ class TiltakskoordinatorResponseBuilder(
         if (manglendePersonidenter.isEmpty()) return emptyMap()
 
         return digitalBrukerService.hentErDigitalForPersonidenter(manglendePersonidenter)
+    }
+
+    private fun Throwable.toOppdateringFeilkode() = when (this) {
+        is IllegalStateException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
+        is IllegalArgumentException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
+        is SQLException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
+        is SocketTimeoutException -> DeltakerOppdateringFeilkode.MIDLERTIDIG_FEIL
+        is SocketException -> DeltakerOppdateringFeilkode.MIDLERTIDIG_FEIL
+        is Exception -> null
+        else -> null
     }
 }
