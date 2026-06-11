@@ -83,14 +83,14 @@ class TiltakskoordinatorResponseBuilder(
             deltakerIdToPersonIdentMap = deltakere.associate { it.id to it.personident },
             gjennomforingId = gjennomforingId,
         )
-
+        val erDigitalMap = hentManglendeDigitalStatus(deltakere)
         return deltakere.map { deltaker ->
             DeltakerOppdateringResponse(
                 feilkode = feilkoder[deltaker.id]?.toOppdateringFeilkode(),
                 deltaker = buildDeltakerResponse(
                     deltaker = deltaker,
                     deltakerIdToErLaastForEndringerMap = deltakerIdToErLaastForEndringerMap,
-                    erDigitalFallbackMap = hentManglendeDigitalStatus(deltakere),
+                    erDigitalFallbackMap = erDigitalMap,
                 ),
             )
         }

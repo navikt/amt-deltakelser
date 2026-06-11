@@ -21,6 +21,8 @@ class ResponseBuilder(
     /**
      * Bygger liste-respons fra den spissede [TiltakskoordinatorDeltakerIListeResponse] fra amt-deltaker.
      * Henter ulestehendelser i bulk for å unngå N+1-spørringer.
+     * Feilkode vil i tilfelle ren uthenting alltid være null men settes
+     * i tilfelle en oppdatering av deltaker har feilet.
      */
     fun toDeltakereResponse(
         deltakere: List<TiltakskoordinatorDeltakerIListeResponse>,

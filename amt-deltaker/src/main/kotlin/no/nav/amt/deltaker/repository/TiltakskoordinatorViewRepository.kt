@@ -38,8 +38,8 @@ class TiltakskoordinatorViewRepository {
     fun getDeltakere(deltakerIder: List<UUID>): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
         session.run(
             queryOf(
-                deltakereSelectSql(where = "ds.id = ANY(:deltakerIder)"),
-                mapOf("deltakerIder" to deltakerIder),
+                deltakereSelectSql(where = "d.id = ANY(:deltakerIder)"),
+                mapOf("deltakerIder" to deltakerIder.toTypedArray()),
             ).map(::deltakerRowMapper).asList,
         )
     }

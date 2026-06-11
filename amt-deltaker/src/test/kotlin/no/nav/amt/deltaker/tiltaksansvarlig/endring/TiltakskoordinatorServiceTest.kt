@@ -911,161 +911,164 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         }
     }
 
-    @Test
-    fun `giAvslag - deltaker får riktig status`() = runTest {
-        with(EndringFraTiltakskoordinatorCtx()) {
-            // Arrange
-            medInnsok()
+    @Nested
+    inner class Avslag {
+        @Test
+        fun `giAvslag - deltaker får riktig status`() = runTest {
+            with(EndringFraTiltakskoordinatorCtx()) {
+                // Arrange
+                medInnsok()
 
-            val avslag = EndringFraTiltakskoordinator.Avslag(
-                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
-                    type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
-                    beskrivelse = null,
-                ),
-                begrunnelse = "Fordi...",
-            )
+                val avslag = EndringFraTiltakskoordinator.Avslag(
+                    aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                        type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
+                        beskrivelse = null,
+                    ),
+                    begrunnelse = "Fordi...",
+                )
 
-            // Act
-            val oppdateringResult = tiltaksansvarligService.giAvslag(
-                gjennomforingId = deltakerliste.id,
-                deltakerId = deltaker.id,
-                avslag = avslag,
-                endretAv = navAnsatt.navIdent,
-            )
-
-            // Assert*
-            oppdateringResult.isSuccess shouldBe true
-            oppdateringResult.exception shouldBe null
-            oppdateringResult.deltakerId shouldBe deltaker.id
-
-            val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(oppdateringResult.deltakerId)
-            endringer.size shouldBe 1
-            (endringer.first().endring is EndringFraTiltakskoordinator.Avslag) shouldBe true
-
-            val deltakerResult = deltakerRepository.get(oppdateringResult.deltakerId).getOrThrow()
-            assertSoftly(deltakerResult) {
-                status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-                status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.KURS_FULLT
-                status.aarsak?.beskrivelse shouldBe null
-                startdato shouldBe null
-                sluttdato shouldBe null
-            }
-
-            outboxService.assertProducedHendelse<HendelseType.Avslag>(oppdateringResult.deltakerId)
-            outboxService.assertProduced<DeltakerKafkaPayload>(oppdateringResult.deltakerId, Environment.DELTAKER_V2_TOPIC)
-            outboxService.assertProduced<DeltakerV1Dto>(oppdateringResult.deltakerId, Environment.DELTAKER_V1_TOPIC)
-            outboxService.assertProduced<DeltakerEksternV1Dto>(
-                oppdateringResult.deltakerId,
-                Environment.DELTAKER_EKSTERN_V1_TOPIC,
-            )
-        }
-    }
-
-    @Test
-    fun `giAvslag - aarsak ANNET med beskrivelse - lagrer beskrivelse`() = runTest {
-        with(EndringFraTiltakskoordinatorCtx()) {
-            // Arrange
-            medInnsok()
-
-            val avslag = EndringFraTiltakskoordinator.Avslag(
-                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
-                    type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.ANNET,
-                    beskrivelse = "Spesifikk grunn",
-                ),
-                begrunnelse = "Utdypende begrunnelse",
-            )
-
-            // Act
-            val oppdateringResult = tiltaksansvarligService.giAvslag(
-                gjennomforingId = deltakerliste.id,
-                deltakerId = deltaker.id,
-                avslag = avslag,
-                endretAv = navAnsatt.navIdent,
-            )
-
-            // Assert
-            oppdateringResult.isSuccess shouldBe true
-
-            val deltakerResult = deltakerRepository.get(oppdateringResult.deltakerId).getOrThrow()
-            assertSoftly(deltakerResult) {
-                status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-                status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.ANNET
-                status.aarsak?.beskrivelse shouldBe "Spesifikk grunn"
-                startdato shouldBe null
-                sluttdato shouldBe null
-            }
-
-            val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(deltaker.id)
-            val lagretAvslag = endringer.first().endring as EndringFraTiltakskoordinator.Avslag
-            lagretAvslag.aarsak.beskrivelse shouldBe "Spesifikk grunn"
-            lagretAvslag.begrunnelse shouldBe "Utdypende begrunnelse"
-        }
-    }
-
-    @Test
-    fun `giAvslag - deltaker har ugyldig status DELTAR - kaster exception`() = runTest {
-        with(EndringFraTiltakskoordinatorCtx()) {
-            // Arrange
-            medStatusDeltar()
-            medInnsok()
-
-            val avslag = EndringFraTiltakskoordinator.Avslag(
-                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
-                    type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
-                    beskrivelse = null,
-                ),
-                begrunnelse = null,
-            )
-
-            // Act & Assert
-            shouldThrow<IllegalStateException> {
-                tiltaksansvarligService.giAvslag(
+                // Act
+                val oppdateringResult = tiltaksansvarligService.giAvslag(
                     gjennomforingId = deltakerliste.id,
                     deltakerId = deltaker.id,
                     avslag = avslag,
                     endretAv = navAnsatt.navIdent,
                 )
+
+                // Assert*
+                oppdateringResult.isSuccess shouldBe true
+                oppdateringResult.exception shouldBe null
+                oppdateringResult.deltakerId shouldBe deltaker.id
+
+                val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(oppdateringResult.deltakerId)
+                endringer.size shouldBe 1
+                (endringer.first().endring is EndringFraTiltakskoordinator.Avslag) shouldBe true
+
+                val deltakerResult = deltakerRepository.get(oppdateringResult.deltakerId).getOrThrow()
+                assertSoftly(deltakerResult) {
+                    status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+                    status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.KURS_FULLT
+                    status.aarsak?.beskrivelse shouldBe null
+                    startdato shouldBe null
+                    sluttdato shouldBe null
+                }
+
+                outboxService.assertProducedHendelse<HendelseType.Avslag>(oppdateringResult.deltakerId)
+                outboxService.assertProduced<DeltakerKafkaPayload>(oppdateringResult.deltakerId, Environment.DELTAKER_V2_TOPIC)
+                outboxService.assertProduced<DeltakerV1Dto>(oppdateringResult.deltakerId, Environment.DELTAKER_V1_TOPIC)
+                outboxService.assertProduced<DeltakerEksternV1Dto>(
+                    oppdateringResult.deltakerId,
+                    Environment.DELTAKER_EKSTERN_V1_TOPIC,
+                )
             }
-
-            val deltakerResult = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerResult.status.type shouldBe DeltakerStatus.Type.DELTAR
-
-            outboxService.assertNotProducedHendelse<HendelseType.Avslag>(deltaker.id)
-            assertDeltakerNotProduced(deltaker.id)
         }
-    }
 
-    @Test
-    fun `giAvslag - deltaker er låst for endringer - kaster exception`() = runTest {
-        with(EndringFraTiltakskoordinatorCtx()) {
-            // Arrange
-            medInnsok()
-            every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), deltakerliste.id) } returns
-                mapOf(deltaker.id to true)
+        @Test
+        fun `giAvslag - aarsak ANNET med beskrivelse - lagrer beskrivelse`() = runTest {
+            with(EndringFraTiltakskoordinatorCtx()) {
+                // Arrange
+                medInnsok()
 
-            val avslag = EndringFraTiltakskoordinator.Avslag(
-                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
-                    type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
-                    beskrivelse = null,
-                ),
-                begrunnelse = null,
-            )
+                val avslag = EndringFraTiltakskoordinator.Avslag(
+                    aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                        type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.ANNET,
+                        beskrivelse = "Spesifikk grunn",
+                    ),
+                    begrunnelse = "Utdypende begrunnelse",
+                )
 
-            // Act & Assert
-            shouldThrow<IllegalStateException> {
-                tiltaksansvarligService.giAvslag(
+                // Act
+                val oppdateringResult = tiltaksansvarligService.giAvslag(
                     gjennomforingId = deltakerliste.id,
                     deltakerId = deltaker.id,
                     avslag = avslag,
                     endretAv = navAnsatt.navIdent,
                 )
+
+                // Assert
+                oppdateringResult.isSuccess shouldBe true
+
+                val deltakerResult = deltakerRepository.get(oppdateringResult.deltakerId).getOrThrow()
+                assertSoftly(deltakerResult) {
+                    status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+                    status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.ANNET
+                    status.aarsak?.beskrivelse shouldBe "Spesifikk grunn"
+                    startdato shouldBe null
+                    sluttdato shouldBe null
+                }
+
+                val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(deltaker.id)
+                val lagretAvslag = endringer.first().endring as EndringFraTiltakskoordinator.Avslag
+                lagretAvslag.aarsak.beskrivelse shouldBe "Spesifikk grunn"
+                lagretAvslag.begrunnelse shouldBe "Utdypende begrunnelse"
             }
+        }
 
-            val deltakerResult = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerResult.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+        @Test
+        fun `giAvslag - deltaker har ugyldig status DELTAR - kaster exception`() = runTest {
+            with(EndringFraTiltakskoordinatorCtx()) {
+                // Arrange
+                medStatusDeltar()
+                medInnsok()
 
-            outboxService.assertNotProducedHendelse<HendelseType.Avslag>(deltaker.id)
-            assertDeltakerNotProduced(deltaker.id)
+                val avslag = EndringFraTiltakskoordinator.Avslag(
+                    aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                        type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
+                        beskrivelse = null,
+                    ),
+                    begrunnelse = null,
+                )
+
+                // Act & Assert
+                shouldThrow<IllegalStateException> {
+                    tiltaksansvarligService.giAvslag(
+                        gjennomforingId = deltakerliste.id,
+                        deltakerId = deltaker.id,
+                        avslag = avslag,
+                        endretAv = navAnsatt.navIdent,
+                    )
+                }
+
+                val deltakerResult = deltakerRepository.get(deltaker.id).getOrThrow()
+                deltakerResult.status.type shouldBe DeltakerStatus.Type.DELTAR
+
+                outboxService.assertNotProducedHendelse<HendelseType.Avslag>(deltaker.id)
+                assertDeltakerNotProduced(deltaker.id)
+            }
+        }
+
+        @Test
+        fun `giAvslag - deltaker er låst for endringer - kaster exception`() = runTest {
+            with(EndringFraTiltakskoordinatorCtx()) {
+                // Arrange
+                medInnsok()
+                every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), deltakerliste.id) } returns
+                    mapOf(deltaker.id to true)
+
+                val avslag = EndringFraTiltakskoordinator.Avslag(
+                    aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                        type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
+                        beskrivelse = null,
+                    ),
+                    begrunnelse = null,
+                )
+
+                // Act & Assert
+                shouldThrow<IllegalStateException> {
+                    tiltaksansvarligService.giAvslag(
+                        gjennomforingId = deltakerliste.id,
+                        deltakerId = deltaker.id,
+                        avslag = avslag,
+                        endretAv = navAnsatt.navIdent,
+                    )
+                }
+
+                val deltakerResult = deltakerRepository.get(deltaker.id).getOrThrow()
+                deltakerResult.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+
+                outboxService.assertNotProducedHendelse<HendelseType.Avslag>(deltaker.id)
+                assertDeltakerNotProduced(deltaker.id)
+            }
         }
     }
 

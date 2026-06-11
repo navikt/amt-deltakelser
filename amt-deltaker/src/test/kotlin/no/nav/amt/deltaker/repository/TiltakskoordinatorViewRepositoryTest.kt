@@ -88,6 +88,137 @@ class TiltakskoordinatorViewRepositoryTest {
     }
 
     @Nested
+    inner class GetDeltakereByIdsTests {
+        @Test
+        fun `skal returnere tom liste for tom input`() {
+            val result = viewRepository.getDeltakere(emptyList())
+
+            result.shouldBeEmpty()
+        }
+
+        @Test
+        fun `skal returnere tom liste når ingen deltakere matcher`() {
+            val result = viewRepository.getDeltakere(listOf(UUID.randomUUID()))
+
+            result.shouldBeEmpty()
+        }
+
+        @Test
+        fun `skal returnere deltakere som matcher gitte IDer`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker3 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            TestRepository.insert(deltaker1)
+            TestRepository.insert(deltaker2)
+            TestRepository.insert(deltaker3)
+
+            val result = viewRepository.getDeltakere(listOf(deltaker1.id, deltaker3.id))
+
+            result shouldHaveSize 2
+            result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker3.id)
+        }
+
+        @Test
+        fun `skal returnere deltakere fra ulike deltakerlister`() {
+            val deltakerliste1 = lagDeltakerliste()
+            val deltakerliste2 = lagDeltakerliste()
+            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            TestRepository.insert(deltaker1)
+            TestRepository.insert(deltaker2)
+
+            val result = viewRepository.getDeltakere(listOf(deltaker1.id, deltaker2.id))
+
+            result shouldHaveSize 2
+            result.map { it.id }.toSet() shouldBe setOf(deltaker1.id, deltaker2.id)
+        }
+
+        @Test
+        fun `skal ikke filtrere bort skjulte statuser`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+            TestRepository.insert(deltaker)
+
+            val result = viewRepository.getDeltakere(listOf(deltaker.id))
+
+            result shouldHaveSize 1
+            result.single().id shouldBe deltaker.id
+            result.single().status.type shouldBe DeltakerStatus.Type.SOKT_INN
+        }
+
+        @Test
+        fun `skal mappe alle felter korrekt`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = LocalDate.now().plusMonths(2),
+            )
+            TestRepository.insert(deltaker)
+
+            val result = viewRepository.getDeltakere(listOf(deltaker.id)).single()
+
+            result.id shouldBe deltaker.id
+            result.personident shouldBe deltaker.navBruker.personident
+            result.fornavn shouldBe deltaker.navBruker.fornavn
+            result.mellomnavn shouldBe deltaker.navBruker.mellomnavn
+            result.etternavn shouldBe deltaker.navBruker.etternavn
+            result.erSkjermet shouldBe deltaker.navBruker.erSkjermet
+            result.startdato shouldBe deltaker.startdato
+            result.sluttdato shouldBe deltaker.sluttdato
+            result.status.type shouldBe DeltakerStatus.Type.DELTAR
+            result.erManueltDeltMedArrangor shouldBe deltaker.erManueltDeltMedArrangor
+        }
+
+        @Test
+        fun `skal inkludere berikede felter - forslag og vurdering`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            TestRepository.insert(deltaker)
+
+            forslagRepository.upsert(lagForslag(deltakerId = deltaker.id, status = Forslag.Status.VenterPaSvar))
+            vurderingRepository.upsert(
+                lagVurdering(
+                    deltakerId = deltaker.id,
+                    vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
+                    gyldigFra = LocalDateTime.now(),
+                ),
+            )
+
+            val result = viewRepository.getDeltakere(listOf(deltaker.id)).single()
+
+            result.harAktivtForslag shouldBe true
+            result.sisteVurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
+        }
+
+        @Test
+        fun `skal inkludere soktInnDato fra vedtak`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val ansatt = lagNavAnsatt()
+            val enhet = lagNavEnhet()
+            TestRepository.insert(deltaker)
+            TestRepository.insertAll(ansatt, enhet)
+
+            val vedtakOpprettet = LocalDateTime.of(2024, 6, 10, 9, 0)
+            TestRepository.insert(
+                lagVedtak(
+                    deltakerVedVedtak = deltaker,
+                    opprettet = vedtakOpprettet,
+                    opprettetAv = ansatt,
+                    opprettetAvEnhet = enhet,
+                ),
+            )
+
+            val result = viewRepository.getDeltakere(listOf(deltaker.id)).single()
+
+            result.soktInnDato shouldBe vedtakOpprettet.toLocalDate()
+        }
+    }
+
+    @Nested
     inner class GetDeltakereMedBerikelseTests {
         @Test
         fun `skal returnere tom liste når ingen deltakere finnes for gjennomføring`() {

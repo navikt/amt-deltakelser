@@ -128,8 +128,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                         deltakerIder = deltakerIder,
                         endretAv = navIdent,
                     )
-                val response = responseBuilder.toDeltakereResponse(
-                    deltakere = oppdaterteDeltakere.map { it.deltaker },
+                val response = responseBuilder.toOppdatertDeltakerResponse(
+                    deltakere = oppdaterteDeltakere,
                     kanSeInnbyggersNavn = { deltaker ->
                         tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
                             navAnsattAzureId = call.getNavAnsattAzureId(),

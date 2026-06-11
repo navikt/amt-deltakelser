@@ -4,9 +4,12 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJERMET_PERSON_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerModel
@@ -260,6 +263,139 @@ class ResponseBuilderTest {
 
             response.deltakelsesinnhold shouldBe null
         }
+    }
+
+    @Nested
+    inner class ToOppdatertDeltakerResponseTest {
+        private val ulestHendelseRepository = mockk<UlestHendelseRepository>()
+        private val responseBuilder = ResponseBuilder(ulestHendelseRepository)
+
+        @Test
+        fun `toOppdatertDeltakerResponse - propagerer feilkode fra DeltakerOppdateringResponse`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse()
+            val oppdateringer = listOf(
+                no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse(
+                    deltaker = deltaker,
+                    feilkode = no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode.UGYLDIG_STATE,
+                ),
+            )
+
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+
+            val result = responseBuilder.toOppdatertDeltakerResponse(
+                deltakere = oppdateringer,
+                kanSeInnbyggersNavn = { true },
+            )
+
+            result shouldHaveSize 1
+            result.single().id shouldBe deltaker.id
+            result.single().feilkode shouldBe no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode.UGYLDIG_STATE
+        }
+
+        @Test
+        fun `toOppdatertDeltakerResponse - null feilkode gir null i respons`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse()
+            val oppdateringer = listOf(
+                no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse(
+                    deltaker = deltaker,
+                    feilkode = null,
+                ),
+            )
+
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+
+            val result = responseBuilder.toOppdatertDeltakerResponse(
+                deltakere = oppdateringer,
+                kanSeInnbyggersNavn = { true },
+            )
+
+            result.single().feilkode shouldBe null
+        }
+
+        @Test
+        fun `toDeltakereResponse - mapper alle felter fra TiltakskoordinatorDeltakerIListeResponse til DeltakerResponse`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                harAktivtForslag = true,
+                sisteVurderingstype = no.nav.amt.lib.models.arrangor.melding.Vurderingstype.OPPFYLLER_KRAVENE,
+                kanEndres = false,
+            )
+
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+
+            val result = responseBuilder.toDeltakereResponse(
+                deltakere = listOf(deltaker),
+                kanSeInnbyggersNavn = { true },
+            )
+
+            val response = result.single()
+            response.id shouldBe deltaker.id
+            response.fornavn shouldBe deltaker.navBruker.fornavn
+            response.mellomnavn shouldBe deltaker.navBruker.mellomnavn
+            response.etternavn shouldBe deltaker.navBruker.etternavn
+            response.status.type shouldBe DeltakerStatus.Type.DELTAR
+            response.navEnhet shouldBe deltaker.navBruker.navEnhet
+            response.erManueltDeltMedArrangor shouldBe deltaker.erManueltDeltMedArrangor
+            response.harAktiveForslag shouldBe true
+            response.vurdering shouldBe no.nav.amt.lib.models.arrangor.melding.Vurderingstype.OPPFYLLER_KRAVENE
+            response.kanEndres shouldBe false
+            response.soktInnDato shouldBe deltaker.soktInnDato
+            response.startdato shouldBe deltaker.startdato
+            response.sluttdato shouldBe deltaker.sluttdato
+        }
+
+        @Test
+        fun `toDeltakereResponse - skjermet person uten tilgang - maskerer navn`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse(
+                navBruker = lagTiltakskoordinatorNavBrukerResponse(erSkjermet = true),
+            )
+
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+
+            val result = responseBuilder.toDeltakereResponse(
+                deltakere = listOf(deltaker),
+                kanSeInnbyggersNavn = { false },
+            )
+
+            result.single().fornavn shouldBe SKJERMET_PERSON_PLACEHOLDER_NAVN
+            result.single().etternavn shouldBe ""
+        }
+
+        private fun lagTiltakskoordinatorDeltakerResponse(
+            navBruker: no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse =
+                lagTiltakskoordinatorNavBrukerResponse(),
+            status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            harAktivtForslag: Boolean = false,
+            sisteVurderingstype: no.nav.amt.lib.models.arrangor.melding.Vurderingstype? = null,
+            kanEndres: Boolean = true,
+        ) = no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse(
+            id = UUID.randomUUID(),
+            status = status,
+            navBruker = navBruker,
+            startdato = java.time.LocalDate.now(),
+            sluttdato = java.time.LocalDate
+                .now()
+                .plusMonths(3),
+            soktInnDato = java.time.LocalDate
+                .now()
+                .minusMonths(1),
+            erManueltDeltMedArrangor = false,
+            harAktivtForslag = harAktivtForslag,
+            sisteVurderingstype = sisteVurderingstype,
+            kanEndres = kanEndres,
+        )
+
+        private fun lagTiltakskoordinatorNavBrukerResponse(erSkjermet: Boolean = false) =
+            no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse(
+                personident = "12345678901",
+                fornavn = "Fornavn",
+                mellomnavn = null,
+                etternavn = "Etternavn",
+                erSkjermet = erSkjermet,
+                adressebeskyttelse = null,
+                ikkeDigitalOgManglerAdresse = false,
+                navEnhet = "Nav Grunerløkka",
+            )
     }
 
     @Nested

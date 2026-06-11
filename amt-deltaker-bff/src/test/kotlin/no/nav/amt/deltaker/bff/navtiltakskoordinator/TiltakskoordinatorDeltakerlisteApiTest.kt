@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -9,6 +10,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteFilterCountsResponse
@@ -29,10 +31,13 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -417,72 +422,274 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         response.status shouldBe HttpStatusCode.BadRequest
     }
 
-    @Test
-    fun `post del-med-arrangor - mangler tilgang til deltakerliste - returnerer 403`() {
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-        coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws
-            AuthorizationException("")
-
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/del-med-arrangor") {
-                createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
-            }
-        }
-
-        response.status shouldBe HttpStatusCode.Forbidden
-    }
-
-    @Test
-    fun `post del-med-arrangor - deltakerliste finnes ikke - returnerer 404`() {
-        mockTilgangTilDeltakerliste()
-
-        coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws NoSuchElementException()
-
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
-                createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
-            }
-        }
-
-        response.status shouldBe HttpStatusCode.NotFound
-    }
-
-    @Test
-    fun `post sett-paa-venteliste - deltakerliste er feil type - returnerer unauthorized`() {
-        mockTilgangTilDeltakerliste()
-
-        coEvery { selfServiceTilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
-
-        val response = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
-                createPostRequest(listOf(UUID.randomUUID()))
-            }
-        }
-
-        response.status shouldBe HttpStatusCode.Unauthorized
-    }
-
-    /*
+    @Nested
+    inner class TildelPlassTests {
         @Test
-        fun `sett-paa-venteliste - deltakere i feil liste - returnerer 401`() {
-            val deltaker1 = TestData.lagDeltaker()
-            val deltaker2 = TestData.lagDeltaker(deltakerliste = TestData.lagDeltakerliste(id = UUID.randomUUID()))
-            coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker1, deltaker2)
-            coEvery { unleashToggle.erKometMasterForTiltakstype(deltaker1.deltakerliste.tiltakstype.arenaKode) } returns true
+        fun `post tildel-plass - mangler tilgang - returnerer 403`() {
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws
+                AuthorizationException("")
 
-            val request = DeltakereRequest(
-                deltakere = listOf(deltaker1.id, deltaker2.id),
-                deltakerlisteId = deltaker1.deltakerliste.id,
-                endretAv = "Nav Veiledersen"
-            )
-            setUpTestApplication()
-            client.post("$apiPath/sett-paa-venteliste") { postRequest(request) }.apply {
-                status shouldBe HttpStatusCode.Forbidden
-                bodyAsText() shouldBe ""
+            val response = withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/tildel-plass") {
+                    createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `post tildel-plass - har tilgang - returnerer 200 med mappede deltakere`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val oppdateringResponse = DeltakerOppdateringResponse(deltaker = deltaker, feilkode = null)
+
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } returns Unit
+            coEvery {
+                tiltakskoordinatorClient.tildelPlass(
+                    gjennomforingId = deltakerlisteInTest.id,
+                    deltakerIder = listOf(deltaker.id),
+                    endretAv = any(),
+                )
+            } returns listOf(oppdateringResponse)
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+            every {
+                tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
+            } returns true
+
+            withTestApplicationContext { client ->
+                val response = client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/tildel-plass") {
+                    createPostTiltakskoordinatorRequest(listOf(deltaker.id))
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<List<DeltakerResponse>>()
+                body shouldHaveSize 1
+                body.single().id shouldBe deltaker.id
+                body.single().feilkode shouldBe null
+                Unit
             }
         }
-     */
+
+        @Test
+        fun `post tildel-plass - feilkode fra backend - propageres til frontend-respons`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+            val oppdateringResponse = DeltakerOppdateringResponse(
+                deltaker = deltaker,
+                feilkode = DeltakerOppdateringFeilkode.UGYLDIG_STATE,
+            )
+
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } returns Unit
+            coEvery {
+                tiltakskoordinatorClient.tildelPlass(any(), any(), any())
+            } returns listOf(oppdateringResponse)
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+            every {
+                tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
+            } returns true
+
+            withTestApplicationContext { client ->
+                val response = client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/tildel-plass") {
+                    createPostTiltakskoordinatorRequest(listOf(deltaker.id))
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<List<DeltakerResponse>>()
+                body.single().feilkode shouldBe DeltakerOppdateringFeilkode.UGYLDIG_STATE
+                Unit
+            }
+        }
+    }
+
+    @Nested
+    inner class SettPaaVentelisteTests {
+        @Test
+        fun `post sett-paa-venteliste - mangler tilgang - returnerer 403`() {
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws
+                AuthorizationException("")
+
+            val response = withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/sett-paa-venteliste") {
+                    createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `post sett-paa-venteliste - har tilgang - returnerer 200 med mappede deltakere`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val oppdateringResponse = DeltakerOppdateringResponse(deltaker = deltaker, feilkode = null)
+
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } returns Unit
+            coEvery {
+                tiltakskoordinatorClient.settPaaVenteliste(
+                    gjennomforingId = deltakerlisteInTest.id,
+                    deltakerIder = listOf(deltaker.id),
+                    endretAv = any(),
+                )
+            } returns listOf(oppdateringResponse)
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+            every {
+                tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
+            } returns true
+
+            withTestApplicationContext { client ->
+                val response =
+                    client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/sett-paa-venteliste") {
+                        createPostTiltakskoordinatorRequest(listOf(deltaker.id))
+                    }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<List<DeltakerResponse>>()
+                body shouldHaveSize 1
+                body.single().id shouldBe deltaker.id
+            }
+        }
+
+        @Test
+        fun `post sett-paa-venteliste - deltakerliste er feil type - returnerer unauthorized`() {
+            mockTilgangTilDeltakerliste()
+
+            coEvery { selfServiceTilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
+            every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(any()) } throws NoSuchElementException()
+
+            val response = withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
+                    createPostRequest(listOf(UUID.randomUUID()))
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.Unauthorized
+        }
+    }
+
+    @Nested
+    inner class DelMedArrangorTests {
+        @Test
+        fun `post del-med-arrangor - mangler tilgang til deltakerliste - returnerer 403`() {
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws
+                AuthorizationException("")
+
+            val response = withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/del-med-arrangor") {
+                    createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `post del-med-arrangor - deltakerliste finnes ikke - returnerer 404`() {
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws
+                NoSuchElementException()
+
+            val response = withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/deltakere/del-med-arrangor") {
+                    createPostTiltakskoordinatorRequest(listOf(UUID.randomUUID()))
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.NotFound
+        }
+
+        @Test
+        fun `post del-med-arrangor - har tilgang - returnerer 200 med mappede deltakere`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val oppdateringResponse = DeltakerOppdateringResponse(deltaker = deltaker, feilkode = null)
+
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } returns Unit
+            coEvery {
+                tiltakskoordinatorClient.delMedArrangor(
+                    gjennomforingId = deltakerlisteInTest.id,
+                    deltakerIder = listOf(deltaker.id),
+                    endretAv = any(),
+                )
+            } returns listOf(oppdateringResponse)
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+            every {
+                tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
+            } returns true
+
+            withTestApplicationContext { client ->
+                val response =
+                    client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/del-med-arrangor") {
+                        createPostTiltakskoordinatorRequest(listOf(deltaker.id))
+                    }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<List<DeltakerResponse>>()
+                body shouldHaveSize 1
+                body.single().id shouldBe deltaker.id
+            }
+        }
+    }
+
+    @Nested
+    inner class GiAvslagTests {
+        @Test
+        fun `post gi-avslag - mangler tilgang - returnerer 403`() {
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } throws
+                AuthorizationException("")
+
+            val response = withTestApplicationContext { client ->
+                client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/gi-avslag") {
+                    createPostTiltakskoordinatorRequest(
+                        AvslagRequest(
+                            deltakerId = UUID.randomUUID(),
+                            aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                                EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
+                                null,
+                            ),
+                            begrunnelse = null,
+                        ),
+                    )
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `post gi-avslag - har tilgang - returnerer 200 med mappet deltaker`() {
+            val deltaker = lagTiltakskoordinatorDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
+            val oppdateringResponse = DeltakerOppdateringResponse(deltaker = deltaker, feilkode = null)
+            val avslagRequest = AvslagRequest(
+                deltakerId = deltaker.id,
+                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                    EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
+                    null,
+                ),
+                begrunnelse = null,
+            )
+
+            coEvery { tiltakskoordinatorTilgangskontrollService.tilgangTilGjennomforingGuard(any(), any()) } returns Unit
+            coEvery {
+                tiltakskoordinatorClient.giAvslag(
+                    gjennomforingId = deltakerlisteInTest.id,
+                    avslagRequest = avslagRequest,
+                    endretAv = any(),
+                )
+            } returns oppdateringResponse
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+            every {
+                tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
+            } returns true
+
+            withTestApplicationContext { client ->
+                val response =
+                    client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/gi-avslag") {
+                        createPostTiltakskoordinatorRequest(avslagRequest)
+                    }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<List<DeltakerResponse>>()
+                body shouldHaveSize 1
+                body.single().id shouldBe deltaker.id
+            }
+        }
+    }
 
     private fun mockTilgangTilDeltakerliste() {
         coEvery { selfServiceTilgangskontrollService.verifiserTiltakskoordinatorTilgang(any(), any()) } returns Unit
