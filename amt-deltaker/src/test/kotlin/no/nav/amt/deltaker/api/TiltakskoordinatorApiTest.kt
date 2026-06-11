@@ -181,16 +181,14 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             tiltaksansvarligService.giAvslag(request.gjennomforingId, request.deltakerId, request.avslag, request.endretAv)
         } returns deltakeroppdateringResult
 
-        val expectedResponse = listOf(
-            DeltakerOppdateringResponse(
-                feilkode = null,
-                deltaker = mockk(relaxed = true),
-            ),
+        val expectedResponse = DeltakerOppdateringResponse(
+            feilkode = null,
+            deltaker = mockk(relaxed = true),
         )
         coEvery {
             tiltakskoordinatorResponseBuilder.buildResponse(
                 gjennomforingId = request.gjennomforingId,
-                deltakerIder = listOf(request.deltakerId),
+                deltakerId = request.deltakerId,
                 any(),
             )
         } returns expectedResponse

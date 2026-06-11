@@ -114,11 +114,12 @@ fun Routing.registerTiltakskoordinatorApi(
                         avslag = request.avslag,
                         endretAv = request.endretAv,
                     )
-                val response = tiltakskoordinatorResponseBuilder.buildResponse(
-                    gjennomforingId = request.gjennomforingId,
-                    deltakerIder = listOf(request.deltakerId),
-                    listOf(deltakeroppdatering).associate { it.deltakerId to it.exception },
-                )
+                val response = tiltakskoordinatorResponseBuilder
+                    .buildResponse(
+                        gjennomforingId = request.gjennomforingId,
+                        deltakerId = request.deltakerId,
+                        exception = deltakeroppdatering.exception,
+                    )
                 call.respond(response)
             }
         }

@@ -73,6 +73,12 @@ class TiltakskoordinatorResponseBuilder(
 
     suspend fun buildResponse(
         gjennomforingId: UUID,
+        deltakerId: UUID,
+        exception: Throwable?,
+    ) = buildResponse(gjennomforingId, listOf(deltakerId), mapOf(deltakerId to exception)).first()
+
+    suspend fun buildResponse(
+        gjennomforingId: UUID,
         deltakerIder: List<UUID>,
         feilkoder: Map<UUID, Throwable?>,
     ): List<DeltakerOppdateringResponse> {
