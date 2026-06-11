@@ -684,9 +684,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
                     }
 
                 response.status shouldBe HttpStatusCode.OK
-                val body = response.body<List<DeltakerResponse>>()
-                body shouldHaveSize 1
-                body.single().id shouldBe deltaker.id
+                val body = response.body<DeltakerResponse>()
+                body.id shouldBe deltaker.id
             }
         }
     }

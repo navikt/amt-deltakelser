@@ -214,16 +214,17 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     endretAv = navIdent,
                 )
 
-                val response = responseBuilder.toOppdatertDeltakerResponse(
-                    deltakere = listOf(deltakerOppdatering),
-                    kanSeInnbyggersNavn = { deltaker ->
-                        tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
-                            navAnsattAzureId = call.getNavAnsattAzureId(),
-                            erSkjermet = deltaker.navBruker.erSkjermet,
-                            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-                        )
-                    },
-                )
+                val response = responseBuilder
+                    .toOppdatertDeltakerResponse(
+                        deltakere = listOf(deltakerOppdatering),
+                        kanSeInnbyggersNavn = { deltaker ->
+                            tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
+                                navAnsattAzureId = call.getNavAnsattAzureId(),
+                                erSkjermet = deltaker.navBruker.erSkjermet,
+                                adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+                            )
+                        },
+                    ).single()
 
                 call.respond(response)
             }
