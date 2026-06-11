@@ -48,8 +48,8 @@ class ResponseBuilder(
         deltaker: TiltakskoordinatorDeltakerIListeResponse,
         feilkode: DeltakerOppdateringFeilkode?,
         kanSeInnbyggersNavn: Boolean,
-        erNyDeltaker: Boolean = false,
-        harOppdateringFraNav: Boolean = false,
+        erNyDeltaker: Boolean,
+        harOppdateringFraNav: Boolean,
     ): DeltakerResponse = with(deltaker) {
         val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(kanSeInnbyggersNavn)
 
