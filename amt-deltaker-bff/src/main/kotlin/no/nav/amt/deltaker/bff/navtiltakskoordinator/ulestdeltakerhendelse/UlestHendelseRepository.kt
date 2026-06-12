@@ -85,6 +85,7 @@ class UlestHendelseRepository {
         }
     }
 
+    // Used by tests only
     fun get(id: UUID): Result<UlestHendelse> = runCatching {
         val query = queryOf(
             """
