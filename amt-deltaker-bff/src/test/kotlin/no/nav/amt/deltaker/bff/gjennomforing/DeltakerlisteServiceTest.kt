@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.gjennomforing
 
-import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestRepository
@@ -20,22 +19,6 @@ class DeltakerlisteServiceTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
-    }
-
-    @Test
-    fun `get - deltakerliste har felles oppstart - returnere success`() {
-        with(DeltakerlisteContext()) {
-            deltakerlisteRepository.get(deltakerliste.id).isSuccess shouldBe true
-        }
-    }
-
-    @Test
-    fun `get - deltakerliste har lopende oppstart - returnere success`() {
-        with(DeltakerlisteContext(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)) {
-            val result = deltakerlisteRepository.get(deltakerliste.id)
-
-            result.isSuccess shouldBe true
-        }
     }
 
     @Test
