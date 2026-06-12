@@ -34,6 +34,7 @@ class DeltakerV2Consumer(
     private val consumer = KafkaConsumerFactory.buildManagedKafkaConsumer(
         topic = Environment.AMT_DELTAKERV2_TOPIC,
         consumeFunc = ::consume,
+        skipFilter = { record -> record.offset() == 38317863L },
     )
 
     suspend fun consume(

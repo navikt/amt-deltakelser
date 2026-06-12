@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import java.util.UUID
@@ -27,6 +28,7 @@ object KafkaConsumerFactory {
         consumerGroupId: String = Environment.KAFKA_CONSUMER_GROUP_ID,
         kafkaAutoOffsetReset: String = AUTO_OFFSET_RESET_EARLIEST, // alt: AUTO_OFFSET_RESET_LATEST
         consumeFunc: suspend (key: UUID, value: String?) -> Unit,
+        skipFilter: (ConsumerRecord<UUID, String?>) -> Boolean = { false },
     ): ManagedKafkaConsumer<UUID, String?> {
         val kafkaConfig = if (Environment.isLocal()) {
             LocalKafkaConfig(kafkaAutoOffsetReset = kafkaAutoOffsetReset)
@@ -42,6 +44,7 @@ object KafkaConsumerFactory {
                 groupId = consumerGroupId,
             ),
             consume = consumeFunc,
+            skipFilter = skipFilter,
         )
     }
 }
