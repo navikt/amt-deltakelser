@@ -6,16 +6,14 @@ import java.time.Period
 import java.util.UUID
 
 class DeltakerlisteService(
-    private val repository: DeltakerlisteRepository,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
 ) {
     companion object {
         val tiltakskoordinatorGraceperiode: Period = Period.ofDays(14)
     }
 
-    fun get(id: UUID) = repository.get(id)
-
     fun verifiserTilgjengeligDeltakerliste(id: UUID): Deltakerliste {
-        val deltakerliste = get(id).getOrThrow()
+        val deltakerliste = deltakerlisteRepository.get(id).getOrThrow()
 
         deltakerliste.sluttDato?.let { sluttdato ->
             if (LocalDate.now().isAfter(sluttdato.plus(tiltakskoordinatorGraceperiode))) {

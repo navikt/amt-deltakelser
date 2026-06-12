@@ -14,7 +14,8 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
 class DeltakerlisteServiceTest {
-    private val deltakerlisteService = DeltakerlisteService(DeltakerlisteRepository())
+    private val deltakerlisteRepository = DeltakerlisteRepository()
+    private val deltakerlisteService = DeltakerlisteService(deltakerlisteRepository)
 
     companion object {
         @RegisterExtension
@@ -24,14 +25,14 @@ class DeltakerlisteServiceTest {
     @Test
     fun `get - deltakerliste har felles oppstart - returnere success`() {
         with(DeltakerlisteContext()) {
-            deltakerlisteService.get(deltakerliste.id).isSuccess shouldBe true
+            deltakerlisteRepository.get(deltakerliste.id).isSuccess shouldBe true
         }
     }
 
     @Test
     fun `get - deltakerliste har lopende oppstart - returnere success`() {
         with(DeltakerlisteContext(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)) {
-            val result = deltakerlisteService.get(deltakerliste.id)
+            val result = deltakerlisteRepository.get(deltakerliste.id)
 
             result.isSuccess shouldBe true
         }

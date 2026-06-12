@@ -84,7 +84,7 @@ class DeltakerlisteConsumerTest {
         deltakerService = deltakerService,
         navBrukerService = NavBrukerService(
             amtPersonServiceClient = amtPersonServiceClient,
-            repository = NavBrukerRepository(),
+            navBrukerRepository = NavBrukerRepository(),
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
         ),

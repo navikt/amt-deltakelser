@@ -66,7 +66,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal teste autentisering - mangler AD rolle - returnerer 401`() {
-        every { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
+        every { deltakerlisteRepository.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
 
         withTestApplicationContext { client ->
             client
@@ -118,7 +118,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         val gjennomforing = lagGjennomforingResponse()
         val expected = ResponseMapper.buildGjennomforing(gjennomforing, listOf(tiltakskoordinatorInTest))
         every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
-        every { deltakerlisteService.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
+        every { deltakerlisteRepository.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
         coEvery { tiltakskoordinatorClient.getGjennomforing(deltakerlisteInTest.id) } returns gjennomforing
 
         every {

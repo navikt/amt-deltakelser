@@ -5,20 +5,17 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavBruker
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 class NavBrukerService(
     private val amtPersonServiceClient: AmtPersonServiceClient,
-    private val repository: NavBrukerRepository,
+    private val navBrukerRepository: NavBrukerRepository,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun get(id: UUID) = repository.get(id)
-
     suspend fun getOrCreate(personident: String): Result<NavBruker> {
-        val brukerResult = repository.get(personident)
+        val brukerResult = navBrukerRepository.get(personident)
         if (brukerResult.isSuccess) return brukerResult
 
         val bruker = amtPersonServiceClient.hentNavBruker(personident)
@@ -28,22 +25,22 @@ class NavBrukerService(
     }
 
     suspend fun upsert(navBruker: NavBruker) {
-        val bruker = repository.get(navBruker.personId).getOrNull()
+        val bruker = navBrukerRepository.get(navBruker.personId).getOrNull()
         if (navBruker != bruker) upsertNavBruker(navBruker)
     }
 
     suspend fun update(personident: String) {
-        val lagretBruker = repository.get(personident).getOrNull()
+        val lagretBruker = navBrukerRepository.get(personident).getOrNull()
         val bruker = amtPersonServiceClient.hentNavBruker(personident)
 
         log.info("Oppdaterte nav-bruker ${bruker.personId} med data fra amt-person-service")
-        if (lagretBruker != bruker) repository.upsert(bruker)
+        if (lagretBruker != bruker) navBrukerRepository.upsert(bruker)
     }
 
     private suspend fun upsertNavBruker(navBruker: NavBruker): Result<NavBruker> {
         navBruker.navVeilederId?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
         navBruker.navEnhetId?.let { navEnhetService.hentEllerOpprettEnhet(it) }
 
-        return repository.upsert(navBruker)
+        return navBrukerRepository.upsert(navBruker)
     }
 }
