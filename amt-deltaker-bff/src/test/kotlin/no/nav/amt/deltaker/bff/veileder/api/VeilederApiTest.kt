@@ -184,7 +184,7 @@ class VeilederApiTest : IntegrationTestBase() {
     @Test
     fun `getDeltakerHistorikk - toggle på - returnerer historikk fra amt-deltaker`() {
         val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
-        val historikk = deltaker.getDeltakerHistorikkForVisning()
+        val historikk = deltaker.historikk
         val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 

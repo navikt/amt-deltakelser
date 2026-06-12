@@ -10,7 +10,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import java.time.Duration
@@ -86,12 +85,6 @@ data class Deltaker(
         } else {
             ikkeFattetVedtak
         }
-
-    fun getDeltakerHistorikkForVisning() = historikk
-        .filterNot {
-            deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING &&
-                it is DeltakerHistorikk.Vedtak
-        }.sortedByDescending { it.sistEndret }
 
     fun harSluttet(): Boolean = status.type in AVSLUTTENDE_STATUSER
 

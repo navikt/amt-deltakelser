@@ -135,7 +135,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
         val deltaker = TestData.leggTilHistorikk(TestData.lagDeltaker(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
-        val historikk = deltaker.getDeltakerHistorikkForVisning()
+        val historikk = deltaker.historikk
         val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
