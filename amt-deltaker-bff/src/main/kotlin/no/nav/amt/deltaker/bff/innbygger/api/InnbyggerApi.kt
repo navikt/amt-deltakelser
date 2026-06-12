@@ -90,9 +90,20 @@ fun Routing.registerInnbyggerApi(
                 .innbyggerGodkjennUtkast(deltakerId)
                 .let { ModelMapper.toDeltaker(it) }
                 .let { deltaker ->
+                    val utflatetKodeverk = deltaker.gjennomforing.tiltak.tiltakskode
+                        .takeIf { deltaker.gjennomforing.type == GjennomforingType.Enkeltplass }
+                        ?.let { tiltakskode ->
+                            kodeverkClient
+                                .hentKodeverk(tiltakskode)
+                                .tilUtflatetKodeverk(
+                                    kodeverkValg = deltaker.gjennomforing.kodeverkValg,
+                                    sertifiseringValg = deltaker.gjennomforing.sertifiseringValg,
+                                )
+                        }
+
                     InnbyggerDeltakerResponse.fromModel(
                         deltaker = deltaker,
-                        utflatetKodeverk = null,
+                        utflatetKodeverk = utflatetKodeverk,
                     )
                 }
 
