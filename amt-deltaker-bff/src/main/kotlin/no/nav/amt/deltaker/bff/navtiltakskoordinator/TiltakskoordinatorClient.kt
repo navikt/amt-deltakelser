@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
@@ -10,7 +9,7 @@ import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
-import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
@@ -35,41 +34,46 @@ class TiltakskoordinatorClient(
 
     suspend fun getDeltakereForGjennomforing(
         request: TiltaksKoordinatorDeltakerlisteRequest,
-    ): PaginatedResult<TiltakskoordinatorDeltakerResponse> = performPost(
+    ): PaginatedResult<TiltakskoordinatorDeltakerIListeResponse> = performPost(
         "tiltakskoordinator/deltakere/${request.gjennomforingId}",
         request,
     ).failIfNotSuccess("Fant ikke gjennomforing ${request.gjennomforingId} i amt-deltaker.")
         .body()
 
     suspend fun delMedArrangor(
+        gjennomforingId: UUID,
         deltakerIder: List<UUID>,
         endretAv: String,
     ): List<DeltakerOppdateringResponse> = performPost(
         "tiltakskoordinator/deltakere/del-med-arrangor",
-        DelMedArrangorRequest(endretAv, deltakerIder),
+        DelMedArrangorRequest(endretAv, deltakerIder, gjennomforingId),
     ).failIfNotSuccess("Kunne ikke dele-med-arrangor i amt-deltaker. ").body()
 
     suspend fun tildelPlass(
+        gjennomforingId: UUID,
         deltakerIder: List<UUID>,
         endretAv: String,
     ): List<DeltakerOppdateringResponse> = performPost(
         "tiltakskoordinator/deltakere/tildel-plass",
-        DeltakereRequest(deltakerIder, endretAv),
+        DeltakereRequest(gjennomforingId, deltakerIder, endretAv),
     ).failIfNotSuccess("Kunne ikke tildele plass i amt-deltaker.").body()
 
     suspend fun settPaaVenteliste(
+        gjennomforingId: UUID,
         deltakerIder: List<UUID>,
         endretAv: String,
     ): List<DeltakerOppdateringResponse> = performPost(
         "tiltakskoordinator/deltakere/sett-paa-venteliste",
-        DeltakereRequest(deltakerIder, endretAv),
+        DeltakereRequest(gjennomforingId, deltakerIder, endretAv),
     ).failIfNotSuccess("Kunne ikke sette på venteliste i amt-deltaker.").body()
 
     suspend fun giAvslag(
+        gjennomforingId: UUID,
         avslagRequest: AvslagRequest,
         endretAv: String,
-    ): Deltakeroppdatering {
+    ): DeltakerOppdateringResponse {
         val requestBody = GiAvslagRequest(
+            gjennomforingId = gjennomforingId,
             deltakerId = avslagRequest.deltakerId,
             avslag = EndringFraTiltakskoordinator.Avslag(
                 avslagRequest.aarsak,

@@ -2,9 +2,7 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
@@ -84,48 +82,6 @@ object ResponseMapper {
             pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
             koordinatorer = koordinatortilganger,
             erEnkeltplass = type == GjennomforingType.Enkeltplass,
-        )
-    }
-
-    // Brukes av gammel kode som skal slettes
-    fun TiltakskoordinatorsDeltaker.toDeltakerResponse(kanSeInnbyggersNavn: Boolean): DeltakerResponse {
-        val (fornavn, mellomnavn, etternavn) = navBruker.getVisningsnavn(kanSeInnbyggersNavn)
-
-        return DeltakerResponse(
-            id = id,
-            fornavn = fornavn,
-            mellomnavn = mellomnavn,
-            etternavn = etternavn,
-            status = DeltakerStatusResponse(
-                type = status.type,
-                aarsak = status.aarsak?.let {
-                    DeltakerStatusAarsakResponse(
-                        it.type,
-                        it.beskrivelse,
-                    )
-                },
-            ),
-            vurdering = vurdering?.vurderingstype,
-            beskyttelsesmarkering = beskyttelsesmarkering,
-            navEnhet = navEnhet,
-            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            feilkode = feilkode,
-            ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
-            harAktiveForslag = forslag.any { f -> f.status == Forslag.Status.VenterPaSvar },
-            erNyDeltaker = ulesteHendelser.any {
-                it.hendelse is UlestHendelseType.InnbyggerGodkjennUtkast ||
-                    it.hendelse is UlestHendelseType.NavGodkjennUtkast
-            },
-            harOppdateringFraNav = ulesteHendelser.any {
-                it.hendelse is UlestHendelseType.IkkeAktuell ||
-                    it.hendelse is UlestHendelseType.AvsluttDeltakelse ||
-                    it.hendelse is UlestHendelseType.AvbrytDeltakelse ||
-                    it.hendelse is UlestHendelseType.ReaktiverDeltakelse
-            },
-            kanEndres = kanEndres,
-            soktInnDato = soktInnDato,
-            startdato = startdato,
-            sluttdato = sluttdato,
         )
     }
 

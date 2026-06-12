@@ -32,7 +32,6 @@ class TilgangskontrollServiceTest {
         tilgangskontrollService = tilgangskontrollService,
         selfServiceTilgangService = mockk(relaxed = true),
         deltakerlisteService = mockk(relaxed = true),
-        tiltakskoordinatorService = mockk(relaxed = true),
     )
 
     companion object {

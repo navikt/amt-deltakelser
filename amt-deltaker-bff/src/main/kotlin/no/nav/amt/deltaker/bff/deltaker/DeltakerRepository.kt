@@ -149,19 +149,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getMany(ider: List<UUID>): List<Deltaker> {
-        if (ider.isEmpty()) return emptyList()
-
-        return Database.query { session ->
-            session.run(
-                queryOf(
-                    getDeltakerSql("d.id = ANY(:ider)"),
-                    mapOf("ider" to ider.toTypedArray()),
-                ).map(::rowMapper).asList,
-            )
-        }
-    }
-
+    // Brukes ifm kladd(som skal fjernes) og låsing når vi leser fra kafka
     fun getMany(
         personident: String,
         deltakerlisteId: UUID,

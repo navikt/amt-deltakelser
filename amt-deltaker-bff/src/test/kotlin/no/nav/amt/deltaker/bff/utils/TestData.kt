@@ -5,8 +5,6 @@ import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.Compani
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorDeltakerlisteTilgang
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toTiltakskoordinatorsDeltaker
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.TiltakskoordinatorsDeltaker
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
@@ -16,7 +14,7 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.toInnhold
-import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -48,7 +46,6 @@ import no.nav.amt.lib.models.hendelse.HendelseDeltaker
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
-import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
@@ -444,7 +441,7 @@ object TestData {
         sisteVurderingstype: Vurderingstype? = null,
         soktInnDato: LocalDate? = LocalDate.now().minusMonths(2),
         kanEndres: Boolean = true,
-    ) = TiltakskoordinatorDeltakerResponse(
+    ) = TiltakskoordinatorDeltakerIListeResponse(
         id = id,
         status = status,
         navBruker = navBruker,
@@ -474,23 +471,6 @@ object TestData {
         adressebeskyttelse = adressebeskyttelse,
         ikkeDigitalOgManglerAdresse = ikkeDigitalOgManglerAdresse,
         navEnhet = "Nav Grunerløkka",
-    )
-
-    fun lagTiltakskoordinatorDeltaker(
-        sisteVurdering: Vurdering? = lagVurdering(),
-        navEnhet: NavEnhet = lagNavEnhet(),
-        navVeileder: NavAnsatt = lagNavAnsatt(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(),
-    ): TiltakskoordinatorsDeltaker = lagDeltaker(
-        deltakerliste = deltakerliste,
-    ).toTiltakskoordinatorsDeltaker(
-        sisteVurdering = sisteVurdering,
-        navEnhet = navEnhet,
-        navVeileder = navVeileder,
-        null,
-        false,
-        emptyList(),
-        emptyList(),
     )
 
     fun lagVurdering(

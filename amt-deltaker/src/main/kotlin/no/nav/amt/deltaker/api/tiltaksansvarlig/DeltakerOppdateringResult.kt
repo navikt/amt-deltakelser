@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.api.tiltaksansvarlig
 
-import no.nav.amt.deltaker.model.Deltaker
+import java.util.UUID
 
 data class DeltakerOppdateringResult(
-    val deltaker: Deltaker,
+    val deltakerId: UUID,
     val isSuccess: Boolean,
     val exception: Throwable?,
 )

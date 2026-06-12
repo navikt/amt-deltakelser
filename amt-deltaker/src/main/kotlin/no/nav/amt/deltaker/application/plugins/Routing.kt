@@ -161,7 +161,6 @@ fun Application.configureRouting(
             deltakerlisteRepository = deltakerlisteRepository,
             deltakerResponseBuilder = deltakerResponseBuilder,
             tiltaksansvarligService = tiltaksansvarligService,
-            deltakerHistorikkService = deltakerHistorikkService,
             tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
         )
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)

@@ -34,7 +34,7 @@ object ClientTestUtils {
         expectAuthHeader: Boolean = true,
         expectedMethod: HttpMethod? = null,
     ) = HttpClient(MockEngine) {
-        install(ContentNegotiation) { jackson() }
+        install(ContentNegotiation) { jackson { findAndAddModules() } }
         engine {
             addHandler { request ->
                 request.url.toString() shouldBe expectedUrl

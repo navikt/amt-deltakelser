@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.clients.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.bff.clients.Testdata.lagUtkast
+import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
@@ -149,6 +149,21 @@ class PaameldingClientTest {
                 block = innbyggerGodkjennUtkastLambda,
             )
         }
+    }
+
+    fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) = with(deltaker) {
+        OpprettKladdResponse(
+            id = id,
+            navBruker = navBruker,
+            deltakerlisteId = deltakerliste.id,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            dagerPerUke = dagerPerUke,
+            deltakelsesprosent = deltakelsesprosent,
+            bakgrunnsinformasjon = bakgrunnsinformasjon,
+            deltakelsesinnhold = deltakelsesinnhold!!,
+            status = status,
+        )
     }
 
     companion object {

@@ -49,7 +49,6 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetConsumer
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltakerlisteProducer
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
@@ -270,18 +269,6 @@ fun Application.module() {
     val ulestHendelseRepository = UlestHendelseRepository()
     val ulestHendelseService = UlestHendelseService(ulestHendelseRepository)
 
-    val tiltakskoordinatorService = TiltakskoordinatorService(
-        tiltaksKoordinatorClient = tiltakskoordinatorClient,
-        deltakerRepository = deltakerRepository,
-        deltakerService = deltakerService,
-        vurderingService = vurderingService,
-        navEnhetService = navEnhetService,
-        navAnsattService = navAnsattService,
-        amtDistribusjonClient = amtDistribusjonClient,
-        forslagRepository = forslagRepository,
-        ulestHendelseRepository = ulestHendelseRepository,
-    )
-
     val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient,
     )
@@ -296,7 +283,6 @@ fun Application.module() {
         tilgangskontrollService = tilgangskontrollService,
         deltakerlisteService = deltakerlisteService,
         selfServiceTilgangService = selfServiceTilgangService,
-        tiltakskoordinatorService = tiltakskoordinatorService,
     )
 
     val tiltakRepository = TiltakRepository()
@@ -350,7 +336,6 @@ fun Application.module() {
         deltakerlisteRepository = deltakerlisteRepository,
         unleash = unleash,
         tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
-        tiltakskoordinatorService = tiltakskoordinatorService,
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
         ulestHendelseRepository = ulestHendelseRepository,
         selfServiceTilgangService = selfServiceTilgangService,

@@ -6,17 +6,14 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
-import no.nav.amt.deltaker.bff.utils.toDeltakeroppdatering
-import no.nav.amt.deltaker.bff.utils.toDeltakeroppdateringResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
-import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
@@ -29,16 +26,99 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 class TiltaksKoordinatorClientTest {
-    // TODO: Mangler tester for følgende:
-    // - getGjennomforing
-    // - tildelPlass
-    // - settPaaVenteliste
+    @Nested
+    inner class GetGjennomforing {
+        val expectedUrl = "$CLIENT_BASE_URL/gjennomforing/$gjennomforingId"
+        val expectedErrorMessage = "Fant ikke gjennomforing $gjennomforingId i amt-deltaker."
+        val getGjennomforingLambda: suspend (TiltakskoordinatorClient) -> Any =
+            { client -> client.getGjennomforing(gjennomforingId) }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(
+                expectedExceptionType,
+                statusCode,
+                expectedUrl,
+                expectedErrorMessage,
+                getGjennomforingLambda,
+                expectedMethod = HttpMethod.Get,
+            )
+        }
+    }
+
+    @Nested
+    inner class TildelPlass {
+        val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/tildel-plass"
+        val expectedErrorMessage = "Kunne ikke tildele plass i amt-deltaker."
+        val tildelPlassLambda: suspend (TiltakskoordinatorClient) -> List<DeltakerOppdateringResponse> =
+            { client ->
+                client.tildelPlass(
+                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    deltakerIder = listOf(deltakerInTest.id),
+                    endretAv = "~endretAv~",
+                )
+            }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, tildelPlassLambda)
+        }
+
+        @Test
+        fun `skal returnere liste med TiltakskoordinatorDeltakerResponse`() {
+            runHappyPathTest(
+                expectedUrl,
+                listOf(
+                    DeltakerOppdateringResponse(deltaker = lagTiltakskoordinatorDeltakerResponse(id = deltakerInTest.id), feilkode = null),
+                ),
+                tildelPlassLambda,
+            )
+        }
+    }
+
+    @Nested
+    inner class SettPaaVenteliste {
+        val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/sett-paa-venteliste"
+        val expectedErrorMessage = "Kunne ikke sette på venteliste i amt-deltaker."
+        val settPaaVentelisteLambda: suspend (TiltakskoordinatorClient) -> List<DeltakerOppdateringResponse> =
+            { client ->
+                client.settPaaVenteliste(
+                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    deltakerIder = listOf(deltakerInTest.id),
+                    endretAv = "~endretAv~",
+                )
+            }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, settPaaVentelisteLambda)
+        }
+
+        @Test
+        fun `skal returnere liste med TiltakskoordinatorDeltakerResponse`() {
+            runHappyPathTest(
+                expectedUrl,
+                listOf(
+                    DeltakerOppdateringResponse(deltaker = lagTiltakskoordinatorDeltakerResponse(id = deltakerInTest.id), feilkode = null),
+                ),
+                settPaaVentelisteLambda,
+            )
+        }
+    }
 
     @Nested
     inner class GetDeltakereForGjennomforing {
         val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/$gjennomforingId"
         val expectedErrorMessage = "Fant ikke gjennomforing $gjennomforingId i amt-deltaker."
-        val getDeltakereForGjennomforingLambda: suspend (TiltakskoordinatorClient) -> PaginatedResult<TiltakskoordinatorDeltakerResponse> =
+        val getDeltakereForGjennomforingLambda: suspend (
+            TiltakskoordinatorClient,
+        ) -> PaginatedResult<TiltakskoordinatorDeltakerIListeResponse> =
             { client -> client.getDeltakereForGjennomforing(deltakereRequest) }
 
         @ParameterizedTest
@@ -73,6 +153,7 @@ class TiltaksKoordinatorClientTest {
         val delMedArrangorLambda: suspend (TiltakskoordinatorClient) -> List<DeltakerOppdateringResponse> =
             { client ->
                 client.delMedArrangor(
+                    gjennomforingId = deltakerInTest.deltakerliste.id,
                     deltakerIder = listOf(deltakerInTest.id),
                     endretAv = "~endretAv~",
                 )
@@ -86,10 +167,12 @@ class TiltaksKoordinatorClientTest {
         }
 
         @Test
-        fun `skal returnere liste med DeltakeroppdateringResponse`() {
+        fun `skal returnere liste med TiltakskoordinatorDeltakerResponse`() {
             runHappyPathTest(
                 expectedUrl,
-                listOf(deltakerInTest.toDeltakeroppdateringResponse()),
+                listOf(
+                    DeltakerOppdateringResponse(deltaker = lagTiltakskoordinatorDeltakerResponse(id = deltakerInTest.id), feilkode = null),
+                ),
                 delMedArrangorLambda,
             )
         }
@@ -104,10 +187,11 @@ class TiltaksKoordinatorClientTest {
             EndringFraTiltakskoordinator.Avslag.Aarsak(EndringFraTiltakskoordinator.Avslag.Aarsak.Type.ANNET, null),
             null,
         )
-        val giAvslagLambda: suspend (TiltakskoordinatorClient) -> Deltakeroppdatering =
+        val giAvslagLambda: suspend (TiltakskoordinatorClient) -> DeltakerOppdateringResponse =
             { client ->
                 client.giAvslag(
-                    avslagRequest,
+                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    avslagRequest = avslagRequest,
                     endretAv = "~endretAv~",
                 )
             }
@@ -120,8 +204,12 @@ class TiltaksKoordinatorClientTest {
         }
 
         @Test
-        fun `skal returnere Deltakeroppdatering`() {
-            runHappyPathTest(expectedUrl, deltakerOppdateringInTest, giAvslagLambda)
+        fun `skal returnere TiltakskoordinatorDeltakerResponse`() {
+            runHappyPathTest(
+                expectedUrl,
+                DeltakerOppdateringResponse(deltaker = lagTiltakskoordinatorDeltakerResponse(id = deltakerInTest.id), feilkode = null),
+                giAvslagLambda,
+            )
         }
     }
 
@@ -132,7 +220,6 @@ class TiltaksKoordinatorClientTest {
             gjennomforingId = gjennomforingId,
         )
         private val deltakerInTest = lagDeltaker()
-        private val deltakerOppdateringInTest = deltakerInTest.toDeltakeroppdatering()
 
         private fun lagPaginatedTiltakskoordinatorDeltakere() = PaginatedResult(
             totalCount = 1,
