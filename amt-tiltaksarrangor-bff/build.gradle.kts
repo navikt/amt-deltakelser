@@ -39,7 +39,6 @@ dependencies {
 
     implementation(libs.token.validation.spring)
     implementation(libs.token.client.spring)
-    implementation(libs.caffeine)
     implementation(libs.unleash)
 
     implementation(libs.postgresql)
