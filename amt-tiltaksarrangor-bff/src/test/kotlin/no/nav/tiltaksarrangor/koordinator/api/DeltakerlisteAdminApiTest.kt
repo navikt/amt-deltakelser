@@ -20,229 +20,228 @@ import no.nav.tiltaksarrangor.repositories.model.AnsattRolleDbo
 import no.nav.tiltaksarrangor.repositories.model.ArrangorDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.KoordinatorDeltakerlisteDbo
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.HttpHeaders
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import java.time.LocalDate
 import java.util.UUID
 
+@AutoConfigureMockMvc
 class DeltakerlisteAdminApiTest(
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val mockMvc: MockMvc,
 ) : IntegrationTest() {
-    @Test
-    fun `getAlleDeltakerlister - ikke autentisert - returnerer 401`() {
-        val response = sendRequest(
-            method = "GET",
-            path = "/tiltaksarrangor/koordinator/admin/deltakerlister",
-        )
+    @Nested
+    inner class GetAlleDeltakerlisterTests {
+        @Test
+        fun `getAlleDeltakerlister - ikke autentisert - returnerer 401`() {
+            mockMvc
+                .get("/tiltaksarrangor/koordinator/admin/deltakerlister")
+                .andExpect { status { isUnauthorized() } }
+        }
 
-        response.code shouldBe 401
+        @Test
+        fun `getAlleDeltakerlister - autentisert - returnerer 200`() {
+            val personIdent = "12345678910"
+            val arrangorId = createArrangor()
+
+            val deltakerliste1 = createDeltakerliste(
+                arrangorId,
+                id = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a"),
+                navn = "Gjennomføring 1",
+                tiltaksnavn = "Navn på tiltak",
+                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                startDato = LocalDate.of(2023, 2, 1),
+            )
+
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
+                AnsattDbo(
+                    id = UUID.randomUUID(),
+                    personIdent = personIdent,
+                    fornavn = "Fornavn",
+                    mellomnavn = null,
+                    etternavn = "Etternavn",
+                    roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.KOORDINATOR)),
+                    deltakerlister = listOf(KoordinatorDeltakerlisteDbo(deltakerliste1.id)),
+                    veilederDeltakere = emptyList(),
+                ),
+            )
+
+            mockMvc
+                .get("/tiltaksarrangor/koordinator/admin/deltakerlister") {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = personIdent)}")
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.length()") { value(2) }
+                    jsonPath("$[0].id") { value("9987432c-e336-4b3b-b73e-b7c781a0823a") }
+                    jsonPath("$[0].navn") { value("Gjennomføring 1") }
+                    jsonPath("$[0].lagtTil") { value(true) }
+                    jsonPath("$[1].id") { value("fd70758a-44c5-4868-bdcb-b1ddd26cb5e9") }
+                    jsonPath("$[1].navn") { value("Gjennomføring 2") }
+                    jsonPath("$[1].lagtTil") { value(false) }
+                }
+        }
     }
 
-    @Test
-    fun `getAlleDeltakerlister - autentisert - returnerer 200`() {
-        val personIdent = "12345678910"
-        val arrangorId = UUID.randomUUID()
+    @Nested
+    inner class LeggTilDeltakerlisteTests {
+        @Test
+        fun `leggTilDeltakerliste - ikke autentisert - returnerer 401`() {
+            mockMvc
+                .post("/tiltaksarrangor/koordinator/admin/deltakerliste/${UUID.randomUUID()}")
+                .andExpect { status { isUnauthorized() } }
+        }
+
+        @Test
+        fun `leggTilDeltakerliste - autentisert - returnerer 200`() {
+            val personIdent = "12345678910"
+            val deltakerlisteId = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a")
+            val arrangorId = createArrangor()
+
+            createDeltakerliste(
+                arrangorId,
+                id = deltakerlisteId,
+                navn = "Gjennomføring 1",
+                tiltaksnavn = "Navn på tiltak",
+            )
+
+            val ansattId = UUID.randomUUID()
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
+                AnsattDbo(
+                    id = ansattId,
+                    personIdent = personIdent,
+                    fornavn = "Fornavn",
+                    mellomnavn = null,
+                    etternavn = "Etternavn",
+                    roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.KOORDINATOR)),
+                    deltakerlister = emptyList(),
+                    veilederDeltakere = emptyList(),
+                ),
+            )
+
+            every {
+                amtArrangorClient.leggTilDeltakerlisteForKoordinator(
+                    ansattId = ansattId,
+                    arrangorId = arrangorId,
+                    deltakerlisteId = deltakerlisteId,
+                )
+            } just Runs
+
+            mockMvc
+                .post("/tiltaksarrangor/koordinator/admin/deltakerliste/$deltakerlisteId") {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = personIdent)}")
+                }.andExpect { status { isOk() } }
+
+            val ansattFraDb = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
+            ansattFraDb?.deltakerlister?.size shouldBe 1
+            ansattFraDb?.deltakerlister?.find { it.deltakerlisteId == deltakerlisteId } shouldNotBe null
+        }
+    }
+
+    @Nested
+    inner class FjernDeltakerlisteTests {
+        @Test
+        fun `fjernDeltakerliste - ikke autentisert - returnerer 401`() {
+            mockMvc
+                .delete("/tiltaksarrangor/koordinator/admin/deltakerliste/${UUID.randomUUID()}")
+                .andExpect { status { isUnauthorized() } }
+        }
+
+        @Test
+        fun `fjernDeltakerliste - autentisert - returnerer 200`() {
+            val personIdent = "12345678910"
+            val deltakerlisteId = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a")
+            val arrangorId = createArrangor()
+
+            createDeltakerliste(
+                arrangorId,
+                id = deltakerlisteId,
+                navn = "Gjennomføring 1",
+                tiltaksnavn = "Navn på tiltak",
+            )
+
+            val ansattId = UUID.randomUUID()
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
+                AnsattDbo(
+                    id = ansattId,
+                    personIdent = personIdent,
+                    fornavn = "Fornavn",
+                    mellomnavn = null,
+                    etternavn = "Etternavn",
+                    roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.KOORDINATOR)),
+                    deltakerlister = listOf(KoordinatorDeltakerlisteDbo(deltakerlisteId)),
+                    veilederDeltakere = emptyList(),
+                ),
+            )
+
+            every {
+                amtArrangorClient.fjernDeltakerlisteForKoordinator(
+                    ansattId = ansattId,
+                    arrangorId = arrangorId,
+                    deltakerlisteId = deltakerlisteId,
+                )
+            } just Runs
+
+            mockMvc
+                .delete("/tiltaksarrangor/koordinator/admin/deltakerliste/$deltakerlisteId") {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = personIdent)}")
+                }.andExpect { status { isOk() } }
+
+            val ansattFraDb = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
+            ansattFraDb?.deltakerlister?.size shouldBe 0
+        }
+    }
+
+    // Helper functions for test setup
+    private fun createArrangor(
+        id: UUID = UUID.randomUUID(),
+        navn: String = "Arrangør AS",
+        organisasjonsnummer: String = "88888888",
+    ): UUID {
         arrangorRepository.insertOrUpdateArrangor(
             ArrangorDbo(
-                id = arrangorId,
-                navn = "Arrangør AS",
-                organisasjonsnummer = "88888888",
+                id = id,
+                navn = navn,
+                organisasjonsnummer = organisasjonsnummer,
                 overordnetArrangorId = null,
             ),
         )
-        val deltakerliste1 =
-            DeltakerlisteDbo(
-                id = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a"),
-                navn = "Gjennomføring 1",
-                gjennomforingstype = GjennomforingType.Gruppe,
-                status = GjennomforingStatusType.GJENNOMFORES,
-                arrangorId = arrangorId,
-                tiltaksnavn = "Navn på tiltak",
-                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                startDato = LocalDate.of(2023, 2, 1),
-                sluttDato = null,
-                erKurs = false,
-                oppstartstype = Oppstartstype.LOPENDE,
-                tilgjengeligForArrangorFraOgMedDato = null,
-                pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
-            )
-        val deltakerliste2 =
-            DeltakerlisteDbo(
-                id = UUID.fromString("fd70758a-44c5-4868-bdcb-b1ddd26cb5e9"),
-                navn = "Gjennomføring 2",
-                gjennomforingstype = GjennomforingType.Gruppe,
-                status = GjennomforingStatusType.GJENNOMFORES,
-                arrangorId = arrangorId,
-                tiltaksnavn = "Annet tiltak",
-                tiltakskode = Tiltakskode.OPPFOLGING,
-                startDato = LocalDate.of(2023, 5, 1),
-                sluttDato = LocalDate.of(2023, 6, 1),
-                erKurs = false,
-                oppstartstype = Oppstartstype.LOPENDE,
-                tilgjengeligForArrangorFraOgMedDato = LocalDate.now().minusYears(1),
-                pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
-            )
-        deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste1)
-        deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste2)
-        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-            AnsattDbo(
-                id = UUID.randomUUID(),
-                personIdent = personIdent,
-                fornavn = "Fornavn",
-                mellomnavn = null,
-                etternavn = "Etternavn",
-                roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.KOORDINATOR)),
-                deltakerlister = listOf(KoordinatorDeltakerlisteDbo(deltakerliste1.id)),
-                veilederDeltakere = emptyList(),
-            ),
-        )
-
-        val response = sendRequest(
-            method = "GET",
-            path = "/tiltaksarrangor/koordinator/admin/deltakerlister",
-            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-        )
-
-        val expectedJson =
-            """
-            [{"id":"9987432c-e336-4b3b-b73e-b7c781a0823a","navn":"Gjennomføring 1","tiltaksnavn":"Navn på tiltak","arrangorNavn":"Arrangør AS","arrangorOrgnummer":"88888888","arrangorParentNavn":"Arrangør AS","startDato":"2023-02-01","sluttDato":null,"lagtTil":true,"oppstartstype":"LOPENDE"},{"id":"fd70758a-44c5-4868-bdcb-b1ddd26cb5e9","navn":"Gjennomføring 2","tiltaksnavn":"Annet tiltak","arrangorNavn":"Arrangør AS","arrangorOrgnummer":"88888888","arrangorParentNavn":"Arrangør AS","startDato":"2023-05-01","sluttDato":"2023-06-01","lagtTil":false,"oppstartstype":"LOPENDE"}]
-            """.trimIndent()
-        response.code shouldBe 200
-        response.body.string() shouldBe expectedJson
+        return id
     }
 
-    @Test
-    fun `leggTilDeltakerliste - ikke autentisert - returnerer 401`() {
-        val response = sendRequest(
-            method = "POST",
-            path = "/tiltaksarrangor/koordinator/admin/deltakerliste/${UUID.randomUUID()}",
-            body = emptyRequest(),
-        )
-
-        response.code shouldBe 401
-    }
-
-    @Test
-    fun `leggTilDeltakerliste - autentisert - returnerer 200`() {
-        val personIdent = "12345678910"
-        val deltakerlisteId = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a")
-        val arrangorId = UUID.randomUUID()
+    private fun createDeltakerliste(
+        arrangorId: UUID,
+        id: UUID = UUID.randomUUID(),
+        navn: String = "Gjennomføring",
+        tiltaksnavn: String = "Tiltak",
+        tiltakskode: Tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+        startDato: LocalDate = LocalDate.of(2023, 1, 1),
+        sluttDato: LocalDate? = null,
+        tilgjengeligForArrangorFraOgMedDato: LocalDate? = null,
+    ): DeltakerlisteDbo {
         val deltakerliste = DeltakerlisteDbo(
-            id = deltakerlisteId,
-            navn = "Gjennomføring 1",
+            id = id,
+            navn = navn,
             gjennomforingstype = GjennomforingType.Gruppe,
             status = GjennomforingStatusType.GJENNOMFORES,
             arrangorId = arrangorId,
-            tiltaksnavn = "Navn på tiltak",
-            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-            startDato = LocalDate.of(2023, 2, 1),
-            sluttDato = null,
+            tiltaksnavn = tiltaksnavn,
+            tiltakskode = tiltakskode,
+            startDato = startDato,
+            sluttDato = sluttDato,
             erKurs = false,
             oppstartstype = Oppstartstype.LOPENDE,
-            tilgjengeligForArrangorFraOgMedDato = null,
+            tilgjengeligForArrangorFraOgMedDato = tilgjengeligForArrangorFraOgMedDato,
             pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-        val ansattId = UUID.randomUUID()
-        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-            AnsattDbo(
-                id = ansattId,
-                personIdent = personIdent,
-                fornavn = "Fornavn",
-                mellomnavn = null,
-                etternavn = "Etternavn",
-                roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.KOORDINATOR)),
-                deltakerlister = emptyList(),
-                veilederDeltakere = emptyList(),
-            ),
-        )
-
-        every {
-            amtArrangorClient.leggTilDeltakerlisteForKoordinator(
-                ansattId = ansattId,
-                arrangorId = arrangorId,
-                deltakerlisteId = deltakerlisteId,
-            )
-        } just Runs
-
-        val response = sendRequest(
-            method = "POST",
-            path = "/tiltaksarrangor/koordinator/admin/deltakerliste/$deltakerlisteId",
-            body = emptyRequest(),
-            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-        )
-
-        response.code shouldBe 200
-
-        val ansattFraDb = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
-        ansattFraDb?.deltakerlister?.size shouldBe 1
-        ansattFraDb?.deltakerlister?.find { it.deltakerlisteId == deltakerlisteId } shouldNotBe null
-    }
-
-    @Test
-    fun `fjernDeltakerliste - ikke autentisert - returnerer 401`() {
-        val response = sendRequest(
-            method = "DELETE",
-            path = "/tiltaksarrangor/koordinator/admin/deltakerliste/${UUID.randomUUID()}",
-        )
-
-        response.code shouldBe 401
-    }
-
-    @Test
-    fun `fjernDeltakerliste - autentisert - returnerer 200`() {
-        val personIdent = "12345678910"
-        val deltakerlisteId = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a")
-        val arrangorId = UUID.randomUUID()
-        val deltakerliste =
-            DeltakerlisteDbo(
-                id = deltakerlisteId,
-                navn = "Gjennomføring 1",
-                gjennomforingstype = GjennomforingType.Gruppe,
-                status = GjennomforingStatusType.GJENNOMFORES,
-                arrangorId = arrangorId,
-                tiltaksnavn = "Navn på tiltak",
-                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                startDato = LocalDate.of(2023, 2, 1),
-                sluttDato = null,
-                erKurs = false,
-                oppstartstype = Oppstartstype.LOPENDE,
-                tilgjengeligForArrangorFraOgMedDato = null,
-                pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
-            )
-        deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-        val ansattId = UUID.randomUUID()
-        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-            AnsattDbo(
-                id = ansattId,
-                personIdent = personIdent,
-                fornavn = "Fornavn",
-                mellomnavn = null,
-                etternavn = "Etternavn",
-                roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.KOORDINATOR)),
-                deltakerlister = listOf(KoordinatorDeltakerlisteDbo(deltakerlisteId)),
-                veilederDeltakere = emptyList(),
-            ),
-        )
-        every {
-            amtArrangorClient.fjernDeltakerlisteForKoordinator(
-                ansattId = ansattId,
-                arrangorId = arrangorId,
-                deltakerlisteId = deltakerlisteId,
-            )
-        } just Runs
-
-        val response = sendRequest(
-            method = "DELETE",
-            path = "/tiltaksarrangor/koordinator/admin/deltakerliste/$deltakerlisteId",
-            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-        )
-
-        response.code shouldBe 200
-
-        val ansattFraDb = tiltaksarrangorAnsattRepository.getAnsatt(ansattId)
-        ansattFraDb?.deltakerlister?.size shouldBe 0
+        return deltakerliste
     }
 }
