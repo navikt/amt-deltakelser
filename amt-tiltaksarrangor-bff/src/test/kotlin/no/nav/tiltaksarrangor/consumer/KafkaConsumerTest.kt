@@ -349,8 +349,6 @@ class KafkaConsumerTest(
         val ansattId = UUID.randomUUID()
         with(DeltakerDtoCtx()) {
             deltakerlisteRepository.insertOrUpdateDeltakerliste(getDeltakerliste(id = deltakerDto.id, UUID.randomUUID()))
-            // addEnhetResponse(enhetId)
-            // addAnsattResponse(ansattId)
             val avbrytDeltakelseEndring = DeltakerEndring.Endring.AvbrytDeltakelse(
                 DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.TRENGER_ANNEN_STOTTE, null),
                 sluttdato = LocalDate.now().minusWeeks(4),
@@ -372,8 +370,6 @@ class KafkaConsumerTest(
                 ),
             )
             medVurderinger()
-
-            // addKontaktinformasjonResponse(dto.personalia.personident)
 
             testKafkaProducer
                 .send(
