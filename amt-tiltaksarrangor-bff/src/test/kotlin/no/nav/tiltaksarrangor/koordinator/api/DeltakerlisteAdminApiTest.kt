@@ -61,6 +61,15 @@ class DeltakerlisteAdminApiTest(
                 startDato = LocalDate.of(2023, 2, 1),
             )
 
+            createDeltakerliste(
+                arrangorId,
+                id = UUID.fromString("fd70758a-44c5-4868-bdcb-b1ddd26cb5e9"),
+                navn = "Gjennomføring 2",
+                tiltaksnavn = "Navn på tiltak",
+                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                startDato = LocalDate.of(2023, 3, 1),
+            )
+
             tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
