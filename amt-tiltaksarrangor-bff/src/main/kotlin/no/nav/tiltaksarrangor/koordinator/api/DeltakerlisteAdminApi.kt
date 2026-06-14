@@ -15,19 +15,18 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/koordinator/admin")
-class DeltakerlisteAdminAPI(
+@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+class DeltakerlisteAdminApi(
     private val deltakerlisteAdminService: DeltakerlisteAdminService,
     private val tokenService: TokenService,
 ) {
     @GetMapping("/deltakerlister")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun getAlleDeltakerlister(): List<AdminDeltakerliste> {
         val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
         return deltakerlisteAdminService.getAlleDeltakerlister(personIdent)
     }
 
     @PostMapping("/deltakerliste/{deltakerlisteId}")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun leggTilDeltakerliste(
         @PathVariable deltakerlisteId: UUID,
     ) {
@@ -36,7 +35,6 @@ class DeltakerlisteAdminAPI(
     }
 
     @DeleteMapping("/deltakerliste/{deltakerlisteId}")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun fjernDeltakerliste(
         @PathVariable deltakerlisteId: UUID,
     ) {

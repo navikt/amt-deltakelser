@@ -5,10 +5,10 @@ import no.nav.common.audit_log.cef.CefMessageEvent
 import no.nav.common.audit_log.cef.CefMessageSeverity
 import no.nav.common.audit_log.log.AuditLogger
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.UUID
 
-@Component
+@Service
 class AuditLoggerService(
     private val auditLogger: AuditLogger,
     private val arrangorRepository: ArrangorRepository,

@@ -38,10 +38,10 @@ import no.nav.tiltaksarrangor.service.AnsattService
 import no.nav.tiltaksarrangor.service.MetricsService
 import no.nav.tiltaksarrangor.service.getGjeldendeVurdering
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.UUID
 
-@Component
+@Service
 class KoordinatorService(
     private val ansattService: AnsattService,
     private val deltakerlisteRepository: DeltakerlisteRepository,

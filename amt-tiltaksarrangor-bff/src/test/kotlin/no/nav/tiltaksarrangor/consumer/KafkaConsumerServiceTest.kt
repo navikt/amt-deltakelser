@@ -27,7 +27,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
-import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
+import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
 import no.nav.tiltaksarrangor.client.amtperson.NavEnhetDto
@@ -69,7 +69,7 @@ class KafkaConsumerServiceTest {
     private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
     private val deltakerRepository = mockk<DeltakerRepository>()
     private val endringsmeldingRepository = mockk<EndringsmeldingRepository>()
-    private val amtArrangorClient = mockk<AmtArrangorClient>()
+    private val hentArrangorClient = mockk<HentArrangorClient>()
     private val navAnsattService = mockk<NavAnsattService>(relaxUnitFun = true)
     private val navEnhetService = mockk<NavEnhetService>(relaxUnitFun = true)
     private val forslagService = mockk<ForslagService>(relaxUnitFun = true)
@@ -111,7 +111,7 @@ class KafkaConsumerServiceTest {
         every { arrangorRepository.getArrangor("88888888") } returns null
         every { arrangorRepository.insertOrUpdateArrangor(any()) } just Runs
         every { ulestEndringRepository.insert(any(), any()) } returns mockk()
-        coEvery { amtArrangorClient.getArrangor("88888888") } returns arrangor
+        coEvery { hentArrangorClient.getArrangor("88888888") } returns arrangor
         coEvery { amtPersonClient.hentOppdatertKontaktinfo(any<String>()) } returns
             Result.failure(RuntimeException("Oppdatert kontaktinformasjon ikke nødvendig for test"))
     }

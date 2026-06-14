@@ -1,68 +1,63 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
+import no.nav.security.token.support.client.spring.ClientConfigurationProperties
+import no.nav.tiltaksarrangor.client.ClientUtils.buildRestClient
+import no.nav.tiltaksarrangor.client.ClientUtils.handleClientError
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
-import no.nav.tiltaksarrangor.utils.objectMapper
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
-import org.springframework.stereotype.Component
-import tools.jackson.core.type.TypeReference
-import tools.jackson.module.kotlin.readValue
+import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.requiredBody
 import java.util.UUID
 
-@Component
+@Service
 class AmtPersonClient(
-    @Value($$"${amt-person.url}") private val url: String,
-    private val amtPersonAADHttpClient: OkHttpClient,
+    @Value($$"${amt-person.url}") baseUrl: String,
+    clientConfigurationProperties: ClientConfigurationProperties,
+    oAuth2AccessTokenService: OAuth2AccessTokenService,
+    builder: RestClient.Builder,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun hentEnhet(id: UUID): NavEnhet {
-        val request =
-            Request
-                .Builder()
-                .url("$url/api/nav-enhet/$id")
-                .get()
-                .build()
+    private val client = buildRestClient(
+        baseUrl = baseUrl,
+        builder = builder,
+        oAuth2AccessTokenService = oAuth2AccessTokenService,
+        clientProperties = clientConfigurationProperties.registration["amt-person-aad"]
+            ?: error("Fant ikke 'amt-person-aad' i OAuth2-config"),
+    )
 
-        amtPersonAADHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                log.error(
-                    "Kunne ikke hente nav-enhet med id $id fra amt-person-service. " +
-                        "Status=${response.code} error=${response.body.string()}",
-                )
-                error("Kunne ikke hente NAV-enhet fra amt-person-service")
-            }
+    fun hentEnhet(id: UUID): NavEnhet = client
+        .get()
+        .uri { it.path("/api/nav-enhet/{id}").build(id) }
+        .retrieve()
+        .onStatus(
+            HttpStatusCode::isError,
+            handleClientError(
+                log = log,
+                unauthorizedMessage = "Ikke tilgang til å hente NAV-enhet fra amt-person-service",
+                defaultErrorMessage = "Kunne ikke hente NAV-enhet fra amt-person-service",
+            ),
+        ).requiredBody<NavEnhetDto>()
+        .toNavEnhet()
 
-            return objectMapper.readValue<NavEnhetDto>(response.body.string()).toNavEnhet()
-        }
-    }
-
-    fun hentNavAnsatt(id: UUID): NavAnsattResponse {
-        val request =
-            Request
-                .Builder()
-                .url("$url/api/nav-ansatt/$id")
-                .get()
-                .build()
-
-        amtPersonAADHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                log.error(
-                    "Kunne ikke hente nav-ansatt med id $id fra amt-person-service. " +
-                        "Status=${response.code} error=${response.body.string()}",
-                )
-                error("Kunne ikke hente NAV-ansatt fra amt-person-service")
-            }
-
-            return objectMapper.readValue(response.body.string())
-        }
-    }
+    fun hentNavAnsatt(id: UUID): NavAnsattResponse = client
+        .get()
+        .uri { it.path("/api/nav-ansatt/{id}").build(id) }
+        .retrieve()
+        .onStatus(
+            HttpStatusCode::isError,
+            handleClientError(
+                log = log,
+                unauthorizedMessage = "Ikke tilgang til å hente NAV-ansatt fra amt-person-service",
+                defaultErrorMessage = "Kunne ikke hente NAV-ansatt fra amt-person-service",
+            ),
+        ).requiredBody<NavAnsattResponse>()
 
     fun hentOppdatertKontaktinfo(personident: String): Result<Kontaktinformasjon> =
         hentOppdatertKontaktinfo(setOf(personident)).mapCatching {
@@ -70,30 +65,23 @@ class AmtPersonClient(
         }
 
     fun hentOppdatertKontaktinfo(personidenter: Set<String>): Result<Map<String, Kontaktinformasjon>> = runCatching {
-        val requestBody = objectMapper
-            .writeValueAsString(personidenter)
-            .toRequestBody(MediaType.APPLICATION_JSON_VALUE.toMediaType())
-
-        val request = Request
-            .Builder()
-            .url("$url/api/nav-bruker/kontaktinformasjon")
-            .post(requestBody)
-            .build()
-
-        amtPersonAADHttpClient.newCall(request).execute().use { response ->
-            val responseBodyString = response.body.string()
-
-            if (!response.isSuccessful) {
-                log.error("$KONTAKTINFO_ERROR_MSG Status=${response.code} error=$responseBodyString")
-                throw RuntimeException(KONTAKTINFO_ERROR_MSG)
-            }
-
-            objectMapper.readValue(responseBodyString, personIdentToKontaktinfoTypeRef)
-        }
+        client
+            .post()
+            .uri { it.path("/api/nav-bruker/kontaktinformasjon").build() }
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(personidenter)
+            .retrieve()
+            .onStatus(
+                HttpStatusCode::isError,
+                handleClientError(
+                    log = log,
+                    unauthorizedMessage = KONTAKTINFO_ERROR_MSG,
+                    defaultErrorMessage = KONTAKTINFO_ERROR_MSG,
+                ),
+            ).requiredBody<Map<String, Kontaktinformasjon>>()
     }
 
     companion object {
-        private val personIdentToKontaktinfoTypeRef = object : TypeReference<Map<String, Kontaktinformasjon>>() {}
-        private const val KONTAKTINFO_ERROR_MSG = "Kunne ikke hente kontakinformasjon fra amt-person-service."
+        private const val KONTAKTINFO_ERROR_MSG = "Kunne ikke hente kontaktinformasjon fra amt-person-service."
     }
 }

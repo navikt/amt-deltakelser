@@ -22,25 +22,26 @@ import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.VeilederDeltakerDbo
 import no.nav.tiltaksarrangor.testutils.getAdresse
 import org.junit.jupiter.api.Test
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.HttpHeaders
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class VeilederAPITest(
+@AutoConfigureMockMvc
+class VeilederApiTest(
+    private val mockMvc: MockMvc,
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
 ) : IntegrationTest() {
     @Test
     fun `getMineDeltakere - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/veileder/mine-deltakere",
-            )
-
-        response.code shouldBe 401
+        mockMvc
+            .get("/tiltaksarrangor/veileder/mine-deltakere")
+            .andExpect { status { isUnauthorized() } }
     }
 
     @Test
@@ -120,18 +121,18 @@ class VeilederAPITest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/veileder/mine-deltakere",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = mockMvc
+            .get("/tiltaksarrangor/veileder/mine-deltakere") {
+                header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = personIdent)}")
+            }.andExpect { status { isOk() } }
+            .andReturn()
+            .response
+            .contentAsString
 
         val expectedJson =
             """
             [{"id":"977350f2-d6a5-49bb-a3a0-773f25f863d9","fornavn":"Fornavn","mellomnavn":null,"etternavn":"Etternavn","fodselsnummer":"10987654321","startDato":"2023-02-15","sluttDato":null,"status":{"type":"DELTAR","endretDato":"2023-02-01T00:00:00","aarsak":null},"deltakerliste":{"id":"9987432c-e336-4b3b-b73e-b7c781a0823a","type":"Arbeidsforberedende trening","navn":"Gjennomføring 1"},"veiledertype":"VEILEDER","aktiveEndringsmeldinger":[],"aktivEndring":null,"sistEndret":"2024-10-12T00:00:00","adressebeskyttet":false,"svarFraNav":false,"oppdateringFraNav":false,"nyDeltaker":false,"erUnderOppfolging":false}]
             """.trimIndent()
-        response.code shouldBe 200
-        response.body.string() shouldBe expectedJson
+        response shouldBe expectedJson
     }
 }

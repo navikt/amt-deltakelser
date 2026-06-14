@@ -19,19 +19,18 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/koordinator")
-class KoordinatorAPI(
+@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+class KoordinatorApi(
     private val tokenService: TokenService,
     private val koordinatorService: KoordinatorService,
 ) {
     @GetMapping("/mine-deltakerlister")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun getMineDeltakerlister(): MineDeltakerlister {
         val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
         return koordinatorService.getMineDeltakerlister(personIdent)
     }
 
     @GetMapping("/deltakerliste/{deltakerlisteId}")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun getDeltakerliste(
         @PathVariable deltakerlisteId: UUID,
     ): Deltakerliste {
@@ -40,7 +39,6 @@ class KoordinatorAPI(
     }
 
     @GetMapping("/{deltakerlisteId}/veiledere")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun getTilgjengeligeVeiledere(
         @PathVariable deltakerlisteId: UUID,
     ): List<TilgjengeligVeileder> {
@@ -49,7 +47,6 @@ class KoordinatorAPI(
     }
 
     @PostMapping("/veiledere", params = ["deltakerId"])
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun tildelVeiledereForDeltaker(
         @RequestParam("deltakerId") deltakerId: UUID,
         @RequestBody request: LeggTilVeiledereRequest,

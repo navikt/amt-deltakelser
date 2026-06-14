@@ -4,7 +4,6 @@ import com.ninjasquad.springmockk.MockkBean
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -19,7 +18,6 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.tiltaksarrangor.IntegrationTest
-import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.VeilederAnsatt
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.koordinator.model.LeggTilVeiledereRequest
@@ -50,7 +48,6 @@ import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
 import no.nav.tiltaksarrangor.testutils.getEndringsmelding
 import no.nav.tiltaksarrangor.testutils.getForslag
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -69,18 +66,12 @@ class KoordinatorServiceTest(
     private val ulestEndringRepository: UlestEndringRepository,
     private val ansattService: AnsattService,
     private val koordinatorService: KoordinatorService,
-    @MockkBean private val amtArrangorClient: AmtArrangorClient,
     @Suppress("unused") @MockkBean(relaxed = true) private val metricsService: MetricsService,
     @MockkBean private val unleashToggle: CommonUnleashToggle,
 ) : IntegrationTest() {
     @BeforeEach
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false
-    }
-
-    @AfterEach
-    fun tearDown() {
-        clearMocks(amtArrangorClient)
     }
 
     @Test

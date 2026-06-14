@@ -2,13 +2,18 @@ package no.nav.tiltaksarrangor.consumer
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.slot
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.tiltaksarrangor.IntegrationTest
-import no.nav.tiltaksarrangor.client.amtarrangor.dto.toArrangorDbo
+import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
+import no.nav.tiltaksarrangor.client.amtperson.NavAnsattResponse
+import no.nav.tiltaksarrangor.client.amtperson.NavEnhetDto
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.arrangorInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.deltakerlisteIdInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.gjennomforingPayloadInTest
@@ -44,10 +49,10 @@ import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -64,6 +69,40 @@ class KafkaConsumerTest(
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val testKafkaProducer: KafkaProducer<String, String>,
 ) : IntegrationTest() {
+    @BeforeEach
+    fun setup() {
+        val enhetIdSlot = slot<UUID>()
+        every { amtPersonClient.hentEnhet(capture(enhetIdSlot)) } answers {
+            NavEnhetDto(
+                id = enhetIdSlot.captured,
+                enhetId = "0000",
+                navn = "Ukjent enhet",
+            ).toNavEnhet()
+        }
+
+        val ansattIdSlot = slot<UUID>()
+        every { amtPersonClient.hentNavAnsatt(capture(ansattIdSlot)) } answers {
+            NavAnsattResponse(
+                id = ansattIdSlot.captured,
+                navIdent = "X000000",
+                navn = "Ukjent ansatt",
+                epost = null,
+                telefon = null,
+            )
+        }
+
+        every { amtPersonClient.hentOppdatertKontaktinfo(any<String>()) } answers {
+            Result.success(Kontaktinformasjon(epost = null, telefonnummer = null))
+        }
+
+        every { hentArrangorClient.getArrangor(any()) } returns ArrangorMedOverordnetArrangor(
+            id = UUID.randomUUID(),
+            navn = "Arrangør AS",
+            organisasjonsnummer = "88888888",
+            overordnetArrangor = null,
+        )
+    }
+
     @Test
     fun `skal lagre tiltakstype i database`() {
         testKafkaProducer
@@ -189,13 +228,12 @@ class KafkaConsumerTest(
     @Test
     fun `listen - tombstonemelding pa arrangor-topic - slettes i database`() {
         val arrangorId = UUID.randomUUID()
-        val arrangorDto =
-            ArrangorDto(
-                id = arrangorId,
-                navn = "Arrangør AS",
-                organisasjonsnummer = "77777777",
-                overordnetArrangorId = null,
-            )
+        val arrangorDto = ArrangorDto(
+            id = arrangorId,
+            navn = "Arrangør AS",
+            organisasjonsnummer = "77777777",
+            overordnetArrangorId = null,
+        )
         arrangorRepository.insertOrUpdateArrangor(arrangorDto.toArrangorDbo())
         testKafkaProducer
             .send(
@@ -311,8 +349,6 @@ class KafkaConsumerTest(
         val ansattId = UUID.randomUUID()
         with(DeltakerDtoCtx()) {
             deltakerlisteRepository.insertOrUpdateDeltakerliste(getDeltakerliste(id = deltakerDto.id, UUID.randomUUID()))
-            mockAmtPersonServer.addEnhetResponse(enhetId)
-            mockAmtPersonServer.addAnsattResponse(ansattId)
             val avbrytDeltakelseEndring = DeltakerEndring.Endring.AvbrytDeltakelse(
                 DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.TRENGER_ANNEN_STOTTE, null),
                 sluttdato = LocalDate.now().minusWeeks(4),
@@ -334,8 +370,6 @@ class KafkaConsumerTest(
                 ),
             )
             medVurderinger()
-
-            mockAmtPersonServer.addKontaktinformasjonResponse(dto.personalia.personident)
 
             testKafkaProducer
                 .send(

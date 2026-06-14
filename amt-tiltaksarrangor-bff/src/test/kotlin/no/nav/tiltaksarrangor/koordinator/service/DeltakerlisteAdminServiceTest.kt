@@ -4,7 +4,6 @@ import com.ninjasquad.springmockk.MockkBean
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
@@ -14,7 +13,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.tiltaksarrangor.IntegrationTest
-import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
@@ -26,7 +24,6 @@ import no.nav.tiltaksarrangor.repositories.model.ArrangorDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.KoordinatorDeltakerlisteDbo
 import no.nav.tiltaksarrangor.service.MetricsService
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -37,14 +34,8 @@ class DeltakerlisteAdminServiceTest(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteAdminService: DeltakerlisteAdminService,
-    @MockkBean private val amtArrangorClient: AmtArrangorClient,
     @Suppress("unused") @MockkBean(relaxed = true) private val metricsService: MetricsService,
 ) : IntegrationTest() {
-    @AfterEach
-    fun tearDown() {
-        clearMocks(amtArrangorClient)
-    }
-
     @Test
     fun `getAlleDeltakerlister - ansatt er ikke koordinator - returnerer unauthorized`() {
         val personIdent = "12345678910"

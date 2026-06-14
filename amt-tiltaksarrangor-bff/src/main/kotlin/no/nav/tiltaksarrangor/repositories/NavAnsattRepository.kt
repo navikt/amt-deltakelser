@@ -5,10 +5,10 @@ import no.nav.tiltaksarrangor.utils.sqlParameters
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.util.UUID
 
-@Component
+@Repository
 class NavAnsattRepository(
     private val template: NamedParameterJdbcTemplate,
 ) {

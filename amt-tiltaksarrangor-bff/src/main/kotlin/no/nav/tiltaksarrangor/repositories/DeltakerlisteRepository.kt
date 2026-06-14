@@ -14,11 +14,11 @@ import no.nav.tiltaksarrangor.utils.sqlParameters
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import java.util.UUID
 
-@Component
+@Repository
 class DeltakerlisteRepository(
     private val template: NamedParameterJdbcTemplate,
     private val deltakerRepository: DeltakerRepository,

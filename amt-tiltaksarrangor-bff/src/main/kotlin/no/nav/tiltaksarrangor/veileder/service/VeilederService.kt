@@ -18,10 +18,10 @@ import no.nav.tiltaksarrangor.repositories.model.EndringsmeldingDbo
 import no.nav.tiltaksarrangor.repositories.model.VeilederDeltakerDbo
 import no.nav.tiltaksarrangor.service.AnsattService
 import no.nav.tiltaksarrangor.veileder.model.Deltaker
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.UUID
 
-@Component
+@Service
 class VeilederService(
     private val ansattService: AnsattService,
     private val deltakerRepository: DeltakerRepository,
@@ -39,13 +39,12 @@ class VeilederService(
             return emptyList()
         }
 
-        val deltakere =
-            deltakerRepository
-                .getDeltakereMedDeltakerliste(ansatt.veilederDeltakere.map { it.deltakerId })
-                .filter { ansattService.harRolleHosArrangor(it.deltakerliste.arrangorId, AnsattRolle.VEILEDER, ansatt.roller) }
-                .filter { !it.deltaker.erSkjult() }
-                .filter { it.deltaker.skalVises() }
-                .filter { it.deltakerliste.erTilgjengeligForArrangor() }
+        val deltakere = deltakerRepository
+            .getDeltakereMedDeltakerliste(ansatt.veilederDeltakere.map { it.deltakerId })
+            .filter { ansattService.harRolleHosArrangor(it.deltakerliste.arrangorId, AnsattRolle.VEILEDER, ansatt.roller) }
+            .filter { !it.deltaker.erSkjult() }
+            .filter { it.deltaker.skalVises() }
+            .filter { it.deltakerliste.erTilgjengeligForArrangor() }
 
         if (deltakere.isEmpty()) {
             return emptyList()

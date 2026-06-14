@@ -1,14 +1,11 @@
 package no.nav.tiltaksarrangor.service
 
-import com.ninjasquad.springmockk.MockkBean
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import no.nav.tiltaksarrangor.IntegrationTest
-import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattPersonaliaDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
@@ -23,7 +20,6 @@ import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.testutils.DbTestDataUtils.shouldBeCloseTo
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.utils.sqlParameters
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
@@ -33,13 +29,7 @@ class AnsattServiceTest(
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val ansattService: AnsattService,
-    @MockkBean private val amtArrangorClient: AmtArrangorClient,
 ) : IntegrationTest() {
-    @AfterEach
-    fun tearDown() {
-        clearMocks(amtArrangorClient)
-    }
-
     @Test
     fun `oppdaterOgHentMineRoller - ansatt finnes ikke - lagres i database og returnerer riktige roller`() {
         val deltakerId = UUID.randomUUID()
@@ -48,9 +38,9 @@ class AnsattServiceTest(
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId2))
         val ansattId = UUID.randomUUID()
         val personIdentInTest = "12345678910"
-        coEvery { amtArrangorClient.getAnsatt(any()) } returns getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2)
+        coEvery { amtArrangorClient.getAnsatt() } returns getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2)
 
-        val rollerInTest = ansattService.oppdaterOgHentMineRoller(personIdentInTest)
+        val rollerInTest = ansattService.oppdaterOgHentMineRoller()
 
         rollerInTest.size shouldBe 2
         rollerInTest.find { it == AnsattRolle.VEILEDER.name } shouldNotBe null
@@ -91,10 +81,10 @@ class AnsattServiceTest(
                 ),
             )
         coEvery {
-            amtArrangorClient.getAnsatt(any())
+            amtArrangorClient.getAnsatt()
         } returns getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2).copy(arrangorer = oppdaterteArrangorer)
 
-        val rollerInTest = ansattService.oppdaterOgHentMineRoller(personIdentInTest)
+        val rollerInTest = ansattService.oppdaterOgHentMineRoller()
 
         rollerInTest.size shouldBe 1
         rollerInTest.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
@@ -115,9 +105,9 @@ class AnsattServiceTest(
     @Test
     fun `oppdaterOgHentMineRoller - ansatt har ingen roller - lagres ikke i database og returnerer tom liste`() {
         val personIdent = "1234"
-        coEvery { amtArrangorClient.getAnsatt(any()) } returns null
+        coEvery { amtArrangorClient.getAnsatt() } returns null
 
-        ansattService.oppdaterOgHentMineRoller(personIdent)
+        ansattService.oppdaterOgHentMineRoller()
 
         ansattFinnes(personIdent) shouldBe false
     }
@@ -125,10 +115,10 @@ class AnsattServiceTest(
     @Test
     fun `oppdaterOgHentMineRoller - amt-arrangor svarer med feilmelding - lagres ikke i database og returnerer feilmelding`() {
         val personIdent = "1234"
-        coEvery { amtArrangorClient.getAnsatt(any()) } throws UnauthorizedException("Fant ikke ansatt")
+        coEvery { amtArrangorClient.getAnsatt() } throws UnauthorizedException("Fant ikke ansatt")
 
         assertThrows<UnauthorizedException> {
-            ansattService.oppdaterOgHentMineRoller(personIdent)
+            ansattService.oppdaterOgHentMineRoller()
         }
 
         ansattFinnes(personIdent) shouldBe false

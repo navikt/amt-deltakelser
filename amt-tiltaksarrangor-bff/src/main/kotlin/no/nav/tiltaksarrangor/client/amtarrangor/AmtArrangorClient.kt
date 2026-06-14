@@ -1,78 +1,80 @@
 package no.nav.tiltaksarrangor.client.amtarrangor
 
-import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
+import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
+import no.nav.security.token.support.client.spring.ClientConfigurationProperties
+import no.nav.tiltaksarrangor.client.ClientUtils.buildRestClient
+import no.nav.tiltaksarrangor.client.ClientUtils.handleClientError
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.OppdaterVeiledereForDeltakerRequest
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
-import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
-import no.nav.tiltaksarrangor.utils.objectMapper
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
-import tools.jackson.module.kotlin.readValue
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 import java.util.UUID
 
-@Component
+@Service
 class AmtArrangorClient(
-    @Value($$"${amt-arrangor.url}") private val amtArrangorUrl: String,
-    private val amtArrangorHttpClient: OkHttpClient,
-    private val amtArrangorAADHttpClient: OkHttpClient,
+    @Value($$"${amt-arrangor.default.url}") baseUrl: String,
+    builder: RestClient.Builder,
+    clientConfigurationProperties: ClientConfigurationProperties,
+    oAuth2AccessTokenService: OAuth2AccessTokenService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val mediaTypeJson = "application/json".toMediaType()
 
-    fun getAnsatt(personIdent: String): AnsattDto? {
-        val request =
-            Request
-                .Builder()
-                .url("$amtArrangorUrl/api/ansatt")
-                .get()
+    private val client = buildRestClient(
+        baseUrl = baseUrl,
+        builder = builder,
+        oAuth2AccessTokenService = oAuth2AccessTokenService,
+        clientProperties = clientConfigurationProperties.registration["amt-arrangor-tokenx"]
+            ?: error("Fant ikke 'amt-arrangor-tokenx' i OAuth2-config"),
+    )
+
+    fun getAnsatt(): AnsattDto? = client
+        .get()
+        .uri { uriBuilder ->
+            uriBuilder
+                .path("/api/ansatt")
                 .build()
-
-        amtArrangorHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                when (response.code) {
-                    401 -> throw UnauthorizedException("Ikke tilgang til å hente ansatt")
-                    403 -> throw UnauthorizedException("Ikke tilgang til å hente ansatt")
-                    404 -> return null
-                    else -> {
-                        log.error("Kunne ikke hente ansatt fra amt-arrangør, responsekode: ${response.code}")
-                        throw RuntimeException("Kunne ikke hente ansatt")
-                    }
-                }
-            }
-
-            return objectMapper.readValue(response.body.string())
-        }
-    }
+        }.retrieve()
+        .onStatus(
+            { it == HttpStatus.NOT_FOUND },
+        ) { _, _ ->
+            log.info("Ansatt ikke funnet")
+        }.onStatus(
+            HttpStatusCode::isError,
+            handleClientError(
+                log = log,
+                unauthorizedMessage = "Ikke tilgang til å hente ansatt fra amt-arrangør",
+                defaultErrorMessage = "Kunne ikke hente ansatt fra amt-arrangør.",
+            ),
+        ).body<AnsattDto>()
 
     fun leggTilDeltakerlisteForKoordinator(
         ansattId: UUID,
         deltakerlisteId: UUID,
         arrangorId: UUID,
     ) {
-        val request =
-            Request
-                .Builder()
-                .url("$amtArrangorUrl/api/ansatt/koordinator/$arrangorId/$deltakerlisteId")
-                .post("".toRequestBody(mediaTypeJson))
-                .build()
+        client
+            .post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/api/ansatt/koordinator/{arrangorId}/{deltakerlisteId}")
+                    .build(arrangorId, deltakerlisteId)
+            }.retrieve()
+            .onStatus(
+                HttpStatusCode::isError,
+                handleClientError(
+                    log = log,
+                    unauthorizedMessage = "Ikke tilgang til å legge til deltakerliste i amt-arrangør",
+                    defaultErrorMessage = "Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør.",
+                ),
+            ).toBodilessEntity()
 
-        amtArrangorHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                when (response.code) {
-                    401 -> throw UnauthorizedException("Ikke tilgang til å legge til deltakerliste i amt-arrangør")
-                    403 -> throw UnauthorizedException("Ikke tilgang til å legge til deltakerliste i amt-arrangør")
-                    else -> {
-                        log.error("Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør, responsekode: ${response.code}")
-                        throw RuntimeException("Kunne ikke legge til deltakerliste")
-                    }
-                }
-            }
-        }
         log.info("Oppdatert amt-arrangor med deltakerliste $deltakerlisteId for ansatt $ansattId")
     }
 
@@ -81,25 +83,22 @@ class AmtArrangorClient(
         deltakerlisteId: UUID,
         arrangorId: UUID,
     ) {
-        val request =
-            Request
-                .Builder()
-                .url("$amtArrangorUrl/api/ansatt/koordinator/$arrangorId/$deltakerlisteId")
-                .delete()
-                .build()
+        client
+            .delete()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/api/ansatt/koordinator/{arrangorId}/{deltakerlisteId}")
+                    .build(arrangorId, deltakerlisteId)
+            }.retrieve()
+            .onStatus(
+                HttpStatusCode::isError,
+                handleClientError(
+                    log = log,
+                    unauthorizedMessage = "Ikke tilgang til å fjerne deltakerliste i amt-arrangør",
+                    defaultErrorMessage = "Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør.",
+                ),
+            ).toBodilessEntity()
 
-        amtArrangorHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                when (response.code) {
-                    401 -> throw UnauthorizedException("Ikke tilgang til å fjerne deltakerliste i amt-arrangør")
-                    403 -> throw UnauthorizedException("Ikke tilgang til å fjerne deltakerliste i amt-arrangør")
-                    else -> {
-                        log.error("Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør, responsekode: ${response.code}")
-                        throw RuntimeException("Kunne ikke fjerne deltakerliste")
-                    }
-                }
-            }
-        }
         log.info("Fjernet amt-arrangor deltakerliste $deltakerlisteId for ansatt $ansattId")
     }
 
@@ -107,47 +106,24 @@ class AmtArrangorClient(
         deltakerId: UUID,
         oppdaterVeiledereForDeltakerRequest: OppdaterVeiledereForDeltakerRequest,
     ) {
-        val request =
-            Request
-                .Builder()
-                .url("$amtArrangorUrl/api/ansatt/veiledere/$deltakerId")
-                .post(objectMapper.writeValueAsString(oppdaterVeiledereForDeltakerRequest).toRequestBody(mediaTypeJson))
-                .build()
+        client
+            .post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/api/ansatt/veiledere/{deltakerId}")
+                    .build(deltakerId)
+            }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(oppdaterVeiledereForDeltakerRequest)
+            .retrieve()
+            .onStatus(
+                HttpStatusCode::isError,
+                handleClientError(
+                    log = log,
+                    unauthorizedMessage = "Ikke tilgang til å oppdatere veiledere i amt-arrangør",
+                    defaultErrorMessage = "Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør.",
+                ),
+            ).toBodilessEntity()
 
-        amtArrangorHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                when (response.code) {
-                    401 -> throw UnauthorizedException("Ikke tilgang til å oppdatere veiledere i amt-arrangør")
-                    403 -> throw UnauthorizedException("Ikke tilgang til å oppdatere veiledere i amt-arrangør")
-                    else -> {
-                        log.error("Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør, responsekode: ${response.code}")
-                        throw RuntimeException("Kunne ikke oppdatere veiledere")
-                    }
-                }
-            }
-        }
         log.info("Oppdatert amt-arrangor med veiledere for $deltakerId")
-    }
-
-    fun getArrangor(orgnummer: String): ArrangorMedOverordnetArrangor? {
-        val request =
-            Request
-                .Builder()
-                .url("$amtArrangorUrl/api/service/arrangor/organisasjonsnummer/$orgnummer")
-                .get()
-                .build()
-
-        amtArrangorAADHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                if (response.code == 404) {
-                    log.info("Arrangør med orgnummer $orgnummer finnes ikke hos amt-arrangør")
-                    return null
-                }
-                log.error("Kunne ikke hente arrangør med orgnummer $orgnummer fra amt-arrangør. Status=${response.code}")
-                throw RuntimeException("Kunne ikke hente arrangør med orgnummer $orgnummer fra amt-arrangør. Status=${response.code}")
-            }
-
-            return objectMapper.readValue(response.body.string())
-        }
     }
 }
