@@ -65,7 +65,6 @@ dependencies {
     testImplementation(libs.testcontainers.kafka)
 
     testImplementation(libs.mockk)
-    testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.springmockk)
 }
 

@@ -1,7 +1,6 @@
 package no.nav.tiltaksarrangor
 
 import com.ninjasquad.springmockk.MockkBean
-import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
@@ -10,27 +9,18 @@ import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
 import no.nav.tiltaksarrangor.kafka.KafkaTestConfiguration
-import no.nav.tiltaksarrangor.testutils.DeltakerContext
 import no.nav.tiltaksarrangor.unleash.UnleashTestConfiguration
 import no.nav.tiltaksarrangor.utils.Issuer
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
-import org.springframework.http.HttpHeaders
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
 import tools.jackson.databind.ObjectMapper
-import java.time.Duration
 import java.util.UUID
 
 @EnableMockOAuth2Server
@@ -55,14 +45,10 @@ abstract class IntegrationTest : RepositoryTestBase() {
     @LocalServerPort
     private var localServerPort: Int = 0
 
-    fun serverUrl() = "http://localhost:$localServerPort"
-
     @AfterEach
     fun cleanup() {
         clearMocks(amtArrangorClient, hentArrangorClient, amtPersonClient)
     }
-
-    val client = OkHttpClient.Builder().callTimeout(Duration.ofMinutes(5)).build()
 
     companion object {
         val kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka")).apply {
@@ -81,21 +67,6 @@ abstract class IntegrationTest : RepositoryTestBase() {
         @Suppress("unused")
         fun registerProperties(registry: DynamicPropertyRegistry) {
         }
-    }
-
-    fun sendRequest(
-        method: String,
-        path: String,
-        body: RequestBody? = null,
-        headers: Map<String, String> = emptyMap(),
-    ): Response {
-        val reqBuilder = Request.Builder().url("${serverUrl()}$path").method(method, body)
-
-        headers.forEach {
-            reqBuilder.addHeader(it.key, it.value)
-        }
-
-        return client.newCall(reqBuilder.build()).execute()
     }
 
     fun getTokenxToken(
@@ -121,55 +92,4 @@ abstract class IntegrationTest : RepositoryTestBase() {
                 expiry = 3600,
             ),
         ).serialize()
-
-    fun emptyRequest(): RequestBody {
-        val mediaTypeHtml = "application/json".toMediaType()
-        return "".toRequestBody(mediaTypeHtml)
-    }
-
-    fun testTokenAutentisering(requestBuilders: List<Request.Builder>) {
-        requestBuilders.forEach {
-            val utenTokenResponse = client.newCall(it.build()).execute()
-            utenTokenResponse.code shouldBe 401
-            val feilTokenResponse = client
-                .newCall(
-                    it
-                        .header(
-                            name = HttpHeaders.AUTHORIZATION,
-                            value = "Bearer ${mockOAuth2Server.issueToken("ikke-azuread").serialize()}",
-                        ).build(),
-                ).execute()
-            feilTokenResponse.code shouldBe 401
-        }
-    }
-
-    fun testIkkeTilgangTilDeltakerliste(requestFunction: (deltakerId: UUID, ansattPersonIdent: String) -> Response) {
-        with(DeltakerContext(applicationContext)) {
-            setKoordinatorDeltakerliste(UUID.randomUUID())
-
-            val response = requestFunction(deltaker.id, koordinator.personIdent)
-
-            response.code shouldBe 403
-        }
-    }
-
-    fun testDeltakerAdressebeskyttet(requestFunction: (deltakerId: UUID, ansattPersonIdent: String) -> Response) {
-        with(DeltakerContext(applicationContext)) {
-            setDeltakerAdressebeskyttet()
-
-            val response = requestFunction(deltaker.id, koordinator.personIdent)
-
-            response.code shouldBe 403
-        }
-    }
-
-    fun testDeltakerSkjult(requestFunction: (deltakerId: UUID, ansattPersonIdent: String) -> Response) {
-        with(DeltakerContext(applicationContext)) {
-            setDeltakerSkjult()
-
-            val response = requestFunction(deltaker.id, koordinator.personIdent)
-
-            response.code shouldBe 400
-        }
-    }
 }
