@@ -22,6 +22,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-flyway")
     implementation("org.springframework.boot:spring-boot-kafka")
+    implementation("org.springframework.boot:spring-boot-restclient")
 
     implementation(libs.tools.jackson.module.kotlin)
 
@@ -38,7 +39,6 @@ dependencies {
 
     implementation(libs.token.validation.spring)
     implementation(libs.token.client.spring)
-    implementation(libs.okhttp)
     implementation(libs.caffeine)
     implementation(libs.unleash)
 
@@ -55,6 +55,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-data-jdbc-test")
     testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.springframework.boot:spring-boot-restclient-test")
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.token.validation.spring.test)

@@ -10,11 +10,11 @@ import org.postgresql.util.PGobject
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
-@Component
+@Repository
 class EndringsmeldingRepository(
     private val template: NamedParameterJdbcTemplate,
 ) {

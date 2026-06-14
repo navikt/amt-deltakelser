@@ -15,26 +15,27 @@ import no.nav.tiltaksarrangor.repositories.model.DeltakerMedDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.KoordinatorDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.VeilederForDeltakerDbo
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
-@Component
+@Service
 class AnsattService(
     private val amtArrangorClient: AmtArrangorClient,
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun oppdaterOgHentMineRoller(personIdent: String): List<String> {
-        val ansatt =
-            amtArrangorClient.getAnsatt(personIdent) ?: return emptyList<String>().also {
-                log.info("Bruker uten tilganger har logget inn")
-            }
+    fun oppdaterOgHentMineRoller(): List<String> {
+        val ansatt = amtArrangorClient.getAnsatt() ?: return emptyList<String>().also {
+            log.info("Bruker uten tilganger har logget inn")
+        }
+
         log.info("Hentet ansatt med id ${ansatt.id} fra amt-arrangør")
 
         tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
         log.info("Lagret eller oppdatert ansatt med id ${ansatt.id}")
+
         tiltaksarrangorAnsattRepository.updateSistInnlogget(ansatt.id)
 
         return ansatt.arrangorer

@@ -9,11 +9,11 @@ data class ArrangorMedOverordnetArrangor(
     val navn: String,
     val organisasjonsnummer: String,
     val overordnetArrangor: ArrangorDto?,
-)
-
-fun ArrangorMedOverordnetArrangor.toArrangorDbo(): ArrangorDbo = ArrangorDbo(
-    id = id,
-    navn = navn,
-    organisasjonsnummer = organisasjonsnummer,
-    overordnetArrangorId = overordnetArrangor?.id,
-)
+) {
+    fun toArrangorDbo(): ArrangorDbo = ArrangorDbo(
+        id = id,
+        navn = navn,
+        organisasjonsnummer = organisasjonsnummer,
+        overordnetArrangorId = overordnetArrangor?.id,
+    )
+}

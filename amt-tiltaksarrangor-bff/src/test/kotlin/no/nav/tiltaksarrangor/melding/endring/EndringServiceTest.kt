@@ -17,7 +17,6 @@ import no.nav.tiltaksarrangor.kafka.stringStringConsumer
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import no.nav.tiltaksarrangor.melding.endring.request.LeggTilOppstartsdatoRequest
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

@@ -21,11 +21,11 @@ import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerMedDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.STATUSER_SOM_KAN_SKJULES
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Component
+@Service
 class TiltaksarrangorService(
     private val ansattService: AnsattService,
     private val metricsService: MetricsService,
@@ -42,7 +42,7 @@ class TiltaksarrangorService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getMineRoller(personIdent: String): List<String> = ansattService.oppdaterOgHentMineRoller(personIdent).also {
+    fun getMineRoller(): List<String> = ansattService.oppdaterOgHentMineRoller().also {
         metricsService.incInnloggetAnsatt(roller = it)
     }
 

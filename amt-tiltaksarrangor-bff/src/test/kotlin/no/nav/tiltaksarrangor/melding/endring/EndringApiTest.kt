@@ -6,7 +6,6 @@ import no.nav.tiltaksarrangor.melding.endring.request.EndringFraArrangorRequest
 import no.nav.tiltaksarrangor.melding.endring.request.LeggTilOppstartsdatoRequest
 import no.nav.tiltaksarrangor.model.Deltaker
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
-import no.nav.tiltaksarrangor.utils.objectMapper
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -17,7 +16,7 @@ import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 import java.util.UUID
 
-class EndringAPITest : IntegrationTest() {
+class EndringApiTest : IntegrationTest() {
     private val leggTilOppstartsdatoRequest = LeggTilOppstartsdatoRequest(LocalDate.now(), LocalDate.now().plusMonths(3))
 
     private val requests = listOf(

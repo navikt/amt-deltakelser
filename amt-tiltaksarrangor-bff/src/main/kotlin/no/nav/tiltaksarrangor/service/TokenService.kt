@@ -2,10 +2,10 @@ package no.nav.tiltaksarrangor.service
 
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import org.springframework.http.HttpStatus
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
-@Component
+@Service
 class TokenService(
     private val contextHolder: TokenValidationContextHolder,
 ) {

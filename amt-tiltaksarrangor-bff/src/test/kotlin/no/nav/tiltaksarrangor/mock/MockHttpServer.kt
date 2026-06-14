@@ -21,7 +21,8 @@ abstract class MockHttpServer(
 
     private var lastRequestCount = 0
 
-    private val responses = mutableMapOf<(request: RecordedRequest) -> Boolean, ResponseHolder>()
+    private val fallbackResponses = mutableListOf<Pair<(request: RecordedRequest) -> Boolean, ResponseHolder>>()
+    private val responses = mutableListOf<Pair<(request: RecordedRequest) -> Boolean, ResponseHolder>>()
 
     fun start() {
         try {
@@ -29,7 +30,8 @@ abstract class MockHttpServer(
 
             server.dispatcher = object : Dispatcher() {
                 override fun dispatch(request: RecordedRequest): MockResponse {
-                    val response = responses.entries.find { it.key.invoke(request) }?.value
+                    val response = responses.findLast { it.first.invoke(request) }?.second
+                        ?: fallbackResponses.findLast { it.first.invoke(request) }?.second
                         ?: throw IllegalStateException(
                             "$name: Mock has no handler for $request\n" +
                                 "	Headers: \n${printHeaders(request.headers)}\n" +
@@ -47,12 +49,19 @@ abstract class MockHttpServer(
         }
     }
 
+    fun addFallbackHandler(
+        predicate: (req: RecordedRequest) -> Boolean,
+        response: (req: RecordedRequest) -> MockResponse,
+    ) {
+        fallbackResponses.add(predicate to ResponseHolder(UUID.randomUUID(), response))
+    }
+
     fun addResponseHandler(
         predicate: (req: RecordedRequest) -> Boolean,
         response: (req: RecordedRequest) -> MockResponse,
     ): UUID {
         val id = UUID.randomUUID()
-        responses[predicate] = ResponseHolder(id, response)
+        responses.add(predicate to ResponseHolder(id, response))
         return id
     }
 

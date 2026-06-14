@@ -25,6 +25,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
+import tools.jackson.databind.ObjectMapper
 import java.time.Duration
 import java.util.UUID
 
@@ -34,6 +35,9 @@ import java.util.UUID
 abstract class IntegrationTest : RepositoryTestBase() {
     @Autowired
     protected lateinit var mockOAuth2Server: MockOAuth2Server
+
+    @Autowired
+    protected lateinit var objectMapper: ObjectMapper
 
     @LocalServerPort
     private var localServerPort: Int = 0
@@ -62,7 +66,13 @@ abstract class IntegrationTest : RepositoryTestBase() {
         @Suppress("unused")
         fun registerProperties(registry: DynamicPropertyRegistry) {
             mockAmtArrangorServer.start()
-            registry.add("amt-arrangor.url", mockAmtArrangorServer::serverUrl)
+            registry.add("amt-arrangor.default.url", mockAmtArrangorServer::serverUrl)
+            // hentarrangor.url bruker en annen path-prefix (/api/service/arrangor/organisasjonsnummer)
+            // for å skille den fra default.url i configMatcher, slik at riktig client registration velges.
+            registry.add("amt-arrangor.hentarrangor.url") {
+                "${mockAmtArrangorServer.serverUrl()}/api/service/arrangor/organisasjonsnummer"
+            }
+
             mockAmtPersonServer.start()
             registry.add("amt-person.url", mockAmtPersonServer::serverUrl)
         }

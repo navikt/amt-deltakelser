@@ -22,75 +22,66 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/deltaker/{deltakerId}/forslag")
-class ForslagAPI(
+@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
+class ForslagApi(
     private val tilgangskontrollService: MeldingTilgangskontrollService,
     private val forslagService: ForslagService,
 ) {
     @PostMapping("/forleng")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun forleng(
         @PathVariable deltakerId: UUID,
         @RequestBody request: ForlengDeltakelseRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/avslutt")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun avslutt(
         @PathVariable deltakerId: UUID,
         @RequestBody request: AvsluttDeltakelseRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/endre-avslutning")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun avslutt(
         @PathVariable deltakerId: UUID,
         @RequestBody request: EndreAvslutningRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/ikke-aktuell")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun ikkeAktuell(
         @PathVariable deltakerId: UUID,
         @RequestBody request: IkkeAktuellRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/deltakelsesmengde")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun deltakelsesmengde(
         @PathVariable deltakerId: UUID,
         @RequestBody request: DeltakelsesmengdeRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/sluttdato")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun sluttdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: SluttdatoRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/startdato")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun sluttdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: StartdatoRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/sluttarsak")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun sluttdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: SluttarsakRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/fjern-oppstartsdato")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun fjernOppstartsdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: FjernOppstartsdatoRequest,
     ): AktivtForslagResponse = opprettForslag(deltakerId, request)
 
     @PostMapping("/{forslagId}/tilbakekall")
-    @ProtectedWithClaims(issuer = Issuer.TOKEN_X)
     fun tilbakekall(
         @PathVariable deltakerId: UUID,
         @PathVariable forslagId: UUID,

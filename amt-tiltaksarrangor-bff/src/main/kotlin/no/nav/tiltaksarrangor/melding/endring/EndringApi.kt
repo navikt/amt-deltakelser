@@ -16,7 +16,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/deltaker/{deltakerId}/endring")
-class EndringAPI(
+class EndringApi(
     private val tilgangskontrollService: MeldingTilgangskontrollService,
     private val endringService: EndringService,
 ) {

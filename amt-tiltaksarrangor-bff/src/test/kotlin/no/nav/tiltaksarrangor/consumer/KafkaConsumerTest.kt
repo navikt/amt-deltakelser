@@ -8,7 +8,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.tiltaksarrangor.IntegrationTest
-import no.nav.tiltaksarrangor.client.amtarrangor.dto.toArrangorDbo
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.arrangorInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.deltakerlisteIdInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.gjennomforingPayloadInTest
@@ -44,7 +43,6 @@ import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
@@ -189,13 +187,12 @@ class KafkaConsumerTest(
     @Test
     fun `listen - tombstonemelding pa arrangor-topic - slettes i database`() {
         val arrangorId = UUID.randomUUID()
-        val arrangorDto =
-            ArrangorDto(
-                id = arrangorId,
-                navn = "Arrangør AS",
-                organisasjonsnummer = "77777777",
-                overordnetArrangorId = null,
-            )
+        val arrangorDto = ArrangorDto(
+            id = arrangorId,
+            navn = "Arrangør AS",
+            organisasjonsnummer = "77777777",
+            overordnetArrangorId = null,
+        )
         arrangorRepository.insertOrUpdateArrangor(arrangorDto.toArrangorDbo())
         testKafkaProducer
             .send(

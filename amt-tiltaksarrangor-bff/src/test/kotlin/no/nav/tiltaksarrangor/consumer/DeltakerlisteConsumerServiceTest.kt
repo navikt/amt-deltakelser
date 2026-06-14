@@ -11,7 +11,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
+import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.arrangorInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.deltakerlisteIdInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.gjennomforingPayloadInTest
@@ -31,14 +31,14 @@ class DeltakerlisteConsumerServiceTest {
     private val arrangorRepository = mockk<ArrangorRepository>()
     private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
     private val tiltakstypeRepository = mockk<TiltakstypeRepository>()
-    private val amtArrangorClient = mockk<AmtArrangorClient>()
+    private val hentArrangorClient = mockk<HentArrangorClient>()
 
     private val sut =
         DeltakerlisteConsumerService(
             arrangorRepository = arrangorRepository,
             deltakerlisteRepository = deltakerlisteRepository,
             tiltakstypeRepository = tiltakstypeRepository,
-            amtArrangorClient = amtArrangorClient,
+            hentArrangorClient = hentArrangorClient,
         )
 
     @BeforeEach
@@ -52,7 +52,7 @@ class DeltakerlisteConsumerServiceTest {
 
         every { arrangorRepository.getArrangor(arrangorInTest.organisasjonsnummer) } returns null
         every { arrangorRepository.insertOrUpdateArrangor(any()) } just Runs
-        coEvery { amtArrangorClient.getArrangor(arrangorInTest.organisasjonsnummer) } returns arrangorInTest
+        coEvery { hentArrangorClient.getArrangor(arrangorInTest.organisasjonsnummer) } returns arrangorInTest
     }
 
     @Test

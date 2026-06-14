@@ -38,14 +38,14 @@ import no.nav.tiltaksarrangor.service.NavAnsattService
 import no.nav.tiltaksarrangor.service.NavEnhetService
 import no.nav.tiltaksarrangor.utils.objectMapper
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Component
+@Service
 class KafkaConsumerService(
     private val arrangorRepository: ArrangorRepository,
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,

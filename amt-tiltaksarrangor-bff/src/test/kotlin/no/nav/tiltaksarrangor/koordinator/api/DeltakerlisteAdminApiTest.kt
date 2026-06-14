@@ -22,7 +22,7 @@ import org.springframework.http.HttpHeaders
 import java.time.LocalDate
 import java.util.UUID
 
-class DeltakerlisteAdminAPITest(
+class DeltakerlisteAdminApiTest(
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
@@ -97,12 +97,11 @@ class DeltakerlisteAdminAPITest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/koordinator/admin/deltakerlister",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/koordinator/admin/deltakerlister",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         val expectedJson =
             """
@@ -114,12 +113,11 @@ class DeltakerlisteAdminAPITest(
 
     @Test
     fun `leggTilDeltakerliste - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "POST",
-                path = "/tiltaksarrangor/koordinator/admin/deltakerliste/${UUID.randomUUID()}",
-                body = emptyRequest(),
-            )
+        val response = sendRequest(
+            method = "POST",
+            path = "/tiltaksarrangor/koordinator/admin/deltakerliste/${UUID.randomUUID()}",
+            body = emptyRequest(),
+        )
 
         response.code shouldBe 401
     }
@@ -129,22 +127,21 @@ class DeltakerlisteAdminAPITest(
         val personIdent = "12345678910"
         val deltakerlisteId = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a")
         val arrangorId = UUID.randomUUID()
-        val deltakerliste =
-            DeltakerlisteDbo(
-                id = deltakerlisteId,
-                navn = "Gjennomføring 1",
-                gjennomforingstype = GjennomforingType.Gruppe,
-                status = GjennomforingStatusType.GJENNOMFORES,
-                arrangorId = arrangorId,
-                tiltaksnavn = "Navn på tiltak",
-                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                startDato = LocalDate.of(2023, 2, 1),
-                sluttDato = null,
-                erKurs = false,
-                oppstartstype = Oppstartstype.LOPENDE,
-                tilgjengeligForArrangorFraOgMedDato = null,
-                pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
-            )
+        val deltakerliste = DeltakerlisteDbo(
+            id = deltakerlisteId,
+            navn = "Gjennomføring 1",
+            gjennomforingstype = GjennomforingType.Gruppe,
+            status = GjennomforingStatusType.GJENNOMFORES,
+            arrangorId = arrangorId,
+            tiltaksnavn = "Navn på tiltak",
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            startDato = LocalDate.of(2023, 2, 1),
+            sluttDato = null,
+            erKurs = false,
+            oppstartstype = Oppstartstype.LOPENDE,
+            tilgjengeligForArrangorFraOgMedDato = null,
+            pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
+        )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val ansattId = UUID.randomUUID()
         tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
@@ -161,13 +158,12 @@ class DeltakerlisteAdminAPITest(
         )
         mockAmtArrangorServer.addLeggTilEllerFjernDeltakerlisteResponse(arrangorId, deltakerlisteId)
 
-        val response =
-            sendRequest(
-                method = "POST",
-                path = "/tiltaksarrangor/koordinator/admin/deltakerliste/$deltakerlisteId",
-                body = emptyRequest(),
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "POST",
+            path = "/tiltaksarrangor/koordinator/admin/deltakerliste/$deltakerlisteId",
+            body = emptyRequest(),
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         response.code shouldBe 200
 

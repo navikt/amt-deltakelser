@@ -1,5 +1,6 @@
 package no.nav.tiltaksarrangor.mock
 
+import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattPersonaliaDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
@@ -12,6 +13,29 @@ import okhttp3.mockwebserver.MockResponse
 import java.util.UUID
 
 class MockAmtArrangorHttpServer : MockHttpServer(name = "Amt-Arrangor Mock Server") {
+    init {
+        // Fallback for HentArrangorClient requests from leftover Kafka messages
+        addFallbackHandler(
+            { req -> req.requestUrl?.encodedPath?.startsWith("/api/service/arrangor/organisasjonsnummer/") == true },
+            { req ->
+                val orgnummer = req.requestUrl?.pathSegments?.last() ?: "000000000"
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(
+                        objectMapper.writeValueAsString(
+                            ArrangorMedOverordnetArrangor(
+                                id = UUID.randomUUID(),
+                                navn = "Ukjent arrangør",
+                                organisasjonsnummer = orgnummer,
+                                overordnetArrangor = null,
+                            ),
+                        ),
+                    )
+            },
+        )
+    }
+
     fun addAnsattResponse(
         ansattId: UUID = UUID.randomUUID(),
         personIdent: String,
@@ -20,6 +44,7 @@ class MockAmtArrangorHttpServer : MockHttpServer(name = "Amt-Arrangor Mock Serve
             path = "/api/ansatt",
             MockResponse()
                 .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(getAnsatt(ansattId, personIdent))),
         )
     }
@@ -48,36 +73,34 @@ class MockAmtArrangorHttpServer : MockHttpServer(name = "Amt-Arrangor Mock Serve
         personIdent: String,
     ): AnsattDto = AnsattDto(
         id = ansattId,
-        personalia =
-            AnsattPersonaliaDto(
-                personident = personIdent,
-                navn =
-                    NavnDto(
-                        fornavn = "Fornavn",
-                        mellomnavn = null,
-                        etternavn = "Etternavn",
-                    ),
+        personalia = AnsattPersonaliaDto(
+            personident = personIdent,
+            navn =
+                NavnDto(
+                    fornavn = "Fornavn",
+                    mellomnavn = null,
+                    etternavn = "Etternavn",
+                ),
+        ),
+        arrangorer = listOf(
+            TilknyttetArrangorDto(
+                arrangorId = UUID.randomUUID(),
+                roller = listOf(AnsattRolle.KOORDINATOR, AnsattRolle.VEILEDER),
+                veileder = listOf(VeilederDto(UUID.randomUUID(), Veiledertype.VEILEDER)),
+                koordinator = listOf(UUID.randomUUID()),
             ),
-        arrangorer =
-            listOf(
-                TilknyttetArrangorDto(
-                    arrangorId = UUID.randomUUID(),
-                    roller = listOf(AnsattRolle.KOORDINATOR, AnsattRolle.VEILEDER),
-                    veileder = listOf(VeilederDto(UUID.randomUUID(), Veiledertype.VEILEDER)),
-                    koordinator = listOf(UUID.randomUUID()),
-                ),
-                TilknyttetArrangorDto(
-                    arrangorId = UUID.randomUUID(),
-                    roller = listOf(AnsattRolle.KOORDINATOR),
-                    veileder = emptyList(),
-                    koordinator = listOf(UUID.randomUUID()),
-                ),
-                TilknyttetArrangorDto(
-                    arrangorId = UUID.randomUUID(),
-                    roller = listOf(AnsattRolle.VEILEDER),
-                    veileder = listOf(VeilederDto(UUID.randomUUID(), Veiledertype.VEILEDER)),
-                    koordinator = emptyList(),
-                ),
+            TilknyttetArrangorDto(
+                arrangorId = UUID.randomUUID(),
+                roller = listOf(AnsattRolle.KOORDINATOR),
+                veileder = emptyList(),
+                koordinator = listOf(UUID.randomUUID()),
             ),
+            TilknyttetArrangorDto(
+                arrangorId = UUID.randomUUID(),
+                roller = listOf(AnsattRolle.VEILEDER),
+                veileder = listOf(VeilederDto(UUID.randomUUID(), Veiledertype.VEILEDER)),
+                koordinator = emptyList(),
+            ),
+        ),
     )
 }

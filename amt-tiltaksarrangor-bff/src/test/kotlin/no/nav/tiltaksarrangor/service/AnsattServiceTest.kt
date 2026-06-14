@@ -48,9 +48,9 @@ class AnsattServiceTest(
         deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId2))
         val ansattId = UUID.randomUUID()
         val personIdentInTest = "12345678910"
-        coEvery { amtArrangorClient.getAnsatt(any()) } returns getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2)
+        coEvery { amtArrangorClient.getAnsatt() } returns getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2)
 
-        val rollerInTest = ansattService.oppdaterOgHentMineRoller(personIdentInTest)
+        val rollerInTest = ansattService.oppdaterOgHentMineRoller()
 
         rollerInTest.size shouldBe 2
         rollerInTest.find { it == AnsattRolle.VEILEDER.name } shouldNotBe null
@@ -91,10 +91,10 @@ class AnsattServiceTest(
                 ),
             )
         coEvery {
-            amtArrangorClient.getAnsatt(any())
+            amtArrangorClient.getAnsatt()
         } returns getAnsatt(ansattId, personIdentInTest, deltakerId, deltakerId2).copy(arrangorer = oppdaterteArrangorer)
 
-        val rollerInTest = ansattService.oppdaterOgHentMineRoller(personIdentInTest)
+        val rollerInTest = ansattService.oppdaterOgHentMineRoller()
 
         rollerInTest.size shouldBe 1
         rollerInTest.find { it == AnsattRolle.KOORDINATOR.name } shouldNotBe null
@@ -115,9 +115,9 @@ class AnsattServiceTest(
     @Test
     fun `oppdaterOgHentMineRoller - ansatt har ingen roller - lagres ikke i database og returnerer tom liste`() {
         val personIdent = "1234"
-        coEvery { amtArrangorClient.getAnsatt(any()) } returns null
+        coEvery { amtArrangorClient.getAnsatt() } returns null
 
-        ansattService.oppdaterOgHentMineRoller(personIdent)
+        ansattService.oppdaterOgHentMineRoller()
 
         ansattFinnes(personIdent) shouldBe false
     }
@@ -125,10 +125,10 @@ class AnsattServiceTest(
     @Test
     fun `oppdaterOgHentMineRoller - amt-arrangor svarer med feilmelding - lagres ikke i database og returnerer feilmelding`() {
         val personIdent = "1234"
-        coEvery { amtArrangorClient.getAnsatt(any()) } throws UnauthorizedException("Fant ikke ansatt")
+        coEvery { amtArrangorClient.getAnsatt() } throws UnauthorizedException("Fant ikke ansatt")
 
         assertThrows<UnauthorizedException> {
-            ansattService.oppdaterOgHentMineRoller(personIdent)
+            ansattService.oppdaterOgHentMineRoller()
         }
 
         ansattFinnes(personIdent) shouldBe false
