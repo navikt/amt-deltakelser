@@ -76,7 +76,9 @@ class TiltaksarrangorApiTest(
 
         @Test
         fun `getMineRoller - autentisert - returnerer 200`() {
-            every { amtArrangorClient.getAnsatt() } returns getMockAnsatt(personIdent = PERSONIDENT_IN_TEST)
+            every {
+                amtArrangorClient.getAnsatt()
+            } returns getMockAnsatt(personIdent = PERSONIDENT_IN_TEST)
 
             val response = getWithAuthResponse<List<String>>("/tiltaksarrangor/meg/roller")
 
@@ -92,7 +94,6 @@ class TiltaksarrangorApiTest(
             val response = restTemplate.exchange<String>(
                 "/tiltaksarrangor/deltaker/${UUID.randomUUID()}",
                 HttpMethod.GET,
-                HttpEntity<String>(HttpHeaders()),
             )
 
             response.statusCode shouldBe HttpStatus.UNAUTHORIZED
@@ -100,19 +101,14 @@ class TiltaksarrangorApiTest(
 
         @Test
         fun `getDeltaker - autentisert, har ikke tilgang - returnerer 403`() {
-            val arrangorId = UUID.randomUUID()
-            arrangorRepository.insertOrUpdateArrangor(
-                ArrangorDbo(
-                    id = arrangorId,
-                    navn = "Orgnavn",
-                    organisasjonsnummer = "orgnummer",
-                    overordnetArrangorId = null,
-                ),
-            )
-            val deltakerliste = getDeltakerliste(arrangorId)
-            deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
+            val arrangorId = createArrangor()
+
+            val deltakerlisteId = UUID.randomUUID()
+            createDeltakerliste(arrangorId, id = deltakerlisteId)
+
             val deltakerId = UUID.randomUUID()
-            deltakerRepository.insertOrUpdateDeltaker(getDeltaker(deltakerId, deltakerliste.id))
+            createDeltaker(deltakerId, deltakerlisteId)
+
             tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
                 AnsattDbo(
                     id = UUID.randomUUID(),
@@ -120,10 +116,12 @@ class TiltaksarrangorApiTest(
                     fornavn = "Fornavn",
                     mellomnavn = null,
                     etternavn = "Etternavn",
-                    roller =
-                        listOf(
-                            AnsattRolleDbo(UUID.randomUUID(), AnsattRolle.KOORDINATOR),
+                    roller = listOf(
+                        AnsattRolleDbo(
+                            arrangorId = UUID.randomUUID(),
+                            rolle = AnsattRolle.KOORDINATOR,
                         ),
+                    ),
                     deltakerlister = emptyList(),
                     veilederDeltakere = emptyList(),
                 ),
@@ -138,22 +136,12 @@ class TiltaksarrangorApiTest(
 
         @Test
         fun `getDeltaker - autentisert, har tilgang - returnerer 200`() {
-            val arrangorId = UUID.randomUUID()
-            arrangorRepository.insertOrUpdateArrangor(
-                ArrangorDbo(
-                    id = arrangorId,
-                    navn = "Orgnavn",
-                    organisasjonsnummer = "orgnummer",
-                    overordnetArrangorId = null,
-                ),
-            )
-            val deltakerliste = getDeltakerliste(arrangorId).copy(
-                id = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a"),
-                startDato = LocalDate.of(2023, 2, 1),
-            )
-            deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-            val deltakerId = UUID.fromString("977350f2-d6a5-49bb-a3a0-773f25f863d9")
-            val gyldigFra = LocalDateTime.now()
+            val arrangorId = createArrangor()
+
+            val deltakerlisteId = UUID.randomUUID()
+            createDeltakerliste(arrangorId, id = deltakerlisteId)
+
+            val deltakerId = UUID.randomUUID()
 
             val navVeileder = NavAnsatt(
                 id = UUID.randomUUID(),
@@ -164,7 +152,8 @@ class TiltaksarrangorApiTest(
             )
             navAnsattRepository.upsert(navVeileder)
 
-            val deltaker = getDeltaker(deltakerId, deltakerliste.id).copy(
+            val gyldigFra = LocalDateTime.now()
+            val deltaker = getDeltaker(deltakerId, deltakerlisteId).copy(
                 personident = "10987654321",
                 telefonnummer = "90909090",
                 epost = "mail@test.no",
@@ -184,35 +173,13 @@ class TiltaksarrangorApiTest(
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             val endringsmeldinger = getEndringsmeldinger(deltakerId)
             endringsmeldinger.forEach { endringsmeldingRepository.insertOrUpdateEndringsmelding(it) }
-            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-                AnsattDbo(
-                    id = UUID.fromString("2d5fc2f7-a9e6-4830-a987-4ff135a70c10"),
-                    personIdent = PERSONIDENT_IN_TEST,
-                    fornavn = "Fornavn",
-                    mellomnavn = null,
-                    etternavn = "Etternavn",
-                    roller =
-                        listOf(
-                            AnsattRolleDbo(arrangorId, AnsattRolle.VEILEDER),
-                        ),
-                    deltakerlister = emptyList(),
-                    veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.VEILEDER)),
-                ),
-            )
-            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-                AnsattDbo(
-                    id = UUID.fromString("7c43b43b-43be-4d4b-8057-d907c5f1e5c5"),
-                    personIdent = UUID.randomUUID().toString(),
-                    fornavn = "Per",
-                    mellomnavn = null,
-                    etternavn = "Person",
-                    roller =
-                        listOf(
-                            AnsattRolleDbo(arrangorId, AnsattRolle.VEILEDER),
-                        ),
-                    deltakerlister = emptyList(),
-                    veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.MEDVEILEDER)),
-                ),
+
+            createVeileder(arrangorId, deltakerId)
+            createVeileder(
+                arrangorId,
+                deltakerId,
+                personIdent = UUID.randomUUID().toString(),
+                rolle = Veiledertype.MEDVEILEDER,
             )
 
             val response = getWithAuthResponse<Deltaker>("/tiltaksarrangor/deltaker/$deltakerId")
@@ -247,59 +214,15 @@ class TiltaksarrangorApiTest(
 
         @Test
         fun `getDeltakerhistorikk - har tilgang, deltaker finnes, ingen historikk - returnerer tom liste`() {
-            val arrangorId = UUID.randomUUID()
-            arrangorRepository.insertOrUpdateArrangor(
-                ArrangorDbo(
-                    id = arrangorId,
-                    navn = "Orgnavn",
-                    organisasjonsnummer = "orgnummer",
-                    overordnetArrangorId = null,
-                ),
-            )
-            val deltakerliste =
-                getDeltakerliste(arrangorId).copy(
-                    id = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a"),
-                    startDato = LocalDate.of(2023, 2, 1),
-                )
-            deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-            val deltakerId = UUID.randomUUID()
-            val gyldigFra = LocalDateTime.now()
-            val deltaker =
-                getDeltaker(deltakerId, deltakerliste.id).copy(
-                    personident = "10987654321",
-                    telefonnummer = "90909090",
-                    epost = "mail@test.no",
-                    status = DeltakerStatus.Type.DELTAR,
-                    statusOpprettetDato = LocalDate.of(2023, 2, 1).atStartOfDay(),
-                    startdato = LocalDate.of(2023, 2, 1),
-                    dagerPerUke = 2.5f,
-                    innsoktDato = LocalDate.of(2023, 1, 15),
-                    bestillingstekst = "Tror deltakeren vil ha nytte av dette",
-                    navKontor = "Nav Oslo",
-                    navVeilederId = UUID.randomUUID(),
-                    navVeilederNavn = "Veileder Veiledersen",
-                    navVeilederTelefon = "56565656",
-                    navVeilederEpost = "epost@nav.no",
-                    vurderingerFraArrangor = getVurderinger(deltakerId, gyldigFra),
-                    historikk = emptyList(),
-                )
-            deltakerRepository.insertOrUpdateDeltaker(deltaker)
+            val arrangorId = createArrangor()
 
-            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-                AnsattDbo(
-                    id = UUID.fromString("2d5fc2f7-a9e6-4830-a987-4ff135a70c10"),
-                    personIdent = PERSONIDENT_IN_TEST,
-                    fornavn = "Fornavn",
-                    mellomnavn = null,
-                    etternavn = "Etternavn",
-                    roller =
-                        listOf(
-                            AnsattRolleDbo(arrangorId, AnsattRolle.VEILEDER),
-                        ),
-                    deltakerlister = emptyList(),
-                    veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.VEILEDER)),
-                ),
-            )
+            val deltakerlisteId = UUID.randomUUID()
+            createDeltakerliste(arrangorId, id = deltakerlisteId)
+
+            val deltakerId = UUID.randomUUID()
+
+            createDeltaker(deltakerId, deltakerlisteId, historikk = emptyList())
+            createVeileder(arrangorId, deltakerId)
 
             val response = getWithAuthResponse<List<DeltakerHistorikkResponse>>(
                 "/tiltaksarrangor/deltaker/$deltakerId/historikk",
@@ -311,24 +234,9 @@ class TiltaksarrangorApiTest(
 
         @Test
         fun `getDeltakerhistorikk - har tilgang, deltaker finnes, har historikk - returnerer historikk`() {
-            val arrangorId = UUID.randomUUID()
-            arrangorRepository.insertOrUpdateArrangor(
-                ArrangorDbo(
-                    id = arrangorId,
-                    navn = "Orgnavn",
-                    organisasjonsnummer = "orgnummer",
-                    overordnetArrangorId = null,
-                ),
-            )
-            val deltakerliste = getDeltakerliste(arrangorId).copy(
-                id = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a"),
-                startDato = LocalDate.of(2023, 2, 1),
-            )
-            deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-            val ansattId = UUID.fromString("2d5fc2f7-a9e6-4830-a987-4ff135a70c10")
+            val ansattId = UUID.randomUUID()
             val deltakerId = UUID.randomUUID()
-            val gyldigFra = LocalDateTime.now()
-            val endringId = UUID.fromString("fe640f60-88ef-46d8-9bc4-148aecdef6da")
+            val endringId = UUID.randomUUID()
 
             val expectedHistorikk = listOf(
                 DeltakerHistorikk.EndringFraArrangor(
@@ -345,41 +253,11 @@ class TiltaksarrangorApiTest(
                 ),
             )
 
-            val deltaker = getDeltaker(deltakerId, deltakerliste.id).copy(
-                personident = "10987654321",
-                telefonnummer = "90909090",
-                epost = "mail@test.no",
-                status = DeltakerStatus.Type.DELTAR,
-                statusOpprettetDato = LocalDate.of(2023, 1, 1).atStartOfDay(),
-                startdato = LocalDate.of(2023, 2, 1),
-                dagerPerUke = 2.5f,
-                innsoktDato = LocalDate.of(2023, 1, 15),
-                bestillingstekst = "Tror deltakeren vil ha nytte av dette",
-                navKontor = "Nav Oslo",
-                navVeilederId = UUID.randomUUID(),
-                navVeilederNavn = "Veileder Veiledersen",
-                navVeilederTelefon = "56565656",
-                navVeilederEpost = "epost@nav.no",
-                vurderingerFraArrangor = getVurderinger(deltakerId, gyldigFra),
-                historikk = expectedHistorikk,
-            )
-            deltakerRepository.insertOrUpdateDeltaker(deltaker)
-
-            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-                AnsattDbo(
-                    id = ansattId,
-                    personIdent = PERSONIDENT_IN_TEST,
-                    fornavn = "Fornavn",
-                    mellomnavn = null,
-                    etternavn = "Etternavn",
-                    roller =
-                        listOf(
-                            AnsattRolleDbo(arrangorId, AnsattRolle.VEILEDER),
-                        ),
-                    deltakerlister = emptyList(),
-                    veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.VEILEDER)),
-                ),
-            )
+            val arrangorId = createArrangor()
+            val deltakerlisteId = UUID.randomUUID()
+            createDeltakerliste(arrangorId, id = deltakerlisteId)
+            createDeltaker(deltakerId, deltakerlisteId, historikk = expectedHistorikk)
+            createVeileder(arrangorId, deltakerId, id = ansattId)
 
             val response = getWithAuthResponse<List<DeltakerHistorikkResponse>>(
                 "/tiltaksarrangor/deltaker/$deltakerId/historikk",
@@ -419,21 +297,11 @@ class TiltaksarrangorApiTest(
 
         @Test
         fun `registrerVurdering - autentisert - returnerer 200`() {
-            val deltakerId = UUID.fromString("27446cc8-30ad-4030-94e3-de438c2af3c6")
-            val arrangorId = UUID.randomUUID()
-            arrangorRepository.insertOrUpdateArrangor(
-                ArrangorDbo(
-                    id = arrangorId,
-                    navn = "Orgnavn",
-                    organisasjonsnummer = "orgnummer",
-                    overordnetArrangorId = null,
-                ),
-            )
-            val deltakerliste = getDeltakerliste(arrangorId).copy(
-                id = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a"),
-                startDato = LocalDate.of(2023, 2, 1),
-            )
-            deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
+            val deltakerId = UUID.randomUUID()
+            val arrangorId = createArrangor()
+            val deltakerlisteId = UUID.randomUUID()
+            createDeltakerliste(arrangorId, id = deltakerlisteId)
+
             val opprinneligVurdering = Vurdering(
                 id = UUID.randomUUID(),
                 deltakerId = deltakerId,
@@ -442,29 +310,16 @@ class TiltaksarrangorApiTest(
                 opprettetAvArrangorAnsattId = UUID.randomUUID(),
                 opprettet = LocalDateTime.now().minusWeeks(1),
             )
-            val deltaker = getDeltaker(deltakerId, deltakerliste.id)
+
+            val deltaker = getDeltaker(deltakerId, deltakerlisteId)
                 .copy(
                     personident = "10987654321",
                     status = DeltakerStatus.Type.VURDERES,
                     statusOpprettetDato = LocalDate.of(2023, 2, 1).atStartOfDay(),
                 ).copy(vurderingerFraArrangor = listOf(opprinneligVurdering))
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
-            val ansattId = UUID.randomUUID()
-            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-                AnsattDbo(
-                    id = ansattId,
-                    personIdent = PERSONIDENT_IN_TEST,
-                    fornavn = "Fornavn",
-                    mellomnavn = null,
-                    etternavn = "Etternavn",
-                    roller =
-                        listOf(
-                            AnsattRolleDbo(arrangorId, AnsattRolle.VEILEDER),
-                        ),
-                    deltakerlister = emptyList(),
-                    veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.VEILEDER)),
-                ),
-            )
+
+            createVeileder(arrangorId, deltakerId)
 
             val response = postWithAuth(
                 "/tiltaksarrangor/deltaker/$deltakerId/vurdering",
@@ -472,6 +327,7 @@ class TiltaksarrangorApiTest(
             )
 
             response.statusCode shouldBe HttpStatus.OK
+
             val deltakerFraDb = deltakerRepository.getDeltaker(deltakerId).shouldNotBeNull()
             deltakerFraDb.vurderingerFraArrangor.shouldNotBeNull().size shouldBe 2
         }
@@ -491,44 +347,20 @@ class TiltaksarrangorApiTest(
 
         @Test
         fun `fjernDeltaker - autentisert - returnerer 200`() {
-            val deltakerId = UUID.fromString("27446cc8-30ad-4030-94e3-de438c2af3c6")
-            val arrangorId = UUID.randomUUID()
-            arrangorRepository.insertOrUpdateArrangor(
-                ArrangorDbo(
-                    id = arrangorId,
-                    navn = "Orgnavn",
-                    organisasjonsnummer = "orgnummer",
-                    overordnetArrangorId = null,
-                ),
+            val deltakerId = UUID.randomUUID()
+            val arrangorId = createArrangor()
+            val deltakerlisteId = UUID.randomUUID()
+            createDeltakerliste(arrangorId, id = deltakerlisteId)
+
+            val deltaker = getDeltaker(deltakerId, deltakerlisteId).copy(
+                personident = PERSONIDENT_IN_TEST,
+                status = DeltakerStatus.Type.HAR_SLUTTET,
+                statusOpprettetDato = LocalDate.of(2023, 2, 1).atStartOfDay(),
             )
-            val deltakerliste = getDeltakerliste(arrangorId).copy(
-                id = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a"),
-                startDato = LocalDate.of(2023, 2, 1),
-            )
-            deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
-            val deltaker =
-                getDeltaker(deltakerId, deltakerliste.id).copy(
-                    personident = PERSONIDENT_IN_TEST,
-                    status = DeltakerStatus.Type.HAR_SLUTTET,
-                    statusOpprettetDato = LocalDate.of(2023, 2, 1).atStartOfDay(),
-                )
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
+
             val ansattId = UUID.randomUUID()
-            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
-                AnsattDbo(
-                    id = ansattId,
-                    personIdent = PERSONIDENT_IN_TEST,
-                    fornavn = "Fornavn",
-                    mellomnavn = null,
-                    etternavn = "Etternavn",
-                    roller =
-                        listOf(
-                            AnsattRolleDbo(arrangorId, AnsattRolle.VEILEDER),
-                        ),
-                    deltakerlister = emptyList(),
-                    veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, Veiledertype.VEILEDER)),
-                ),
-            )
+            createVeileder(arrangorId, deltakerId, id = ansattId)
 
             val response = deleteWithAuth(
                 "/tiltaksarrangor/deltaker/$deltakerId",
@@ -578,12 +410,91 @@ class TiltaksarrangorApiTest(
         ),
     )
 
+    // Helper functions for test setup
+    private fun createArrangor(
+        id: UUID = UUID.randomUUID(),
+        navn: String = "Orgnavn",
+        organisasjonsnummer: String = "orgnummer",
+    ): UUID {
+        arrangorRepository.insertOrUpdateArrangor(
+            ArrangorDbo(
+                id = id,
+                navn = navn,
+                organisasjonsnummer = organisasjonsnummer,
+                overordnetArrangorId = null,
+            ),
+        )
+        return id
+    }
+
+    private fun createDeltakerliste(
+        arrangorId: UUID,
+        id: UUID = UUID.randomUUID(),
+        startDato: LocalDate = LocalDate.of(2023, 2, 1),
+    ) {
+        val deltakerliste = getDeltakerliste(arrangorId).copy(
+            id = id,
+            startDato = startDato,
+        )
+        deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
+    }
+
+    private fun createDeltaker(
+        deltakerId: UUID,
+        deltakerlisteId: UUID,
+        personident: String = "10987654321",
+        status: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
+        historikk: List<DeltakerHistorikk> = emptyList(),
+    ) {
+        val gyldigFra = LocalDateTime.now()
+        val deltaker = getDeltaker(deltakerId, deltakerlisteId).copy(
+            personident = personident,
+            telefonnummer = "90909090",
+            epost = "mail@test.no",
+            status = status,
+            statusOpprettetDato = LocalDate.of(2023, 2, 1).atStartOfDay(),
+            startdato = LocalDate.of(2023, 2, 1),
+            dagerPerUke = 2.5f,
+            innsoktDato = LocalDate.of(2023, 1, 15),
+            bestillingstekst = "Tror deltakeren vil ha nytte av dette",
+            navKontor = "Nav Oslo",
+            navVeilederId = UUID.randomUUID(),
+            navVeilederNavn = "Veileder Veiledersen",
+            navVeilederTelefon = "56565656",
+            navVeilederEpost = "epost@nav.no",
+            vurderingerFraArrangor = getVurderinger(deltakerId, gyldigFra),
+            historikk = historikk,
+        )
+        deltakerRepository.insertOrUpdateDeltaker(deltaker)
+    }
+
+    private fun createVeileder(
+        arrangorId: UUID,
+        deltakerId: UUID,
+        id: UUID = UUID.randomUUID(),
+        personIdent: String = PERSONIDENT_IN_TEST,
+        rolle: Veiledertype = Veiledertype.VEILEDER,
+    ) {
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
+            AnsattDbo(
+                id = id,
+                personIdent = personIdent,
+                fornavn = "Fornavn",
+                mellomnavn = null,
+                etternavn = "Etternavn",
+                roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.VEILEDER)),
+                deltakerlister = emptyList(),
+                veilederDeltakere = listOf(VeilederDeltakerDbo(deltakerId, rolle)),
+            ),
+        )
+    }
+
     companion object {
         private const val PERSONIDENT_IN_TEST = "12345678910"
 
         private fun getEndringsmeldinger(deltakerId: UUID): List<EndringsmeldingDbo> = listOf(
             EndringsmeldingDbo(
-                id = UUID.fromString("27446cc8-30ad-4030-94e3-de438c2af3c6"),
+                id = UUID.randomUUID(),
                 deltakerId = deltakerId,
                 innhold =
                     Innhold.AvsluttDeltakelseInnhold(
@@ -599,7 +510,7 @@ class TiltaksarrangorApiTest(
                 sendt = LocalDate.of(2023, 3, 30).atStartOfDay(),
             ),
             EndringsmeldingDbo(
-                id = UUID.fromString("362c7fdd-04e7-4f43-9e56-0939585856eb"),
+                id = UUID.randomUUID(),
                 deltakerId = deltakerId,
                 innhold =
                     Innhold.EndreSluttdatoInnhold(
@@ -610,7 +521,7 @@ class TiltaksarrangorApiTest(
                 sendt = LocalDate.of(2023, 4, 3).atStartOfDay(),
             ),
             EndringsmeldingDbo(
-                id = UUID.fromString("ab4d67a5-2556-4f63-b27a-ced04a231d0e"),
+                id = UUID.randomUUID(),
                 deltakerId = deltakerId,
                 innhold =
                     Innhold.LeggTilOppstartsdatoInnhold(
