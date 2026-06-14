@@ -9,7 +9,6 @@ import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -34,25 +33,26 @@ class AmtArrangorClient(
             ?: error("Fant ikke 'amt-arrangor-tokenx' i OAuth2-config"),
     )
 
-    fun getAnsatt(): AnsattDto? = client
-        .get()
-        .uri { uriBuilder ->
-            uriBuilder
-                .path("/api/ansatt")
-                .build()
-        }.retrieve()
-        .onStatus(
-            { it == HttpStatus.NOT_FOUND },
-        ) { _, _ ->
-            log.info("Ansatt ikke funnet")
-        }.onStatus(
-            HttpStatusCode::isError,
-            handleClientError(
-                log = log,
-                unauthorizedMessage = "Ikke tilgang til å hente ansatt fra amt-arrangør",
-                defaultErrorMessage = "Kunne ikke hente ansatt fra amt-arrangør.",
-            ),
-        ).body<AnsattDto>()
+    fun getAnsatt(): AnsattDto? = try {
+        client
+            .get()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/api/ansatt")
+                    .build()
+            }.retrieve()
+            .onStatus(
+                HttpStatusCode::isError,
+                handleClientError(
+                    log = log,
+                    unauthorizedMessage = "Ikke tilgang til å hente ansatt fra amt-arrangør",
+                    defaultErrorMessage = "Kunne ikke hente ansatt fra amt-arrangør.",
+                ),
+            ).body<AnsattDto>()
+    } catch (_: NoSuchElementException) {
+        log.info("Ansatt ikke funnet")
+        null
+    }
 
     fun leggTilDeltakerlisteForKoordinator(
         ansattId: UUID,
