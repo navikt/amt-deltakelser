@@ -27,13 +27,16 @@ spec:
 
   startup:
     path: /internal/health/liveness
+    port: 8081
     initialDelay: 5
     periodSeconds: 5
     failureThreshold: 30
   readiness:
     path: /internal/health/readiness
+    port: 8081
   liveness:
     path: /internal/health/liveness
+    port: 8081
     timeout: 3
 
   replicas:
