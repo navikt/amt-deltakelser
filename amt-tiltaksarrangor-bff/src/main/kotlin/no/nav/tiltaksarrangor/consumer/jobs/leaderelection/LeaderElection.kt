@@ -2,9 +2,10 @@ package no.nav.tiltaksarrangor.consumer.jobs.leaderelection
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
-import org.springframework.web.client.body
+import org.springframework.web.client.requiredBody
 import java.net.InetAddress
 
 @Component
@@ -33,8 +34,10 @@ class LeaderElection(
         val leader = client
             .get()
             .retrieve()
-            .body<Leader>()
-            ?: throw RuntimeException("Kall mot elector returnerte tom body")
+            .onStatus(HttpStatusCode::isError) { _, response ->
+                log.error("Feil ved henting av leader fra elector. Responsekode: ${response.statusCode.value()}")
+                throw RuntimeException("Feil ved kall mot elector service")
+            }.requiredBody<Leader>()
 
         return leader.name == hostname
     }

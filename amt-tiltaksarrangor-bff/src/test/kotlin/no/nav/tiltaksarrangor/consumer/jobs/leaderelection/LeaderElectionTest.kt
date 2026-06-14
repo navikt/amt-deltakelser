@@ -17,6 +17,10 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import java.net.InetAddress
 
+/**
+ * Tester [LeaderElection] med Spring REST Client.
+ * Bruker @RestClientTest for å teste kun REST-laget uten full SpringBootTest-kontekst.
+ */
 @RestClientTest(LeaderElection::class)
 @TestPropertySource(
     properties = [
@@ -68,15 +72,17 @@ class LeaderElectionTest(
         }
 
         @Test
-        fun `isLeader - kaster RuntimeException når response body er null`() {
+        fun `isLeader - kaster exception når response body er null`() {
             server
                 .expect(requestTo("http://elector-service"))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("", MediaType.APPLICATION_JSON))
 
-            shouldThrow<RuntimeException> {
+            val exception = shouldThrow<RuntimeException> {
                 sut.isLeader()
-            }.message shouldBe "Kall mot elector returnerte tom body"
+            }
+
+            exception.message shouldBe "Response body is required"
 
             server.verify()
         }
@@ -94,9 +100,41 @@ class LeaderElectionTest(
 
             server.verify()
         }
+
+        @Test
+        fun `isLeader - kaster RuntimeException ved 404`() {
+            server
+                .expect(requestTo("http://elector-service"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND))
+
+            shouldThrow<RuntimeException> {
+                sut.isLeader()
+            }
+
+            server.verify()
+        }
+
+        @Test
+        fun `isLeader - kaster RuntimeException ved 403 Forbidden`() {
+            server
+                .expect(requestTo("http://elector-service"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.FORBIDDEN))
+
+            shouldThrow<RuntimeException> {
+                sut.isLeader()
+            }
+
+            server.verify()
+        }
     }
 }
 
+/**
+ * Tester [LeaderElection] når electorPath er satt til "dont_look_for_leader".
+ * I dette tilfellet skal isLeader() alltid returnere true uten å gjøre HTTP-kall.
+ */
 @RestClientTest(LeaderElection::class)
 @TestPropertySource(
     properties = [
