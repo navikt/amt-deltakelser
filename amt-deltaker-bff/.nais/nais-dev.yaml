@@ -108,7 +108,6 @@ spec:
     sqlInstances:
       - name: amt-deltaker-bff-2
         tier: db-f1-micro
-        diskType: HDD
         collation: nb_NO.UTF8
         type: POSTGRES_17
         databases:

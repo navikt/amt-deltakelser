@@ -12,7 +12,6 @@ spec:
       - name: amt-tiltaksarrangor-bff-1
         type: POSTGRES_17
         tier: db-f1-micro
-        diskType: HDD
         databases:
           - name: amt-tiltaksarrangor-bff
             envVarPrefix: DB
