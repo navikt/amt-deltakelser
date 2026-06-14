@@ -56,6 +56,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.boot:spring-boot-restclient-test")
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.token.validation.spring.test)

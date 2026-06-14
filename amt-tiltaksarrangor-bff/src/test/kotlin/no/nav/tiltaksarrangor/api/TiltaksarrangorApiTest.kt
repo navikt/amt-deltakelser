@@ -1,10 +1,8 @@
 package no.nav.tiltaksarrangor.api
 
-import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
@@ -12,14 +10,10 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.tiltaksarrangor.IntegrationTest
-import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
-import no.nav.tiltaksarrangor.api.response.DeltakerHistorikkResponse
-import no.nav.tiltaksarrangor.api.response.EndringFraArrangorResponse
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingType
 import no.nav.tiltaksarrangor.consumer.model.Innhold
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
-import no.nav.tiltaksarrangor.model.Deltaker
 import no.nav.tiltaksarrangor.model.DeltakerStatusAarsakJsonDboDto
 import no.nav.tiltaksarrangor.model.Endringsmelding
 import no.nav.tiltaksarrangor.model.Veiledertype
@@ -40,19 +34,18 @@ import no.nav.tiltaksarrangor.testutils.getMockAnsatt
 import no.nav.tiltaksarrangor.testutils.getVurderinger
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.boot.resttestclient.TestRestTemplate
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate
-import org.springframework.boot.resttestclient.exchange
-import org.springframework.boot.resttestclient.postForEntity
-import org.springframework.http.HttpEntity
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-@AutoConfigureTestRestTemplate
+@AutoConfigureMockMvc
 class TiltaksarrangorApiTest(
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
@@ -60,18 +53,15 @@ class TiltaksarrangorApiTest(
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val arrangorRepository: ArrangorRepository,
     private val navAnsattRepository: NavAnsattRepository,
-    private val restTemplate: TestRestTemplate,
+    private val mockMvc: MockMvc,
 ) : IntegrationTest() {
     @Nested
     inner class GetMineRollerTests {
         @Test
         fun `getMineRoller - ikke autentisert - returnerer 401`() {
-            val response = restTemplate.exchange<String>(
-                "/tiltaksarrangor/meg/roller",
-                HttpMethod.GET,
-            )
-
-            response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+            mockMvc
+                .get("/tiltaksarrangor/meg/roller")
+                .andExpect { status { isUnauthorized() } }
         }
 
         @Test
@@ -80,10 +70,14 @@ class TiltaksarrangorApiTest(
                 amtArrangorClient.getAnsatt()
             } returns getMockAnsatt(personIdent = PERSONIDENT_IN_TEST)
 
-            val response = getWithAuthResponse<List<String>>("/tiltaksarrangor/meg/roller")
-
-            response.statusCode shouldBe HttpStatus.OK
-            response.body shouldBe listOf("KOORDINATOR", "VEILEDER")
+            mockMvc
+                .get("/tiltaksarrangor/meg/roller") {
+                    headers { set(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}") }
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$[0]") { value("KOORDINATOR") }
+                    jsonPath("$[1]") { value("VEILEDER") }
+                }
         }
     }
 
@@ -91,12 +85,9 @@ class TiltaksarrangorApiTest(
     inner class GetDeltakerTests {
         @Test
         fun `getDeltaker - ikke autentisert - returnerer 401`() {
-            val response = restTemplate.exchange<String>(
-                "/tiltaksarrangor/deltaker/${UUID.randomUUID()}",
-                HttpMethod.GET,
-            )
-
-            response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+            mockMvc
+                .get("/tiltaksarrangor/deltaker/${UUID.randomUUID()}")
+                .andExpect { status { isUnauthorized() } }
         }
 
         @Test
@@ -127,11 +118,10 @@ class TiltaksarrangorApiTest(
                 ),
             )
 
-            val response = getWithAuthResponse<String>(
-                url = "/tiltaksarrangor/deltaker/$deltakerId",
-            )
-
-            response.statusCode shouldBe HttpStatus.FORBIDDEN
+            mockMvc
+                .get("/tiltaksarrangor/deltaker/$deltakerId") {
+                    headers { set(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}") }
+                }.andExpect { status { isForbidden() } }
         }
 
         @Test
@@ -182,21 +172,22 @@ class TiltaksarrangorApiTest(
                 rolle = Veiledertype.MEDVEILEDER,
             )
 
-            val response = getWithAuthResponse<Deltaker>("/tiltaksarrangor/deltaker/$deltakerId")
-
-            response.statusCode shouldBe HttpStatus.OK
-            assertSoftly(response.body.shouldNotBeNull()) {
-                id shouldBe deltaker.id
-                fornavn shouldBe deltaker.fornavn
-                etternavn shouldBe deltaker.etternavn
-                fodselsnummer shouldBe deltaker.personident
-                telefonnummer shouldBe deltaker.telefonnummer
-                epost shouldBe deltaker.epost
-                status.type shouldBe DeltakerStatus.Type.DELTAR
-                startDato shouldBe deltaker.startdato
-                dagerPerUke shouldBe deltaker.dagerPerUke
-                bestillingTekst shouldBe deltaker.bestillingstekst
-            }
+            mockMvc
+                .get("/tiltaksarrangor/deltaker/$deltakerId") {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}")
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.id") { value(deltaker.id.toString()) }
+                    jsonPath("$.fornavn") { value(deltaker.fornavn) }
+                    jsonPath("$.etternavn") { value(deltaker.etternavn) }
+                    jsonPath("$.fodselsnummer") { value(deltaker.personident) }
+                    jsonPath("$.telefonnummer") { value(deltaker.telefonnummer) }
+                    jsonPath("$.epost") { value(deltaker.epost) }
+                    jsonPath("$.status.type") { value("DELTAR") }
+                    jsonPath("$.startDato") { value("2023-02-01") }
+                    jsonPath("$.dagerPerUke") { value(2.5) }
+                    jsonPath("$.bestillingTekst") { value(deltaker.bestillingstekst) }
+                }
         }
     }
 
@@ -204,12 +195,9 @@ class TiltaksarrangorApiTest(
     inner class GetDeltakerhistorikkTests {
         @Test
         fun `getDeltakerhistorikk - ikke autentisert - returnerer 401`() {
-            val response = restTemplate.exchange<String>(
-                url = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}/historikk",
-                method = HttpMethod.GET,
-            )
-
-            response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+            mockMvc
+                .get("/tiltaksarrangor/deltaker/${UUID.randomUUID()}/historikk")
+                .andExpect { status { isUnauthorized() } }
         }
 
         @Test
@@ -224,12 +212,13 @@ class TiltaksarrangorApiTest(
             createDeltaker(deltakerId, deltakerlisteId, historikk = emptyList())
             createVeileder(arrangorId, deltakerId)
 
-            val response = getWithAuthResponse<List<DeltakerHistorikkResponse>>(
-                "/tiltaksarrangor/deltaker/$deltakerId/historikk",
-            )
-
-            response.statusCode shouldBe HttpStatus.OK
-            response.body shouldBe emptyList()
+            mockMvc
+                .get("/tiltaksarrangor/deltaker/$deltakerId/historikk") {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}")
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$") { isArray() }
+                }
         }
 
         @Test
@@ -259,40 +248,27 @@ class TiltaksarrangorApiTest(
             createDeltaker(deltakerId, deltakerlisteId, historikk = expectedHistorikk)
             createVeileder(arrangorId, deltakerId, id = ansattId)
 
-            val response = getWithAuthResponse<List<DeltakerHistorikkResponse>>(
-                "/tiltaksarrangor/deltaker/$deltakerId/historikk",
-            )
-
-            response.statusCode shouldBe HttpStatus.OK
-            response.body.shouldNotBeNull().size shouldBe 1
-
-            assertSoftly(
-                response.body
-                    .shouldNotBeNull()
-                    .first()
-                    .shouldBeInstanceOf<EndringFraArrangorResponse>(),
-            ) {
-                id shouldBe endringId
-                arrangorNavn shouldBe "Orgnavn"
-            }
+            mockMvc
+                .get("/tiltaksarrangor/deltaker/$deltakerId/historikk") {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}")
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.length()") { value(1) }
+                    jsonPath("$[0].type") { value("EndringFraArrangor") }
+                    jsonPath("$[0].id") { value(endringId.toString()) }
+                    jsonPath("$[0].arrangorNavn") { value("Orgnavn") }
+                }
         }
     }
 
     @Nested
     inner class RegistrerVurderingTests {
-        val requestBody = RegistrerVurderingRequest(
-            vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
-            begrunnelse = null,
-        )
-
         @Test
         fun `registrerVurdering - ikke autentisert - returnerer 401`() {
-            val response = restTemplate.postForEntity<String>(
-                "/tiltaksarrangor/deltaker/${UUID.randomUUID()}/vurdering",
-                requestBody,
-            )
-
-            response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+            mockMvc
+                .post("/tiltaksarrangor/deltaker/${UUID.randomUUID()}/vurdering") {
+                    contentType = MediaType.APPLICATION_JSON
+                }.andExpect { status { isUnauthorized() } }
         }
 
         @Test
@@ -321,12 +297,12 @@ class TiltaksarrangorApiTest(
 
             createVeileder(arrangorId, deltakerId)
 
-            val response = postWithAuth(
-                "/tiltaksarrangor/deltaker/$deltakerId/vurdering",
-                requestBody,
-            )
-
-            response.statusCode shouldBe HttpStatus.OK
+            mockMvc
+                .post("/tiltaksarrangor/deltaker/$deltakerId/vurdering") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"vurderingstype":"OPPFYLLER_KRAVENE","begrunnelse":null}"""
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}")
+                }.andExpect { status { isOk() } }
 
             val deltakerFraDb = deltakerRepository.getDeltaker(deltakerId).shouldNotBeNull()
             deltakerFraDb.vurderingerFraArrangor.shouldNotBeNull().size shouldBe 2
@@ -337,12 +313,9 @@ class TiltaksarrangorApiTest(
     inner class FjernDeltakerTests {
         @Test
         fun `fjernDeltaker - ikke autentisert - returnerer 401`() {
-            val response = restTemplate.exchange<String>(
-                "/tiltaksarrangor/deltaker/${UUID.randomUUID()}",
-                HttpMethod.DELETE,
-            )
-
-            response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+            mockMvc
+                .delete("/tiltaksarrangor/deltaker/${UUID.randomUUID()}")
+                .andExpect { status { isUnauthorized() } }
         }
 
         @Test
@@ -362,53 +335,16 @@ class TiltaksarrangorApiTest(
             val ansattId = UUID.randomUUID()
             createVeileder(arrangorId, deltakerId, id = ansattId)
 
-            val response = deleteWithAuth(
-                "/tiltaksarrangor/deltaker/$deltakerId",
-            )
-
-            response.statusCode shouldBe HttpStatus.OK
+            mockMvc
+                .delete("/tiltaksarrangor/deltaker/$deltakerId") {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}")
+                }.andExpect { status { isOk() } }
 
             val deltakerFraDb = deltakerRepository.getDeltaker(deltakerId).shouldNotBeNull()
             deltakerFraDb.skjultAvAnsattId shouldBe ansattId
             deltakerFraDb.skjultDato shouldNotBe null
         }
     }
-
-    private inline fun <reified T : Any> getWithAuthResponse(url: String) = restTemplate.exchange<T>(
-        url,
-        HttpMethod.GET,
-        HttpEntity(
-            null,
-            HttpHeaders().apply {
-                set(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}")
-            },
-        ),
-    )
-
-    private fun postWithAuth(
-        url: String,
-        body: Any,
-    ) = restTemplate.exchange<String>(
-        url = url,
-        method = HttpMethod.POST,
-        requestEntity = HttpEntity(
-            body,
-            HttpHeaders().apply {
-                set(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}")
-            },
-        ),
-    )
-
-    private fun deleteWithAuth(url: String) = restTemplate.exchange<String>(
-        url,
-        HttpMethod.DELETE,
-        HttpEntity<String>(
-            null,
-            HttpHeaders().apply {
-                set(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = PERSONIDENT_IN_TEST)}")
-            },
-        ),
-    )
 
     // Helper functions for test setup
     private fun createArrangor(
