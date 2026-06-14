@@ -19,10 +19,6 @@ import java.util.UUID
 class EndringApiTest : IntegrationTest() {
     private val leggTilOppstartsdatoRequest = LeggTilOppstartsdatoRequest(LocalDate.now(), LocalDate.now().plusMonths(3))
 
-    private val requests = listOf(
-        leggTilOppstartsdatoRequest,
-    )
-
     @Test
     fun `skal teste token autentisering`() {
         val url = "${serverUrl()}/tiltaksarrangor/deltaker/${UUID.randomUUID()}/endring"
@@ -35,28 +31,22 @@ class EndringApiTest : IntegrationTest() {
 
     @Test
     fun `endring - har ikke tilgang til deltakerliste - skal returnere 403`() {
-        requests.forEach {
-            testIkkeTilgangTilDeltakerliste { deltakerId, ansattPersonIdent ->
-                it.send(deltakerId, ansattPersonIdent)
-            }
+        testIkkeTilgangTilDeltakerliste { deltakerId, ansattPersonIdent ->
+            leggTilOppstartsdatoRequest.send(deltakerId, ansattPersonIdent)
         }
     }
 
     @Test
     fun `endring - deltaker adressebeskyttet, ansatt er ikke veileder - skal returnere 403`() {
-        requests.forEach {
-            testDeltakerAdressebeskyttet { deltakerId, ansattPersonIdent ->
-                it.send(deltakerId, ansattPersonIdent)
-            }
+        testDeltakerAdressebeskyttet { deltakerId, ansattPersonIdent ->
+            leggTilOppstartsdatoRequest.send(deltakerId, ansattPersonIdent)
         }
     }
 
     @Test
     fun `endring - deltaker skjult - skal returnere 400`() {
-        requests.forEach {
-            testDeltakerSkjult { deltakerId, ansattPersonIdent ->
-                it.send(deltakerId, ansattPersonIdent)
-            }
+        testDeltakerSkjult { deltakerId, ansattPersonIdent ->
+            leggTilOppstartsdatoRequest.send(deltakerId, ansattPersonIdent)
         }
     }
 
