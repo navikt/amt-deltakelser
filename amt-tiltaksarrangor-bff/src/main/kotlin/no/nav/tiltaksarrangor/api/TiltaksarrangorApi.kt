@@ -31,7 +31,6 @@ class TiltaksarrangorApi(
     fun getDeltaker(
         @PathVariable deltakerId: UUID,
     ): Deltaker {
-        // Safe: personIdent from TokenX token provides identity. deltakerId validated via access control in service layer.
         val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
         return tiltaksarrangorService.getDeltaker(personIdent, deltakerId)
     }
@@ -40,7 +39,6 @@ class TiltaksarrangorApi(
     fun getDeltakerhistorikk(
         @PathVariable deltakerId: UUID,
     ): String {
-        // Safe: personIdent from TokenX token provides identity. deltakerId validated via access control in service layer.
         val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
         val historikk = tiltaksarrangorService.getDeltakerHistorikk(personIdent, deltakerId)
         return objectMapper.writePolymorphicListAsString(historikk)
@@ -51,7 +49,6 @@ class TiltaksarrangorApi(
         @PathVariable deltakerId: UUID,
         @PathVariable ulestEndringId: UUID,
     ) {
-        // Safe: personIdent from TokenX token provides identity. Path variables validated via access control in service layer.
         val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
         tiltaksarrangorService.markerEndringSomLest(personIdent, deltakerId, ulestEndringId)
     }
@@ -61,7 +58,6 @@ class TiltaksarrangorApi(
         @PathVariable deltakerId: UUID,
         @RequestBody request: RegistrerVurderingRequest,
     ) {
-        // Safe: personIdent from TokenX token provides identity. deltakerId validated via access control in service layer.
         val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
         tiltaksarrangorService.registrerVurdering(personIdent, deltakerId, request)
     }
@@ -70,7 +66,6 @@ class TiltaksarrangorApi(
     fun fjernDeltaker(
         @PathVariable deltakerId: UUID,
     ) {
-        // Safe: personIdent from TokenX token provides identity. deltakerId validated via access control in service layer.
         val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
         tiltaksarrangorService.fjernDeltaker(personIdent, deltakerId)
     }
