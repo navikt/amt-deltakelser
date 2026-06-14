@@ -23,7 +23,6 @@ spec:
     - https://amt-tiltaksarrangor-bff.intern.dev.nav.no
   prometheus:
     enabled: true
-    port: 8081
     path: /internal/prometheus
 
   startup:
