@@ -45,9 +45,10 @@ class NavBrukerConsumerTest {
         amtDeltakerClient = mockk(relaxed = true),
         forslagRepository = mockk(relaxed = true),
     )
+    private val navBrukerRepository = NavBrukerRepository()
     private val navBrukerService = NavBrukerService(
         amtPersonServiceClient = amtPersonServiceClient,
-        repository = NavBrukerRepository(),
+        navBrukerRepository = navBrukerRepository,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
     )
@@ -71,7 +72,7 @@ class NavBrukerConsumerTest {
 
         navBrukerConsumer.consume(navBruker.personId, navBruker.toDto(navEnhet).toJSON())
 
-        navBrukerService.get(navBruker.personId).getOrNull() shouldBe navBruker
+        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
     }
 
     @Test
@@ -87,7 +88,7 @@ class NavBrukerConsumerTest {
 
         navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
 
-        navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
     }
 
     @Test
@@ -112,7 +113,7 @@ class NavBrukerConsumerTest {
 
         navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
 
-        navBrukerService.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
         deltakerRepository.get(kladd.id).getOrNull() shouldBe null
     }
 

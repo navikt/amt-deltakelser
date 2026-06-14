@@ -110,7 +110,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         @Test
         fun `skal returnere liste med DeltakerHistorikk`() {
             // Arrange
-            val historikk = deltaker.getDeltakerHistorikkForVisning()
+            val historikk = deltaker.historikk
 
             val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
             val navEnhetMap = mapOf(navEnhet.id to navEnhet)

@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.gjennomforing
 
-import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestRepository
@@ -14,27 +13,12 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
 class DeltakerlisteServiceTest {
-    private val deltakerlisteService = DeltakerlisteService(DeltakerlisteRepository())
+    private val deltakerlisteRepository = DeltakerlisteRepository()
+    private val deltakerlisteService = DeltakerlisteService(deltakerlisteRepository)
 
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
-    }
-
-    @Test
-    fun `get - deltakerliste har felles oppstart - returnere success`() {
-        with(DeltakerlisteContext()) {
-            deltakerlisteService.get(deltakerliste.id).isSuccess shouldBe true
-        }
-    }
-
-    @Test
-    fun `get - deltakerliste har lopende oppstart - returnere success`() {
-        with(DeltakerlisteContext(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)) {
-            val result = deltakerlisteService.get(deltakerliste.id)
-
-            result.isSuccess shouldBe true
-        }
     }
 
     @Test

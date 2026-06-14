@@ -59,7 +59,7 @@ class PameldingServiceTest {
         deltakerService = deltakerService,
         navBrukerService = NavBrukerService(
             amtPersonServiceClient = mockk(relaxed = true),
-            repository = NavBrukerRepository(),
+            navBrukerRepository = NavBrukerRepository(),
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
         ),

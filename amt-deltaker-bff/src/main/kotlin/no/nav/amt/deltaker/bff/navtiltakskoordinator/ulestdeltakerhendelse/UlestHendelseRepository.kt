@@ -85,27 +85,6 @@ class UlestHendelseRepository {
         }
     }
 
-    fun get(id: UUID): Result<UlestHendelse> = runCatching {
-        val query = queryOf(
-            """
-            SELECT 
-                 id,
-                 deltaker_id,
-                 opprettet,
-                 ansvarlig",
-                 hendelse
-             FROM ulest_hendelse uh
-             WHERE uh.id = :id
-            """.trimIndent(),
-            mapOf("id" to id),
-        ).map(::rowMapper).asSingle
-
-        Database.query { session ->
-            session.run(query)
-                ?: throw NoSuchElementException("Ingen ulest hendelse med id $id")
-        }
-    }
-
     fun upsert(ulestHendelse: UlestHendelse) {
         val sql =
             """
@@ -152,6 +131,28 @@ class UlestHendelseRepository {
             )
         }
         log.info("Slettet ulest hendelse $id")
+    }
+
+    // Used by tests only
+    internal fun get(id: UUID): Result<UlestHendelse> = runCatching {
+        val query = queryOf(
+            """
+            SELECT 
+                 id,
+                 deltaker_id,
+                 opprettet,
+                 ansvarlig",
+                 hendelse
+             FROM ulest_hendelse uh
+             WHERE uh.id = :id
+            """.trimIndent(),
+            mapOf("id" to id),
+        ).map(::rowMapper).asSingle
+
+        Database.query { session ->
+            session.run(query)
+                ?: throw NoSuchElementException("Ingen ulest hendelse med id $id")
+        }
     }
 
     companion object {

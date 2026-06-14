@@ -58,7 +58,7 @@ class DeltakerV2ConsumerTest {
     )
     private val navBrukerService = NavBrukerService(
         amtPersonServiceClient = mockk(relaxed = true),
-        repository = NavBrukerRepository(),
+        navBrukerRepository = NavBrukerRepository(),
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
     )
