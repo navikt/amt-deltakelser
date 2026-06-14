@@ -2,6 +2,9 @@ package no.nav.tiltaksarrangor.koordinator.api
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -29,11 +32,10 @@ class DeltakerlisteAdminApiTest(
 ) : IntegrationTest() {
     @Test
     fun `getAlleDeltakerlister - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/koordinator/admin/deltakerlister",
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/koordinator/admin/deltakerlister",
+        )
 
         response.code shouldBe 401
     }
@@ -156,7 +158,14 @@ class DeltakerlisteAdminApiTest(
                 veilederDeltakere = emptyList(),
             ),
         )
-        mockAmtArrangorServer.addLeggTilEllerFjernDeltakerlisteResponse(arrangorId, deltakerlisteId)
+
+        every {
+            amtArrangorClient.leggTilDeltakerlisteForKoordinator(
+                ansattId = ansattId,
+                arrangorId = arrangorId,
+                deltakerlisteId = deltakerlisteId,
+            )
+        } just Runs
 
         val response = sendRequest(
             method = "POST",
@@ -174,11 +183,10 @@ class DeltakerlisteAdminApiTest(
 
     @Test
     fun `fjernDeltakerliste - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "DELETE",
-                path = "/tiltaksarrangor/koordinator/admin/deltakerliste/${UUID.randomUUID()}",
-            )
+        val response = sendRequest(
+            method = "DELETE",
+            path = "/tiltaksarrangor/koordinator/admin/deltakerliste/${UUID.randomUUID()}",
+        )
 
         response.code shouldBe 401
     }
@@ -218,14 +226,19 @@ class DeltakerlisteAdminApiTest(
                 veilederDeltakere = emptyList(),
             ),
         )
-        mockAmtArrangorServer.addLeggTilEllerFjernDeltakerlisteResponse(arrangorId, deltakerlisteId)
-
-        val response =
-            sendRequest(
-                method = "DELETE",
-                path = "/tiltaksarrangor/koordinator/admin/deltakerliste/$deltakerlisteId",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        every {
+            amtArrangorClient.fjernDeltakerlisteForKoordinator(
+                ansattId = ansattId,
+                arrangorId = arrangorId,
+                deltakerlisteId = deltakerlisteId,
             )
+        } just Runs
+
+        val response = sendRequest(
+            method = "DELETE",
+            path = "/tiltaksarrangor/koordinator/admin/deltakerliste/$deltakerlisteId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         response.code shouldBe 200
 

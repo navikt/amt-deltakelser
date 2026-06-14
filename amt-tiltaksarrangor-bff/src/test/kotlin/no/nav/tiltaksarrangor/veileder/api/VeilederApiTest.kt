@@ -34,11 +34,10 @@ class VeilederApiTest(
 ) : IntegrationTest() {
     @Test
     fun `getMineDeltakere - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/veileder/mine-deltakere",
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/veileder/mine-deltakere",
+        )
 
         response.code shouldBe 401
     }
@@ -120,12 +119,11 @@ class VeilederApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/veileder/mine-deltakere",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/veileder/mine-deltakere",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         val expectedJson =
             """

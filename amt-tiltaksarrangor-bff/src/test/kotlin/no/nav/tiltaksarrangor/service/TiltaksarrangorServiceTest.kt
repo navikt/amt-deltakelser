@@ -14,7 +14,6 @@ import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.tiltaksarrangor.IntegrationTest
 import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
 import no.nav.tiltaksarrangor.api.response.OppdateringResponse
-import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.consumer.model.AdresseJsonDbo
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.consumer.model.BostedsadresseJsonDbo
@@ -66,7 +65,6 @@ class TiltaksarrangorServiceTest(
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val ulestEndringRepository: UlestEndringRepository,
     private val tiltaksarrangorService: TiltaksarrangorService,
-    @MockkBean @Suppress("unused") private val amtArrangorClient: AmtArrangorClient,
     @MockkBean(relaxed = true) @Suppress("unused") private val metricsService: MetricsService,
     @MockkBean(relaxed = true) @Suppress("unused") private val auditLoggerService: AuditLoggerService,
     @MockkBean(relaxUnitFun = true) private val navAnsattService: NavAnsattService,

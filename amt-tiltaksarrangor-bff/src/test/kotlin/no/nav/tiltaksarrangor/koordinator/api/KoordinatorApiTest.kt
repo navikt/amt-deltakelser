@@ -2,6 +2,9 @@ package no.nav.tiltaksarrangor.koordinator.api
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -30,7 +33,6 @@ import no.nav.tiltaksarrangor.testutils.getAdresse
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpHeaders
 import java.time.LocalDate
@@ -45,18 +47,12 @@ class KoordinatorApiTest(
 ) : IntegrationTest() {
     private val mediaTypeJson = "application/json".toMediaType()
 
-    @AfterEach
-    fun tearDown() {
-        mockAmtArrangorServer.resetHttpServer()
-    }
-
     @Test
     fun `getMineDeltakerlister - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/koordinator/mine-deltakerlister",
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/koordinator/mine-deltakerlister",
+        )
 
         response.code shouldBe 401
     }
@@ -112,12 +108,11 @@ class KoordinatorApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/koordinator/mine-deltakerlister",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/koordinator/mine-deltakerlister",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         val expectedJson =
             """
@@ -130,11 +125,10 @@ class KoordinatorApiTest(
 
     @Test
     fun `getTilgjengeligeVeiledere - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/koordinator/${UUID.randomUUID()}/veiledere",
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/koordinator/${UUID.randomUUID()}/veiledere",
+        )
 
         response.code shouldBe 401
     }
@@ -197,12 +191,11 @@ class KoordinatorApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/koordinator/${deltakerliste.id}/veiledere",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/koordinator/${deltakerliste.id}/veiledere",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         val expectedJson =
             """
@@ -228,12 +221,11 @@ class KoordinatorApiTest(
                     ),
                 ),
             )
-        val response =
-            sendRequest(
-                method = "POST",
-                path = "/tiltaksarrangor/koordinator/veiledere?deltakerId=${UUID.randomUUID()}",
-                body = objectMapper.writeValueAsString(requestBody).toRequestBody(mediaTypeJson),
-            )
+        val response = sendRequest(
+            method = "POST",
+            path = "/tiltaksarrangor/koordinator/veiledere?deltakerId=${UUID.randomUUID()}",
+            body = objectMapper.writeValueAsString(requestBody).toRequestBody(mediaTypeJson),
+        )
 
         response.code shouldBe 401
     }
@@ -300,7 +292,13 @@ class KoordinatorApiTest(
             ),
         )
 
-        mockAmtArrangorServer.addOppdaterVeilederForDeltakerResponse(deltakerId)
+        every {
+            amtArrangorClient.oppdaterVeilederForDeltaker(
+                deltakerId = any(),
+                oppdaterVeiledereForDeltakerRequest = any(),
+            )
+        } just Runs
+
         val requestBody =
             LeggTilVeiledereRequest(
                 listOf(
@@ -315,13 +313,12 @@ class KoordinatorApiTest(
                 ),
             )
 
-        val response =
-            sendRequest(
-                method = "POST",
-                path = "/tiltaksarrangor/koordinator/veiledere?deltakerId=$deltakerId",
-                body = objectMapper.writeValueAsString(requestBody).toRequestBody(mediaTypeJson),
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "POST",
+            path = "/tiltaksarrangor/koordinator/veiledere?deltakerId=$deltakerId",
+            body = objectMapper.writeValueAsString(requestBody).toRequestBody(mediaTypeJson),
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         response.code shouldBe 200
 
@@ -336,11 +333,10 @@ class KoordinatorApiTest(
 
     @Test
     fun `getDeltakerliste - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/koordinator/deltakerliste/${UUID.randomUUID()}",
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/koordinator/deltakerliste/${UUID.randomUUID()}",
+        )
 
         response.code shouldBe 401
     }
@@ -439,12 +435,11 @@ class KoordinatorApiTest(
             )
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/koordinator/deltakerliste/$deltakerlisteId",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/koordinator/deltakerliste/$deltakerlisteId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         val expectedJson =
             """

@@ -18,11 +18,16 @@ import no.nav.amt.lib.models.person.address.Kontaktadresse
 import no.nav.amt.lib.models.person.address.Matrikkeladresse
 import no.nav.amt.lib.models.person.address.Vegadresse
 import no.nav.tiltaksarrangor.consumer.model.AdresseJsonDbo
+import no.nav.tiltaksarrangor.consumer.model.AnsattDto
+import no.nav.tiltaksarrangor.consumer.model.AnsattPersonaliaDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingType
 import no.nav.tiltaksarrangor.consumer.model.Innhold
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
+import no.nav.tiltaksarrangor.consumer.model.NavnDto
+import no.nav.tiltaksarrangor.consumer.model.TilknyttetArrangorDto
+import no.nav.tiltaksarrangor.consumer.model.VeilederDto
 import no.nav.tiltaksarrangor.model.Endringsmelding
 import no.nav.tiltaksarrangor.model.Veiledertype
 import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
@@ -38,6 +43,42 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 fun getDeltakerliste(arrangorId: UUID) = getDeltakerliste(id = UUID.randomUUID(), arrangorId = arrangorId)
+
+fun getMockAnsatt(
+    ansattId: UUID = UUID.randomUUID(),
+    personIdent: String,
+): AnsattDto = AnsattDto(
+    id = ansattId,
+    personalia = AnsattPersonaliaDto(
+        personident = personIdent,
+        navn =
+            NavnDto(
+                fornavn = "Fornavn",
+                mellomnavn = null,
+                etternavn = "Etternavn",
+            ),
+    ),
+    arrangorer = listOf(
+        TilknyttetArrangorDto(
+            arrangorId = UUID.randomUUID(),
+            roller = listOf(AnsattRolle.KOORDINATOR, AnsattRolle.VEILEDER),
+            veileder = listOf(VeilederDto(UUID.randomUUID(), Veiledertype.VEILEDER)),
+            koordinator = listOf(UUID.randomUUID()),
+        ),
+        TilknyttetArrangorDto(
+            arrangorId = UUID.randomUUID(),
+            roller = listOf(AnsattRolle.KOORDINATOR),
+            veileder = emptyList(),
+            koordinator = listOf(UUID.randomUUID()),
+        ),
+        TilknyttetArrangorDto(
+            arrangorId = UUID.randomUUID(),
+            roller = listOf(AnsattRolle.VEILEDER),
+            veileder = listOf(VeilederDto(UUID.randomUUID(), Veiledertype.VEILEDER)),
+            koordinator = emptyList(),
+        ),
+    ),
+)
 
 fun getDeltakerliste(
     id: UUID = UUID.randomUUID(),

@@ -2,6 +2,7 @@ package no.nav.tiltaksarrangor.api
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -29,10 +30,10 @@ import no.nav.tiltaksarrangor.repositories.model.EndringsmeldingDbo
 import no.nav.tiltaksarrangor.repositories.model.VeilederDeltakerDbo
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
+import no.nav.tiltaksarrangor.testutils.getMockAnsatt
 import no.nav.tiltaksarrangor.testutils.getVurderinger
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpHeaders
 import java.time.LocalDate
@@ -49,18 +50,12 @@ class TiltaksarrangorApiTest(
 ) : IntegrationTest() {
     private val mediaTypeJson = "application/json".toMediaType()
 
-    @AfterEach
-    fun tearDown() {
-        mockAmtArrangorServer.resetHttpServer()
-    }
-
     @Test
     fun `getMineRoller - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/meg/roller",
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/meg/roller",
+        )
 
         response.code shouldBe 401
     }
@@ -68,14 +63,14 @@ class TiltaksarrangorApiTest(
     @Test
     fun `getMineRoller - autentisert - returnerer 200`() {
         val personIdent = "12345678910"
-        mockAmtArrangorServer.addAnsattResponse(personIdent = personIdent)
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/meg/roller",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        every { amtArrangorClient.getAnsatt() } returns getMockAnsatt(personIdent = personIdent)
+
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/meg/roller",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         response.code shouldBe 200
         response.body.string() shouldBe "[\"KOORDINATOR\",\"VEILEDER\"]"
@@ -83,11 +78,10 @@ class TiltaksarrangorApiTest(
 
     @Test
     fun `getDeltaker - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}",
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}",
+        )
 
         response.code shouldBe 401
     }
@@ -124,12 +118,11 @@ class TiltaksarrangorApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/deltaker/$deltakerId",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/deltaker/$deltakerId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         response.code shouldBe 403
     }
@@ -216,12 +209,11 @@ class TiltaksarrangorApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/deltaker/$deltakerId",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/deltaker/$deltakerId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         val expectedJson =
             """
@@ -237,11 +229,10 @@ class TiltaksarrangorApiTest(
 
     @Test
     fun `getDeltakerhistorikk - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}/historikk",
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}/historikk",
+        )
 
         response.code shouldBe 401
     }
@@ -303,12 +294,11 @@ class TiltaksarrangorApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/deltaker/$deltakerId/historikk",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/deltaker/$deltakerId/historikk",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         response.code shouldBe 200
         response.body.string() shouldBe "[]"
@@ -386,12 +376,11 @@ class TiltaksarrangorApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "GET",
-                path = "/tiltaksarrangor/deltaker/$deltakerId/historikk",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "GET",
+            path = "/tiltaksarrangor/deltaker/$deltakerId/historikk",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         val expectedJson =
             """
@@ -409,12 +398,11 @@ class TiltaksarrangorApiTest(
                 vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
                 begrunnelse = null,
             )
-        val response =
-            sendRequest(
-                method = "POST",
-                path = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}/vurdering",
-                body = objectMapper.writeValueAsString(requestBody).toRequestBody(mediaTypeJson),
-            )
+        val response = sendRequest(
+            method = "POST",
+            path = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}/vurdering",
+            body = objectMapper.writeValueAsString(requestBody).toRequestBody(mediaTypeJson),
+        )
 
         response.code shouldBe 401
     }
@@ -477,13 +465,12 @@ class TiltaksarrangorApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "POST",
-                path = "/tiltaksarrangor/deltaker/$deltakerId/vurdering",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-                body = objectMapper.writeValueAsString(requestBody).toRequestBody(mediaTypeJson),
-            )
+        val response = sendRequest(
+            method = "POST",
+            path = "/tiltaksarrangor/deltaker/$deltakerId/vurdering",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+            body = objectMapper.writeValueAsString(requestBody).toRequestBody(mediaTypeJson),
+        )
 
         response.code shouldBe 200
         val deltakerFraDb = deltakerRepository.getDeltaker(deltakerId)
@@ -492,11 +479,10 @@ class TiltaksarrangorApiTest(
 
     @Test
     fun `fjernDeltaker - ikke autentisert - returnerer 401`() {
-        val response =
-            sendRequest(
-                method = "DELETE",
-                path = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}",
-            )
+        val response = sendRequest(
+            method = "DELETE",
+            path = "/tiltaksarrangor/deltaker/${UUID.randomUUID()}",
+        )
 
         response.code shouldBe 401
     }
@@ -544,12 +530,11 @@ class TiltaksarrangorApiTest(
             ),
         )
 
-        val response =
-            sendRequest(
-                method = "DELETE",
-                path = "/tiltaksarrangor/deltaker/$deltakerId",
-                headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
-            )
+        val response = sendRequest(
+            method = "DELETE",
+            path = "/tiltaksarrangor/deltaker/$deltakerId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = personIdent)}"),
+        )
 
         response.code shouldBe 200
         val deltakerFraDb = deltakerRepository.getDeltaker(deltakerId)

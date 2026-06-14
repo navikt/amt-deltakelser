@@ -1,12 +1,15 @@
 package no.nav.tiltaksarrangor
 
+import com.ninjasquad.springmockk.MockkBean
 import io.kotest.matchers.shouldBe
+import io.mockk.clearMocks
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
+import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
+import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
 import no.nav.tiltaksarrangor.kafka.KafkaTestConfiguration
-import no.nav.tiltaksarrangor.mock.MockAmtArrangorHttpServer
-import no.nav.tiltaksarrangor.mock.MockAmtPersonHttpServer
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
 import no.nav.tiltaksarrangor.unleash.UnleashTestConfiguration
 import no.nav.tiltaksarrangor.utils.Issuer
@@ -16,6 +19,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -39,17 +43,28 @@ abstract class IntegrationTest : RepositoryTestBase() {
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
 
+    @MockkBean
+    protected lateinit var amtArrangorClient: AmtArrangorClient
+
+    @MockkBean
+    protected lateinit var hentArrangorClient: HentArrangorClient
+
+    @MockkBean
+    protected lateinit var amtPersonClient: AmtPersonClient
+
     @LocalServerPort
     private var localServerPort: Int = 0
 
     fun serverUrl() = "http://localhost:$localServerPort"
 
+    @AfterEach
+    fun cleanup() {
+        clearMocks(amtArrangorClient, hentArrangorClient, amtPersonClient)
+    }
+
     val client = OkHttpClient.Builder().callTimeout(Duration.ofMinutes(5)).build()
 
     companion object {
-        val mockAmtArrangorServer = MockAmtArrangorHttpServer()
-        val mockAmtPersonServer = MockAmtPersonHttpServer()
-
         val kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka")).apply {
             // workaround for https://github.com/testcontainers/testcontainers-java/issues/9506
             withEnv("KAFKA_LISTENERS", "PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094")
@@ -65,16 +80,6 @@ abstract class IntegrationTest : RepositoryTestBase() {
         @DynamicPropertySource
         @Suppress("unused")
         fun registerProperties(registry: DynamicPropertyRegistry) {
-            mockAmtArrangorServer.start()
-            registry.add("amt-arrangor.default.url", mockAmtArrangorServer::serverUrl)
-            // hentarrangor.url bruker en annen path-prefix (/api/service/arrangor/organisasjonsnummer)
-            // for å skille den fra default.url i configMatcher, slik at riktig client registration velges.
-            registry.add("amt-arrangor.hentarrangor.url") {
-                "${mockAmtArrangorServer.serverUrl()}/api/service/arrangor/organisasjonsnummer"
-            }
-
-            mockAmtPersonServer.start()
-            registry.add("amt-person.url", mockAmtPersonServer::serverUrl)
         }
     }
 
