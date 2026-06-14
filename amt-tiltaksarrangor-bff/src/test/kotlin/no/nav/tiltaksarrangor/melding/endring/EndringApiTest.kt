@@ -2,94 +2,95 @@ package no.nav.tiltaksarrangor.melding.endring
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltaksarrangor.IntegrationTest
-import no.nav.tiltaksarrangor.melding.endring.request.EndringFraArrangorRequest
 import no.nav.tiltaksarrangor.melding.endring.request.LeggTilOppstartsdatoRequest
 import no.nav.tiltaksarrangor.model.Deltaker
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import org.junit.jupiter.api.Test
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.post
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 import java.util.UUID
 
-class EndringApiTest : IntegrationTest() {
+@AutoConfigureMockMvc
+class EndringApiTest(
+    private val mockMvc: MockMvc,
+) : IntegrationTest() {
     private val leggTilOppstartsdatoRequest = LeggTilOppstartsdatoRequest(LocalDate.now(), LocalDate.now().plusMonths(3))
 
     @Test
     fun `skal teste token autentisering`() {
-        val url = "${serverUrl()}/tiltaksarrangor/deltaker/${UUID.randomUUID()}/endring"
-
-        val requestBuilders = listOf(
-            Request.Builder().post(emptyRequest()).url("$url/legg-til-oppstartsdato"),
-        )
-        testTokenAutentisering(requestBuilders)
+        val deltakerId = UUID.randomUUID()
+        mockMvc
+            .post("/tiltaksarrangor/deltaker/$deltakerId/endring/legg-til-oppstartsdato") {
+                contentType = MediaType.APPLICATION_JSON
+                content = objectMapper.writeValueAsString(leggTilOppstartsdatoRequest)
+            }.andExpect { status { isUnauthorized() } }
     }
 
     @Test
     fun `endring - har ikke tilgang til deltakerliste - skal returnere 403`() {
-        testIkkeTilgangTilDeltakerliste { deltakerId, ansattPersonIdent ->
-            leggTilOppstartsdatoRequest.send(deltakerId, ansattPersonIdent)
+        with(DeltakerContext(applicationContext)) {
+            setKoordinatorDeltakerliste(UUID.randomUUID())
+
+            mockMvc
+                .post("/tiltaksarrangor/deltaker/${deltaker.id}/endring/legg-til-oppstartsdato") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(leggTilOppstartsdatoRequest)
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = koordinator.personIdent)}")
+                }.andExpect { status { isForbidden() } }
         }
     }
 
     @Test
     fun `endring - deltaker adressebeskyttet, ansatt er ikke veileder - skal returnere 403`() {
-        testDeltakerAdressebeskyttet { deltakerId, ansattPersonIdent ->
-            leggTilOppstartsdatoRequest.send(deltakerId, ansattPersonIdent)
+        with(DeltakerContext(applicationContext)) {
+            setDeltakerAdressebeskyttet()
+
+            mockMvc
+                .post("/tiltaksarrangor/deltaker/${deltaker.id}/endring/legg-til-oppstartsdato") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(leggTilOppstartsdatoRequest)
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = koordinator.personIdent)}")
+                }.andExpect { status { isForbidden() } }
         }
     }
 
     @Test
     fun `endring - deltaker skjult - skal returnere 400`() {
-        testDeltakerSkjult { deltakerId, ansattPersonIdent ->
-            leggTilOppstartsdatoRequest.send(deltakerId, ansattPersonIdent)
+        with(DeltakerContext(applicationContext)) {
+            setDeltakerSkjult()
+
+            mockMvc
+                .post("/tiltaksarrangor/deltaker/${deltaker.id}/endring/legg-til-oppstartsdato") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(leggTilOppstartsdatoRequest)
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = koordinator.personIdent)}")
+                }.andExpect { status { isBadRequest() } }
         }
     }
 
     @Test
     fun `startdato - ny endring - skal returnere 200 og riktig response`() {
-        testOpprettetEndring(leggTilOppstartsdatoRequest) { deltaker ->
-            deltaker.startDato shouldBe leggTilOppstartsdatoRequest.startdato
-            deltaker.sluttDato shouldBe leggTilOppstartsdatoRequest.sluttdato
-        }
-    }
-
-    private fun testOpprettetEndring(
-        request: LeggTilOppstartsdatoRequest,
-        block: (deltaker: Deltaker) -> Unit,
-    ) {
         with(DeltakerContext(applicationContext)) {
             setVenterPaOppstart()
-            val response = request.send(deltaker.id, koordinator.personIdent)
-            response.code shouldBe 200
 
-            val deltaker = objectMapper.readValue<Deltaker>(response.body.string())
+            val response = mockMvc
+                .post("/tiltaksarrangor/deltaker/${deltaker.id}/endring/legg-til-oppstartsdato") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(leggTilOppstartsdatoRequest)
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${getTokenxToken(fnr = koordinator.personIdent)}")
+                }.andExpect { status { isOk() } }
+                .andReturn()
+                .response
 
-            block(deltaker)
+            val responseBody = objectMapper.readValue<Deltaker>(response.contentAsString)
+
+            responseBody.startDato shouldBe leggTilOppstartsdatoRequest.startdato
+            responseBody.sluttDato shouldBe leggTilOppstartsdatoRequest.sluttdato
         }
-    }
-
-    private fun url(deltakerId: UUID) = "/tiltaksarrangor/deltaker/$deltakerId/endring"
-
-    private fun EndringFraArrangorRequest.send(
-        deltakerId: UUID,
-        ansattIdent: String,
-    ): Response {
-        val mediaTypeJson = "application/json".toMediaType()
-
-        val path = "${url(deltakerId)}/" + when (this) {
-            is LeggTilOppstartsdatoRequest -> "legg-til-oppstartsdato"
-        }
-
-        return sendRequest(
-            method = "POST",
-            path = path,
-            body = objectMapper.writeValueAsString(this).toRequestBody(mediaTypeJson),
-            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer ${getTokenxToken(fnr = ansattIdent)}"),
-        )
     }
 }
