@@ -262,7 +262,6 @@ fun Application.module() {
     val pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        navBrukerService = navBrukerService,
         paameldingClient = paameldingClient,
     )
 
@@ -324,14 +323,12 @@ fun Application.module() {
         pameldingService = pameldingService,
         paameldingClient = paameldingClient,
         navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
         amtDistribusjonClient = amtDistribusjonClient,
         amtDeltakerClient = amtDeltakerClient,
         arrangorsokClient = arrangorsokClient,
         enkeltplassClient = enkeltplassClient,
         sporbarhetsloggService = sporbarhetsloggService,
-        deltakerRepository = deltakerRepository,
         deltakerlisteService = deltakerlisteService,
         deltakerlisteRepository = deltakerlisteRepository,
         unleash = unleash,

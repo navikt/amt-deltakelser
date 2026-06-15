@@ -6,11 +6,9 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.clients.Testdata.lagUtkast
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
-import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
@@ -29,7 +27,7 @@ class PaameldingClientTest {
         val deltakerlisteId: UUID = UUID.randomUUID()
         val expectedUrl = "$DELTAKER_BASE_URL/kladd"
         val expectedErrorMessage = "Kunne ikke opprette kladd i amt-deltaker i deltakerliste $deltakerlisteId"
-        val opprettKladdLambda: suspend (PaameldingClient) -> OpprettKladdResponse =
+        val opprettKladdLambda: suspend (PaameldingClient) -> DeltakerResponse =
             { client -> client.opprettKladd(deltakerlisteId = deltakerlisteId, personIdent = "~personident~") }
 
         @ParameterizedTest
@@ -43,7 +41,7 @@ class PaameldingClientTest {
         fun `skal returnere KladdResponse`() {
             runHappyPathTest(
                 expectedUrl,
-                opprettKladdResponseFromDeltaker(deltakerInTest),
+                deltakerResponseInTest,
                 opprettKladdLambda,
             )
         }
@@ -149,21 +147,6 @@ class PaameldingClientTest {
                 block = innbyggerGodkjennUtkastLambda,
             )
         }
-    }
-
-    fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) = with(deltaker) {
-        OpprettKladdResponse(
-            id = id,
-            navBruker = navBruker,
-            deltakerlisteId = deltakerliste.id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = deltakelsesinnhold!!,
-            status = status,
-        )
     }
 
     companion object {

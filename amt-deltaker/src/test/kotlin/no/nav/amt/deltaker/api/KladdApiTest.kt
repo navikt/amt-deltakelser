@@ -12,7 +12,7 @@ import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
 import io.mockk.mockk
-import no.nav.amt.deltaker.api.response.SharedResponseMappers.opprettKladdResponseFromDeltaker
+import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
@@ -24,6 +24,7 @@ import java.util.UUID
 
 class KladdApiTest : IntegrationTestBase() {
     override val kladdService = mockk<KladdService>()
+    override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
     override val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
 
     @Test
@@ -53,9 +54,11 @@ class KladdApiTest : IntegrationTestBase() {
     @Test
     fun `post kladd - har tilgang - returnerer deltaker`() {
         val deltaker = TestData.lagDeltaker()
+        val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
 
         coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
         coEvery { kladdService.opprettKladd(any<UUID>(), any()) } returns deltaker
+        coEvery { deltakerResponseBuilder.buildDeltakerResponse(any(), any()) } returns deltakerResponse
 
         withTestApplicationContext { client ->
             val response = client.post("/kladd") {
@@ -63,9 +66,7 @@ class KladdApiTest : IntegrationTestBase() {
             }
 
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(
-                opprettKladdResponseFromDeltaker(deltaker),
-            )
+            response.bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerResponse)
         }
     }
 

@@ -264,24 +264,6 @@ private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aar
     beskrivelse,
 )
 
-fun validerKladdInnhold(
-    innhold: List<InnholdsElementRequest>,
-    tiltaksinnhold: DeltakerRegistreringInnhold?,
-    tiltakstype: Tiltakskode,
-) {
-    validerInnhold(tiltakstype, innhold, tiltaksinnhold) { innholdskoder ->
-        innhold.forEach {
-            require(it.innholdskode in innholdskoder) { "Ugyldig innholdskode: ${it.innholdskode}" }
-
-            if (it.innholdskode != annetInnholdselement.innholdskode) {
-                require(it.beskrivelse == null) {
-                    "Kun innhold med innholdskode: ${it.innholdskode} kan ha en beskrivelse"
-                }
-            }
-        }
-    }
-}
-
 private fun validerVarighet(
     startdato: LocalDate,
     sluttdato: LocalDate,

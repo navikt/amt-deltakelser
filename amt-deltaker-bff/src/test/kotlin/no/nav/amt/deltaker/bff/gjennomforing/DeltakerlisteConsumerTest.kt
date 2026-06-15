@@ -12,8 +12,6 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerRepository
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
@@ -82,12 +80,6 @@ class DeltakerlisteConsumerTest {
     private val pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        navBrukerService = NavBrukerService(
-            amtPersonServiceClient = amtPersonServiceClient,
-            navBrukerRepository = NavBrukerRepository(),
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-        ),
         paameldingClient = mockk(relaxed = true),
     )
 
