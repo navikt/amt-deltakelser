@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.deltaker
 
-import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -9,12 +8,9 @@ import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestRepository
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -88,22 +84,6 @@ class DeltakerRepositoryTest {
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteInTest.id)
 
             antallDeltakere shouldBe 1
-        }
-    }
-
-    @Test
-    fun `get - deltaker har flere vedtak, et aktivt - returnerer deltaker med aktivt vedtak`() {
-        val baseDeltaker = TestData.lagDeltakerOld()
-        val deltakerInTest = TestData.leggTilHistorikk(baseDeltaker, 2)
-
-        TestRepository.insert(deltakerInTest)
-
-        val deltakerInDb = deltakerRepository.get(baseDeltaker.id).getOrNull()
-
-        assertSoftly(deltakerInDb.shouldNotBeNull().fattetVedtak.shouldNotBeNull()) {
-            id shouldBe deltakerInTest.getAlleVedtak().first { it.gyldigTil == null }.id
-            fattet shouldNotBe null
-            fattetAvNav shouldBe true
         }
     }
 
@@ -229,9 +209,5 @@ class DeltakerRepositoryTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
-
-        private fun Deltaker.getAlleVedtak() = historikk
-            .filterIsInstance<DeltakerHistorikk.Vedtak>()
-            .map { it.vedtak }
     }
 }

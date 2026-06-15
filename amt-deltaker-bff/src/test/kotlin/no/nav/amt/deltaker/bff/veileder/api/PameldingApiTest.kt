@@ -152,8 +152,6 @@ class PameldingApiTest : IntegrationTestBase() {
         val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
         val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
 
-        enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
-
         return Pair(ansatte, enhet)
     }
 

@@ -15,11 +15,11 @@ import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerModel
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
-import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForHistorikk
 import no.nav.amt.deltaker.bff.utils.TestData.lagNavEnheterForHistorikk
 import no.nav.amt.deltaker.bff.utils.TestData.leggTilHistorikk
@@ -46,10 +46,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision
@@ -170,7 +167,7 @@ class VeilederApiTest : IntegrationTestBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             navBruker = lagNavBruker(personident = "4321"),
         )
-        setupMocks(deltaker, null)
+        setupMocks(deltaker)
 
         withTestApplicationContext { httpClient ->
             httpClient.post("/deltaker/${deltaker.id}") { createPostRequest(deltakerRequest) }.apply {
@@ -183,12 +180,12 @@ class VeilederApiTest : IntegrationTestBase() {
 
     @Test
     fun `getDeltakerHistorikk - toggle på - returnerer historikk fra amt-deltaker`() {
-        val deltaker = leggTilHistorikk(lagDeltakerOld(), 2, 2, 1)
-        val historikk = deltaker.historikk
+        val deltaker = lagDeltakerModel()
+        val historikk = leggTilHistorikk(deltaker, 2, 2, 1)
         val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
-        val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
+        val deltakerResponse = lagDeltakerResponse()
         val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
@@ -242,7 +239,7 @@ class VeilederApiTest : IntegrationTestBase() {
             coEvery { amtDeltakerClient.avvisForslag(any(), any()) } returns etterResponse
 
             // Koden kjøres så mockene må settes opp men det er ikke noe som brukes for responsen når toggele er på
-            setupMocks(deltaker, oppdatert)
+            setupMocks(deltaker)
             return DeltakerResponse.fromDeltakerModel(ModelMapper.toDeltaker(etterResponse))
         }
 
@@ -551,10 +548,7 @@ class VeilederApiTest : IntegrationTestBase() {
         begrunnelse = "Avvist fordi..",
     )
 
-    private fun setupMocks(
-        deltaker: Deltaker,
-        oppdatertDeltaker: Deltaker?,
-    ): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
+    private fun setupMocks(deltaker: Deltaker) {
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
@@ -563,22 +557,5 @@ class VeilederApiTest : IntegrationTestBase() {
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns
             PersonIdentResponse(deltaker.navBruker.personident).personident
-
-        return if (oppdatertDeltaker != null) {
-            mockAnsatteOgEnhetForDeltaker(oppdatertDeltaker)
-        } else {
-            mockAnsatteOgEnhetForDeltaker(deltaker)
-        }
-    }
-
-    private fun mockAnsatteOgEnhetForDeltaker(deltaker: Deltaker): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
-        val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
-        val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
-        val enheter = lagNavEnheterForHistorikk(deltaker.historikk).associateBy { it.id }
-
-        enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
-        coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns enheter
-
-        return Pair(ansatte, enhet)
     }
 }

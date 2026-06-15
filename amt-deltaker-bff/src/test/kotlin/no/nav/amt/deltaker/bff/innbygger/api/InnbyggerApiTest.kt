@@ -132,18 +132,17 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `getHistorikk - deltaker finnes, har tilgang - returnerer historikk`() {
-        val deltaker = TestData.leggTilHistorikk(TestData.lagDeltakerOld(), 2, 2, 1)
+        val historikk = TestData.leggTilHistorikk(TestData.lagDeltakerModel(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
-        val historikk = deltaker.historikk
         val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
-        val deltakerResponse = TestData.lagDeltakerResponse(id = deltaker.id)
+        val deltakerResponse = TestData.lagDeltakerResponse()
         val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
-        coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltaker.id) } returns DeltakerHistorikkDataResponse(
+        coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltakerResponse.id) } returns DeltakerHistorikkDataResponse(
             historikk = historikk,
             arrangornavn = arrangornavn,
             oppstartstype = oppstartstype,
@@ -153,7 +152,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
         )
 
         withTestApplicationContext { httpClient ->
-            httpClient.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
+            httpClient.get("/innbygger/${deltakerResponse.id}/historikk") { noBodyRequest() }.apply {
                 status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
                     DeltakerHistorikkResponse.fromModels(

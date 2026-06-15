@@ -63,7 +63,7 @@ class ModelMapper {
                 type = type,
                 tiltak = tiltakstype,
                 navn = navn,
-                status = status,
+                status = status!!,
                 startDato = startDato,
                 sluttDato = sluttDato,
                 oppstart = oppstart,
