@@ -57,7 +57,7 @@ data class EndreDeltakelsesmengdeRequest(
 
         validerDeltakelsesmengde(deltakelsesprosent, dagerPerUke, gyldigFra, deltaker)
 
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         validerBegrunnelse(begrunnelse)
     }
 }

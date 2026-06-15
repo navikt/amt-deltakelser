@@ -2,19 +2,31 @@ package no.nav.amt.deltaker.bff.veileder.api.utils
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.input
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerModel
+import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreBakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class InputvalideringTest {
     @Test
@@ -380,5 +392,412 @@ class InputvalideringTest {
         )
 
         shouldThrow<IllegalArgumentException> { request.valider(deltaker) }
+    }
+
+    @Nested
+    inner class ValiderAktivGjennomforingTest {
+        @Test
+        fun `validerAktivGjennomforing - status GJENNOMFORES - kaster ikke exception`() {
+            val gjennomforing = ModelMapper.toGjennomforing(lagGjennomforingResponse(status = GjennomforingStatusType.GJENNOMFORES))
+            shouldNotThrow<IllegalArgumentException> {
+                validerAktivGjennomforing(gjennomforing)
+            }
+        }
+
+        @Test
+        fun `validerAktivGjennomforing - status AVSLUTTET - kaster exception`() {
+            val gjennomforing = ModelMapper.toGjennomforing(lagGjennomforingResponse(status = GjennomforingStatusType.AVSLUTTET))
+            shouldThrow<IllegalArgumentException> {
+                validerAktivGjennomforing(gjennomforing)
+            }
+        }
+    }
+
+    @Nested
+    inner class ValiderNyDeltakelsesmengdeTest {
+        @Test
+        fun `validerNyDeltakelsesmengde - ingen eksisterende mengde - returnerer true`() {
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = LocalDate.now(),
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(null, ny) shouldBe true
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - endret prosent - returnerer true`() {
+            val eksisterende = DeltakelsesmengderResponse(
+                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = null,
+                    gyldigFra = LocalDate.now().minusDays(10),
+                ),
+                nesteDeltakelsesmengde = null,
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now(),
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe true
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - endret dager per uke - returnerer true`() {
+            val eksisterende = DeltakelsesmengderResponse(
+                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                    gyldigFra = LocalDate.now().minusDays(10),
+                ),
+                nesteDeltakelsesmengde = null,
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 4F,
+                gyldigFra = LocalDate.now(),
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe true
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - samme verdier men tidligere gyldigFra - returnerer true`() {
+            val eksisterende = DeltakelsesmengderResponse(
+                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                    gyldigFra = LocalDate.now(),
+                ),
+                nesteDeltakelsesmengde = null,
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = LocalDate.now().minusDays(1),
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe true
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - samme verdier og senere eller lik gyldigFra - returnerer false`() {
+            val eksisterende = DeltakelsesmengderResponse(
+                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                    gyldigFra = LocalDate.now().minusDays(5),
+                ),
+                nesteDeltakelsesmengde = null,
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = LocalDate.now(),
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe false
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - dagerPerUke begge null, samme prosent og senere gyldigFra - returnerer false`() {
+            val eksisterende = DeltakelsesmengderResponse(
+                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = null,
+                    gyldigFra = LocalDate.now().minusDays(5),
+                ),
+                nesteDeltakelsesmengde = null,
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now(),
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe false
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - eksisterende har dagerPerUke, ny har null - returnerer true`() {
+            val eksisterende = DeltakelsesmengderResponse(
+                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = LocalDate.now().minusDays(5),
+                ),
+                nesteDeltakelsesmengde = null,
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now(),
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe true
+        }
+    }
+
+    @Nested
+    inner class ValiderDeltakerKanReaktiveresTest {
+        @Test
+        fun `validerDeltakerKanReaktiveres - status IKKE_AKTUELL nylig - kaster ikke exception`() {
+            val deltaker = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                    gyldigFra = LocalDateTime.now().minusWeeks(2),
+                ),
+                sluttdato = null,
+            )
+            shouldNotThrow<IllegalArgumentException> {
+                validerDeltakerKanReaktiveres(deltaker)
+            }
+        }
+
+        @Test
+        fun `validerDeltakerKanReaktiveres - status DELTAR - kaster exception`() {
+            val deltaker = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                sluttdato = LocalDate.now().plusMonths(3),
+            )
+            shouldThrow<IllegalArgumentException> {
+                validerDeltakerKanReaktiveres(deltaker)
+            }
+        }
+
+        @Test
+        fun `validerDeltakerKanReaktiveres - IKKE_AKTUELL for mer enn to mnd siden - kaster exception`() {
+            val deltaker = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                    gyldigFra = LocalDateTime.now().minusMonths(3),
+                ),
+                sluttdato = null,
+            )
+            shouldThrow<IllegalArgumentException> {
+                validerDeltakerKanReaktiveres(deltaker)
+            }
+        }
+
+        @Test
+        fun `validerDeltakerKanReaktiveres DeltakerModel - status IKKE_AKTUELL - kaster ikke exception`() {
+            val deltaker = lagDeltakerModel(
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
+            )
+            shouldNotThrow<IllegalArgumentException> {
+                validerDeltakerKanReaktiveres(deltaker)
+            }
+        }
+
+        @Test
+        fun `validerDeltakerKanReaktiveres DeltakerModel - status DELTAR - kaster exception`() {
+            val deltaker = lagDeltakerModel(
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            shouldThrow<IllegalArgumentException> {
+                validerDeltakerKanReaktiveres(deltaker)
+            }
+        }
+    }
+
+    @Nested
+    inner class StatusForMindreEnn15DagerSidenTest {
+        @Test
+        fun `statusForMindreEnn15DagerSiden - status gyldig fra 10 dager siden - returnerer true`() {
+            val status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now().minusDays(10),
+            )
+            statusForMindreEnn15DagerSiden(status) shouldBe true
+        }
+
+        @Test
+        fun `statusForMindreEnn15DagerSiden - status gyldig fra 20 dager siden - returnerer false`() {
+            val status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now().minusDays(20),
+            )
+            statusForMindreEnn15DagerSiden(status) shouldBe false
+        }
+
+        @Test
+        fun `statusForMindreEnn15DagerSiden - status gyldig fra akkurat 15 dager siden - returnerer false`() {
+            val status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now().minusDays(15),
+            )
+            statusForMindreEnn15DagerSiden(status) shouldBe false
+        }
+
+        @Test
+        fun `statusForMindreEnn15DagerSiden - status gyldig fra i dag - returnerer true`() {
+            val status = TestData.lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now(),
+            )
+            statusForMindreEnn15DagerSiden(status) shouldBe true
+        }
+    }
+
+    @Nested
+    inner class ValiderForslagEllerBegrunnelseTest {
+        @Test
+        fun `validerForslagEllerBegrunnelse - forslagId satt - kaster ikke exception`() {
+            shouldNotThrow<IllegalArgumentException> {
+                validerForslagEllerBegrunnelse(UUID.randomUUID(), null)
+            }
+        }
+
+        @Test
+        fun `validerForslagEllerBegrunnelse - begrunnelse satt - kaster ikke exception`() {
+            shouldNotThrow<IllegalArgumentException> {
+                validerForslagEllerBegrunnelse(null, "En begrunnelse")
+            }
+        }
+
+        @Test
+        fun `validerForslagEllerBegrunnelse - begge satt - kaster ikke exception`() {
+            shouldNotThrow<IllegalArgumentException> {
+                validerForslagEllerBegrunnelse(UUID.randomUUID(), "En begrunnelse")
+            }
+        }
+
+        @Test
+        fun `validerForslagEllerBegrunnelse - ingen forslagId eller begrunnelse - kaster exception`() {
+            shouldThrow<IllegalArgumentException> {
+                validerForslagEllerBegrunnelse(null, null)
+            }
+        }
+
+        @Test
+        fun `validerForslagEllerBegrunnelse - tom begrunnelse uten forslagId - kaster exception`() {
+            shouldThrow<IllegalArgumentException> {
+                validerForslagEllerBegrunnelse(null, "")
+            }
+        }
+    }
+
+    @Nested
+    inner class ValiderBegrunnelseTest {
+        @Test
+        fun `validerBegrunnelse - null - kaster ikke exception`() {
+            shouldNotThrow<IllegalArgumentException> {
+                validerBegrunnelse(null)
+            }
+        }
+
+        @Test
+        fun `validerBegrunnelse - innenfor maks lengde - kaster ikke exception`() {
+            shouldNotThrow<IllegalArgumentException> {
+                validerBegrunnelse("En kort begrunnelse")
+            }
+        }
+
+        @Test
+        fun `validerBegrunnelse - akkurat maks lengde - kaster ikke exception`() {
+            shouldNotThrow<IllegalArgumentException> {
+                validerBegrunnelse(input(MAX_BEGRUNNELSE_LENGDE))
+            }
+        }
+
+        @Test
+        fun `validerBegrunnelse - over maks lengde - kaster exception`() {
+            shouldThrow<IllegalArgumentException> {
+                validerBegrunnelse(input(MAX_BEGRUNNELSE_LENGDE + 1))
+            }
+        }
+    }
+
+    @Nested
+    inner class HarEndretSluttaarsakTest {
+        @Test
+        fun `harEndretSluttaarsak - ulike aarsaker - returnerer true`() {
+            val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.FATT_JOBB, null)
+            val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.SYK, null)
+            harEndretSluttaarsak(opprinnelig, ny) shouldBe true
+        }
+
+        @Test
+        fun `harEndretSluttaarsak - like aarsaker - returnerer false`() {
+            val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.FATT_JOBB, null)
+            val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null)
+            harEndretSluttaarsak(opprinnelig, ny) shouldBe false
+        }
+
+        @Test
+        fun `harEndretSluttaarsak - ny aarsak er null, opprinnelig finnes - returnerer true`() {
+            val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.FATT_JOBB, null)
+            harEndretSluttaarsak(opprinnelig, null) shouldBe true
+        }
+
+        @Test
+        fun `harEndretSluttaarsak - begge null - returnerer false`() {
+            harEndretSluttaarsak(null, null) shouldBe false
+        }
+
+        @Test
+        fun `harEndretSluttaarsak - opprinnelig null, ny finnes - returnerer true`() {
+            val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null)
+            harEndretSluttaarsak(null, ny) shouldBe true
+        }
+
+        @Test
+        fun `harEndretSluttaarsak - like aarsaker med ulik beskrivelse - returnerer true`() {
+            val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.ANNET, "beskrivelse1")
+            val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, "beskrivelse2")
+            harEndretSluttaarsak(opprinnelig, ny) shouldBe true
+        }
+
+        @Test
+        fun `harEndretSluttaarsak - like aarsaker med lik beskrivelse - returnerer false`() {
+            val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.ANNET, "beskrivelse")
+            val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, "beskrivelse")
+            harEndretSluttaarsak(opprinnelig, ny) shouldBe false
+        }
+    }
+
+    @Nested
+    inner class ValiderDeltakerKanEndresDeltakerModelTest {
+        @Test
+        fun `validerDeltakerKanEndres DeltakerModel - feilregistrert - kaster exception`() {
+            val deltaker = lagDeltakerModel(
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
+            )
+            val request = EndreBakgrunnsinformasjonRequest(bakgrunnsinformasjon = "ny info")
+            shouldThrow<IllegalArgumentException> {
+                validerDeltakerKanEndres(request, deltaker)
+            }
+        }
+
+        @Test
+        fun `validerDeltakerKanEndres DeltakerModel - aktiv deltaker - kaster ikke exception`() {
+            val deltaker = lagDeltakerModel(
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            val request = EndreBakgrunnsinformasjonRequest(bakgrunnsinformasjon = "ny info")
+            shouldNotThrow<IllegalArgumentException> {
+                validerDeltakerKanEndres(request, deltaker)
+            }
+        }
+
+        @Test
+        fun `validerDeltakerKanEndres DeltakerModel - har sluttet for mer enn to mnd siden - kaster exception`() {
+            val deltaker = ModelMapper.toDeltaker(
+                TestData.lagDeltakerResponse(
+                    status = TestData.lagDeltakerStatus(
+                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                        gyldigFra = LocalDateTime.now().minusMonths(4),
+                    ),
+                    sluttdato = LocalDate.now().minusMonths(4),
+                ),
+            )
+            val request = EndreBakgrunnsinformasjonRequest(bakgrunnsinformasjon = "ny info")
+            shouldThrow<IllegalArgumentException> {
+                validerDeltakerKanEndres(request, deltaker)
+            }
+        }
     }
 }

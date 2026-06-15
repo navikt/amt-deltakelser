@@ -29,7 +29,7 @@ data class EndreSluttdatoRequest(
     }
 
     override fun valider(deltaker: DeltakerModel) {
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         require(deltaker.status.type in kanEndreSluttdato) {
             "Kan ikke endre sluttdato for deltaker som ikke har sluttet"
         }

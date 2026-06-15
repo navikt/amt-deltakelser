@@ -46,7 +46,7 @@ data class AvsluttDeltakelseRequest(
     override fun valider(deltaker: DeltakerModel) {
         validerAarsaksBeskrivelse(aarsak?.beskrivelse)
         validerBegrunnelse(begrunnelse)
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
 
         require(deltaker.status.type in kanAvslutteDeltakelse) { statusTypeErrorText }
 
