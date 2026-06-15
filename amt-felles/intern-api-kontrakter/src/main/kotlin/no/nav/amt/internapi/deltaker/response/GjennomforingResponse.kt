@@ -14,7 +14,7 @@ data class GjennomforingResponse(
     val type: GjennomforingType,
     val tiltakstype: Tiltakstype,
     val navn: String,
-    val status: GjennomforingStatusType?,
+    val status: GjennomforingStatusType,
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
     val antallPlasser: Int?,

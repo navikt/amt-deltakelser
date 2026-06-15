@@ -158,7 +158,6 @@ class DeltakerV2ConsumerTest {
         val tidligereDeltakelse = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
-            historikk = true,
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         )
         TestRepository.insert(tidligereDeltakelse)
@@ -166,7 +165,6 @@ class DeltakerV2ConsumerTest {
         val deltaker = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
-            historikk = true,
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
@@ -193,7 +191,6 @@ class DeltakerV2ConsumerTest {
         val tidligereDeltakelse = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
-            historikk = true,
             status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
                 opprettet = statusdato,
@@ -205,7 +202,6 @@ class DeltakerV2ConsumerTest {
         val deltaker = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
-            historikk = true,
             status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.IKKE_AKTUELL,
                 opprettet = statusdato2,
@@ -235,13 +231,11 @@ class DeltakerV2ConsumerTest {
             deltakerliste = deltakerliste,
             navBruker = navbruker,
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-            historikk = true,
         )
 
         val nyesteDeltakelse = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
-            historikk = true,
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
         )
         TestRepository.insert(eldsteDeltakelse)
