@@ -25,7 +25,6 @@ import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
@@ -60,7 +59,6 @@ abstract class IntegrationTestBase {
     protected val deltakerService: DeltakerService = mockk()
     protected val pameldingService: PameldingService = mockk()
     protected val navAnsattService: NavAnsattService = mockk()
-    protected val navEnhetService: NavEnhetService = mockk()
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk()
     protected val deltakerlisteService: DeltakerlisteService = mockk()
 

@@ -38,6 +38,4 @@ data class Deltakerliste(
             private const val UKJENT_VIRKSOMHET = "Ukjent Virksomhet"
         }
     }
-
-    fun deltakerAdresseDeles() = Tiltakstype.tiltakUtenDeltakerAdresseDeling.none { it == this.tiltak.tiltakskode }
 }

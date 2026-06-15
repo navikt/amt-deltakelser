@@ -13,7 +13,7 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.TestData
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class KladdApiTest : IntegrationTestBase() {
-    private val deltakerInTest = lagDeltaker()
+    private val deltakerInTest = lagDeltakerOld()
     private val deltakerResponseInTest = TestData.lagDeltakerResponse(deltakerInTest)
 
     @BeforeEach

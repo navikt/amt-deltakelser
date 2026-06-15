@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
@@ -24,21 +23,6 @@ data class EndreStartdatoRequest(
             DeltakerStatus.Type.AVBRUTT,
         )
 
-    override fun valider(deltaker: Deltaker) {
-        validerDeltakerKanEndres(deltaker)
-        validerBegrunnelse(begrunnelse)
-        require(deltaker.status.type in kanEndreStartdato) {
-            "Kan ikke endre startdato for deltaker med status ${deltaker.status.type}"
-        }
-        require(startdato == null || !startdato.isBefore(deltaker.deltakerliste.startDato)) {
-            "Startdato kan ikke være tidligere enn deltakerlistens startdato"
-        }
-        sluttdato?.let { validerSluttdatoForDeltaker(it, startdato, deltaker) }
-        require(deltakerErEndret(deltaker)) {
-            "Både startdato og sluttdato kan ikke være lik som før"
-        }
-    }
-
     override fun valider(deltaker: DeltakerModel) {
         validerDeltakerKanEndres(this, deltaker)
         validerBegrunnelse(begrunnelse)
@@ -53,9 +37,6 @@ data class EndreStartdatoRequest(
             "Både startdato og sluttdato kan ikke være lik som før"
         }
     }
-
-    private fun deltakerErEndret(deltaker: Deltaker): Boolean = deltaker.startdato != startdato ||
-        deltaker.sluttdato != sluttdato
 
     private fun deltakerErEndret(deltaker: DeltakerModel): Boolean = deltaker.startdato != startdato ||
         deltaker.sluttdato != sluttdato

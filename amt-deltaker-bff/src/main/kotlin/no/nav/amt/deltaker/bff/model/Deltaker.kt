@@ -8,8 +8,6 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import java.time.Duration
@@ -46,12 +44,6 @@ data class Deltaker(
     val kanEndres: Boolean, // finnes ikke i amt-deltaker
     val opprettet: LocalDateTime,
 ) {
-    // Flere typer endringer medfører endring i historikk
-    // Henter alle deltakelsesmengder som er gjeldende innenfor perioden personen har deltatt
-    // sortert på Endringens siste mod dato
-    val deltakelsesmengderFraHistorikk: Deltakelsesmengder
-        get() = startdato?.let { historikk.toDeltakelsesmengder().periode(it, sluttdato) } ?: historikk.toDeltakelsesmengder()
-
     val fattetVedtak
         get() = historikk
             .filterIsInstance<DeltakerHistorikk.Vedtak>()
@@ -97,9 +89,6 @@ data class Deltaker(
         val toMndSiden = LocalDate.now().minusMonths(2)
         return nyesteDato.isAfter(toMndSiden)
     }
-
-    fun adresseDelesMedArrangor() = this.navBruker.adressebeskyttelse == null &&
-        this.deltakerliste.deltakerAdresseDeles()
 
     /**
      Noen tiltak har en max varighet som kan overgås ved visse omstendigheter,

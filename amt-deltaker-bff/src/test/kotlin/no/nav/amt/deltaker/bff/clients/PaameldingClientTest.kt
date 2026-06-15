@@ -151,7 +151,7 @@ class PaameldingClientTest {
 
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
-        private val deltakerInTest = TestData.lagDeltaker()
+        private val deltakerInTest = TestData.lagDeltakerOld()
         private val deltakerResponseInTest = TestData.lagDeltakerResponse(deltakerInTest)
 
         private fun runFailureTest(

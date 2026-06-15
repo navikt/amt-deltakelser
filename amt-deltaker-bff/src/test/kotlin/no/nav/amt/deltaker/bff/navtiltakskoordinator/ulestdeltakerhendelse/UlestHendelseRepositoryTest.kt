@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toUlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseFlags
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseTypeCounts
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagHendelse
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
@@ -31,7 +31,7 @@ class UlestHendelseRepositoryTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
         val hendelse = lagHendelse(
@@ -54,7 +54,7 @@ class UlestHendelseRepositoryTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
         val hendelse = lagHendelse(
@@ -94,7 +94,7 @@ class UlestHendelseRepositoryTest {
     @Test
     fun `getForDeltakere - deltaker uten hendelser - finnes ikke i resultatet`() {
         val (deltakerId1, _) = lagDeltakerMedHendelse()
-        val deltakerUtenHendelse = lagDeltaker(
+        val deltakerUtenHendelse = lagDeltakerOld(
             deltakerliste = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
             ),
@@ -113,7 +113,7 @@ class UlestHendelseRepositoryTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
         val hendelse1 = lagHendelse(
@@ -265,7 +265,7 @@ class UlestHendelseRepositoryTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
         val hendelse1 = lagHendelse(

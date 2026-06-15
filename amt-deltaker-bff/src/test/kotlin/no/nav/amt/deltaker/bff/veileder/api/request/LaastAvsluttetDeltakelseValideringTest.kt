@@ -34,7 +34,7 @@ class LaastAvsluttetDeltakelseValideringTest {
                 gyldigFra = LocalDateTime.now().minusWeeks(4),
             ),
             sluttdato = sluttdatoFireUkerSiden,
-            kanEndres = false,
+            erLaastForEndringer = true,
         )
 
         /** Deltaker som har sluttet for lenge siden og er låst – skal ikke kunne endres */
@@ -44,7 +44,7 @@ class LaastAvsluttetDeltakelseValideringTest {
                 gyldigFra = LocalDateTime.now().minusMonths(4),
             ),
             sluttdato = LocalDate.now().minusMonths(4),
-            kanEndres = false,
+            erLaastForEndringer = true,
         )
 
         @JvmStatic

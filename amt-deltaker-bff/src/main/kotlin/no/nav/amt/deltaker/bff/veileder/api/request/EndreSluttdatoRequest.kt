@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
@@ -15,18 +14,6 @@ data class EndreSluttdatoRequest(
     override val forslagId: UUID?,
 ) : EndringMedForslagRequest {
     private val kanEndreSluttdato = listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT)
-
-    override fun valider(deltaker: Deltaker) {
-        validerDeltakerKanEndres(deltaker)
-        require(deltaker.status.type in kanEndreSluttdato) {
-            "Kan ikke endre sluttdato for deltaker som ikke har sluttet"
-        }
-        require(sluttdato != deltaker.sluttdato) {
-            "Sluttdato kan ikke være lik som før"
-        }
-        validerSluttdatoForDeltaker(sluttdato, deltaker.startdato, deltaker)
-        validerBegrunnelse(begrunnelse)
-    }
 
     override fun valider(deltaker: DeltakerModel) {
         validerDeltakerKanEndres(this, deltaker)

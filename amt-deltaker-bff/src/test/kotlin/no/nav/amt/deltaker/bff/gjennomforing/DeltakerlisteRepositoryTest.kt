@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestRepository
@@ -75,11 +75,11 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal telle deltakere per status`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             val deltaker3 =
-                lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            val deltaker4 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+                lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker4 = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
             TestRepository.insert(deltaker3)
@@ -105,10 +105,10 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal filtrere pa spesifiserte statuser`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             val deltaker2 =
-                lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            val deltaker3 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+                lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker3 = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
             TestRepository.insert(deltaker3)
@@ -129,7 +129,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal telle er_ny_deltaker basert pa InnbyggerGodkjennUtkast-hendelse`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             ulestHendelseRepository.upsert(
@@ -155,7 +155,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal telle er_ny_deltaker basert pa NavGodkjennUtkast-hendelse`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             ulestHendelseRepository.upsert(
@@ -181,7 +181,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal telle har_oppdatering_fra_nav basert pa AvsluttDeltakelse-hendelse`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             TestRepository.insert(deltaker)
 
             ulestHendelseRepository.upsert(
@@ -214,7 +214,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal telle har_oppdatering_fra_nav basert pa IkkeAktuell-hendelse`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
             TestRepository.insert(deltaker)
 
             ulestHendelseRepository.upsert(
@@ -248,7 +248,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal telle har_oppdatering_fra_nav basert pa AvbrytDeltakelse-hendelse`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT))
             TestRepository.insert(deltaker)
 
             ulestHendelseRepository.upsert(
@@ -280,7 +280,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal telle har_oppdatering_fra_nav basert pa ReaktiverDeltakelse-hendelse`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(
+            val deltaker = lagDeltakerOld(
                 deltakerliste = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             )
@@ -310,8 +310,8 @@ class DeltakerlisteRepositoryTest {
         fun `skal ikke telle deltakere fra en annen gjennomforing`() {
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltakerOld(deltakerliste = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltakerOld(deltakerliste = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
 
@@ -340,8 +340,8 @@ class DeltakerlisteRepositoryTest {
         fun `skal ikke telle aktive forslag fra en annen gjennomforing`() {
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltakerOld(deltakerliste = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltakerOld(deltakerliste = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
 
@@ -374,7 +374,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal telle aktive forslag`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             Database.query { session ->
@@ -406,7 +406,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal ikke telle avsluttede forslag`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             Database.query { session ->
@@ -438,7 +438,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal ikke dobbeltelle aktive forslag fra samme deltaker`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             repeat(2) {
@@ -472,7 +472,7 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `skal ikke dobbeltelle ny-deltaker-flagg fra flere hendelser for samme deltaker`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltakerOld(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             ulestHendelseRepository.upsert(

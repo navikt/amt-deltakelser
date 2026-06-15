@@ -1,8 +1,6 @@
 package no.nav.amt.deltaker.bff.navansatt
 
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.person.NavAnsatt
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -37,21 +35,4 @@ class NavAnsattService(
     fun slettNavAnsatt(navAnsattId: UUID) {
         repository.delete(navAnsattId)
     }
-
-    // Flyttes til amt-deltaker
-    fun hentAnsatteForDeltaker(deltaker: Deltaker): Map<UUID, NavAnsatt> {
-        val veilederIder = listOfNotNull(
-            deltaker.vedtaksinformasjon?.opprettetAv,
-            deltaker.vedtaksinformasjon?.sistEndretAv,
-        ).distinct()
-
-        return hentAnsatte(veilederIder)
-    }
-
-    fun hentAnsatteForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavAnsatt> {
-        val ider = historikk.flatMap { it.navAnsatte() }.distinct()
-        return hentAnsatte(ider)
-    }
-
-    fun hentAnsatte(veilederIder: List<UUID>) = repository.getMany(veilederIder).associateBy { it.id }
 }

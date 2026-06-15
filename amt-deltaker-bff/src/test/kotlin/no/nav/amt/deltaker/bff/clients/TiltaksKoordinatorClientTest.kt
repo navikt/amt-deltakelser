@@ -8,7 +8,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
@@ -219,7 +219,7 @@ class TiltaksKoordinatorClientTest {
         private val deltakereRequest = TiltaksKoordinatorDeltakerlisteRequest(
             gjennomforingId = gjennomforingId,
         )
-        private val deltakerInTest = lagDeltaker()
+        private val deltakerInTest = lagDeltakerOld()
 
         private fun lagPaginatedTiltakskoordinatorDeltakere() = PaginatedResult(
             totalCount = 1,

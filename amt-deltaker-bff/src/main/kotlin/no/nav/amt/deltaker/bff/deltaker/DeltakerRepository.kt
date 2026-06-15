@@ -140,31 +140,6 @@ class DeltakerRepository {
         )
     }
 
-    fun getKladdForDeltakerliste(
-        deltakerlisteId: UUID,
-        personident: String,
-    ): Result<Deltaker> = runCatching {
-        val sql = getDeltakerSql(
-            """
-            d.deltakerliste_id = :deltakerliste_id
-            AND nb.personident = :personident
-            AND ds.type = 'KLADD'
-            """.trimIndent(),
-        )
-
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    mapOf(
-                        "deltakerliste_id" to deltakerlisteId,
-                        "personident" to personident,
-                    ),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Ingen kladd for deltakerliste $deltakerlisteId og personident")
-        }
-    }
-
     fun getTidligereAvsluttedeDeltakelser(deltakerId: UUID): List<UUID> {
         val sql =
             """
