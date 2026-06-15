@@ -12,12 +12,12 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
-import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
+import no.nav.amt.deltaker.api.tiltakskoordinator.DeltakerOppdateringResult
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
-import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorApiTest : IntegrationTestBase() {
-    override val tiltaksansvarligService = mockk<TiltaksansvarligService>()
+    override val tiltakskoordinatorService = mockk<TiltakskoordinatorService>()
     override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
     override val deltakerRepository = mockk<DeltakerRepository>()
     override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
@@ -178,7 +178,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         )
         val deltakeroppdateringResult = DeltakerOppdateringResult(deltaker.id, true, null)
         coEvery {
-            tiltaksansvarligService.giAvslag(request.gjennomforingId, request.deltakerId, request.avslag, request.endretAv)
+            tiltakskoordinatorService.giAvslag(request.gjennomforingId, request.deltakerId, request.avslag, request.endretAv)
         } returns deltakeroppdateringResult
 
         val expectedResponse = DeltakerOppdateringResponse(
@@ -203,7 +203,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `del-med-arrangor - har tilgang - returnerer 200`() {
-        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any(), any()) } returns
+        coEvery { tiltakskoordinatorService.oppdaterDeltakere(any(), any(), any(), any()) } returns
             listOf(deltaker.toDeltakerOppdateringResult())
 
         val expectedResponse = listOf(
@@ -230,7 +230,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
-        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any(), any()) } returns
+        coEvery { tiltakskoordinatorService.oppdaterDeltakere(any(), any(), any(), any()) } returns
             listOf(deltaker.toDeltakerOppdateringResult())
 
         val request = DeltakereRequest(
@@ -263,7 +263,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
-        coEvery { tiltaksansvarligService.oppdaterDeltakere(any(), any(), any(), any()) } returns
+        coEvery { tiltakskoordinatorService.oppdaterDeltakere(any(), any(), any(), any()) } returns
             listOf(deltaker.toDeltakerOppdateringResult())
 
         val request = DeltakereRequest(

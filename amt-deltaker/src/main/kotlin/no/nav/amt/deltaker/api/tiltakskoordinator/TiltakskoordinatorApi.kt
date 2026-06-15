@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.api.tiltaksansvarlig
+package no.nav.amt.deltaker.api.tiltakskoordinator
 
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
@@ -10,8 +10,8 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.extensions.getGjennomforingId
+import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
-import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
@@ -21,7 +21,7 @@ import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 fun Routing.registerTiltakskoordinatorApi(
     deltakerlisteRepository: DeltakerlisteRepository,
     deltakerResponseBuilder: DeltakerResponseBuilder,
-    tiltaksansvarligService: TiltaksansvarligService,
+    tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
 ) {
     authenticate("SYSTEM") {
@@ -53,7 +53,7 @@ fun Routing.registerTiltakskoordinatorApi(
             post("/del-med-arrangor") {
                 val request = call.receive<DelMedArrangorRequest>()
 
-                val deltakeroppdateringer = tiltaksansvarligService
+                val deltakeroppdateringer = tiltakskoordinatorService
                     .oppdaterDeltakere(
                         gjennomforingId = request.gjennomforingId,
                         deltakerIder = request.deltakerIder.toSet(),
@@ -72,7 +72,7 @@ fun Routing.registerTiltakskoordinatorApi(
             post("/tildel-plass") {
                 val request = call.receive<DeltakereRequest>()
                 val deltakerIder = request.deltakere
-                val deltakeroppdateringer = tiltaksansvarligService
+                val deltakeroppdateringer = tiltakskoordinatorService
                     .oppdaterDeltakere(
                         gjennomforingId = request.gjennomforingId,
                         deltakerIder = deltakerIder.toSet(),
@@ -90,7 +90,7 @@ fun Routing.registerTiltakskoordinatorApi(
             post("/sett-paa-venteliste") {
                 val request = call.receive<DeltakereRequest>()
                 val deltakerIder = request.deltakere
-                val deltakeroppdateringer = tiltaksansvarligService
+                val deltakeroppdateringer = tiltakskoordinatorService
                     .oppdaterDeltakere(
                         gjennomforingId = request.gjennomforingId,
                         deltakerIder = deltakerIder.toSet(),
@@ -107,7 +107,7 @@ fun Routing.registerTiltakskoordinatorApi(
 
             post("/gi-avslag") {
                 val request = call.receive<GiAvslagRequest>()
-                val deltakeroppdatering = tiltaksansvarligService
+                val deltakeroppdatering = tiltakskoordinatorService
                     .giAvslag(
                         gjennomforingId = request.gjennomforingId,
                         deltakerId = request.deltakerId,

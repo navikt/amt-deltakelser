@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.tiltaksansvarlig
+package no.nav.amt.deltaker.navtiltakskoordinator
 
 import kotliquery.Row
 import kotliquery.queryOf

@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.tiltaksansvarlig.endring
+package no.nav.amt.deltaker.navtiltakskoordinator.endring
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
@@ -79,7 +79,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, deltaker2, innsokt, innsokt2)
 
             // Act
-            val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+            val endredeDeltakere = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltaker.deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
@@ -153,7 +153,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(laastDeltaker, deltaker2, innsokt, innsokt2)
 
             // Act
-            val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+            val endredeDeltakere = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
@@ -221,7 +221,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltakerMedVedtak, deltakerUtenVedtak, innsokt, innsokt2, vedtak)
 
             // Act
-            val endredeDeltakereResults = tiltaksansvarligService.oppdaterDeltakere(
+            val endredeDeltakereResults = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.TildelPlass,
@@ -331,7 +331,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Act
-            val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+            val endredeDeltakere = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.TildelPlass,
@@ -436,7 +436,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Act
-            val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+            val endredeDeltakere = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.TildelPlass,
@@ -532,7 +532,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Act
-            val deltakereResult = tiltaksansvarligService.oppdaterDeltakere(
+            val deltakereResult = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.TildelPlass,
@@ -609,7 +609,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Act
-            val endredeDeltakere = tiltaksansvarligService.oppdaterDeltakere(
+            val endredeDeltakere = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
@@ -665,7 +665,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             shouldThrow<IllegalArgumentException> {
-                tiltaksansvarligService.oppdaterDeltakere(
+                tiltakskoordinatorService.oppdaterDeltakere(
                     gjennomforingId = deltakerliste.id,
                     deltakerIder = deltakerIder,
                     endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
@@ -690,7 +690,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, innsokt)
 
             // Act
-            val result = tiltaksansvarligService.oppdaterDeltakere(
+            val result = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = setOf(deltaker.id),
                 endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
@@ -727,7 +727,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, innsokt)
 
             // Act
-            val result = tiltaksansvarligService.oppdaterDeltakere(
+            val result = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = setOf(deltaker.id),
                 endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
@@ -765,7 +765,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, innsokt)
 
             // Act
-            val result = tiltaksansvarligService.oppdaterDeltakere(
+            val result = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = setOf(deltaker.id),
                 endringsType = EndringFraTiltakskoordinator.DelMedArrangor,
@@ -800,7 +800,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, innsokt)
 
             // Act
-            val result = tiltaksansvarligService.oppdaterDeltakere(
+            val result = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = setOf(deltaker.id),
                 endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
@@ -831,7 +831,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, innsokt)
 
             // Act
-            val result = tiltaksansvarligService.oppdaterDeltakere(
+            val result = tiltakskoordinatorService.oppdaterDeltakere(
                 gjennomforingId = deltakerliste.id,
                 deltakerIder = setOf(deltaker.id),
                 endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
@@ -862,7 +862,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act & Assert
             shouldThrow<IllegalArgumentException> {
-                tiltaksansvarligService.oppdaterDeltakere(
+                tiltakskoordinatorService.oppdaterDeltakere(
                     gjennomforingId = ugyldigDeltakerliste.id,
                     deltakerIder = setOf(deltaker.id),
                     endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
@@ -900,7 +900,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act & Assert
             val exception = shouldThrow<IllegalStateException> {
-                tiltaksansvarligService.oppdaterDeltakere(
+                tiltakskoordinatorService.oppdaterDeltakere(
                     gjennomforingId = deltakerlisteUtenStartdato.id,
                     deltakerIder = setOf(deltaker.id),
                     endringsType = EndringFraTiltakskoordinator.TildelPlass,
@@ -928,7 +928,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 )
 
                 // Act
-                val oppdateringResult = tiltaksansvarligService.giAvslag(
+                val oppdateringResult = tiltakskoordinatorService.giAvslag(
                     gjennomforingId = deltakerliste.id,
                     deltakerId = deltaker.id,
                     avslag = avslag,
@@ -978,7 +978,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 )
 
                 // Act
-                val oppdateringResult = tiltaksansvarligService.giAvslag(
+                val oppdateringResult = tiltakskoordinatorService.giAvslag(
                     gjennomforingId = deltakerliste.id,
                     deltakerId = deltaker.id,
                     avslag = avslag,
@@ -1021,7 +1021,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
                 // Act & Assert
                 shouldThrow<IllegalStateException> {
-                    tiltaksansvarligService.giAvslag(
+                    tiltakskoordinatorService.giAvslag(
                         gjennomforingId = deltakerliste.id,
                         deltakerId = deltaker.id,
                         avslag = avslag,
@@ -1055,7 +1055,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
                 // Act & Assert
                 shouldThrow<IllegalStateException> {
-                    tiltaksansvarligService.giAvslag(
+                    tiltakskoordinatorService.giAvslag(
                         gjennomforingId = deltakerliste.id,
                         deltakerId = deltaker.id,
                         avslag = avslag,

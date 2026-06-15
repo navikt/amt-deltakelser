@@ -1,6 +1,6 @@
-package no.nav.amt.deltaker.tiltaksansvarlig
+package no.nav.amt.deltaker.navtiltakskoordinator
 
-import no.nav.amt.deltaker.api.tiltaksansvarlig.DeltakerOppdateringResult
+import no.nav.amt.deltaker.api.tiltakskoordinator.DeltakerOppdateringResult
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
-class TiltaksansvarligService(
+class TiltakskoordinatorService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,

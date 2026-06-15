@@ -42,6 +42,8 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
@@ -52,8 +54,6 @@ import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
-import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
@@ -300,8 +300,8 @@ abstract class IntegrationTestBase {
             unleashToggle = unleashToggle,
         )
     }
-    protected open val tiltaksansvarligService: TiltaksansvarligService by lazy {
-        TiltaksansvarligService(
+    protected open val tiltakskoordinatorService: TiltakskoordinatorService by lazy {
+        TiltakskoordinatorService(
             deltakerRepository = deltakerRepository,
             deltakerProducerService = deltakerProducerService,
             vedtakService = vedtakService,
@@ -467,7 +467,7 @@ abstract class IntegrationTestBase {
                     deltakerlisteRepository = deltakerlisteRepository,
                     arrangorService = arrangorService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,
-                    tiltaksansvarligService = tiltaksansvarligService,
+                    tiltakskoordinatorService = tiltakskoordinatorService,
                     forslagService = forslagService,
                     forslagRepository = forslagRepository,
                 )
