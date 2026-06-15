@@ -40,7 +40,7 @@ data class EndreStartdatoRequest(
     }
 
     override fun valider(deltaker: DeltakerModel) {
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         validerBegrunnelse(begrunnelse)
         require(deltaker.status.type in kanEndreStartdato) {
             "Kan ikke endre startdato for deltaker med status ${deltaker.status.type}"

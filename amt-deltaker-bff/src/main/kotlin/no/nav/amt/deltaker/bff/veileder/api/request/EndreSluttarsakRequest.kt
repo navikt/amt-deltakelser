@@ -34,7 +34,7 @@ data class EndreSluttarsakRequest(
         require(deltaker.status.type in kanEndreSluttarsak) {
             "Kan ikke endre sluttårsak for deltaker som ikke har sluttet eller er ikke aktuell"
         }
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         validerBegrunnelse(begrunnelse)
         require(harEndretSluttaarsak(deltaker.status.aarsak, aarsak)) {
             "Sluttårsak må være noe annet enn før"

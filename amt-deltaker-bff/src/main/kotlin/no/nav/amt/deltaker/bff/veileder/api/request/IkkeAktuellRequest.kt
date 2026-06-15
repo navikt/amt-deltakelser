@@ -58,7 +58,7 @@ data class IkkeAktuellRequest(
                 "Kan bare sette deltaker som deltar til ikke aktuell hvis det foreligger et forslag"
             }
         }
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         validerBegrunnelse(begrunnelse)
         require(deltakerErEndret(deltaker.status)) {
             "Kan ikke oppdatere deltaker som allerede er ikke aktuell med samme årsak"

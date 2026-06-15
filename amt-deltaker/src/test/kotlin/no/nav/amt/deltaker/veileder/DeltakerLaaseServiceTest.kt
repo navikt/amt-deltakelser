@@ -174,6 +174,55 @@ class DeltakerLaaseServiceTest {
             result shouldBe mapOf(deltakerInTest.id to false)
         }
 
+        // Deltakelse er avsluttet
+        // kladd er opprettet - skal låse forrige
+        @Test
+        fun `skal laase deltakelse når kladd er opprettet`() {
+            // Arrange
+            val personident = deltakerInTest.navBruker.personident
+            val kladd = deltakerInTest
+            val tidligereAvsluttetDeltaker = tidligereDeltakerInTest
+
+            every {
+                mockDeltakerRepository.getDeltakelserForLaaseSjekk(
+                    setOf(personident),
+                    kladd.deltakerliste.id,
+                )
+            } returns mapOf(
+                personident to listOf(
+                    laaseInfo(
+                        id = kladd.id,
+                        personident = personident,
+                        statusType = DeltakerStatus.Type.KLADD,
+                        statusGyldigFra = LocalDateTime.now(),
+                        vedtakFattet = LocalDateTime.now(),
+                    ),
+                    laaseInfo(
+                        id = tidligereAvsluttetDeltaker.id,
+                        personident = personident,
+                        statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                        statusGyldigFra = LocalDateTime.now().minusMonths(2),
+                        vedtakFattet = LocalDateTime.now().minusMonths(2),
+                    ),
+                ),
+            )
+
+            // Act
+            val result = sut.erLaastForEndringerForDeltakere(
+                deltakerIdToPersonIdentMap = mapOf(
+                    tidligereAvsluttetDeltaker.id to tidligereAvsluttetDeltaker.navBruker.personident,
+                    kladd.id to kladd.navBruker.personident,
+                ),
+                gjennomforingId = kladd.deltakerliste.id,
+            )
+
+            // Assert
+            result shouldBe mapOf(
+                kladd.id to false,
+                tidligereAvsluttetDeltaker.id to true,
+            )
+        }
+
         @Test
         fun `skal laase eldre deltakelse og frigi nyeste aktive`() {
             // Arrange

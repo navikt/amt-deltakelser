@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.model.STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING
+import no.nav.amt.deltaker.bff.veileder.api.request.EndringRequestFromFrontend
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
@@ -143,7 +144,6 @@ fun validerDeltakerKanReaktiveres(opprinneligDeltaker: DeltakerModel) {
     require(opprinneligDeltaker.status.type == DeltakerStatus.Type.IKKE_AKTUELL) {
         "Kan ikke reaktivere deltaker som har annen status enn ikke aktuell"
     }
-    validerDeltakerKanEndres(opprinneligDeltaker)
 }
 
 fun validerDeltakerKanEndres(opprinneligDeltaker: Deltaker) {
@@ -164,7 +164,10 @@ fun validerDeltakerKanEndres(opprinneligDeltaker: Deltaker) {
     }
 }
 
-fun validerDeltakerKanEndres(opprinneligDeltaker: DeltakerModel) {
+fun validerDeltakerKanEndres(
+    request: EndringRequestFromFrontend,
+    opprinneligDeltaker: DeltakerModel,
+) {
     require(opprinneligDeltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
         "Kan ikke endre feilregistrert deltaker"
     }
@@ -172,12 +175,19 @@ fun validerDeltakerKanEndres(opprinneligDeltaker: DeltakerModel) {
         require(opprinneligDeltaker.harSluttetForMindreEnnToMndSiden()) {
             "Kan ikke endre deltaker som fikk avsluttende status for mer enn to måneder siden"
         }
-        if (opprinneligDeltaker.erLaastForEndringer) {
-            // Låst pga. nyere deltakelse på samme tiltak – kun tillatt for de 4 statusene
-            // som frontend eksponerer begrenset redigering for.
-            require(opprinneligDeltaker.status.type in STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING) {
-                "Kan ikke endre låst deltakelse med status ${opprinneligDeltaker.status.type}"
-            }
+    }
+
+    if (opprinneligDeltaker.erLaastForEndringer) {
+        // Låst pga. nyere deltakelse på samme tiltak
+        // Kun tillatt for spesifikke endringstyper som ikke medfører at deltakelsen blir aktiv igjen
+        // som frontend eksponerer begrenset redigering for.
+        require(
+            opprinneligDeltaker.status.type in STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING &&
+                opprinneligDeltaker.harSluttetForMindreEnnToMndSiden() &&
+                request.tillattForLaastAvsluttetDeltakelse(),
+        ) {
+            "Kan ikke utføre endring ${request.javaClass.simpleName} låst deltakelse med status ${opprinneligDeltaker.status.type} " +
+                "som sluttet nylig: ${opprinneligDeltaker.harSluttetForMindreEnnToMndSiden()}"
         }
     }
 }

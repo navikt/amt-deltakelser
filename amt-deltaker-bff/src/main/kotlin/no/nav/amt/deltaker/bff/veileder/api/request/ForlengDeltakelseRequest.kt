@@ -42,7 +42,7 @@ data class ForlengDeltakelseRequest(
         require(deltaker.sluttdato != sluttdato) {
             "Ny sluttdato kan ikke være lik som forrige sluttdato"
         }
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         validerForslagEllerBegrunnelse(forslagId, begrunnelse)
         validerBegrunnelse(begrunnelse)
     }

@@ -20,7 +20,7 @@ data class EndreInnholdRequest(
 
     override fun valider(deltaker: DeltakerModel) {
         validerDeltakelsesinnhold(innhold, deltaker.gjennomforing.tiltak.innhold, deltaker.gjennomforing.tiltak.tiltakskode)
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         require(deltakerErEndret(deltaker)) {
             "Innholdet er ikke endret"
         }

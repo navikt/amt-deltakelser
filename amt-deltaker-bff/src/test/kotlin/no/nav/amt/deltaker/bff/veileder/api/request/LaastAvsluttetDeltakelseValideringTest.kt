@@ -3,7 +3,9 @@ package no.nav.amt.deltaker.bff.veileder.api.request
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -254,6 +256,97 @@ class LaastAvsluttetDeltakelseValideringTest {
             shouldThrow<IllegalArgumentException> {
                 request.valider(deltaker)
             }.message shouldBe "Kan ikke endre deltaker som fikk avsluttende status for mer enn to måneder siden"
+        }
+    }
+
+    @Nested
+    inner class EndreAvslutningValideringLaastDeltakerModel {
+        private val sluttdatoFireUkerSiden = LocalDate.now().minusWeeks(4)
+
+        private fun lagLaastDeltakerModel(
+            statusType: DeltakerStatus.Type = DeltakerStatus.Type.AVBRUTT,
+            sluttdato: LocalDate? = sluttdatoFireUkerSiden,
+        ) = ModelMapper.toDeltaker(
+            lagDeltakerResponse(
+                status = lagDeltakerStatus(
+                    statusType = statusType,
+                    gyldigFra = LocalDateTime.now().minusWeeks(4),
+                ),
+                sluttdato = sluttdato,
+            ).copy(erLaastForEndringer = true),
+        )
+
+        @Test
+        fun `sluttdato frem i tid, låst deltaker - feiler`() {
+            val request = EndreAvslutningRequest(
+                harFullfort = true,
+                sluttdato = LocalDate.now().plusDays(1),
+                aarsak = null,
+                begrunnelse = "begrunnelse",
+                forslagId = UUID.randomUUID(),
+            )
+            val deltaker = lagLaastDeltakerModel()
+
+            shouldThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }.message shouldBe "Sluttdato må være tilbake i tid når deltakelsen er låst for endringer"
+        }
+
+        @Test
+        fun `sluttdato tilbake, låst deltaker - feiler ikke`() {
+            val request = EndreAvslutningRequest(
+                harFullfort = true,
+                sluttdato = LocalDate.now().minusDays(1),
+                aarsak = null,
+                begrunnelse = "begrunnelse",
+                forslagId = UUID.randomUUID(),
+            )
+            val deltaker = lagLaastDeltakerModel()
+
+            shouldNotThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
+        }
+
+        @Test
+        fun `null sluttdato, låst deltaker - feiler ikke`() {
+            val request = EndreAvslutningRequest(
+                harFullfort = true,
+                sluttdato = null,
+                aarsak = null,
+                begrunnelse = "begrunnelse",
+                forslagId = UUID.randomUUID(),
+            )
+            val deltaker = lagLaastDeltakerModel()
+
+            shouldNotThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
+        }
+
+        @Test
+        fun `sluttdato frem i tid, ulåst deltaker - feiler ikke`() {
+            val request = EndreAvslutningRequest(
+                harFullfort = true,
+                sluttdato = LocalDate.now().plusDays(1),
+                aarsak = null,
+                begrunnelse = "begrunnelse",
+                forslagId = UUID.randomUUID(),
+            )
+            // Ulåst deltaker - erLaastForEndringer = false (default)
+            val deltaker = ModelMapper.toDeltaker(
+                lagDeltakerResponse(
+                    status = lagDeltakerStatus(
+                        statusType = DeltakerStatus.Type.AVBRUTT,
+                        gyldigFra = LocalDateTime.now().minusWeeks(4),
+                    ),
+                    sluttdato = sluttdatoFireUkerSiden,
+                ),
+            )
+
+            shouldNotThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
         }
     }
 }
