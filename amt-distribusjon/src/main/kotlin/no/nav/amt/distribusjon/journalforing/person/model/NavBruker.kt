@@ -1,5 +1,6 @@
 package no.nav.amt.distribusjon.journalforing.person.model
 
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -33,10 +34,4 @@ data class Oppfolgingsperiode(
                 (sluttdato != null && now.isAfter(sluttdato.toLocalDate().plusDays(antallDagerGracePeriod)))
         )
     }
-}
-
-enum class Adressebeskyttelse {
-    STRENGT_FORTROLIG,
-    FORTROLIG,
-    STRENGT_FORTROLIG_UTLAND,
 }
