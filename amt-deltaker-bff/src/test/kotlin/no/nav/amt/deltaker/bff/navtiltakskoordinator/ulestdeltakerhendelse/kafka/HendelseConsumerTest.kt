@@ -6,7 +6,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toUlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.DeltakerEndringHendelseConsumer
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagHendelse
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
@@ -34,7 +34,7 @@ class HendelseConsumerTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
         val hendelse = lagHendelse(
@@ -65,7 +65,7 @@ class HendelseConsumerTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
         val hendelse = lagHendelse(
             deltaker = deltaker,
@@ -87,7 +87,7 @@ class HendelseConsumerTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
         )
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
         val hendelse = lagHendelse(deltaker = deltaker)
 

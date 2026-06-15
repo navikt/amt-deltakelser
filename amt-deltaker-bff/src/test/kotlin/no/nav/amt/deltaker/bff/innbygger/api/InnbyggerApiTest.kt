@@ -40,7 +40,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
-        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
+        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltakerOld())
 
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
@@ -53,7 +53,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal teste tilgangskontroll - mangler token - returnerer 401`() {
-        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
+        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltakerOld())
 
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
@@ -132,7 +132,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `getHistorikk - deltaker finnes, har tilgang - returnerer historikk`() {
-        val deltaker = TestData.leggTilHistorikk(TestData.lagDeltaker(), 2, 2, 1)
+        val deltaker = TestData.leggTilHistorikk(TestData.lagDeltakerOld(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val historikk = deltaker.historikk

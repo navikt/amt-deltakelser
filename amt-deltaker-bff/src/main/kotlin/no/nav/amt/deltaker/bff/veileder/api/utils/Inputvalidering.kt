@@ -77,26 +77,6 @@ fun validerDeltakelsesmengde(
     nyProsent: Int?,
     nyDagerPerUke: Int?,
     gyldigFra: LocalDate,
-    deltaker: Deltaker,
-) {
-    require(
-        deltaker.deltakelsesmengderFraHistorikk.validerNyDeltakelsesmengde(
-            Deltakelsesmengde(
-                deltakelsesprosent = nyProsent?.toFloat() ?: 100F,
-                dagerPerUke = nyDagerPerUke?.toFloat(),
-                gyldigFra = gyldigFra,
-                opprettet = LocalDateTime.now(),
-            ),
-        ),
-    ) {
-        "Deltakelsesmengdeendringen er ikke en reel endring"
-    }
-}
-
-fun validerDeltakelsesmengde(
-    nyProsent: Int?,
-    nyDagerPerUke: Int?,
-    gyldigFra: LocalDate,
     eksisterendeDeltaker: DeltakerModel,
 ) {
     require(
@@ -131,13 +111,6 @@ fun validerNyDeltakelsesmengde(
     } else {
         nyDeltakelsesmengde.gyldigFra < siste.gyldigFra
     }
-}
-
-fun validerDeltakerKanReaktiveres(opprinneligDeltaker: Deltaker) {
-    require(opprinneligDeltaker.status.type == DeltakerStatus.Type.IKKE_AKTUELL) {
-        "Kan ikke reaktivere deltaker som har annen status enn ikke aktuell"
-    }
-    validerDeltakerKanEndres(opprinneligDeltaker)
 }
 
 fun validerDeltakerKanReaktiveres(opprinneligDeltaker: DeltakerModel) {

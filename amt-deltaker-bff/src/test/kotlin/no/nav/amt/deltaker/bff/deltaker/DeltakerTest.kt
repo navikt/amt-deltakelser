@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 class DeltakerTest {
     @Test
     fun `fattetVedtak - flere vedtak - henter vedtaket som er gyldig og fattet`() {
-        val deltaker = TestData.lagDeltaker(historikk = false)
+        val deltaker = TestData.lagDeltakerOld(historikk = false)
         val fattet = TestData.lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now().minusMonths(2),
@@ -29,14 +29,14 @@ class DeltakerTest {
 
     @Test
     fun `fattetVedtak - ingen fattet vedtak - returnere null`() {
-        val deltaker = TestData.lagDeltaker(historikk = false)
+        val deltaker = TestData.lagDeltakerOld(historikk = false)
 
         deltaker.fattetVedtak shouldBe null
     }
 
     @Test
     fun `getIkkeFattetVedtak - deltaker har ikke fattet vedtak - returnerer vedtak`() {
-        val deltaker = TestData.lagDeltaker(historikk = false)
+        val deltaker = TestData.lagDeltakerOld(historikk = false)
         val vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
             fattet = null,
@@ -47,7 +47,7 @@ class DeltakerTest {
 
     @Test
     fun `getIkkeFattetVedtak - deltaker har kun fattet vedtak - returnerer null`() {
-        val deltaker = TestData.lagDeltaker(historikk = false)
+        val deltaker = TestData.lagDeltakerOld(historikk = false)
         val fattet = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
             fattet = LocalDateTime.now().minusMonths(2),

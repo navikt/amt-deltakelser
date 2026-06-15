@@ -69,7 +69,7 @@ class NavEnhetServiceTest {
 
     @Test
     fun `hentEnheterForHistorikk - historikk endret av flere ansatte - returnerer alle enheter`() = runTest {
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = TestData.lagDeltakerOld()
         val vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
             fattet = LocalDateTime.now(),
@@ -104,7 +104,7 @@ class NavEnhetServiceTest {
 
     @Test
     fun `hentEnheterForHistorikk - enhet finnes ikke i database - henter og returnerer enhet`() = runTest {
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = TestData.lagDeltakerOld()
         val endring = TestData.lagEndringFraTiltakskoordinator()
 
         val historikk = listOf(

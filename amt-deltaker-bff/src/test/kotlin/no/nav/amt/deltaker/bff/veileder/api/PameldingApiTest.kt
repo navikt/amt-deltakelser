@@ -10,7 +10,7 @@ import io.mockk.every
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForDeltaker
@@ -69,7 +69,7 @@ class PameldingApiTest : IntegrationTestBase() {
 
     @Test
     fun `post utkast - har tilgang - oppretter utkast og returnerer deltaker`() {
-        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+        val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         mockAnsatteOgEnhetForDeltaker(deltaker)
         val amtDeltakerResponse = lagDeltakerResponse(deltaker)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
@@ -125,7 +125,7 @@ class PameldingApiTest : IntegrationTestBase() {
     @Test
     fun `avbryt utkast - har tilgang  - avbryter utkast og returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        val deltaker = lagDeltaker(
+        val deltaker = lagDeltakerOld(
             status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
@@ -152,7 +152,6 @@ class PameldingApiTest : IntegrationTestBase() {
         val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
         val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
 
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
         enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
 
         return Pair(ansatte, enhet)

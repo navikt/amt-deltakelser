@@ -91,7 +91,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val deltaker = TestData.lagDeltakerOld(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
         TestRepository.insert(deltaker)
         val vurdering = TestData.lagVurdering(deltakerId = deltaker.id)
         val startdato = LocalDate.now().plusDays(1)
@@ -127,7 +127,7 @@ class DeltakerV2ConsumerTest {
         val navbruker = lagNavBruker()
         val sistEndret = LocalDateTime.now().minusDays(1)
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
             sistEndret = sistEndret,
@@ -155,7 +155,7 @@ class DeltakerV2ConsumerTest {
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         val navbruker = lagNavBruker()
-        val tidligereDeltakelse = TestData.lagDeltaker(
+        val tidligereDeltakelse = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
             historikk = true,
@@ -163,7 +163,7 @@ class DeltakerV2ConsumerTest {
         )
         TestRepository.insert(tidligereDeltakelse)
 
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
             historikk = true,
@@ -190,7 +190,7 @@ class DeltakerV2ConsumerTest {
         )
         val navbruker = lagNavBruker()
         val statusdato = LocalDateTime.now().minusMonths(2)
-        val tidligereDeltakelse = TestData.lagDeltaker(
+        val tidligereDeltakelse = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
             historikk = true,
@@ -202,7 +202,7 @@ class DeltakerV2ConsumerTest {
         TestRepository.insert(tidligereDeltakelse)
 
         val statusdato2 = LocalDateTime.now().minusDays(3)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
             historikk = true,
@@ -231,14 +231,14 @@ class DeltakerV2ConsumerTest {
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         val navbruker = lagNavBruker()
-        val eldsteDeltakelse = TestData.lagDeltaker(
+        val eldsteDeltakelse = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             historikk = true,
         )
 
-        val nyesteDeltakelse = TestData.lagDeltaker(
+        val nyesteDeltakelse = TestData.lagDeltakerOld(
             deltakerliste = deltakerliste,
             navBruker = navbruker,
             historikk = true,
@@ -264,7 +264,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val deltaker = TestData.lagDeltakerOld(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
         TestRepository.insert(deltaker)
 
         val startdato = LocalDate.now().plusDays(1)
@@ -290,7 +290,7 @@ class DeltakerV2ConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val deltaker = TestData.lagDeltakerOld(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
         TestRepository.insert(deltaker)
 
         consumer.consume(deltaker.id, null)
@@ -363,7 +363,7 @@ class DeltakerV2ConsumerTest {
         )
 
         endringer.forEach { endring ->
-            val deltaker = TestData.lagDeltaker(
+            val deltaker = TestData.lagDeltakerOld(
                 deltakerliste = deltakerliste,
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )

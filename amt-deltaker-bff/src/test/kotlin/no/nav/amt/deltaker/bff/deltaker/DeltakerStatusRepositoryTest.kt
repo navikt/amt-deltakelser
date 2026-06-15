@@ -27,7 +27,7 @@ class DeltakerStatusRepositoryTest {
             gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
         )
 
-        val deltaker = TestData.lagDeltaker(status = gammelStatus)
+        val deltaker = TestData.lagDeltakerOld(status = gammelStatus)
         TestRepository.insert(deltaker)
 
         val nyStatus = TestData.lagDeltakerStatus(
@@ -55,7 +55,7 @@ class DeltakerStatusRepositoryTest {
             gyldigFra = LocalDate.of(2024, 10, 5).atStartOfDay(),
         )
 
-        val deltaker = TestData.lagDeltaker(status = gammelStatus)
+        val deltaker = TestData.lagDeltakerOld(status = gammelStatus)
         TestRepository.insert(deltaker)
 
         DeltakerStatusRepository.slettTidligereStatuser(deltaker.id, nyStatus)

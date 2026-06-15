@@ -3,12 +3,10 @@ package no.nav.amt.deltaker.bff.deltaker
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.model.Deltaker
-import no.nav.amt.deltaker.bff.model.Kladd
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
 import java.util.UUID
 
 class PameldingService(
@@ -28,38 +26,6 @@ class PameldingService(
         )
         MetricRegister.OPPRETTET_KLADD.inc()
         return response
-    }
-
-    fun upsertKladd(kladd: Kladd): Deltaker? {
-        if (kladd.opprinneligDeltaker.status.type !== DeltakerStatus.Type.KLADD) {
-            // Dette kan skje når to brukere er inne på samme deltakelse samtidig
-            // eller når samme bruker har flere faner med samme deltakelse
-            // eller når nav veileder er så rask med å dele utkast at kladd requesten(som har en delay i frontend) kommer på etterskudd
-            log.warn(
-                "Kan ikke upserte kladd for deltaker ${kladd.opprinneligDeltaker.id} " +
-                    "med status ${kladd.opprinneligDeltaker.status.type}," +
-                    "status må være ${DeltakerStatus.Type.KLADD}.",
-            )
-            return null
-        }
-
-        val deltaker = kladd.opprinneligDeltaker.copy(
-            deltakelsesinnhold = kladd.pamelding.deltakelsesinnhold,
-            bakgrunnsinformasjon = kladd.pamelding.bakgrunnsinformasjon,
-            deltakelsesprosent = kladd.pamelding.deltakelsesprosent,
-            dagerPerUke = kladd.pamelding.dagerPerUke,
-            status = kladd.opprinneligDeltaker.status,
-            sistEndret = LocalDateTime.now(),
-        )
-
-        Database.transaction {
-            deltakerRepository.upsert(deltaker)
-            deltakerService.lagreDeltakerStatus(deltaker.id, deltaker.status)
-        }
-
-        log.info("Upserted kladd for deltaker med id ${deltaker.id}")
-
-        return deltakerRepository.get(deltaker.id).getOrThrow()
     }
 
     suspend fun slettKladd(deltakerId: UUID): Boolean {

@@ -7,7 +7,7 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.TestData
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
@@ -704,7 +704,7 @@ class AmtDeltakerClientTest {
 
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
-        private val deltakerInTest = lagDeltaker()
+        private val deltakerInTest = lagDeltakerOld()
         private val deltakerEndringResponseInTest = lagDeltakerResponse(deltakerInTest)
         private val expectedEndreDeltakerUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/endre-deltaker"
 

@@ -15,7 +15,7 @@ class DeltakerTest {
     @Test
     fun `maxVarighetDato - skal kalkulere riktig max varighet basert tiltakstype`() {
         val deltakere = Tiltakskode.entries.map {
-            TestData.lagDeltaker(
+            TestData.lagDeltakerOld(
                 startdato = LocalDate.now(),
                 deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = it)),
             )
@@ -67,11 +67,11 @@ class DeltakerTest {
 
     @Test
     fun `maxVarighetDato - skal kalkulere riktig max varighet basert pa innsatsgruppe for oppfolging`() {
-        val deltakerStandardInnsats = TestData.lagDeltaker(
+        val deltakerStandardInnsats = TestData.lagDeltakerOld(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING)),
             navBruker = lagNavBruker(innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS),
         )
-        val deltakerSituasjonsbestemt = TestData.lagDeltaker(
+        val deltakerSituasjonsbestemt = TestData.lagDeltakerOld(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING)),
             navBruker = lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS),
         )
@@ -80,7 +80,7 @@ class DeltakerTest {
             Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS,
             Innsatsgruppe.VARIG_TILPASSET_INNSATS,
         ).map {
-            TestData.lagDeltaker(
+            TestData.lagDeltakerOld(
                 deltakerliste = TestData.lagDeltakerliste(
                     tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING),
                 ),
@@ -95,11 +95,11 @@ class DeltakerTest {
 
     @Test
     fun `softVarighetDato - skal kalkulere riktig varighet basert pa innsatsgruppe for oppfolging`() {
-        val deltakerStandardInnsats = TestData.lagDeltaker(
+        val deltakerStandardInnsats = TestData.lagDeltakerOld(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING)),
             navBruker = lagNavBruker(innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS),
         )
-        val deltakerSituasjonsbestemt = TestData.lagDeltaker(
+        val deltakerSituasjonsbestemt = TestData.lagDeltakerOld(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING)),
             navBruker = lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS),
         )
@@ -108,7 +108,7 @@ class DeltakerTest {
             Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS,
             Innsatsgruppe.VARIG_TILPASSET_INNSATS,
         ).map {
-            TestData.lagDeltaker(
+            TestData.lagDeltakerOld(
                 deltakerliste = TestData.lagDeltakerliste(
                     tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING),
                 ),
@@ -124,7 +124,7 @@ class DeltakerTest {
     @Test
     fun `softMaxVarighetDato - skal kalkulere riktig varighet basert tiltakstype`() {
         val deltakere = Tiltakskode.entries.map {
-            TestData.lagDeltaker(
+            TestData.lagDeltakerOld(
                 startdato = LocalDate.now(),
                 deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = it)),
             )
