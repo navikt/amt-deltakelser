@@ -241,7 +241,7 @@ class EnkeltplassService(
                 ),
             )
 
-            lagreKodeverkValg(
+            lagreEnkeltplassAttributter(
                 deltakerlisteId = deltaker.deltakerliste.id,
                 kodeverkValg = oppdaterKladdRequest.kodeverkValg,
                 sertifiseringValg = oppdaterKladdRequest.sertifiseringValg,
@@ -299,7 +299,7 @@ class EnkeltplassService(
                 ),
             )
 
-            lagreKodeverkValg(
+            lagreEnkeltplassAttributter(
                 deltakerlisteId = gjennomforing.id,
                 kodeverkValg = request.kodeverkValg,
                 sertifiseringValg = request.sertifiseringValg,
@@ -377,7 +377,7 @@ class EnkeltplassService(
         arrangorService.hentArrangor(organisasjonsnummer)
     }
 
-    private fun lagreKodeverkValg(
+    private fun lagreEnkeltplassAttributter(
         deltakerlisteId: UUID,
         kodeverkValg: Set<UUID>?,
         sertifiseringValg: Set<SertifiseringValg>?,

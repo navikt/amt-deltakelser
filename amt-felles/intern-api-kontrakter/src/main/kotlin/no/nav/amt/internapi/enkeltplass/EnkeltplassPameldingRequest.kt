@@ -13,6 +13,7 @@ data class EnkeltplassPameldingRequest(
     val sluttdato: LocalDate? = null,
     val kodeverkValg: Set<UUID>? = null,
     val sertifiseringValg: Set<SertifiseringValg>? = null,
+    val prisinfoliste: List<String>? = null,
 ) {
     fun sanitized() = copy(
         beskrivelse = beskrivelse.sanitizeBeskrivelse(),
