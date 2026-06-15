@@ -1,9 +1,9 @@
-package no.nav.amt.deltaker.tiltaksansvarlig.endring
+package no.nav.amt.deltaker.navtiltakskoordinator.endring
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Deltakerliste
-import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestRepository

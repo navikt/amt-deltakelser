@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.api.tiltaksansvarlig
+package no.nav.amt.deltaker.api.tiltakskoordinator
 
 import java.util.UUID
 
