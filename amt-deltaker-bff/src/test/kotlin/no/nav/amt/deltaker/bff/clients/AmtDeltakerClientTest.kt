@@ -7,7 +7,7 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.TestData
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerModel
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
@@ -655,7 +655,7 @@ class AmtDeltakerClientTest {
     inner class Historikk {
         val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/historikk"
         val expectedErrorMessage = "Fant ikke historikkdata for ${deltakerInTest.id} i amt-deltaker."
-        val historikk = TestData.leggTilHistorikk(deltakerInTest, 2, 2, 1).historikk
+        val historikk = TestData.leggTilHistorikk(deltakerInTest, 2, 2, 1)
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
@@ -704,7 +704,7 @@ class AmtDeltakerClientTest {
 
     companion object {
         private const val DELTAKER_BASE_URL = "http://amt-deltaker"
-        private val deltakerInTest = lagDeltaker()
+        private val deltakerInTest = lagDeltakerModel()
         private val deltakerEndringResponseInTest = lagDeltakerResponse(deltakerInTest)
         private val expectedEndreDeltakerUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/endre-deltaker"
 

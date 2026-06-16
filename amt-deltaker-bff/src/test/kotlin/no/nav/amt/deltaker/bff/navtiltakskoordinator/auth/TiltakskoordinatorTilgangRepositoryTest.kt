@@ -10,7 +10,7 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorTilgang
 import no.nav.amt.deltaker.bff.utils.TestRepository
@@ -211,7 +211,7 @@ data class TiltakskoordinatorTilgangContext(
         deltakerliste = deltakerliste,
         navAnsatt = secondNavAnsatt,
     ),
-    var deltaker: Deltaker = lagDeltaker(deltakerliste = deltakerliste),
+    var deltaker: Deltaker = lagDeltakerOld(deltakerliste = deltakerliste),
 ) {
     val navAnsattRepository = NavAnsattRepository()
     val deltakerRepository = DeltakerRepository()

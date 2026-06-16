@@ -1,15 +1,12 @@
 package no.nav.amt.deltaker.api
 
-import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.api.response.SharedResponseMappers
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
-import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Vurdering
@@ -19,31 +16,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class SharedResponseMappersTest {
-    @Test
-    fun `opprettKladdResponseFromDeltaker - mapper deltakerlisteId og deltakelsesinnhold (non-null)`() {
-        // Arrange
-        val deltaker = TestData.lagDeltaker(
-            bakgrunnsinformasjon = "~bakgrunn~",
-        )
-
-        // Act
-        val response = SharedResponseMappers.opprettKladdResponseFromDeltaker(deltaker)
-
-        // Assert
-        assertSoftly(response) {
-            id shouldBe deltaker.id
-            navBruker shouldBe deltaker.navBruker
-            deltakerlisteId shouldBe deltaker.deltakerliste.id
-            startdato shouldBe deltaker.startdato.shouldNotBeNull()
-            sluttdato shouldBe deltaker.sluttdato.shouldNotBeNull()
-            dagerPerUke shouldBe deltaker.dagerPerUke.shouldNotBeNull()
-            deltakelsesprosent shouldBe deltaker.deltakelsesprosent.shouldNotBeNull()
-            bakgrunnsinformasjon shouldBe deltaker.bakgrunnsinformasjon.shouldNotBeNull()
-            deltakelsesinnhold shouldBe deltaker.deltakelsesinnhold.shouldNotBeNull()
-            status shouldBe deltaker.status
-        }
-    }
-
     @Test
     fun `hentEndringsforslagVenterPaSvar - returnerer kun forslag som venter paa svar`() {
         // Arrange

@@ -15,11 +15,11 @@ import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerModel
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
-import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForHistorikk
 import no.nav.amt.deltaker.bff.utils.TestData.lagNavEnheterForHistorikk
 import no.nav.amt.deltaker.bff.utils.TestData.leggTilHistorikk
@@ -46,10 +46,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.poao_tilgang.client.Decision
@@ -101,7 +98,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
     @Test
     fun `alle endepunkter - har ikke tilgang - returnerer 403`() {
-        val deltaker = lagDeltaker(navBruker = lagNavBruker(personident = "1234"))
+        val deltaker = lagDeltakerOld(navBruker = lagNavBruker(personident = "1234"))
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Deny("Ikke tilgang", ""))
         every { deltakerRepository.get(any()) } returns Result.success(deltaker)
@@ -166,11 +163,11 @@ class VeilederApiTest : IntegrationTestBase() {
 
     @Test
     fun `getDeltaker - feil personident i kontekst - returnerer 400`() {
-        val deltaker = lagDeltaker(
+        val deltaker = lagDeltakerOld(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             navBruker = lagNavBruker(personident = "4321"),
         )
-        setupMocks(deltaker, null)
+        setupMocks(deltaker)
 
         withTestApplicationContext { httpClient ->
             httpClient.post("/deltaker/${deltaker.id}") { createPostRequest(deltakerRequest) }.apply {
@@ -183,12 +180,12 @@ class VeilederApiTest : IntegrationTestBase() {
 
     @Test
     fun `getDeltakerHistorikk - toggle på - returnerer historikk fra amt-deltaker`() {
-        val deltaker = leggTilHistorikk(lagDeltaker(), 2, 2, 1)
-        val historikk = deltaker.historikk
+        val deltaker = lagDeltakerModel()
+        val historikk = leggTilHistorikk(deltaker, 2, 2, 1)
         val ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
-        val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
+        val deltakerResponse = lagDeltakerResponse()
         val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
@@ -242,13 +239,13 @@ class VeilederApiTest : IntegrationTestBase() {
             coEvery { amtDeltakerClient.avvisForslag(any(), any()) } returns etterResponse
 
             // Koden kjøres så mockene må settes opp men det er ikke noe som brukes for responsen når toggele er på
-            setupMocks(deltaker, oppdatert)
+            setupMocks(deltaker)
             return DeltakerResponse.fromDeltakerModel(ModelMapper.toDeltaker(etterResponse))
         }
 
         @Test
         fun `oppdater bakgrunnsinformasjon - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
             val oppdatert = deltaker.copy(bakgrunnsinformasjon = bakgrunnsinformasjonRequest.bakgrunnsinformasjon)
             val expected = setupMocksLocal(deltaker, oppdatert)
 
@@ -267,7 +264,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `oppdater startdato - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
             val oppdatert = deltaker.copy(startdato = startdatoRequest.startdato, sluttdato = startdatoRequest.sluttdato)
             val expected = setupMocksLocal(deltaker, oppdatert)
 
@@ -283,7 +280,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `endre sluttdato - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(
+            val deltaker = lagDeltakerOld(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
                 sluttdato = LocalDate.now().minusDays(3),
             )
@@ -302,7 +299,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `endre sluttarsak - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             val oppdatert = deltaker.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, sluttarsakRequest.aarsak.toDeltakerStatusAarsak()),
             )
@@ -320,7 +317,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `ikke aktuell - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
             val oppdatert = deltaker.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL, ikkeAktuellRequest.aarsak.toDeltakerStatusAarsak()),
             )
@@ -338,7 +335,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `reaktiver - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
+            val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
             val oppdatert = deltaker.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = null,
@@ -358,7 +355,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `forleng - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(
+            val deltaker = lagDeltakerOld(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = forlengDeltakelseRequest.sluttdato.minusDays(3),
             )
@@ -375,7 +372,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `forleng - ny dato tidligere enn forrige - returnerer 400`() {
-            val deltaker = lagDeltaker(sluttdato = forlengDeltakelseRequest.sluttdato.plusDays(5))
+            val deltaker = lagDeltakerOld(sluttdato = forlengDeltakelseRequest.sluttdato.plusDays(5))
             setupMocksLocal(deltaker, null)
 
             withTestApplicationContext { httpClient ->
@@ -389,7 +386,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `avslutt - har deltatt - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             val oppdatert = deltaker.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, avsluttDeltakelseRequest.aarsak!!.toDeltakerStatusAarsak()),
                 sluttdato = avsluttDeltakelseRequest.sluttdato,
@@ -406,7 +403,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `avslutt - har ikke deltatt - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             val oppdatert = deltaker.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL, ikkeAktuellRequest.aarsak.toDeltakerStatusAarsak()),
                 startdato = null,
@@ -433,7 +430,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `endre-avslutning - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.FULLFORT))
+            val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.FULLFORT))
             val oppdatert = deltaker.copy(
                 status = lagDeltakerStatus(
                     DeltakerStatus.Type.AVBRUTT,
@@ -461,7 +458,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `fjern oppstartsdato - har tilgang - returnerer oppdatert deltaker`() {
-            val deltaker = lagDeltaker(
+            val deltaker = lagDeltakerOld(
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = LocalDate.now().plusWeeks(1),
                 sluttdato = LocalDate.now().plusMonths(3),
@@ -481,7 +478,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         @Test
         fun `avvis forslag - har tilgang - returnerer deltaker`() {
-            val deltaker = lagDeltaker()
+            val deltaker = lagDeltakerOld()
             val forslag = lagForslag(deltakerId = deltaker.id)
 
             coEvery { amtDeltakerClient.getPersonidentForForslag(forslag.id) } returns
@@ -551,10 +548,7 @@ class VeilederApiTest : IntegrationTestBase() {
         begrunnelse = "Avvist fordi..",
     )
 
-    private fun setupMocks(
-        deltaker: Deltaker,
-        oppdatertDeltaker: Deltaker?,
-    ): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
+    private fun setupMocks(deltaker: Deltaker) {
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
@@ -563,23 +557,5 @@ class VeilederApiTest : IntegrationTestBase() {
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns
             PersonIdentResponse(deltaker.navBruker.personident).personident
-
-        return if (oppdatertDeltaker != null) {
-            mockAnsatteOgEnhetForDeltaker(oppdatertDeltaker)
-        } else {
-            mockAnsatteOgEnhetForDeltaker(deltaker)
-        }
-    }
-
-    private fun mockAnsatteOgEnhetForDeltaker(deltaker: Deltaker): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
-        val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
-        val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
-        val enheter = lagNavEnheterForHistorikk(deltaker.historikk).associateBy { it.id }
-
-        every { navAnsattService.hentAnsatteForDeltaker(deltaker) } returns ansatte
-        enhet?.let { every { navEnhetService.hentEnhet(it.id) } returns it }
-        coEvery { navEnhetService.hentEnheterForHistorikk(any()) } returns enheter
-
-        return Pair(ansatte, enhet)
     }
 }

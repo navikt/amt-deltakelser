@@ -19,7 +19,7 @@ class InnholdDtoTest {
     @Test
     fun testFinnValgtInnhold() {
         val innholdselement = Innholdselement("Type", "type")
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = TestData.lagDeltakerOld(
             deltakerliste = TestData.lagDeltakerliste(
                 tiltakstype = TestData.lagTiltakstype(
                     innhold = lagDeltakerRegistreringInnhold(
@@ -92,7 +92,7 @@ class InnholdDtoTest {
             """.trimIndent(),
         )
 
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = TestData.lagDeltakerOld(
             deltakerliste = TestData.lagDeltakerliste(
                 tiltakstype = TestData.lagTiltakstype(
                     innhold = deltakerlisteInnhold,

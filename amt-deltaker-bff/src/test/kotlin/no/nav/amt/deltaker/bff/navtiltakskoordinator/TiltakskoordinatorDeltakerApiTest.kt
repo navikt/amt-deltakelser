@@ -12,7 +12,7 @@ import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
@@ -162,7 +162,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     }
 
     companion object {
-        private val deltaker = lagDeltaker()
+        private val deltaker = lagDeltakerOld()
         private val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
         private val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
         private val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)

@@ -40,7 +40,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
-        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
+        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltakerOld())
 
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
@@ -53,7 +53,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal teste tilgangskontroll - mangler token - returnerer 401`() {
-        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltaker())
+        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltakerOld())
 
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
@@ -132,18 +132,17 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `getHistorikk - deltaker finnes, har tilgang - returnerer historikk`() {
-        val deltaker = TestData.leggTilHistorikk(TestData.lagDeltaker(), 2, 2, 1)
+        val historikk = TestData.leggTilHistorikk(TestData.lagDeltakerModel(), 2, 2, 1)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
-        val historikk = deltaker.historikk
         val ansatte = TestData.lagNavAnsatteForHistorikk(historikk).associateBy { it.id }
         val enheter = TestData.lagNavEnheterForHistorikk(historikk).associateBy { it.id }
 
-        val deltakerResponse = TestData.lagDeltakerResponse(id = deltaker.id)
+        val deltakerResponse = TestData.lagDeltakerResponse()
         val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
         val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
-        coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltaker.id) } returns DeltakerHistorikkDataResponse(
+        coEvery { amtDeltakerClient.getDeltakerHistorikkData(deltakerResponse.id) } returns DeltakerHistorikkDataResponse(
             historikk = historikk,
             arrangornavn = arrangornavn,
             oppstartstype = oppstartstype,
@@ -153,7 +152,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
         )
 
         withTestApplicationContext { httpClient ->
-            httpClient.get("/innbygger/${deltaker.id}/historikk") { noBodyRequest() }.apply {
+            httpClient.get("/innbygger/${deltakerResponse.id}/historikk") { noBodyRequest() }.apply {
                 status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
                     DeltakerHistorikkResponse.fromModels(

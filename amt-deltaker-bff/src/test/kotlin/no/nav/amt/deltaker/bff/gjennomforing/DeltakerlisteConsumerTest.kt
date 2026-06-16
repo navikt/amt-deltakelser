@@ -12,25 +12,18 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerRepository
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagArrangorClientResponse
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.bff.utils.TestData.lagGruppeDeltakerlistePayload
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.deltaker.bff.utils.TestRepository
-import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -58,20 +51,11 @@ class DeltakerlisteConsumerTest {
         amtArrangorClient = arrangorClient,
     )
 
-    private val amtPersonServiceClient: AmtPersonServiceClient = mockk(relaxed = true)
-
     private val deltakerlisteRepository = DeltakerlisteRepository()
     private val tiltakRepository = TiltakRepository()
     private val selfServiceTilgangService: SelfServiceTilgangService = mockk(relaxed = true)
     private val unleashToggle: CommonUnleashToggle = mockk()
-    private val navAnsattService = NavAnsattService(
-        repository = NavAnsattRepository(),
-        amtPersonServiceClient = amtPersonServiceClient,
-    )
-    private val navEnhetService = NavEnhetService(
-        repository = NavEnhetRepository(),
-        amtPersonServiceClient = amtPersonServiceClient,
-    )
+
     private val deltakerRepository = DeltakerRepository()
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -82,12 +66,6 @@ class DeltakerlisteConsumerTest {
     private val pameldingService = PameldingService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        navBrukerService = NavBrukerService(
-            amtPersonServiceClient = amtPersonServiceClient,
-            navBrukerRepository = NavBrukerRepository(),
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-        ),
         paameldingClient = mockk(relaxed = true),
     )
 
@@ -117,7 +95,7 @@ class DeltakerlisteConsumerTest {
     @Test
     fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() {
         val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING)
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
         TestRepository.insert(deltaker)
 
         val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = lagGruppeDeltakerlistePayload(arrangorInTest, deltakerliste)
@@ -274,7 +252,7 @@ class DeltakerlisteConsumerTest {
         val kladd = TestData.lagDeltakerKladd(deltakerliste = deltakerlisteInTest)
         TestRepository.insert(kladd)
 
-        val deltaker = lagDeltaker(
+        val deltaker = lagDeltakerOld(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
         TestRepository.insert(deltaker)

@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagVurdering
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -19,7 +19,7 @@ class VurderingRepositoryTest {
 
     @Test
     fun `getForDeltaker - vurdering finnes - returnerer vurdering`() {
-        val deltaker = lagDeltaker()
+        val deltaker = lagDeltakerOld()
         val vurdering = lagVurdering(deltakerId = deltaker.id)
 
         TestRepository.insert(deltaker)
@@ -36,8 +36,8 @@ class VurderingRepositoryTest {
 
     @Test
     fun `getForDeltaker - vurderinger finnes - returnerer alle vurdering`() {
-        val deltaker1 = lagDeltaker()
-        val deltaker2 = lagDeltaker()
+        val deltaker1 = lagDeltakerOld()
+        val deltaker2 = lagDeltakerOld()
         val vurdering1 = lagVurdering(deltakerId = deltaker1.id, vurderingstype = Vurderingstype.OPPFYLLER_IKKE_KRAVENE)
         val vurdering2 = lagVurdering(deltakerId = deltaker1.id, vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE)
         val vurdering3 = lagVurdering(deltakerId = deltaker2.id)

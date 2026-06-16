@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
@@ -15,22 +14,6 @@ data class ForlengDeltakelseRequest(
     val begrunnelse: String?,
     override val forslagId: UUID?,
 ) : EndringMedForslagRequest {
-    override fun valider(deltaker: Deltaker) {
-        require(!nySluttdatoErTidligereEnnForrigeSluttdato(deltaker.sluttdato)) {
-            "Ny sluttdato må være etter opprinnelig sluttdato ved forlengelse"
-        }
-        validerSluttdatoForDeltaker(sluttdato, deltaker.startdato, deltaker)
-        require(deltakerDeltarEllerHarSluttet(deltaker.status)) {
-            "Kan ikke forlenge deltakelse for deltaker med status ${deltaker.status.type}"
-        }
-        require(deltaker.sluttdato != sluttdato) {
-            "Ny sluttdato kan ikke være lik som forrige sluttdato"
-        }
-        validerDeltakerKanEndres(deltaker)
-        validerForslagEllerBegrunnelse(forslagId, begrunnelse)
-        validerBegrunnelse(begrunnelse)
-    }
-
     override fun valider(deltaker: DeltakerModel) {
         require(!nySluttdatoErTidligereEnnForrigeSluttdato(deltaker.sluttdato)) {
             "Ny sluttdato må være etter opprinnelig sluttdato ved forlengelse"
@@ -42,7 +25,7 @@ data class ForlengDeltakelseRequest(
         require(deltaker.sluttdato != sluttdato) {
             "Ny sluttdato kan ikke være lik som forrige sluttdato"
         }
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         validerForslagEllerBegrunnelse(forslagId, begrunnelse)
         validerBegrunnelse(begrunnelse)
     }

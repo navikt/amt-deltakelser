@@ -2,8 +2,12 @@ package no.nav.amt.deltaker.bff.utils
 
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.Companion.fulltInnhold
+import no.nav.amt.deltaker.bff.model.ArrangorModel
 import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.model.Deltakerliste
+import no.nav.amt.deltaker.bff.model.GjennomforingModel
+import no.nav.amt.deltaker.bff.model.NavBrukerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorDeltakerlisteTilgang
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
@@ -16,6 +20,7 @@ import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
+import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
@@ -25,9 +30,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
-import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -49,7 +52,6 @@ import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
-import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.TestData.lagAdresse
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
@@ -67,10 +69,10 @@ import java.util.UUID
 object TestData {
     fun input(n: Int) = (1..n).map { ('a'..'z').random() }.joinToString("")
 
-    fun lagArrangorClientResponse(arrangorInTest: Arrangor = lagArrangor()): no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse {
+    fun lagArrangorClientResponse(arrangorInTest: Arrangor = lagArrangor()): ArrangorResponse {
         val overordnetArrangorInTest = arrangorInTest.overordnetArrangorId?.let { lagArrangor(id = it) }
 
-        return no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse(
+        return ArrangorResponse(
             id = arrangorInTest.id,
             navn = arrangorInTest.navn,
             organisasjonsnummer = arrangorInTest.organisasjonsnummer,
@@ -78,7 +80,7 @@ object TestData {
         )
     }
 
-    fun Deltaker.toDeltakerVedVedtak() = DeltakerVedVedtak(
+    fun DeltakerModel.toDeltakerVedVedtak() = DeltakerVedVedtak(
         id,
         startdato,
         sluttdato,
@@ -90,7 +92,7 @@ object TestData {
                 ledetekst = it.ledetekst,
                 innhold = fulltInnhold(
                     it.innhold,
-                    getInnholdselementer(deltakerliste.tiltak.innhold?.innholdselementer, deltakerliste.tiltak.tiltakskode),
+                    getInnholdselementer(gjennomforing.tiltak.innhold?.innholdselementer, gjennomforing.tiltak.tiltakskode),
                 ),
             )
         },
@@ -241,7 +243,7 @@ object TestData {
         navBruker: NavBruker = lagNavBruker(),
         deltakerliste: Deltakerliste = lagDeltakerliste(),
         sistEndret: LocalDateTime = LocalDateTime.now(),
-    ) = lagDeltaker(
+    ) = lagDeltakerOld(
         id = id,
         navBruker = navBruker,
         deltakerliste = deltakerliste,
@@ -252,11 +254,10 @@ object TestData {
         bakgrunnsinformasjon = null,
         innhold = emptyList(),
         status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-        historikk = false,
         sistEndret = sistEndret,
     )
 
-    fun lagDeltaker(
+    fun lagDeltakerOld(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBruker = lagNavBruker(),
         deltakerliste: Deltakerliste = lagDeltakerliste(),
@@ -269,43 +270,92 @@ object TestData {
             ?.innholdselementer
             ?.map { it.toInnhold() } ?: emptyList(),
         status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-        historikk: Boolean = true,
         kanEndres: Boolean = true,
-        innsoktDatoFraArena: LocalDate? = null,
         erManueltDeltMedArrangor: Boolean = false,
         createdAt: LocalDateTime = LocalDateTime.now(),
         sistEndret: LocalDateTime = LocalDateTime.now(),
-    ): Deltaker {
-        val deltaker = Deltaker(
-            id = id,
-            navBruker = navBruker,
-            deltakerliste = deltakerliste,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = Deltakelsesinnhold("ledetekst", innhold),
-            status = status,
-            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            historikk = emptyList(),
-            kanEndres = kanEndres,
-            opprettet = createdAt,
-            sistEndret = sistEndret,
-        )
+    ): Deltaker = Deltaker(
+        id = id,
+        navBruker = navBruker,
+        deltakerliste = deltakerliste,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        deltakelsesinnhold = Deltakelsesinnhold("ledetekst", innhold),
+        status = status,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        historikk = emptyList(),
+        kanEndres = kanEndres,
+        opprettet = createdAt,
+        sistEndret = sistEndret,
+    )
 
-        return if (innsoktDatoFraArena != null) {
-            deltaker.copy(historikk = lagArenaDeltakerHistorikk(deltaker, innsoktDatoFraArena))
-        } else if (historikk) {
-            deltaker.copy(
-                historikk = lagDeltakerHistorikk(
-                    deltaker = deltaker,
-                ),
-            )
-        } else {
-            deltaker
-        }
-    }
+    fun lagNavBrukerModel(
+        personident: String = randomIdent(),
+        fornavn: String = "Fornavn",
+        mellomnavn: String? = "Mellomnavn",
+        etternavn: String = "Etternavn",
+        navVeileder: NavVeilederResponse? = NavVeilederResponse("Nav Veiledersen", null, null),
+        navEnhet: String? = "Nav Grunerløkka",
+        telefon: String? = null,
+        epost: String? = null,
+        erSkjermet: Boolean = false,
+        adresse: Adresse? = lagAdresse(),
+        adressebeskyttelse: Adressebeskyttelse? = null,
+        oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
+        innsatsgruppe: Innsatsgruppe? = Innsatsgruppe.STANDARD_INNSATS,
+        erDigital: Boolean = true,
+    ) = NavBrukerModel(
+        personident = personident,
+        fornavn = fornavn,
+        mellomnavn = mellomnavn,
+        etternavn = etternavn,
+        navVeileder = navVeileder,
+        navEnhet = navEnhet,
+        telefon = telefon,
+        epost = epost,
+        erSkjermet = erSkjermet,
+        adresse = adresse,
+        adressebeskyttelse = adressebeskyttelse,
+        oppfolgingsperioder = oppfolgingsperioder,
+        innsatsgruppe = innsatsgruppe,
+        erDigital = erDigital,
+    )
+
+    fun lagGjennomforingModel(
+        id: UUID = UUID.randomUUID(),
+        type: GjennomforingType = GjennomforingType.Gruppe,
+        tiltak: Tiltakstype = lagTiltakstype(),
+        navn: String = "Test Deltakerliste ${tiltak.tiltakskode}",
+        status: GjennomforingStatusType = GjennomforingStatusType.GJENNOMFORES,
+        startDato: LocalDate? = LocalDate.now().minusMonths(1),
+        sluttDato: LocalDate? = LocalDate.now().plusYears(1),
+        oppstart: Oppstartstype? = finnOppstartstype(tiltak.tiltakskode),
+        arrangor: ArrangorModel? =
+            ArrangorModel(
+                navn = "Arrangor 1",
+                organisasjonsnummer = no.nav.amt.lib.testing.utils.TestData
+                    .randomOrgnr(),
+            ),
+        apentForPamelding: Boolean = true,
+        oppmoteSted: String? = "~oppmoteSted~",
+        pameldingstype: GjennomforingPameldingType? = GjennomforingPameldingType.DIREKTE_VEDTAK,
+    ) = GjennomforingModel(
+        id = id,
+        type = type,
+        tiltak = tiltak,
+        navn = navn,
+        status = status,
+        startDato = startDato,
+        sluttDato = sluttDato,
+        oppstart = oppstart,
+        arrangor = arrangor,
+        apentForPamelding = apentForPamelding,
+        oppmoteSted = oppmoteSted,
+        pameldingstype = pameldingstype,
+    )
 
     fun lagDeltakerModel(
         navBrukerResponse: NavBrukerResponse = lagNavBrukerResponse(),
@@ -321,6 +371,44 @@ object TestData {
             endringsforslagFraArrangor = endringsforslagFraArrangor,
             status = status,
         ),
+    )
+
+    fun lagDeltaker(
+        id: UUID = UUID.randomUUID(),
+        navBruker: NavBrukerModel = lagNavBrukerModel(),
+        gjennomforing: GjennomforingModel = lagGjennomforingModel(),
+        startdato: LocalDate? = LocalDate.now().minusMonths(3),
+        sluttdato: LocalDate? = LocalDate.now().minusDays(1),
+        dagerPerUke: Float? = 5F,
+        deltakelsesprosent: Float? = 100F,
+        bakgrunnsinformasjon: String? = "Søkes inn fordi...",
+        innhold: List<Innhold> = gjennomforing.tiltak.innhold
+            ?.innholdselementer
+            ?.map { it.toInnhold() } ?: emptyList(),
+        status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+        erLaastForEndringer: Boolean = false,
+        erManueltDeltMedArrangor: Boolean = false,
+    ): DeltakerModel = DeltakerModel(
+        id = id,
+        navBruker = navBruker,
+        gjennomforing = gjennomforing,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        deltakelsesinnhold = Deltakelsesinnhold("ledetekst", innhold),
+        status = status,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        vedtaksinformasjon = null,
+        sistEndret = LocalDateTime.now(),
+        erLaastForEndringer = erLaastForEndringer,
+        endringsforslagFraArrangor = emptyList(),
+        prisinformasjon = null,
+        sisteVurdering = null,
+        deltakelsesmengder = null,
+        soktInnDato = LocalDate.now(),
+        importertFraArena = null,
     )
 
     fun lagVedtaksinformasjonResponse() = VedtaksinformasjonResponse(
@@ -377,6 +465,47 @@ object TestData {
         vedtaksinformasjon = lagVedtaksinformasjonResponse(),
     )
 
+    fun lagDeltakerResponse(deltaker: DeltakerModel) = lagDeltakerResponse(
+        id = deltaker.id,
+        startdato = deltaker.startdato,
+        sluttdato = deltaker.sluttdato,
+        dagerPerUke = deltaker.dagerPerUke,
+        status = deltaker.status,
+        deltakelsesprosent = deltaker.deltakelsesprosent,
+        bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
+        deltakelsesinnhold = deltaker.deltakelsesinnhold,
+        sistEndret = deltaker.sistEndret,
+        erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
+        opprettet = LocalDateTime.now(),
+        endringsforslagFraArrangor = emptyList(),
+        navBruker = lagNavBrukerResponse(
+            personident = deltaker.navBruker.personident,
+            fornavn = deltaker.navBruker.fornavn,
+            mellomnavn = deltaker.navBruker.mellomnavn,
+            etternavn = deltaker.navBruker.etternavn,
+            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
+            oppfolgingsperioder = deltaker.navBruker.oppfolgingsperioder,
+            innsatsgruppe = deltaker.navBruker.innsatsgruppe,
+            adresse = deltaker.navBruker.adresse,
+            erSkjermet = deltaker.navBruker.erSkjermet,
+            telefon = deltaker.navBruker.telefon,
+            epost = deltaker.navBruker.epost,
+        ),
+        deltakerliste = lagGjennomforingResponse(
+            id = deltaker.gjennomforing.id,
+            tiltakstype = deltaker.gjennomforing.tiltak,
+            navn = deltaker.gjennomforing.navn,
+            status = deltaker.gjennomforing.status,
+            startDato = deltaker.gjennomforing.startDato!!,
+            sluttDato = deltaker.gjennomforing.sluttDato,
+            oppstart = deltaker.gjennomforing.oppstart!!,
+            apentForPamelding = deltaker.gjennomforing.apentForPamelding,
+            oppmoteSted = deltaker.gjennomforing.oppmoteSted ?: "~oppmoteSted~",
+            pameldingType = deltaker.gjennomforing.pameldingstype,
+        ),
+        vedtaksinformasjon = lagVedtaksinformasjonResponse(),
+    )
+
     fun lagDeltakerResponse(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBrukerResponse = lagNavBrukerResponse(),
@@ -394,6 +523,7 @@ object TestData {
         endringsforslagFraArrangor: List<Forslag> = listOf(lagForslag()),
         prisinformasjon: String? = null,
         opprettet: LocalDateTime = LocalDateTime.now(),
+        erLaastForEndringer: Boolean = false,
     ) = DeltakerResponse(
         id = id,
         status = status,
@@ -410,7 +540,7 @@ object TestData {
         kilde = Kilde.KOMET,
         sistEndret = sistEndret,
         opprettet = opprettet,
-        erLaastForEndringer = false,
+        erLaastForEndringer = erLaastForEndringer,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
         prisinformasjon = prisinformasjon,
         sisteVurdering = null,
@@ -489,41 +619,6 @@ object TestData {
         begrunnelse = begrunnelse,
     )
 
-    private fun lagImportertFraArena(
-        deltaker: Deltaker,
-        innsoktDato: LocalDate,
-    ) = ImportertFraArena(
-        deltakerId = deltaker.id,
-        importertDato = LocalDateTime.now(),
-        deltakerVedImport = DeltakerVedImport(
-            deltakerId = deltaker.id,
-            innsoktDato = innsoktDato,
-            startdato = deltaker.startdato,
-            sluttdato = deltaker.sluttdato,
-            dagerPerUke = deltaker.dagerPerUke,
-            deltakelsesprosent = deltaker.deltakelsesprosent,
-            status = deltaker.status,
-        ),
-    )
-
-    private fun lagArenaDeltakerHistorikk(
-        deltaker: Deltaker,
-        innsoktDatoFraArena: LocalDate,
-    ): List<DeltakerHistorikk> {
-        val importertFraArena = lagImportertFraArena(deltaker = deltaker, innsoktDato = innsoktDatoFraArena)
-        return listOf(DeltakerHistorikk.ImportertFraArena(importertFraArena))
-    }
-
-    private fun lagDeltakerHistorikk(deltaker: Deltaker = lagDeltaker()): List<DeltakerHistorikk> {
-        val vedtak = lagVedtak(
-            deltakerVedVedtak = deltaker,
-            fattet = LocalDateTime.now(),
-            opprettetAv = deltaker.navBruker.navVeilederId!!,
-            opprettetAvEnhet = deltaker.navBruker.navEnhetId!!,
-        )
-        return listOf(DeltakerHistorikk.Vedtak(vedtak))
-    }
-
     fun lagDeltakerStatus(
         type: DeltakerStatus.Type,
         aarsak: DeltakerStatus.Aarsak,
@@ -557,7 +652,7 @@ object TestData {
 
     fun lagVedtak(
         id: UUID = UUID.randomUUID(),
-        deltakerVedVedtak: Deltaker = lagDeltaker(
+        deltakerVedVedtak: DeltakerModel = lagDeltakerModel(
             status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         ),
         deltakerId: UUID = deltakerVedVedtak.id,
@@ -670,11 +765,11 @@ object TestData {
         .map { lagNavEnhet(id = it) }
 
     fun leggTilHistorikk(
-        deltaker: Deltaker,
+        deltaker: DeltakerModel = lagDeltakerModel(),
         antallVedtak: Int = 1,
         antallEndringer: Int = 1,
         antallEndringerFraArrangor: Int = 1,
-    ): Deltaker {
+    ): List<DeltakerHistorikk> {
         val vedtak = (1..antallVedtak).map {
             val fattet = it == antallVedtak
             lagVedtak(
@@ -689,23 +784,9 @@ object TestData {
 
         val endringerFraArrangor = (1..antallEndringerFraArrangor).map { lagEndringFraArrangor(deltakerId = deltaker.id) }
 
-        return deltaker.copy(
-            historikk = vedtak.map { DeltakerHistorikk.Vedtak(it) } + endringer.map { DeltakerHistorikk.Endring(it) } +
-                endringerFraArrangor.map { DeltakerHistorikk.EndringFraArrangor(it) },
-        )
+        return vedtak.map { DeltakerHistorikk.Vedtak(it) } + endringer.map { DeltakerHistorikk.Endring(it) } +
+            endringerFraArrangor.map { DeltakerHistorikk.EndringFraArrangor(it) }
     }
-
-    fun leggTilHistorikk(
-        deltaker: Deltaker,
-        vedtak: List<Vedtak> = emptyList(),
-        endringer: List<DeltakerEndring> = emptyList(),
-        forslag: List<Forslag> = emptyList(),
-    ) = deltaker.copy(
-        historikk = deltaker.historikk
-            .plus(vedtak.map { DeltakerHistorikk.Vedtak(it) })
-            .plus(endringer.map { DeltakerHistorikk.Endring(it) })
-            .plus(forslag.map { DeltakerHistorikk.Forslag(it) }),
-    )
 
     fun lagTiltakskoordinatorTilgang(
         id: UUID = UUID.randomUUID(),
@@ -719,22 +800,6 @@ object TestData {
         deltakerlisteId = deltakerliste.id,
         gyldigFra = gyldigFra,
         gyldigTil = gyldigTil,
-    )
-
-    fun lagEndringFraTiltakskoordinator(
-        id: UUID = UUID.randomUUID(),
-        deltakerId: UUID = UUID.randomUUID(),
-        endring: EndringFraTiltakskoordinator.Endring = EndringFraTiltakskoordinator.DelMedArrangor,
-        endretAv: UUID = UUID.randomUUID(),
-        endretAvEnhet: UUID = UUID.randomUUID(),
-        endret: LocalDateTime = LocalDateTime.now(),
-    ) = EndringFraTiltakskoordinator(
-        id = id,
-        deltakerId = deltakerId,
-        endring = endring,
-        endretAv = endretAv,
-        endretAvEnhet = endretAvEnhet,
-        endret = endret,
     )
 
     fun lagHendelse(
@@ -821,7 +886,13 @@ fun Deltaker.endre(deltakerEndring: DeltakerEndring): Deltaker {
             deltakelsesprosent = endring.deltakelsesprosent,
         )
 
-        is DeltakerEndring.Endring.EndreInnhold -> this.copy(deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold))
+        is DeltakerEndring.Endring.EndreInnhold -> this.copy(
+            deltakelsesinnhold = Deltakelsesinnhold(
+                endring.ledetekst,
+                endring.innhold,
+            ),
+        )
+
         is DeltakerEndring.Endring.EndreSluttarsak ->
             this.copy(status = this.status.copy(aarsak = endring.aarsak.toStatusAarsak()))
 
