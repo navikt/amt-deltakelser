@@ -47,9 +47,9 @@ sealed interface GjennomforingRequestPayload {
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes(
-        JsonSubTypes.Type(value = Prisinformasjon.Anskaffelse::class, name = "EnkeltplassPrisinformasjonAnskaffelse"),
-        JsonSubTypes.Type(value = Prisinformasjon.Tilskudd::class, name = "EnkeltplassPrisinformasjonTilskudd"),
-        JsonSubTypes.Type(value = Prisinformasjon.IngenKostnader::class, name = "EnkeltplassPrisinformasjonIngenKostnader"),
+        JsonSubTypes.Type(value = Prisinformasjon.Anskaffelse::class, name = "Anskaffelse"),
+        JsonSubTypes.Type(value = Prisinformasjon.Tilskudd::class, name = "Tilskudd"),
+        JsonSubTypes.Type(value = Prisinformasjon.IngenKostnader::class, name = "IngenKostnader"),
     )
     sealed interface Prisinformasjon {
         data class Anskaffelse(
