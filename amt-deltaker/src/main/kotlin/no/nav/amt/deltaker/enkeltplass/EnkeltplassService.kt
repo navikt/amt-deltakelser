@@ -35,7 +35,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
@@ -188,10 +187,8 @@ class EnkeltplassService(
 
         val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            prisinformasjon = Prisinformasjon.IngenKostnader(
-                aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                tilleggsopplysninger = gjennomforing.prisinformasjon,
-            ),
+            prisinformasjon = PrisinfoRepoAdapter.hentPrisinfo(gjennomforing.id)
+                ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${gjennomforing.id}"),
             organisasjonsnummer = checkNotNull(gjennomforing.arrangor) {
                 "Kan ikke publisere gjennomføring ${gjennomforing.id}: arrangør mangler"
             }.organisasjonsnummer,
@@ -331,11 +328,8 @@ class EnkeltplassService(
 
             val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
                 tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
-                // TODO: Hardkodet IngenKostnader inntil vi får på plass strukturert prisinfo
-                prisinformasjon = Prisinformasjon.IngenKostnader(
-                    aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                    tilleggsopplysninger = "TODO", // TODO
-                ),
+                prisinformasjon = PrisinfoRepoAdapter.hentPrisinfo(gjennomforing.id)
+                    ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${gjennomforing.id}"),
                 organisasjonsnummer = request.arrangorUnderenhet,
                 ansvarligEnhet = decoratedRequest.endretAvEnhet,
                 opprettetAv = decoratedRequest.endretAv,
@@ -364,12 +358,9 @@ class EnkeltplassService(
         upsertPayload: GjennomforingRequestPayload.UpsertEnkeltplass,
     ) {
         val gjennomforingPayload = when (val statusType = deltaker.status.type) {
-            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
-                gjennomforingId = deltaker.deltakerliste.id,
-                payload = upsertPayload,
-            )
-
-            DeltakerStatus.Type.SOKT_INN -> GjennomforingRequestPayload.EnkeltplassSoktInn(
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+            DeltakerStatus.Type.SOKT_INN,
+            -> GjennomforingRequestPayload.EnkeltplassUtkast(
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = upsertPayload,
             )

@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
@@ -120,25 +121,31 @@ class DeltakerResponseBuilder(
         val skalHenteEnkeltplassValg =
             includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
                 !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
-        val kodeverkValg =
-            if (skalHenteEnkeltplassValg) {
-                KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
-            } else {
-                emptySet()
-            }
 
-        val sertifiseringValg =
-            if (skalHenteEnkeltplassValg) {
-                SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id)
-            } else {
-                emptySet()
-            }
+        val kodeverkValg = if (skalHenteEnkeltplassValg) {
+            KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
+        } else {
+            emptySet()
+        }
+
+        val sertifiseringValg = if (skalHenteEnkeltplassValg) {
+            SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id)
+        } else {
+            emptySet()
+        }
+
+        val prisinformasjon = if (skalHenteEnkeltplassValg) {
+            PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
+        } else {
+            null
+        }
 
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             kodeverkValg = kodeverkValg,
             sertifiseringValg = sertifiseringValg,
+            prisinformasjon = prisinformasjon,
         )
     }
 

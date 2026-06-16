@@ -40,7 +40,7 @@ object PrisinfoRepoAdapter {
         gjennomforingId: UUID,
         prisinformasjon: Prisinformasjon,
     ) {
-        PrisinfoRepository.lagrePrisinfo(
+        PrisinfoRepository.upsertPrisinfo(
             gjennomforingId = gjennomforingId,
             insertDbo = prisinformasjon.toPrisinfoDbo(),
         )

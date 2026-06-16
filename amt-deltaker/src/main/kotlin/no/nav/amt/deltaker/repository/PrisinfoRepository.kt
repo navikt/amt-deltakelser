@@ -36,7 +36,7 @@ object PrisinfoRepository {
         }
     }
 
-    fun lagrePrisinfo(
+    fun upsertPrisinfo(
         gjennomforingId: UUID,
         insertDbo: PrisinfoDbo,
     ) {

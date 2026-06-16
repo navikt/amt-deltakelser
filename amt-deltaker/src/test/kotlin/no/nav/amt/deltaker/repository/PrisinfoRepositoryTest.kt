@@ -22,7 +22,7 @@ class PrisinfoRepositoryTest {
     }
 
     @Nested
-    inner class LagrePrisinfoTests {
+    inner class UpsertPrisinfoTests {
         @Test
         fun `lagrer prisinfo med alle felter`() {
             // Arrange
@@ -37,7 +37,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Act
-            PrisinfoRepository.lagrePrisinfo(
+            PrisinfoRepository.upsertPrisinfo(
                 gjennomforingId = deltakerliste.id,
                 insertDbo = insertDbo,
             )
@@ -65,7 +65,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Act
-            PrisinfoRepository.lagrePrisinfo(
+            PrisinfoRepository.upsertPrisinfo(
                 gjennomforingId = deltakerliste.id,
                 insertDbo = insertDbo,
             )
@@ -94,7 +94,7 @@ class PrisinfoRepositoryTest {
                 tilleggsopplysninger = "Original",
                 ingenkostnaderAarsak = null,
             )
-            PrisinfoRepository.lagrePrisinfo(
+            PrisinfoRepository.upsertPrisinfo(
                 gjennomforingId = deltakerliste.id,
                 insertDbo = insertDbo1,
             )
@@ -107,7 +107,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Act
-            PrisinfoRepository.lagrePrisinfo(
+            PrisinfoRepository.upsertPrisinfo(
                 gjennomforingId = deltakerliste.id,
                 insertDbo = insertDbo2,
             )
@@ -153,7 +153,7 @@ class PrisinfoRepositoryTest {
                 tilleggsopplysninger = "Opplysning",
                 ingenkostnaderAarsak = null,
             )
-            PrisinfoRepository.lagrePrisinfo(
+            PrisinfoRepository.upsertPrisinfo(
                 gjennomforingId = deltakerliste1.id,
                 insertDbo = insertDbo,
             )
