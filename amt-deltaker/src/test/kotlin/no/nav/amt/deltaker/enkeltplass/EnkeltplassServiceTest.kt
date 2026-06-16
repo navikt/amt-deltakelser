@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
@@ -16,6 +17,7 @@ import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
@@ -40,6 +42,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.database.Database.transaction
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -61,13 +64,20 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         stubDefaultDeltakere()
         every {
             deltakerProducerService.produce(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                deltaker = any(),
+                forcedUpdate = any(),
+                publiserTilDeltakerV1 = any(),
+                publiserTilDeltakerEksternV1 = any(),
+                publiserTilDeltakerV2 = any(),
             )
         } just Runs
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkObject(Database)
+        unmockkObject(SertifiseringValgRepository)
+        unmockkObject(PrisinfoRepoAdapter)
     }
 
     private fun stubDefaultDeltakere() {
@@ -98,6 +108,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         mockkObject(SertifiseringValgRepository)
         every { SertifiseringValgRepository.deleteForGjennomforing(any()) } just Runs
         every { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) } just Runs
+
+        mockkObject(PrisinfoRepoAdapter)
+        every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } just Runs
     }
 
     private fun setupNavEnhetOgAnsattMocks() {
@@ -196,7 +209,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sertifiseringValg null - rører ikke sertifiseringer`() = runTest {
+        fun `sertifiseringValg null - roerer ikke sertifiseringer`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
@@ -215,7 +228,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal oppdatere prisinformasjon når gitt`() = runTest {
+        fun `skal oppdatere prisinformasjon naar gitt`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
@@ -235,7 +248,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal oppdatere dato-felter når gitt`() = runTest {
+        fun `skal oppdatere dato-felter naar gitt`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs

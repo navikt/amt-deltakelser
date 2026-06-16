@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
@@ -241,6 +242,13 @@ class EnkeltplassService(
                 ),
             )
 
+            oppdaterKladdRequest.prisinformasjon?.let { prisinfo ->
+                PrisinfoRepoAdapter.lagrePrisinfo(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    prisinformasjon = prisinfo,
+                )
+            }
+
             lagreEnkeltplassAttributter(
                 deltakerlisteId = deltaker.deltakerliste.id,
                 kodeverkValg = oppdaterKladdRequest.kodeverkValg,
@@ -296,6 +304,11 @@ class EnkeltplassService(
                     sluttdato = request.sluttdato,
                     beskrivelse = request.beskrivelse,
                 ),
+            )
+
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforing.id,
+                prisinformasjon = request.prisinformasjon,
             )
 
             lagreEnkeltplassAttributter(

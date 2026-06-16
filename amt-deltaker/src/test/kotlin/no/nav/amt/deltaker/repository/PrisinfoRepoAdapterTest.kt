@@ -12,13 +12,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
-class PrisinfoRepoServiceTest {
+class PrisinfoRepoAdapterTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }
-
-    private val service = PrisinfoRepoService()
 
     @Nested
     inner class HentPrisinfoTests {
@@ -29,10 +27,10 @@ class PrisinfoRepoServiceTest {
             TestRepository.insert(deltakerliste)
 
             val anskaffelse = Prisinformasjon.Anskaffelse(pris = 25000)
-            service.lagrePrisinfo(deltakerliste.id, anskaffelse)
+            PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, anskaffelse)
 
             // Act
-            val result = service.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
 
             // Assert
             result shouldBe anskaffelse
@@ -51,10 +49,10 @@ class PrisinfoRepoServiceTest {
                     Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR to 2000,
                 ),
             )
-            service.lagrePrisinfo(deltakerliste.id, tilskudd)
+            PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, tilskudd)
 
             // Act
-            val result = service.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
 
             // Assert
             result shouldBe tilskudd
@@ -70,10 +68,10 @@ class PrisinfoRepoServiceTest {
                 aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "Gratis opplaering",
             )
-            service.lagrePrisinfo(deltakerliste.id, ingenKostnader)
+            PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, ingenKostnader)
 
             // Act
-            val result = service.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
 
             // Assert
             result shouldBe ingenKostnader
@@ -86,7 +84,7 @@ class PrisinfoRepoServiceTest {
             TestRepository.insert(deltakerliste)
 
             // Act & Assert
-            service.hentPrisinfo(deltakerliste.id) shouldBe null
+            PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id) shouldBe null
         }
     }
 
@@ -101,13 +99,13 @@ class PrisinfoRepoServiceTest {
             val anskaffelse = Prisinformasjon.Anskaffelse(pris = 30000)
 
             // Act
-            service.lagrePrisinfo(
+            PrisinfoRepoAdapter.lagrePrisinfo(
                 gjennomforingId = deltakerliste.id,
-                prisinfo = anskaffelse,
+                prisinformasjon = anskaffelse,
             )
 
             // Assert
-            val result = service.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
             result shouldBe anskaffelse
         }
 
@@ -127,13 +125,13 @@ class PrisinfoRepoServiceTest {
             )
 
             // Act
-            service.lagrePrisinfo(
+            PrisinfoRepoAdapter.lagrePrisinfo(
                 gjennomforingId = deltakerliste.id,
-                prisinfo = tilskudd,
+                prisinformasjon = tilskudd,
             )
 
             // Assert
-            val result = service.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
             result shouldBe tilskudd
         }
 
@@ -149,13 +147,13 @@ class PrisinfoRepoServiceTest {
             )
 
             // Act
-            service.lagrePrisinfo(
+            PrisinfoRepoAdapter.lagrePrisinfo(
                 gjennomforingId = deltakerliste.id,
-                prisinfo = ingenKostnader,
+                prisinformasjon = ingenKostnader,
             )
 
             // Assert
-            val result = service.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
             result shouldBe ingenKostnader
         }
 
@@ -166,7 +164,7 @@ class PrisinfoRepoServiceTest {
             TestRepository.insert(deltakerliste)
 
             val anskaffelse = Prisinformasjon.Anskaffelse(pris = 20000)
-            service.lagrePrisinfo(deltakerliste.id, anskaffelse)
+            PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, anskaffelse)
 
             val tilskudd = Prisinformasjon.Tilskudd(
                 tilleggsopplysninger = "Nye opplysninger",
@@ -176,13 +174,13 @@ class PrisinfoRepoServiceTest {
             )
 
             // Act
-            service.lagrePrisinfo(
+            PrisinfoRepoAdapter.lagrePrisinfo(
                 gjennomforingId = deltakerliste.id,
-                prisinfo = tilskudd,
+                prisinformasjon = tilskudd,
             )
 
             // Assert
-            val result = service.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
             result shouldBe tilskudd
         }
 
@@ -199,7 +197,7 @@ class PrisinfoRepoServiceTest {
                     Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR to 2000,
                 ),
             )
-            service.lagrePrisinfo(deltakerliste.id, tilskudd)
+            PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, tilskudd)
 
             val ingenKostnader = Prisinformasjon.IngenKostnader(
                 aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
@@ -207,10 +205,10 @@ class PrisinfoRepoServiceTest {
             )
 
             // Act
-            service.lagrePrisinfo(deltakerliste.id, ingenKostnader)
+            PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, ingenKostnader)
 
             // Assert
-            val result = service.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
             result shouldBe ingenKostnader
 
             // Verifiser at belop er slettet

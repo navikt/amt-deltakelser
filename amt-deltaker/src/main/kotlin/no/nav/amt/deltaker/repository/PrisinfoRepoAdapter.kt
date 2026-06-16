@@ -8,7 +8,7 @@ import no.nav.amt.lib.models.deltakerliste.Priskomponent
 import no.nav.amt.lib.models.deltakerliste.TILSKUDD_SUB_TYPE
 import java.util.UUID
 
-class PrisinfoRepoService {
+object PrisinfoRepoAdapter {
     fun hentPrisinfo(gjennomforingId: UUID): Prisinformasjon? {
         val prisinfoDbo = PrisinfoRepository.hentPrisinfo(gjennomforingId)
             ?: return null
@@ -38,44 +38,42 @@ class PrisinfoRepoService {
 
     fun lagrePrisinfo(
         gjennomforingId: UUID,
-        prisinfo: Prisinformasjon,
+        prisinformasjon: Prisinformasjon,
     ) {
         PrisinfoRepository.lagrePrisinfo(
             gjennomforingId = gjennomforingId,
-            insertDbo = prisinfo.toPrisinfoDbo(),
+            insertDbo = prisinformasjon.toPrisinfoDbo(),
         )
 
         PrisinfoBelopRepository.deleteForGjennomforing(gjennomforingId)
 
-        if (prisinfo is Prisinformasjon.Tilskudd) {
+        if (prisinformasjon is Prisinformasjon.Tilskudd) {
             PrisinfoBelopRepository.lagrePrisinfoBelop(
                 gjennomforingId = gjennomforingId,
-                belop = prisinfo.toPriskomponentListe(),
+                belop = prisinformasjon.toPriskomponentListe(),
             )
         }
     }
 
-    companion object {
-        internal fun Prisinformasjon.Tilskudd.toPriskomponentListe(): Set<Priskomponent> = this.tilskudd
-            .map { Priskomponent(it.key, it.value) }
-            .toSet()
+    internal fun Prisinformasjon.Tilskudd.toPriskomponentListe(): Set<Priskomponent> = this.tilskudd
+        .map { Priskomponent(it.key, it.value) }
+        .toSet()
 
-        internal fun Prisinformasjon.toPrisinfoDbo(): PrisinfoDbo = when (this) {
-            is Prisinformasjon.Anskaffelse -> PrisinfoDbo(
-                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
-                anskaffelsePris = this.pris,
-            )
+    internal fun Prisinformasjon.toPrisinfoDbo(): PrisinfoDbo = when (this) {
+        is Prisinformasjon.Anskaffelse -> PrisinfoDbo(
+            prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+            anskaffelsePris = this.pris,
+        )
 
-            is Prisinformasjon.Tilskudd -> PrisinfoDbo(
-                prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
-                tilleggsopplysninger = this.tilleggsopplysninger,
-            )
+        is Prisinformasjon.Tilskudd -> PrisinfoDbo(
+            prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
+            tilleggsopplysninger = this.tilleggsopplysninger,
+        )
 
-            is Prisinformasjon.IngenKostnader -> PrisinfoDbo(
-                prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
-                tilleggsopplysninger = this.tilleggsopplysninger,
-                ingenkostnaderAarsak = this.aarsak,
-            )
-        }
+        is Prisinformasjon.IngenKostnader -> PrisinfoDbo(
+            prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
+            tilleggsopplysninger = this.tilleggsopplysninger,
+            ingenkostnaderAarsak = this.aarsak,
+        )
     }
 }
