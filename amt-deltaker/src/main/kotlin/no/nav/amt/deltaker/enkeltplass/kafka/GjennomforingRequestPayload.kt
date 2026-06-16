@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.enkeltplass.kafka
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
+import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.util.UUID
@@ -44,39 +44,4 @@ sealed interface GjennomforingRequestPayload {
         override val gjennomforingId: UUID,
         val payload: UpsertEnkeltplass.OpplaringKategorisering?,
     ) : GjennomforingRequestPayload
-
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-    @JsonSubTypes(
-        JsonSubTypes.Type(value = Prisinformasjon.Anskaffelse::class, name = "EnkeltplassPrisinformasjonAnskaffelse"),
-        JsonSubTypes.Type(value = Prisinformasjon.Tilskudd::class, name = "EnkeltplassPrisinformasjonTilskudd"),
-        JsonSubTypes.Type(value = Prisinformasjon.IngenKostnader::class, name = "EnkeltplassPrisinformasjonIngenKostnader"),
-    )
-    sealed interface Prisinformasjon {
-        data class Anskaffelse(
-            val pris: Int,
-        ) : Prisinformasjon
-
-        data class Tilskudd(
-            val tilskudd: Map<Tilskuddstype, Int>,
-            val tilleggsopplysninger: String?,
-        ) : Prisinformasjon {
-            enum class Tilskuddstype {
-                SKOLEPENGER,
-                STUDIEREISE,
-                EKSAMENSGEBYR,
-                SEMESTERAVGIFT,
-                INTEGRERT_BOTILBUD,
-            }
-        }
-
-        data class IngenKostnader(
-            val aarsak: Aarsak,
-            val tilleggsopplysninger: String?,
-        ) : Prisinformasjon {
-            enum class Aarsak {
-                OPPLAERINGEN_ER_KOSTNADSFRI,
-                OPPLAERINGEN_ER_EGENFINANSIERT,
-            }
-        }
-    }
 }

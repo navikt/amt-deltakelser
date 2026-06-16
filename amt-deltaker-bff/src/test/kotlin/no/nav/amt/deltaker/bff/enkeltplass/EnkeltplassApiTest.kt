@@ -28,6 +28,7 @@ import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
+import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -224,7 +225,6 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             private val requestInTest = OppdaterEnkeltplassKladdRequest(
                 startdato = null,
                 sluttdato = null,
-                prisinformasjon = "a".repeat(1000),
                 beskrivelse = null,
                 arrangorUnderenhet = null,
             )
@@ -400,8 +400,8 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         private const val PERSONIDENT_IN_TEST = "1234"
         private val enkeltplassPameldingRequest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
-            prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654322",
+            prisinformasjon = Prisinformasjon.Anskaffelse(pris = 1000000),
         )
     }
 }

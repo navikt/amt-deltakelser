@@ -26,6 +26,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -115,7 +116,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer samme deltakerId`() = runTest {
+        fun `opprettKladd - det finnes allerede kladd paa samme enkeltplass tiltakstype - returnerer samme deltakerId`() = runTest {
             val deltaker = enkeltplassService.opprettKladd(
                 tiltakInTest.tiltakskode,
                 navBrukerInTest.personident,
@@ -152,7 +153,6 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                     innhold = listOf(Innhold.createFritekstInnhold("Beskrivelse")),
                 ),
             )
-            val expectedPrisinfo = "Prisinfo"
 
             val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
                 beskrivelse = expectedDeltaker.deltakelsesinnhold
@@ -160,10 +160,12 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                     .innhold
                     .first()
                     .beskrivelse,
-                prisinformasjon = expectedPrisinfo,
                 startdato = expectedDeltaker.startdato,
                 sluttdato = expectedDeltaker.sluttdato,
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+                prisinformasjon = Prisinformasjon.Anskaffelse(
+                    pris = 42,
+                ),
             )
 
             // Act
@@ -197,10 +199,10 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
             val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
                 beskrivelse = null,
-                prisinformasjon = "Prisinfo",
                 startdato = LocalDate.now(),
                 sluttdato = LocalDate.now().plusDays(10),
                 arrangorUnderenhet = null,
+                prisinformasjon = null,
             )
 
             enkeltplassService.oppdaterKladd(
@@ -255,10 +257,12 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
     inner class UtkastTests {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
-            prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654321",
             startdato = LocalDate.now(),
             sluttdato = LocalDate.now().plusDays(1),
+            prisinformasjon = Prisinformasjon.Anskaffelse(
+                pris = 42,
+            ),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -306,13 +310,12 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
-                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
                 arrangor shouldBe arrangorInTest
             }
         }
 
         @Test
-        fun `meld på direkte - lager ferdig påmelding med status søkt inn`() = runTest {
+        fun `meld paa direkte - lager ferdig pamelding med status sokt inn`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
             arrangorRepository.upsert(arrangorInTest)
@@ -351,7 +354,6 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
-                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
                 arrangor shouldBe arrangorInTest
             }
         }
@@ -413,7 +415,6 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
-                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
                 arrangor shouldBe arrangorInTest
             }
         }

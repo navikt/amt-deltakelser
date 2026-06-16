@@ -145,25 +145,23 @@ class DeltakerlisteRepository {
         log.info("Upsertet gjennomføring med id ${gjennomforing.id}")
     }
 
-    fun update(gjennomforing: EnkeltplassGjennomforingUpdateDbo) {
+    fun update(gjennomforingUpdateDbo: EnkeltplassGjennomforingUpdateDbo) {
         val sql =
             """
             UPDATE deltakerliste
             SET 
-                prisinformasjon  		= :prisinformasjon,
                 arrangor_id 			= :arrangor_id,
                 modified_at             = CURRENT_TIMESTAMP
             WHERE id = :id
             """.trimIndent()
 
         val params = mapOf(
-            "id" to gjennomforing.id,
-            "prisinformasjon" to gjennomforing.prisinformasjon,
-            "arrangor_id" to gjennomforing.arrangorId,
+            "id" to gjennomforingUpdateDbo.id,
+            "arrangor_id" to gjennomforingUpdateDbo.arrangorId,
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
-        log.info("Oppdaterte gjennomføring kladd med id ${gjennomforing.id}")
+        log.info("Oppdaterte gjennomføring kladd med id ${gjennomforingUpdateDbo.id}")
     }
 
     fun delete(id: UUID) = Database.query {

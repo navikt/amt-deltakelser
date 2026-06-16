@@ -7,7 +7,8 @@ val ORGNUMMER_REGEX = Regex("^[89]\\d{8}$")
 
 fun EnkeltplassPameldingRequest.validate(): ValidationResult = when {
     beskrivelse.isBlank() -> ValidationResult.Invalid("Beskrivelse kan ikke være tom")
-    prisinformasjon.isBlank() -> ValidationResult.Invalid("Prisinformasjon kan ikke være tom")
+
+    // TODO prisinformasjon.isBlank() -> ValidationResult.Invalid("Prisinformasjon kan ikke være tom")
     arrangorUnderenhet.isBlank() -> ValidationResult.Invalid("Arrangør orgnummer kan ikke være tom")
     !ORGNUMMER_REGEX.matches(
         arrangorUnderenhet,

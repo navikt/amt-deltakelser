@@ -2,12 +2,14 @@
 
 package no.nav.amt.deltaker.repository
 
-import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.models.deltakerliste.Priskomponent
+import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -20,139 +22,147 @@ class PrisinfoRepositoryTest {
     }
 
     @Nested
-    inner class LagrePrisinfoliste {
+    inner class LagrePrisinfoTests {
         @Test
-        fun `tom liste - lagrer ingenting`() {
+        fun `lagrer prisinfo med alle felter`() {
             // Arrange
-            val gjennomforing = lagDeltakerliste()
-            TestRepository.insert(gjennomforing)
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
 
-            // Act
-            PrisinfoRepository.lagrePrisinfos(gjennomforing.id, emptySet())
-
-            // Assert
-            PrisinfoRepository.hentPrisinfos(gjennomforing.id).shouldBeEmpty()
-        }
-
-        @Test
-        fun `flere sertifiseringer - lagrer alle`() {
-            // Arrange
-            val gjennomforing = lagDeltakerliste()
-            TestRepository.insert(gjennomforing)
-
-            val prisinfos = setOf(
-                Priskomponent(Priskomponent.Pristype.SKOLEPENGER, 1U),
-                Priskomponent(Priskomponent.Pristype.EKSAMENSGEBYR, 2U),
-                Priskomponent(Priskomponent.Pristype.STUDIEREISE, 3U),
-                Priskomponent(Priskomponent.Pristype.SEMESTERAVGIFT, 4U),
-                Priskomponent(Priskomponent.Pristype.INTEGRERT_BOTILBUD, 5U),
+            val insertDbo = PrisinfoDbo(
+                prisinfoJsonSubtype = "DIFI_PRISINFO",
+                anskaffelsePris = 15000,
+                tilleggsopplysninger = "Standard opplysning",
+                ingenkostnaderAarsak = null,
             )
 
             // Act
-            PrisinfoRepository.lagrePrisinfos(gjennomforing.id, prisinfos)
+            PrisinfoRepository.lagrePrisinfo(
+                gjennomforingId = deltakerliste.id,
+                insertDbo = insertDbo,
+            )
 
             // Assert
-            PrisinfoRepository
-                .hentPrisinfos(gjennomforing.id)
-                .shouldContainExactlyInAnyOrder(prisinfos)
+            val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
+            result shouldNotBe null
+
+            assertSoftly(result.shouldNotBeNull()) {
+                prisinfoJsonSubtype shouldBe "DIFI_PRISINFO"
+                anskaffelsePris shouldBe 15000
+                tilleggsopplysninger shouldBe "Standard opplysning"
+                ingenkostnaderAarsak shouldBe null
+            }
+        }
+
+        @Test
+        fun `lagrer prisinfo med minimum felter satt`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val insertDbo = PrisinfoDbo(
+                prisinfoJsonSubtype = "DIFI_PRISINFO",
+            )
+
+            // Act
+            PrisinfoRepository.lagrePrisinfo(
+                gjennomforingId = deltakerliste.id,
+                insertDbo = insertDbo,
+            )
+
+            // Assert
+            val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
+            result shouldNotBe null
+
+            assertSoftly(result.shouldNotBeNull()) {
+                prisinfoJsonSubtype shouldBe "DIFI_PRISINFO"
+                anskaffelsePris shouldBe null
+                tilleggsopplysninger shouldBe null
+                ingenkostnaderAarsak shouldBe null
+            }
+        }
+
+        @Test
+        fun `oppdaterer eksisterende prisinfo via ON CONFLICT`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val insertDbo1 = PrisinfoDbo(
+                prisinfoJsonSubtype = "DIFI_PRISINFO",
+                anskaffelsePris = 10000,
+                tilleggsopplysninger = "Original",
+                ingenkostnaderAarsak = null,
+            )
+            PrisinfoRepository.lagrePrisinfo(
+                gjennomforingId = deltakerliste.id,
+                insertDbo = insertDbo1,
+            )
+
+            val insertDbo2 = PrisinfoDbo(
+                prisinfoJsonSubtype = "INGEN_KOSTNADER",
+                anskaffelsePris = null,
+                tilleggsopplysninger = "Oppdatert",
+                ingenkostnaderAarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            )
+
+            // Act
+            PrisinfoRepository.lagrePrisinfo(
+                gjennomforingId = deltakerliste.id,
+                insertDbo = insertDbo2,
+            )
+
+            // Assert
+            val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
+            assertSoftly(result.shouldNotBeNull()) {
+                prisinfoJsonSubtype shouldBe "INGEN_KOSTNADER"
+                anskaffelsePris shouldBe null
+                tilleggsopplysninger shouldBe "Oppdatert"
+                ingenkostnaderAarsak shouldBe Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT
+            }
         }
     }
 
     @Nested
-    inner class HentPrisinfoliste {
+    inner class HentPrisinfoTests {
         @Test
-        fun `ingen prisinfo lagret - returnerer tomt sett`() {
+        fun `returnerer null når prisinfo ikke finnes`() {
             // Arrange
-            val gjennomforing = lagDeltakerliste()
-            TestRepository.insert(gjennomforing)
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
 
             // Act
-            val resultat = PrisinfoRepository.hentPrisinfos(gjennomforing.id)
+            val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
 
             // Assert
-            resultat.shouldBeEmpty()
+            result shouldBe null
         }
 
         @Test
         fun `henter kun for angitt deltakerliste`() {
             // Arrange
-            val gjennomforing1 = lagDeltakerliste()
-            TestRepository.insert(gjennomforing1)
+            val deltakerliste1 = lagDeltakerliste()
+            TestRepository.insert(deltakerliste1)
 
-            val gjenomforing2 = lagDeltakerliste()
-            TestRepository.insert(gjenomforing2)
+            val deltakerliste2 = lagDeltakerliste()
+            TestRepository.insert(deltakerliste2)
 
-            val prisinfos = setOf(
-                Priskomponent(Priskomponent.Pristype.SKOLEPENGER, 1U),
-                Priskomponent(Priskomponent.Pristype.EKSAMENSGEBYR, 2U),
+            val insertDbo = PrisinfoDbo(
+                prisinfoJsonSubtype = "DIFI_PRISINFO",
+                anskaffelsePris = 15000,
+                tilleggsopplysninger = "Opplysning",
+                ingenkostnaderAarsak = null,
             )
-
-            PrisinfoRepository.lagrePrisinfos(
-                gjennomforingId = gjennomforing1.id,
-                prisinfos = prisinfos,
-            )
-
-            // Act
-            val resultat = PrisinfoRepository.hentPrisinfos(gjenomforing2.id)
-
-            // Assert
-            resultat.shouldBeEmpty()
-        }
-    }
-
-    @Nested
-    inner class DeleteForGjennomforingTests {
-        @Test
-        fun `sletter alle sertifiseringer for deltakerliste`() {
-            // Arrange
-            val gjennomforing = lagDeltakerliste()
-            TestRepository.insert(gjennomforing)
-
-            PrisinfoRepository.lagrePrisinfos(
-                gjennomforingId = gjennomforing.id,
-                prisinfos = setOf(
-                    Priskomponent(Priskomponent.Pristype.SKOLEPENGER, 1U),
-                    Priskomponent(Priskomponent.Pristype.EKSAMENSGEBYR, 2U),
-                ),
+            PrisinfoRepository.lagrePrisinfo(
+                gjennomforingId = deltakerliste1.id,
+                insertDbo = insertDbo,
             )
 
             // Act
-            PrisinfoRepository.deleteForGjennomforing(gjennomforing.id)
+            val result = PrisinfoRepository.hentPrisinfo(deltakerliste2.id)
 
             // Assert
-            PrisinfoRepository.hentPrisinfos(gjennomforing.id).shouldBeEmpty()
-        }
-
-        @Test
-        fun `sletter ikke sertifiseringer for andre deltakerlister`() {
-            // Arrange
-            val gjennomforing1 = lagDeltakerliste()
-            TestRepository.insert(gjennomforing1)
-
-            val gjennomforing2 = lagDeltakerliste()
-            TestRepository.insert(gjennomforing2)
-
-            val prisinfos = setOf(
-                Priskomponent(Priskomponent.Pristype.SKOLEPENGER, 1U),
-                Priskomponent(Priskomponent.Pristype.EKSAMENSGEBYR, 2U),
-            )
-
-            PrisinfoRepository.lagrePrisinfos(
-                gjennomforingId = gjennomforing1.id,
-                prisinfos = prisinfos,
-            )
-
-            PrisinfoRepository.lagrePrisinfos(
-                gjennomforingId = gjennomforing2.id,
-                prisinfos = prisinfos,
-            )
-
-            // Act
-            PrisinfoRepository.deleteForGjennomforing(gjennomforing1.id)
-
-            // Assert
-            PrisinfoRepository.hentPrisinfos(gjennomforing1.id).shouldBeEmpty()
-            PrisinfoRepository.hentPrisinfos(gjennomforing2.id) shouldBe prisinfos
+            result shouldBe null
         }
     }
 }

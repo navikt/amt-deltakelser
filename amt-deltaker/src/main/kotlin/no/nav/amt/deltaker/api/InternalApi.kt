@@ -30,6 +30,7 @@ import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.utils.database.Database
@@ -325,8 +326,8 @@ fun Routing.registerInternalApi(
                         gjennomforingId = gjennomforing.id,
                         payload = GjennomforingRequestPayload.UpsertEnkeltplass(
                             tiltakskode = gjennomforing.tiltakstype.tiltakskode,
-                            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
-                                aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                            prisinformasjon = Prisinformasjon.IngenKostnader(
+                                aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                                 tilleggsopplysninger = gjennomforing.prisinformasjon,
                             ),
                             organisasjonsnummer = gjennomforing.arrangor?.organisasjonsnummer

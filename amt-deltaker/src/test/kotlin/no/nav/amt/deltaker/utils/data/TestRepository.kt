@@ -134,5 +134,4 @@ object TestRepository {
 private fun Deltakerliste.toEnkeltplassUpdateDbo() = EnkeltplassGjennomforingUpdateDbo(
     id = this.id,
     arrangorId = this.arrangor?.id,
-    prisinformasjon = this.prisinformasjon,
 )

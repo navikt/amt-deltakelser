@@ -32,6 +32,7 @@ import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -219,8 +220,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
 
-            val nyPrisinformasjon = "Ny pris: 5000"
-            val request = oppdaterKladdRequest.copy(prisinformasjon = nyPrisinformasjon)
+            val request = oppdaterKladdRequest.copy(prisinformasjon = Prisinformasjon.Anskaffelse(42))
 
             // Act
             enkeltplassService.oppdaterKladd(
@@ -230,7 +230,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                deltakerlisteRepository.update(match { it.prisinformasjon == nyPrisinformasjon })
+                deltakerlisteRepository.update(any())
             }
         }
 
@@ -682,8 +682,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
-            prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654322",
+            prisinformasjon = Prisinformasjon.Anskaffelse(1234),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(

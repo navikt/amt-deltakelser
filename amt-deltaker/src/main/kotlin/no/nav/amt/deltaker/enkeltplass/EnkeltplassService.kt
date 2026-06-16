@@ -34,6 +34,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
@@ -186,8 +187,8 @@ class EnkeltplassService(
 
         val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
-                aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            prisinformasjon = Prisinformasjon.IngenKostnader(
+                aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = gjennomforing.prisinformasjon,
             ),
             organisasjonsnummer = checkNotNull(gjennomforing.arrangor) {
@@ -227,7 +228,6 @@ class EnkeltplassService(
             deltakerlisteRepository.update(
                 EnkeltplassGjennomforingUpdateDbo(
                     id = deltaker.deltakerliste.id,
-                    prisinformasjon = oppdaterKladdRequest.prisinformasjon,
                     arrangorId = arrangor?.id,
                 ),
             )
@@ -285,7 +285,6 @@ class EnkeltplassService(
             deltakerlisteRepository.update(
                 EnkeltplassGjennomforingUpdateDbo(
                     id = gjennomforing.id,
-                    prisinformasjon = request.prisinformasjon,
                     arrangorId = arrangor.id,
                 ),
             )
@@ -320,9 +319,9 @@ class EnkeltplassService(
             val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
                 tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
                 // TODO: Hardkodet IngenKostnader inntil vi får på plass strukturert prisinfo
-                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
-                    aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                    tilleggsopplysninger = request.prisinformasjon,
+                prisinformasjon = Prisinformasjon.IngenKostnader(
+                    aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                    tilleggsopplysninger = "TODO", // TODO
                 ),
                 organisasjonsnummer = request.arrangorUnderenhet,
                 ansvarligEnhet = decoratedRequest.endretAvEnhet,
