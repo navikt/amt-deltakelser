@@ -14,7 +14,7 @@ data class GjennomforingModel(
     val type: GjennomforingType,
     val tiltak: Tiltakstype,
     val navn: String,
-    val status: GjennomforingStatusType?,
+    val status: GjennomforingStatusType,
     val startDato: LocalDate?,
     val sluttDato: LocalDate? = null,
     val oppstart: Oppstartstype?,

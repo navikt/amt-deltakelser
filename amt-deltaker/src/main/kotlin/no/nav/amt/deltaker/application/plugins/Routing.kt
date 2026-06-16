@@ -22,13 +22,15 @@ import no.nav.amt.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.api.registerVeilederApi
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
-import no.nav.amt.deltaker.api.tiltaksansvarlig.registerTiltakskoordinatorApi
+import no.nav.amt.deltaker.api.tiltakskoordinator.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
@@ -36,8 +38,6 @@ import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
-import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
@@ -66,7 +66,7 @@ fun Application.configureRouting(
     kladdService: KladdService,
     enkeltplassService: EnkeltplassService,
     deltakerService: DeltakerService,
-    tiltaksansvarligService: TiltaksansvarligService,
+    tiltakskoordinatorService: TiltakskoordinatorService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteRepository: DeltakerlisteRepository,
     deltakerHistorikkService: DeltakerHistorikkService,
@@ -125,6 +125,7 @@ fun Application.configureRouting(
         registerKladdApi(
             kladdService = kladdService,
             deltakerRepository = deltakerRepository,
+            deltakerResponseBuilder = deltakerResponseBuilder,
         )
         registerVeilederApi(
             deltakerRepository = deltakerRepository,
@@ -160,7 +161,7 @@ fun Application.configureRouting(
         registerTiltakskoordinatorApi(
             deltakerlisteRepository = deltakerlisteRepository,
             deltakerResponseBuilder = deltakerResponseBuilder,
-            tiltaksansvarligService = tiltaksansvarligService,
+            tiltakskoordinatorService = tiltakskoordinatorService,
             tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
         )
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)

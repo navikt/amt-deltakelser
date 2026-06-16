@@ -55,6 +55,8 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetConsumer
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
@@ -66,8 +68,6 @@ import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltak.TiltakConsumer
 import no.nav.amt.deltaker.tiltak.TiltakRepository
-import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.tiltaksansvarlig.TiltaksansvarligService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorConsumer
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingConsumer
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
@@ -420,7 +420,7 @@ fun Application.module() {
         deltakerRepository = deltakerRepository,
     )
 
-    val tiltaksansvarligService = TiltaksansvarligService(
+    val tiltakskoordinatorService = TiltakskoordinatorService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
@@ -527,7 +527,7 @@ fun Application.module() {
         enkeltplassService = enkeltplassService,
         arrangorService = arrangorService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
-        tiltaksansvarligService = tiltaksansvarligService,
+        tiltakskoordinatorService = tiltakskoordinatorService,
         forslagService = forslagService,
         forslagRepository = forslagRepository,
     )

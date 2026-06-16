@@ -32,7 +32,7 @@ class ForslagRepositoryTest {
 
         @Test
         fun `henter forslag`() {
-            val deltaker = TestData.lagDeltaker()
+            val deltaker = TestData.lagDeltakerOld()
             TestRepository.insert(deltaker)
 
             val forslag = TestData.lagForslag(deltakerId = deltaker.id)

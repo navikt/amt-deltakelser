@@ -38,7 +38,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
         route("/tiltakskoordinator/deltakerliste/{id}") {
             get {
                 val gjennomforingId = getGjennomforingId()
-                val paaloggetNavAnsatt = navAnsattService.hentNavAnsatt(call.getNavIdent())
+                val paaloggetNavAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(call.getNavIdent())
 
                 // Bør nav ansatt bli igjen i bff database?
                 val koordinatorer = tiltakskoordinatorTilgangRepository.hentKoordinatorer(

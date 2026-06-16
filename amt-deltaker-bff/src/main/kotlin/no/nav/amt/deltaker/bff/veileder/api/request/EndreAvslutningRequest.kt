@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.harEndretSluttaarsak
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerAarsaksBeskrivelse
@@ -22,51 +21,23 @@ data class EndreAvslutningRequest(
     private val kanEndreAvslutning =
         listOf(DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT, DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.DELTAR)
 
-    private val kanEndreAvslutningLaastDeltakelse =
-        listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.FULLFORT, DeltakerStatus.Type.AVBRUTT)
-
-    override fun valider(deltaker: Deltaker) {
+    override fun valider(deltaker: DeltakerModel) {
         validerAarsaksBeskrivelse(aarsak?.beskrivelse)
         validerBegrunnelse(begrunnelse)
-        validerDeltakerKanEndres(deltaker)
+        validerDeltakerKanEndres(this, deltaker)
         require(deltaker.status.type in kanEndreAvslutning) {
             "Kan ikke endre avslutning for deltaker som ikke har status AVBRUTT, FULLFORT, HAR_SLUTTET eller DELTAR"
-        }
-
-        if (!deltaker.kanEndres) {
-            require(deltaker.status.type in kanEndreAvslutningLaastDeltakelse) {
-                "Kan ikke endre avslutning for låst deltakelse med status ${deltaker.status.type}"
-            }
         }
 
         require(deltakerErEndret(deltaker)) {
             "Kan ikke avslutte deltakelse med uendret avslutning, årsak eller sluttdato"
         }
 
-        if (!deltaker.kanEndres && sluttdato != null) {
+        if (deltaker.erLaastForEndringer && sluttdato != null) {
             require(sluttdato.isBefore(LocalDate.now())) {
                 "Sluttdato må være tilbake i tid når deltakelsen er låst for endringer"
             }
         }
-
-        val endreTilAvbrutt = harDeltatt() && !harFullfort()
-        if (endreTilAvbrutt) {
-            require(aarsak != null) { "Årsak er påkrevd for å avbryte deltakelse" }
-        }
-    }
-
-    override fun valider(deltaker: DeltakerModel) {
-        validerAarsaksBeskrivelse(aarsak?.beskrivelse)
-        validerBegrunnelse(begrunnelse)
-        validerDeltakerKanEndres(deltaker)
-        require(deltaker.status.type in kanEndreAvslutning) {
-            "Kan ikke endre avslutning for deltaker som ikke har status AVBRUTT, FULLFORT, HAR_SLUTTET eller DELTAR"
-        }
-
-        require(deltakerErEndret(deltaker)) {
-            "Kan ikke avslutte deltakelse med uendret avslutning, årsak eller sluttdato"
-        }
-
         val endreTilAvbrutt = harDeltatt() && !harFullfort()
         if (endreTilAvbrutt) {
             require(aarsak != null) { "Årsak er påkrevd for å avbryte deltakelse" }
@@ -76,11 +47,6 @@ data class EndreAvslutningRequest(
     fun harDeltatt(): Boolean = harDeltatt == null || harDeltatt
 
     fun harFullfort(): Boolean = harFullfort == null || harFullfort
-
-    private fun deltakerErEndret(deltaker: Deltaker): Boolean = (deltaker.status.type === DeltakerStatus.Type.AVBRUTT && harFullfort()) ||
-        (deltaker.status.type === DeltakerStatus.Type.FULLFORT && !harFullfort()) ||
-        harEndretSluttaarsak(deltaker.status.aarsak, aarsak) ||
-        deltaker.sluttdato != sluttdato || (deltaker.status.type === DeltakerStatus.Type.HAR_SLUTTET && harDeltatt == false)
 
     private fun deltakerErEndret(deltaker: DeltakerModel): Boolean =
         (deltaker.status.type === DeltakerStatus.Type.AVBRUTT && harFullfort()) ||

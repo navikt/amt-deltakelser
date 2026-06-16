@@ -1,7 +1,6 @@
 package no.nav.amt.distribusjon.utils.data
 
 import no.nav.amt.distribusjon.journalforing.person.model.Adresse
-import no.nav.amt.distribusjon.journalforing.person.model.Adressebeskyttelse
 import no.nav.amt.distribusjon.journalforing.person.model.Bostedsadresse
 import no.nav.amt.distribusjon.journalforing.person.model.Kontaktadresse
 import no.nav.amt.distribusjon.journalforing.person.model.Matrikkeladresse
@@ -12,6 +11,7 @@ import no.nav.amt.distribusjon.journalforing.person.model.Vegadresse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import java.time.LocalDateTime
 import java.util.UUID
@@ -24,7 +24,7 @@ object Persondata {
         etternavn: String = "Navnersen",
         navEnhet: String? = "Nav Enhet",
         oppfolgingsperioder: List<no.nav.amt.lib.models.person.Oppfolgingsperiode> = emptyList(),
-        adressebeskyttelse: no.nav.amt.lib.models.person.address.Adressebeskyttelse? = null,
+        adressebeskyttelse: Adressebeskyttelse? = null,
     ) = NavBrukerResponse(
         personident = personIdent,
         fornavn = fornavn,

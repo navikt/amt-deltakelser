@@ -2,85 +2,30 @@ package no.nav.amt.deltaker.bff.deltaker
 
 import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Deltaker
-import no.nav.amt.deltaker.bff.model.Kladd
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
 import java.util.UUID
 
 class PameldingService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
-    private val navBrukerService: NavBrukerService,
     private val paameldingClient: PaameldingClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun opprettKladd(
         deltakerlisteId: UUID,
-        personIdent: String,
-    ): Deltaker {
-        val eksisterendeDeltaker = deltakerRepository
-            .getMany(personIdent, deltakerlisteId)
-            .firstOrNull { !it.harSluttet() }
-
-        if (eksisterendeDeltaker != null) {
-            log.warn("Deltakeren ${eksisterendeDeltaker.id} er allerede opprettet og deltar fortsatt")
-            return eksisterendeDeltaker
-        }
-
-        val kladdResponse = paameldingClient.opprettKladd(
-            personIdent = personIdent,
+        personident: String,
+    ): DeltakerResponse {
+        val response = paameldingClient.opprettKladd(
+            personIdent = personident,
             deltakerlisteId = deltakerlisteId,
         )
-
-        navBrukerService.upsert(kladdResponse.navBruker)
-
-        Database.transaction {
-            deltakerRepository.opprettKladd(kladdResponse)
-            deltakerService.lagreDeltakerStatus(kladdResponse.id, kladdResponse.status)
-        }
-
-        val deltaker = deltakerRepository.get(kladdResponse.id).getOrThrow()
-
         MetricRegister.OPPRETTET_KLADD.inc()
-
-        return deltaker
-    }
-
-    fun upsertKladd(kladd: Kladd): Deltaker? {
-        if (kladd.opprinneligDeltaker.status.type !== DeltakerStatus.Type.KLADD) {
-            // Dette kan skje når to brukere er inne på samme deltakelse samtidig
-            // eller når samme bruker har flere faner med samme deltakelse
-            // eller når nav veileder er så rask med å dele utkast at kladd requesten(som har en delay i frontend) kommer på etterskudd
-            log.warn(
-                "Kan ikke upserte kladd for deltaker ${kladd.opprinneligDeltaker.id} " +
-                    "med status ${kladd.opprinneligDeltaker.status.type}," +
-                    "status må være ${DeltakerStatus.Type.KLADD}.",
-            )
-            return null
-        }
-
-        val deltaker = kladd.opprinneligDeltaker.copy(
-            deltakelsesinnhold = kladd.pamelding.deltakelsesinnhold,
-            bakgrunnsinformasjon = kladd.pamelding.bakgrunnsinformasjon,
-            deltakelsesprosent = kladd.pamelding.deltakelsesprosent,
-            dagerPerUke = kladd.pamelding.dagerPerUke,
-            status = kladd.opprinneligDeltaker.status,
-            sistEndret = LocalDateTime.now(),
-        )
-
-        Database.transaction {
-            deltakerRepository.upsert(deltaker)
-            deltakerService.lagreDeltakerStatus(deltaker.id, deltaker.status)
-        }
-
-        log.info("Upserted kladd for deltaker med id ${deltaker.id}")
-
-        return deltakerRepository.get(deltaker.id).getOrThrow()
+        return response
     }
 
     suspend fun slettKladd(deltakerId: UUID): Boolean {

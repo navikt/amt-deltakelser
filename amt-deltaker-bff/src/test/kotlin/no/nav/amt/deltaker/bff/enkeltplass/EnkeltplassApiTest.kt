@@ -17,7 +17,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
@@ -38,7 +38,7 @@ import java.util.UUID
 class EnkeltplassApiTest : IntegrationTestBase() {
     override val tilgangskontrollService: TilgangskontrollService = mockk(relaxed = true)
 
-    private val deltakerInTest = lagDeltaker()
+    private val deltakerInTest = lagDeltakerOld()
 
     @BeforeEach
     fun setup() {

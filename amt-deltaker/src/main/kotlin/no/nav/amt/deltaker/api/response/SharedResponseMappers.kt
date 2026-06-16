@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.api.response
 
-import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
@@ -11,7 +10,6 @@ import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
-import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
@@ -76,6 +74,7 @@ internal object SharedResponseMappers {
         oppmoteSted = deltakerliste.oppmoteSted,
         arrangor = deltakerliste.arrangor?.let { arrangor ->
             ArrangorResponse(
+                // TODO: fjerne avhengighet til service?
                 navn = arrangorService.getArrangorNavn(
                     arrangor = arrangor,
                     gjennomforingstype = deltakerliste.gjennomforingstype,
@@ -105,6 +104,7 @@ internal object SharedResponseMappers {
     )
 
     fun hentEndringsforslagVenterPaSvar(
+        // TODO: fjerne avhengighet til repository?
         forslagRepository: ForslagRepository,
         deltakerId: UUID,
     ): List<Forslag> = forslagRepository
@@ -112,24 +112,10 @@ internal object SharedResponseMappers {
         .filter { it.status is Forslag.Status.VenterPaSvar }
 
     fun hentSisteVurdering(
+        // TODO: fjerne avhengighet til repository?
         vurderingRepository: VurderingRepository,
         deltakerId: UUID,
     ): Vurdering? = vurderingRepository
         .getForDeltaker(deltakerId)
         .maxByOrNull { it.gyldigFra }
-
-    fun opprettKladdResponseFromDeltaker(deltaker: Deltaker) = with(deltaker) {
-        OpprettKladdResponse(
-            id = id,
-            navBruker = navBruker,
-            deltakerlisteId = deltakerliste.id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = deltakelsesinnhold!!,
-            status = status,
-        )
-    }
 }

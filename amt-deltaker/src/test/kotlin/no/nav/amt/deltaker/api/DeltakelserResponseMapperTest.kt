@@ -8,10 +8,10 @@ import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
 import no.nav.amt.deltaker.api.external.response.Periode
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
-import no.nav.amt.deltaker.tiltaksansvarlig.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository

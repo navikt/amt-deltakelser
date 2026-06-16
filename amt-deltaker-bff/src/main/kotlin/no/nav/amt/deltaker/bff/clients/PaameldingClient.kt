@@ -7,7 +7,6 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
-import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
@@ -27,7 +26,7 @@ class PaameldingClient(
     suspend fun opprettKladd(
         deltakerlisteId: UUID,
         personIdent: String,
-    ): OpprettKladdResponse = performPost(
+    ): DeltakerResponse = performPost(
         urlSubPath = "kladd",
         requestBody = OpprettKladdRequest(deltakerlisteId, personIdent),
     ).failIfNotSuccess("Kunne ikke opprette kladd i amt-deltaker i deltakerliste $deltakerlisteId")
@@ -41,10 +40,8 @@ class PaameldingClient(
         requestBody = request,
     ).failIfNotSuccess("Kunne ikke oppdatere kladd i amt-deltaker for deltaker $deltakerId")
 
-    suspend fun slettKladd(deltakerId: UUID) {
-        performDelete("kladd/$deltakerId")
-            .failIfNotSuccess("Kunne ikke slette kladd i amt-deltaker.")
-    }
+    suspend fun slettKladd(deltakerId: UUID) = performDelete("kladd/$deltakerId")
+        .failIfNotSuccess("Kunne ikke slette kladd i amt-deltaker.")
 
     suspend fun utkast(utkast: Utkast) = performPost(
         urlSubPath = "pamelding/${utkast.deltakerId}",

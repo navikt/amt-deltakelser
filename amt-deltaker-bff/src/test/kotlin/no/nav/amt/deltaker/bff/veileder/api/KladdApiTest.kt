@@ -10,10 +10,11 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltaker
+import no.nav.amt.deltaker.bff.utils.TestData
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -24,7 +25,6 @@ import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -34,7 +34,8 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class KladdApiTest : IntegrationTestBase() {
-    private val deltakerInTest = lagDeltaker()
+    private val deltakerInTest = lagDeltakerOld()
+    private val deltakerResponseInTest = TestData.lagDeltakerResponse(deltakerInTest)
 
     @BeforeEach
     fun setup() {
@@ -45,24 +46,15 @@ class KladdApiTest : IntegrationTestBase() {
 
     @Test
     fun `post kladd - har tilgang - returnerer deltaker`() {
-        val ansatte = lagNavAnsatteForDeltaker(deltakerInTest).associateBy { it.id }
-        val navEnhet = lagNavEnhet(id = deltakerInTest.vedtaksinformasjon!!.sistEndretAvEnhet)
-
-        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltakerInTest
-        every { navAnsattService.hentAnsatteForDeltaker(deltakerInTest) } returns ansatte
-        every { navEnhetService.hentEnhet(navEnhet.id) } returns navEnhet
+        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltakerResponseInTest
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
         withTestApplicationContext { httpClient ->
             httpClient.post("/kladd") { createPostRequest(opprettKladdRequest) }.apply {
                 assertEquals(HttpStatusCode.OK, status)
 
-                val expected = DeltakerResponse.fromDeltaker(
-                    deltaker = deltakerInTest,
-                    ansatte = ansatte,
-                    vedtakSistEndretAvEnhet = navEnhet,
-                    digitalBruker = true,
-                    forslag = emptyList(),
+                val expected = DeltakerResponse.fromDeltakerModel(
+                    ModelMapper.toDeltaker(deltakerResponseInTest),
                 )
 
                 bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
@@ -105,10 +97,10 @@ class KladdApiTest : IntegrationTestBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
         )
 
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-        coEvery { pameldingService.upsertKladd(any()) } returns deltaker
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        coEvery { paameldingClient.oppdaterKladd(deltakerInTest.id, any()) } returns mockk<HttpResponse>()
+        coEvery { paameldingClient.oppdaterKladd(deltakerInTest.id, any()) } returns mockk<HttpResponse> {
+            every { status } returns HttpStatusCode.OK
+        }
 
         // Act & Assert
         withTestApplicationContext { httpClient ->
@@ -122,29 +114,10 @@ class KladdApiTest : IntegrationTestBase() {
     fun `post kladd - feil deltakerstatus - returnerer 400`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
-        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-
-        coEvery { pameldingService.upsertKladd(any()) } throws IllegalArgumentException()
+        coEvery { paameldingClient.oppdaterKladd(any(), any()) } throws IllegalArgumentException("foo")
 
         withTestApplicationContext { httpClient ->
-            httpClient.post("/kladd/${deltaker.id}") { createPostRequest(kladdRequest) }.apply {
-                status shouldBe HttpStatusCode.BadRequest
-            }
-        }
-    }
-
-    @Test
-    fun `slett kladd - deltaker har ikke status KLADD - returnerer 400`() {
-        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-
-        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-
-        coEvery { pameldingService.slettKladd(deltaker.id) } returns false
-
-        withTestApplicationContext { httpClient ->
-            httpClient.delete("/kladd/${deltaker.id}") { noBodyRequest() }.apply {
+            httpClient.post("/kladd/${deltakerInTest.id}") { createPostRequest(kladdRequest) }.apply {
                 status shouldBe HttpStatusCode.BadRequest
             }
         }
@@ -154,13 +127,12 @@ class KladdApiTest : IntegrationTestBase() {
     fun `slett kladd - deltaker er KLADD - sletter deltaker og returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
-        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-
-        coEvery { pameldingService.slettKladd(deltaker.id) } returns true
+        coEvery { paameldingClient.slettKladd(deltakerInTest.id) } returns mockk<HttpResponse> {
+            every { status } returns HttpStatusCode.OK
+        }
 
         withTestApplicationContext { httpClient ->
-            httpClient.delete("/kladd/${deltaker.id}") { noBodyRequest() }.apply {
+            httpClient.delete("/kladd/${deltakerInTest.id}") { noBodyRequest() }.apply {
                 status shouldBe HttpStatusCode.OK
             }
         }

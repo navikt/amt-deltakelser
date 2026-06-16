@@ -7,7 +7,6 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
-import no.nav.amt.internapi.paamelding.response.OpprettKladdResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.person.NavBruker
@@ -26,48 +25,6 @@ class DeltakerRepository {
                 mapOf("deltakerliste_id" to deltakerlisteId),
             ).map { it.int(1) }.asSingle,
         ) ?: 0
-    }
-
-    fun opprettKladd(kladd: OpprettKladdResponse) {
-        val sql =
-            """
-            INSERT INTO deltaker (
-                id, 
-                person_id, 
-                deltakerliste_id, 
-                startdato, 
-                sluttdato, 
-                dager_per_uke, 
-                deltakelsesprosent, 
-                bakgrunnsinformasjon, 
-                innhold
-            )
-            VALUES (
-                :id, 
-                :person_id, 
-                :deltakerlisteId, 
-                :startdato, 
-                :sluttdato, 
-                :dagerPerUke, 
-                :deltakelsesprosent, 
-                :bakgrunnsinformasjon, 
-                :innhold
-            )
-            """.trimIndent()
-
-        val parameters = mapOf(
-            "id" to kladd.id,
-            "person_id" to kladd.navBruker.personId,
-            "deltakerlisteId" to kladd.deltakerlisteId,
-            "startdato" to kladd.startdato,
-            "sluttdato" to kladd.sluttdato,
-            "dagerPerUke" to kladd.dagerPerUke,
-            "deltakelsesprosent" to kladd.deltakelsesprosent,
-            "bakgrunnsinformasjon" to kladd.bakgrunnsinformasjon,
-            "innhold" to toPGObject(kladd.deltakelsesinnhold),
-        )
-
-        Database.query { session -> session.update(queryOf(sql, parameters)) }
     }
 
     fun upsert(deltaker: Deltaker) {
@@ -181,31 +138,6 @@ class DeltakerRepository {
                 mapOf("deltakerliste_id" to deltakerlisteId),
             ).map(::rowMapper).asList,
         )
-    }
-
-    fun getKladdForDeltakerliste(
-        deltakerlisteId: UUID,
-        personident: String,
-    ): Result<Deltaker> = runCatching {
-        val sql = getDeltakerSql(
-            """
-            d.deltakerliste_id = :deltakerliste_id
-            AND nb.personident = :personident
-            AND ds.type = 'KLADD'
-            """.trimIndent(),
-        )
-
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    mapOf(
-                        "deltakerliste_id" to deltakerlisteId,
-                        "personident" to personident,
-                    ),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Ingen kladd for deltakerliste $deltakerlisteId og personident")
-        }
     }
 
     fun getTidligereAvsluttedeDeltakelser(deltakerId: UUID): List<UUID> {

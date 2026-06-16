@@ -24,7 +24,7 @@ class ArrangorMeldingConsumerTest {
     @Test
     fun `consume - forslag VenterPaSvar - lagrer`() = runTest {
         val consumer = ArrangorMeldingConsumer(forslagRepository)
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = TestData.lagDeltakerOld()
         TestRepository.insert(deltaker)
         val forslag = TestData.lagForslag(deltakerId = deltaker.id)
 
@@ -41,7 +41,7 @@ class ArrangorMeldingConsumerTest {
     @Test
     fun `consume - forslag tilbakekalt - sletter`() = runTest {
         val consumer = ArrangorMeldingConsumer(forslagRepository)
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = TestData.lagDeltakerOld()
         TestRepository.insert(deltaker)
         val forslag = TestData.lagForslag(deltakerId = deltaker.id)
         forslagRepository.upsert(forslag)

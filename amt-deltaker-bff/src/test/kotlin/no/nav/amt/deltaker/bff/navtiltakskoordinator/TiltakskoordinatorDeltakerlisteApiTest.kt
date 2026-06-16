@@ -100,7 +100,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         coEvery {
             tiltakskoordinatorClient.getGjennomforing(any())
         } throws NoSuchElementException()
-        every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
+        coEvery { navAnsattService.hentEllerOpprettNavAnsatt(any<String>()) } returns lagNavAnsatt()
         every { tiltakskoordinatorTilgangRepository.hentKoordinatorer(any(), any()) } returns emptyList()
 
         val response = withTestApplicationContext { client ->
@@ -117,7 +117,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         // Arrange
         val gjennomforing = lagGjennomforingResponse()
         val expected = ResponseMapper.buildGjennomforing(gjennomforing, listOf(tiltakskoordinatorInTest))
-        every { navAnsattService.hentNavAnsatt(any()) } returns lagNavAnsatt()
+        coEvery { navAnsattService.hentEllerOpprettNavAnsatt(any<String>()) } returns lagNavAnsatt()
         every { deltakerlisteRepository.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
         coEvery { tiltakskoordinatorClient.getGjennomforing(deltakerlisteInTest.id) } returns gjennomforing
 
