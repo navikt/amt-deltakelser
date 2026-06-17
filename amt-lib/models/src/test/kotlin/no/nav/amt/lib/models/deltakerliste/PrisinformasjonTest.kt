@@ -146,7 +146,7 @@ class PrisinformasjonTest {
     }
 
     @Nested
-    inner class IngenKostnadenTest {
+    inner class IngenKostnaderTest {
         @Test
         fun `skal returnere samme instans med null tilleggsopplysninger ved sanitize()`() {
             // Arrange
@@ -418,7 +418,7 @@ class PrisinformasjonTest {
     }
 
     @Nested
-    inner class IngenKostnadenValidateTest {
+    inner class IngenKostnaderValidateTest {
         @Test
         fun `skal returnere tom liste for IngenKostnadsfri ved validate()`() {
             // Arrange

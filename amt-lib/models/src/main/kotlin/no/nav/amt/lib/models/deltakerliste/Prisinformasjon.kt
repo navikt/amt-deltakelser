@@ -19,7 +19,7 @@ sealed interface Prisinformasjon {
     fun sanitize(): Prisinformasjon
 
     companion object {
-        const val MAX_LENGTH_FRITEKST = 600
+        const val MAX_LENGTH_TILLEGGSOPPLYSNINGER = 600
         const val POSITIV_PRIS_REQUIRED_MSG = "Pris må være større enn 0"
         const val TILSKUDD_REQUIRED_MSG = "Tilskudd må inneholde minst ett element"
     }
@@ -47,7 +47,7 @@ sealed interface Prisinformasjon {
         override fun sanitize(): Prisinformasjon = copy(
             tilleggsopplysninger = tilleggsopplysninger
                 ?.trim()
-                ?.take(MAX_LENGTH_FRITEKST),
+                ?.take(MAX_LENGTH_TILLEGGSOPPLYSNINGER),
         )
 
         enum class Tilskuddstype {
@@ -68,7 +68,7 @@ sealed interface Prisinformasjon {
         override fun sanitize(): Prisinformasjon = copy(
             tilleggsopplysninger = tilleggsopplysninger
                 ?.trim()
-                ?.take(MAX_LENGTH_FRITEKST),
+                ?.take(MAX_LENGTH_TILLEGGSOPPLYSNINGER),
         )
 
         enum class Aarsak {
