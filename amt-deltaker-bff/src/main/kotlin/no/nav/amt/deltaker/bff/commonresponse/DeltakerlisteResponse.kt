@@ -48,7 +48,6 @@ data class DeltakerlisteResponse(
         fun fromModel(
             gjennomforingModel: GjennomforingModel,
             kodeverk: UtflatetKodeverk? = null,
-            prisinformasjon: Prisinformasjon? = null,
         ) = with(gjennomforingModel) {
             DeltakerlisteResponse(
                 deltakerlisteId = id,
