@@ -1,15 +1,20 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -369,6 +374,62 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             // Act & Assert
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.oppdaterUtkast(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
+            }
+        }
+    }
+
+    @Nested
+    inner class ProduceUpsertGjennomforingTests {
+        private val testPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
+            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            prisinformasjon = Prisinformasjon.Anskaffelse(1000),
+            organisasjonsnummer = "987654321",
+            ansvarligEnhet = "1234",
+            opprettetAv = "Z123456",
+            kategorisering = null,
+        )
+
+        @Test
+        fun `UTKAST_TIL_PAMELDING status - produserer EnkeltplassUtkast`() {
+            // Arrange
+            val deltaker = utkastDeltakerInTest
+            val slot = slot<GjennomforingRequestPayload>()
+            every { outboxService.insertRecord(any(), capture(slot), any(), any()) } returns mockk()
+
+            // Act
+            enkeltplassService.produceUpsertGjennomforing(deltaker, testPayload)
+
+            // Assert
+            val produced = slot.captured
+            produced shouldBe GjennomforingRequestPayload.EnkeltplassUtkast(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = testPayload,
+            )
+        }
+
+        @Test
+        fun `SOKT_INN status - produserer EnkeltplassSoktInn`() {
+            // Arrange
+            val deltaker = soktInnDeltakerInTest
+            val slot = slot<GjennomforingRequestPayload>()
+            every { outboxService.insertRecord(any(), capture(slot), any(), any()) } returns mockk()
+
+            // Act
+            enkeltplassService.produceUpsertGjennomforing(deltaker, testPayload)
+
+            // Assert
+            val produced = slot.captured
+            produced shouldBe GjennomforingRequestPayload.EnkeltplassSoktInn(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = testPayload,
+            )
+        }
+
+        @Test
+        fun `KLADD status - kaster IllegalStateException`() {
+            // Act & Assert
+            shouldThrow<IllegalStateException> {
+                enkeltplassService.produceUpsertGjennomforing(kladdDeltakerInTest, testPayload)
             }
         }
     }

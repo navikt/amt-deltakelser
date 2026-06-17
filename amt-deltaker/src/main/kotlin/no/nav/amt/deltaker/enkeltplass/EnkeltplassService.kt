@@ -353,14 +353,17 @@ class EnkeltplassService(
         }
     }
 
-    private fun produceUpsertGjennomforing(
+    internal fun produceUpsertGjennomforing(
         deltaker: Deltaker,
         upsertPayload: GjennomforingRequestPayload.UpsertEnkeltplass,
     ) {
         val gjennomforingPayload = when (val statusType = deltaker.status.type) {
-            DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-            DeltakerStatus.Type.SOKT_INN,
-            -> GjennomforingRequestPayload.EnkeltplassUtkast(
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = upsertPayload,
+            )
+
+            DeltakerStatus.Type.SOKT_INN -> GjennomforingRequestPayload.EnkeltplassSoktInn(
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = upsertPayload,
             )
