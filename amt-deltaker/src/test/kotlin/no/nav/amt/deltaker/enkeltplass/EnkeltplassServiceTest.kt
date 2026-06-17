@@ -237,12 +237,31 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
+        fun `skal ikke lagre prisinformasjon naar den er null`() = runTest {
+            // Arrange
+            every { deltakerlisteRepository.update(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+
+            val request = oppdaterKladdRequest.copy(prisinformasjon = null)
+
+            // Act
+            enkeltplassService.oppdaterKladd(
+                deltakerId = kladdDeltakerInTest.id,
+                oppdaterKladdRequest = request,
+            )
+
+            // Assert
+            verify(exactly = 0) { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) }
+        }
+
+        @Test
         fun `skal oppdatere prisinformasjon naar gitt`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
 
-            val request = oppdaterKladdRequest.copy(prisinformasjon = Prisinformasjon.Anskaffelse(42))
+            val nyPrisinformasjon = Prisinformasjon.Anskaffelse(42)
+            val request = oppdaterKladdRequest.copy(prisinformasjon = nyPrisinformasjon)
 
             // Act
             enkeltplassService.oppdaterKladd(
@@ -253,6 +272,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             // Assert
             verify {
                 deltakerlisteRepository.update(any())
+                PrisinfoRepoAdapter.lagrePrisinfo(
+                    gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    prisinformasjon = nyPrisinformasjon,
+                )
             }
         }
 
