@@ -9,6 +9,8 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.models.deltakerliste.ANSKAFFELSE_SUB_TYPE
+import no.nav.amt.lib.models.deltakerliste.INGENKOSTNADER_SUB_TYPE
 import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
@@ -30,7 +32,7 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             val insertDbo = PrisinfoDbo(
-                prisinfoJsonSubtype = "DIFI_PRISINFO",
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
                 tilleggsopplysninger = "Standard opplysning",
                 ingenkostnaderAarsak = null,
@@ -47,7 +49,7 @@ class PrisinfoRepositoryTest {
             result shouldNotBe null
 
             assertSoftly(result.shouldNotBeNull()) {
-                prisinfoJsonSubtype shouldBe "DIFI_PRISINFO"
+                prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe 15000
                 tilleggsopplysninger shouldBe "Standard opplysning"
                 ingenkostnaderAarsak shouldBe null
@@ -61,7 +63,7 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             val insertDbo = PrisinfoDbo(
-                prisinfoJsonSubtype = "DIFI_PRISINFO",
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             )
 
             // Act
@@ -72,10 +74,8 @@ class PrisinfoRepositoryTest {
 
             // Assert
             val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
-            result shouldNotBe null
-
             assertSoftly(result.shouldNotBeNull()) {
-                prisinfoJsonSubtype shouldBe "DIFI_PRISINFO"
+                prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe null
                 tilleggsopplysninger shouldBe null
                 ingenkostnaderAarsak shouldBe null
@@ -89,7 +89,7 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             val insertDbo1 = PrisinfoDbo(
-                prisinfoJsonSubtype = "DIFI_PRISINFO",
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 10000,
                 tilleggsopplysninger = "Original",
                 ingenkostnaderAarsak = null,
@@ -100,7 +100,7 @@ class PrisinfoRepositoryTest {
             )
 
             val insertDbo2 = PrisinfoDbo(
-                prisinfoJsonSubtype = "INGEN_KOSTNADER",
+                prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
                 anskaffelsePris = null,
                 tilleggsopplysninger = "Oppdatert",
                 ingenkostnaderAarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
@@ -115,7 +115,7 @@ class PrisinfoRepositoryTest {
             // Assert
             val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
             assertSoftly(result.shouldNotBeNull()) {
-                prisinfoJsonSubtype shouldBe "INGEN_KOSTNADER"
+                prisinfoJsonSubtype shouldBe INGENKOSTNADER_SUB_TYPE
                 anskaffelsePris shouldBe null
                 tilleggsopplysninger shouldBe "Oppdatert"
                 ingenkostnaderAarsak shouldBe Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT
@@ -148,7 +148,7 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste2)
 
             val insertDbo = PrisinfoDbo(
-                prisinfoJsonSubtype = "DIFI_PRISINFO",
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
                 tilleggsopplysninger = "Opplysning",
                 ingenkostnaderAarsak = null,
