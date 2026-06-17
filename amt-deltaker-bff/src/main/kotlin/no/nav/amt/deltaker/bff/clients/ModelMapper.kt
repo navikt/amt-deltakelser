@@ -73,6 +73,7 @@ class ModelMapper {
                 pameldingstype = pameldingstype,
                 kodeverkValg = kodeverkValg,
                 sertifiseringValg = sertifiseringValg,
+                prisinformasjon = prisinformasjon,
             )
         }
 

@@ -6,6 +6,7 @@ import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
@@ -26,6 +27,7 @@ data class DeltakerlisteResponse(
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
     val kodeverk: UtflatetKodeverk? = null,
+    val prisinformasjon: Prisinformasjon? = null,
 ) {
     data class ArrangorResponse(
         val navn: String,
@@ -46,6 +48,7 @@ data class DeltakerlisteResponse(
         fun fromModel(
             gjennomforingModel: GjennomforingModel,
             kodeverk: UtflatetKodeverk? = null,
+            prisinformasjon: Prisinformasjon? = null,
         ) = with(gjennomforingModel) {
             DeltakerlisteResponse(
                 deltakerlisteId = id,
@@ -70,6 +73,7 @@ data class DeltakerlisteResponse(
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
                 kodeverk = kodeverk,
+                prisinformasjon = prisinformasjon,
             )
         }
     }
