@@ -14,15 +14,21 @@ const val INGENKOSTNADER_SUB_TYPE = "IngenKostnader"
     JsonSubTypes.Type(value = Prisinformasjon.IngenKostnader::class, name = INGENKOSTNADER_SUB_TYPE),
 )
 sealed interface Prisinformasjon {
+    fun validate(): List<String>
+
     fun sanitize(): Prisinformasjon
 
     companion object {
         const val MAX_LENGTH_FRITEKST = 600
+        const val POSITIV_PRIS_REQUIRED_MSG = "Pris må være større enn 0"
+        const val TILSKUDD_REQUIRED_MSG = "Tilskudd må inneholde minst ett element"
     }
 
     data class Anskaffelse(
         val pris: Int,
     ) : Prisinformasjon {
+        override fun validate(): List<String> = if (pris <= 0) listOf(POSITIV_PRIS_REQUIRED_MSG) else emptyList()
+
         override fun sanitize(): Prisinformasjon = this
     }
 
@@ -30,6 +36,14 @@ sealed interface Prisinformasjon {
         val tilskudd: Map<Tilskuddstype, Int>,
         val tilleggsopplysninger: String?,
     ) : Prisinformasjon {
+        override fun validate(): List<String> = if (tilskudd.isEmpty()) {
+            listOf(TILSKUDD_REQUIRED_MSG)
+        } else {
+            tilskudd.entries
+                .filter { it.value <= 0 }
+                .map { "$POSITIV_PRIS_REQUIRED_MSG. ${it.key.name}" }
+        }
+
         override fun sanitize(): Prisinformasjon = copy(
             tilleggsopplysninger = tilleggsopplysninger
                 ?.trim()
@@ -49,6 +63,8 @@ sealed interface Prisinformasjon {
         val aarsak: Aarsak,
         val tilleggsopplysninger: String?,
     ) : Prisinformasjon {
+        override fun validate(): List<String> = emptyList()
+
         override fun sanitize(): Prisinformasjon = copy(
             tilleggsopplysninger = tilleggsopplysninger
                 ?.trim()
