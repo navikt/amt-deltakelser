@@ -40,7 +40,7 @@ class HovedvedtakIndividuellOppfolgingTest :
                 doc.getElementById("ledetekst")?.text() shouldBe innhold.ledetekst.shouldNotBeNull()
             }
 
-            it("TILPASSET_JOBBSTOTTE") {
+            it("VARIG_TILRETTELAGT_ARBEID_ORDINAER") {
                 val innhold =
                     InnholdPdfDto(
                         valgteInnholdselementer = emptyList(),
@@ -51,12 +51,12 @@ class HovedvedtakIndividuellOppfolgingTest :
                 val doc =
                     renderHovedvedtak(
                         hovedvedtak(
-                            Tiltakskode.TILPASSET_JOBBSTOTTE,
+                            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER,
                             innhold,
                             deltaker,
                         ),
                     )
-                doc.text() shouldContain "sidetittel: TILPASSET_JOBBSTOTTE"
+                doc.text() shouldContain "sidetittel: VARIG_TILRETTELAGT_ARBEID_ORDINAER"
                 doc.text() shouldContain "Nav eller arrangøren tar kontakt med deg for å avtale når skal begynne."
                 doc.text() shouldNotContain "avgjør om du tilbys plass. Ved tilbud om plass vil du bli ansatt."
                 doc.text() shouldNotContain "Deltakelsesmengde"

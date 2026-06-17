@@ -91,7 +91,7 @@ class GjennomforingV2KafkaPayloadTest {
             names = [
                 "ARBEIDSFORBEREDENDE_TRENING", "ARBEIDSRETTET_REHABILITERING", "AVKLARING",
                 "DIGITALT_OPPFOLGINGSTILTAK", "OPPFOLGING", "VARIG_TILRETTELAGT_ARBEID_SKJERMET",
-                "TILPASSET_JOBBSTOTTE",
+                "VARIG_TILRETTELAGT_ARBEID_ORDINAER",
             ],
         )
         fun `direktetiltak skal validere`(tiltakskode: Tiltakskode) {

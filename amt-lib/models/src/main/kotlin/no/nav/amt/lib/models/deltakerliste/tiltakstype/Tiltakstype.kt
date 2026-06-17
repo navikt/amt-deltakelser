@@ -59,7 +59,7 @@ data class Tiltakstype(
         val tiltakUtenDeltakerAdresseDeling = setOf(
             DIGITALT_OPPFOLGINGSTILTAK,
             JOBBKLUBB,
-            Tiltakskode.TILPASSET_JOBBSTOTTE,
+            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER,
         ) + opplaeringsTiltak
 
         val tiltakMedDeltakelsesmengder = setOf(

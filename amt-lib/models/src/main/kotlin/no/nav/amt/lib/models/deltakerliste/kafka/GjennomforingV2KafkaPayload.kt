@@ -146,7 +146,7 @@ sealed interface GjennomforingV2KafkaPayload {
                 Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
                 Tiltakskode.OPPFOLGING,
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                Tiltakskode.TILPASSET_JOBBSTOTTE,
+                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER,
             )
 
         val gruppetiltak =
