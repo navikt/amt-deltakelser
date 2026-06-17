@@ -17,7 +17,7 @@ data class EnkeltplassPameldingRequest(
 ) {
     fun sanitized() = copy(
         beskrivelse = beskrivelse.sanitizeBeskrivelse(),
-        // prisinformasjon = prisinformasjon.sanitizePrisinformasjon(),
         arrangorUnderenhet = arrangorUnderenhet.sanitizeArrangorUnderenhet(),
+        prisinformasjon = prisinformasjon.sanitize(),
     )
 }

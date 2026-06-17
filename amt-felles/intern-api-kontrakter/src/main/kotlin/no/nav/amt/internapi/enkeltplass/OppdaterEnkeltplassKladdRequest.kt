@@ -17,7 +17,7 @@ data class OppdaterEnkeltplassKladdRequest(
 ) {
     fun sanitized() = copy(
         beskrivelse = beskrivelse.trimToNull()?.sanitizeBeskrivelse(),
-        // prisinformasjon = prisinformasjon.trimToNull()?.sanitizePrisinformasjon(), // TODO
         arrangorUnderenhet = arrangorUnderenhet.trimToNull()?.sanitizeArrangorUnderenhet(),
+        prisinformasjon = prisinformasjon?.sanitize(),
     )
 }
