@@ -48,7 +48,7 @@ class CommonUnleashToggle(
             Tiltakskode.STUDIESPESIALISERING,
             Tiltakskode.FAG_OG_YRKESOPPLAERING,
             Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-            Tiltakskode.TILPASSET_JOBBSTOTTE,
+            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER,
         )
 
         private val tiltakstyperKometKanLese = setOf(
