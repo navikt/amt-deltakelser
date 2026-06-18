@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.queryOf
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -28,7 +28,7 @@ object PrisinfoRepository {
                             anskaffelsePris = row.intOrNull("anskaffelse_pris"),
                             tilleggsopplysninger = row.stringOrNull("tilleggsopplysninger"),
                             ingenkostnaderAarsak = row.stringOrNull("ingenkostnader_aarsak")?.let {
-                                Prisinformasjon.IngenKostnader.Aarsak.valueOf(it)
+                                PrisinformasjonDto.IngenKostnader.Aarsak.valueOf(it)
                             },
                         )
                     }.asSingle,

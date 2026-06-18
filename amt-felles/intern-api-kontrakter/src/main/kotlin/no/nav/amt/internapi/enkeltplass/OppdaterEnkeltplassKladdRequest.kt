@@ -1,6 +1,5 @@
 package no.nav.amt.internapi.enkeltplass
 
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.utils.trimToNull
 import java.time.LocalDate
@@ -13,7 +12,7 @@ data class OppdaterEnkeltplassKladdRequest(
     val sluttdato: LocalDate?,
     val kodeverkValg: Set<UUID>? = null,
     val sertifiseringValg: Set<SertifiseringValg>? = null,
-    val prisinformasjon: Prisinformasjon? = null,
+    val prisinformasjon: PrisinformasjonDto? = null,
 ) {
     fun sanitized() = copy(
         beskrivelse = beskrivelse.trimToNull()?.sanitizeBeskrivelse(),

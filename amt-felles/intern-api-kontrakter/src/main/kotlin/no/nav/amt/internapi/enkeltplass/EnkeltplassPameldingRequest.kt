@@ -1,6 +1,5 @@
 package no.nav.amt.internapi.enkeltplass
 
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.time.LocalDate
 import java.util.UUID
@@ -13,7 +12,7 @@ data class EnkeltplassPameldingRequest(
     val sluttdato: LocalDate? = null,
     val kodeverkValg: Set<UUID>? = null,
     val sertifiseringValg: Set<SertifiseringValg>? = null,
-    val prisinformasjon: Prisinformasjon,
+    val prisinformasjon: PrisinformasjonDto,
 ) {
     fun sanitized() = copy(
         beskrivelse = beskrivelse.sanitizeBeskrivelse(),

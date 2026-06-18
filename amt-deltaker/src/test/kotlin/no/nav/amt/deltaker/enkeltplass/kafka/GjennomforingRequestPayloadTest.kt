@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.enkeltplass.kafka
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
@@ -17,7 +16,7 @@ class GjennomforingRequestPayloadTest {
         @Test
         fun `EnkeltplassSoktInn med Anskaffelse serialiseres med korrekt type-diskriminator`() {
             val payload = lagEnkeltplassSoktInn(
-                prisinformasjon = Prisinformasjon.Anskaffelse(pris = 50000),
+                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(pris = 50000),
             )
 
             val json = objectMapper.writeValueAsString(payload)
@@ -29,9 +28,9 @@ class GjennomforingRequestPayloadTest {
         @Test
         fun `EnkeltplassUtkast med Tilskudd serialiseres med korrekt type-diskriminator`() {
             val payload = lagEnkeltplassUtkast(
-                prisinformasjon = Prisinformasjon.Tilskudd(
+                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Tilskudd(
                     tilskudd = mapOf(
-                        Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER to 10000,
+                        GjennomforingRequestPayload.Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER to 10000,
                     ),
                     tilleggsopplysninger = "Test",
                 ),
@@ -48,8 +47,8 @@ class GjennomforingRequestPayloadTest {
             val gjennomforingId = UUID.randomUUID()
             val payload = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
                 gjennomforingId = gjennomforingId,
-                payload = Prisinformasjon.IngenKostnader(
-                    aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                payload = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
+                    aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                     tilleggsopplysninger = null,
                 ),
             )
@@ -83,7 +82,7 @@ class GjennomforingRequestPayloadTest {
         @Test
         fun `EnkeltplassSoktInn med Anskaffelse overlever serialisering og deserialisering`() {
             val original = lagEnkeltplassSoktInn(
-                prisinformasjon = Prisinformasjon.Anskaffelse(pris = 42000),
+                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(pris = 42000),
             )
 
             val json = objectMapper.writeValueAsString(original)
@@ -95,10 +94,10 @@ class GjennomforingRequestPayloadTest {
         @Test
         fun `EnkeltplassUtkast med Tilskudd overlever serialisering og deserialisering`() {
             val original = lagEnkeltplassUtkast(
-                prisinformasjon = Prisinformasjon.Tilskudd(
+                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Tilskudd(
                     tilskudd = mapOf(
-                        Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER to 5000,
-                        Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR to 2000,
+                        GjennomforingRequestPayload.Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER to 5000,
+                        GjennomforingRequestPayload.Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR to 2000,
                     ),
                     tilleggsopplysninger = "Tillegg",
                 ),
@@ -114,8 +113,8 @@ class GjennomforingRequestPayloadTest {
         fun `EnkeltplassEndrePrisinformasjon med IngenKostnader overlever serialisering og deserialisering`() {
             val original = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
                 gjennomforingId = UUID.randomUUID(),
-                payload = Prisinformasjon.IngenKostnader(
-                    aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                payload = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
+                    aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                     tilleggsopplysninger = "Forklaring",
                 ),
             )
@@ -130,7 +129,7 @@ class GjennomforingRequestPayloadTest {
         fun `EnkeltplassEndrePrisinformasjon med Anskaffelse overlever serialisering og deserialisering`() {
             val original = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
                 gjennomforingId = UUID.randomUUID(),
-                payload = Prisinformasjon.Anskaffelse(pris = 99000),
+                payload = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(pris = 99000),
             )
 
             val json = objectMapper.writeValueAsString(original)
@@ -154,28 +153,30 @@ class GjennomforingRequestPayloadTest {
     }
 
     companion object {
-        private fun lagEnkeltplassSoktInn(prisinformasjon: Prisinformasjon) = GjennomforingRequestPayload.EnkeltplassSoktInn(
-            gjennomforingId = UUID.randomUUID(),
-            payload = GjennomforingRequestPayload.UpsertEnkeltplass(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                organisasjonsnummer = "987654321",
-                prisinformasjon = prisinformasjon,
-                ansvarligEnhet = "1234",
-                opprettetAv = "Z123456",
-                kategorisering = null,
-            ),
-        )
+        private fun lagEnkeltplassSoktInn(prisinformasjon: GjennomforingRequestPayload.Prisinformasjon) =
+            GjennomforingRequestPayload.EnkeltplassSoktInn(
+                gjennomforingId = UUID.randomUUID(),
+                payload = GjennomforingRequestPayload.UpsertEnkeltplass(
+                    tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                    organisasjonsnummer = "987654321",
+                    prisinformasjon = prisinformasjon,
+                    ansvarligEnhet = "1234",
+                    opprettetAv = "Z123456",
+                    kategorisering = null,
+                ),
+            )
 
-        private fun lagEnkeltplassUtkast(prisinformasjon: Prisinformasjon) = GjennomforingRequestPayload.EnkeltplassUtkast(
-            gjennomforingId = UUID.randomUUID(),
-            payload = GjennomforingRequestPayload.UpsertEnkeltplass(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                organisasjonsnummer = "987654321",
-                prisinformasjon = prisinformasjon,
-                ansvarligEnhet = "1234",
-                opprettetAv = "Z123456",
-                kategorisering = null,
-            ),
-        )
+        private fun lagEnkeltplassUtkast(prisinformasjon: GjennomforingRequestPayload.Prisinformasjon) =
+            GjennomforingRequestPayload.EnkeltplassUtkast(
+                gjennomforingId = UUID.randomUUID(),
+                payload = GjennomforingRequestPayload.UpsertEnkeltplass(
+                    tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                    organisasjonsnummer = "987654321",
+                    prisinformasjon = prisinformasjon,
+                    ansvarligEnhet = "1234",
+                    opprettetAv = "Z123456",
+                    kategorisering = null,
+                ),
+            )
     }
 }

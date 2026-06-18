@@ -25,10 +25,10 @@ import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -401,7 +401,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         private val enkeltplassPameldingRequest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             arrangorUnderenhet = "987654322",
-            prisinformasjon = Prisinformasjon.Anskaffelse(pris = 1000000),
+            prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 1000000),
         )
     }
 }

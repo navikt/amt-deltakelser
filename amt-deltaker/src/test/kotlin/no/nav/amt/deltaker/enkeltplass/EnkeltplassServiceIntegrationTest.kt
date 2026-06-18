@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -26,7 +27,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -163,7 +163,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 startdato = expectedDeltaker.startdato,
                 sluttdato = expectedDeltaker.sluttdato,
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
-                prisinformasjon = Prisinformasjon.Anskaffelse(
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(
                     pris = 42,
                 ),
             )
@@ -260,7 +260,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             arrangorUnderenhet = "987654321",
             startdato = LocalDate.now(),
             sluttdato = LocalDate.now().plusDays(1),
-            prisinformasjon = Prisinformasjon.Anskaffelse(
+            prisinformasjon = PrisinformasjonDto.Anskaffelse(
                 pris = 42,
             ),
         )
@@ -436,7 +436,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val pameldingRequest = EnkeltplassPameldingRequest(
                 beskrivelse = "Testbeskrivelse",
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
-                prisinformasjon = Prisinformasjon.Anskaffelse(1234),
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
             )
 
             val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -491,7 +491,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val pameldingRequest = EnkeltplassPameldingRequest(
                 beskrivelse = "Testbeskrivelse",
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
-                prisinformasjon = Prisinformasjon.Anskaffelse(1234),
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
             )
 
             val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -525,7 +525,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val pameldingRequest = EnkeltplassPameldingRequest(
                 beskrivelse = "Testbeskrivelse",
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
-                prisinformasjon = Prisinformasjon.Anskaffelse(1234),
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
             )
 
             val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -562,7 +562,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val pameldingRequest = EnkeltplassPameldingRequest(
                 beskrivelse = "Testbeskrivelse",
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
-                prisinformasjon = Prisinformasjon.Anskaffelse(1234),
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
             )
 
             val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -612,7 +612,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val pameldingRequest = EnkeltplassPameldingRequest(
                 beskrivelse = "Testbeskrivelse",
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
-                prisinformasjon = Prisinformasjon.Anskaffelse(1234),
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
             )
 
             val decoratedRequest = EnkeltplassPameldingDecoratedRequest(

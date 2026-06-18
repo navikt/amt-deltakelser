@@ -31,12 +31,12 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -260,7 +260,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
 
-            val nyPrisinformasjon = Prisinformasjon.Anskaffelse(42)
+            val nyPrisinformasjon = PrisinformasjonDto.Anskaffelse(42)
             val request = oppdaterKladdRequest.copy(prisinformasjon = nyPrisinformasjon)
 
             // Act
@@ -405,7 +405,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     inner class ProduceUpsertGjennomforingTests {
         private val testPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-            prisinformasjon = Prisinformasjon.Anskaffelse(1000),
+            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
             organisasjonsnummer = "987654321",
             ansvarligEnhet = "1234",
             opprettetAv = "Z123456",
@@ -468,7 +468,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             arrangorUnderenhet = "987654322",
-            prisinformasjon = Prisinformasjon.Anskaffelse(1234),
+            prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(

@@ -187,8 +187,10 @@ class EnkeltplassService(
 
         val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            prisinformasjon = PrisinfoRepoAdapter.hentPrisinfo(gjennomforing.id)
-                ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${gjennomforing.id}"),
+            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
+                PrisinfoRepoAdapter.hentPrisinfo(gjennomforing.id)
+                    ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${gjennomforing.id}"),
+            ),
             organisasjonsnummer = checkNotNull(gjennomforing.arrangor) {
                 "Kan ikke publisere gjennomføring ${gjennomforing.id}: arrangør mangler"
             }.organisasjonsnummer,
@@ -328,8 +330,10 @@ class EnkeltplassService(
 
             val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
                 tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
-                prisinformasjon = PrisinfoRepoAdapter.hentPrisinfo(gjennomforing.id)
-                    ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${gjennomforing.id}"),
+                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
+                    PrisinfoRepoAdapter.hentPrisinfo(gjennomforing.id)
+                        ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${gjennomforing.id}"),
+                ),
                 organisasjonsnummer = request.arrangorUnderenhet,
                 ansvarligEnhet = decoratedRequest.endretAvEnhet,
                 opprettetAv = decoratedRequest.endretAv,

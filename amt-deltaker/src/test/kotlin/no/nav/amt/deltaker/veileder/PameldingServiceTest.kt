@@ -28,6 +28,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedTrengerGodkjen
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.veileder.PameldingService.Companion.getOppdatertStatus
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
@@ -38,7 +39,6 @@ import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -500,8 +500,8 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
 
             PrisinfoRepoAdapter.lagrePrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
-                prisinformasjon = Prisinformasjon.IngenKostnader(
-                    aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                prisinformasjon = PrisinformasjonDto.IngenKostnader(
+                    aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                     tilleggsopplysninger = "Dette tiltaket koster 100 kr/mnd",
                 ),
             )

@@ -1,32 +1,37 @@
 package no.nav.amt.deltaker.repository
 
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
-import no.nav.amt.lib.models.deltakerliste.ANSKAFFELSE_SUB_TYPE
-import no.nav.amt.lib.models.deltakerliste.INGENKOSTNADER_SUB_TYPE
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
-import no.nav.amt.lib.models.deltakerliste.Priskomponent
-import no.nav.amt.lib.models.deltakerliste.TILSKUDD_SUB_TYPE
+import no.nav.amt.deltaker.repository.dbo.Priskomponent
+import no.nav.amt.internapi.enkeltplass.ANSKAFFELSE_SUB_TYPE
+import no.nav.amt.internapi.enkeltplass.INGENKOSTNADER_SUB_TYPE
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.internapi.enkeltplass.TILSKUDD_SUB_TYPE
 import java.util.UUID
 
 object PrisinfoRepoAdapter {
-    fun hentPrisinfo(gjennomforingId: UUID): Prisinformasjon? {
+    fun hentPrisinfo(gjennomforingId: UUID): PrisinformasjonDto? {
         val prisinfoDbo = PrisinfoRepository.hentPrisinfo(gjennomforingId)
             ?: return null
 
         return when (prisinfoDbo.prisinfoJsonSubtype) {
-            ANSKAFFELSE_SUB_TYPE -> Prisinformasjon.Anskaffelse(
+            ANSKAFFELSE_SUB_TYPE -> PrisinformasjonDto.Anskaffelse(
                 prisinfoDbo.anskaffelsePris
                     ?: throw IllegalStateException("Anskaffelsepris kan ikke være null"),
             )
 
-            TILSKUDD_SUB_TYPE -> Prisinformasjon.Tilskudd(
+            TILSKUDD_SUB_TYPE -> PrisinformasjonDto.Tilskudd(
                 tilleggsopplysninger = prisinfoDbo.tilleggsopplysninger,
                 tilskudd = PrisinfoBelopRepository
                     .hentPrisinfoBelop(gjennomforingId)
-                    .associate { it.pristype to it.pris },
+                    .map {
+                        PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                            type = it.type,
+                            pris = it.pris,
+                        )
+                    }.sortedBy { it.type.sortOrder },
             )
 
-            INGENKOSTNADER_SUB_TYPE -> Prisinformasjon.IngenKostnader(
+            INGENKOSTNADER_SUB_TYPE -> PrisinformasjonDto.IngenKostnader(
                 tilleggsopplysninger = prisinfoDbo.tilleggsopplysninger,
                 aarsak = prisinfoDbo.ingenkostnaderAarsak
                     ?: throw IllegalStateException("Årsak for ingen kostnader kan ikke være null"),
@@ -38,7 +43,7 @@ object PrisinfoRepoAdapter {
 
     fun lagrePrisinfo(
         gjennomforingId: UUID,
-        prisinformasjon: Prisinformasjon,
+        prisinformasjon: PrisinformasjonDto,
     ) {
         PrisinfoRepository.upsertPrisinfo(
             gjennomforingId = gjennomforingId,
@@ -47,30 +52,34 @@ object PrisinfoRepoAdapter {
 
         PrisinfoBelopRepository.deleteForGjennomforing(gjennomforingId)
 
-        if (prisinformasjon is Prisinformasjon.Tilskudd) {
+        if (prisinformasjon is PrisinformasjonDto.Tilskudd) {
             PrisinfoBelopRepository.lagrePrisinfoBelop(
                 gjennomforingId = gjennomforingId,
-                belop = prisinformasjon.toPriskomponentListe(),
+                belop = prisinformasjon.toPriskomponentSet(),
             )
         }
     }
 
-    internal fun Prisinformasjon.Tilskudd.toPriskomponentListe(): Set<Priskomponent> = this.tilskudd
-        .map { Priskomponent(it.key, it.value) }
-        .toSet()
+    internal fun PrisinformasjonDto.Tilskudd.toPriskomponentSet(): Set<Priskomponent> = this.tilskudd
+        .map {
+            Priskomponent(
+                type = it.type,
+                pris = it.pris,
+            )
+        }.toSet()
 
-    internal fun Prisinformasjon.toPrisinfoDbo(): PrisinfoDbo = when (this) {
-        is Prisinformasjon.Anskaffelse -> PrisinfoDbo(
+    internal fun PrisinformasjonDto.toPrisinfoDbo(): PrisinfoDbo = when (this) {
+        is PrisinformasjonDto.Anskaffelse -> PrisinfoDbo(
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = this.pris,
         )
 
-        is Prisinformasjon.Tilskudd -> PrisinfoDbo(
+        is PrisinformasjonDto.Tilskudd -> PrisinfoDbo(
             prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
         )
 
-        is Prisinformasjon.IngenKostnader -> PrisinfoDbo(
+        is PrisinformasjonDto.IngenKostnader -> PrisinfoDbo(
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
             ingenkostnaderAarsak = this.aarsak,

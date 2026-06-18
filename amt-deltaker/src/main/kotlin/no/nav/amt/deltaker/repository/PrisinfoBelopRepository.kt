@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.repository
 
 import kotliquery.queryOf
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
-import no.nav.amt.lib.models.deltakerliste.Priskomponent
+import no.nav.amt.deltaker.repository.dbo.Priskomponent
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -30,7 +30,7 @@ object PrisinfoBelopRepository {
         val params = belop.map {
             mapOf(
                 "deltakerliste_id" to gjennomforingId,
-                "pristype" to it.pristype.name,
+                "pristype" to it.type.name,
                 "pris" to it.pris,
             )
         }
@@ -40,7 +40,7 @@ object PrisinfoBelopRepository {
         }
     }
 
-    fun hentPrisinfoBelop(gjennomforingId: UUID): Set<Priskomponent> {
+    fun hentPrisinfoBelop(gjennomforingId: UUID): List<Priskomponent> {
         val sql =
             """
             SELECT 
@@ -56,12 +56,12 @@ object PrisinfoBelopRepository {
                     queryOf(sql, gjennomforingId)
                         .map { row ->
                             Priskomponent(
-                                pristype = Prisinformasjon.Tilskudd.Tilskuddstype.valueOf(row.string("pristype")),
+                                type = PrisinformasjonDto.Tilskudd.Tilskuddstype.valueOf(row.string("pristype")),
                                 pris = row.int("pris"),
                             )
                         }.asList,
                 )
-            }.toSet()
+            }
     }
 
     fun deleteForGjennomforing(gjennomforingId: UUID) {

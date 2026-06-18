@@ -5,10 +5,10 @@ package no.nav.amt.deltaker.repository
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.repository.dbo.Priskomponent
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
-import no.nav.amt.lib.models.deltakerliste.Priskomponent
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -42,11 +42,11 @@ class PrisinfoBelopRepositoryTest {
             TestRepository.insert(gjennomforing)
 
             val prisinfos = setOf(
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR, 2),
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.STUDIEREISE, 3),
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.SEMESTERAVGIFT, 4),
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.INTEGRERT_BOTILBUD, 5),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR, 2),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE, 3),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.SEMESTERAVGIFT, 4),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.INTEGRERT_BOTILBUD, 5),
             )
 
             // Act
@@ -84,8 +84,8 @@ class PrisinfoBelopRepositoryTest {
             TestRepository.insert(gjenomforing2)
 
             val prisinfos = setOf(
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR, 2),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR, 2),
             )
 
             PrisinfoBelopRepository.lagrePrisinfoBelop(
@@ -112,8 +112,8 @@ class PrisinfoBelopRepositoryTest {
             PrisinfoBelopRepository.lagrePrisinfoBelop(
                 gjennomforingId = gjennomforing.id,
                 belop = setOf(
-                    Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
-                    Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR, 2),
+                    Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
+                    Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR, 2),
                 ),
             )
 
@@ -134,8 +134,8 @@ class PrisinfoBelopRepositoryTest {
             TestRepository.insert(gjennomforing2)
 
             val prisinfos = setOf(
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
-                Priskomponent(Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR, 2),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
+                Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR, 2),
             )
 
             PrisinfoBelopRepository.lagrePrisinfoBelop(

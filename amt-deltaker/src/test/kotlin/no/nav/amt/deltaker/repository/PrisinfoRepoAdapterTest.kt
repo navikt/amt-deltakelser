@@ -6,7 +6,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.models.deltakerliste.Prisinformasjon
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -26,7 +26,7 @@ class PrisinfoRepoAdapterTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val anskaffelse = Prisinformasjon.Anskaffelse(pris = 25000)
+            val anskaffelse = PrisinformasjonDto.Anskaffelse(pris = 25000)
             PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, anskaffelse)
 
             // Act
@@ -42,11 +42,17 @@ class PrisinfoRepoAdapterTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val tilskudd = Prisinformasjon.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilleggsopplysninger = "Tilskuddsinformasjon",
-                tilskudd = mapOf(
-                    Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER to 5000,
-                    Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR to 2000,
+                tilskudd = listOf(
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        pris = 8000,
+                    ),
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR,
+                        pris = 2000,
+                    ),
                 ),
             )
             PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, tilskudd)
@@ -64,8 +70,8 @@ class PrisinfoRepoAdapterTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val ingenKostnader = Prisinformasjon.IngenKostnader(
-                aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "Gratis opplaering",
             )
             PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, ingenKostnader)
@@ -96,7 +102,7 @@ class PrisinfoRepoAdapterTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val anskaffelse = Prisinformasjon.Anskaffelse(pris = 30000)
+            val anskaffelse = PrisinformasjonDto.Anskaffelse(pris = 30000)
 
             // Act
             PrisinfoRepoAdapter.lagrePrisinfo(
@@ -115,12 +121,21 @@ class PrisinfoRepoAdapterTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val tilskudd = Prisinformasjon.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilleggsopplysninger = "Tilskuddinformasjon",
-                tilskudd = mapOf(
-                    Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER to 8000,
-                    Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR to 1500,
-                    Prisinformasjon.Tilskudd.Tilskuddstype.STUDIEREISE to 3000,
+                tilskudd = listOf(
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        pris = 8000,
+                    ),
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR,
+                        pris = 1500,
+                    ),
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
+                        pris = 3000,
+                    ),
                 ),
             )
 
@@ -141,8 +156,8 @@ class PrisinfoRepoAdapterTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val ingenKostnader = Prisinformasjon.IngenKostnader(
-                aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = null,
             )
 
@@ -163,13 +178,16 @@ class PrisinfoRepoAdapterTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val anskaffelse = Prisinformasjon.Anskaffelse(pris = 20000)
+            val anskaffelse = PrisinformasjonDto.Anskaffelse(pris = 20000)
             PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, anskaffelse)
 
-            val tilskudd = Prisinformasjon.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilleggsopplysninger = "Nye opplysninger",
-                tilskudd = mapOf(
-                    Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER to 6000,
+                tilskudd = listOf(
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        pris = 6000,
+                    ),
                 ),
             )
 
@@ -190,17 +208,23 @@ class PrisinfoRepoAdapterTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val tilskudd = Prisinformasjon.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilleggsopplysninger = "Tilskudd",
-                tilskudd = mapOf(
-                    Prisinformasjon.Tilskudd.Tilskuddstype.SKOLEPENGER to 5000,
-                    Prisinformasjon.Tilskudd.Tilskuddstype.EKSAMENSGEBYR to 2000,
+                tilskudd = listOf(
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        pris = 5000,
+                    ),
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR,
+                        pris = 2000,
+                    ),
                 ),
             )
             PrisinfoRepoAdapter.lagrePrisinfo(deltakerliste.id, tilskudd)
 
-            val ingenKostnader = Prisinformasjon.IngenKostnader(
-                aarsak = Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "Egenfinansiert",
             )
 
