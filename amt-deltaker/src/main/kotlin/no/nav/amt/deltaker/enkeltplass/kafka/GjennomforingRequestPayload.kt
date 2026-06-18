@@ -53,6 +53,33 @@ sealed interface GjennomforingRequestPayload {
         JsonSubTypes.Type(value = Prisinformasjon.IngenKostnader::class, name = "IngenKostnader"),
     )
     sealed interface Prisinformasjon {
+        data class Anskaffelse(
+            val pris: Int,
+        ) : Prisinformasjon
+
+        data class Tilskudd(
+            val tilskudd: Map<Tilskuddstype, Int>,
+            val tilleggsopplysninger: String?,
+        ) : Prisinformasjon {
+            enum class Tilskuddstype {
+                SKOLEPENGER,
+                STUDIEREISE,
+                EKSAMENSGEBYR,
+                SEMESTERAVGIFT,
+                INTEGRERT_BOTILBUD,
+            }
+        }
+
+        data class IngenKostnader(
+            val aarsak: Aarsak,
+            val tilleggsopplysninger: String?,
+        ) : Prisinformasjon {
+            enum class Aarsak {
+                OPPLAERINGEN_ER_KOSTNADSFRI,
+                OPPLAERINGEN_ER_EGENFINANSIERT,
+            }
+        }
+
         companion object {
             fun fromAmtPrisinfo(source: PrisinformasjonDto): Prisinformasjon = when (source) {
                 is PrisinformasjonDto.Anskaffelse -> Anskaffelse(source.pris)
@@ -79,33 +106,6 @@ sealed interface GjennomforingRequestPayload {
                     },
                     tilleggsopplysninger = source.tilleggsopplysninger,
                 )
-            }
-        }
-
-        data class Anskaffelse(
-            val pris: Int,
-        ) : Prisinformasjon
-
-        data class Tilskudd(
-            val tilskudd: Map<Tilskuddstype, Int>,
-            val tilleggsopplysninger: String?,
-        ) : Prisinformasjon {
-            enum class Tilskuddstype {
-                SKOLEPENGER,
-                STUDIEREISE,
-                EKSAMENSGEBYR,
-                SEMESTERAVGIFT,
-                INTEGRERT_BOTILBUD,
-            }
-        }
-
-        data class IngenKostnader(
-            val aarsak: Aarsak,
-            val tilleggsopplysninger: String?,
-        ) : Prisinformasjon {
-            enum class Aarsak {
-                OPPLAERINGEN_ER_KOSTNADSFRI,
-                OPPLAERINGEN_ER_EGENFINANSIERT,
             }
         }
     }
