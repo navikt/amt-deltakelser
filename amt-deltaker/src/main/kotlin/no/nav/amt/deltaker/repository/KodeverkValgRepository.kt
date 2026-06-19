@@ -9,7 +9,7 @@ object KodeverkValgRepository {
     fun hentGjennomforingerSomSkalMigreresTilNyTabell(): List<UUID> {
         val sql =
             """
-            SELECT DISTINCT deltakerliste_kodeverk_valg.deltakerliste_id 
+            SELECT DISTINCT dkv.deltakerliste_id 
             FROM 
                 deltakerliste_kodeverk_valg dkv
                 LEFT JOIN opplaering_kategorisering_valg okv ON 
