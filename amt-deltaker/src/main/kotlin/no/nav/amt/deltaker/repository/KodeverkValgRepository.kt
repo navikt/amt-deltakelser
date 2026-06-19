@@ -6,27 +6,26 @@ import java.util.UUID
 
 @Deprecated("Denne tabellen og tilhørende repository er ikke i bruk, og bør fjernes")
 object KodeverkValgRepository {
-    fun lagreKodeverkValg(
-        deltakerlisteId: UUID,
-        valg: Set<UUID>,
-    ) {
+    fun hentGjennomforingerSomSkalMigreresTilNyTabell(): Set<UUID> {
         val sql =
             """
-            INSERT INTO deltakerliste_kodeverk_valg (deltakerliste_id, kodeverk_valg)
-            VALUES (:deltakerliste_id, :kodeverk_valg)
-            ON CONFLICT (deltakerliste_id) DO UPDATE SET kodeverk_valg = :kodeverk_valg
+            SELECT deltakerliste_id 
+            FROM 
+                deltakerliste_kodeverk_valg dkv
+                LEFT JOIN opplaering_kategorisering_valg okv ON 
+                    dkv.deltakerliste_id = okv.deltakerliste_id
+                WHERE okv.deltakerliste_id IS NULL
             """.trimIndent()
 
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    sql,
-                    mapOf(
-                        "deltakerliste_id" to deltakerlisteId,
-                        "kodeverk_valg" to session.createArrayOf("uuid", valg),
-                    ),
-                ),
-            )
+        return Database.query { session ->
+            session.run(
+                queryOf(sql)
+                    .map { row ->
+                        val array = row.anyOrNull("kodeverk_valg") as? java.sql.Array
+                        val uuids = array?.array as? Array<*>
+                        uuids?.filterIsInstance<UUID>()?.toSet() ?: emptySet()
+                    }.asSingle,
+            ) ?: emptySet()
         }
     }
 
@@ -47,17 +46,6 @@ object KodeverkValgRepository {
                         uuids?.filterIsInstance<UUID>()?.toSet() ?: emptySet()
                     }.asSingle,
             ) ?: emptySet()
-        }
-    }
-
-    fun deleteForGjennomforing(gjennomforingId: UUID) {
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    "DELETE FROM deltakerliste_kodeverk_valg WHERE deltakerliste_id = ?",
-                    gjennomforingId,
-                ),
-            )
         }
     }
 }
