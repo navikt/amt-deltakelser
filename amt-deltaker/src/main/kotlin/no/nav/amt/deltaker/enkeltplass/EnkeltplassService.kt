@@ -24,7 +24,7 @@ import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.tilUtflatetKodeverk
+import no.nav.amt.internapi.enkeltplass.toValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -243,14 +243,19 @@ class EnkeltplassService(
                 )
             }
 
+            val valgteKategoriseringerOgSertifiseringer = kategoriseringResponse.toValgteKategoriseringerOgSertifiseringer(
+                kodeverkValg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
+                sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
+            )
+
             OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                 gjennomforingId = deltaker.deltakerliste.id,
-                harKategoriseringer = oppdaterKladdRequest.kodeverkValg != null,
-                harSertifiseringer = oppdaterKladdRequest.sertifiseringValg != null,
-                utflatetKodeverk = kategoriseringResponse.tilUtflatetKodeverk(
-                    kodeverkValg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
-                    sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
-                ),
+                valgteKategoriseringer = oppdaterKladdRequest.kodeverkValg?.let {
+                    valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer
+                },
+                valgteSertifiseringer = oppdaterKladdRequest.sertifiseringValg?.let {
+                    valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer
+                },
             )
         }
     }
@@ -309,14 +314,15 @@ class EnkeltplassService(
                 prisinformasjon = request.prisinformasjon,
             )
 
+            val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
+                kodeverkValg = request.kodeverkValg ?: emptySet(),
+                sertifiseringValg = request.sertifiseringValg ?: emptySet(),
+            )
+
             OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                 gjennomforingId = gjennomforing.id,
-                harKategoriseringer = request.kodeverkValg != null,
-                harSertifiseringer = request.sertifiseringValg != null,
-                utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
-                    kodeverkValg = request.kodeverkValg ?: emptySet(),
-                    sertifiseringValg = request.sertifiseringValg ?: emptySet(),
-                ),
+                valgteKategoriseringer = request.kodeverkValg?.let { valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer },
+                valgteSertifiseringer = request.sertifiseringValg?.let { valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer },
             )
 
             val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()

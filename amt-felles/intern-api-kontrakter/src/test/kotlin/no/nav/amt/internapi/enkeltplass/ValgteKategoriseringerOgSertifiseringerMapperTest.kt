@@ -6,9 +6,9 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class UtflatetKodeverkMapperTest {
+class ValgteKategoriseringerOgSertifiseringerMapperTest {
     @Test
-    fun `tilUtflatetKodeverk - flater ut valgte utdanningsprogram`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut valgte utdanningsprogram`() {
         // Arrange
         val valgtUtdanningsprogramId = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
@@ -49,19 +49,19 @@ class UtflatetKodeverkMapperTest {
         )
 
         // Act
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
         // Assert
-        utflatetKodeverk shouldBe UtflatetKodeverk(
+        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
             valgteKategoriseringer = setOf(
-                UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     valg = mapOf(valgtUtdanningsprogramId to "Helse- og oppvekstfag"),
                 ),
-                UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                     valg = mapOf(valgtLaerefagId to "Helsearbeiderfaget"),
                 ),
@@ -71,7 +71,7 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk - flater ut bransje og forerkort`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut bransje og forerkort`() {
         // Arrange
         val valgtBransjeId = UUID.randomUUID()
         val valgtForerkortId = UUID.randomUUID()
@@ -122,19 +122,19 @@ class UtflatetKodeverkMapperTest {
         )
 
         // Act
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtBransjeId, valgtForerkortId),
             sertifiseringValg = sertifiseringValg,
         )
 
         // Assert
-        utflatetKodeverk shouldBe UtflatetKodeverk(
+        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
             valgteKategoriseringer = setOf(
-                UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                     valg = mapOf(valgtBransjeId to "Bygg og anlegg"),
                 ),
-                UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
                     valg = mapOf(valgtForerkortId to "B - Personbil"),
                 ),
@@ -144,7 +144,7 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk - flater ut kurs`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut kurs`() {
         val valgtKurstypeId = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
@@ -170,14 +170,14 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtKurstypeId),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk shouldBe UtflatetKodeverk(
+        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
             valgteKategoriseringer = setOf(
-                UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.KURSTYPE_ID,
                     valg = mapOf(valgtKurstypeId to "Grunnleggende ferdigheter"),
                 ),
@@ -187,7 +187,7 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk - tomt resultat nar ingenting er valgt`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - tomt resultat nar ingenting er valgt`() {
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
@@ -207,19 +207,19 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk shouldBe UtflatetKodeverk(
+        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
             valgteKategoriseringer = emptySet(),
             valgteSertifiseringer = emptySet(),
         )
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - ingen utdanninger valgt - returnerer tomt`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - ingen utdanninger valgt - returnerer tomt`() {
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
@@ -253,16 +253,16 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe emptySet()
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe emptySet()
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - tom utdanninger liste - returnerer tomt`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - tom utdanninger liste - returnerer tomt`() {
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
@@ -276,16 +276,16 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe emptySet()
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe emptySet()
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - kun utdanning valgt - returnerer utdanningsprogram og tomme larefag`() {
+    fun `kun utdanning valgt - returnerer utdanningsprogram og tomme larefag`() {
         val valgtUtdanningsprogramId = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
@@ -326,17 +326,17 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Valgt Program"),
             ),
-            UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = emptyMap(),
             ),
@@ -344,7 +344,7 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - kun larefag valgt - returnerer utdanningsprogram og larefag`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - kun larefag valgt - returnerer utdanningsprogram og larefag`() {
         val valgtUtdanningsprogramId = UUID.randomUUID()
         val valgtLaerefagId1 = UUID.randomUUID()
         val valgtLaerefagId2 = UUID.randomUUID()
@@ -392,17 +392,17 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId1, valgtLaerefagId2),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Program med larefag"),
             ),
-            UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(
                     valgtLaerefagId1 to "Larefag 1",
@@ -413,7 +413,7 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - flere utdanninger men kun en har valgt larefag - returnerer riktig`() {
+    fun `flere utdanninger men kun en har valgt larefag - returnerer riktig`() {
         val valgtUtdanningsprogramId1 = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
@@ -469,18 +469,18 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId1, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
         // Should find the first utdanning that has valgte larefag
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId1 to "Program 1"),
             ),
-            UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Larefag valgt"),
             ),
@@ -488,7 +488,7 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - larefag valgt i andre utdanning mens forste ikke har noe valgt - returnerer andre`() {
+    fun `larefag valgt i andre utdanning mens forste ikke har noe valgt - returnerer andre`() {
         val valgtUtdanningsprogramId2 = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
@@ -544,17 +544,17 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId2, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId2 to "Program 2"),
             ),
-            UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Larefag fra program 2"),
             ),
@@ -562,7 +562,7 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - både utdanning og larefag valgt - returnerer begge`() {
+    fun `både utdanning og larefag valgt - returnerer begge`() {
         val valgtUtdanningsprogramId = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
@@ -604,17 +604,17 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Fullt valgt program"),
             ),
-            UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Valgt larefag"),
             ),

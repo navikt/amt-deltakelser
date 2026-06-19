@@ -79,13 +79,13 @@ data class OpplaringKategoriseringResponse(
         sertifiseringValg = sertifiseringValg,
     )
 
-    fun settValgt(utflatetKodeverk: UtflatetKodeverk?): OpplaringKategoriseringResponse {
-        if (utflatetKodeverk == null) return this
+    fun settValgt(valgteKategoriseringerOgSertifiseringer: ValgteKategoriseringerOgSertifiseringer?): OpplaringKategoriseringResponse {
+        if (valgteKategoriseringerOgSertifiseringer == null) return this
 
-        val valgteElementer = utflatetKodeverk.valgteKategoriseringer.flatMap { it.valg.keys }.toSet()
+        val valgteElementer = valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer.flatMap { it.valg.keys }.toSet()
 
         return copy(
-            sertifiseringValg = utflatetKodeverk.valgteSertifiseringer,
+            sertifiseringValg = valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer,
             alternativer = alternativer.map { it.settValgt(valgteElementer) },
         )
     }

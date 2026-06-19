@@ -24,7 +24,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.UtflatetKodeverk
+import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -160,12 +160,12 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
 
-        val utflatetKodeverk = UtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = ValgteKategoriseringerOgSertifiseringer(
             valgteSertifiseringer = setOf(
                 SertifiseringValg(id = 1, navn = "Truckfører T1"),
             ),
             valgteKategoriseringer = setOf(
-                UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                     valg = mapOf(UUID.randomUUID() to "Bygg og anlegg"),
                 ),
@@ -176,14 +176,14 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         mockkObject(OpplaeringKategoriseringRepoAdapter)
         try {
             every {
-                OpplaeringKategoriseringRepoAdapter.hentUtflatetKodeverk(deltakerliste.id)
-            } returns utflatetKodeverk
+                OpplaeringKategoriseringRepoAdapter.hentValgteKategoriseringerOgSertifiseringer(deltakerliste.id)
+            } returns valgteKategoriseringerOgSertifiseringer
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
 
             // Assert
-            response.utflatetKodeverk shouldBe utflatetKodeverk
+            response.utflatetKodeverk shouldBe valgteKategoriseringerOgSertifiseringer
         } finally {
             unmockkObject(OpplaeringKategoriseringRepoAdapter)
         }

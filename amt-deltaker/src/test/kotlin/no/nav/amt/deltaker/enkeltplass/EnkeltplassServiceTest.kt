@@ -117,11 +117,11 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         every {
             OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                 gjennomforingId = any(),
-                harKategoriseringer = any(),
-                harSertifiseringer = any(),
-                utflatetKodeverk = any(),
+                valgteKategoriseringer = any(),
+                valgteSertifiseringer = any(),
             )
         } just Runs
+
         every {
             OpplaeringKategoriseringRepoAdapter.hentKategoriseringValgForMulighetsrommet(any())
         } returns GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
@@ -208,9 +208,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             verify {
                 OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
-                    harKategoriseringer = false,
-                    harSertifiseringer = true,
-                    utflatetKodeverk = any(),
+                    valgteKategoriseringer = null,
+                    valgteSertifiseringer = sertifiseringer,
                 )
             }
         }
@@ -233,9 +232,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             verify {
                 OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
-                    harKategoriseringer = false,
-                    harSertifiseringer = true,
-                    utflatetKodeverk = any(),
+                    valgteKategoriseringer = null,
+                    valgteSertifiseringer = emptySet(),
                 )
             }
         }

@@ -27,7 +27,7 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
-import no.nav.amt.internapi.enkeltplass.UtflatetKodeverk
+import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -120,9 +120,9 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             val deltakerResponse = lagDeltakerResponse(id = deltakerInTest.id).let {
                 it.copy(
                     gjennomforing = it.gjennomforing.copy(
-                        utflatetKodeverk = UtflatetKodeverk(
+                        utflatetKodeverk = ValgteKategoriseringerOgSertifiseringer(
                             valgteKategoriseringer = setOf(
-                                UtflatetKodeverk.ValgteFelt(
+                                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                                     valg = mapOf(verdiId to "Bygg"),
                                 ),

@@ -121,8 +121,8 @@ class DeltakerResponseBuilder(
             includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
                 !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
 
-        val utflatetKodeverk = if (skalHenteEnkeltplassValg) {
-            OpplaeringKategoriseringRepoAdapter.hentUtflatetKodeverk(deltakerliste.id)
+        val valgteKategoriseringerOgSertifiseringer = if (skalHenteEnkeltplassValg) {
+            OpplaeringKategoriseringRepoAdapter.hentValgteKategoriseringerOgSertifiseringer(deltakerliste.id)
         } else {
             null
         }
@@ -136,7 +136,7 @@ class DeltakerResponseBuilder(
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
-            utflatetKodeverk = utflatetKodeverk,
+            valgteKategoriseringerOgSertifiseringer = valgteKategoriseringerOgSertifiseringer,
             prisinformasjon = prisinformasjon,
         )
     }

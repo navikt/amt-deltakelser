@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.commonresponse
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.veileder.api.response.TilgjengeligInnholdResponse
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
-import no.nav.amt.internapi.enkeltplass.UtflatetKodeverk
+import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -25,7 +25,7 @@ data class DeltakerlisteResponse(
     val erEnkeltplass: Boolean,
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
-    val kodeverk: UtflatetKodeverk? = null,
+    val kodeverk: ValgteKategoriseringerOgSertifiseringer? = null,
     val prisinformasjon: PrisinformasjonDto? = null,
 ) {
     data class ArrangorResponse(
@@ -57,7 +57,7 @@ data class DeltakerlisteResponse(
                 erEnkeltplass = erEnkeltplass,
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-                kodeverk = utflatetKodeverk,
+                kodeverk = valgteKategoriseringerOgSertifiseringer,
                 prisinformasjon = prisinformasjon,
             )
         }
