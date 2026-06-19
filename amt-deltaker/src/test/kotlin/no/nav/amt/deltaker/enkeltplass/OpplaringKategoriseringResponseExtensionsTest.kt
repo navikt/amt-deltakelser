@@ -1,12 +1,14 @@
-package no.nav.amt.internapi.enkeltplass
+package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class ValgteKategoriseringerOgSertifiseringerMapperTest {
+class OpplaringKategoriseringResponseExtensionsTest {
     @Test
     fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut valgte utdanningsprogram`() {
         // Arrange

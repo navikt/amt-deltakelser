@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.enkeltplass.toValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
@@ -32,7 +33,6 @@ import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.veileder.KladdService
-import no.nav.amt.internapi.enkeltplass.toValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

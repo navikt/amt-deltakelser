@@ -24,7 +24,6 @@ import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.toValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold

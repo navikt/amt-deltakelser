@@ -1,5 +1,7 @@
-package no.nav.amt.internapi.enkeltplass
+package no.nav.amt.deltaker.enkeltplass
 
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
@@ -18,7 +20,9 @@ fun OpplaringKategoriseringResponse.toValgteKategoriseringerOgSertifiseringer(
     )
 
     ValgteKategoriseringerOgSertifiseringer(
-        valgteKategoriseringer = kategoriseringResponseMedValgteElementer.alternativer.flatMap { it.tilValgteFelt() }.toSet(),
+        valgteKategoriseringer = kategoriseringResponseMedValgteElementer.alternativer
+            .flatMap { it.tilValgteFelt() }
+            .toSet(),
         valgteSertifiseringer = sertifiseringValg,
     )
 }
