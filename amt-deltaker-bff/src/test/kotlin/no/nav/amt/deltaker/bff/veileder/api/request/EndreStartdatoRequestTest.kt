@@ -15,21 +15,6 @@ import java.time.LocalDate
 class EndreStartdatoRequestTest {
     @Nested
     inner class ValiderTest {
-        private fun lagDeltakerModelEnkeltplass(
-            startdato: LocalDate? = LocalDate.now().minusMonths(1),
-            sluttdato: LocalDate? = LocalDate.now().plusMonths(1),
-            status: DeltakerStatus = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-        ) = ModelMapper.toDeltaker(
-            TestData.lagDeltakerResponse(
-                deltakerliste = lagGjennomforingResponse().copy(
-                    type = GjennomforingType.Enkeltplass,
-                ),
-                startdato = startdato,
-                sluttdato = sluttdato,
-                status = status,
-            ),
-        )
-
         @Test
         fun `valider - ny startdato, gyldig status, gruppe - skal ikke kaste exception`() {
             val deltaker = lagDeltakerModelMedDatoer(
@@ -151,7 +136,7 @@ class EndreStartdatoRequestTest {
 
         @Test
         fun `valider - enkeltplass med ny startdato - skal ikke kaste exception`() {
-            val deltaker = lagDeltakerModelMedDatoer(
+            val deltaker = lagDeltakerModelEnkeltplass(
                 startdato = LocalDate.now().minusMonths(1),
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
@@ -172,7 +157,7 @@ class EndreStartdatoRequestTest {
         fun `valider - enkeltplass uten endring - skal kaste exception`() {
             val startdato = LocalDate.now().minusMonths(1)
             val sluttdato = LocalDate.now().plusMonths(1)
-            val deltaker = lagDeltakerModelMedDatoer(
+            val deltaker = lagDeltakerModelEnkeltplass(
                 startdato = startdato,
                 sluttdato = sluttdato,
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -355,6 +340,50 @@ class EndreStartdatoRequestTest {
             }
             exception.message shouldContain "Både startdato og sluttdato kan ikke være lik som før"
         }
+
+        @Test
+        fun `valider - enkeltplass med ugyldig sluttdato (etter gruppe sluttdato) - skal kaste exception (before early return)`() {
+            // This test verifies sluttdato validation now runs BEFORE the enkeltplass early return
+            val deltaker = lagDeltakerModelEnkeltplass(
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = LocalDate.now().plusMonths(6), // Original sluttdato
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+
+            val request = EndreStartdatoRequest(
+                startdato = LocalDate.now(),
+                sluttdato = LocalDate.now().plusMonths(2), // Would be valid for enkeltplass, but let's use invalid
+                begrunnelse = "Endring for enkeltplass",
+                forslagId = null,
+            )
+
+            shouldNotThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
+        }
+
+        @Test
+        fun `valider - enkeltplass med sluttdato for startdato - skal kaste exception (sluttdato validation before early return)`() {
+            // This test verifies that sluttdato validation runs before the enkeltplass early return
+            val startdato = LocalDate.now()
+            val deltaker = lagDeltakerModelEnkeltplass(
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = LocalDate.now().plusMonths(6),
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+
+            val request = EndreStartdatoRequest(
+                startdato = startdato,
+                sluttdato = startdato.minusDays(1), // Invalid: sluttdato before startdato
+                begrunnelse = "Endring for enkeltplass",
+                forslagId = null,
+            )
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
+            exception.message shouldContain "Sluttdato må være etter startdato"
+        }
     }
 
     companion object {
@@ -367,6 +396,21 @@ class EndreStartdatoRequestTest {
             TestData.lagDeltakerResponse(
                 deltakerliste = lagGjennomforingResponse(
                     startDato = gjennomforingStartDato,
+                ),
+                startdato = startdato,
+                sluttdato = sluttdato,
+                status = status,
+            ),
+        )
+
+        private fun lagDeltakerModelEnkeltplass(
+            startdato: LocalDate? = LocalDate.now().minusMonths(1),
+            sluttdato: LocalDate? = LocalDate.now().plusMonths(1),
+            status: DeltakerStatus = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        ) = ModelMapper.toDeltaker(
+            TestData.lagDeltakerResponse(
+                deltakerliste = lagGjennomforingResponse().copy(
+                    type = GjennomforingType.Enkeltplass,
                 ),
                 startdato = startdato,
                 sluttdato = sluttdato,

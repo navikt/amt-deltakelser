@@ -25,14 +25,14 @@ data class EndreStartdatoRequest(
             "Både startdato og sluttdato kan ikke være lik som før"
         }
 
+        sluttdato?.let { validerSluttdatoForDeltaker(it, startdato, deltaker) }
+
         // enkeltplassgjennomføringer har ikke start-/sluttdato
         if (deltaker.gjennomforing.erEnkeltplass) return
 
         require(startdato == null || !startdato.isBefore(deltaker.gjennomforing.startDato)) {
             "Startdato kan ikke være tidligere enn deltakerlistens startdato"
         }
-
-        sluttdato?.let { validerSluttdatoForDeltaker(it, startdato, deltaker) }
     }
 
     private fun deltakerErEndret(deltaker: DeltakerModel): Boolean = deltaker.startdato != startdato ||
