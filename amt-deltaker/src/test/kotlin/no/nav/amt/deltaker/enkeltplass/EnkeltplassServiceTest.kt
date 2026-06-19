@@ -114,7 +114,14 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         every { SertifiseringValgRepository.hentSertifiseringValg(any()) } returns emptySet()
 
         mockkObject(OpplaeringKategoriseringRepoAdapter)
-        every { OpplaeringKategoriseringRepoAdapter.lagreKategorriserimg(any(), any()) } just Runs
+        every {
+            OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
+                gjennomforingId = any(),
+                harKategoriseringer = any(),
+                harSertifiseringer = any(),
+                utflatetKodeverk = any(),
+            )
+        } just Runs
         every {
             OpplaeringKategoriseringRepoAdapter.hentKategoriseringValgForMulighetsrommet(any())
         } returns GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
@@ -199,8 +206,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                OpplaeringKategoriseringRepoAdapter.lagreKategorriserimg(
+                OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    harKategoriseringer = false,
+                    harSertifiseringer = true,
                     utflatetKodeverk = any(),
                 )
             }
@@ -222,8 +231,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                OpplaeringKategoriseringRepoAdapter.lagreKategorriserimg(
+                OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    harKategoriseringer = false,
+                    harSertifiseringer = true,
                     utflatetKodeverk = any(),
                 )
             }

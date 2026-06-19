@@ -206,7 +206,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `buildGjennomforingResponse - enkeltplass uten includeKodeverk - returnerer ikke utflatet kodever`() {
+    fun `buildGjennomforingResponse - enkeltplass uten includeKodeverk - returnerer ikke utflatet kodeverk`() {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             gjennomforingstype = GjennomforingType.Enkeltplass,

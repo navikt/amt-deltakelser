@@ -12,7 +12,10 @@ fun OpplaringKategoriseringResponse.tilUtflatetKodeverk(
         valgteSertifiseringer = sertifiseringValg,
     )
 } else {
-    val kategoriseringResponseMedValgteElementer = settValgt(kodeverkValg, sertifiseringValg)
+    val kategoriseringResponseMedValgteElementer = settValgt(
+        kodeverkValg = kodeverkValg,
+        sertifiseringValg = sertifiseringValg,
+    )
 
     UtflatetKodeverk(
         valgteKategoriseringer = kategoriseringResponseMedValgteElementer.alternativer.flatMap { it.tilValgteFelt() }.toSet(),

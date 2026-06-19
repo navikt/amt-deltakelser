@@ -35,37 +35,46 @@ object OpplaeringKategoriseringRepoAdapter {
         )
     }
 
-    fun lagreKategorriserimg(
+    fun lagreKategoriserimg(
         gjennomforingId: UUID,
+        harKategoriseringer: Boolean,
+        harSertifiseringer: Boolean,
         utflatetKodeverk: UtflatetKodeverk,
     ) {
-        OpplaeringKategoriseringValgRepository.deleteForGjennomforing(gjennomforingId)
+        if (!harKategoriseringer && !harSertifiseringer) return
 
-        if (utflatetKodeverk.valgteKategoriseringer.isNotEmpty()) {
-            val kategoriseringValg = utflatetKodeverk.valgteKategoriseringer.flatMap { kategoriseringValg ->
-                kategoriseringValg.valg.map { enkeltvalg ->
-                    OpplaeringKategoriseringValgDbo(
-                        representerer = kategoriseringValg.representerer,
-                        kodeverkId = enkeltvalg.key,
-                        tekst = enkeltvalg.value,
-                    )
+        if (harKategoriseringer) {
+            // insert-only, sletter eksisterende valg før insert
+            OpplaeringKategoriseringValgRepository.deleteForGjennomforing(gjennomforingId)
+
+            if (utflatetKodeverk.valgteKategoriseringer.isNotEmpty()) {
+                val kategoriseringValg = utflatetKodeverk.valgteKategoriseringer.flatMap { kategoriseringValg ->
+                    kategoriseringValg.valg.map { enkeltvalg ->
+                        OpplaeringKategoriseringValgDbo(
+                            representerer = kategoriseringValg.representerer,
+                            kodeverkId = enkeltvalg.key,
+                            tekst = enkeltvalg.value,
+                        )
+                    }
                 }
-            }
 
-            OpplaeringKategoriseringValgRepository.insertKategoriseringValg(
-                gjennomforingId = gjennomforingId,
-                valg = kategoriseringValg,
-            )
+                OpplaeringKategoriseringValgRepository.insertKategoriseringValg(
+                    gjennomforingId = gjennomforingId,
+                    valg = kategoriseringValg,
+                )
+            }
         }
 
         // insert-only, sletter eksisterende valg før insert
-        SertifiseringValgRepository.deleteForGjennomforing(gjennomforingId)
+        if (harSertifiseringer) {
+            SertifiseringValgRepository.deleteForGjennomforing(gjennomforingId)
 
-        if (utflatetKodeverk.valgteSertifiseringer.isNotEmpty()) {
-            SertifiseringValgRepository.lagreSertifiseringValg(
-                deltakerlisteId = gjennomforingId,
-                sertifiseringValg = utflatetKodeverk.valgteSertifiseringer,
-            )
+            if (utflatetKodeverk.valgteSertifiseringer.isNotEmpty()) {
+                SertifiseringValgRepository.lagreSertifiseringValg(
+                    deltakerlisteId = gjennomforingId,
+                    sertifiseringValg = utflatetKodeverk.valgteSertifiseringer,
+                )
+            }
         }
     }
 }

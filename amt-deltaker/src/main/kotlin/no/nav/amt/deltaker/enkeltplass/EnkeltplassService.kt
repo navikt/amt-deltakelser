@@ -175,7 +175,6 @@ class EnkeltplassService(
     }
 
     // benyttes av PameldingService#innbyggerGodkjennUtkast
-    // kan ikke være suspending fordi den kalles i en transaksjon, derfor må kodeverk sendes inn som parameter
     fun publiserGjennomforing(deltaker: Deltaker) {
         val vedtak = vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id)
         val ansvarligEnhet = navEnhetRepository.getOrThrow(vedtak.opprettetAvEnhet)
@@ -244,8 +243,10 @@ class EnkeltplassService(
                 )
             }
 
-            OpplaeringKategoriseringRepoAdapter.lagreKategorriserimg(
+            OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                 gjennomforingId = deltaker.deltakerliste.id,
+                harKategoriseringer = oppdaterKladdRequest.kodeverkValg != null,
+                harSertifiseringer = oppdaterKladdRequest.sertifiseringValg != null,
                 utflatetKodeverk = kategoriseringResponse.tilUtflatetKodeverk(
                     kodeverkValg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
                     sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
@@ -308,8 +309,10 @@ class EnkeltplassService(
                 prisinformasjon = request.prisinformasjon,
             )
 
-            OpplaeringKategoriseringRepoAdapter.lagreKategorriserimg(
+            OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
                 gjennomforingId = gjennomforing.id,
+                harKategoriseringer = request.kodeverkValg != null,
+                harSertifiseringer = request.sertifiseringValg != null,
                 utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
                     kodeverkValg = request.kodeverkValg ?: emptySet(),
                     sertifiseringValg = request.sertifiseringValg ?: emptySet(),
