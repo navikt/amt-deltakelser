@@ -248,7 +248,7 @@ class EnkeltplassService(
                 sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
             )
 
-            OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
+            OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
                 gjennomforingId = deltaker.deltakerliste.id,
                 valgteKategoriseringer = oppdaterKladdRequest.kodeverkValg?.let {
                     valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer
@@ -319,7 +319,7 @@ class EnkeltplassService(
                 sertifiseringValg = request.sertifiseringValg ?: emptySet(),
             )
 
-            OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
+            OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
                 gjennomforingId = gjennomforing.id,
                 valgteKategoriseringer = request.kodeverkValg?.let { valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer },
                 valgteSertifiseringer = request.sertifiseringValg?.let { valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer },

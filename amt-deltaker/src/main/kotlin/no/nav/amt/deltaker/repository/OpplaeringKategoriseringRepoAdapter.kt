@@ -37,7 +37,7 @@ object OpplaeringKategoriseringRepoAdapter {
         )
     }
 
-    fun lagreKategoriserimg(
+    fun lagreKategorisering(
         gjennomforingId: UUID,
         valgteKategoriseringer: Set<ValgteFelt>?,
         valgteSertifiseringer: Set<SertifiseringValg>?,

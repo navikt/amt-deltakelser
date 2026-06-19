@@ -112,7 +112,7 @@ fun Routing.registerInternalApi(
                     sertifiseringValg = emptySet(),
                 )
 
-                OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
+                OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
                     gjennomforingId = gjennomforingId,
                     valgteKategoriseringer = valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer,
                     valgteSertifiseringer = null,

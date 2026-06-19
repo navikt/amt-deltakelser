@@ -115,7 +115,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         mockkObject(OpplaeringKategoriseringRepoAdapter)
         every {
-            OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
+            OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
                 gjennomforingId = any(),
                 valgteKategoriseringer = any(),
                 valgteSertifiseringer = any(),
@@ -206,7 +206,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
+                OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
                     valgteKategoriseringer = null,
                     valgteSertifiseringer = sertifiseringer,
@@ -230,7 +230,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                OpplaeringKategoriseringRepoAdapter.lagreKategoriserimg(
+                OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
                     valgteKategoriseringer = null,
                     valgteSertifiseringer = emptySet(),
