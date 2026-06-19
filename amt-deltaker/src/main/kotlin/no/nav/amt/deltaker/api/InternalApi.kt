@@ -98,6 +98,8 @@ fun Routing.registerInternalApi(
     route("/internal") {
         // TODO: skal slettes etter migrering
         post("/migrer-kodeverk") {
+            requireInternal(call.request.local.remoteAddress)
+
             val gjennomforingIder = KodeverkValgRepository.hentGjennomforingerSomSkalMigreresTilNyTabell()
 
             gjennomforingIder.forEach { gjennomforingId ->
@@ -118,6 +120,7 @@ fun Routing.registerInternalApi(
                     valgteSertifiseringer = null,
                 )
             }
+            call.respond(HttpStatusCode.OK)
         }
 
         post("/sett-ikke-aktuell/{fra-status}") {

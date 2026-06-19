@@ -89,7 +89,7 @@ fun Application.configureRouting(
     gjennomforingRequestProducer: GjennomforingRequestProducer,
     forslagService: ForslagService,
     forslagRepository: ForslagRepository,
-    kodverkClient: KodeverkClient,
+    kodeverkClient: KodeverkClient,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -158,7 +158,7 @@ fun Application.configureRouting(
             navAnsattService,
             navEnhetService,
             gjennomforingRequestProducer,
-            kodeverkClient = kodverkClient,
+            kodeverkClient = kodeverkClient,
             deltakerlisteRepository = deltakerlisteRepository,
         )
 

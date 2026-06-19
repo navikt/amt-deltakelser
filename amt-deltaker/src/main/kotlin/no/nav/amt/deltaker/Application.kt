@@ -529,7 +529,7 @@ fun Application.module() {
         tiltakskoordinatorService = tiltakskoordinatorService,
         forslagService = forslagService,
         forslagRepository = forslagRepository,
-        kodverkClient = kodeverkClient,
+        kodeverkClient = kodeverkClient,
     )
     configureMonitoring()
 

@@ -6,7 +6,7 @@ import java.util.UUID
 
 @Deprecated("Denne tabellen og tilhørende repository er ikke i bruk, og bør fjernes")
 object KodeverkValgRepository {
-    fun hentGjennomforingerSomSkalMigreresTilNyTabell(): Set<UUID> {
+    fun hentGjennomforingerSomSkalMigreresTilNyTabell(): List<UUID> {
         val sql =
             """
             SELECT deltakerliste_id 
@@ -20,12 +20,9 @@ object KodeverkValgRepository {
         return Database.query { session ->
             session.run(
                 queryOf(sql)
-                    .map { row ->
-                        val array = row.anyOrNull("kodeverk_valg") as? java.sql.Array
-                        val uuids = array?.array as? Array<*>
-                        uuids?.filterIsInstance<UUID>()?.toSet() ?: emptySet()
-                    }.asSingle,
-            ) ?: emptySet()
+                    .map { row -> row.uuid("deltakerliste_id") }
+                    .asList,
+            )
         }
     }
 

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import java.util.Collections
 import java.util.UUID
 
 /**
@@ -28,7 +27,7 @@ import java.util.UUID
 data class OpplaringKategoriseringResponse(
     val tiltakskode: Tiltakskode,
     val alternativer: List<Alternativ.Container>,
-    val sertifiseringValg: Set<SertifiseringValg> = Collections.emptySet(),
+    val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
 ) {
     private fun List<Alternativ.Verdi>.hentValgte(kodeverkValg: Set<UUID>): Set<UUID> = this
         .filter { alt -> alt.id in kodeverkValg }
