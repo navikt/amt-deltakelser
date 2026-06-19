@@ -283,7 +283,7 @@ fun Routing.registerInternalApi(
             call.respond(HttpStatusCode.OK)
         }
 
-        get("internal/avbryt-utkast/{deltakerId}") {
+        get("/avbryt-utkast/{deltakerId}") {
             requireInternal(call.request.local.remoteAddress)
             val deltakerId = call.parameters.getOrFail("deltakerId").let { UUID.fromString(it) }
             val status = nyDeltakerStatus(
