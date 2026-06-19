@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.commonresponse
 
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.veileder.api.response.TilgjengeligInnholdResponse
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -26,6 +27,7 @@ data class DeltakerlisteResponse(
     val oppmoteSted: String?,
     val pameldingstype: GjennomforingPameldingType,
     val kodeverk: UtflatetKodeverk? = null,
+    val prisinformasjon: PrisinformasjonDto? = null,
 ) {
     data class ArrangorResponse(
         val navn: String,
@@ -70,6 +72,7 @@ data class DeltakerlisteResponse(
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
                 kodeverk = kodeverk,
+                prisinformasjon = prisinformasjon,
             )
         }
     }

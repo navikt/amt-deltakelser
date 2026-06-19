@@ -110,14 +110,14 @@ data class OpplaringKategoriseringResponse(
     }
 
     enum class Representerer {
-        KURSTYPE_ID,
-        BRANSJE_ID,
-        SERTIFISERINGER,
-        FORERKORT,
+        BRANSJE_ID, // AMO
+        FORERKORT, // AMO
+        SERTIFISERINGER, // AMO
+        KURSTYPE_ID, // FOV
+        UTDANNINGSPROGRAM_ID, // Fag- og yrkesopplæring
+        LAREFAG, // Fag- og yrkesopplæring
         INNHOLDSELEMENTER,
         NORSKPROVE,
-        UTDANNINGSPROGRAM_ID,
-        LAREFAG,
     }
 
     /**

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.model
 
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -24,6 +25,7 @@ data class GjennomforingModel(
     val pameldingstype: GjennomforingPameldingType?,
     val kodeverkValg: Set<UUID> = emptySet(),
     val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
+    val prisinformasjon: PrisinformasjonDto? = null,
 ) {
     val erEnkeltplass = type == GjennomforingType.Enkeltplass
 }

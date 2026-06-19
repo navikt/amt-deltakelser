@@ -7,16 +7,16 @@ import java.util.UUID
 
 data class OppdaterEnkeltplassKladdRequest(
     val beskrivelse: String?, // dette er annet beskrivelse i innhold
-    val prisinformasjon: String?,
     val arrangorUnderenhet: String?,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val kodeverkValg: Set<UUID>? = null,
     val sertifiseringValg: Set<SertifiseringValg>? = null,
+    val prisinformasjon: PrisinformasjonDto? = null,
 ) {
     fun sanitized() = copy(
         beskrivelse = beskrivelse.trimToNull()?.sanitizeBeskrivelse(),
-        prisinformasjon = prisinformasjon.trimToNull()?.sanitizePrisinformasjon(),
         arrangorUnderenhet = arrangorUnderenhet.trimToNull()?.sanitizeArrangorUnderenhet(),
+        prisinformasjon = prisinformasjon?.sanitize(),
     )
 }

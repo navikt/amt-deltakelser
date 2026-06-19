@@ -2,6 +2,7 @@ package no.nav.amt.internapi.enkeltplass
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto.Companion.MAX_LENGTH_TILLEGGSOPPLYSNINGER
 import org.junit.jupiter.api.Test
 
 class OppdaterEnkeltplassKladdRequestTest {
@@ -9,21 +10,27 @@ class OppdaterEnkeltplassKladdRequestTest {
     fun sanitized() {
         // Arrange
         val longString = "a".repeat(1000)
+        val prisinformasjonInTest = PrisinformasjonDto.IngenKostnader(
+            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            tilleggsopplysninger = longString,
+        )
 
         // Act
         val sanitizedRequest = OppdaterEnkeltplassKladdRequest(
             beskrivelse = longString,
-            prisinformasjon = longString,
             arrangorUnderenhet = longString,
             startdato = null,
             sluttdato = null,
+            prisinformasjon = prisinformasjonInTest,
         ).sanitized()
 
         // Assert
         assertSoftly(sanitizedRequest) {
-            beskrivelse shouldBe "a".repeat(MAX_LENGTH_BESKRIVELSE)
-            prisinformasjon shouldBe "a".repeat(MAX_LENGTH_PRISINFORMASJON)
-            arrangorUnderenhet shouldBe "a".repeat(MAX_LENGTH_ARRANGOR_UNDERENHET)
+            beskrivelse shouldBe longString.take(MAX_LENGTH_BESKRIVELSE)
+            arrangorUnderenhet shouldBe longString.take(MAX_LENGTH_ARRANGOR_UNDERENHET)
+            prisinformasjon shouldBe prisinformasjonInTest.copy(
+                tilleggsopplysninger = longString.take(MAX_LENGTH_TILLEGGSOPPLYSNINGER),
+            )
         }
     }
 }

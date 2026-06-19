@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.assertions.throwables.shouldThrow
@@ -8,14 +10,17 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.slot
+import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
@@ -23,10 +28,10 @@ import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -39,6 +44,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.database.Database.transaction
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -55,18 +61,31 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
         setupDatabaseMocks()
+        setupRepositoryMocks()
         setupNavEnhetOgAnsattMocks()
         setupKodeverkClientMocks()
         stubDefaultDeltakere()
         every {
             deltakerProducerService.produce(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                deltaker = any(),
+                forcedUpdate = any(),
+                publiserTilDeltakerV1 = any(),
+                publiserTilDeltakerEksternV1 = any(),
+                publiserTilDeltakerV2 = any(),
             )
         } just Runs
+    }
+
+    private fun setupRepositoryMocks() {
+        every { deltakerlisteRepository.update(any()) } just Runs
+        every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkObject(SertifiseringValgRepository)
+        unmockkObject(KodeverkValgRepository)
+        unmockkObject(PrisinfoRepoAdapter)
     }
 
     private fun stubDefaultDeltakere() {
@@ -77,11 +96,6 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     private fun stubDeltaker(deltaker: Deltaker) {
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
-    }
-
-    private fun stubDeltakerSequence(vararg deltakere: Deltaker) {
-        val sequence = deltakere.map { Result.success(it) }
-        every { deltakerRepository.get(deltakere.first().id) } returnsMany sequence
     }
 
     private fun setupDatabaseMocks() {
@@ -97,6 +111,15 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         mockkObject(SertifiseringValgRepository)
         every { SertifiseringValgRepository.deleteForGjennomforing(any()) } just Runs
         every { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) } just Runs
+        every { SertifiseringValgRepository.hentSertifiseringValg(any()) } returns emptySet()
+
+        mockkObject(KodeverkValgRepository)
+        every { KodeverkValgRepository.deleteForGjennomforing(any()) } just Runs
+        every { KodeverkValgRepository.lagreKodeverkValg(any(), any()) } just Runs
+        every { KodeverkValgRepository.hentKodeverkValg(any()) } returns emptySet()
+
+        mockkObject(PrisinfoRepoAdapter)
+        every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } just Runs
     }
 
     private fun setupNavEnhetOgAnsattMocks() {
@@ -195,7 +218,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sertifiseringValg null - rører ikke sertifiseringer`() = runTest {
+        fun `sertifiseringValg null - roerer ikke sertifiseringer`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
@@ -214,12 +237,30 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal oppdatere prisinformasjon når gitt`() = runTest {
+        fun `skal ikke lagre prisinformasjon naar den er null`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
 
-            val nyPrisinformasjon = "Ny pris: 5000"
+            val request = oppdaterKladdRequest.copy(prisinformasjon = null)
+
+            // Act
+            enkeltplassService.oppdaterKladd(
+                deltakerId = kladdDeltakerInTest.id,
+                oppdaterKladdRequest = request,
+            )
+
+            // Assert
+            verify(exactly = 0) { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) }
+        }
+
+        @Test
+        fun `skal oppdatere prisinformasjon naar gitt`() = runTest {
+            // Arrange
+            every { deltakerlisteRepository.update(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+
+            val nyPrisinformasjon = PrisinformasjonDto.Anskaffelse(42)
             val request = oppdaterKladdRequest.copy(prisinformasjon = nyPrisinformasjon)
 
             // Act
@@ -230,12 +271,16 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                deltakerlisteRepository.update(match { it.prisinformasjon == nyPrisinformasjon })
+                deltakerlisteRepository.update(any())
+                PrisinfoRepoAdapter.lagrePrisinfo(
+                    gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    prisinformasjon = nyPrisinformasjon,
+                )
             }
         }
 
         @Test
-        fun `skal oppdatere dato-felter når gitt`() = runTest {
+        fun `skal oppdatere dato-felter naar gitt`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
@@ -257,165 +302,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     @Nested
     inner class DelUtkastMedInnbyggerTests {
-        @Test
-        fun `skal oppdatere deltaker, sette status UTKAST_TIL_PAMELDING og opprette vedtak`() = runTest {
-            // Arrange
-            stubDeltakerSequence(utkastDeltakerInTest, utkastDeltakerInTest, utkastDeltakerInTest)
-
-            every {
-                deltakerService.lagreDeltakerStatus(
-                    deltakerId = utkastDeltakerInTest.id,
-                    nyDeltakerStatus = match { it.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING },
-                    erDeltakerSluttdatoEndret = any(),
-                )
-            } returns utkastDeltakerInTest.status
-
-            every {
-                vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = false,
-                    endretAv = navAnsattInTest,
-                    endretAvEnhet = navEnhetInTest,
-                    deltaker = any(),
-                    fattetDato = null,
-                )
-            } returns lagVedtak(
-                deltakerId = utkastDeltakerInTest.id,
-                deltakerVedVedtak = utkastDeltakerInTest,
-            )
-
-            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
-            every { deltakerlisteRepository.update(any()) } just Runs
-
-            // Act
-            enkeltplassService.delUtkastMedInnbygger(
-                deltakerId = utkastDeltakerInTest.id,
-                decoratedRequest = decoratedRequest,
-            )
-
-            // Assert
-            verify {
-                deltakerService.lagreDeltakerStatus(
-                    deltakerId = utkastDeltakerInTest.id,
-                    nyDeltakerStatus = match { it.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING },
-                    erDeltakerSluttdatoEndret = any(),
-                )
-            }
-            verify {
-                vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = false,
-                    endretAv = navAnsattInTest,
-                    endretAvEnhet = navEnhetInTest,
-                    deltaker = any(),
-                    fattetDato = null,
-                )
-            }
-            verify { deltakerlisteRepository.update(any()) }
-            verify { deltakerRepository.updateEnkeltplassKladd(any()) }
-            verify {
-                outboxService.insertRecord(
-                    key = any(),
-                    value = any(),
-                    topic = Environment.GJENNOMFORING_REQUEST_TOPIC,
-                    suppressOutsideTxWarning = any(),
-                )
-            }
-            verify(exactly = 0) { deltakerProducerService.produce(any()) }
-        }
-
-        @Test
-        fun `skal ikke publisere deltaker til DELTAKER_V2 naar gjennomforing er KLADD`() = runTest {
-            // Arrange
-            val deltakerMedKladdGjennomforing = utkastDeltakerInTest.copy(
-                deltakerliste = utkastDeltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.KLADD),
-            )
-            stubDeltakerSequence(
-                deltakerMedKladdGjennomforing,
-                deltakerMedKladdGjennomforing,
-                deltakerMedKladdGjennomforing,
-            )
-
-            every {
-                deltakerService.lagreDeltakerStatus(
-                    deltakerId = deltakerMedKladdGjennomforing.id,
-                    nyDeltakerStatus = any(),
-                    erDeltakerSluttdatoEndret = any(),
-                )
-            } returns deltakerMedKladdGjennomforing.status
-
-            every {
-                vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = false,
-                    endretAv = navAnsattInTest,
-                    endretAvEnhet = navEnhetInTest,
-                    deltaker = any(),
-                    fattetDato = null,
-                )
-            } returns lagVedtak(
-                deltakerId = deltakerMedKladdGjennomforing.id,
-                deltakerVedVedtak = deltakerMedKladdGjennomforing,
-            )
-
-            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
-            every { deltakerlisteRepository.update(any()) } just Runs
-
-            // Act
-            enkeltplassService.delUtkastMedInnbygger(
-                deltakerId = deltakerMedKladdGjennomforing.id,
-                decoratedRequest = decoratedRequest,
-            )
-
-            // Assert
-            verify(exactly = 0) { deltakerProducerService.produce(any()) }
-        }
-
-        @Test
-        fun `skal publisere deltaker til DELTAKER_V2 naar gjennomforing ikke er KLADD`() = runTest {
-            // Arrange
-            val deltakerMedOpprettetGjennomforing = utkastDeltakerInTest.copy(
-                deltakerliste = utkastDeltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
-            )
-            stubDeltakerSequence(
-                deltakerMedOpprettetGjennomforing,
-                deltakerMedOpprettetGjennomforing,
-                deltakerMedOpprettetGjennomforing,
-            )
-
-            every {
-                deltakerService.lagreDeltakerStatus(
-                    deltakerId = deltakerMedOpprettetGjennomforing.id,
-                    nyDeltakerStatus = any(),
-                    erDeltakerSluttdatoEndret = any(),
-                )
-            } returns deltakerMedOpprettetGjennomforing.status
-
-            every {
-                vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = false,
-                    endretAv = navAnsattInTest,
-                    endretAvEnhet = navEnhetInTest,
-                    deltaker = any(),
-                    fattetDato = null,
-                )
-            } returns lagVedtak(
-                deltakerId = deltakerMedOpprettetGjennomforing.id,
-                deltakerVedVedtak = deltakerMedOpprettetGjennomforing,
-            )
-
-            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
-            every { deltakerlisteRepository.update(any()) } just Runs
-
-            // Act
-            enkeltplassService.delUtkastMedInnbygger(
-                deltakerId = deltakerMedOpprettetGjennomforing.id,
-                decoratedRequest = decoratedRequest,
-            )
-
-            // Assert
-            verify { deltakerProducerService.produce(deltakerMedOpprettetGjennomforing) }
-        }
+        // Complex tests that require database access are in EnkeltplassServiceIntegrationTest
 
         @Test
         fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
@@ -515,161 +402,59 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     }
 
     @Nested
-    inner class MeldPaaDirekteTests {
+    inner class ProduceUpsertGjennomforingTests {
+        private val testPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
+            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
+            organisasjonsnummer = "987654321",
+            ansvarligEnhet = "1234",
+            opprettetAv = "Z123456",
+            kategorisering = null,
+        )
+
         @Test
-        fun `skal sette status SOKT_INN, fatte vedtak og publisere OpprettEnkeltplass`() = runTest {
+        fun `UTKAST_TIL_PAMELDING status - produserer EnkeltplassUtkast`() {
             // Arrange
-            val oppdatertDeltaker = utkastDeltakerInTest.copy(
-                status = soktInnDeltakerInTest.status,
-            )
-
-            stubDeltakerSequence(utkastDeltakerInTest, oppdatertDeltaker, oppdatertDeltaker)
-
-            every {
-                deltakerService.lagreDeltakerStatus(
-                    deltakerId = utkastDeltakerInTest.id,
-                    nyDeltakerStatus = match { it.type == DeltakerStatus.Type.SOKT_INN },
-                    erDeltakerSluttdatoEndret = any(),
-                )
-            } returns oppdatertDeltaker.status
-
-            every {
-                vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = false,
-                    endretAv = navAnsattInTest,
-                    endretAvEnhet = navEnhetInTest,
-                    deltaker = any(),
-                    fattetDato = null,
-                )
-            } returns lagVedtak(
-                deltakerId = oppdatertDeltaker.id,
-                deltakerVedVedtak = oppdatertDeltaker,
-            )
-
-            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
-            every { deltakerlisteRepository.update(any()) } just Runs
+            val deltaker = utkastDeltakerInTest
+            val slot = slot<GjennomforingRequestPayload>()
+            every { outboxService.insertRecord(any(), capture(slot), any(), any()) } returns mockk()
 
             // Act
-            enkeltplassService.meldPaaDirekte(
-                deltakerId = utkastDeltakerInTest.id,
-                decoratedRequest = decoratedRequest,
-            )
+            enkeltplassService.produceUpsertGjennomforing(deltaker, testPayload)
 
             // Assert
-            verify {
-                deltakerService.lagreDeltakerStatus(
-                    deltakerId = utkastDeltakerInTest.id,
-                    nyDeltakerStatus = match { it.type == DeltakerStatus.Type.SOKT_INN },
-                    erDeltakerSluttdatoEndret = any(),
-                )
-            }
-            verify {
-                vedtakService.opprettEllerOppdaterVedtak(
-                    fattetAvNav = false,
-                    endretAv = navAnsattInTest,
-                    endretAvEnhet = navEnhetInTest,
-                    deltaker = any(),
-                    fattetDato = null,
-                )
-            }
-            verify {
-                outboxService.insertRecord(
-                    key = any(),
-                    value = ofType<GjennomforingRequestPayload.EnkeltplassSoktInn>(),
-                    topic = Environment.GJENNOMFORING_REQUEST_TOPIC,
-                    suppressOutsideTxWarning = any(),
-                )
-            }
-        }
-
-        @Test
-        fun `skal ikke opprette enkeltplass hos Mulighetsrommet for gjennomforing som ikke er enkeltplass`() = runTest {
-            // Arrange
-            val deltaker = kladdDeltakerInTest.copy(
-                status = kladdDeltakerInTest.status.copy(type = DeltakerStatus.Type.KLADD),
-                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(
-                    gjennomforingstype = GjennomforingType.Gruppe,
-                    status = GjennomforingStatusType.KLADD,
-                ),
+            val produced = slot.captured
+            produced shouldBe GjennomforingRequestPayload.EnkeltplassUtkast(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = testPayload,
             )
-            stubDeltaker(deltaker)
-
-            // Act & Assert
-            shouldThrow<IllegalArgumentException> {
-                enkeltplassService.meldPaaDirekte(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
-            }
-
-            verify(exactly = 0) {
-                outboxService.insertRecord(any(), any(), any(), any())
-            }
         }
 
         @Test
-        fun `skal ikke opprette enkeltplass hos Mulighetsrommet for deltaker som ikke er kladd`() = runTest {
+        fun `SOKT_INN status - produserer EnkeltplassSoktInn`() {
             // Arrange
-            stubDeltaker(soktInnDeltakerInTest)
+            val deltaker = soktInnDeltakerInTest
+            val slot = slot<GjennomforingRequestPayload>()
+            every { outboxService.insertRecord(any(), capture(slot), any(), any()) } returns mockk()
 
-            // Act & Assert
-            shouldThrow<IllegalArgumentException> {
-                enkeltplassService.meldPaaDirekte(
-                    deltakerId = soktInnDeltakerInTest.id,
-                    decoratedRequest = decoratedRequest,
-                )
-            }
+            // Act
+            enkeltplassService.produceUpsertGjennomforing(deltaker, testPayload)
 
-            verify(exactly = 0) {
-                outboxService.insertRecord(any(), any(), any(), any())
-            }
-        }
-    }
-
-    @Nested
-    inner class PubliserGjennomforingTests {
-        @Test
-        fun `skal kaste IllegalStateException naar arrangor mangler`() {
-            // Arrange
-            val deltaker = kladdDeltakerInTest.copy(
-                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(arrangor = null),
+            // Assert
+            val produced = slot.captured
+            produced shouldBe GjennomforingRequestPayload.EnkeltplassSoktInn(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = testPayload,
             )
-            mockVedtakOgAnsvarlige(deltaker)
-
-            // Act & Assert
-            val exception = shouldThrow<IllegalStateException> {
-                enkeltplassService.publiserGjennomforing(deltaker, null)
-            }
-
-            exception.message shouldBe "Kan ikke publisere gjennomføring ${deltaker.deltakerliste.id}: arrangør mangler"
-            verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
         }
 
         @Test
-        fun `skal kaste ut-exception for status VENTER_PA_OPPSTART`() {
-            // Arrange
-            val deltaker = kladdDeltakerInTest.copy(
-                status = kladdDeltakerInTest.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            )
-            mockVedtakOgAnsvarlige(deltaker)
-
+        fun `KLADD status - kaster IllegalStateException`() {
             // Act & Assert
-            val exception = shouldThrow<IllegalStateException> {
-                enkeltplassService.publiserGjennomforing(deltaker, null)
+            shouldThrow<IllegalStateException> {
+                enkeltplassService.produceUpsertGjennomforing(kladdDeltakerInTest, testPayload)
             }
-
-            exception.message shouldBe "Deltaker ${deltaker.id} har status ${DeltakerStatus.Type.VENTER_PA_OPPSTART}"
-            verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
         }
-    }
-
-    private fun mockVedtakOgAnsvarlige(deltaker: Deltaker) {
-        every { vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id) } returns lagVedtak(
-            deltakerId = deltaker.id,
-            deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsattInTest,
-            opprettetAvEnhet = navEnhetInTest,
-        )
-        every { navEnhetRepository.getOrThrow(navEnhetInTest.id) } returns navEnhetInTest
-        every { navAnsattRepository.getOrThrow(navAnsattInTest.id) } returns navAnsattInTest
     }
 
     companion object {
@@ -682,8 +467,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
-            prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654322",
+            prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(

@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
@@ -27,6 +28,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedTrengerGodkjen
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.veileder.PameldingService.Companion.getOppdatertStatus
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
@@ -495,6 +497,14 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
             val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
             TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = deltaker.deltakerliste.id,
+                prisinformasjon = PrisinformasjonDto.IngenKostnader(
+                    aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                    tilleggsopplysninger = "Dette tiltaket koster 100 kr/mnd",
+                ),
+            )
 
             coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
                 tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,

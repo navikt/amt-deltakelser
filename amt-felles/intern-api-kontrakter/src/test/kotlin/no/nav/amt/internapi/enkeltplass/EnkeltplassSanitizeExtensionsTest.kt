@@ -11,12 +11,6 @@ class EnkeltplassSanitizeExtensionsTest {
     }
 
     @Test
-    fun sanitizePrisinformasjon() {
-        val prisinformasjon = "a".repeat(1000).sanitizePrisinformasjon()
-        prisinformasjon.length shouldBe MAX_LENGTH_PRISINFORMASJON
-    }
-
-    @Test
     fun sanitizeArrangorUnderenhet() {
         val arrangorUnderenhet = "a".repeat(1000).sanitizeArrangorUnderenhet()
         arrangorUnderenhet.length shouldBe MAX_LENGTH_ARRANGOR_UNDERENHET

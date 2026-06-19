@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
@@ -186,9 +187,9 @@ class EnkeltplassService(
 
         val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
-                aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                tilleggsopplysninger = gjennomforing.prisinformasjon,
+            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
+                PrisinfoRepoAdapter.hentPrisinfo(gjennomforing.id)
+                    ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${gjennomforing.id}"),
             ),
             organisasjonsnummer = checkNotNull(gjennomforing.arrangor) {
                 "Kan ikke publisere gjennomføring ${gjennomforing.id}: arrangør mangler"
@@ -227,7 +228,6 @@ class EnkeltplassService(
             deltakerlisteRepository.update(
                 EnkeltplassGjennomforingUpdateDbo(
                     id = deltaker.deltakerliste.id,
-                    prisinformasjon = oppdaterKladdRequest.prisinformasjon,
                     arrangorId = arrangor?.id,
                 ),
             )
@@ -241,7 +241,14 @@ class EnkeltplassService(
                 ),
             )
 
-            lagreKodeverkValg(
+            oppdaterKladdRequest.prisinformasjon?.let { prisinfo ->
+                PrisinfoRepoAdapter.lagrePrisinfo(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    prisinformasjon = prisinfo,
+                )
+            }
+
+            lagreEnkeltplassAttributter(
                 deltakerlisteId = deltaker.deltakerliste.id,
                 kodeverkValg = oppdaterKladdRequest.kodeverkValg,
                 sertifiseringValg = oppdaterKladdRequest.sertifiseringValg,
@@ -285,7 +292,6 @@ class EnkeltplassService(
             deltakerlisteRepository.update(
                 EnkeltplassGjennomforingUpdateDbo(
                     id = gjennomforing.id,
-                    prisinformasjon = request.prisinformasjon,
                     arrangorId = arrangor.id,
                 ),
             )
@@ -299,7 +305,12 @@ class EnkeltplassService(
                 ),
             )
 
-            lagreKodeverkValg(
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforing.id,
+                prisinformasjon = request.prisinformasjon,
+            )
+
+            lagreEnkeltplassAttributter(
                 deltakerlisteId = gjennomforing.id,
                 kodeverkValg = request.kodeverkValg,
                 sertifiseringValg = request.sertifiseringValg,
@@ -319,10 +330,9 @@ class EnkeltplassService(
 
             val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
                 tiltakskode = deltakerMedVedtak.deltakerliste.tiltakstype.tiltakskode,
-                // TODO: Hardkodet IngenKostnader inntil vi får på plass strukturert prisinfo
-                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
-                    aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                    tilleggsopplysninger = request.prisinformasjon,
+                prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
+                    PrisinfoRepoAdapter.hentPrisinfo(gjennomforing.id)
+                        ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${gjennomforing.id}"),
                 ),
                 organisasjonsnummer = request.arrangorUnderenhet,
                 ansvarligEnhet = decoratedRequest.endretAvEnhet,
@@ -347,7 +357,7 @@ class EnkeltplassService(
         }
     }
 
-    private fun produceUpsertGjennomforing(
+    internal fun produceUpsertGjennomforing(
         deltaker: Deltaker,
         upsertPayload: GjennomforingRequestPayload.UpsertEnkeltplass,
     ) {
@@ -377,7 +387,7 @@ class EnkeltplassService(
         arrangorService.hentArrangor(organisasjonsnummer)
     }
 
-    private fun lagreKodeverkValg(
+    private fun lagreEnkeltplassAttributter(
         deltakerlisteId: UUID,
         kodeverkValg: Set<UUID>?,
         sertifiseringValg: Set<SertifiseringValg>?,

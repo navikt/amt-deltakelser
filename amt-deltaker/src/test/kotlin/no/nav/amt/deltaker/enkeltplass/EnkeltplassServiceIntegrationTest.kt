@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -115,7 +116,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer samme deltakerId`() = runTest {
+        fun `opprettKladd - det finnes allerede kladd paa samme enkeltplass tiltakstype - returnerer samme deltakerId`() = runTest {
             val deltaker = enkeltplassService.opprettKladd(
                 tiltakInTest.tiltakskode,
                 navBrukerInTest.personident,
@@ -152,7 +153,6 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                     innhold = listOf(Innhold.createFritekstInnhold("Beskrivelse")),
                 ),
             )
-            val expectedPrisinfo = "Prisinfo"
 
             val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
                 beskrivelse = expectedDeltaker.deltakelsesinnhold
@@ -160,10 +160,12 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                     .innhold
                     .first()
                     .beskrivelse,
-                prisinformasjon = expectedPrisinfo,
                 startdato = expectedDeltaker.startdato,
                 sluttdato = expectedDeltaker.sluttdato,
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(
+                    pris = 42,
+                ),
             )
 
             // Act
@@ -197,10 +199,10 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
             val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
                 beskrivelse = null,
-                prisinformasjon = "Prisinfo",
                 startdato = LocalDate.now(),
                 sluttdato = LocalDate.now().plusDays(10),
                 arrangorUnderenhet = null,
+                prisinformasjon = null,
             )
 
             enkeltplassService.oppdaterKladd(
@@ -255,10 +257,12 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
     inner class UtkastTests {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
-            prisinformasjon = "Test prisinformasjon",
             arrangorUnderenhet = "987654321",
             startdato = LocalDate.now(),
             sluttdato = LocalDate.now().plusDays(1),
+            prisinformasjon = PrisinformasjonDto.Anskaffelse(
+                pris = 42,
+            ),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -306,13 +310,12 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
-                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
                 arrangor shouldBe arrangorInTest
             }
         }
 
         @Test
-        fun `meld på direkte - lager ferdig påmelding med status søkt inn`() = runTest {
+        fun `meld paa direkte - lager ferdig pamelding med status sokt inn`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
             arrangorRepository.upsert(arrangorInTest)
@@ -351,7 +354,6 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
-                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
                 arrangor shouldBe arrangorInTest
             }
         }
@@ -413,11 +415,232 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
-                prisinformasjon shouldBe pameldingRequestInTest.prisinformasjon
                 arrangor shouldBe arrangorInTest
             }
         }
     }
+
+    @Nested
+    inner class DelUtkastMedInnbyggerTests {
+        @Test
+        fun `skal oppdatere deltaker, sette status UTKAST_TIL_PAMELDING og opprette vedtak`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor()
+            arrangorRepository.upsert(arrangorInTest)
+
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+
+            val pameldingRequest = EnkeltplassPameldingRequest(
+                beskrivelse = "Testbeskrivelse",
+                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
+            )
+
+            val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                wrappedRequest = pameldingRequest,
+                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+                endretAv = sistEndretAvNavAnsatt.navIdent,
+            )
+
+            // Act
+            val oppdatertDeltaker = enkeltplassService.delUtkastMedInnbygger(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            assertSoftly(oppdatertDeltaker) {
+                id shouldBe deltakerInTest.id
+                startdato shouldBe null
+                sluttdato shouldBe null
+                sistEndret shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(oppdatertDeltaker.status) {
+                type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            }
+
+            assertSoftly(oppdatertDeltaker.vedtaksinformasjon) {
+                this.shouldNotBeNull().fattet shouldBe null
+                fattetAvNav shouldBe false
+                opprettet shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(oppdatertDeltaker.deltakerliste) {
+                gjennomforingstype shouldBe GjennomforingType.Enkeltplass
+                tiltakstype shouldBe tiltakInTest
+                navn shouldBe tiltakInTest.navn
+                arrangor shouldBe arrangorInTest
+            }
+        }
+
+        @Test
+        fun `skal ikke publisere deltaker til DELTAKER_V2 naar gjennomforing er KLADD`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor()
+            arrangorRepository.upsert(arrangorInTest)
+
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+
+            val pameldingRequest = EnkeltplassPameldingRequest(
+                beskrivelse = "Testbeskrivelse",
+                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
+            )
+
+            val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                wrappedRequest = pameldingRequest,
+                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+                endretAv = sistEndretAvNavAnsatt.navIdent,
+            )
+
+            // Act
+            enkeltplassService.delUtkastMedInnbygger(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert - verify no event was published to DELTAKER_V2 since gjennomforing is KLADD
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+        }
+
+        @Test
+        fun `skal publisere deltaker til DELTAKER_V2 naar gjennomforing ikke er KLADD`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor()
+            arrangorRepository.upsert(arrangorInTest)
+
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+
+            val pameldingRequest = EnkeltplassPameldingRequest(
+                beskrivelse = "Testbeskrivelse",
+                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
+            )
+
+            val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                wrappedRequest = pameldingRequest,
+                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+                endretAv = sistEndretAvNavAnsatt.navIdent,
+            )
+
+            // Act
+            enkeltplassService.delUtkastMedInnbygger(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert - verify deltaker was published since gjennomforing is now not KLADD
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+        }
+    }
+
+    @Nested
+    inner class MeldPaaDirekteTests {
+        @Test
+        fun `skal sette status SOKT_INN, fatte vedtak og publisere OpprettEnkeltplass`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor()
+            arrangorRepository.upsert(arrangorInTest)
+
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+
+            val pameldingRequest = EnkeltplassPameldingRequest(
+                beskrivelse = "Testbeskrivelse",
+                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
+            )
+
+            val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                wrappedRequest = pameldingRequest,
+                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+                endretAv = sistEndretAvNavAnsatt.navIdent,
+            )
+
+            // Act
+            enkeltplassService.meldPaaDirekte(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            assertSoftly(oppdatertDeltaker) {
+                id shouldBe deltakerInTest.id
+                startdato shouldBe null
+                sluttdato shouldBe null
+                sistEndret shouldBeCloseTo LocalDateTime.now()
+            }
+
+            assertSoftly(oppdatertDeltaker.status) {
+                type shouldBe DeltakerStatus.Type.SOKT_INN
+            }
+
+            assertSoftly(oppdatertDeltaker.vedtaksinformasjon) {
+                this.shouldNotBeNull().fattet shouldBe null
+                fattetAvNav shouldBe false
+                opprettet shouldBeCloseTo LocalDateTime.now()
+            }
+        }
+
+        @Test
+        fun `skal sette status SOKT_INN fra UTKAST_TIL_PAMELDING status`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor()
+            arrangorRepository.upsert(arrangorInTest)
+
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+
+            // First transition to UTKAST_TIL_PAMELDING
+            val pameldingRequest = EnkeltplassPameldingRequest(
+                beskrivelse = "Testbeskrivelse",
+                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
+            )
+
+            val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                wrappedRequest = pameldingRequest,
+                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+                endretAv = sistEndretAvNavAnsatt.navIdent,
+            )
+
+            enkeltplassService.delUtkastMedInnbygger(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Now call meldPaaDirekte - should work from UTKAST_TIL_PAMELDING status
+            // Act
+            enkeltplassService.meldPaaDirekte(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            assertSoftly(oppdatertDeltaker.status) {
+                type shouldBe DeltakerStatus.Type.SOKT_INN
+            }
+        }
+    }
+
     /*
         Slett kladd ligger fortsatt i pamelingService, uavhengig av om det er enkeltplass. Splitte opp?
             @Test

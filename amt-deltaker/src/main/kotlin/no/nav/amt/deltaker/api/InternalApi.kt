@@ -325,6 +325,7 @@ fun Routing.registerInternalApi(
                         gjennomforingId = gjennomforing.id,
                         payload = GjennomforingRequestPayload.UpsertEnkeltplass(
                             tiltakskode = gjennomforing.tiltakstype.tiltakskode,
+                            // TODO: Hardkodet IngenKostnader
                             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
                                 aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                                 tilleggsopplysninger = gjennomforing.prisinformasjon,

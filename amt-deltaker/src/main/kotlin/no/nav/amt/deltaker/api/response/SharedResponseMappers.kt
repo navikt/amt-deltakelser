@@ -10,6 +10,7 @@ import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
@@ -61,6 +62,7 @@ internal object SharedResponseMappers {
         arrangorService: ArrangorService,
         kodeverkValg: Set<UUID>,
         sertifiseringValg: Set<SertifiseringValg>,
+        prisinformasjon: PrisinformasjonDto? = null,
     ) = GjennomforingResponse(
         id = deltakerliste.id,
         tiltakstype = deltakerliste.tiltakstype,
@@ -86,6 +88,7 @@ internal object SharedResponseMappers {
         type = deltakerliste.gjennomforingstype,
         kodeverkValg = kodeverkValg,
         sertifiseringValg = sertifiseringValg,
+        prisinformasjon = prisinformasjon,
     )
 
     fun buildVedtaksinformasjonResponse(
