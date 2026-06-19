@@ -41,10 +41,19 @@ sealed interface PrisinformasjonDto {
             val pris: Int,
         )
 
-        override fun validate(): List<String> = if (tilskudd.isEmpty()) {
-            listOf(TILSKUDD_REQUIRED_MSG)
-        } else {
-            tilskudd
+        override fun validate(): List<String> {
+            if (tilskudd.isEmpty()) return listOf(TILSKUDD_REQUIRED_MSG)
+
+            val duplikatTilskuddstyper = tilskudd
+                .groupBy { it.type }
+                .filterValues { it.size > 1 }
+                .keys
+
+            if (duplikatTilskuddstyper.isNotEmpty()) {
+                return listOf("Tilskudd kan ikke inneholde flere elementer med samme type: ${duplikatTilskuddstyper.joinToString(", ")}")
+            }
+
+            return tilskudd
                 .filter { it.pris <= 0 }
                 .map { "$POSITIV_PRIS_REQUIRED_MSG. ${it.type}" }
         }

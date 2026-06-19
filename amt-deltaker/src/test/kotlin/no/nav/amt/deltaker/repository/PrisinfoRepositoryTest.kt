@@ -63,7 +63,7 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             val insertDbo = PrisinfoDbo(
-                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             )
 
             // Act
@@ -75,7 +75,7 @@ class PrisinfoRepositoryTest {
             // Assert
             val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
             assertSoftly(result.shouldNotBeNull()) {
-                prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
+                prisinfoJsonSubtype shouldBe INGENKOSTNADER_SUB_TYPE
                 anskaffelsePris shouldBe null
                 tilleggsopplysninger shouldBe null
                 ingenkostnaderAarsak shouldBe null

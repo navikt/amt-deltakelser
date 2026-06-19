@@ -2,6 +2,7 @@ package no.nav.amt.internapi.enkeltplass
 
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -329,6 +330,31 @@ class PrisinformasjonDtoTest {
             // Assert
             errors.size shouldBe 1
             errors.first() shouldBe PrisinformasjonDto.TILSKUDD_REQUIRED_MSG
+        }
+
+        @Test
+        fun `skal returnere feil naar duplikate tilskudd ved validate()`() {
+            // Arrange
+            val tilskudd = PrisinformasjonDto.Tilskudd(
+                tilskudd = listOf(
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        pris = 5000,
+                    ),
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        pris = 2000,
+                    ),
+                ),
+                tilleggsopplysninger = null,
+            )
+
+            // Act
+            val errors = tilskudd.validate()
+
+            // Assert
+            errors.size shouldBe 1
+            errors.first() shouldStartWith "Tilskudd kan ikke inneholde flere elementer med samme type"
         }
 
         @Test

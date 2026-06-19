@@ -24,3 +24,8 @@ CREATE TABLE IF NOT EXISTS deltakerliste_prisinfo_belop
     created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     PRIMARY KEY (deltakerliste_id, pristype)
 );
+
+-- patcher deltakerliste_prisinfo i dev
+ALTER TABLE deltakerliste_prisinfo ADD COLUMN IF NOT EXISTS modified_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+UPDATE deltakerliste_prisinfo SET modified_at = created_at WHERE modified_at IS NULL;
+ALTER TABLE deltakerliste_prisinfo ALTER COLUMN modified_at SET NOT NULL;

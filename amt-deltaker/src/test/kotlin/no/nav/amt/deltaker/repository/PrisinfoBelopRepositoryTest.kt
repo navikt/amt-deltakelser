@@ -80,8 +80,8 @@ class PrisinfoBelopRepositoryTest {
             val gjennomforing1 = lagDeltakerliste()
             TestRepository.insert(gjennomforing1)
 
-            val gjenomforing2 = lagDeltakerliste()
-            TestRepository.insert(gjenomforing2)
+            val gjennomforing2 = lagDeltakerliste()
+            TestRepository.insert(gjennomforing2)
 
             val prisinfos = setOf(
                 Priskomponent(PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER, 1),
@@ -94,7 +94,7 @@ class PrisinfoBelopRepositoryTest {
             )
 
             // Act
-            val resultat = PrisinfoBelopRepository.hentPrisinfoBelop(gjenomforing2.id)
+            val resultat = PrisinfoBelopRepository.hentPrisinfoBelop(gjennomforing2.id)
 
             // Assert
             resultat.shouldBeEmpty()

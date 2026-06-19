@@ -60,7 +60,8 @@ object PrisinfoRepository {
                 prisinformasjon_json_type = EXCLUDED.prisinformasjon_json_type,
                 anskaffelse_pris = EXCLUDED.anskaffelse_pris,
                 tilleggsopplysninger = EXCLUDED.tilleggsopplysninger,
-                ingenkostnader_aarsak = EXCLUDED.ingenkostnader_aarsak
+                ingenkostnader_aarsak = EXCLUDED.ingenkostnader_aarsak,
+                modified_at = NOW()
             """.trimIndent()
 
         val params = mapOf(
