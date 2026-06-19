@@ -19,7 +19,7 @@ import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerService
@@ -31,8 +31,8 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
-import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -84,7 +84,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() {
         unmockkObject(SertifiseringValgRepository)
-        unmockkObject(KodeverkValgRepository)
+        unmockkObject(OpplaeringKategoriseringRepoAdapter)
         unmockkObject(PrisinfoRepoAdapter)
     }
 
@@ -113,10 +113,21 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         every { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) } just Runs
         every { SertifiseringValgRepository.hentSertifiseringValg(any()) } returns emptySet()
 
-        mockkObject(KodeverkValgRepository)
-        every { KodeverkValgRepository.deleteForGjennomforing(any()) } just Runs
-        every { KodeverkValgRepository.lagreKodeverkValg(any(), any()) } just Runs
-        every { KodeverkValgRepository.hentKodeverkValg(any()) } returns emptySet()
+        mockkObject(OpplaeringKategoriseringRepoAdapter)
+        every {
+            OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
+                gjennomforingId = any(),
+                valgteKategoriseringer = any(),
+                valgteSertifiseringer = any(),
+            )
+        } just Runs
+
+        every {
+            OpplaeringKategoriseringRepoAdapter.hentKategoriseringerOgSertifiseringerForMulighetsrommet(any())
+        } returns GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
+            sertifiseringer = emptySet(),
+            verdier = emptyMap(),
+        )
 
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } just Runs
@@ -194,8 +205,13 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
 
             // Assert
-            verify { SertifiseringValgRepository.deleteForGjennomforing(kladdDeltakerInTest.deltakerliste.id) }
-            verify { SertifiseringValgRepository.lagreSertifiseringValg(kladdDeltakerInTest.deltakerliste.id, sertifiseringer) }
+            verify {
+                OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
+                    gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    valgteKategoriseringer = null,
+                    valgteSertifiseringer = sertifiseringer,
+                )
+            }
         }
 
         @Test
@@ -213,8 +229,13 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
 
             // Assert
-            verify { SertifiseringValgRepository.deleteForGjennomforing(kladdDeltakerInTest.deltakerliste.id) }
-            verify(exactly = 0) { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) }
+            verify {
+                OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
+                    gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    valgteKategoriseringer = null,
+                    valgteSertifiseringer = emptySet(),
+                )
+            }
         }
 
         @Test

@@ -9,6 +9,7 @@ dependencies {
         }
     }
 
+    api(project(":amt-felles:intern-api-kontrakter"))
     api(project(":amt-felles:kafka"))
 
     // --- Metrics ---

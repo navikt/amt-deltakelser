@@ -38,7 +38,6 @@ import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.tilUtflatetKodeverk
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
@@ -47,8 +46,6 @@ import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.slf4j.Logger
@@ -59,7 +56,6 @@ fun Routing.registerVeilederApi(
     forslagRepository: ForslagRepository,
     amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
-    kodeverkClient: KodeverkClient,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -113,21 +109,7 @@ fun Routing.registerVeilederApi(
             amtDeltakerClient
                 .getDeltaker(deltakerId)
                 .let { deltakerResponse ->
-                    val utflatetKodeverk = if (deltakerResponse.gjennomforing.type == GjennomforingType.Enkeltplass) {
-                        kodeverkClient
-                            .hentKodeverk(deltakerResponse.gjennomforing.tiltakstype.tiltakskode)
-                            .tilUtflatetKodeverk(
-                                kodeverkValg = deltakerResponse.gjennomforing.kodeverkValg,
-                                sertifiseringValg = deltakerResponse.gjennomforing.sertifiseringValg,
-                            )
-                    } else {
-                        null
-                    }
-
-                    DeltakerResponse.fromDeltakerModel(
-                        deltaker = ModelMapper.toDeltaker(deltakerResponse),
-                        utflatetKodeverk = utflatetKodeverk,
-                    )
+                    DeltakerResponse.fromDeltakerModel(ModelMapper.toDeltaker(deltakerResponse))
                 }.also { call.respond(it) }
         }
 

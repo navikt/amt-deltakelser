@@ -38,10 +38,7 @@ data class DeltakerResponse(
     val prisinformasjon: String?,
 ) {
     companion object {
-        fun fromDeltakerModel(
-            deltaker: DeltakerModel,
-            utflatetKodeverk: DeltakerlisteResponse.UtflatetKodeverk? = null,
-        ) = with(deltaker) {
+        fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
             DeltakerResponse(
                 deltakerId = id,
                 fornavn = navBruker.fornavn,
@@ -49,7 +46,6 @@ data class DeltakerResponse(
                 etternavn = navBruker.etternavn,
                 deltakerliste = DeltakerlisteResponse.fromModel(
                     gjennomforingModel = gjennomforing,
-                    kodeverk = utflatetKodeverk,
                 ),
                 status = status,
                 startdato = startdato,

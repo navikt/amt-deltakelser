@@ -8,7 +8,6 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
-import io.mockk.coVerify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
@@ -31,7 +30,6 @@ import no.nav.amt.deltaker.veileder.PameldingService.Companion.getOppdatertStatu
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
-import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -506,12 +504,6 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 ),
             )
 
-            coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                alternativer = emptyList(),
-                sertifiseringValg = emptySet(),
-            )
-
             // Act
             pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
@@ -527,8 +519,6 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 expectedKey = deltaker.deltakerliste.id,
                 expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
             )
-
-            coVerify { kodeverkClient.hentKodeverk(any()) }
         }
 
         @Test

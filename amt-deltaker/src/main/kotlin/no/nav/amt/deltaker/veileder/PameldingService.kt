@@ -12,7 +12,6 @@ import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.DeltakerUtils
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -29,7 +28,6 @@ class PameldingService(
     private val distribuerEndringService: DistribuerEndringService,
     private val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
     private val enkeltplassService: EnkeltplassService,
-    private val kodeverkClient: KodeverkClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -99,12 +97,8 @@ class PameldingService(
         return deltaker
     }
 
-    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker {
+    fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-
-        val kodeverk = deltaker.deltakerliste.tiltakstype.tiltakskode
-            .takeIf { deltaker.erEnkeltplass }
-            ?.let { kodeverkClient.hentKodeverk(it) }
 
         return deltakerService.upsertAndProduceDeltaker(
             deltaker = deltaker,
@@ -131,10 +125,7 @@ class PameldingService(
                 distribuerEndringService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
 
                 if (deltaker.erEnkeltplass && deltaker.status.type == DeltakerStatus.Type.SOKT_INN) {
-                    enkeltplassService.publiserGjennomforing(
-                        deltaker = deltaker,
-                        kodeverk = kodeverk,
-                    )
+                    enkeltplassService.publiserGjennomforing(deltaker)
                 }
             },
         )

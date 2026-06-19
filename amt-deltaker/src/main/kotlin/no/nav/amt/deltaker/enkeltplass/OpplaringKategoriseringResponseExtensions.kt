@@ -1,28 +1,33 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.amt.deltaker.enkeltplass
 
-import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
-import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
-fun OpplaringKategoriseringResponse.tilUtflatetKodeverk(
+fun OpplaringKategoriseringResponse.toValgteKategoriseringerOgSertifiseringer(
     kodeverkValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
-): DeltakerlisteResponse.UtflatetKodeverk = if (kodeverkValg.isEmpty()) {
-    DeltakerlisteResponse.UtflatetKodeverk(
+): ValgteKategoriseringerOgSertifiseringer = if (kodeverkValg.isEmpty()) {
+    ValgteKategoriseringerOgSertifiseringer(
         valgteKategoriseringer = emptySet(),
         valgteSertifiseringer = sertifiseringValg,
     )
 } else {
-    val kategoriseringResponseMedValgteElementer = settValgt(kodeverkValg, sertifiseringValg)
+    val kategoriseringResponseMedValgteElementer = settValgt(
+        kodeverkValg = kodeverkValg,
+        sertifiseringValg = sertifiseringValg,
+    )
 
-    DeltakerlisteResponse.UtflatetKodeverk(
-        valgteKategoriseringer = kategoriseringResponseMedValgteElementer.alternativer.flatMap { it.tilValgteFelt() }.toSet(),
+    ValgteKategoriseringerOgSertifiseringer(
+        valgteKategoriseringer = kategoriseringResponseMedValgteElementer.alternativer
+            .flatMap { it.tilValgteFelt() }
+            .toSet(),
         valgteSertifiseringer = sertifiseringValg,
     )
 }
 
-private fun OpplaringKategoriseringResponse.Alternativ.Container.tilValgteFelt(): Set<DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt> =
+private fun OpplaringKategoriseringResponse.Alternativ.Container.tilValgteFelt(): Set<ValgteKategoriseringerOgSertifiseringer.ValgteFelt> =
     when (this) {
         is OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe -> tilValgteFeltInternal()
         is OpplaringKategoriseringResponse.Alternativ.Verdigruppe -> tilValgteFeltInternal()
@@ -30,11 +35,11 @@ private fun OpplaringKategoriseringResponse.Alternativ.Container.tilValgteFelt()
     }
 
 private fun OpplaringKategoriseringResponse.Alternativ.Verdigruppe.tilValgteFeltInternal():
-    Set<DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt> {
+    Set<ValgteKategoriseringerOgSertifiseringer.ValgteFelt> {
     if (alternativer.none { it.valgt }) return emptySet()
 
     return setOf(
-        DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+        ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
             representerer = representerer,
             valg = alternativer
                 .filter { verdi -> verdi.valgt }
@@ -44,19 +49,19 @@ private fun OpplaringKategoriseringResponse.Alternativ.Verdigruppe.tilValgteFelt
 }
 
 private fun OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.tilValgteFeltInternal():
-    Set<DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt> {
+    Set<ValgteKategoriseringerOgSertifiseringer.ValgteFelt> {
     val valgtUtdanningsgruppe = utdanninger
         .firstOrNull { utdanningValg ->
             utdanningValg.valgt || utdanningValg.larefag.alternativer.any { verdi -> verdi.valgt }
         }
         ?: return emptySet()
 
-    val valgtUtdanningsprogram = DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+    val valgtUtdanningsprogram = ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
         representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
         valg = mapOf(valgtUtdanningsgruppe.id to valgtUtdanningsgruppe.visningsnavn),
     )
 
-    val valgteLarefag = DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+    val valgteLarefag = ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
         representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
         valg = valgtUtdanningsgruppe.larefag.alternativer
             .filter { verdi -> verdi.valgt }

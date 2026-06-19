@@ -1,10 +1,9 @@
-package no.nav.amt.lib.ktor.clients.kodeverk
+package no.nav.amt.internapi.enkeltplass
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import java.util.Collections.emptySet
 import java.util.UUID
 
 /**
@@ -78,6 +77,17 @@ data class OpplaringKategoriseringResponse(
         alternativer = alternativer.map { it.settValgt(kodeverkValg) },
         sertifiseringValg = sertifiseringValg,
     )
+
+    fun settValgt(valgteKategoriseringerOgSertifiseringer: ValgteKategoriseringerOgSertifiseringer?): OpplaringKategoriseringResponse {
+        if (valgteKategoriseringerOgSertifiseringer == null) return this
+
+        val valgteElementer = valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer.flatMap { it.valg.keys }.toSet()
+
+        return copy(
+            sertifiseringValg = valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer,
+            alternativer = alternativer.map { it.settValgt(valgteElementer) },
+        )
+    }
 
     private fun Alternativ.Container.settValgt(kodeverkValg: Set<UUID>): Alternativ.Container = when (this) {
         is Alternativ.Verdigruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })

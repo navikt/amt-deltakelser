@@ -64,7 +64,6 @@ object DeltakerData {
         pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
         type = GjennomforingType.Gruppe,
         antallPlasser = 45,
-        kodeverkValg = emptySet(),
     )
 
     fun lagTiltakstype() = Tiltakstype(

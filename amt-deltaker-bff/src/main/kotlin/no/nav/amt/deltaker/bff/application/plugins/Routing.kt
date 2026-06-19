@@ -123,7 +123,6 @@ fun Application.configureRouting(
             forslagRepository = forslagRepository,
             amtDeltakerClient = amtDeltakerClient,
             sporbarhetsloggService = sporbarhetsloggService,
-            kodeverkClient = kodeverkClient,
         )
 
         registerPameldingApi(
@@ -145,7 +144,6 @@ fun Application.configureRouting(
             amtDeltakerClient = amtDeltakerClient,
             tilgangskontrollService = tilgangskontrollService,
             pameldingClient = paameldingClient,
-            kodeverkClient = kodeverkClient,
         )
 
         registerUnleashApi(unleash)

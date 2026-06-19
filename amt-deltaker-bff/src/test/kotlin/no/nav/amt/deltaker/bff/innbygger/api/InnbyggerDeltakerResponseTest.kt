@@ -15,10 +15,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse()
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.deltakerId shouldBe model.id
         result.status shouldBe model.status
@@ -37,10 +34,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse(deltakelsesinnhold = lagDeltakelsesinnhold())
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.deltakelsesinnhold shouldNotBe null
         result.deltakelsesinnhold!!.ledetekst shouldBe model.deltakelsesinnhold!!.ledetekst
@@ -52,10 +46,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse(deltakelsesinnhold = null)
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.deltakelsesinnhold shouldBe null
     }
@@ -65,10 +56,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse()
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.vedtaksinformasjon shouldNotBe null
         result.vedtaksinformasjon!!.fattet shouldBe model.vedtaksinformasjon!!.fattet
@@ -85,10 +73,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse(vedtaksinformasjon = null)
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.vedtaksinformasjon shouldBe null
     }
@@ -103,10 +88,7 @@ class InnbyggerDeltakerResponseTest {
         )
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.forslag.size shouldBe 1
         result.forslag[0].id shouldBe forslag.id
@@ -117,10 +99,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse(endringsforslagFraArrangor = emptyList())
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.forslag shouldBe emptyList()
     }
@@ -131,10 +110,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse(deltakerliste = gjennomforing)
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.deltakerliste.deltakerlisteId shouldBe gjennomforing.id
         result.deltakerliste.deltakerlisteNavn shouldBe gjennomforing.navn
@@ -150,10 +126,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse(prisinformasjon = "100 kr per dag")
         val model = ModelMapper.toDeltaker(deltakerResponse)
 
-        val result = InnbyggerDeltakerResponse.fromModel(
-            deltaker = model,
-            utflatetKodeverk = null,
-        )
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.prisinformasjon shouldBe "100 kr per dag"
     }

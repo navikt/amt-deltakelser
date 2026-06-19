@@ -1,25 +1,25 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
-import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test
-import java.util.UUID.randomUUID
+import java.util.UUID
 
-class UtflatetKodeverkMapperTest {
+class OpplaringKategoriseringResponseExtensionsTest {
     @Test
-    fun `tilUtflatetKodeverk - flater ut valgte utdanningsprogram`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut valgte utdanningsprogram`() {
         // Arrange
-        val valgtUtdanningsprogramId = randomUUID()
-        val valgtLaerefagId = randomUUID()
+        val valgtUtdanningsprogramId = UUID.randomUUID()
+        val valgtLaerefagId = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
@@ -28,7 +28,7 @@ class UtflatetKodeverkMapperTest {
                             id = valgtUtdanningsprogramId,
                             visningsnavn = "Helse- og oppvekstfag",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Lærefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
@@ -39,7 +39,7 @@ class UtflatetKodeverkMapperTest {
                                         visningsnavn = "Helsearbeiderfaget",
                                     ),
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                         visningsnavn = "Barne- og ungdomsarbeiderfaget",
                                     ),
                                 ),
@@ -51,19 +51,19 @@ class UtflatetKodeverkMapperTest {
         )
 
         // Act
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
         // Assert
-        utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
             valgteKategoriseringer = setOf(
-                DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     valg = mapOf(valgtUtdanningsprogramId to "Helse- og oppvekstfag"),
                 ),
-                DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                     valg = mapOf(valgtLaerefagId to "Helsearbeiderfaget"),
                 ),
@@ -73,17 +73,17 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk - flater ut bransje og forerkort`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut bransje og forerkort`() {
         // Arrange
-        val valgtBransjeId = randomUUID()
-        val valgtForerkortId = randomUUID()
+        val valgtBransjeId = UUID.randomUUID()
+        val valgtForerkortId = UUID.randomUUID()
         val sertifiseringValg = setOf(SertifiseringValg(id = 1, navn = "Truckførerbevis"))
 
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Bransje",
                     pakrevd = true,
                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
@@ -96,7 +96,7 @@ class UtflatetKodeverkMapperTest {
                     ),
                 ),
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     pakrevd = false,
                     visningsnavn = "Førerkortklasse",
                     representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
@@ -107,13 +107,13 @@ class UtflatetKodeverkMapperTest {
                             visningsnavn = "B - Personbil",
                         ),
                         OpplaringKategoriseringResponse.Alternativ.Verdi(
-                            id = randomUUID(),
+                            id = UUID.randomUUID(),
                             visningsnavn = "C - Lastebil",
                         ),
                     ),
                 ),
                 OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Sertifiseringer",
                     pakrevd = false,
                     representerer = OpplaringKategoriseringResponse.Representerer.SERTIFISERINGER,
@@ -124,19 +124,19 @@ class UtflatetKodeverkMapperTest {
         )
 
         // Act
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtBransjeId, valgtForerkortId),
             sertifiseringValg = sertifiseringValg,
         )
 
         // Assert
-        utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
             valgteKategoriseringer = setOf(
-                DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                     valg = mapOf(valgtBransjeId to "Bygg og anlegg"),
                 ),
-                DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
                     valg = mapOf(valgtForerkortId to "B - Personbil"),
                 ),
@@ -146,14 +146,14 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk - flater ut kurs`() {
-        val valgtKurstypeId = randomUUID()
+    fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut kurs`() {
+        val valgtKurstypeId = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     pakrevd = true,
                     visningsnavn = "Kurstype",
                     representerer = OpplaringKategoriseringResponse.Representerer.KURSTYPE_ID,
@@ -164,7 +164,7 @@ class UtflatetKodeverkMapperTest {
                             visningsnavn = "Grunnleggende ferdigheter",
                         ),
                         OpplaringKategoriseringResponse.Alternativ.Verdi(
-                            id = randomUUID(),
+                            id = UUID.randomUUID(),
                             visningsnavn = "Ikke valgt",
                         ),
                     ),
@@ -172,14 +172,14 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtKurstypeId),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
             valgteKategoriseringer = setOf(
-                DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.KURSTYPE_ID,
                     valg = mapOf(valgtKurstypeId to "Grunnleggende ferdigheter"),
                 ),
@@ -189,19 +189,19 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk - tomt resultat nar ingenting er valgt`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - tomt resultat nar ingenting er valgt`() {
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     pakrevd = true,
                     visningsnavn = "Bransje",
                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                     seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
                     alternativer = listOf(
                         OpplaringKategoriseringResponse.Alternativ.Verdi(
-                            id = randomUUID(),
+                            id = UUID.randomUUID(),
                             visningsnavn = "Bygg og anlegg",
                         ),
                     ),
@@ -209,40 +209,40 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk shouldBe DeltakerlisteResponse.UtflatetKodeverk(
+        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
             valgteKategoriseringer = emptySet(),
             valgteSertifiseringer = emptySet(),
         )
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - ingen utdanninger valgt - returnerer tomt`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - ingen utdanninger valgt - returnerer tomt`() {
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
                     utdanninger = listOf(
                         OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.UtdanningValg(
-                            id = randomUUID(),
+                            id = UUID.randomUUID(),
                             visningsnavn = "Program 1",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Larefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
                                 seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                                 alternativer = listOf(
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                         visningsnavn = "Larefag 1",
                                         valgt = false,
                                     ),
@@ -255,21 +255,21 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe emptySet()
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe emptySet()
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - tom utdanninger liste - returnerer tomt`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - tom utdanninger liste - returnerer tomt`() {
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
@@ -278,23 +278,23 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe emptySet()
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe emptySet()
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - kun utdanning valgt - returnerer utdanningsprogram og tomme larefag`() {
-        val valgtUtdanningsprogramId = randomUUID()
+    fun `kun utdanning valgt - returnerer utdanningsprogram og tomme larefag`() {
+        val valgtUtdanningsprogramId = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
@@ -303,19 +303,19 @@ class UtflatetKodeverkMapperTest {
                             id = valgtUtdanningsprogramId,
                             visningsnavn = "Valgt Program",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Larefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
                                 seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                                 alternativer = listOf(
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                         visningsnavn = "Larefag 1",
                                         valgt = false,
                                     ),
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                         visningsnavn = "Larefag 2",
                                         valgt = false,
                                     ),
@@ -328,17 +328,17 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Valgt Program"),
             ),
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = emptyMap(),
             ),
@@ -346,16 +346,16 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - kun larefag valgt - returnerer utdanningsprogram og larefag`() {
-        val valgtUtdanningsprogramId = randomUUID()
-        val valgtLaerefagId1 = randomUUID()
-        val valgtLaerefagId2 = randomUUID()
+    fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - kun larefag valgt - returnerer utdanningsprogram og larefag`() {
+        val valgtUtdanningsprogramId = UUID.randomUUID()
+        val valgtLaerefagId1 = UUID.randomUUID()
+        val valgtLaerefagId2 = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
@@ -364,7 +364,7 @@ class UtflatetKodeverkMapperTest {
                             id = valgtUtdanningsprogramId,
                             visningsnavn = "Program med larefag",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Larefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
@@ -381,7 +381,7 @@ class UtflatetKodeverkMapperTest {
                                         valgt = true,
                                     ),
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                         visningsnavn = "Larefag 3",
                                         valgt = false,
                                     ),
@@ -394,17 +394,17 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId1, valgtLaerefagId2),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Program med larefag"),
             ),
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(
                     valgtLaerefagId1 to "Larefag 1",
@@ -415,15 +415,15 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - flere utdanninger men kun en har valgt larefag - returnerer riktig`() {
-        val valgtUtdanningsprogramId1 = randomUUID()
-        val valgtLaerefagId = randomUUID()
+    fun `flere utdanninger men kun en har valgt larefag - returnerer riktig`() {
+        val valgtUtdanningsprogramId1 = UUID.randomUUID()
+        val valgtLaerefagId = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
@@ -432,7 +432,7 @@ class UtflatetKodeverkMapperTest {
                             id = valgtUtdanningsprogramId1,
                             visningsnavn = "Program 1",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Larefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
@@ -448,17 +448,17 @@ class UtflatetKodeverkMapperTest {
                             valgt = false,
                         ),
                         OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.UtdanningValg(
-                            id = randomUUID(),
+                            id = UUID.randomUUID(),
                             visningsnavn = "Program 2",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Larefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
                                 seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                                 alternativer = listOf(
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                         visningsnavn = "Larefag ikke valgt",
                                         valgt = false,
                                     ),
@@ -471,18 +471,18 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId1, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
         // Should find the first utdanning that has valgte larefag
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId1 to "Program 1"),
             ),
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Larefag valgt"),
             ),
@@ -490,31 +490,31 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - larefag valgt i andre utdanning mens forste ikke har noe valgt - returnerer andre`() {
-        val valgtUtdanningsprogramId2 = randomUUID()
-        val valgtLaerefagId = randomUUID()
+    fun `larefag valgt i andre utdanning mens forste ikke har noe valgt - returnerer andre`() {
+        val valgtUtdanningsprogramId2 = UUID.randomUUID()
+        val valgtLaerefagId = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
                     utdanninger = listOf(
                         OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.UtdanningValg(
-                            id = randomUUID(),
+                            id = UUID.randomUUID(),
                             visningsnavn = "Program 1",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Larefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
                                 seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                                 alternativer = listOf(
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                         visningsnavn = "Larefag",
                                         valgt = false,
                                     ),
@@ -526,7 +526,7 @@ class UtflatetKodeverkMapperTest {
                             id = valgtUtdanningsprogramId2,
                             visningsnavn = "Program 2",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Larefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
@@ -546,17 +546,17 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId2, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId2 to "Program 2"),
             ),
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Larefag fra program 2"),
             ),
@@ -564,15 +564,15 @@ class UtflatetKodeverkMapperTest {
     }
 
     @Test
-    fun `tilUtflatetKodeverk for UtdanningGruppe - både utdanning og larefag valgt - returnerer begge`() {
-        val valgtUtdanningsprogramId = randomUUID()
-        val valgtLaerefagId = randomUUID()
+    fun `både utdanning og larefag valgt - returnerer begge`() {
+        val valgtUtdanningsprogramId = UUID.randomUUID()
+        val valgtLaerefagId = UUID.randomUUID()
 
         val kodeverk = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                    id = randomUUID(),
+                    id = UUID.randomUUID(),
                     visningsnavn = "Utdanningsprogram",
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     pakrevd = true,
@@ -581,7 +581,7 @@ class UtflatetKodeverkMapperTest {
                             id = valgtUtdanningsprogramId,
                             visningsnavn = "Fullt valgt program",
                             larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                id = randomUUID(),
+                                id = UUID.randomUUID(),
                                 visningsnavn = "Larefag",
                                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                                 pakrevd = true,
@@ -593,7 +593,7 @@ class UtflatetKodeverkMapperTest {
                                         valgt = true,
                                     ),
                                     OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                         visningsnavn = "Ikke valgt larefag",
                                         valgt = false,
                                     ),
@@ -606,17 +606,17 @@ class UtflatetKodeverkMapperTest {
             ),
         )
 
-        val utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
             kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
-        utflatetKodeverk.valgteKategoriseringer shouldBe setOf(
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+        valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Fullt valgt program"),
             ),
-            DeltakerlisteResponse.UtflatetKodeverk.ValgteFelt(
+            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Valgt larefag"),
             ),

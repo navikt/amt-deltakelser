@@ -1,4 +1,4 @@
-package no.nav.amt.lib.ktor.clients.kodeverk
+package no.nav.amt.internapi.enkeltplass
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
