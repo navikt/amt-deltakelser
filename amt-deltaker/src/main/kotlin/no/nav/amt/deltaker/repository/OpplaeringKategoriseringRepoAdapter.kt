@@ -8,7 +8,7 @@ import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
 object OpplaeringKategoriseringRepoAdapter {
-    fun hentKategoriseringValgForMulighetsrommet(
+    fun hentKategoriseringerOgSertifiseringerForMulighetsrommet(
         gjennomforingId: UUID,
     ): GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering {
         val kategoriseringsValg = OpplaeringKategoriseringValgRepository.hentKategoriseringValg(gjennomforingId)

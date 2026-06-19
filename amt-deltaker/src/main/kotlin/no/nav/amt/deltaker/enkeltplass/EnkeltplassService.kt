@@ -192,7 +192,7 @@ class EnkeltplassService(
             }.organisasjonsnummer,
             ansvarligEnhet = ansvarligEnhet.enhetsnummer,
             opprettetAv = ansvarligNavAnsatt.navIdent,
-            kategorisering = OpplaeringKategoriseringRepoAdapter.hentKategoriseringValgForMulighetsrommet(gjennomforing.id),
+            kategorisering = OpplaeringKategoriseringRepoAdapter.hentKategoriseringerOgSertifiseringerForMulighetsrommet(gjennomforing.id),
         )
 
         produceUpsertGjennomforing(

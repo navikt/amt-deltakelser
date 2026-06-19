@@ -123,7 +123,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         } just Runs
 
         every {
-            OpplaeringKategoriseringRepoAdapter.hentKategoriseringValgForMulighetsrommet(any())
+            OpplaeringKategoriseringRepoAdapter.hentKategoriseringerOgSertifiseringerForMulighetsrommet(any())
         } returns GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
             sertifiseringer = emptySet(),
             verdier = emptyMap(),
