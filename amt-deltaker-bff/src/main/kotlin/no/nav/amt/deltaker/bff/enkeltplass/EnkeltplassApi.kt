@@ -20,12 +20,10 @@ import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getTerm
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.tilUtflatetKodeverk
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 
 fun Routing.registerEnkeltplassApi(
     amtDeltakerClient: AmtDeltakerClient,
@@ -52,12 +50,7 @@ fun Routing.registerEnkeltplassApi(
                 val gjennomforing = amtDeltakerClient.getDeltaker(deltakerId).gjennomforing
                 val kodeverk = kodeverkClient.hentKodeverk(gjennomforing.tiltakstype.tiltakskode)
 
-                call.respond(
-                    kodeverk.settValgt(
-                        kodeverkValg = gjennomforing.kodeverkValg,
-                        sertifiseringValg = gjennomforing.sertifiseringValg,
-                    ),
-                )
+                call.respond(kodeverk.settValgt(gjennomforing.utflatetKodeverk))
             }
 
             /*
@@ -78,12 +71,7 @@ fun Routing.registerEnkeltplassApi(
                     .opprettKladd(request.tiltakskode, request.personident)
                     .let { amtDeltakerClient.getDeltaker(it.deltakerId) }
                     .let { ModelMapper.toDeltaker(it) }
-                    .let {
-                        DeltakerResponse.fromDeltakerModel(
-                            deltaker = it,
-                            utflatetKodeverk = null,
-                        )
-                    }
+                    .let { DeltakerResponse.fromDeltakerModel(it) }
 
                 call.respond(response)
             }
@@ -139,24 +127,7 @@ fun Routing.registerEnkeltplassApi(
                             endretAv = call.getNavIdent(),
                         ),
                     ).let { ModelMapper.toDeltaker(it) }
-                    .let { deltakerModel ->
-
-                        val utflatetKodeverk = deltakerModel.gjennomforing.tiltak.tiltakskode
-                            .takeIf { deltakerModel.gjennomforing.type == GjennomforingType.Enkeltplass }
-                            ?.let { tiltakskode ->
-                                kodeverkClient
-                                    .hentKodeverk(tiltakskode)
-                                    .tilUtflatetKodeverk(
-                                        kodeverkValg = deltakerModel.gjennomforing.kodeverkValg,
-                                        sertifiseringValg = deltakerModel.gjennomforing.sertifiseringValg,
-                                    )
-                            }
-
-                        DeltakerResponse.fromDeltakerModel(
-                            deltaker = deltakerModel,
-                            utflatetKodeverk = utflatetKodeverk,
-                        )
-                    }
+                    .let { deltakerModel -> DeltakerResponse.fromDeltakerModel(deltakerModel) }
 
                 call.respond(deltakerResponse)
             }

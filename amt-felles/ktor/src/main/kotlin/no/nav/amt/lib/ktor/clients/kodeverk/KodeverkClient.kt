@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.parameter
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess

@@ -1,10 +1,10 @@
-package no.nav.amt.lib.ktor.clients.kodeverk
+package no.nav.amt.internapi.enkeltplass
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import java.util.Collections.emptySet
+import java.util.Collections
 import java.util.UUID
 
 /**
@@ -28,7 +28,7 @@ import java.util.UUID
 data class OpplaringKategoriseringResponse(
     val tiltakskode: Tiltakskode,
     val alternativer: List<Alternativ.Container>,
-    val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
+    val sertifiseringValg: Set<SertifiseringValg> = Collections.emptySet(),
 ) {
     private fun List<Alternativ.Verdi>.hentValgte(kodeverkValg: Set<UUID>): Set<UUID> = this
         .filter { alt -> alt.id in kodeverkValg }
@@ -78,6 +78,17 @@ data class OpplaringKategoriseringResponse(
         alternativer = alternativer.map { it.settValgt(kodeverkValg) },
         sertifiseringValg = sertifiseringValg,
     )
+
+    fun settValgt(utflatetKodeverk: UtflatetKodeverk?): OpplaringKategoriseringResponse {
+        if (utflatetKodeverk == null) return this
+
+        val valgteElementer = utflatetKodeverk.valgteKategoriseringer.flatMap { it.valg.keys }.toSet()
+
+        return copy(
+            sertifiseringValg = utflatetKodeverk.valgteSertifiseringer,
+            alternativer = alternativer.map { it.settValgt(valgteElementer) },
+        )
+    }
 
     private fun Alternativ.Container.settValgt(kodeverkValg: Set<UUID>): Alternativ.Container = when (this) {
         is Alternativ.Verdigruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })

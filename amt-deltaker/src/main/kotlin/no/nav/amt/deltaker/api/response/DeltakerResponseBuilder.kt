@@ -7,9 +7,8 @@ import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
-import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -122,16 +121,10 @@ class DeltakerResponseBuilder(
             includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
                 !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
 
-        val kodeverkValg = if (skalHenteEnkeltplassValg) {
-            KodeverkValgRepository.hentKodeverkValg(deltakerliste.id)
+        val utflatetKodeverk = if (skalHenteEnkeltplassValg) {
+            OpplaeringKategoriseringRepoAdapter.hentUtflatetKodeverk(deltakerliste.id)
         } else {
-            emptySet()
-        }
-
-        val sertifiseringValg = if (skalHenteEnkeltplassValg) {
-            SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id)
-        } else {
-            emptySet()
+            null
         }
 
         val prisinformasjon = if (skalHenteEnkeltplassValg) {
@@ -143,8 +136,7 @@ class DeltakerResponseBuilder(
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
-            kodeverkValg = kodeverkValg,
-            sertifiseringValg = sertifiseringValg,
+            utflatetKodeverk = utflatetKodeverk,
             prisinformasjon = prisinformasjon,
         )
     }

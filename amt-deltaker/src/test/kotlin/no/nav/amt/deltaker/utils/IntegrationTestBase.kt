@@ -152,7 +152,6 @@ abstract class IntegrationTestBase {
             distribuerEndringService = distribuerEndringService,
             innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
             enkeltplassService = enkeltplassService,
-            kodeverkClient = kodeverkClient,
         )
     }
 

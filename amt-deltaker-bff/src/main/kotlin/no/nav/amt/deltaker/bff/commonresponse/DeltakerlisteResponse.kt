@@ -3,11 +3,10 @@ package no.nav.amt.deltaker.bff.commonresponse
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.veileder.api.response.TilgjengeligInnholdResponse
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
-import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.UtflatetKodeverk
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
@@ -34,21 +33,8 @@ data class DeltakerlisteResponse(
         val organisasjonsnummer: String,
     )
 
-    data class UtflatetKodeverk(
-        val valgteKategoriseringer: Set<ValgteFelt>,
-        val valgteSertifiseringer: Set<SertifiseringValg>,
-    ) {
-        data class ValgteFelt(
-            val representerer: OpplaringKategoriseringResponse.Representerer,
-            val valg: Map<UUID, String>,
-        )
-    }
-
     companion object {
-        fun fromModel(
-            gjennomforingModel: GjennomforingModel,
-            kodeverk: UtflatetKodeverk? = null,
-        ) = with(gjennomforingModel) {
+        fun fromModel(gjennomforingModel: GjennomforingModel) = with(gjennomforingModel) {
             DeltakerlisteResponse(
                 deltakerlisteId = id,
                 deltakerlisteNavn = navn,
@@ -71,7 +57,7 @@ data class DeltakerlisteResponse(
                 erEnkeltplass = erEnkeltplass,
                 oppmoteSted = oppmoteSted,
                 pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-                kodeverk = kodeverk,
+                kodeverk = utflatetKodeverk,
                 prisinformasjon = prisinformasjon,
             )
         }

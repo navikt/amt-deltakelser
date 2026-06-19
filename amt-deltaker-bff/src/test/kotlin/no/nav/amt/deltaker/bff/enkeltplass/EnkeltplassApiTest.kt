@@ -25,9 +25,10 @@ import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.internapi.enkeltplass.UtflatetKodeverk
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
-import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
@@ -117,7 +118,19 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         fun `skal returnere kodeverk med valgte verdier`() = runTest {
             val verdiId = UUID.randomUUID()
             val deltakerResponse = lagDeltakerResponse(id = deltakerInTest.id).let {
-                it.copy(gjennomforing = it.gjennomforing.copy(kodeverkValg = setOf(verdiId)))
+                it.copy(
+                    gjennomforing = it.gjennomforing.copy(
+                        utflatetKodeverk = UtflatetKodeverk(
+                            valgteKategoriseringer = setOf(
+                                UtflatetKodeverk.ValgteFelt(
+                                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                                    valg = mapOf(verdiId to "Bygg"),
+                                ),
+                            ),
+                            valgteSertifiseringer = emptySet(),
+                        ),
+                    ),
+                )
             }
             val tiltakskode = deltakerResponse.gjennomforing.tiltakstype.tiltakskode
 
@@ -152,8 +165,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             response.body<OpplaringKategoriseringResponse>() shouldBe kodeverkFraClient.settValgt(
-                kodeverkValg = deltakerResponse.gjennomforing.kodeverkValg,
-                sertifiseringValg = deltakerResponse.gjennomforing.sertifiseringValg,
+                deltakerResponse.gjennomforing.utflatetKodeverk,
             )
 
             coVerify(exactly = 1) { amtDeltakerClient.getDeltaker(deltakerInTest.id) }

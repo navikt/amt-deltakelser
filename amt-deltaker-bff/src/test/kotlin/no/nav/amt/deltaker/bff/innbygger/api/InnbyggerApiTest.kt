@@ -81,10 +81,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
             ModelMapper
                 .toDeltaker(deltaker)
                 .let {
-                    InnbyggerDeltakerResponse.fromModel(
-                        deltaker = it,
-                        utflatetKodeverk = null,
-                    )
+                    InnbyggerDeltakerResponse.fromModel(deltaker = it)
                 },
         )
     }
@@ -117,10 +114,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
         coEvery { paameldingClient.innbyggerGodkjennUtkast(deltakerId) } returns deltakerResponse
         coEvery { amtDeltakerClient.getDeltaker(deltakerId) } returns deltakerResponse
 
-        val expected = InnbyggerDeltakerResponse.fromModel(
-            deltaker = ModelMapper.toDeltaker(deltakerResponse),
-            utflatetKodeverk = null,
-        )
+        val expected = InnbyggerDeltakerResponse.fromModel(ModelMapper.toDeltaker(deltakerResponse))
 
         withTestApplicationContext { httpClient ->
             val httpResponse = httpClient.post("/innbygger/$deltakerId/godkjenn-utkast") { noBodyRequest() }

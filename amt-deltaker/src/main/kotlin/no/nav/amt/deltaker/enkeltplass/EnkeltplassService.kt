@@ -12,9 +12,8 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
-import no.nav.amt.deltaker.repository.KodeverkValgRepository
+import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
-import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
@@ -24,8 +23,9 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.tilUtflatetKodeverk
 import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
-import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -176,10 +176,7 @@ class EnkeltplassService(
 
     // benyttes av PameldingService#innbyggerGodkjennUtkast
     // kan ikke være suspending fordi den kalles i en transaksjon, derfor må kodeverk sendes inn som parameter
-    fun publiserGjennomforing(
-        deltaker: Deltaker,
-        kodeverk: OpplaringKategoriseringResponse?,
-    ) {
+    fun publiserGjennomforing(deltaker: Deltaker) {
         val vedtak = vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id)
         val ansvarligEnhet = navEnhetRepository.getOrThrow(vedtak.opprettetAvEnhet)
         val ansvarligNavAnsatt = navAnsattRepository.getOrThrow(vedtak.opprettetAv)
@@ -196,10 +193,7 @@ class EnkeltplassService(
             }.organisasjonsnummer,
             ansvarligEnhet = ansvarligEnhet.enhetsnummer,
             opprettetAv = ansvarligNavAnsatt.navIdent,
-            kategorisering = kodeverk?.toOpplaringKategorisering(
-                kodeverkValg = KodeverkValgRepository.hentKodeverkValg(gjennomforing.id),
-                sertifiseringValg = SertifiseringValgRepository.hentSertifiseringValg(gjennomforing.id),
-            ),
+            kategorisering = OpplaeringKategoriseringRepoAdapter.hentKategoriseringValgForMulighetsrommet(gjennomforing.id),
         )
 
         produceUpsertGjennomforing(
@@ -223,6 +217,8 @@ class EnkeltplassService(
                 eksisterendeArrangor = deltaker.deltakerliste.arrangor,
             )
         }
+
+        val kategoriseringResponse = kodeverkClient.hentKodeverk(deltaker.deltakerliste.tiltakstype.tiltakskode)
 
         Database.transaction {
             deltakerlisteRepository.update(
@@ -248,10 +244,12 @@ class EnkeltplassService(
                 )
             }
 
-            lagreEnkeltplassAttributter(
-                deltakerlisteId = deltaker.deltakerliste.id,
-                kodeverkValg = oppdaterKladdRequest.kodeverkValg,
-                sertifiseringValg = oppdaterKladdRequest.sertifiseringValg,
+            OpplaeringKategoriseringRepoAdapter.lagreKategorriserimg(
+                gjennomforingId = deltaker.deltakerliste.id,
+                utflatetKodeverk = kategoriseringResponse.tilUtflatetKodeverk(
+                    kodeverkValg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
+                    sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
+                ),
             )
         }
     }
@@ -310,10 +308,12 @@ class EnkeltplassService(
                 prisinformasjon = request.prisinformasjon,
             )
 
-            lagreEnkeltplassAttributter(
-                deltakerlisteId = gjennomforing.id,
-                kodeverkValg = request.kodeverkValg,
-                sertifiseringValg = request.sertifiseringValg,
+            OpplaeringKategoriseringRepoAdapter.lagreKategorriserimg(
+                gjennomforingId = gjennomforing.id,
+                utflatetKodeverk = kodeverk.tilUtflatetKodeverk(
+                    kodeverkValg = request.kodeverkValg ?: emptySet(),
+                    sertifiseringValg = request.sertifiseringValg ?: emptySet(),
+                ),
             )
 
             val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
@@ -385,35 +385,6 @@ class EnkeltplassService(
         eksisterendeArrangor
     } else {
         arrangorService.hentArrangor(organisasjonsnummer)
-    }
-
-    private fun lagreEnkeltplassAttributter(
-        deltakerlisteId: UUID,
-        kodeverkValg: Set<UUID>?,
-        sertifiseringValg: Set<SertifiseringValg>?,
-    ) {
-        kodeverkValg?.let { internalKodeverkValg ->
-            if (internalKodeverkValg.isNotEmpty()) {
-                KodeverkValgRepository.lagreKodeverkValg(
-                    deltakerlisteId = deltakerlisteId,
-                    valg = internalKodeverkValg,
-                )
-            } else {
-                KodeverkValgRepository.deleteForGjennomforing(deltakerlisteId)
-            }
-        }
-
-        sertifiseringValg?.let { internalSertifiseringValg ->
-            // insert-only, sletter eksisterende valg før insert
-            SertifiseringValgRepository.deleteForGjennomforing(deltakerlisteId)
-
-            if (internalSertifiseringValg.isNotEmpty()) {
-                SertifiseringValgRepository.lagreSertifiseringValg(
-                    deltakerlisteId = deltakerlisteId,
-                    sertifiseringValg = internalSertifiseringValg,
-                )
-            }
-        }
     }
 
     companion object {

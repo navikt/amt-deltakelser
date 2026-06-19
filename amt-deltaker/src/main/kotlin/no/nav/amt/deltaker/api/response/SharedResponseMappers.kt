@@ -11,9 +11,9 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.internapi.enkeltplass.UtflatetKodeverk
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Vurdering
-import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -60,8 +60,7 @@ internal object SharedResponseMappers {
     fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
         arrangorService: ArrangorService,
-        kodeverkValg: Set<UUID>,
-        sertifiseringValg: Set<SertifiseringValg>,
+        utflatetKodeverk: UtflatetKodeverk?,
         prisinformasjon: PrisinformasjonDto? = null,
     ) = GjennomforingResponse(
         id = deltakerliste.id,
@@ -86,8 +85,7 @@ internal object SharedResponseMappers {
         },
         pameldingstype = deltakerliste.pameldingstype,
         type = deltakerliste.gjennomforingstype,
-        kodeverkValg = kodeverkValg,
-        sertifiseringValg = sertifiseringValg,
+        utflatetKodeverk = utflatetKodeverk,
         prisinformasjon = prisinformasjon,
     )
 

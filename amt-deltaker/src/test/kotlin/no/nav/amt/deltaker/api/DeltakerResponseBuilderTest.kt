@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.api
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -14,16 +13,18 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.KodeverkValgRepository
-import no.nav.amt.deltaker.repository.SertifiseringValgRepository
+import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.UtflatetKodeverk
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -53,28 +54,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     override val navEnhetService: NavEnhetService = mockk()
     override val navAnsattService: NavAnsattService = mockk()
     override val deltakerHistorikkService: DeltakerHistorikkService = mockk()
-
-    @Nested
-    inner class CacheTests {
-        val idInTest: UUID = UUID.randomUUID()
-        val cache = GenericCache(
-            cacheName = "fooCache",
-            items = listOf("foo"),
-            idSelector = { idInTest },
-        )
-
-        @Test
-        fun `getOrThrow - skal returnere cachet verdi`() {
-            cache.getOrThrow(idInTest) shouldBe "foo"
-        }
-
-        @Test
-        fun `getOrThrow - skal kaste feil hvis nokkel ikke finnes i cache`() {
-            shouldThrow<NoSuchElementException> {
-                cache.getOrThrow(UUID.randomUUID())
-            }
-        }
-    }
 
     @Test
     fun `buildNavBrukerResponseFromNavBruker - skal mappe innbygger korrekt`() = runTest {
@@ -138,7 +117,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     @Test
     fun `buildGjennomforingResponse - skal mappe deltakerliste korrekt`() {
         // Arrange
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+        val deltakerliste = lagDeltakerliste(
             status = GjennomforingStatusType.GJENNOMFORES,
             startDato = LocalDate.now(),
             sluttDato = LocalDate.now().plusDays(1),
@@ -177,37 +156,43 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     @Test
     fun `buildGjennomforingResponse - enkeltplass med includeKodeverk - henter kodeverk og sertifiseringer`() {
         // Arrange
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+        val deltakerliste = lagDeltakerliste(
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
-        val kodeverkValg = setOf(UUID.randomUUID())
-        val sertifiseringer = setOf(
-            SertifiseringValg(id = 1, navn = "Truckfører T1"),
+
+        val utflatetKodeverk = UtflatetKodeverk(
+            valgteSertifiseringer = setOf(
+                SertifiseringValg(id = 1, navn = "Truckfører T1"),
+            ),
+            valgteKategoriseringer = setOf(
+                UtflatetKodeverk.ValgteFelt(
+                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    valg = mapOf(UUID.randomUUID() to "Bygg og anlegg"),
+                ),
+            ),
         )
 
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
-        mockkObject(KodeverkValgRepository)
-        mockkObject(SertifiseringValgRepository)
+        mockkObject(OpplaeringKategoriseringRepoAdapter)
         try {
-            every { KodeverkValgRepository.hentKodeverkValg(deltakerliste.id) } returns kodeverkValg
-            every { SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id) } returns sertifiseringer
+            every {
+                OpplaeringKategoriseringRepoAdapter.hentUtflatetKodeverk(deltakerliste.id)
+            } returns utflatetKodeverk
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
 
             // Assert
-            response.kodeverkValg shouldBe kodeverkValg
-            response.sertifiseringValg shouldBe sertifiseringer
+            response.utflatetKodeverk shouldBe utflatetKodeverk
         } finally {
-            unmockkObject(KodeverkValgRepository)
-            unmockkObject(SertifiseringValgRepository)
+            unmockkObject(OpplaeringKategoriseringRepoAdapter)
         }
     }
 
     @Test
-    fun `buildGjennomforingResponse - ikke enkeltplass med includeKodeverk - returnerer tomme sett`() {
+    fun `buildGjennomforingResponse - ikke enkeltplass med includeKodeverk - returnerer ikke utflatet kodeverk`() {
         // Arrange
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+        val deltakerliste = lagDeltakerliste(
             gjennomforingstype = GjennomforingType.Gruppe,
         )
 
@@ -217,14 +202,13 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
 
         // Assert
-        response.kodeverkValg shouldBe emptySet()
-        response.sertifiseringValg shouldBe emptySet()
+        response.utflatetKodeverk shouldBe null
     }
 
     @Test
-    fun `buildGjennomforingResponse - enkeltplass uten includeKodeverk - returnerer tomme sett`() {
+    fun `buildGjennomforingResponse - enkeltplass uten includeKodeverk - returnerer ikke utflatet kodever`() {
         // Arrange
-        val deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+        val deltakerliste = lagDeltakerliste(
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
 
@@ -234,8 +218,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = false)
 
         // Assert
-        response.kodeverkValg shouldBe emptySet()
-        response.sertifiseringValg shouldBe emptySet()
+        response.utflatetKodeverk shouldBe null
     }
 
     @Test

@@ -413,7 +413,6 @@ fun Application.module() {
         distribuerEndringService = distribuerEndringService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
         enkeltplassService = enkeltplassService,
-        kodeverkClient = kodeverkClient,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(

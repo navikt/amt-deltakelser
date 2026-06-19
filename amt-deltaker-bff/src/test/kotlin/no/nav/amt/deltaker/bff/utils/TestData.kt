@@ -153,7 +153,6 @@ object TestData {
         pameldingstype = pameldingType,
         type = GjennomforingType.Gruppe,
         antallPlasser = null,
-        kodeverkValg = emptySet(),
     )
 
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()

@@ -4,6 +4,7 @@ import kotliquery.queryOf
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
+@Deprecated("Denne tabellen og tilhørende repository er ikke i bruk, og bør fjernes")
 object KodeverkValgRepository {
     fun lagreKodeverkValg(
         deltakerlisteId: UUID,
