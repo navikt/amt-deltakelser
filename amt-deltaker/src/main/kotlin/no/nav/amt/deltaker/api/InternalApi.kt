@@ -14,7 +14,6 @@ import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
-import no.nav.amt.deltaker.enkeltplass.toValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
@@ -22,9 +21,6 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
-import no.nav.amt.deltaker.repository.KodeverkValgRepository
-import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
@@ -34,7 +30,6 @@ import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -58,8 +53,6 @@ fun Routing.registerInternalApi(
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
     gjennomforingRequestProducer: GjennomforingRequestProducer,
-    kodeverkClient: KodeverkClient,
-    deltakerlisteRepository: DeltakerlisteRepository,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
     val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -96,33 +89,6 @@ fun Routing.registerInternalApi(
     }
 
     route("/internal") {
-        // TODO: skal slettes etter migrering
-        post("/migrer-kodeverk") {
-            requireInternal(call.request.local.remoteAddress)
-
-            val gjennomforingIder = KodeverkValgRepository.hentGjennomforingerSomSkalMigreresTilNyTabell()
-
-            gjennomforingIder.forEach { gjennomforingId ->
-                val gjennomforing = deltakerlisteRepository.get(gjennomforingId).getOrThrow()
-
-                val kodeverk = kodeverkClient.hentKodeverk(gjennomforing.tiltakstype.tiltakskode)
-
-                val valgteKategoriseringer = KodeverkValgRepository.hentKodeverkValg(gjennomforingId)
-
-                val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-                    kodeverkValg = valgteKategoriseringer,
-                    sertifiseringValg = emptySet(),
-                )
-
-                OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
-                    gjennomforingId = gjennomforingId,
-                    valgteKategoriseringer = valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer,
-                    valgteSertifiseringer = null,
-                )
-            }
-            call.respond(HttpStatusCode.OK)
-        }
-
         post("/sett-ikke-aktuell/{fra-status}") {
             requireInternal(call.request.local.remoteAddress)
             scope.launch {

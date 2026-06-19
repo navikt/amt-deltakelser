@@ -469,7 +469,6 @@ abstract class IntegrationTestBase {
                     tiltakskoordinatorService = tiltakskoordinatorService,
                     forslagService = forslagService,
                     forslagRepository = forslagRepository,
-                    kodeverkClient = kodeverkClient,
                 )
                 setUpTestRoute()
 

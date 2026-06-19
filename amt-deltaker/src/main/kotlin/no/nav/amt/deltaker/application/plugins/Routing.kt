@@ -48,7 +48,6 @@ import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
 import no.nav.amt.lib.ktor.routing.registerHealthApi
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
@@ -89,7 +88,6 @@ fun Application.configureRouting(
     gjennomforingRequestProducer: GjennomforingRequestProducer,
     forslagService: ForslagService,
     forslagRepository: ForslagRepository,
-    kodeverkClient: KodeverkClient,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -158,8 +156,6 @@ fun Application.configureRouting(
             navAnsattService,
             navEnhetService,
             gjennomforingRequestProducer,
-            kodeverkClient = kodeverkClient,
-            deltakerlisteRepository = deltakerlisteRepository,
         )
 
         registerTiltakskoordinatorApi(
