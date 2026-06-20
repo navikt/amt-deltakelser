@@ -55,7 +55,7 @@ class OpplaringKategoriseringClientTest {
         fun `skal bruke cache ved andre kall til hentOpplaringKategorisering`() = runTest {
             val countingCache = CountingCache<Tiltakskode, OpplaringKategoriseringResponse>()
 
-            val kodeverkClient = createKodeverkClient(
+            val opplaringKategoriseringClient = createOpplaringKategoriseringClient(
                 expectedUrl = KATEGORISERINGER_EXPECTED_URL,
                 responseBody = OpplaringKategoriseringResponse(
                     tiltakskode = tiltakskodeInTest,
@@ -64,8 +64,8 @@ class OpplaringKategoriseringClientTest {
                 cache = countingCache,
             )
 
-            kodeverkClient.hentOpplaringKategorisering(tiltakskodeInTest)
-            kodeverkClient.hentOpplaringKategorisering(tiltakskodeInTest)
+            opplaringKategoriseringClient.hentOpplaringKategorisering(tiltakskodeInTest)
+            opplaringKategoriseringClient.hentOpplaringKategorisering(tiltakskodeInTest)
 
             countingCache.putCount shouldBe 1
         }
@@ -122,7 +122,7 @@ class OpplaringKategoriseringClientTest {
             block: suspend (OpplaringKategoriseringClient) -> Any,
         ) {
             val thrown = assertThrows(exceptionType.java) {
-                runTest { block(createKodeverkClient(expectedUrl, statusCode)) }
+                runTest { block(createOpplaringKategoriseringClient(expectedUrl, statusCode)) }
             }
             thrown.message shouldStartWith expectedErrorMessage
         }
@@ -132,20 +132,20 @@ class OpplaringKategoriseringClientTest {
             expectedResponse: T,
             block: suspend (OpplaringKategoriseringClient) -> T,
         ) {
-            val kodeverkClient = createKodeverkClient(
+            val opplaringKategoriseringClient = createOpplaringKategoriseringClient(
                 expectedUrl = expectedUrl,
                 statusCode = HttpStatusCode.OK,
                 responseBody = expectedResponse,
             )
 
             if (expectedResponse == null) {
-                shouldNotThrowAny { block(kodeverkClient) }
+                shouldNotThrowAny { block(opplaringKategoriseringClient) }
             } else {
-                block(kodeverkClient) shouldBe expectedResponse
+                block(opplaringKategoriseringClient) shouldBe expectedResponse
             }
         }
 
-        private fun createKodeverkClient(
+        private fun createOpplaringKategoriseringClient(
             expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,

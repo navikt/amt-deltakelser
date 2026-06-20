@@ -63,7 +63,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         setupDatabaseMocks()
         setupRepositoryMocks()
         setupNavEnhetOgAnsattMocks()
-        setupKodeverkClientMocks()
+        setupOpplaringKategoriseringClientMocks()
         stubDefaultDeltakere()
         every {
             deltakerProducerService.produce(
@@ -138,7 +138,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsattInTest.navIdent) } returns navAnsattInTest
     }
 
-    private fun setupKodeverkClientMocks() {
+    private fun setupOpplaringKategoriseringClientMocks() {
         coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
             alternativer = emptyList(),

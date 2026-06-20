@@ -73,7 +73,7 @@ data class OpplaringKategoriseringResponse(
         )
     }
 
-    private fun Alternativ.Verdi.settValg(kodeverkValg: Set<UUID>): Alternativ.Verdi = copy(valgt = id in kodeverkValg)
+    private fun Alternativ.Verdi.settValg(verdivalg: Set<UUID>): Alternativ.Verdi = copy(valgt = id in verdivalg)
 
     /**
      * Angir hvordan brukeren kan velge blant verdiene i en [Alternativ.Verdigruppe].
