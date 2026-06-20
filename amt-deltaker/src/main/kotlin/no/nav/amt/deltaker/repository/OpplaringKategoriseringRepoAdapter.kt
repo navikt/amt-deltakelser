@@ -70,7 +70,7 @@ object OpplaringKategoriseringRepoAdapter {
 
             if (valgteSertifiseringer.isNotEmpty()) {
                 SertifiseringValgRepository.lagreSertifiseringValg(
-                    deltakerlisteId = gjennomforingId,
+                    gjennomforingId = gjennomforingId,
                     sertifiseringValg = valgteSertifiseringer,
                 )
             }

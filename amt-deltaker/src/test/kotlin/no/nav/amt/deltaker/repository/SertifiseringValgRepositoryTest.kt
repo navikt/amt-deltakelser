@@ -26,7 +26,10 @@ class SertifiseringValgRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             // Act
-            SertifiseringValgRepository.lagreSertifiseringValg(deltakerliste.id, emptySet())
+            SertifiseringValgRepository.lagreSertifiseringValg(
+                gjennomforingId = deltakerliste.id,
+                sertifiseringValg = emptySet(),
+            )
 
             // Assert
             SertifiseringValgRepository.hentSertifiseringValg(deltakerliste.id).shouldBeEmpty()
@@ -44,7 +47,10 @@ class SertifiseringValgRepositoryTest {
             )
 
             // Act
-            SertifiseringValgRepository.lagreSertifiseringValg(deltakerliste.id, sertifiseringer)
+            SertifiseringValgRepository.lagreSertifiseringValg(
+                gjennomforingId = deltakerliste.id,
+                sertifiseringValg = sertifiseringer,
+            )
 
             // Assert
             SertifiseringValgRepository
@@ -64,8 +70,14 @@ class SertifiseringValgRepositoryTest {
             val sertifiseringer2 = setOf(SertifiseringValg(id = 2, navn = "Truckfører T2"))
 
             // Act
-            SertifiseringValgRepository.lagreSertifiseringValg(deltakerliste1.id, sertifiseringer1)
-            SertifiseringValgRepository.lagreSertifiseringValg(deltakerliste2.id, sertifiseringer2)
+            SertifiseringValgRepository.lagreSertifiseringValg(
+                gjennomforingId = deltakerliste1.id,
+                sertifiseringValg = sertifiseringer1,
+            )
+            SertifiseringValgRepository.lagreSertifiseringValg(
+                gjennomforingId = deltakerliste2.id,
+                sertifiseringValg = sertifiseringer2,
+            )
 
             // Assert
             SertifiseringValgRepository.hentSertifiseringValg(deltakerliste1.id) shouldBe sertifiseringer1
@@ -100,7 +112,10 @@ class SertifiseringValgRepositoryTest {
                 SertifiseringValg(id = 1, navn = "Truckfører T1"),
                 SertifiseringValg(id = 2, navn = "Truckfører T2"),
             )
-            SertifiseringValgRepository.lagreSertifiseringValg(deltakerliste1.id, sertifiseringer)
+            SertifiseringValgRepository.lagreSertifiseringValg(
+                gjennomforingId = deltakerliste1.id,
+                sertifiseringValg = sertifiseringer,
+            )
 
             // Act
             val resultat = SertifiseringValgRepository.hentSertifiseringValg(deltakerliste2.id)
@@ -118,8 +133,8 @@ class SertifiseringValgRepositoryTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
             SertifiseringValgRepository.lagreSertifiseringValg(
-                deltakerliste.id,
-                setOf(
+                gjennomforingId = deltakerliste.id,
+                sertifiseringValg = setOf(
                     SertifiseringValg(id = 1, navn = "Truckfører T1"),
                     SertifiseringValg(id = 2, navn = "Truckfører T2"),
                 ),
@@ -141,8 +156,14 @@ class SertifiseringValgRepositoryTest {
             TestRepository.insert(deltakerliste2)
 
             val sertifiseringer = setOf(SertifiseringValg(id = 1, navn = "Truckfører T1"))
-            SertifiseringValgRepository.lagreSertifiseringValg(deltakerliste1.id, sertifiseringer)
-            SertifiseringValgRepository.lagreSertifiseringValg(deltakerliste2.id, sertifiseringer)
+            SertifiseringValgRepository.lagreSertifiseringValg(
+                gjennomforingId = deltakerliste1.id,
+                sertifiseringValg = sertifiseringer,
+            )
+            SertifiseringValgRepository.lagreSertifiseringValg(
+                gjennomforingId = deltakerliste2.id,
+                sertifiseringValg = sertifiseringer,
+            )
 
             // Act
             SertifiseringValgRepository.deleteForGjennomforing(deltakerliste1.id)

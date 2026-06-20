@@ -7,7 +7,7 @@ import java.util.UUID
 
 object SertifiseringValgRepository {
     fun lagreSertifiseringValg(
-        deltakerlisteId: UUID,
+        gjennomforingId: UUID,
         sertifiseringValg: Set<SertifiseringValg>,
     ) {
         val insertSql =
@@ -26,7 +26,7 @@ object SertifiseringValgRepository {
 
         val params = sertifiseringValg.map {
             mapOf(
-                "deltakerliste_id" to deltakerlisteId,
+                "deltakerliste_id" to gjennomforingId,
                 "sertifisering_id" to it.id,
                 "sertifisering_navn" to it.navn,
             )
@@ -39,7 +39,7 @@ object SertifiseringValgRepository {
         }
     }
 
-    fun hentSertifiseringValg(deltakerlisteId: UUID): Set<SertifiseringValg> {
+    fun hentSertifiseringValg(gjennomforingId: UUID): Set<SertifiseringValg> {
         val sql =
             """
             SELECT 
@@ -52,7 +52,7 @@ object SertifiseringValgRepository {
         return Database
             .query { session ->
                 session.run(
-                    queryOf(sql, deltakerlisteId)
+                    queryOf(sql, gjennomforingId)
                         .map { row ->
                             SertifiseringValg(
                                 id = row.long("sertifisering_id"),
