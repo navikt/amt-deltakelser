@@ -72,7 +72,7 @@ class ModelMapper {
                 arrangor = arrangor?.let { toArrangor(it) },
                 pameldingstype = pameldingstype,
                 prisinformasjon = prisinformasjon,
-                valgteKategoriseringerOgSertifiseringer = utflatetKodeverk,
+                opplaringKategoriseringValg = opplaringKategoriseringValg,
             )
         }
 

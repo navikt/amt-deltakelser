@@ -12,12 +12,12 @@ import no.nav.amt.lib.ktor.clients.failIfNotSuccess
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.Duration
 
-class KodeverkClient(
+class OpplaringKategoriseringClient(
     baseUrl: String,
     scope: String,
     httpClient: HttpClient,
     azureAdTokenClient: AzureAdTokenClient,
-    private val kodeverkCache: Cache<Tiltakskode, OpplaringKategoriseringResponse> = Caffeine
+    private val kategoriseringCache: Cache<Tiltakskode, OpplaringKategoriseringResponse> = Caffeine
         .newBuilder()
         .expireAfterWrite(Duration.ofMinutes(15))
         .build(),
@@ -27,12 +27,13 @@ class KodeverkClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun hentKodeverk(tiltakskode: Tiltakskode): OpplaringKategoriseringResponse = kodeverkCache.getIfPresent(tiltakskode)
-        ?: performGet("api/kodeverk/opplaring/kategorisering") {
-            parameter("tiltakskode", tiltakskode)
-        }.failIfNotSuccess("Kunne ikke hente kodeverk for tiltakskode $tiltakskode fra Mulighetsrommet")
-            .body<OpplaringKategoriseringResponse>()
-            .also { kodeverkCache.put(tiltakskode, it) }
+    suspend fun hentOpplaringKategorisering(tiltakskode: Tiltakskode): OpplaringKategoriseringResponse =
+        kategoriseringCache.getIfPresent(tiltakskode)
+            ?: performGet("api/kodeverk/opplaring/kategorisering") {
+                parameter("tiltakskode", tiltakskode)
+            }.failIfNotSuccess("Kunne ikke hente opplæringkategorisering for tiltakskode $tiltakskode fra Mulighetsrommet")
+                .body<OpplaringKategoriseringResponse>()
+                .also { kategoriseringCache.put(tiltakskode, it) }
 
     suspend fun sertifiseringSok(term: String): List<SertifiseringResponse> = performGet("api/kodeverk/opplaring/sertifiseringer/sok") {
         parameter("q", term)

@@ -12,7 +12,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
-import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
+import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
@@ -23,8 +23,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -34,7 +33,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
@@ -53,7 +51,7 @@ class EnkeltplassService(
     private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val arrangorService: ArrangorService,
-    private val kodeverkClient: KodeverkClient,
+    private val opplaringKategoriseringClient: OpplaringKategoriseringClient,
     private val deltakerProducerService: DeltakerProducerService,
 ) {
     suspend fun opprettKladd(
@@ -191,7 +189,7 @@ class EnkeltplassService(
             }.organisasjonsnummer,
             ansvarligEnhet = ansvarligEnhet.enhetsnummer,
             opprettetAv = ansvarligNavAnsatt.navIdent,
-            kategorisering = OpplaeringKategoriseringRepoAdapter.hentKategoriseringerOgSertifiseringerForMulighetsrommet(gjennomforing.id),
+            kategorisering = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(gjennomforing.id),
         )
 
         produceUpsertGjennomforing(
@@ -216,7 +214,9 @@ class EnkeltplassService(
             )
         }
 
-        val kategoriseringResponse = kodeverkClient.hentKodeverk(deltaker.deltakerliste.tiltakstype.tiltakskode)
+        val kategoriseringResponse = opplaringKategoriseringClient.hentOpplaringKategorisering(
+            deltaker.deltakerliste.tiltakstype.tiltakskode,
+        )
 
         Database.transaction {
             deltakerlisteRepository.update(
@@ -242,18 +242,18 @@ class EnkeltplassService(
                 )
             }
 
-            val valgteKategoriseringerOgSertifiseringer = kategoriseringResponse.toValgteKategoriseringerOgSertifiseringer(
-                kodeverkValg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
+            val opplaringKategoriseringValg = kategoriseringResponse.toOpplaringKategoriseringValg(
+                verdivalg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
                 sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
             )
 
-            OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
+            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
                 gjennomforingId = deltaker.deltakerliste.id,
-                valgteKategoriseringer = oppdaterKladdRequest.kodeverkValg?.let {
-                    valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer
+                valgteVerdier = oppdaterKladdRequest.kodeverkValg?.let {
+                    opplaringKategoriseringValg.valgteKategoriseringer
                 },
                 valgteSertifiseringer = oppdaterKladdRequest.sertifiseringValg?.let {
-                    valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer
+                    opplaringKategoriseringValg.valgteSertifiseringer
                 },
             )
         }
@@ -283,7 +283,7 @@ class EnkeltplassService(
         val arrangor = arrangorService.hentArrangor(request.arrangorUnderenhet)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
-        val kodeverk = kodeverkClient.hentKodeverk(gjennomforing.tiltakstype.tiltakskode)
+        val kategoriseringResponse = opplaringKategoriseringClient.hentOpplaringKategorisering(gjennomforing.tiltakstype.tiltakskode)
 
         return Database.transaction {
             deltakerService.lagreDeltakerStatus(
@@ -313,15 +313,15 @@ class EnkeltplassService(
                 prisinformasjon = request.prisinformasjon,
             )
 
-            val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-                kodeverkValg = request.kodeverkValg ?: emptySet(),
+            val opplaringKategoriseringValg = kategoriseringResponse.toOpplaringKategoriseringValg(
+                verdivalg = request.kodeverkValg ?: emptySet(),
                 sertifiseringValg = request.sertifiseringValg ?: emptySet(),
             )
 
-            OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
+            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
                 gjennomforingId = gjennomforing.id,
-                valgteKategoriseringer = request.kodeverkValg?.let { valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer },
-                valgteSertifiseringer = request.sertifiseringValg?.let { valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer },
+                valgteVerdier = request.kodeverkValg?.let { opplaringKategoriseringValg.valgteKategoriseringer },
+                valgteSertifiseringer = request.sertifiseringValg?.let { opplaringKategoriseringValg.valgteSertifiseringer },
             )
 
             val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
@@ -345,9 +345,8 @@ class EnkeltplassService(
                 organisasjonsnummer = request.arrangorUnderenhet,
                 ansvarligEnhet = decoratedRequest.endretAvEnhet,
                 opprettetAv = decoratedRequest.endretAv,
-                kategorisering = kodeverk.toOpplaringKategorisering(
-                    kodeverkValg = request.kodeverkValg,
-                    sertifiseringValg = request.sertifiseringValg,
+                kategorisering = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(
+                    gjennomforing.id,
                 ),
             )
 
@@ -411,16 +410,5 @@ class EnkeltplassService(
                 innhold = beskrivelse?.let { listOf(Innhold.createFritekstInnhold(it)) } ?: emptyList(),
             ),
         )
-
-        private fun OpplaringKategoriseringResponse.toOpplaringKategorisering(
-            kodeverkValg: Set<UUID>?,
-            sertifiseringValg: Set<SertifiseringValg>?,
-        ): GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering =
-            GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
-                verdier = kodeverkValg
-                    ?.let { grupperKodeverkvalgPerRepresenterer(it) }
-                    ?: emptyMap(),
-                sertifiseringer = sertifiseringValg ?: emptySet(),
-            )
     }
 }

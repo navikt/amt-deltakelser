@@ -19,7 +19,7 @@ import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
+import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerService
@@ -63,7 +63,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         setupDatabaseMocks()
         setupRepositoryMocks()
         setupNavEnhetOgAnsattMocks()
-        setupKodeverkClientMocks()
+        setupOpplaringKategoriseringClientMocks()
         stubDefaultDeltakere()
         every {
             deltakerProducerService.produce(
@@ -84,7 +84,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() {
         unmockkObject(SertifiseringValgRepository)
-        unmockkObject(OpplaeringKategoriseringRepoAdapter)
+        unmockkObject(OpplaringKategoriseringRepoAdapter)
         unmockkObject(PrisinfoRepoAdapter)
     }
 
@@ -113,17 +113,17 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         every { SertifiseringValgRepository.lagreSertifiseringValg(any(), any()) } just Runs
         every { SertifiseringValgRepository.hentSertifiseringValg(any()) } returns emptySet()
 
-        mockkObject(OpplaeringKategoriseringRepoAdapter)
+        mockkObject(OpplaringKategoriseringRepoAdapter)
         every {
-            OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
+            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
                 gjennomforingId = any(),
-                valgteKategoriseringer = any(),
+                valgteVerdier = any(),
                 valgteSertifiseringer = any(),
             )
         } just Runs
 
         every {
-            OpplaeringKategoriseringRepoAdapter.hentKategoriseringerOgSertifiseringerForMulighetsrommet(any())
+            OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(any())
         } returns GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
             sertifiseringer = emptySet(),
             verdier = emptyMap(),
@@ -138,8 +138,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(navAnsattInTest.navIdent) } returns navAnsattInTest
     }
 
-    private fun setupKodeverkClientMocks() {
-        coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
+    private fun setupOpplaringKategoriseringClientMocks() {
+        coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
             alternativer = emptyList(),
         )
@@ -206,9 +206,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
+                OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
-                    valgteKategoriseringer = null,
+                    valgteVerdier = null,
                     valgteSertifiseringer = sertifiseringer,
                 )
             }
@@ -230,9 +230,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                OpplaeringKategoriseringRepoAdapter.lagreKategorisering(
+                OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
-                    valgteKategoriseringer = null,
+                    valgteVerdier = null,
                     valgteSertifiseringer = emptySet(),
                 )
             }

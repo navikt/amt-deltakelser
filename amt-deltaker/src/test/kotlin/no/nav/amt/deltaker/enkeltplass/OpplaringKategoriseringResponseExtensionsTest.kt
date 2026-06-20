@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.enkeltplass
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test
@@ -15,7 +15,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         val valgtUtdanningsprogramId = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
@@ -51,19 +51,19 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         // Act
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
         // Assert
-        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
+        valgteKategoriseringerOgSertifiseringer shouldBe OpplaringKategoriseringValg(
             valgteKategoriseringer = setOf(
-                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+                OpplaringKategoriseringValg.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                     valg = mapOf(valgtUtdanningsprogramId to "Helse- og oppvekstfag"),
                 ),
-                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+                OpplaringKategoriseringValg.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                     valg = mapOf(valgtLaerefagId to "Helsearbeiderfaget"),
                 ),
@@ -79,7 +79,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         val valgtForerkortId = UUID.randomUUID()
         val sertifiseringValg = setOf(SertifiseringValg(id = 1, navn = "Truckførerbevis"))
 
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
@@ -124,19 +124,19 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         // Act
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = setOf(valgtBransjeId, valgtForerkortId),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtBransjeId, valgtForerkortId),
             sertifiseringValg = sertifiseringValg,
         )
 
         // Assert
-        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
+        valgteKategoriseringerOgSertifiseringer shouldBe OpplaringKategoriseringValg(
             valgteKategoriseringer = setOf(
-                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+                OpplaringKategoriseringValg.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                     valg = mapOf(valgtBransjeId to "Bygg og anlegg"),
                 ),
-                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+                OpplaringKategoriseringValg.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
                     valg = mapOf(valgtForerkortId to "B - Personbil"),
                 ),
@@ -149,7 +149,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut kurs`() {
         val valgtKurstypeId = UUID.randomUUID()
 
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
@@ -172,14 +172,14 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = setOf(valgtKurstypeId),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtKurstypeId),
             sertifiseringValg = emptySet(),
         )
 
-        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
+        valgteKategoriseringerOgSertifiseringer shouldBe OpplaringKategoriseringValg(
             valgteKategoriseringer = setOf(
-                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+                OpplaringKategoriseringValg.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.KURSTYPE_ID,
                     valg = mapOf(valgtKurstypeId to "Grunnleggende ferdigheter"),
                 ),
@@ -190,7 +190,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
 
     @Test
     fun `tilvalgteKategoriseringerOgSertifiseringer - tomt resultat nar ingenting er valgt`() {
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
@@ -209,12 +209,12 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = emptySet(),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
-        valgteKategoriseringerOgSertifiseringer shouldBe ValgteKategoriseringerOgSertifiseringer(
+        valgteKategoriseringerOgSertifiseringer shouldBe OpplaringKategoriseringValg(
             valgteKategoriseringer = emptySet(),
             valgteSertifiseringer = emptySet(),
         )
@@ -222,7 +222,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
 
     @Test
     fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - ingen utdanninger valgt - returnerer tomt`() {
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
@@ -255,8 +255,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = emptySet(),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
@@ -265,7 +265,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
 
     @Test
     fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - tom utdanninger liste - returnerer tomt`() {
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
@@ -278,8 +278,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = emptySet(),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
@@ -290,7 +290,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     fun `kun utdanning valgt - returnerer utdanningsprogram og tomme larefag`() {
         val valgtUtdanningsprogramId = UUID.randomUUID()
 
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
@@ -328,17 +328,17 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = setOf(valgtUtdanningsprogramId),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId),
             sertifiseringValg = emptySet(),
         )
 
         valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Valgt Program"),
             ),
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = emptyMap(),
             ),
@@ -351,7 +351,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         val valgtLaerefagId1 = UUID.randomUUID()
         val valgtLaerefagId2 = UUID.randomUUID()
 
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
@@ -394,17 +394,17 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId1, valgtLaerefagId2),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId1, valgtLaerefagId2),
             sertifiseringValg = emptySet(),
         )
 
         valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Program med larefag"),
             ),
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(
                     valgtLaerefagId1 to "Larefag 1",
@@ -419,7 +419,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         val valgtUtdanningsprogramId1 = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
@@ -471,18 +471,18 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = setOf(valgtUtdanningsprogramId1, valgtLaerefagId),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId1, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
         // Should find the first utdanning that has valgte larefag
         valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId1 to "Program 1"),
             ),
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Larefag valgt"),
             ),
@@ -494,7 +494,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         val valgtUtdanningsprogramId2 = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
@@ -546,17 +546,17 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = setOf(valgtUtdanningsprogramId2, valgtLaerefagId),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId2, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
         valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId2 to "Program 2"),
             ),
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Larefag fra program 2"),
             ),
@@ -568,7 +568,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         val valgtUtdanningsprogramId = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
-        val kodeverk = OpplaringKategoriseringResponse(
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
                 OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
@@ -606,17 +606,17 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            kodeverkValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
+        val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
         valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer shouldBe setOf(
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Fullt valgt program"),
             ),
-            ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+            OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
                 valg = mapOf(valgtLaerefagId to "Valgt larefag"),
             ),

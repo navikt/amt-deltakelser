@@ -64,7 +64,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         coEvery { personServiceClient.hentNavAnsatt(sistEndretAvNavAnsatt.id) } returns sistEndretAvNavAnsatt
         coEvery { personServiceClient.hentNavBruker(navBrukerInTest.personident) } returns navBrukerInTest
 
-        coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
+        coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
             alternativer = emptyList(),
             sertifiseringValg = emptySet(),

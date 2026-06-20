@@ -3,7 +3,11 @@ package no.nav.amt.internapi.enkeltplass
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
-data class ValgteKategoriseringerOgSertifiseringer(
+/**
+ * Benyttes både i APIer mot frontend, og i intern-APIer.
+ *
+ */
+data class OpplaringKategoriseringValg(
     val valgteKategoriseringer: Set<ValgteFelt>,
     val valgteSertifiseringer: Set<SertifiseringValg>,
 ) {

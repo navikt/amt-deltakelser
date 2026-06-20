@@ -67,7 +67,7 @@ class OpplaringKategoriseringResponseTest {
             val verdiBId = UUID.randomUUID()
             val verdiCId = UUID.randomUUID()
 
-            val kodeverk = OpplaringKategoriseringResponse(
+            val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
                 tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 alternativer = listOf(
                     OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
@@ -85,7 +85,7 @@ class OpplaringKategoriseringResponseTest {
                 ),
             )
 
-            val resultat = kodeverk.settValgt(setOf(verdiAId, verdiBId), emptySet())
+            val resultat = opplaringKategoriseringResponse.settValg(setOf(verdiAId, verdiBId), emptySet())
 
             val verdier = (resultat.alternativer[0] as OpplaringKategoriseringResponse.Alternativ.Verdigruppe).alternativer
             verdier.first { it.id == verdiAId }.valgt shouldBe true
@@ -97,7 +97,7 @@ class OpplaringKategoriseringResponseTest {
         fun `settValgt - tom set setter alle valgt til false`() {
             val verdiId = UUID.randomUUID()
 
-            val kodeverk = OpplaringKategoriseringResponse(
+            val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
                 tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 alternativer = listOf(
                     OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
@@ -113,7 +113,7 @@ class OpplaringKategoriseringResponseTest {
                 ),
             )
 
-            val resultat = kodeverk.settValgt(emptySet(), emptySet())
+            val resultat = opplaringKategoriseringResponse.settValg(emptySet(), emptySet())
 
             val verdigruppe = resultat.alternativer[0] as OpplaringKategoriseringResponse.Alternativ.Verdigruppe
             verdigruppe.alternativer[0].valgt shouldBe false
@@ -131,164 +131,14 @@ class OpplaringKategoriseringResponseTest {
                 kilde = OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok.Kilde.JANZZ_SERTIFISERING,
             )
 
-            val kodeverk = OpplaringKategoriseringResponse(
+            val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
                 tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 alternativer = listOf(verdigruppeSok),
             )
 
-            val resultat = kodeverk.settValgt(setOf(sokId, UUID.randomUUID()), emptySet())
+            val resultat = opplaringKategoriseringResponse.settValg(setOf(sokId, UUID.randomUUID()), emptySet())
 
             resultat.alternativer[0] shouldBe verdigruppeSok
-        }
-    }
-
-    @Nested
-    inner class GrupperKodeverkvalgPerRepresentererTests {
-        @Test
-        fun `grupperKodeverkvalgPerRepresenterer - returnerer tomt map ved ingen valgte ider`() {
-            val verdiId = UUID.randomUUID()
-            val kodeverk = OpplaringKategoriseringResponse(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                alternativer = listOf(
-                    OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                        id = UUID.randomUUID(),
-                        visningsnavn = "Bransje",
-                        pakrevd = true,
-                        representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
-                        seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
-                        alternativer = listOf(
-                            OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                id = verdiId,
-                                visningsnavn = "Bygg og anlegg",
-                            ),
-                        ),
-                    ),
-                ),
-            )
-
-            val resultat = kodeverk.grupperKodeverkvalgPerRepresenterer(emptySet())
-
-            resultat shouldBe emptyMap()
-        }
-
-        @Test
-        fun `grupperKodeverkvalgPerRepresenterer - grupperer valgte verdier per representerer`() {
-            val valgtBransjeId = UUID.randomUUID()
-            val ikkeValgtBransjeId = UUID.randomUUID()
-            val valgtForerkortId = UUID.randomUUID()
-
-            val kodeverk = OpplaringKategoriseringResponse(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                alternativer = listOf(
-                    OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                        id = UUID.randomUUID(),
-                        visningsnavn = "Bransje",
-                        pakrevd = true,
-                        representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
-                        seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
-                        alternativer = listOf(
-                            OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                id = valgtBransjeId,
-                                visningsnavn = "Bygg og anlegg",
-                            ),
-                            OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                id = ikkeValgtBransjeId,
-                                visningsnavn = "Helse og omsorg",
-                            ),
-                        ),
-                    ),
-                    OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                        id = UUID.randomUUID(),
-                        visningsnavn = "Førerkortklasse",
-                        pakrevd = false,
-                        representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
-                        seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
-                        alternativer = listOf(
-                            OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                id = valgtForerkortId,
-                                visningsnavn = "B",
-                            ),
-                        ),
-                    ),
-                    OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok(
-                        id = UUID.randomUUID(),
-                        visningsnavn = "Sertifiseringer",
-                        pakrevd = false,
-                        representerer = OpplaringKategoriseringResponse.Representerer.SERTIFISERINGER,
-                        seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
-                        kilde = OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok.Kilde.JANZZ_SERTIFISERING,
-                    ),
-                ),
-            )
-
-            val resultat = kodeverk.grupperKodeverkvalgPerRepresenterer(setOf(valgtBransjeId, valgtForerkortId))
-
-            resultat shouldBe mapOf(
-                OpplaringKategoriseringResponse.Representerer.BRANSJE_ID to setOf(valgtBransjeId),
-                OpplaringKategoriseringResponse.Representerer.FORERKORT to setOf(valgtForerkortId),
-            )
-        }
-
-        @Test
-        fun `grupperKodeverkvalgPerRepresenterer - inkluderer valgt utdanningsprogram og larefag`() {
-            val valgtProgramId = UUID.randomUUID()
-            val ikkeValgtProgramId = UUID.randomUUID()
-            val valgtLarefagId = UUID.randomUUID()
-            val ikkeValgtLarefagId = UUID.randomUUID()
-
-            val kodeverk = OpplaringKategoriseringResponse(
-                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                alternativer = listOf(
-                    OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe(
-                        id = UUID.randomUUID(),
-                        visningsnavn = "Utdanningsprogram",
-                        representerer = OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID,
-                        pakrevd = true,
-                        utdanninger = listOf(
-                            OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.UtdanningValg(
-                                id = valgtProgramId,
-                                visningsnavn = "Helse og oppvekst",
-                                larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                    id = UUID.randomUUID(),
-                                    visningsnavn = "Lærefag",
-                                    pakrevd = true,
-                                    representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
-                                    seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
-                                    alternativer = listOf(
-                                        OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                            id = valgtLarefagId,
-                                            visningsnavn = "Helsearbeider",
-                                        ),
-                                        OpplaringKategoriseringResponse.Alternativ.Verdi(
-                                            id = ikkeValgtLarefagId,
-                                            visningsnavn = "Ambulansefag",
-                                        ),
-                                    ),
-                                ),
-                            ),
-                            OpplaringKategoriseringResponse.Alternativ.UtdanningGruppe.UtdanningValg(
-                                id = ikkeValgtProgramId,
-                                visningsnavn = "Bygg og anlegg",
-                                larefag = OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
-                                    id = UUID.randomUUID(),
-                                    visningsnavn = "Lærefag",
-                                    pakrevd = true,
-                                    representerer = OpplaringKategoriseringResponse.Representerer.LAREFAG,
-                                    seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
-                                    alternativer = emptyList(),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            )
-
-            val resultat = kodeverk.grupperKodeverkvalgPerRepresenterer(setOf(valgtProgramId, valgtLarefagId))
-
-            resultat shouldBe mapOf(
-                OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID to setOf(valgtProgramId),
-                OpplaringKategoriseringResponse.Representerer.LAREFAG to setOf(valgtLarefagId),
-            )
         }
     }
 }

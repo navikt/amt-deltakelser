@@ -1,7 +1,7 @@
 package no.nav.amt.internapi.deltaker.response
 
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
-import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -24,6 +24,6 @@ data class GjennomforingResponse(
     val oppmoteSted: String?,
     val arrangor: ArrangorResponse?,
     val pameldingstype: GjennomforingPameldingType?, // TODO: Denne bør ikke være nullable
-    val utflatetKodeverk: ValgteKategoriseringerOgSertifiseringer? = null,
+    val opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
     val prisinformasjon: PrisinformasjonDto? = null,
 )

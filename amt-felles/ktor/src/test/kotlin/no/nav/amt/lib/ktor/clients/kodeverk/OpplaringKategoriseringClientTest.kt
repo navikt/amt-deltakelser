@@ -17,13 +17,13 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import kotlin.reflect.KClass
 
-class KodeverkClientTest {
+class OpplaringKategoriseringClientTest {
     @Nested
-    inner class HentKodeverk {
+    inner class HentOpplaringKategoriseringTests {
         val tiltakskodeInTest = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING
 
-        val hentKodeverkLambda: suspend (KodeverkClient) -> OpplaringKategoriseringResponse =
-            { client -> client.hentKodeverk(tiltakskodeInTest) }
+        val hentKategoriseringLambda: suspend (OpplaringKategoriseringClient) -> OpplaringKategoriseringResponse =
+            { client -> client.hentOpplaringKategorisering(tiltakskodeInTest) }
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
@@ -33,30 +33,30 @@ class KodeverkClientTest {
             runFailureTest(
                 exceptionType = expectedExceptionType,
                 statusCode = statusCode,
-                expectedUrl = KODEVERK_EXPECTED_URL,
-                expectedErrorMessage = "Kunne ikke hente kodeverk for tiltakskode $tiltakskodeInTest fra Mulighetsrommet",
-                block = hentKodeverkLambda,
+                expectedUrl = KATEGORISERINGER_EXPECTED_URL,
+                expectedErrorMessage = "Kunne ikke hente opplæringkategorisering for tiltakskode $tiltakskodeInTest fra Mulighetsrommet",
+                block = hentKategoriseringLambda,
             )
         }
 
         @Test
-        fun `hentKodeverk skal returnere kodeverk`() = runTest {
+        fun `skal returnere kategorisering`() = runTest {
             runHappyPathTest(
-                expectedUrl = KODEVERK_EXPECTED_URL,
+                expectedUrl = KATEGORISERINGER_EXPECTED_URL,
                 expectedResponse = OpplaringKategoriseringResponse(
                     tiltakskode = tiltakskodeInTest,
                     alternativer = emptyList(),
                 ),
-                block = hentKodeverkLambda,
+                block = hentKategoriseringLambda,
             )
         }
 
         @Test
-        fun `skal bruke cache ved andre kall til hentKodeverk`() = runTest {
+        fun `skal bruke cache ved andre kall til hentOpplaringKategorisering`() = runTest {
             val countingCache = CountingCache<Tiltakskode, OpplaringKategoriseringResponse>()
 
-            val kodeverkClient = createKodeverkClient(
-                expectedUrl = KODEVERK_EXPECTED_URL,
+            val opplaringKategoriseringClient = createOpplaringKategoriseringClient(
+                expectedUrl = KATEGORISERINGER_EXPECTED_URL,
                 responseBody = OpplaringKategoriseringResponse(
                     tiltakskode = tiltakskodeInTest,
                     alternativer = emptyList(),
@@ -64,8 +64,8 @@ class KodeverkClientTest {
                 cache = countingCache,
             )
 
-            kodeverkClient.hentKodeverk(tiltakskodeInTest)
-            kodeverkClient.hentKodeverk(tiltakskodeInTest)
+            opplaringKategoriseringClient.hentOpplaringKategorisering(tiltakskodeInTest)
+            opplaringKategoriseringClient.hentOpplaringKategorisering(tiltakskodeInTest)
 
             countingCache.putCount shouldBe 1
         }
@@ -73,7 +73,7 @@ class KodeverkClientTest {
 
     @Nested
     inner class SertifiseringSok {
-        val sertifiseringSokLambda: suspend (KodeverkClient) -> List<SertifiseringResponse> =
+        val sertifiseringSokLambda: suspend (OpplaringKategoriseringClient) -> List<SertifiseringResponse> =
             { client -> client.sertifiseringSok("term") }
 
         @ParameterizedTest
@@ -106,23 +106,23 @@ class KodeverkClientTest {
     }
 
     companion object {
-        private const val KODEVERK_BASE_URL = "http://mulighetsrommet/"
+        private const val KATEGORISERINGER_BASE_URL = "http://mulighetsrommet/"
 
-        private const val KODEVERK_EXPECTED_URL =
-            "$KODEVERK_BASE_URL/api/kodeverk/opplaring/kategorisering?tiltakskode=ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING"
+        private const val KATEGORISERINGER_EXPECTED_URL =
+            "$KATEGORISERINGER_BASE_URL/api/kodeverk/opplaring/kategorisering?tiltakskode=ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING"
 
         private const val SERTIFISERINGER_EXPECTED_URL =
-            "$KODEVERK_BASE_URL/api/kodeverk/opplaring/sertifiseringer/sok?q=term"
+            "$KATEGORISERINGER_BASE_URL/api/kodeverk/opplaring/sertifiseringer/sok?q=term"
 
         private fun runFailureTest(
             exceptionType: KClass<out Throwable>,
             statusCode: HttpStatusCode,
             expectedUrl: String,
             expectedErrorMessage: String,
-            block: suspend (KodeverkClient) -> Any,
+            block: suspend (OpplaringKategoriseringClient) -> Any,
         ) {
             val thrown = assertThrows(exceptionType.java) {
-                runTest { block(createKodeverkClient(expectedUrl, statusCode)) }
+                runTest { block(createOpplaringKategoriseringClient(expectedUrl, statusCode)) }
             }
             thrown.message shouldStartWith expectedErrorMessage
         }
@@ -130,29 +130,29 @@ class KodeverkClientTest {
         private suspend fun <T> runHappyPathTest(
             expectedUrl: String,
             expectedResponse: T,
-            block: suspend (KodeverkClient) -> T,
+            block: suspend (OpplaringKategoriseringClient) -> T,
         ) {
-            val kodeverkClient = createKodeverkClient(
+            val opplaringKategoriseringClient = createOpplaringKategoriseringClient(
                 expectedUrl = expectedUrl,
                 statusCode = HttpStatusCode.OK,
                 responseBody = expectedResponse,
             )
 
             if (expectedResponse == null) {
-                shouldNotThrowAny { block(kodeverkClient) }
+                shouldNotThrowAny { block(opplaringKategoriseringClient) }
             } else {
-                block(kodeverkClient) shouldBe expectedResponse
+                block(opplaringKategoriseringClient) shouldBe expectedResponse
             }
         }
 
-        private fun createKodeverkClient(
+        private fun createOpplaringKategoriseringClient(
             expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
             cache: CountingCache<Tiltakskode, OpplaringKategoriseringResponse>? = null,
         ) = if (cache == null) {
-            KodeverkClient(
-                baseUrl = KODEVERK_BASE_URL,
+            OpplaringKategoriseringClient(
+                baseUrl = KATEGORISERINGER_BASE_URL,
                 scope = "scope",
                 httpClient = createMockHttpClient(
                     expectedUrl = expectedUrl,
@@ -162,8 +162,8 @@ class KodeverkClientTest {
                 azureAdTokenClient = mockAzureAdClient(),
             )
         } else {
-            KodeverkClient(
-                baseUrl = KODEVERK_BASE_URL,
+            OpplaringKategoriseringClient(
+                baseUrl = KATEGORISERINGER_BASE_URL,
                 scope = "scope",
                 httpClient = createMockHttpClient(
                     expectedUrl = expectedUrl,
@@ -171,7 +171,7 @@ class KodeverkClientTest {
                     statusCode = statusCode,
                 ),
                 azureAdTokenClient = mockAzureAdClient(),
-                kodeverkCache = cache,
+                kategoriseringCache = cache,
             )
         }
     }

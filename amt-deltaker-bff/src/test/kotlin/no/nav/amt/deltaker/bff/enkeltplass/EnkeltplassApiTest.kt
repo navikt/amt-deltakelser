@@ -26,8 +26,8 @@ import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
-import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -75,7 +75,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 SertifiseringResponse(konseptId = 1, label = "Sertifisering 1"),
             )
 
-            coEvery { kodeverkClient.sertifiseringSok(any()) } returns expectedResponse
+            coEvery { opplaringKategoriseringClient.sertifiseringSok(any()) } returns expectedResponse
 
             // Act
             val response = withTestApplicationContext { client ->
@@ -120,9 +120,9 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             val deltakerResponse = lagDeltakerResponse(id = deltakerInTest.id).let {
                 it.copy(
                     gjennomforing = it.gjennomforing.copy(
-                        utflatetKodeverk = ValgteKategoriseringerOgSertifiseringer(
+                        opplaringKategoriseringValg = OpplaringKategoriseringValg(
                             valgteKategoriseringer = setOf(
-                                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+                                OpplaringKategoriseringValg.ValgteFelt(
                                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                                     valg = mapOf(verdiId to "Bygg"),
                                 ),
@@ -155,7 +155,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             )
 
             coEvery { amtDeltakerClient.getDeltaker(deltakerInTest.id) } returns deltakerResponse
-            coEvery { kodeverkClient.hentKodeverk(tiltakskode) } returns kodeverkFraClient
+            coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(tiltakskode) } returns kodeverkFraClient
 
             val response = withTestApplicationContext { client ->
                 client.get("/enkeltplass/kodeverk/${deltakerInTest.id}") {
@@ -164,12 +164,12 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             response.status shouldBe HttpStatusCode.OK
-            response.body<OpplaringKategoriseringResponse>() shouldBe kodeverkFraClient.settValgt(
-                deltakerResponse.gjennomforing.utflatetKodeverk,
+            response.body<OpplaringKategoriseringResponse>() shouldBe kodeverkFraClient.settValg(
+                deltakerResponse.gjennomforing.opplaringKategoriseringValg,
             )
 
             coVerify(exactly = 1) { amtDeltakerClient.getDeltaker(deltakerInTest.id) }
-            coVerify(exactly = 1) { kodeverkClient.hentKodeverk(tiltakskode) }
+            coVerify(exactly = 1) { opplaringKategoriseringClient.hentOpplaringKategorisering(tiltakskode) }
             verify(exactly = 1) { tilgangskontrollService.verifiserLesetilgang(any(), any()) }
         }
     }
@@ -214,7 +214,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             @Test
             fun `skal returnere OK nar kladd er opprettet`() = runTest {
                 // Arrange
-                coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
+                coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
                     tiltakskode = requestInTest.tiltakskode,
                     alternativer = emptyList(),
                 )
@@ -330,7 +330,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         @Test
         fun `skal returnere OK nar utkast er oppdatert`() = runTest {
             // Arrange
-            coEvery { kodeverkClient.hentKodeverk(any()) } returns OpplaringKategoriseringResponse(
+            coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
                 tiltakskode = deltakerInTest.deltakerliste.tiltak.tiltakskode,
                 alternativer = emptyList(),
             )
