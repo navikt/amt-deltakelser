@@ -67,7 +67,7 @@ class OpplaringKategoriseringResponseTest {
             val verdiBId = UUID.randomUUID()
             val verdiCId = UUID.randomUUID()
 
-            val kodeverk = OpplaringKategoriseringResponse(
+            val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
                 tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 alternativer = listOf(
                     OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
@@ -85,7 +85,7 @@ class OpplaringKategoriseringResponseTest {
                 ),
             )
 
-            val resultat = kodeverk.settValg(setOf(verdiAId, verdiBId), emptySet())
+            val resultat = opplaringKategoriseringResponse.settValg(setOf(verdiAId, verdiBId), emptySet())
 
             val verdier = (resultat.alternativer[0] as OpplaringKategoriseringResponse.Alternativ.Verdigruppe).alternativer
             verdier.first { it.id == verdiAId }.valgt shouldBe true
@@ -97,7 +97,7 @@ class OpplaringKategoriseringResponseTest {
         fun `settValgt - tom set setter alle valgt til false`() {
             val verdiId = UUID.randomUUID()
 
-            val kodeverk = OpplaringKategoriseringResponse(
+            val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
                 tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 alternativer = listOf(
                     OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
@@ -113,7 +113,7 @@ class OpplaringKategoriseringResponseTest {
                 ),
             )
 
-            val resultat = kodeverk.settValg(emptySet(), emptySet())
+            val resultat = opplaringKategoriseringResponse.settValg(emptySet(), emptySet())
 
             val verdigruppe = resultat.alternativer[0] as OpplaringKategoriseringResponse.Alternativ.Verdigruppe
             verdigruppe.alternativer[0].valgt shouldBe false
@@ -131,12 +131,12 @@ class OpplaringKategoriseringResponseTest {
                 kilde = OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok.Kilde.JANZZ_SERTIFISERING,
             )
 
-            val kodeverk = OpplaringKategoriseringResponse(
+            val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
                 tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
                 alternativer = listOf(verdigruppeSok),
             )
 
-            val resultat = kodeverk.settValg(setOf(sokId, UUID.randomUUID()), emptySet())
+            val resultat = opplaringKategoriseringResponse.settValg(setOf(sokId, UUID.randomUUID()), emptySet())
 
             resultat.alternativer[0] shouldBe verdigruppeSok
         }

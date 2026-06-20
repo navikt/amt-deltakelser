@@ -48,9 +48,11 @@ fun Routing.registerEnkeltplassApi(
                 )
 
                 val gjennomforing = amtDeltakerClient.getDeltaker(deltakerId).gjennomforing
-                val kodeverk = opplaringKategoriseringClient.hentOpplaringKategorisering(gjennomforing.tiltakstype.tiltakskode)
+                val opplaringKategoriseringResponse = opplaringKategoriseringClient.hentOpplaringKategorisering(
+                    gjennomforing.tiltakstype.tiltakskode,
+                )
 
-                call.respond(kodeverk.settValg(gjennomforing.opplaringKategoriseringValg))
+                call.respond(opplaringKategoriseringResponse.settValg(gjennomforing.opplaringKategoriseringValg))
             }
 
             /*
