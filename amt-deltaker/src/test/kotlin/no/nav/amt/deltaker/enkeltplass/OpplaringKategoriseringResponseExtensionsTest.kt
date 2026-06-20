@@ -52,8 +52,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         // Act
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
@@ -125,8 +125,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         // Act
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = setOf(valgtBransjeId, valgtForerkortId),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtBransjeId, valgtForerkortId),
             sertifiseringValg = sertifiseringValg,
         )
 
@@ -173,8 +173,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = setOf(valgtKurstypeId),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtKurstypeId),
             sertifiseringValg = emptySet(),
         )
 
@@ -210,8 +210,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = emptySet(),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
@@ -256,8 +256,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = emptySet(),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
@@ -279,8 +279,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = emptySet(),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
@@ -329,8 +329,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = setOf(valgtUtdanningsprogramId),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId),
             sertifiseringValg = emptySet(),
         )
 
@@ -395,8 +395,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId1, valgtLaerefagId2),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId1, valgtLaerefagId2),
             sertifiseringValg = emptySet(),
         )
 
@@ -472,8 +472,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = setOf(valgtUtdanningsprogramId1, valgtLaerefagId),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId1, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
@@ -547,8 +547,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = setOf(valgtUtdanningsprogramId2, valgtLaerefagId),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId2, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
@@ -607,8 +607,8 @@ class OpplaringKategoriseringResponseExtensionsTest {
             ),
         )
 
-        val valgteKategoriseringerOgSertifiseringer = kodeverk.toValgteKategoriseringerOgSertifiseringer(
-            verdiValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
+        val valgteKategoriseringerOgSertifiseringer = kodeverk.toOpplaringKategoriseringValg(
+            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
@@ -648,7 +648,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
                 ),
             )
 
-            val resultat = kodeverk.groupSelectedIdsByRepresenterer(emptySet())
+            val resultat = kodeverk.grupperValgteIderPerRepresenterer(emptySet())
 
             resultat shouldBe emptyMap()
         }
@@ -703,7 +703,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
                 ),
             )
 
-            val resultat = kodeverk.groupSelectedIdsByRepresenterer(setOf(valgtBransjeId, valgtForerkortId))
+            val resultat = kodeverk.grupperValgteIderPerRepresenterer(setOf(valgtBransjeId, valgtForerkortId))
 
             resultat shouldBe mapOf(
                 OpplaringKategoriseringResponse.Representerer.BRANSJE_ID to setOf(valgtBransjeId),
@@ -765,7 +765,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
                 ),
             )
 
-            val resultat = kodeverk.groupSelectedIdsByRepresenterer(setOf(valgtProgramId, valgtLarefagId))
+            val resultat = kodeverk.grupperValgteIderPerRepresenterer(setOf(valgtProgramId, valgtLarefagId))
 
             resultat shouldBe mapOf(
                 OpplaringKategoriseringResponse.Representerer.UTDANNINGSPROGRAM_ID to setOf(valgtProgramId),

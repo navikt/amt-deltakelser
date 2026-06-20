@@ -30,7 +30,7 @@ private fun List<Alternativ.Verdi>.filterValgteIds(verdivalg: Set<UUID>): Set<UU
  * @param verdivalg settet med valgte IDer
  * @return mapping fra Representerer til settet av valgte IDer for den representøren
  */
-fun OpplaringKategoriseringResponse.groupSelectedIdsByRepresenterer(verdivalg: Set<UUID>): Map<Representerer, Set<UUID>> = buildMap {
+fun OpplaringKategoriseringResponse.grupperValgteIderPerRepresenterer(verdivalg: Set<UUID>): Map<Representerer, Set<UUID>> = buildMap {
     alternativer.forEach { alternativ ->
         when (alternativ) {
             is Alternativ.VerdigruppeSok -> Unit
@@ -64,17 +64,17 @@ fun OpplaringKategoriseringResponse.groupSelectedIdsByRepresenterer(verdivalg: S
  *
  * Grupperer valgte verdier per representør og legger med sertifiseringer.
  *
- * @param verdiValg settet med valgte IDer, kan være null
+ * @param verdivalg settet med valgte IDer, kan være null
  * @param sertifiseringValg settet med valgte sertifiseringer, kan være null
  * @return OpplaringKategorisering-objekt
  */
 fun OpplaringKategoriseringResponse.toOpplaringKategorisering(
-    verdiValg: Set<UUID>?,
+    verdivalg: Set<UUID>?,
     sertifiseringValg: Set<SertifiseringValg>?,
 ): GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering =
     GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
-        verdier = verdiValg
-            ?.let { groupSelectedIdsByRepresenterer(it) }
+        verdier = verdivalg
+            ?.let { grupperValgteIderPerRepresenterer(it) }
             ?: emptyMap(),
         sertifiseringer = sertifiseringValg ?: emptySet(),
     )
@@ -88,21 +88,21 @@ fun OpplaringKategoriseringResponse.toOpplaringKategorisering(
  *
  * Early-return med bare sertifiseringer hvis ingen verdier er valgt.
  *
- * @param verdiValg settet med valgte IDer
+ * @param verdivalg settet med valgte IDer
  * @param sertifiseringValg settet med valgte sertifiseringer
  * @return OpplaringKategoriseringValg med alle valgte kategoriseringer og sertifiseringer
  */
-fun OpplaringKategoriseringResponse.toValgteKategoriseringerOgSertifiseringer(
-    verdiValg: Set<UUID>,
+fun OpplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+    verdivalg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
-): OpplaringKategoriseringValg = if (verdiValg.isEmpty()) {
+): OpplaringKategoriseringValg = if (verdivalg.isEmpty()) {
     OpplaringKategoriseringValg(
         valgteKategoriseringer = emptySet(),
         valgteSertifiseringer = sertifiseringValg,
     )
 } else {
     val kategoriseringResponseMedValgteElementer = settValg(
-        verdiValg = verdiValg,
+        verdivalg = verdivalg,
         sertifiseringValg = sertifiseringValg,
     )
 

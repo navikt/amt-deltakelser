@@ -31,17 +31,17 @@ data class OpplaringKategoriseringResponse(
 ) {
     /**
      * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true` for alle
-     * verdier med `id` i [verdiValg], og `false` for alle øvrige.
+     * verdier med `id` i [verdivalg], og `false` for alle øvrige.
      * [sertifiseringValg] erstatter eventuelle eksisterende sertifiseringer i responsen.
      *
      * Synkroniserer hele treet — kildedataens initiale `valgt`-verdier overskrives
-     * alltid, slik at resultatet kun reflekterer [verdiValg] og [sertifiseringValg].
+     * alltid, slik at resultatet kun reflekterer [verdivalg] og [sertifiseringValg].
      */
     fun settValg(
-        verdiValg: Set<UUID>,
+        verdivalg: Set<UUID>,
         sertifiseringValg: Set<SertifiseringValg>,
     ): OpplaringKategoriseringResponse = copy(
-        alternativer = alternativer.map { it.settValg(verdiValg) },
+        alternativer = alternativer.map { it.settValg(verdivalg) },
         sertifiseringValg = sertifiseringValg,
     )
 
@@ -56,16 +56,16 @@ data class OpplaringKategoriseringResponse(
         )
     }
 
-    private fun Alternativ.Container.settValg(kodeverkValg: Set<UUID>): Alternativ.Container = when (this) {
-        is Alternativ.Verdigruppe -> copy(alternativer = alternativer.map { it.settValg(kodeverkValg) })
+    private fun Alternativ.Container.settValg(verdivalg: Set<UUID>): Alternativ.Container = when (this) {
+        is Alternativ.Verdigruppe -> copy(alternativer = alternativer.map { it.settValg(verdivalg) })
         is Alternativ.VerdigruppeSok -> this
         is Alternativ.UtdanningGruppe -> copy(
             utdanninger = utdanninger.map {
                 it.copy(
-                    valgt = it.id in kodeverkValg,
+                    valgt = it.id in verdivalg,
                     larefag = it.larefag.copy(
                         alternativer = it.larefag.alternativer.map { verdi ->
-                            verdi.settValg(kodeverkValg)
+                            verdi.settValg(verdivalg)
                         },
                     ),
                 )

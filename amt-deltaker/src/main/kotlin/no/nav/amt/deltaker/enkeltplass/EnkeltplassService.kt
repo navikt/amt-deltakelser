@@ -242,18 +242,18 @@ class EnkeltplassService(
                 )
             }
 
-            val valgteKategoriseringerOgSertifiseringer = kategoriseringResponse.toValgteKategoriseringerOgSertifiseringer(
-                verdiValg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
+            val opplaringKategoriseringValg = kategoriseringResponse.toOpplaringKategoriseringValg(
+                verdivalg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
                 sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
             )
 
             OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
                 gjennomforingId = deltaker.deltakerliste.id,
                 valgteVerdier = oppdaterKladdRequest.kodeverkValg?.let {
-                    valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer
+                    opplaringKategoriseringValg.valgteKategoriseringer
                 },
                 valgteSertifiseringer = oppdaterKladdRequest.sertifiseringValg?.let {
-                    valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer
+                    opplaringKategoriseringValg.valgteSertifiseringer
                 },
             )
         }
@@ -313,15 +313,15 @@ class EnkeltplassService(
                 prisinformasjon = request.prisinformasjon,
             )
 
-            val valgteKategoriseringerOgSertifiseringer = kategoriseringResponse.toValgteKategoriseringerOgSertifiseringer(
-                verdiValg = request.kodeverkValg ?: emptySet(),
+            val opplaringKategoriseringValg = kategoriseringResponse.toOpplaringKategoriseringValg(
+                verdivalg = request.kodeverkValg ?: emptySet(),
                 sertifiseringValg = request.sertifiseringValg ?: emptySet(),
             )
 
             OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
                 gjennomforingId = gjennomforing.id,
-                valgteVerdier = request.kodeverkValg?.let { valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer },
-                valgteSertifiseringer = request.sertifiseringValg?.let { valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer },
+                valgteVerdier = request.kodeverkValg?.let { opplaringKategoriseringValg.valgteKategoriseringer },
+                valgteSertifiseringer = request.sertifiseringValg?.let { opplaringKategoriseringValg.valgteSertifiseringer },
             )
 
             val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
@@ -346,7 +346,7 @@ class EnkeltplassService(
                 ansvarligEnhet = decoratedRequest.endretAvEnhet,
                 opprettetAv = decoratedRequest.endretAv,
                 kategorisering = kategoriseringResponse.toOpplaringKategorisering(
-                    verdiValg = request.kodeverkValg,
+                    verdivalg = request.kodeverkValg,
                     sertifiseringValg = request.sertifiseringValg,
                 ),
             )
