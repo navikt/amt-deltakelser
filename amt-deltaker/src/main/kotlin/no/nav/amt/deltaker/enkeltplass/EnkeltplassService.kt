@@ -345,9 +345,8 @@ class EnkeltplassService(
                 organisasjonsnummer = request.arrangorUnderenhet,
                 ansvarligEnhet = decoratedRequest.endretAvEnhet,
                 opprettetAv = decoratedRequest.endretAv,
-                kategorisering = kategoriseringResponse.toOpplaringKategorisering(
-                    verdivalg = request.kodeverkValg,
-                    sertifiseringValg = request.sertifiseringValg,
+                kategorisering = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(
+                    gjennomforing.id,
                 ),
             )
 

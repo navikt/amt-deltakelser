@@ -1,83 +1,11 @@
 package no.nav.amt.deltaker.enkeltplass
 
-import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse.Alternativ
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse.Representerer
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
-
-/**
- * Filtrerer ut IDene til verdier som er valgt basert på gitt sett med valgte IDer.
- *
- * @param verdivalg settet med valgte IDer
- * @return sett med IDene til verdier som er funnet i verdivalg
- */
-private fun List<Alternativ.Verdi>.filterValgteIds(verdivalg: Set<UUID>): Set<UUID> = this
-    .filter { alt -> alt.id in verdivalg }
-    .map { alt -> alt.id }
-    .toSet()
-
-/**
- * Grupperer og filtrerer valgte ID-er etter hvilken representør de tilhører.
- *
- * Håndterer tre typer alternativer:
- * - Verdigrupper: mapper valgte verdier direkte
- * - Utdanningsgrupper: mapper valgt utdanningsprogram og dets lærefag
- * - Verdisøk: ignoreres
- *
- * @param verdivalg settet med valgte IDer
- * @return mapping fra Representerer til settet av valgte IDer for den representøren
- */
-fun OpplaringKategoriseringResponse.grupperValgteIderPerRepresenterer(verdivalg: Set<UUID>): Map<Representerer, Set<UUID>> = buildMap {
-    alternativer.forEach { alternativ ->
-        when (alternativ) {
-            is Alternativ.VerdigruppeSok -> Unit
-
-            is Alternativ.Verdigruppe -> {
-                val valgte = alternativ.alternativer.filterValgteIds(verdivalg)
-                if (valgte.isNotEmpty()) {
-                    put(alternativ.representerer, valgte)
-                }
-            }
-
-            is Alternativ.UtdanningGruppe -> {
-                val utdanningsprogram = alternativ.utdanninger
-                    .firstOrNull { it.id in verdivalg }
-                    ?: return@forEach
-
-                put(Representerer.UTDANNINGSPROGRAM_ID, setOf(utdanningsprogram.id))
-
-                val valgteLarefag = utdanningsprogram.larefag.alternativer.filterValgteIds(verdivalg)
-                if (valgteLarefag.isNotEmpty()) {
-                    put(Representerer.LAREFAG, valgteLarefag)
-                }
-            }
-        }
-    }
-}
-
-/**
- * Konverterer valgte verdier og sertifiseringer til Gjennomforing-payload format.
- * Benyttes ved publisering av gjennomføring til Mulighetsrommet.
- *
- * Grupperer valgte verdier per representør og legger med sertifiseringer.
- *
- * @param verdivalg settet med valgte IDer, kan være null
- * @param sertifiseringValg settet med valgte sertifiseringer, kan være null
- * @return OpplaringKategorisering-objekt
- */
-fun OpplaringKategoriseringResponse.toOpplaringKategorisering(
-    verdivalg: Set<UUID>?,
-    sertifiseringValg: Set<SertifiseringValg>?,
-): GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering =
-    GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
-        verdier = verdivalg
-            ?.let { grupperValgteIderPerRepresenterer(it) }
-            ?: emptyMap(),
-        sertifiseringer = sertifiseringValg ?: emptySet(),
-    )
 
 /**
  * Konverterer valgte verdi- og sertifiseringsvalg til strukturert objektformat.
