@@ -404,4 +404,3 @@ class OpplaringKategoriseringRepoAdapterTest {
         }
     }
 }
-
