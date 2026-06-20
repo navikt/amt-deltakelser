@@ -13,7 +13,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
+import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -24,7 +24,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -160,12 +160,12 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
 
-        val valgteKategoriseringerOgSertifiseringer = ValgteKategoriseringerOgSertifiseringer(
+        val opplaringKategoriseringValg = OpplaringKategoriseringValg(
             valgteSertifiseringer = setOf(
                 SertifiseringValg(id = 1, navn = "Truckfører T1"),
             ),
             valgteKategoriseringer = setOf(
-                ValgteKategoriseringerOgSertifiseringer.ValgteFelt(
+                OpplaringKategoriseringValg.ValgteFelt(
                     representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
                     valg = mapOf(UUID.randomUUID() to "Bygg og anlegg"),
                 ),
@@ -173,19 +173,19 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         )
 
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
-        mockkObject(OpplaeringKategoriseringRepoAdapter)
+        mockkObject(OpplaringKategoriseringRepoAdapter)
         try {
             every {
-                OpplaeringKategoriseringRepoAdapter.hentValgteKategoriseringerOgSertifiseringer(deltakerliste.id)
-            } returns valgteKategoriseringerOgSertifiseringer
+                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            } returns opplaringKategoriseringValg
 
             // Act
-            val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
+            val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
 
             // Assert
-            response.utflatetKodeverk shouldBe valgteKategoriseringerOgSertifiseringer
+            response.opplaringKategoriseringValg shouldBe opplaringKategoriseringValg
         } finally {
-            unmockkObject(OpplaeringKategoriseringRepoAdapter)
+            unmockkObject(OpplaringKategoriseringRepoAdapter)
         }
     }
 
@@ -199,10 +199,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
 
         // Act
-        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = true)
+        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
 
         // Assert
-        response.utflatetKodeverk shouldBe null
+        response.opplaringKategoriseringValg shouldBe null
     }
 
     @Test
@@ -215,10 +215,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
 
         // Act
-        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeKodeverk = false)
+        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = false)
 
         // Assert
-        response.utflatetKodeverk shouldBe null
+        response.opplaringKategoriseringValg shouldBe null
     }
 
     @Test
@@ -334,7 +334,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         every { forslagRepository.getForDeltaker(any()) } returns expectedForslag
 
         // Act
-        val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+        val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
         // Assert
         assertSoftly(deltakerResponse) {
@@ -422,7 +422,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, emptyList())
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -454,7 +454,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -500,7 +500,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), fremtidig))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             val fremtidigResponse = DeltakelsesmengdeResponse(
@@ -549,7 +549,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), innenforPeriode))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             // Vedtaket før startdato avgrenses til startdato, og endringen innenfor blir siste/neste
@@ -586,7 +586,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -628,7 +628,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(importertFraArena))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -688,7 +688,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -762,7 +762,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             // nesteDeltakelsesmengde = den fremtidige endringen (50%/2 dager fra +14 dager)
@@ -822,7 +822,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), endringFraArrangor))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
             // Assert
             // Regresjonstest: EndringFraArrangor må være en del av historikken som hentes til

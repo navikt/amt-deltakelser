@@ -29,68 +29,35 @@ data class OpplaringKategoriseringResponse(
     val alternativer: List<Alternativ.Container>,
     val sertifiseringValg: Set<SertifiseringValg> = emptySet(),
 ) {
-    private fun List<Alternativ.Verdi>.hentValgte(kodeverkValg: Set<UUID>): Set<UUID> = this
-        .filter { alt -> alt.id in kodeverkValg }
-        .map { alt -> alt.id }
-        .toSet()
-
-    fun grupperKodeverkvalgPerRepresenterer(kodeverkValg: Set<UUID>): Map<Representerer, Set<UUID>> = buildMap {
-        alternativer.forEach { alternativ ->
-            when (alternativ) {
-                is Alternativ.VerdigruppeSok -> Unit
-
-                is Alternativ.Verdigruppe -> {
-                    val valgte = alternativ.alternativer.hentValgte(kodeverkValg)
-                    if (valgte.isNotEmpty()) {
-                        put(alternativ.representerer, valgte)
-                    }
-                }
-
-                is Alternativ.UtdanningGruppe -> {
-                    val utdanningsprogram = alternativ.utdanninger
-                        .firstOrNull { it.id in kodeverkValg }
-                        ?: return@forEach
-
-                    put(Representerer.UTDANNINGSPROGRAM_ID, setOf(utdanningsprogram.id))
-
-                    val valgteLarefag = utdanningsprogram.larefag.alternativer.hentValgte(kodeverkValg)
-                    if (valgteLarefag.isNotEmpty()) {
-                        put(Representerer.LAREFAG, valgteLarefag)
-                    }
-                }
-            }
-        }
-    }
-
     /**
      * Returnerer en kopi der [Alternativ.Verdi.valgt] er satt til `true` for alle
-     * verdier med `id` i [kodeverkValg], og `false` for alle øvrige.
+     * verdier med `id` i [verdiValg], og `false` for alle øvrige.
      * [sertifiseringValg] erstatter eventuelle eksisterende sertifiseringer i responsen.
      *
      * Synkroniserer hele treet — kildedataens initiale `valgt`-verdier overskrives
-     * alltid, slik at resultatet kun reflekterer [kodeverkValg] og [sertifiseringValg].
+     * alltid, slik at resultatet kun reflekterer [verdiValg] og [sertifiseringValg].
      */
-    fun settValgt(
-        kodeverkValg: Set<UUID>,
+    fun settValg(
+        verdiValg: Set<UUID>,
         sertifiseringValg: Set<SertifiseringValg>,
     ): OpplaringKategoriseringResponse = copy(
-        alternativer = alternativer.map { it.settValgt(kodeverkValg) },
+        alternativer = alternativer.map { it.settValg(verdiValg) },
         sertifiseringValg = sertifiseringValg,
     )
 
-    fun settValgt(valgteKategoriseringerOgSertifiseringer: ValgteKategoriseringerOgSertifiseringer?): OpplaringKategoriseringResponse {
-        if (valgteKategoriseringerOgSertifiseringer == null) return this
+    fun settValg(opplaringKategoriseringValg: OpplaringKategoriseringValg?): OpplaringKategoriseringResponse {
+        if (opplaringKategoriseringValg == null) return this
 
-        val valgteElementer = valgteKategoriseringerOgSertifiseringer.valgteKategoriseringer.flatMap { it.valg.keys }.toSet()
+        val valgteElementer = opplaringKategoriseringValg.valgteKategoriseringer.flatMap { it.valg.keys }.toSet()
 
         return copy(
-            sertifiseringValg = valgteKategoriseringerOgSertifiseringer.valgteSertifiseringer,
-            alternativer = alternativer.map { it.settValgt(valgteElementer) },
+            sertifiseringValg = opplaringKategoriseringValg.valgteSertifiseringer,
+            alternativer = alternativer.map { it.settValg(valgteElementer) },
         )
     }
 
-    private fun Alternativ.Container.settValgt(kodeverkValg: Set<UUID>): Alternativ.Container = when (this) {
-        is Alternativ.Verdigruppe -> copy(alternativer = alternativer.map { it.settValgt(kodeverkValg) })
+    private fun Alternativ.Container.settValg(kodeverkValg: Set<UUID>): Alternativ.Container = when (this) {
+        is Alternativ.Verdigruppe -> copy(alternativer = alternativer.map { it.settValg(kodeverkValg) })
         is Alternativ.VerdigruppeSok -> this
         is Alternativ.UtdanningGruppe -> copy(
             utdanninger = utdanninger.map {
@@ -98,7 +65,7 @@ data class OpplaringKategoriseringResponse(
                     valgt = it.id in kodeverkValg,
                     larefag = it.larefag.copy(
                         alternativer = it.larefag.alternativer.map { verdi ->
-                            verdi.settValgt(kodeverkValg)
+                            verdi.settValg(kodeverkValg)
                         },
                     ),
                 )
@@ -106,7 +73,7 @@ data class OpplaringKategoriseringResponse(
         )
     }
 
-    private fun Alternativ.Verdi.settValgt(kodeverkValg: Set<UUID>): Alternativ.Verdi = copy(valgt = id in kodeverkValg)
+    private fun Alternativ.Verdi.settValg(kodeverkValg: Set<UUID>): Alternativ.Verdi = copy(valgt = id in kodeverkValg)
 
     /**
      * Angir hvordan brukeren kan velge blant verdiene i en [Alternativ.Verdigruppe].

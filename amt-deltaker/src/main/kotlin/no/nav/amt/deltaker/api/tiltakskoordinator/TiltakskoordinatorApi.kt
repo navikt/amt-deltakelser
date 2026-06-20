@@ -33,7 +33,7 @@ fun Routing.registerTiltakskoordinatorApi(
                 .let {
                     deltakerResponseBuilder.buildGjennomforingResponse(
                         deltakerliste = it,
-                        includeKodeverk = false,
+                        includeOpplaringKategorisering = false,
                     )
                 }
 

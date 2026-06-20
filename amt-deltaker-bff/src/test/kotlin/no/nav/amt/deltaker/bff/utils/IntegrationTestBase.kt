@@ -33,7 +33,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.Decision
@@ -49,7 +49,7 @@ abstract class IntegrationTestBase {
     protected val enkeltplassClient = mockk<EnkeltplassClient>()
     protected val paameldingClient: PaameldingClient = mockk()
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
-    protected val kodeverkClient = mockk<KodeverkClient>()
+    protected val opplaringKategoriseringClient = mockk<OpplaringKategoriseringClient>()
 
     protected val deltakerRepository: DeltakerRepository = mockk()
     protected val deltakerlisteRepository: DeltakerlisteRepository = mockk()
@@ -117,7 +117,7 @@ abstract class IntegrationTestBase {
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
                     ulestHendelseRepository = ulestHendelseRepository,
                     paameldingClient = paameldingClient,
-                    kodeverkClient = kodeverkClient,
+                    opplaringKategoriseringClient = opplaringKategoriseringClient,
                     selfServiceTilgangService = selfServiceTilgangskontrollService,
                     tiltakskoordinatorClient = tiltakskoordinatorClient,
                     tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,

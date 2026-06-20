@@ -23,18 +23,18 @@ import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 
 fun Routing.registerEnkeltplassApi(
     amtDeltakerClient: AmtDeltakerClient,
     enkeltplassClient: EnkeltplassClient,
     tilgangskontrollService: TilgangskontrollService,
-    kodeverkClient: KodeverkClient,
+    opplaringKategoriseringClient: OpplaringKategoriseringClient,
 ) {
     authenticate(AuthLevel.VEILEDER.name) {
         route("/enkeltplass") {
             get("/kodeverk-sertifiseringer/sok/{term}") {
-                val sertifiseringer = kodeverkClient.sertifiseringSok(call.getTerm())
+                val sertifiseringer = opplaringKategoriseringClient.sertifiseringSok(call.getTerm())
                 call.respond(sertifiseringer)
             }
 
@@ -48,9 +48,9 @@ fun Routing.registerEnkeltplassApi(
                 )
 
                 val gjennomforing = amtDeltakerClient.getDeltaker(deltakerId).gjennomforing
-                val kodeverk = kodeverkClient.hentKodeverk(gjennomforing.tiltakstype.tiltakskode)
+                val kodeverk = opplaringKategoriseringClient.hentOpplaringKategorisering(gjennomforing.tiltakstype.tiltakskode)
 
-                call.respond(kodeverk.settValgt(gjennomforing.utflatetKodeverk))
+                call.respond(kodeverk.settValg(gjennomforing.opplaringKategoriseringValg))
             }
 
             /*

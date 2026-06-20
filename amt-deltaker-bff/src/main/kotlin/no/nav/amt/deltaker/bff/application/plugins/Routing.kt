@@ -47,7 +47,7 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 import no.nav.amt.lib.ktor.routing.registerHealthApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -77,7 +77,7 @@ fun Application.configureRouting(
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
     ulestHendelseRepository: UlestHendelseRepository,
-    kodeverkClient: KodeverkClient,
+    opplaringKategoriseringClient: OpplaringKategoriseringClient,
     tiltakskoordinatorResponseBuilder: ResponseBuilder,
     tiltakskoordinatorClient: TiltakskoordinatorClient,
 ) {
@@ -115,7 +115,7 @@ fun Application.configureRouting(
             amtDeltakerClient = amtDeltakerClient,
             tilgangskontrollService = tilgangskontrollService,
             enkeltplassClient = enkeltplassClient,
-            kodeverkClient = kodeverkClient,
+            opplaringKategoriseringClient = opplaringKategoriseringClient,
         )
 
         registerVeilederApi(

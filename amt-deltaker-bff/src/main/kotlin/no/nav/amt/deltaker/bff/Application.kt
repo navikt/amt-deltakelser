@@ -72,7 +72,7 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
-import no.nav.amt.lib.ktor.clients.kodeverk.KodeverkClient
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
@@ -182,7 +182,7 @@ fun Application.module() {
         azureAdTokenClient = azureAdTokenClient,
     )
 
-    val kodeverkClient = KodeverkClient(
+    val opplaringKategoriseringClient = OpplaringKategoriseringClient(
         baseUrl = environment.mulighetsrommetApiUrl,
         scope = environment.mulighetsrommetApiScope,
         httpClient = httpClient,
@@ -336,7 +336,7 @@ fun Application.module() {
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
         ulestHendelseRepository = ulestHendelseRepository,
         selfServiceTilgangService = selfServiceTilgangService,
-        kodeverkClient = kodeverkClient,
+        opplaringKategoriseringClient = opplaringKategoriseringClient,
         tiltakskoordinatorClient = tiltakskoordinatorClient,
         tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(ulestHendelseRepository),
     )

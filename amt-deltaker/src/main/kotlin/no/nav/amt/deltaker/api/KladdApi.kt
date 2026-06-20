@@ -29,7 +29,10 @@ fun Routing.registerKladdApi(
                 deltakerListeId = opprettKladdRequest.deltakerlisteId,
                 personIdent = opprettKladdRequest.personident,
             )
-            val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeKodeverk = true)
+            val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(
+                deltaker = deltaker,
+                includeOpplaringKategorisering = true,
+            )
 
             call.respond(deltakerResponse)
         }

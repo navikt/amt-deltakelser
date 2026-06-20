@@ -7,7 +7,7 @@ import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.OpplaeringKategoriseringRepoAdapter
+import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
@@ -42,14 +42,19 @@ class DeltakerResponseBuilder(
 ) {
     suspend fun buildDeltakerResponse(
         deltaker: Deltaker,
-        includeKodeverk: Boolean = true,
+        includeOpplaringKategorisering: Boolean = true,
     ): DeltakerResponse {
-        val endringsforslagForDeltaker =
-            SharedResponseMappers.hentEndringsforslagVenterPaSvar(forslagRepository, deltaker.id)
+        val endringsforslagForDeltaker = SharedResponseMappers.hentEndringsforslagVenterPaSvar(
+            forslagRepository = forslagRepository,
+            deltakerId = deltaker.id,
+        )
 
         val navAnsatte = navAnsattService.hentNavAnsatteForDeltaker(deltaker)
         val navEnheter = navEnhetService.hentNavEnheterForDeltaker(deltaker)
-        val sisteVurdering = SharedResponseMappers.hentSisteVurdering(vurderingRepository, deltaker.id)
+        val sisteVurdering = SharedResponseMappers.hentSisteVurdering(
+            vurderingRepository = vurderingRepository,
+            deltakerId = deltaker.id,
+        )
 
         val historikk = deltakerHistorikkService.getForDeltaker(
             id = deltaker.id,
@@ -65,7 +70,7 @@ class DeltakerResponseBuilder(
             ),
             gjennomforing = buildGjennomforingResponse(
                 deltakerliste = deltaker.deltakerliste,
-                includeKodeverk = includeKodeverk,
+                includeOpplaringKategorisering = includeOpplaringKategorisering,
             ),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
@@ -115,14 +120,14 @@ class DeltakerResponseBuilder(
 
     internal fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
-        includeKodeverk: Boolean,
+        includeOpplaringKategorisering: Boolean,
     ): GjennomforingResponse {
         val skalHenteEnkeltplassValg =
-            includeKodeverk && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
+            includeOpplaringKategorisering && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
                 !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
 
-        val valgteKategoriseringerOgSertifiseringer = if (skalHenteEnkeltplassValg) {
-            OpplaeringKategoriseringRepoAdapter.hentValgteKategoriseringerOgSertifiseringer(deltakerliste.id)
+        val opplaringKategoriseringValg = if (skalHenteEnkeltplassValg) {
+            OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
         } else {
             null
         }
@@ -136,7 +141,7 @@ class DeltakerResponseBuilder(
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
-            valgteKategoriseringerOgSertifiseringer = valgteKategoriseringerOgSertifiseringer,
+            opplaringKategoriseringValg = opplaringKategoriseringValg,
             prisinformasjon = prisinformasjon,
         )
     }

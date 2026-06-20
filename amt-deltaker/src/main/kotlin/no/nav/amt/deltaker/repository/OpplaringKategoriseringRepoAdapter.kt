@@ -2,13 +2,13 @@ package no.nav.amt.deltaker.repository
 
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.repository.dbo.OpplaeringKategoriseringValgDbo
-import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer
-import no.nav.amt.internapi.enkeltplass.ValgteKategoriseringerOgSertifiseringer.ValgteFelt
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg.ValgteFelt
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
-object OpplaeringKategoriseringRepoAdapter {
-    fun hentKategoriseringerOgSertifiseringerForMulighetsrommet(
+object OpplaringKategoriseringRepoAdapter {
+    fun hentOpplaringKategoriseringValgForMulighetsrommet(
         gjennomforingId: UUID,
     ): GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering {
         val kategoriseringsValg = OpplaeringKategoriseringValgRepository.hentKategoriseringValg(gjennomforingId)
@@ -21,10 +21,10 @@ object OpplaeringKategoriseringRepoAdapter {
         )
     }
 
-    fun hentValgteKategoriseringerOgSertifiseringer(gjennomforingId: UUID): ValgteKategoriseringerOgSertifiseringer {
+    fun hentOpplaringKategoriseringValgForAmt(gjennomforingId: UUID): OpplaringKategoriseringValg {
         val kategoriseringsValg = OpplaeringKategoriseringValgRepository.hentKategoriseringValg(gjennomforingId)
 
-        return ValgteKategoriseringerOgSertifiseringer(
+        return OpplaringKategoriseringValg(
             valgteSertifiseringer = SertifiseringValgRepository.hentSertifiseringValg(gjennomforingId),
             valgteKategoriseringer = kategoriseringsValg
                 .groupBy { it.representerer }
@@ -37,17 +37,17 @@ object OpplaeringKategoriseringRepoAdapter {
         )
     }
 
-    fun lagreKategorisering(
+    fun lagreOpplaringKategoriseringValg(
         gjennomforingId: UUID,
-        valgteKategoriseringer: Set<ValgteFelt>?,
+        valgteVerdier: Set<ValgteFelt>?,
         valgteSertifiseringer: Set<SertifiseringValg>?,
     ) {
-        if (valgteKategoriseringer != null) {
+        if (valgteVerdier != null) {
             // insert-only, sletter eksisterende valg før insert
             OpplaeringKategoriseringValgRepository.deleteForGjennomforing(gjennomforingId)
 
-            if (valgteKategoriseringer.isNotEmpty()) {
-                val kategoriseringValg = valgteKategoriseringer.flatMap { kategoriseringValg ->
+            if (valgteVerdier.isNotEmpty()) {
+                val dboListe = valgteVerdier.flatMap { kategoriseringValg ->
                     kategoriseringValg.valg.map { enkeltvalg ->
                         OpplaeringKategoriseringValgDbo(
                             representerer = kategoriseringValg.representerer,
@@ -59,13 +59,13 @@ object OpplaeringKategoriseringRepoAdapter {
 
                 OpplaeringKategoriseringValgRepository.insertKategoriseringValg(
                     gjennomforingId = gjennomforingId,
-                    valg = kategoriseringValg,
+                    valg = dboListe,
                 )
             }
         }
 
-        // insert-only, sletter eksisterende valg før insert
         if (valgteSertifiseringer != null) {
+            // insert-only, sletter eksisterende valg før insert
             SertifiseringValgRepository.deleteForGjennomforing(gjennomforingId)
 
             if (valgteSertifiseringer.isNotEmpty()) {
