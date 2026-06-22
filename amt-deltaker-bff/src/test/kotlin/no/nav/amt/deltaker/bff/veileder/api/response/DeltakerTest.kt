@@ -45,7 +45,7 @@ class DeltakerTest {
                 -> years(5)
 
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER,
+                Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
                 Tiltakskode.JOBBKLUBB,
                 Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
@@ -152,7 +152,7 @@ class DeltakerTest {
 
                 Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER,
+                Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
                 Tiltakskode.JOBBKLUBB,
                 Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.HOYERE_UTDANNING,

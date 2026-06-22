@@ -40,7 +40,7 @@ class CommonUnleashToggleTest {
                 "STUDIESPESIALISERING",
                 "FAG_OG_YRKESOPPLAERING",
                 "HOYERE_YRKESFAGLIG_UTDANNING",
-                "VARIG_TILRETTELAGT_ARBEID_ORDINAER",
+                "TILRETTELAGT_ARBEID_ORDINAER",
             ],
         )
         fun `returnerer true for tiltakstyper som Komet alltid er master for`(kode: Tiltakskode) {
@@ -120,7 +120,7 @@ class CommonUnleashToggleTest {
                 "ARBEIDSRETTET_REHABILITERING",
                 "DIGITALT_OPPFOLGINGSTILTAK",
                 "VARIG_TILRETTELAGT_ARBEID_SKJERMET",
-                "VARIG_TILRETTELAGT_ARBEID_ORDINAER",
+                "TILRETTELAGT_ARBEID_ORDINAER",
                 "GRUPPE_ARBEIDSMARKEDSOPPLAERING",
                 "JOBBKLUBB",
                 "GRUPPE_FAG_OG_YRKESOPPLAERING",

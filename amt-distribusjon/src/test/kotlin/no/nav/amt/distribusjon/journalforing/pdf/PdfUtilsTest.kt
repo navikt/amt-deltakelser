@@ -219,11 +219,11 @@ class PdfUtilsTest {
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - EndreInnhold, VARIG_TILRETTELAGT_ARBEID_ORDINAER - inneholder innholdsbeskrivelse`() {
+        fun `lagEndringsvedtakPdfDto - EndreInnhold, TILRETTELAGT_ARBEID_ORDINAER - inneholder innholdsbeskrivelse`() {
             val deltaker =
                 Hendelsesdata.lagDeltaker(
                     deltakerliste = Hendelsesdata.lagDeltakerliste(
-                        tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER),
+                        tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
                     ),
                 )
             val navBruker = Persondata.lagNavBruker()

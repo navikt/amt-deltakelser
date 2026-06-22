@@ -7,7 +7,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 // Annet beskrivelse feltet brukes som fritekst beskrivelse på noen tiltakstype
 fun Tiltakskode.skalKunHaAnnetBeskrivelse() = this.erOpplaeringstiltak() ||
     this == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET ||
-    this == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER
+    this == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER
 
 fun getInnholdselementer(
     innholdselementer: List<Innholdselement>?,
