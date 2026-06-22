@@ -9,15 +9,6 @@ services:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydb
-    command:
-      - "postgres"
-      - "-c"
-      # Needed migration V27 in amt-deltaker
-      - "wal_level=logical"
-      - "-c"
-      - "max_replication_slots=10"
-      - "-c"
-      - "max_wal_senders=10"
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -47,12 +38,3 @@ services:
       # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
       CLUSTER_ID: 'qN47bT86Qpe8S0RsLR3ycA'
 
-
-  kafdrop:
-    image: obsidiandynamics/kafdrop:latest
-    ports:
-      - "9010:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "broker:29092"
-    depends_on:
-      - kafka
