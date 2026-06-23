@@ -104,12 +104,14 @@ import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import kotlin.time.Duration.Companion.seconds
 
+val env = Environment()
+
 fun main() {
     embeddedServer(
         factory = Netty,
         configure = {
             connector {
-                port = 8080
+                port = env.port
             }
             shutdownGracePeriod = 10.seconds.inWholeMilliseconds
             shutdownTimeout = 20.seconds.inWholeMilliseconds
@@ -121,7 +123,7 @@ fun main() {
 fun Application.module() {
     configureSerialization()
 
-    val environment = Environment()
+    val environment = env
 
     Database.init(environment.databaseConfig)
 

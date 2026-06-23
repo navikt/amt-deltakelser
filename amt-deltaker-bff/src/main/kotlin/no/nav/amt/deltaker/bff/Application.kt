@@ -85,12 +85,14 @@ import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import kotlin.time.Duration.Companion.seconds
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder as TiltakskoordinatorResponseBuilder
 
+val env = Environment()
+
 fun main() {
     embeddedServer(
         factory = Netty,
         configure = {
             connector {
-                port = 8080
+                port = env.port
             }
             shutdownGracePeriod = 10.seconds.inWholeMilliseconds
             shutdownTimeout = 20.seconds.inWholeMilliseconds
@@ -101,7 +103,8 @@ fun main() {
 
 fun Application.module() {
     configureSerialization()
-    val environment = Environment()
+
+    val environment = env
 
     Database.init(environment.databaseConfig)
 

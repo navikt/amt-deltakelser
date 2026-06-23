@@ -62,11 +62,13 @@ import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
 import no.nav.amt.lib.utils.leaderelection.LeaderProvider
 import kotlin.time.Duration.Companion.seconds
 
+val env = Environment()
+
 fun main() {
     embeddedServer(
         factory = Netty,
         configure = {
-            connector { port = 8080 }
+            connector { port = env.port }
             shutdownGracePeriod = 10.seconds.inWholeMilliseconds
             shutdownTimeout = 20.seconds.inWholeMilliseconds
         },
@@ -77,7 +79,7 @@ fun main() {
 fun Application.module() {
     configureSerialization()
 
-    val environment = Environment()
+    val environment = env
 
     Database.init(config = environment.databaseConfig)
 
