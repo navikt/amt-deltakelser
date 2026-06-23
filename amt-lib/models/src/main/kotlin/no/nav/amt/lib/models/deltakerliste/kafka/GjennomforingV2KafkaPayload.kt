@@ -25,6 +25,7 @@ import java.util.UUID
 )
 sealed interface GjennomforingV2KafkaPayload {
     val id: UUID
+    val lopenummer: String?
     val opprettetTidspunkt: OffsetDateTime
     val oppdatertTidspunkt: OffsetDateTime
     val tiltakskode: Tiltakskode
@@ -92,6 +93,7 @@ sealed interface GjennomforingV2KafkaPayload {
 
     data class Gruppe(
         override val id: UUID,
+        override val lopenummer: String,
         override val opprettetTidspunkt: OffsetDateTime,
         override val oppdatertTidspunkt: OffsetDateTime,
         override val tiltakskode: Tiltakskode,
@@ -112,6 +114,7 @@ sealed interface GjennomforingV2KafkaPayload {
 
     data class Enkeltplass(
         override val id: UUID,
+        override val lopenummer: String?,
         override val opprettetTidspunkt: OffsetDateTime,
         override val oppdatertTidspunkt: OffsetDateTime,
         override val tiltakskode: Tiltakskode,

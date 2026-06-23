@@ -19,6 +19,7 @@ data class KoordinatorFor(
 ) {
     data class Deltakerliste(
         val id: UUID,
+        val lopenummer: String?,
         val type: String,
         val navn: String,
         val startdato: LocalDate?,

@@ -348,7 +348,7 @@ class KafkaConsumerTest(
         val enhetId = UUID.randomUUID()
         val ansattId = UUID.randomUUID()
         with(DeltakerDtoCtx()) {
-            deltakerlisteRepository.insertOrUpdateDeltakerliste(getDeltakerliste(id = deltakerDto.id, UUID.randomUUID()))
+            deltakerlisteRepository.insertOrUpdateDeltakerliste(getDeltakerliste(id = deltakerDto.id, arrangorId = UUID.randomUUID()))
             val avbrytDeltakelseEndring = DeltakerEndring.Endring.AvbrytDeltakelse(
                 DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.TRENGER_ANNEN_STOTTE, null),
                 sluttdato = LocalDate.now().minusWeeks(4),

@@ -217,6 +217,7 @@ class KoordinatorService(
 
         return Deltakerliste(
             id = deltakerlisteMedArrangor.deltakerlisteDbo.id,
+            lopenummer = deltakerlisteMedArrangor.deltakerlisteDbo.lopenummer,
             navn = deltakerlisteMedArrangor.deltakerlisteDbo.navn,
             tiltaksnavn = deltakerlisteMedArrangor.deltakerlisteDbo.tiltaksnavn,
             arrangorNavn = overordnetArrangor?.navn ?: deltakerlisteMedArrangor.arrangorDbo.navn,
@@ -351,6 +352,7 @@ class KoordinatorService(
 fun List<DeltakerlisteDbo>.toDeltakerliste(): List<KoordinatorFor.Deltakerliste> = this.map {
     KoordinatorFor.Deltakerliste(
         id = it.id,
+        lopenummer = it.lopenummer,
         navn = it.navn,
         type = it.tiltaksnavn,
         startdato = it.startDato,

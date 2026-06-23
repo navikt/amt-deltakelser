@@ -237,6 +237,7 @@ class DeltakerlisteAdminApiTest(
     ): DeltakerlisteDbo {
         val deltakerliste = DeltakerlisteDbo(
             id = id,
+            lopenummer = "2026-001",
             navn = navn,
             gjennomforingstype = GjennomforingType.Gruppe,
             status = GjennomforingStatusType.GJENNOMFORES,

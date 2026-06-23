@@ -128,6 +128,7 @@ object TestData {
         deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
     ) = GjennomforingV2KafkaPayload.Enkeltplass(
         id = deltakerliste.id,
+        lopenummer = null,
         status = deltakerliste.status,
         tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
@@ -143,6 +144,7 @@ object TestData {
         deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
     ) = GjennomforingV2KafkaPayload.Gruppe(
         id = deltakerliste.id,
+        lopenummer = "2026-01",
         navn = deltakerliste.navn,
         tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         startDato = deltakerliste.startDato!!,
