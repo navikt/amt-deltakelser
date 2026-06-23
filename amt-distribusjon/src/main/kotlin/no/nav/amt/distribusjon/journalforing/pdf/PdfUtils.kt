@@ -264,7 +264,7 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel(): Forskriftskapittel = wh
     -> Forskriftskapittel.KAPITTEL_4
 
     Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> Forskriftskapittel.KAPITTEL_14
-    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER -> Forskriftskapittel.KAPITTEL_14A
+    Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER -> Forskriftskapittel.KAPITTEL_14A
 
     Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
     Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
@@ -279,9 +279,8 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel(): Forskriftskapittel = wh
 }
 
 fun HendelseDeltaker.Deltakerliste.tittelVisningsnavn() = when (this.tiltak.tiltakskode) {
-    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER,
-    -> "Varig tilrettelagt arbeid hos ${this.arrangor.visningsnavn()}"
+    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "Varig tilrettelagt arbeid hos ${this.arrangor.visningsnavn()}"
+    Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER -> "Tilrettelagt arbeid med oppfølging hos ${this.arrangor.visningsnavn()}"
 
     Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos ${arrangor.visningsnavn()}"
 
@@ -495,7 +494,7 @@ private fun tilEndringDto(
     is HendelseType.EndreInnhold -> EndringDto.EndreInnhold(
         innhold = hendelseType.innhold.map { it.visningsnavn() },
         innholdBeskrivelse = if (tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET ||
-            tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER ||
+            tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER ||
             tiltakskode.erOpplaeringstiltak()
         ) {
             hendelseType.innhold.firstOrNull { it.innholdskode == "annet" }?.beskrivelse

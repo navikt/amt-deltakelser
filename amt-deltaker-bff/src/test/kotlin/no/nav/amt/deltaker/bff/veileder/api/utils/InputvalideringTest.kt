@@ -60,7 +60,7 @@ class InputvalideringTest {
             validerAnnetInnhold(null, Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET)
         }
         shouldNotThrow<IllegalArgumentException> {
-            validerAnnetInnhold(null, Tiltakskode.VARIG_TILRETTELAGT_ARBEID_ORDINAER)
+            validerAnnetInnhold(null, Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER)
         }
     }
 

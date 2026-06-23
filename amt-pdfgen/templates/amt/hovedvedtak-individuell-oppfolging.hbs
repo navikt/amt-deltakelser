@@ -21,11 +21,11 @@
         {{#eq deltakerliste.tiltakskode "VARIG_TILRETTELAGT_ARBEID_SKJERMET"}}
             {{> sections/overskrift-med-ingress-vta}}
         {{/eq}}
-        {{#eq deltakerliste.tiltakskode "VARIG_TILRETTELAGT_ARBEID_ORDINAER"}}
+        {{#eq deltakerliste.tiltakskode "TILRETTELAGT_ARBEID_ORDINAER"}}
             {{> sections/overskrift-med-ingress-tilpasset-jobbstotte}}
         {{/eq}}
         {{#not_eq deltakerliste.tiltakskode "VARIG_TILRETTELAGT_ARBEID_SKJERMET"}}
-            {{#not_eq deltakerliste.tiltakskode "VARIG_TILRETTELAGT_ARBEID_ORDINAER"}}
+            {{#not_eq deltakerliste.tiltakskode "TILRETTELAGT_ARBEID_ORDINAER"}}
                 {{> sections/overskrift-med-ingress}}
             {{/not_eq}}
         {{/not_eq}}
