@@ -291,8 +291,14 @@ fun HendelseDeltaker.Deltakerliste.tittelVisningsnavn() = when (this.tiltak.tilt
     else -> "${this.tiltak.navn} hos ${arrangor.visningsnavn()}"
 }
 
-fun HendelseDeltaker.Deltakerliste.ingressVisningsnavn(): String =
-    if (this.tiltak.tiltakskode.erOpplaeringstiltak()) "${this.navn} hos ${arrangor.visningsnavn()}" else tittelVisningsnavn()
+fun HendelseDeltaker.Deltakerliste.ingressVisningsnavn(): String = if (this.tiltak.tiltakskode.erOpplaeringstiltak()) {
+    "${this.navn} hos ${arrangor.visningsnavn()}"
+} else if (this.tiltak.tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
+    // TAO skal ha forskjellig navn i tittel og ingress
+    "${tiltak.navn} hos ${arrangor.visningsnavn()}"
+} else {
+    tittelVisningsnavn()
+}
 
 fun HendelseDeltaker.Deltakerliste.Arrangor.visningsnavn(): String = with(overordnetArrangor) {
     val visningsnavn = if (this == null || this.navn == "Ukjent Virksomhet") {
