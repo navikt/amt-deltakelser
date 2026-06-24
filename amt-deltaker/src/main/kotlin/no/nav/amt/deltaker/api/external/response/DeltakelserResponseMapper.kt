@@ -98,11 +98,10 @@ class DeltakelserResponseMapper(
 
         return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
             Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"
-
             Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
             Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
             -> deltaker.deltakerliste.navn
-
+            Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER -> "Tilrettelagt arbeid med oppfølging hos $arrangorNavn"
             else -> "${deltaker.deltakerliste.tiltakstype.navn} hos $arrangorNavn"
         }
     }
