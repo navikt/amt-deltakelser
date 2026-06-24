@@ -126,6 +126,7 @@ class ExternalApiTest : IntegrationTestBase() {
                             startdato = deltaker.startdato,
                             sluttdato = deltaker.sluttdato,
                         ),
+                        oppstartstype = deltaker.deltakerliste.oppstart,
                     ),
                 ),
                 historikk = emptyList(),
@@ -201,6 +202,7 @@ class ExternalApiTest : IntegrationTestBase() {
                         innsoktDato = null,
                         sistEndretDato = deltakerKladd.sistEndret.toLocalDate(),
                         periode = null,
+                        oppstartstype = deltakerKladd.deltakerliste.oppstart,
                     ),
                 ),
                 historikk = listOf(
@@ -223,6 +225,7 @@ class ExternalApiTest : IntegrationTestBase() {
                             startdato = avsluttetDeltaker.startdato,
                             sluttdato = avsluttetDeltaker.sluttdato,
                         ),
+                        oppstartstype = avsluttetDeltaker.deltakerliste.oppstart,
                     ),
                 ),
             )

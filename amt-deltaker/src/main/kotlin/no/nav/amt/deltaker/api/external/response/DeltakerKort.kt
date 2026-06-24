@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.api.external.response
 
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
 import java.util.UUID
 
@@ -9,6 +10,7 @@ data class DeltakerKort(
     val deltakerlisteId: UUID,
     val tittel: String,
     val tiltakstype: DeltakelserResponse.Tiltakstype,
+    val oppstartstype: Oppstartstype,
     val status: Status,
     val innsoktDato: LocalDate?,
     val sistEndretDato: LocalDate?,

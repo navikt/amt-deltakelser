@@ -42,6 +42,7 @@ class DeltakelserResponseMapper(
         innsoktDato = deltaker.getInnsoktDato(),
         sistEndretDato = deltaker.getSistEndretDato(),
         periode = deltaker.getPeriode(),
+        oppstartstype = deltaker.deltakerliste.oppstart,
     )
 
     private fun Deltaker.getInnsoktDato(): LocalDate? = if (status.type in skalViseInnsoktDatoStatuser) {
