@@ -80,8 +80,8 @@ import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.veileder.InnsokRepository
+import no.nav.amt.deltaker.veileder.InnsokService
 import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
@@ -252,8 +252,8 @@ fun Application.module() {
         amtArrangorClient = amtArrangorClient,
     )
 
-    val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
-    val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
+    val innsokRepository = InnsokRepository()
+    val innsokService = InnsokService(innsokRepository)
     val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
     val deltakerHistorikkService = DeltakerHistorikkService(
@@ -262,7 +262,7 @@ fun Application.module() {
         forslagRepository = forslagRepository,
         endringFraArrangorRepository = endringFraArrangorRepository,
         importertFraArenaRepository = importertFraArenaRepository,
-        innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+        innsokRepository = innsokRepository,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         vurderingRepository = vurderingRepository,
     )
@@ -413,7 +413,7 @@ fun Application.module() {
         navEnhetService = navEnhetService,
         vedtakService = vedtakService,
         distribuerEndringService = distribuerEndringService,
-        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        innsokService = innsokService,
         enkeltplassService = enkeltplassService,
     )
 
@@ -515,7 +515,7 @@ fun Application.module() {
         deltakerProducerService = deltakerProducerService,
         vedtakService = vedtakService,
         unleashToggle = unleashToggle,
-        innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+        innsokRepository = innsokRepository,
         vurderingRepository = vurderingRepository,
         distribuerEndringService = distribuerEndringService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,

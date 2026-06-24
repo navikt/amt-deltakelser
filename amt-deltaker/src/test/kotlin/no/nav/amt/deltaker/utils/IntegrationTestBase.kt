@@ -64,8 +64,8 @@ import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.veileder.InnsokRepository
+import no.nav.amt.deltaker.veileder.InnsokService
 import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
@@ -99,7 +99,7 @@ abstract class IntegrationTestBase {
     protected open val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk()
     protected open val forslagRepository: ForslagRepository = mockk()
     protected open val importertFraArenaRepository: ImportertFraArenaRepository = mockk()
-    protected open val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository = mockk()
+    protected open val innsokRepository: InnsokRepository = mockk()
     protected open val navAnsattRepository: NavAnsattRepository = mockk()
     protected open val navBrukerRepository: NavBrukerRepository = mockk()
     protected open val navEnhetRepository: NavEnhetRepository = mockk()
@@ -138,8 +138,8 @@ abstract class IntegrationTestBase {
         )
     }
 
-    protected open val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService by lazy {
-        InnsokPaaFellesOppstartService(repository = innsokPaaFellesOppstartRepository)
+    protected open val innsokService: InnsokService by lazy {
+        InnsokService(repository = innsokRepository)
     }
 
     protected open val pameldingService: PameldingService by lazy {
@@ -150,7 +150,7 @@ abstract class IntegrationTestBase {
             navAnsattService = navAnsattService,
             vedtakService = vedtakService,
             distribuerEndringService = distribuerEndringService,
-            innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+            innsokService = innsokService,
             enkeltplassService = enkeltplassService,
         )
     }
@@ -197,7 +197,7 @@ abstract class IntegrationTestBase {
             forslagRepository = forslagRepository,
             endringFraArrangorRepository = endringFraArrangorRepository,
             importertFraArenaRepository = importertFraArenaRepository,
-            innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+            innsokRepository = innsokRepository,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             vurderingRepository = vurderingRepository,
         )
@@ -454,7 +454,7 @@ abstract class IntegrationTestBase {
                     deltakerProducerService = deltakerProducerService,
                     vedtakService = vedtakService,
                     unleashToggle = unleashToggle,
-                    innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+                    innsokRepository = innsokRepository,
                     vurderingRepository = vurderingRepository,
                     distribuerEndringService = distribuerEndringService,
                     endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,

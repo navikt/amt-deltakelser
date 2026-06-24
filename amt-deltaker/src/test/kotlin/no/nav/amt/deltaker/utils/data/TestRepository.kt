@@ -18,14 +18,14 @@ import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
@@ -112,7 +112,7 @@ object TestRepository {
                 is DeltakerEndring -> DeltakerEndringRepository().upsert(it)
                 is EndringFraArrangor -> EndringFraArrangorRepository().insert(it)
                 is ImportertFraArena -> ImportertFraArenaRepository().upsert(it)
-                is InnsokPaaFellesOppstart -> InnsokPaaFellesOppstartRepository().insert(it)
+                is Innsok -> InnsokRepository().insert(it)
                 is EndringFraTiltakskoordinator -> EndringFraTiltakskoordinatorRepository().insert(listOf(it))
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
             }

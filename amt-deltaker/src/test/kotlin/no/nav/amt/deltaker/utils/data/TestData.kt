@@ -16,7 +16,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.Vurdering
@@ -286,7 +286,7 @@ object TestData {
         deltakelsesinnholdVedInnsok: Deltakelsesinnhold = Deltakelsesinnhold("", emptyList()),
         utkastDelt: LocalDateTime = LocalDateTime.now().minusDays(2),
         utkastGodkjentAvNav: Boolean = false,
-    ) = InnsokPaaFellesOppstart(
+    ) = Innsok(
         id = id,
         deltakerId = deltakerId,
         innsokt = innsokt,

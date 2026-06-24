@@ -144,8 +144,8 @@ class DeltakerHistorikkTest {
 
     @Test
     fun `InnsokPaaFellesOppstart har korrekte properties`() {
-        val innsokPaaFellesOppstart =
-            InnsokPaaFellesOppstart(
+        val innsok =
+            Innsok(
                 id = UUID.randomUUID(),
                 deltakerId = UUID.randomUUID(),
                 innsokt = now.minusDays(1),
@@ -156,12 +156,12 @@ class DeltakerHistorikkTest {
                 utkastGodkjentAvNav = false,
             )
 
-        val historikk = DeltakerHistorikk.InnsokPaaFellesOppstart(innsokPaaFellesOppstart)
+        val historikk = DeltakerHistorikk.InnsokPaaFellesOppstart(innsok)
 
         assertSoftly(historikk) {
-            sistEndret shouldBe innsokPaaFellesOppstart.innsokt
-            navAnsatte() shouldBe listOf(innsokPaaFellesOppstart.innsoktAv)
-            navEnheter() shouldBe listOf(innsokPaaFellesOppstart.innsoktAvEnhet)
+            sistEndret shouldBe innsok.innsokt
+            navAnsatte() shouldBe listOf(innsok.innsoktAv)
+            navEnheter() shouldBe listOf(innsok.innsoktAvEnhet)
         }
     }
 

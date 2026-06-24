@@ -18,7 +18,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -43,7 +43,7 @@ class DeltakelserResponseMapperTest {
         ForslagRepository(),
         EndringFraArrangorRepository(),
         ImportertFraArenaRepository(),
-        InnsokPaaFellesOppstartRepository(),
+        InnsokRepository(),
         EndringFraTiltakskoordinatorRepository(),
         VurderingRepository(),
     )

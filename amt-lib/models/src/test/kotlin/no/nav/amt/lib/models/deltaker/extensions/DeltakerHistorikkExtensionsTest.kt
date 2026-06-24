@@ -7,7 +7,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Nested
@@ -144,7 +144,7 @@ class DeltakerHistorikkExtensionsTest {
         )
 
         private fun lagInnsokHistorikk(innsokt: LocalDateTime) = DeltakerHistorikk.InnsokPaaFellesOppstart(
-            InnsokPaaFellesOppstart(
+            Innsok(
                 id = UUID.randomUUID(),
                 deltakerId = UUID.randomUUID(),
                 innsokt = innsokt,

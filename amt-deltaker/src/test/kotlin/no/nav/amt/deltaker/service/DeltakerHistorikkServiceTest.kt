@@ -11,12 +11,12 @@ import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -41,7 +41,7 @@ class DeltakerHistorikkServiceTest {
         forslagRepository,
         endringFraArrangorRepository,
         ImportertFraArenaRepository(),
-        InnsokPaaFellesOppstartRepository(),
+        InnsokRepository(),
         EndringFraTiltakskoordinatorRepository(),
         vurderingRepository,
     )
@@ -209,7 +209,7 @@ class DeltakerHistorikkServiceTest {
                     .lagDeltakerEndring(),
             ),
             DeltakerHistorikk.InnsokPaaFellesOppstart(
-                InnsokPaaFellesOppstart(
+                Innsok(
                     id = UUID.randomUUID(),
                     deltakerId = UUID.randomUUID(),
                     innsokt = innsoktDato.atStartOfDay(),
@@ -242,7 +242,7 @@ class DeltakerHistorikkServiceTest {
             innsoktAv = navAnsatt.id,
             innsoktAvEnhet = navEnhet.id,
         )
-        InnsokPaaFellesOppstartRepository().insert(innsok)
+        InnsokRepository().insert(innsok)
 
         // Act
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
@@ -326,7 +326,7 @@ class DeltakerHistorikkServiceTest {
             innsoktAv = navAnsatt.id,
             innsoktAvEnhet = navEnhet.id,
         )
-        InnsokPaaFellesOppstartRepository().insert(innsok)
+        InnsokRepository().insert(innsok)
 
         // Act
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id, inkluderFullHistorikk = false)
@@ -388,7 +388,7 @@ class DeltakerHistorikkServiceTest {
             innsoktAv = navAnsatt.id,
             innsoktAvEnhet = navEnhet.id,
         )
-        InnsokPaaFellesOppstartRepository().insert(innsok)
+        InnsokRepository().insert(innsok)
 
         val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
             deltakerId = deltaker.id,

@@ -48,7 +48,7 @@ sealed interface DeltakerHistorikk {
     }
 
     data class InnsokPaaFellesOppstart(
-        val data: no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart,
+        val data: Innsok,
     ) : DeltakerHistorikk {
         override val sistEndret = data.innsokt
 

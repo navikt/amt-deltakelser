@@ -425,12 +425,12 @@ class DeltakerRepository {
 
     /**
      * Bulk-variant for henting av "søkt inn"-dato. Erstatter 3 sekvensielle DB-oppslag per deltaker
-     * ([ImportertFraArenaRepository.getForDeltaker], [InnsokPaaFellesOppstartRepository.getForDeltaker]
+     * ([ImportertFraArenaRepository.getForDeltaker], [InnsokRepository.getForDeltaker]
      * og [VedtakRepository.getForDeltaker]) med **ett** kall som returnerer datoen for alle deltakere.
      *
      * Speiler prioriteten i [DeltakerHistorikkService.getSoktInnDato]:
      *   1. `importert_fra_arena.deltaker_ved_import.innsoktDato` (JSONB)
-     *   2. `innsok_paa_felles_oppstart.innsokt::date`
+     *   2. `innsok.innsokt::date`
      *   3. `vedtak.created_at::date`
      *
      * `COALESCE` velger første ikke-null kandidat i denne rekkefølgen.
@@ -453,7 +453,7 @@ class DeltakerRepository {
             FROM 
                 deltaker d
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id
-                LEFT JOIN innsok_paa_felles_oppstart ipfo ON ipfo.deltaker_id = d.id
+                LEFT JOIN innsok ipfo ON ipfo.deltaker_id = d.id
                 LEFT JOIN vedtak v ON v.deltaker_id = d.id
             WHERE 
                 d.id = ANY(:deltaker_ider)

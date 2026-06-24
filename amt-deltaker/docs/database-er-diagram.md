@@ -97,7 +97,7 @@ erDiagram
     }
 
     %% ── Tilleggstabeller ──
-    innsok_paa_felles_oppstart {
+    innsok {
         uuid id PK
         uuid deltaker_id FK,UK
         uuid innsokt_av FK
@@ -126,7 +126,7 @@ erDiagram
     deltaker ||--o{ endring_fra_arrangor : ""
     deltaker ||--o{ endring_fra_tiltakskoordinator : ""
     deltaker ||--o{ vurdering : ""
-    deltaker ||--o| innsok_paa_felles_oppstart : ""
+    deltaker ||--o| innsok : ""
     deltaker ||--o| importert_fra_arena : ""
 
     %% ── Relasjoner: Nav-ansatt/enhet ──
@@ -135,8 +135,8 @@ erDiagram
     nav_ansatt ||--o{ deltaker_endring : ""
     nav_enhet ||--o{ deltaker_endring : ""
     nav_ansatt ||--o{ endring_fra_tiltakskoordinator : ""
-    nav_ansatt ||--o{ innsok_paa_felles_oppstart : ""
-    nav_enhet ||--o{ innsok_paa_felles_oppstart : ""
+    nav_ansatt ||--o{ innsok : ""
+    nav_enhet ||--o{ innsok : ""
     forslag ||--o{ deltaker_endring : "forslag_id"
 ```
 
@@ -154,7 +154,7 @@ erDiagram
 | `endring_fra_arrangor` | Endringer initiert av arrangør | — |
 | `endring_fra_tiltakskoordinator` | Endringer fra tiltakskoordinator | — |
 | `vurdering` | Arrangørs vurdering av deltaker | — |
-| `innsok_paa_felles_oppstart` | Innsøking til felles oppstart | 18k rader |
+| `innsok` | Innsøking til felles oppstart | 18k rader |
 | `importert_fra_arena` | Arena-importerte deltaker-snapshots | 1.5M rader (765 MB) |
 | `tiltakstype` | Tiltakstype-definisjon | Liten |
 | `arrangor` | Arrangører (underordnet/overordnet) | Liten |
@@ -366,7 +366,7 @@ erDiagram
 | `gyldig_fra` | timestamptz | NOT NULL | |
 | `created_at` | timestamptz | NOT NULL | default now() |
 
-### innsok_paa_felles_oppstart
+### innsok
 
 | Kolonne | Type | Nullable | Constraint |
 |---|---|---|---|

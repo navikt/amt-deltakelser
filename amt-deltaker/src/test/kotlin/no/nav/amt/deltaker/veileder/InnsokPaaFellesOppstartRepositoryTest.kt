@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerContext
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class InnsokPaaFellesOppstartRepositoryTest {
-    private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
+    private val innsokRepository = InnsokRepository()
 
     companion object {
         @RegisterExtension
@@ -25,8 +25,8 @@ class InnsokPaaFellesOppstartRepositoryTest {
         with(DeltakerContext()) {
             medVedtak()
             val innsok = TestData.lagInnsok(deltaker)
-            innsokPaaFellesOppstartRepository.insert(innsok)
-            innsokPaaFellesOppstartRepository.get(innsok.id).isSuccess shouldBe true
+            innsokRepository.insert(innsok)
+            innsokRepository.get(innsok.id).isSuccess shouldBe true
         }
     }
 }
@@ -40,7 +40,7 @@ fun TestData.lagInnsok(
     utkastGodkjentAvNav: Boolean = false,
     utkastDelt: LocalDateTime? = LocalDateTime.now(),
     deltakelsesinnholdVedInnsok: Deltakelsesinnhold? = deltaker.deltakelsesinnhold,
-) = InnsokPaaFellesOppstart(
+) = Innsok(
     id = id,
     deltakerId = deltaker.id,
     innsokt = innsokt,
