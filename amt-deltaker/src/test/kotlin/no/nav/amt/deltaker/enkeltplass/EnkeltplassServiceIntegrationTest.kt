@@ -152,6 +152,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                         ?.ledetekst,
                     innhold = listOf(Innhold.createFritekstInnhold("Beskrivelse")),
                 ),
+                dagerPerUke = null,
             )
 
             val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(

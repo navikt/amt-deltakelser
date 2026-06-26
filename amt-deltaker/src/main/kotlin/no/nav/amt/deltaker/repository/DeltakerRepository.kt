@@ -262,6 +262,7 @@ class DeltakerRepository {
             UPDATE deltaker
             SET startdato            = :startdato,
                 sluttdato            = :sluttdato,
+                dager_per_uke        = :dagerPerUke,
                 innhold              = :innhold,
                 modified_at          = CURRENT_TIMESTAMP
             WHERE id = :id
@@ -271,6 +272,7 @@ class DeltakerRepository {
             "id" to deltaker.id,
             "startdato" to deltaker.startdato,
             "sluttdato" to deltaker.sluttdato,
+            "dagerPerUke" to deltaker.dagerPerUke,
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
         )
 

@@ -9,4 +9,5 @@ data class EnkeltplassDeltakerUpdateDbo(
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val deltakelsesinnhold: Deltakelsesinnhold?,
+    val dagerPerUke: Float?,
 )

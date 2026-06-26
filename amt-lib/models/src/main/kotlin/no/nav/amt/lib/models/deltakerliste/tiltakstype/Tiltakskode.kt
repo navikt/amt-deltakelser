@@ -88,4 +88,16 @@ enum class Tiltakskode {
         HOYERE_UTDANNING -> ArenaKode.HOYEREUTD
         else -> throw IllegalArgumentException("Ukjent tiltakskode: $this")
     }
+
+    fun harDeltakelsesMengde() = listOf(
+        VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+        ARBEIDSFORBEREDENDE_TRENING,
+        // Enkeltplass-typer
+        HOYERE_UTDANNING,
+        ARBEIDSMARKEDSOPPLAERING,
+        NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+        STUDIESPESIALISERING,
+        FAG_OG_YRKESOPPLAERING,
+        HOYERE_YRKESFAGLIG_UTDANNING,
+    ).contains(this)
 }

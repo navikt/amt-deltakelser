@@ -55,6 +55,7 @@ fun lagHovedvedtakPdfDto(
                 deltakelsesmengdeTekst(
                     deltakelsesprosent = it.toInt(),
                     dagerPerUke = utkast.dagerPerUke?.toInt(),
+                    erEnkeltplass = deltaker.deltakerliste.erEnkeltplass,
                 )
             }
         } else {
@@ -216,9 +217,10 @@ fun lagEndringsvedtakPdfDto(
         ),
         endringer = endringer.map {
             tilEndringDto(
-                it,
-                deltaker.deltakerliste.tiltak.tiltakskode,
-                deltaker.deltakerliste.oppstartstype == Oppstartstype.FELLES ||
+                hendelseType = it,
+                tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+                erEnkeltplass = deltaker.deltakerliste.erEnkeltplass,
+                harFellesAvslutning = deltaker.deltakerliste.oppstartstype == Oppstartstype.FELLES ||
                     deltaker.deltakerliste.tiltak.tiltakskode
                         .erOpplaeringstiltak(),
             )
@@ -357,6 +359,7 @@ private fun List<Innhold>.toVisingstekster() = this.map { innhold ->
 private fun tilEndringDto(
     hendelseType: HendelseType,
     tiltakskode: Tiltakskode,
+    erEnkeltplass: Boolean?,
     harFellesAvslutning: Boolean,
 ): EndringDto = when (hendelseType) {
     is HendelseType.InnbyggerGodkjennUtkast,
@@ -378,6 +381,7 @@ private fun tilEndringDto(
             endringFraForslagToForslagDto(
                 it,
                 hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass,
             )
         },
         tittel = "Ny sluttdato er ${hendelseType.sluttdato.formatDateWithMonthName()}",
@@ -393,6 +397,7 @@ private fun tilEndringDto(
             endringFraForslagToForslagDto(
                 it,
                 hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass,
             )
         },
         tittel = "Avslutning endret",
@@ -407,6 +412,7 @@ private fun tilEndringDto(
             endringFraForslagToForslagDto(
                 it,
                 hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass,
             )
         },
         tittel = "Ny sluttdato er ${hendelseType.sluttdato.formatDateWithMonthName()}",
@@ -421,12 +427,14 @@ private fun tilEndringDto(
             endringFraForslagToForslagDto(
                 it,
                 hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass,
             )
         },
         tittel = "Deltakelsen er endret til ${
             deltakelsesmengdeTekst(
                 deltakelsesprosent = hendelseType.deltakelsesprosent?.toInt(),
                 dagerPerUke = hendelseType.dagerPerUke?.toInt(),
+                erEnkeltplass = erEnkeltplass,
             )
         }",
         gyldigFra = hendelseType.gyldigFra,
@@ -438,6 +446,7 @@ private fun tilEndringDto(
             endringFraForslagToForslagDto(
                 it,
                 hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass,
             )
         },
         tittel = "Ny sluttdato er ${hendelseType.sluttdato.formatDateWithMonthName()}",
@@ -457,6 +466,7 @@ private fun tilEndringDto(
                     endringFraForslagToForslagDto(
                         it,
                         hendelseType.begrunnelseFraArrangor,
+                        erEnkeltplass,
                     )
                 },
                 tittel = tittel,
@@ -468,6 +478,7 @@ private fun tilEndringDto(
                     endringFraForslagToForslagDto(
                         it,
                         hendelseType.begrunnelseFraArrangor,
+                        erEnkeltplass,
                     )
                 },
                 tittel = tittel,
@@ -481,6 +492,7 @@ private fun tilEndringDto(
             endringFraForslagToForslagDto(
                 it,
                 hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass,
             )
         },
         tittel = "Deltakelsen er forlenget til ${hendelseType.sluttdato.formatDateWithMonthName()}",
@@ -493,6 +505,7 @@ private fun tilEndringDto(
             endringFraForslagToForslagDto(
                 it,
                 hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass,
             )
         },
     )
@@ -528,6 +541,7 @@ private fun tilEndringDto(
             endringFraForslagToForslagDto(
                 it,
                 hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass,
             )
         },
     )
@@ -544,10 +558,14 @@ private fun tilEndringDto(
 private fun deltakelsesmengdeTekst(
     deltakelsesprosent: Int?,
     dagerPerUke: Int?,
+    erEnkeltplass: Boolean?,
 ): String {
     val dagerPerUkeTekst = dagerPerUkeTekst(dagerPerUke)?.lowercase()
+    if (dagerPerUkeTekst != null && erEnkeltplass == true) {
+        return dagerPerUkeTekst
+    }
     if (dagerPerUkeTekst != null) {
-        return "${deltakelsesprosent ?: 100} % $dagerPerUkeTekst"
+        return "${deltakelsesprosent ?: 100} % fordelt på $dagerPerUkeTekst"
     }
     return "${deltakelsesprosent ?: 100} %"
 }
@@ -555,9 +573,9 @@ private fun deltakelsesmengdeTekst(
 private fun dagerPerUkeTekst(dagerPerUke: Int?): String? {
     if (dagerPerUke != null) {
         return if (dagerPerUke == 1) {
-            "fordelt på $dagerPerUke dag i uka"
+            "$dagerPerUke dag i uka"
         } else {
-            "fordelt på $dagerPerUke dager i uka"
+            "$dagerPerUke dager i uka"
         }
     }
     return null
@@ -566,6 +584,7 @@ private fun dagerPerUkeTekst(dagerPerUke: Int?): String? {
 private fun endringFraForslagToForslagDto(
     endring: Forslag.Endring,
     begrunnelseFraArrangor: String?,
+    erEnkeltplass: Boolean?,
 ): ForslagDto = when (endring) {
     is Forslag.ForlengDeltakelse -> ForslagDto.ForlengDeltakelse(
         sluttdato = endring.sluttdato,
@@ -584,6 +603,7 @@ private fun endringFraForslagToForslagDto(
         deltakelsesmengdeTekst = deltakelsesmengdeTekst(
             deltakelsesprosent = endring.deltakelsesprosent,
             dagerPerUke = endring.dagerPerUke,
+            erEnkeltplass = erEnkeltplass,
         ),
         begrunnelseFraArrangor = begrunnelseFraArrangor,
     )

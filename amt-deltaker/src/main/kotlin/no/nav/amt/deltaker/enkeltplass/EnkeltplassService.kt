@@ -150,6 +150,7 @@ class EnkeltplassService(
                     sluttdato = sluttdato,
                     kodeverkValg = kodeverkValg,
                     sertifiseringValg = sertifiseringValg,
+                    dagerPerUke = dagerPerUke,
                 )
             },
         )
@@ -229,6 +230,7 @@ class EnkeltplassService(
                     startdato = oppdaterKladdRequest.startdato,
                     sluttdato = oppdaterKladdRequest.sluttdato,
                     beskrivelse = oppdaterKladdRequest.beskrivelse,
+                    dagerPerUke = oppdaterKladdRequest.dagerPerUke,
                 ),
             )
 
@@ -302,6 +304,7 @@ class EnkeltplassService(
                     startdato = request.startdato,
                     sluttdato = request.sluttdato,
                     beskrivelse = request.beskrivelse,
+                    dagerPerUke = request.dagerPerUke,
                 ),
             )
 
@@ -433,10 +436,12 @@ class EnkeltplassService(
             startdato: LocalDate?,
             sluttdato: LocalDate?,
             beskrivelse: String?,
+            dagerPerUke: Int?,
         ) = EnkeltplassDeltakerUpdateDbo(
             id = deltaker.id,
             startdato = startdato,
             sluttdato = sluttdato,
+            dagerPerUke = dagerPerUke?.toFloat(),
             deltakelsesinnhold = Deltakelsesinnhold(
                 ledetekst = deltaker.deltakerliste.tiltakstype.innhold
                     ?.ledetekst,
