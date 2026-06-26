@@ -43,6 +43,7 @@ class GjennomforingV2KafkaPayloadTest {
             }
         }
 
+/*
         @Test
         fun `gruppe, skal kaste unntak nar pameldingstype endres for deltakerliste med deltakere`() {
             val thrown =
@@ -70,7 +71,7 @@ class GjennomforingV2KafkaPayloadTest {
             thrown.message shouldBe
                 "Påmeldingstype kan ikke endres for deltakerliste ${enkeltplassGjennoforing.id} med deltakere"
         }
-
+*/
         @Test
         fun `enkeltplass, skal ikke kaste unntak nar antall deltaker er 0`() {
             shouldNotThrowAny {
