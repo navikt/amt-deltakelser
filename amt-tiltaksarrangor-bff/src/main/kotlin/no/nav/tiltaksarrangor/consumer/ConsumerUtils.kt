@@ -39,6 +39,7 @@ object ConsumerUtils {
         navnTiltakstype: String,
     ): DeltakerlisteDbo = DeltakerlisteDbo(
         id = id,
+        lopenummer = lopenummer,
         navn = navn,
         gjennomforingstype = gjennomforingType,
         status = status,

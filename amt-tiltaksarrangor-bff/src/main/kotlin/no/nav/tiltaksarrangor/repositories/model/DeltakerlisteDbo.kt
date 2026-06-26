@@ -10,6 +10,7 @@ import java.util.UUID
 
 data class DeltakerlisteDbo(
     val id: UUID,
+    val lopenummer: String?,
     val navn: String,
     val status: GjennomforingStatusType,
     val arrangorId: UUID,

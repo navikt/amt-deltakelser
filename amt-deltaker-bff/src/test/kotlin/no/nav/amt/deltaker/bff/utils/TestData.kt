@@ -204,6 +204,7 @@ object TestData {
         pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     ) = GjennomforingV2KafkaPayload.Enkeltplass(
         id = deltakerliste.id,
+        lopenummer = null,
         tiltakskode = deltakerliste.tiltak.tiltakskode,
         status = deltakerliste.status,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
@@ -220,6 +221,7 @@ object TestData {
         pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     ) = GjennomforingV2KafkaPayload.Gruppe(
         id = deltakerliste.id,
+        lopenummer = "2026-01",
         navn = deltakerliste.navn,
         tiltakskode = deltakerliste.tiltak.tiltakskode,
         startDato = deltakerliste.startDato!!,

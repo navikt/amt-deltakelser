@@ -51,6 +51,7 @@ class VeilederApiTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.fromString("9987432c-e336-4b3b-b73e-b7c781a0823a"),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,

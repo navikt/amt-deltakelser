@@ -6,6 +6,7 @@ import java.util.UUID
 
 data class AdminDeltakerliste(
     val id: UUID,
+    val lopenummer: String?,
     val navn: String,
     val tiltaksnavn: String,
     val arrangorNavn: String,

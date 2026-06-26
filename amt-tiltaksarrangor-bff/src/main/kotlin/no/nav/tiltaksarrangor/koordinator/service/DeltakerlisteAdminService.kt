@@ -35,6 +35,7 @@ class DeltakerlisteAdminService(
         return alleDeltakerlister.map {
             AdminDeltakerliste(
                 id = it.deltakerlisteDbo.id,
+                lopenummer = it.deltakerlisteDbo.lopenummer,
                 navn = it.deltakerlisteDbo.navn,
                 tiltaksnavn = it.deltakerlisteDbo.tiltaksnavn,
                 arrangorNavn =

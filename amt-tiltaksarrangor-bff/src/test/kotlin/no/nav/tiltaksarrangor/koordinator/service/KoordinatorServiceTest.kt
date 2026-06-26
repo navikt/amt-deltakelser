@@ -253,6 +253,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -310,6 +311,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -340,6 +342,7 @@ class KoordinatorServiceTest(
         val koordinatorsDeltakerliste = koordinatorService.getDeltakerliste(deltakerlisteId, personIdent)
 
         koordinatorsDeltakerliste.id shouldBe deltakerlisteId
+        koordinatorsDeltakerliste.lopenummer shouldBe "2026-001"
         koordinatorsDeltakerliste.navn shouldBe "Gjennomføring 1"
         koordinatorsDeltakerliste.tiltaksnavn shouldBe "Navn på tiltak"
         koordinatorsDeltakerliste.arrangorNavn shouldBe "Overordnet arrangør AS"
@@ -376,6 +379,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -856,6 +860,7 @@ class KoordinatorServiceTest(
             val deltakerliste =
                 DeltakerlisteDbo(
                     id = deltakerlisteId,
+                    lopenummer = "2026-001",
                     navn = "Gjennomføring 1",
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.GJENNOMFORES,
@@ -933,6 +938,7 @@ class KoordinatorServiceTest(
             val deltakerliste =
                 DeltakerlisteDbo(
                     id = deltakerlisteId,
+                    lopenummer = "2026-001",
                     navn = "Gjennomføring 1",
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.GJENNOMFORES,
@@ -1044,6 +1050,7 @@ class KoordinatorServiceTest(
             val deltakerliste =
                 DeltakerlisteDbo(
                     id = deltakerlisteId,
+                    lopenummer = "2026-001",
                     navn = "Gjennomføring 1",
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.GJENNOMFORES,
@@ -1117,6 +1124,7 @@ class KoordinatorServiceTest(
             val deltakerliste =
                 DeltakerlisteDbo(
                     id = deltakerlisteId,
+                    lopenummer = "2026-001",
                     navn = "Gjennomføring 1",
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.GJENNOMFORES,
@@ -1172,6 +1180,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -1212,6 +1221,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -1250,6 +1260,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -1322,6 +1333,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -1368,6 +1380,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -1420,6 +1433,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -1470,6 +1484,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -1522,6 +1537,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -1617,6 +1633,7 @@ class KoordinatorServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = deltakerlisteId,
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,

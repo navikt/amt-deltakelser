@@ -9,6 +9,7 @@ import java.util.UUID
 
 data class Deltakerliste(
     val id: UUID,
+    val lopenummer: String?,
     val navn: String,
     val tiltaksnavn: String,
     val arrangorNavn: String,

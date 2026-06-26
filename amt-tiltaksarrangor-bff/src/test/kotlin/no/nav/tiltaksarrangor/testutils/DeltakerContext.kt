@@ -26,7 +26,7 @@ open class DeltakerContext(
     val navVeileder: NavAnsatt = getNavAnsatt(),
     var deltaker: DeltakerDbo = getDeltaker(deltakerId = UUID.randomUUID(), navVeilederId = navVeileder.id),
     val arrangor: ArrangorDbo = getArrangor(),
-    val deltakerliste: DeltakerlisteDbo = getDeltakerliste(deltaker.deltakerlisteId, arrangorId = arrangor.id),
+    val deltakerliste: DeltakerlisteDbo = getDeltakerliste(deltaker.deltakerlisteId, arrangorId = arrangor.id, lopenummer = null),
     val koordinator: AnsattDbo = getKoordinator(
         id = UUID.randomUUID(),
         arrangorId = arrangor.id,

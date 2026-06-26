@@ -223,6 +223,7 @@ class GjennomforingV2KafkaPayloadTest {
         private val enkeltplassGjennoforing =
             GjennomforingV2KafkaPayload.Enkeltplass(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 opprettetTidspunkt = OffsetDateTime.now(),
                 oppdatertTidspunkt = OffsetDateTime.now(),
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -236,6 +237,7 @@ class GjennomforingV2KafkaPayloadTest {
         private val gruppeGjennomforing =
             GjennomforingV2KafkaPayload.Gruppe(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-002",
                 opprettetTidspunkt = OffsetDateTime.now(),
                 oppdatertTidspunkt = OffsetDateTime.now(),
                 tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,

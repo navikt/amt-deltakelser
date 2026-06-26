@@ -33,6 +33,7 @@ object ConsumerTestUtils {
     val gjennomforingPayloadInTest =
         GjennomforingV2KafkaPayload.Gruppe(
             id = deltakerlisteIdInTest,
+            lopenummer = "2026-001",
             tiltakskode = Tiltakskode.valueOf(tiltakstypePayloadInTest.tiltakskode),
             navn = "Gjennomføring av tiltak",
             startDato = LocalDate.now().minusYears(2),

@@ -120,6 +120,7 @@ class DeltakerRepository(
                 deltakerliste =
                     DeltakerlisteDbo(
                         id = UUID.fromString(rs.getString("deltakerliste_id")),
+                        lopenummer = rs.getString("lopenummer"),
                         navn = rs.getString("navn"),
                         gjennomforingstype = GjennomforingType.valueOf(rs.getString("gjennomforingstype")),
                         status = GjennomforingStatusType.valueOf(rs.getString("deltakerliste_status")),
@@ -368,6 +369,7 @@ class DeltakerRepository(
         	skjult_av_ansatt_id,
         	skjult_dato,
         	adressebeskyttet,
+            deltakerliste.lopenummer,
         	deltakerliste.navn,
         	deltakerliste.gjennomforingstype,
         	deltakerliste.status as deltakerliste_status,
@@ -434,6 +436,7 @@ class DeltakerRepository(
             	skjult_av_ansatt_id,
             	skjult_dato,
             	adressebeskyttet,
+                deltakerliste.lopenummer,
             	deltakerliste.navn,
             	deltakerliste.gjennomforingstype,
             	deltakerliste.status as deltakerliste_status,

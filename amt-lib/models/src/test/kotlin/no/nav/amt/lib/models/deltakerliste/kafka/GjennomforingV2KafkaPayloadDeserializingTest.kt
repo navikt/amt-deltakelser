@@ -55,6 +55,7 @@ class GjennomforingV2KafkaPayloadDeserializingTest {
             {
               "type": "TiltaksgjennomforingV2.Enkeltplass",
               "id": "$idInTest",
+              "lopenummer": null,
               "status": "GJENNOMFORES",
               "opprettetTidspunkt": "$opprettet",
               "oppdatertTidspunkt": "$oppdatert",
@@ -94,6 +95,7 @@ class GjennomforingV2KafkaPayloadDeserializingTest {
             {
               "type": "TiltaksgjennomforingV2.Gruppe",
               "id": "$idInTest",
+              "lopenummer": "2026-1234",
               "opprettetTidspunkt": "$opprettet",
               "oppdatertTidspunkt": "$oppdatert",
               "tiltakskode": "ARBEIDSFORBEREDENDE_TRENING",

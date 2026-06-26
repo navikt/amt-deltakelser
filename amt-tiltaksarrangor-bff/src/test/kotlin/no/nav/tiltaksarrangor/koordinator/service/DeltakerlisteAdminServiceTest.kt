@@ -99,6 +99,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste1 =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -115,6 +116,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste2 =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-002",
                 navn = "Gjennomføring 2",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -192,6 +194,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -243,6 +246,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -270,6 +274,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -311,6 +316,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -357,6 +363,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -409,6 +416,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -436,6 +444,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,
@@ -477,6 +486,7 @@ class DeltakerlisteAdminServiceTest(
         val deltakerliste =
             DeltakerlisteDbo(
                 id = UUID.randomUUID(),
+                lopenummer = "2026-001",
                 navn = "Gjennomføring 1",
                 gjennomforingstype = GjennomforingType.Gruppe,
                 status = GjennomforingStatusType.GJENNOMFORES,

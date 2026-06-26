@@ -1,0 +1,1 @@
+ALTER TABLE deltakerliste ADD COLUMN IF NOT EXISTS lopenummer VARCHAR NULL;

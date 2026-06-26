@@ -42,7 +42,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-fun getDeltakerliste(arrangorId: UUID) = getDeltakerliste(id = UUID.randomUUID(), arrangorId = arrangorId)
+fun getDeltakerliste(arrangorId: UUID) = getDeltakerliste(id = UUID.randomUUID(), arrangorId = arrangorId, lopenummer = null)
 
 fun getMockAnsatt(
     ansattId: UUID = UUID.randomUUID(),
@@ -83,8 +83,10 @@ fun getMockAnsatt(
 fun getDeltakerliste(
     id: UUID = UUID.randomUUID(),
     arrangorId: UUID,
+    lopenummer: String?,
 ): DeltakerlisteDbo = DeltakerlisteDbo(
     id = id,
+    lopenummer = lopenummer,
     navn = "Gjennomføring 1",
     gjennomforingstype = GjennomforingType.Gruppe,
     status = GjennomforingStatusType.GJENNOMFORES,
