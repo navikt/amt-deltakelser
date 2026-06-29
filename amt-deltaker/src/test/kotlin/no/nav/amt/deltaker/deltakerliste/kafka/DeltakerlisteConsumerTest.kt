@@ -190,7 +190,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             oppdatertDeltaker.sluttdato shouldNotBe deltakerliste.sluttDato
         }
     }
-/*
+
     @Test
     fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() = runTest {
         // Arrange
@@ -214,7 +214,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         // Assert
         thrown.message shouldBe
             "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
-    }*/
+    }
 
     @Test
     fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() = runTest {
