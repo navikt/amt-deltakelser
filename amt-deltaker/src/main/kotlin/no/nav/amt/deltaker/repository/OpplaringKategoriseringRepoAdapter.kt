@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.repository
 
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.repository.dbo.OpplaeringKategoriseringValgDbo
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg.ValgteFelt
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg.ValgteFelt
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 

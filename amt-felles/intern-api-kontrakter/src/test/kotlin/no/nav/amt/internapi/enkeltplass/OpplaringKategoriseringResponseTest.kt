@@ -1,6 +1,7 @@
 package no.nav.amt.internapi.enkeltplass
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
@@ -75,7 +76,7 @@ class OpplaringKategoriseringResponseTest {
                         visningsnavn = "Førerkortklasser",
                         seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                         pakrevd = true,
-                        representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                        representerer = OpplaringKategoriseringType.FORERKORT,
                         alternativer = listOf(
                             OpplaringKategoriseringResponse.Alternativ.Verdi(id = verdiAId, visningsnavn = "B", valgt = true),
                             OpplaringKategoriseringResponse.Alternativ.Verdi(id = verdiBId, visningsnavn = "C", valgt = false),
@@ -104,7 +105,7 @@ class OpplaringKategoriseringResponseTest {
                         id = UUID.randomUUID(),
                         visningsnavn = "Førerkortklasser",
                         pakrevd = true,
-                        representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                        representerer = OpplaringKategoriseringType.FORERKORT,
                         seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                         alternativer = listOf(
                             OpplaringKategoriseringResponse.Alternativ.Verdi(id = verdiId, visningsnavn = "B", valgt = true),
@@ -127,7 +128,7 @@ class OpplaringKategoriseringResponseTest {
                 visningsnavn = "Sertifiseringer",
                 seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
                 pakrevd = true,
-                representerer = OpplaringKategoriseringResponse.Representerer.SERTIFISERINGER,
+                representerer = OpplaringKategoriseringType.SERTIFISERINGER,
                 kilde = OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok.Kilde.JANZZ_SERTIFISERING,
             )
 

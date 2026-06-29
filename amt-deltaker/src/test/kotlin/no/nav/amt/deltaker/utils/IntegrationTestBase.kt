@@ -329,6 +329,7 @@ abstract class IntegrationTestBase {
             navAnsattRepository = navAnsattRepository,
             opplaringKategoriseringClient = opplaringKategoriseringClient,
             deltakerProducerService = deltakerProducerService,
+            innsokService = innsokService,
         )
     }
 

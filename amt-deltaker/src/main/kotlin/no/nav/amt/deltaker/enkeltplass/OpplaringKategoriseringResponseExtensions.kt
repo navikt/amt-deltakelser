@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.enkeltplass
 
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse.Alternativ
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse.Representerer
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
@@ -95,12 +95,12 @@ private fun Alternativ.UtdanningGruppe.tilValgteFeltInternal(): Set<OpplaringKat
         ?: return emptySet()
 
     val valgtUtdanningsprogram = OpplaringKategoriseringValg.ValgteFelt(
-        representerer = Representerer.UTDANNINGSPROGRAM_ID,
+        representerer = OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID,
         valg = mapOf(valgtUtdanningsgruppe.id to valgtUtdanningsgruppe.visningsnavn),
     )
 
     val valgteLarefag = OpplaringKategoriseringValg.ValgteFelt(
-        representerer = Representerer.LAREFAG,
+        representerer = OpplaringKategoriseringType.LAREFAG,
         valg = valgtUtdanningsgruppe.larefag.alternativer
             .filter { verdi -> verdi.valgt }
             .associate { verdi -> verdi.id to verdi.visningsnavn },

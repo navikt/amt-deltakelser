@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
@@ -52,11 +52,11 @@ class OpplaringKategoriseringRepoAdapterTest {
 
             val valgteVerdier = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     valg = mapOf(bransjeId1 to "Bygg og anlegg", bransjeId2 to "Helse og omsorg"),
                 ),
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                    representerer = OpplaringKategoriseringType.FORERKORT,
                     valg = mapOf(forerkortId to "B"),
                 ),
             )
@@ -71,8 +71,8 @@ class OpplaringKategoriseringRepoAdapterTest {
             val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(deltakerliste.id)
 
             // Assert
-            result.verdier[OpplaringKategoriseringResponse.Representerer.BRANSJE_ID] shouldBe setOf(bransjeId1, bransjeId2)
-            result.verdier[OpplaringKategoriseringResponse.Representerer.FORERKORT] shouldBe setOf(forerkortId)
+            result.verdier[OpplaringKategoriseringType.BRANSJE_ID] shouldBe setOf(bransjeId1, bransjeId2)
+            result.verdier[OpplaringKategoriseringType.FORERKORT] shouldBe setOf(forerkortId)
             result.sertifiseringer.shouldBeEmpty()
         }
 
@@ -131,11 +131,11 @@ class OpplaringKategoriseringRepoAdapterTest {
 
             val valgteVerdier = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     valg = mapOf(bransjeId to "Bygg og anlegg"),
                 ),
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                    representerer = OpplaringKategoriseringType.FORERKORT,
                     valg = mapOf(forerkortId to "B"),
                 ),
             )
@@ -190,7 +190,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             val bransjeId = UUID.randomUUID()
             val valgteVerdier = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     valg = mapOf(bransjeId to "Bygg og anlegg"),
                 ),
             )
@@ -239,7 +239,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             val gammelBransjeId = UUID.randomUUID()
             val gamleValg = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     valg = mapOf(gammelBransjeId to "Bygg og anlegg"),
                 ),
             )
@@ -253,7 +253,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             val nyForerkortId = UUID.randomUUID()
             val nyeValg = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                    representerer = OpplaringKategoriseringType.FORERKORT,
                     valg = mapOf(nyForerkortId to "B"),
                 ),
             )
@@ -279,7 +279,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             val bransjeId = UUID.randomUUID()
             val opprinneligeValg = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     valg = mapOf(bransjeId to "Bygg og anlegg"),
                 ),
             )
@@ -311,7 +311,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             val bransjeId = UUID.randomUUID()
             val opprinneligeValg = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     valg = mapOf(bransjeId to "Bygg og anlegg"),
                 ),
             )
@@ -377,7 +377,7 @@ class OpplaringKategoriseringRepoAdapterTest {
                 gjennomforingId = deltakerliste1.id,
                 valgteVerdier = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
                         valg = mapOf(bransjeId1 to "Bygg og anlegg"),
                     ),
                 ),
@@ -388,7 +388,7 @@ class OpplaringKategoriseringRepoAdapterTest {
                 gjennomforingId = deltakerliste2.id,
                 valgteVerdier = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                        representerer = OpplaringKategoriseringType.FORERKORT,
                         valg = mapOf(bransjeId2 to "B"),
                     ),
                 ),
@@ -397,10 +397,10 @@ class OpplaringKategoriseringRepoAdapterTest {
 
             // Act & Assert
             val result1 = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste1.id)
-            result1.valgteKategoriseringer.first().representerer shouldBe OpplaringKategoriseringResponse.Representerer.BRANSJE_ID
+            result1.valgteKategoriseringer.first().representerer shouldBe OpplaringKategoriseringType.BRANSJE_ID
 
             val result2 = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste2.id)
-            result2.valgteKategoriseringer.first().representerer shouldBe OpplaringKategoriseringResponse.Representerer.FORERKORT
+            result2.valgteKategoriseringer.first().representerer shouldBe OpplaringKategoriseringType.FORERKORT
         }
     }
 }

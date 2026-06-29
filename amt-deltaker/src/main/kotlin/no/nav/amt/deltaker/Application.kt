@@ -404,6 +404,7 @@ fun Application.module() {
         arrangorService = arrangorService,
         opplaringKategoriseringClient = opplaringKategoriseringClient,
         deltakerProducerService = deltakerProducerService,
+        innsokService = innsokService,
     )
 
     val pameldingService = PameldingService(

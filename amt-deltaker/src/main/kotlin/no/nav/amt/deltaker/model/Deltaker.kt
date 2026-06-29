@@ -5,6 +5,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.person.NavBruker
 import java.time.LocalDate
@@ -35,7 +36,7 @@ data class Deltaker(
     val deltarPaOpplaeringstiltak get(): Boolean = deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()
     val erEnkeltplass get(): Boolean = deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass
 
-    fun toDeltakerVedVedtak(): DeltakerVedVedtak = DeltakerVedVedtak(
+    fun toDeltakerVedVedtak(opplaringKategorisering: OpplaringKategoriseringValg? = null): DeltakerVedVedtak = DeltakerVedVedtak(
         id = id,
         startdato = startdato,
         sluttdato = sluttdato,
@@ -44,6 +45,7 @@ data class Deltaker(
         bakgrunnsinformasjon = bakgrunnsinformasjon,
         deltakelsesinnhold = deltakelsesinnhold,
         status = status,
+        opplaringKategorisering = opplaringKategorisering,
     )
 
     fun toDeltakerVedImport(innsoktDato: LocalDate) = DeltakerVedImport(

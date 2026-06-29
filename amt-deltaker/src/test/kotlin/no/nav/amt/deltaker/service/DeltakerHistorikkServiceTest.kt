@@ -17,10 +17,14 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
@@ -49,6 +53,55 @@ class DeltakerHistorikkServiceTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
+    }
+
+    @Nested
+    inner class Enkeltplass {
+        @Test
+        fun `getForDeltaker - enkeltplass vedtak - returnerer vedtak med opplæringkategorisering`() {
+            // Arrange
+            val navEnhet = TestData.lagNavEnhet()
+            navEnhetRepository.upsert(navEnhet)
+
+            val navAnsatt = TestData.lagNavAnsatt()
+            TestRepository.insert(navAnsatt)
+            navAnsattRepository.upsert(navAnsatt)
+
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData
+                .lagDeltaker()
+
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                fattet = LocalDateTime.now().minusMonths(1),
+                opplaringKategorisering = OpplaringKategoriseringValg(
+                    valgteKategoriseringer = setOf(
+                        OpplaringKategoriseringValg.ValgteFelt(
+                            representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                            valg = mapOf(UUID.randomUUID() to "Bransje 1"),
+                        ),
+                    ),
+                    valgteSertifiseringer = setOf(
+                        SertifiseringValg(
+                            id = 32143L,
+                            navn = "Sertifisering 1",
+                        ),
+                    ),
+                ),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndret = LocalDateTime.now().minusMonths(1),
+            )
+
+            TestRepository.insert(deltaker)
+            TestRepository.insert(vedtak)
+
+            // Act
+            val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
+
+            // Assert
+            historikk.size shouldBe 1
+            DeltakerTestUtils.sammenlignHistorikk(historikk.first(), DeltakerHistorikk.Vedtak(vedtak))
+        }
     }
 
     @Test

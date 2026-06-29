@@ -242,7 +242,7 @@ class DeltakerRepositoryTest {
                 ),
             )
 
-            deltakerRepository.updateEnkeltplassKladd(oppdatertDeltaker)
+            deltakerRepository.updateEnkeltplass(oppdatertDeltaker)
             val kladdResult = deltakerRepository
                 .get(deltaker.id)
                 .getOrThrow()

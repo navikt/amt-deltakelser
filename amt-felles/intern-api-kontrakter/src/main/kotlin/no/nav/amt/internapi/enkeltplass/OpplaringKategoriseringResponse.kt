@@ -2,6 +2,8 @@ package no.nav.amt.internapi.enkeltplass
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.util.UUID
@@ -23,6 +25,7 @@ import java.util.UUID
  * @property sertifiseringValg Sertifiseringer valgt for en enkeltplass-gjennomføring.
  *   Verdiene kommer fra et eksternt søk ([Alternativ.VerdigruppeSok]) og lagres separat
  *   fra det statiske kodeverket i [alternativer].
+ *   https://github.com/navikt/mulighetsrommet/blob/4d94c34562f5a4db59df36b91692f399b2a3c87c/mulighetsrommet-api/src/main/kotlin/no/nav/mulighetsrommet/api/amo/OpplaringKategoriseringMapper.kt
  */
 data class OpplaringKategoriseringResponse(
     val tiltakskode: Tiltakskode,
@@ -86,17 +89,6 @@ data class OpplaringKategoriseringResponse(
         FLERVALG,
     }
 
-    enum class Representerer {
-        BRANSJE_ID, // AMO
-        FORERKORT, // AMO
-        SERTIFISERINGER, // AMO
-        KURSTYPE_ID, // FOV
-        UTDANNINGSPROGRAM_ID, // Fag- og yrkesopplæring
-        LAREFAG, // Fag- og yrkesopplæring
-        INNHOLDSELEMENTER,
-        NORSKPROVE,
-    }
-
     /**
      * Et element i kodeverk-hierarkiet.
      *
@@ -115,7 +107,7 @@ data class OpplaringKategoriseringResponse(
     )
     sealed interface Alternativ {
         val id: UUID?
-        val visningsnavn: String
+        val visningsnavn: String // Eksempler: Bransje, Førerkort, Sertifiseringer, Kurstype, Utdanningsprogram og Lærefag
 
         /**
          * Et alternativ som kan inneholde andre alternativer — enten en ren
@@ -124,41 +116,45 @@ data class OpplaringKategoriseringResponse(
          *
          * En [Verdi] er ikke en [Container] og kan derfor ikke inneholde andre
          * alternativer.
+         * Eksempler: Bransje, Førerkort, Sertifiseringer, Kurstype, Utdanningsprogram og Lærefag
          */
         sealed interface Container : Alternativ
 
         /**
-         * Gruppering for utdanningsprogram og lærefag
+         * Gruppering for utdanningsprogram og lærefag.
+         * Brukes for Fag og yrkesopplæring
+         * Muliggjør at valg av program og tilpasser tilgjengelige lærefag
+         * Utdanningsprogram + Lærefag
+         * Hvert av Utdanningsprogram har forskjellige tilgjengelige "utdanninger"(Lærefag)
          *
-         * Muliggjør at valg av program, gir andre muligheter for lærefag
          */
         data class UtdanningGruppe(
-            override val id: UUID? = null,
-            override val visningsnavn: String,
-            val representerer: Representerer,
+            override val id: UUID? = null, // evt id på selve kodeverket, forskjellig i dev og prod
+            override val visningsnavn: String, // Utdanningsprogram
+            val representerer: OpplaringKategoriseringType, // = UTDANNINGSPROGRAM_ID
             val pakrevd: Boolean,
-            val utdanninger: List<UtdanningValg>,
+            val utdanninger: List<UtdanningValg>, // valgene som er tilgjengelig for Utdanningsprogram
         ) : Container {
             data class UtdanningValg(
                 val id: UUID,
-                val visningsnavn: String,
-                val larefag: Verdigruppe,
+                val visningsnavn: String, // Navnet på utdanningsprogrammet "Teknologi og industrifag"
+                val larefag: Verdigruppe, // Tilpasses utifra valgt utdanningsprogram
                 val valgt: Boolean = false, // kun internt hos Komet, ikke i kodeverket
             )
         }
 
         /**
-         * En valgbar gruppe — det innerste nivået i hierarkiet som inneholder
-         * direkte valgbare [Verdi]-er.
-         *
+         * Et element med valgbare verdier
+
          * Eksempler på verdigrupper:
-         * - "Bransje" med verdier "Bygg og anlegg", "Helse og omsorg"
+         * - "Bransje" med alternativer "Bygg og anlegg", "Helse og omsorg"
          * - "Førerkortklasse" med verdier "B", "C1", "CE"
          *
          * @property id Unik identifikator for verdigruppen.
          * @property visningsnavn Navnet som vises i UI (f.eks. "Bransje").
          * @property seleksjonstype Hvordan brukeren kan velge blant verdiene
          *   (ett enkelt valg eller flere samtidig).
+         * @property representerer BRANSJE_ID, FORERKORT_ID
          * @property alternativer Verdiene brukeren kan velge mellom.
          */
         @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
@@ -166,7 +162,7 @@ data class OpplaringKategoriseringResponse(
             override val id: UUID?,
             override val visningsnavn: String,
             val pakrevd: Boolean,
-            val representerer: Representerer,
+            val representerer: OpplaringKategoriseringType, // BRANSJE_ID, FORERKORT_ID, LAEREFAG(hvis utdanningGruppe)
             val seleksjonstype: Seleksjonstype,
             val alternativer: List<Verdi>,
         ) : Container
@@ -190,7 +186,7 @@ data class OpplaringKategoriseringResponse(
             override val id: UUID?,
             override val visningsnavn: String,
             val pakrevd: Boolean,
-            val representerer: Representerer,
+            val representerer: OpplaringKategoriseringType,
             val seleksjonstype: Seleksjonstype,
             val kilde: Kilde,
         ) : Container {
@@ -211,6 +207,7 @@ data class OpplaringKategoriseringResponse(
          * @property visningsnavn Navnet som vises i UI.
          * @property valgt Om verdien er aktivert for denne gjennomføringen. Dette feltet
          *   er internt hos Komet og er ikke en del av selve kodeverket.
+         *   OBS: id er forskjellig i dev og prod
          */
         @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
         data class Verdi(

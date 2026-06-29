@@ -51,6 +51,7 @@ object DeltakerTestUtils {
         first.bakgrunnsinformasjon shouldBe second.bakgrunnsinformasjon
         first.deltakelsesinnhold?.ledetekst shouldBe second.deltakelsesinnhold?.ledetekst
         first.deltakelsesinnhold?.innhold shouldBe second.deltakelsesinnhold?.innhold
+        first.opplaringKategorisering shouldBe second.opplaringKategorisering
         first.status.id shouldBe second.status.id
         first.status.type shouldBe second.status.type
         first.status.aarsak shouldBe second.status.aarsak

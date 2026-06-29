@@ -35,6 +35,7 @@ import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
@@ -78,7 +79,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     private fun setupRepositoryMocks() {
         every { deltakerlisteRepository.update(any()) } just Runs
-        every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+        every { deltakerRepository.updateEnkeltplass(any()) } just Runs
     }
 
     @AfterEach
@@ -129,8 +130,16 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             verdier = emptyMap(),
         )
 
+        every {
+            OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(any())
+        } returns OpplaringKategoriseringValg(
+            valgteKategoriseringer = emptySet(),
+            valgteSertifiseringer = emptySet(),
+        )
+
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } just Runs
+        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns PrisinformasjonDto.Anskaffelse(1000)
     }
 
     private fun setupNavEnhetOgAnsattMocks() {
@@ -190,7 +199,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `sertifiseringValg med verdier - sletter eksisterende og lagrer nye`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val sertifiseringer = setOf(
                 SertifiseringValg(id = 1, navn = "Truckfører T1"),
@@ -218,7 +227,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `sertifiseringValg tomt sett - sletter eksisterende uten aa lagre nye`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val request = oppdaterKladdRequest.copy(sertifiseringValg = emptySet())
 
@@ -242,7 +251,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `sertifiseringValg null - roerer ikke sertifiseringer`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val request = oppdaterKladdRequest.copy(sertifiseringValg = null)
 
@@ -261,7 +270,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal ikke lagre prisinformasjon naar den er null`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val request = oppdaterKladdRequest.copy(prisinformasjon = null)
 
@@ -279,7 +288,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal oppdatere prisinformasjon naar gitt`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val nyPrisinformasjon = PrisinformasjonDto.Anskaffelse(42)
             val request = oppdaterKladdRequest.copy(prisinformasjon = nyPrisinformasjon)
@@ -304,7 +313,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal oppdatere dato-felter naar gitt`() = runTest {
             // Arrange
             every { deltakerlisteRepository.update(any()) } just Runs
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val startDato = LocalDate.now().plusDays(10)
             val sluttDato = LocalDate.now().plusMonths(3)
@@ -317,7 +326,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
 
             // Assert
-            verify { deltakerRepository.updateEnkeltplassKladd(any()) }
+            verify { deltakerRepository.updateEnkeltplass(any()) }
         }
     }
 
@@ -373,7 +382,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
 
             every { arrangorRepository.get(any<String>()) } returns arrangorInTest
-            every { deltakerRepository.updateEnkeltplassKladd(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplass(any()) } just Runs
             every { deltakerlisteRepository.update(any()) } just Runs
 
             // Act
@@ -387,7 +396,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 deltakerService.lagreDeltakerStatus(any(), any(), any())
             }
             verify { deltakerlisteRepository.update(any()) }
-            verify { deltakerRepository.updateEnkeltplassKladd(any()) }
+            verify { deltakerRepository.updateEnkeltplass(any()) }
         }
 
         @Test
@@ -424,30 +433,51 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     @Nested
     inner class ProduceUpsertGjennomforingTests {
+        private fun Deltaker.toPayload(): GjennomforingRequestPayload.UpsertEnkeltplass = GjennomforingRequestPayload.UpsertEnkeltplass(
+            tiltakskode = deltakerliste.tiltakstype.tiltakskode,
+            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
+            organisasjonsnummer = "987654321",
+            ansvarligEnhet = "1234",
+            opprettetAv = "Z123456",
+            kategorisering = GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
+                verdier = emptyMap(),
+                sertifiseringer = emptySet(),
+            ),
+        )
+
         private val testPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
             organisasjonsnummer = "987654321",
             ansvarligEnhet = "1234",
             opprettetAv = "Z123456",
-            kategorisering = null,
+            kategorisering = GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
+                verdier = emptyMap(),
+                sertifiseringer = emptySet(),
+            ),
         )
 
         @Test
         fun `UTKAST_TIL_PAMELDING status - produserer EnkeltplassUtkast`() {
             // Arrange
             val deltaker = utkastDeltakerInTest
+            val payload = deltaker.toPayload()
             val slot = slot<GjennomforingRequestPayload>()
             every { outboxService.insertRecord(any(), capture(slot), any(), any()) } returns mockk()
 
             // Act
-            enkeltplassService.produceUpsertGjennomforing(deltaker, testPayload)
+            enkeltplassService.produceUpsertGjennomforing(
+                deltaker = deltaker,
+                orgnr = payload.organisasjonsnummer,
+                endretAvNavIdent = payload.opprettetAv,
+                endretAvEnhet = payload.ansvarligEnhet,
+            )
 
             // Assert
             val produced = slot.captured
             produced shouldBe GjennomforingRequestPayload.EnkeltplassUtkast(
                 gjennomforingId = deltaker.deltakerliste.id,
-                payload = testPayload,
+                payload = payload,
             )
         }
 
@@ -455,17 +485,23 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `SOKT_INN status - produserer EnkeltplassSoktInn`() {
             // Arrange
             val deltaker = soktInnDeltakerInTest
+            val payload = deltaker.toPayload()
             val slot = slot<GjennomforingRequestPayload>()
             every { outboxService.insertRecord(any(), capture(slot), any(), any()) } returns mockk()
 
             // Act
-            enkeltplassService.produceUpsertGjennomforing(deltaker, testPayload)
+            enkeltplassService.produceUpsertGjennomforing(
+                deltaker = deltaker,
+                orgnr = payload.organisasjonsnummer,
+                endretAvNavIdent = payload.opprettetAv,
+                endretAvEnhet = payload.ansvarligEnhet,
+            )
 
             // Assert
             val produced = slot.captured
             produced shouldBe GjennomforingRequestPayload.EnkeltplassSoktInn(
                 gjennomforingId = deltaker.deltakerliste.id,
-                payload = testPayload,
+                payload = payload,
             )
         }
 
@@ -473,7 +509,12 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `KLADD status - kaster IllegalStateException`() {
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                enkeltplassService.produceUpsertGjennomforing(kladdDeltakerInTest, testPayload)
+                enkeltplassService.produceUpsertGjennomforing(
+                    deltaker = kladdDeltakerInTest,
+                    orgnr = testPayload.organisasjonsnummer,
+                    endretAvNavIdent = testPayload.opprettetAv,
+                    endretAvEnhet = testPayload.ansvarligEnhet,
+                )
             }
         }
     }

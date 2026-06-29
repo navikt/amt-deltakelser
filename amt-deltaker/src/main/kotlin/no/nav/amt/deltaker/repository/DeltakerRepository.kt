@@ -256,7 +256,7 @@ class DeltakerRepository {
         log.info("Opprettet/oppdaterte deltaker kladd med id ${deltaker.id}")
     }
 
-    fun updateEnkeltplassKladd(deltaker: EnkeltplassDeltakerUpdateDbo) {
+    fun updateEnkeltplass(deltaker: EnkeltplassDeltakerUpdateDbo) {
         val sql =
             """
             UPDATE deltaker

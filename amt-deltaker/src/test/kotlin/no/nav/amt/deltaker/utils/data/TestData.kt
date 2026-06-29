@@ -18,6 +18,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -252,6 +253,7 @@ object TestData {
         deltakerVedVedtak: Deltaker = lagDeltaker(
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         ),
+        opplaringKategorisering: OpplaringKategoriseringValg? = null,
         deltakerId: UUID = deltakerVedVedtak.id,
         fattet: LocalDateTime? = null,
         gyldigTil: LocalDateTime? = null,
@@ -267,7 +269,7 @@ object TestData {
         deltakerId,
         fattet,
         gyldigTil,
-        deltakerVedVedtak.toDeltakerVedVedtak(),
+        deltakerVedVedtak.toDeltakerVedVedtak(opplaringKategorisering),
         fattetAvNav,
         opprettet,
         opprettetAv.id,
