@@ -53,11 +53,9 @@ sealed interface GjennomforingV2KafkaPayload {
         }
 
         if (this is Enkeltplass) {
-            /*
             require(pameldingType == GjennomforingPameldingType.TRENGER_GODKJENNING) {
                 "Enkeltplass gjennomføring $id må ha påmeldingstype ${GjennomforingPameldingType.TRENGER_GODKJENNING}"
             }
-             */
             require(oppstart == Oppstartstype.ENKELTPLASS) {
                 "Enkeltplass gjennomføring $id må ha oppstartstype ${Oppstartstype.ENKELTPLASS}"
             }
