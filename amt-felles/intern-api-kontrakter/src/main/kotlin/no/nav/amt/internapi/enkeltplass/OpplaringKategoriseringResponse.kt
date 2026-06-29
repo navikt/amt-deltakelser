@@ -129,8 +129,8 @@ data class OpplaringKategoriseringResponse(
          *
          */
         data class UtdanningGruppe(
-            override val id: UUID? = null, // evt id på selve kodeverket, forskjellig i dev og prod
-            override val visningsnavn: String, // Utdanningsprogram
+            override val id: UUID? = null,
+            override val visningsnavn: String,
             val representerer: OpplaringKategoriseringType, // = UTDANNINGSPROGRAM_ID
             val pakrevd: Boolean,
             val utdanninger: List<UtdanningValg>, // valgene som er tilgjengelig for Utdanningsprogram
@@ -154,7 +154,7 @@ data class OpplaringKategoriseringResponse(
          * @property visningsnavn Navnet som vises i UI (f.eks. "Bransje").
          * @property seleksjonstype Hvordan brukeren kan velge blant verdiene
          *   (ett enkelt valg eller flere samtidig).
-         * @property representerer BRANSJE_ID, FORERKORT_ID
+         * @property representerer BRANSJE_ID, FORERKORT, LAREFAG(hvis utdanninggruppe)
          * @property alternativer Verdiene brukeren kan velge mellom.
          */
         @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
@@ -162,7 +162,7 @@ data class OpplaringKategoriseringResponse(
             override val id: UUID?,
             override val visningsnavn: String,
             val pakrevd: Boolean,
-            val representerer: OpplaringKategoriseringType, // BRANSJE_ID, FORERKORT_ID, LAEREFAG(hvis utdanningGruppe)
+            val representerer: OpplaringKategoriseringType,
             val seleksjonstype: Seleksjonstype,
             val alternativer: List<Verdi>,
         ) : Container
