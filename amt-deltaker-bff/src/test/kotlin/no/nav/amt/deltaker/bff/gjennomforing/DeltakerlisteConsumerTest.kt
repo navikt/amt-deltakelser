@@ -92,7 +92,6 @@ class DeltakerlisteConsumerTest {
         coEvery { arrangorClient.hentArrangor(arrangorResponseInTest.id) } returns arrangorResponseInTest
     }
 
-/*
     @Test
     fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() {
         val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING)
@@ -116,7 +115,7 @@ class DeltakerlisteConsumerTest {
                 "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
         }
     }
-*/
+
     @Test
     fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() = runTest {
         every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns false

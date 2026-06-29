@@ -44,21 +44,18 @@ sealed interface GjennomforingV2KafkaPayload {
     ) {
         if (antallDeltakere == 0) return
 
-        /*
         require(pameldingType == eksisterendePameldingstype || eksisterendePameldingstype == null) {
             "Påmeldingstype kan ikke endres for deltakerliste $id med deltakere"
         }
-*/
+
         require(oppstart == eksisterendeOppstartstype || eksisterendeOppstartstype == null) {
             "Oppstartstype kan ikke endres for deltakerliste $id med deltakere"
         }
 
         if (this is Enkeltplass) {
-            /*
             require(pameldingType == GjennomforingPameldingType.TRENGER_GODKJENNING) {
                 "Enkeltplass gjennomføring $id må ha påmeldingstype ${GjennomforingPameldingType.TRENGER_GODKJENNING}"
             }
-             */
             require(oppstart == Oppstartstype.ENKELTPLASS) {
                 "Enkeltplass gjennomføring $id må ha oppstartstype ${Oppstartstype.ENKELTPLASS}"
             }
