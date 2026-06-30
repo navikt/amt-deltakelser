@@ -4,6 +4,7 @@ package no.nav.amt.deltaker.repository
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService.Companion.toMulighetsrommetKategorisering
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -31,7 +32,9 @@ class OpplaringKategoriseringRepoAdapterTest {
             TestRepository.insert(deltakerliste)
 
             // Act
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter
+                .hentOpplaringKategoriseringValg(deltakerliste.id)
+                .toMulighetsrommetKategorisering()
 
             // Assert
             result shouldBe GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
@@ -68,8 +71,9 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Act
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(deltakerliste.id)
-
+            val result = OpplaringKategoriseringRepoAdapter
+                .hentOpplaringKategoriseringValg(deltakerliste.id)
+                .toMulighetsrommetKategorisering()
             // Assert
             result.verdier[OpplaringKategoriseringType.BRANSJE_ID] shouldBe setOf(bransjeId1, bransjeId2)
             result.verdier[OpplaringKategoriseringType.FORERKORT] shouldBe setOf(forerkortId)
@@ -94,8 +98,9 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Act
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(deltakerliste.id)
-
+            val result = OpplaringKategoriseringRepoAdapter
+                .hentOpplaringKategoriseringValg(deltakerliste.id)
+                .toMulighetsrommetKategorisering()
             // Assert
             result.verdier shouldBe emptyMap()
             result.sertifiseringer shouldBe sertifiseringer
@@ -111,7 +116,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             TestRepository.insert(deltakerliste)
 
             // Act
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
 
             // Assert
             result shouldBe OpplaringKategoriseringValg(
@@ -147,7 +152,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Act
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
 
             // Assert
             result.valgteKategoriseringer shouldBe valgteVerdier
@@ -171,7 +176,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Act
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
 
             // Assert
             result.valgteKategoriseringer.shouldBeEmpty()
@@ -203,7 +208,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Assert
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
             result.valgteKategoriseringer shouldBe valgteVerdier
         }
 
@@ -226,7 +231,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Assert
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
             result.valgteSertifiseringer shouldBe sertifiseringer
         }
 
@@ -266,7 +271,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Assert
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
             result.valgteKategoriseringer shouldBe nyeValg
         }
 
@@ -298,7 +303,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Assert
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
             result.valgteKategoriseringer.shouldBeEmpty()
         }
 
@@ -330,7 +335,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Assert
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
             result.valgteKategoriseringer shouldBe opprinneligeValg
         }
 
@@ -358,7 +363,7 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Assert
-            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
+            val result = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste.id)
             result.valgteSertifiseringer shouldBe sertifiseringer
         }
 
@@ -396,10 +401,10 @@ class OpplaringKategoriseringRepoAdapterTest {
             )
 
             // Act & Assert
-            val result1 = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste1.id)
+            val result1 = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste1.id)
             result1.valgteKategoriseringer.first().representerer shouldBe OpplaringKategoriseringType.BRANSJE_ID
 
-            val result2 = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste2.id)
+            val result2 = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste2.id)
             result2.valgteKategoriseringer.first().representerer shouldBe OpplaringKategoriseringType.FORERKORT
         }
     }
