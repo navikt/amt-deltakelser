@@ -8,7 +8,7 @@ import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
@@ -21,7 +21,7 @@ class DeltakerHistorikkService(
     private val forslagRepository: ForslagRepository,
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
-    private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
+    private val innsokRepository: InnsokRepository,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val vurderingRepository: VurderingRepository,
 ) {
@@ -60,7 +60,7 @@ class DeltakerHistorikkService(
                 ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
         },
         { deltakerId ->
-            innsokPaaFellesOppstartRepository
+            innsokRepository
                 .getForDeltaker(deltakerId)
                 .getOrNull()
                 ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }

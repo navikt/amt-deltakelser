@@ -11,7 +11,8 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -256,12 +257,13 @@ data class InnsokPaaFellesOppstartResponse(
     val innsoktAv: String,
     val innsoktAvEnhet: String,
     val deltakelsesinnholdVedInnsok: Deltakelsesinnhold?,
+    val opplaringKategorisering: OpplaringKategoriseringValg?,
     val utkastDelt: LocalDateTime?,
     val utkastGodkjentAvNav: Boolean,
 ) : DeltakerHistorikkResponse {
     companion object {
         fun fromModel(
-            model: InnsokPaaFellesOppstart,
+            model: Innsok,
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
         ) = InnsokPaaFellesOppstartResponse(
@@ -271,6 +273,7 @@ data class InnsokPaaFellesOppstartResponse(
             deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok,
             utkastDelt = model.utkastDelt,
             utkastGodkjentAvNav = model.utkastGodkjentAvNav,
+            opplaringKategorisering = model.opplaringKategoriseringVedInnsok,
         )
     }
 }

@@ -17,7 +17,7 @@ import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs
+import no.nav.amt.deltaker.utils.data.TestData.lagInnsok
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -65,12 +65,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             val deltaker = lagDeltaker(deltakerliste = deltakerliste)
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsok(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -135,12 +135,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             val laastDeltaker = lagDeltaker(deltakerliste = deltakerliste)
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
             val deltakerIder = setOf(laastDeltaker.id, deltaker2.id)
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = laastDeltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsok(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -208,12 +208,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             val deltakerUtenVedtak = lagDeltaker(deltakerliste = deltakerliste)
             val deltakerIder = setOf(deltaker.id, deltakerUtenVedtak.id)
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsok(
                 deltakerId = deltakerUtenVedtak.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -311,12 +311,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sistEndretAvEnhet = navEnhetInTest,
             )
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsok(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -416,12 +416,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sistEndretAv = navAnsattInTest,
                 sistEndretAvEnhet = navEnhetInTest,
             )
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsok(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -513,12 +513,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
 
             val deltakerIder = setOf(deltakerInsert.id, deltaker2Insert.id)
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltakerInsert.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsok(
                 deltakerId = deltaker2Insert.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -591,12 +591,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
 
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            val innsokt2 = lagInnsoktPaaKurs(
+            val innsokt2 = lagInnsok(
                 deltakerId = deltaker2.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -682,7 +682,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.VENTELISTE),
             )
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -719,7 +719,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.VENTELISTE),
             )
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -757,7 +757,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                     .lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
                 erManueltDeltMedArrangor = true,
             )
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -792,7 +792,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             )
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -823,7 +823,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
             )
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -853,7 +853,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
             )
             val deltaker = lagDeltaker(deltakerliste = ugyldigDeltakerliste)
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
@@ -891,7 +891,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sistEndretAv = navAnsattInTest,
                 sistEndretAvEnhet = navEnhetInTest,
             )
-            val innsokt = lagInnsoktPaaKurs(
+            val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,

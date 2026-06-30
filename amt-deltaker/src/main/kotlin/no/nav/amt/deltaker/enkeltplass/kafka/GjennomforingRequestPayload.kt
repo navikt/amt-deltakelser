@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.enkeltplass.kafka
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.util.UUID
@@ -31,7 +31,7 @@ sealed interface GjennomforingRequestPayload {
         val kategorisering: OpplaringKategorisering?,
     ) {
         data class OpplaringKategorisering(
-            val verdier: Map<OpplaringKategoriseringResponse.Representerer, Set<UUID>>,
+            val verdier: Map<OpplaringKategoriseringType, Set<UUID>>,
             val sertifiseringer: Set<SertifiseringValg>,
         )
     }

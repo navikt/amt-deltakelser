@@ -219,28 +219,42 @@ class DeltakerlisteRepository {
     companion object {
         private val col = prefixColumn("dl")
 
-        fun rowMapper(row: Row): Deltakerliste = Deltakerliste(
-            id = row.uuid(col("id")),
-            tiltakstype = TiltakRepository.rowMapper(row, "t"),
-            navn = row.string(col("navn")),
-            gjennomforingstype = GjennomforingType.valueOf(row.string(col("gjennomforingstype"))),
-            status = row.string(col("status")).let { GjennomforingStatusType.valueOf(it) },
-            startDato = row.localDateOrNull(col("start_dato")),
-            sluttDato = row.localDateOrNull(col("slutt_dato")),
-            oppstart = row.string(col("oppstart")).let { Oppstartstype.valueOf(it) },
-            apentForPamelding = row.boolean(col("apent_for_pamelding")),
-            oppmoteSted = row.stringOrNull(col("oppmote_sted")),
-            pameldingstype = row.string(col("pameldingstype")).let { GjennomforingPameldingType.valueOf(it) },
-            prisinformasjon = row.stringOrNull(col("prisinformasjon")),
-            antallPlasser = row.intOrNull(col("antall_plasser")),
-            arrangor = row.uuidOrNull("a.id")?.let { arrangorId ->
-                Arrangor(
-                    id = arrangorId,
-                    navn = row.string("a.navn"),
-                    organisasjonsnummer = row.string("a.organisasjonsnummer"),
-                    overordnetArrangorId = row.uuidOrNull("a.overordnet_arrangor_id"),
-                )
-            },
-        )
+        fun rowMapper(row: Row): Deltakerliste {
+            val id = row.uuid(col("id"))
+            val gjennomforingstype = GjennomforingType.valueOf(row.string(col("gjennomforingstype")))
+
+            // Arena enkeltplasser har i praksis ikke kategoriseringer men skal ha det etter hvert
+            val opplaringKategorisering = if (gjennomforingstype == GjennomforingType.Enkeltplass) {
+                // TODO: fikse dette med join isteden
+                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(id)
+            } else {
+                null
+            }
+
+            return Deltakerliste(
+                id = id,
+                tiltakstype = TiltakRepository.rowMapper(row, "t"),
+                navn = row.string(col("navn")),
+                gjennomforingstype = gjennomforingstype,
+                status = row.string(col("status")).let { GjennomforingStatusType.valueOf(it) },
+                startDato = row.localDateOrNull(col("start_dato")),
+                sluttDato = row.localDateOrNull(col("slutt_dato")),
+                oppstart = row.string(col("oppstart")).let { Oppstartstype.valueOf(it) },
+                apentForPamelding = row.boolean(col("apent_for_pamelding")),
+                oppmoteSted = row.stringOrNull(col("oppmote_sted")),
+                pameldingstype = row.string(col("pameldingstype")).let { GjennomforingPameldingType.valueOf(it) },
+                prisinformasjon = row.stringOrNull(col("prisinformasjon")),
+                antallPlasser = row.intOrNull(col("antall_plasser")),
+                arrangor = row.uuidOrNull("a.id")?.let { arrangorId ->
+                    Arrangor(
+                        id = arrangorId,
+                        navn = row.string("a.navn"),
+                        organisasjonsnummer = row.string("a.organisasjonsnummer"),
+                        overordnetArrangorId = row.uuidOrNull("a.overordnet_arrangor_id"),
+                    )
+                },
+                opplaringKategorisering = opplaringKategorisering,
+            )
+        }
     }
 }

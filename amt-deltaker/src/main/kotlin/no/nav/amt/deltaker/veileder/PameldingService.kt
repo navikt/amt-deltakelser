@@ -26,7 +26,7 @@ class PameldingService(
     private val navEnhetService: NavEnhetService,
     private val vedtakService: VedtakService,
     private val distribuerEndringService: DistribuerEndringService,
-    private val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
+    private val innsokService: InnsokService,
     private val enkeltplassService: EnkeltplassService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -77,7 +77,7 @@ class PameldingService(
                 if (utkast.godkjentAvNav &&
                     oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
                 ) {
-                    innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
+                    innsokService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
                 }
                 deltakerMedNyttVedtak
             },
@@ -137,7 +137,7 @@ class PameldingService(
             sistEndret = LocalDateTime.now(),
         )
 
-        innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvDeltaker(
+        innsokService.nyttInnsokUtkastGodkjentAvDeltaker(
             deltaker = oppdatertDeltaker,
             forrigeStatus = opprinneligDeltaker.status,
         )

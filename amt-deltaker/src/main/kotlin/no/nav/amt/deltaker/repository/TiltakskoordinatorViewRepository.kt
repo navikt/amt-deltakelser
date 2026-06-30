@@ -129,7 +129,7 @@ class TiltakskoordinatorViewRepository {
                 LEFT JOIN vedtak v ON v.deltaker_id = d.id
                 LEFT JOIN nav_enhet ne ON ne.id = nb.nav_enhet_id
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id
-                LEFT JOIN innsok_paa_felles_oppstart ipfo ON ipfo.deltaker_id = d.id
+                LEFT JOIN innsok ipfo ON ipfo.deltaker_id = d.id
                 LEFT JOIN digital_bruker_cache dbc ON
                     dbc.personident = nb.personident
                     AND dbc.modified_at > NOW() - INTERVAL '24 hours'

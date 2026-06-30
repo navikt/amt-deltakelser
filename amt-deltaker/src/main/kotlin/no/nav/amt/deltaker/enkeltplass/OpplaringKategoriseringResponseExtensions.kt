@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.enkeltplass
 
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse.Alternativ
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse.Representerer
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
@@ -16,21 +16,21 @@ import java.util.UUID
  *
  * Early-return med bare sertifiseringer hvis ingen verdier er valgt.
  *
- * @param verdivalg settet med valgte IDer
+ * @param kategoriseringValg settet med valgte IDer
  * @param sertifiseringValg settet med valgte sertifiseringer
  * @return OpplaringKategoriseringValg med alle valgte kategoriseringer og sertifiseringer
  */
 fun OpplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-    verdivalg: Set<UUID>,
+    kategoriseringValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
-): OpplaringKategoriseringValg = if (verdivalg.isEmpty()) {
+): OpplaringKategoriseringValg = if (kategoriseringValg.isEmpty()) {
     OpplaringKategoriseringValg(
         valgteKategoriseringer = emptySet(),
         valgteSertifiseringer = sertifiseringValg,
     )
 } else {
     val kategoriseringResponseMedValgteElementer = settValg(
-        verdivalg = verdivalg,
+        verdivalg = kategoriseringValg,
         sertifiseringValg = sertifiseringValg,
     )
 
@@ -95,12 +95,12 @@ private fun Alternativ.UtdanningGruppe.tilValgteFeltInternal(): Set<OpplaringKat
         ?: return emptySet()
 
     val valgtUtdanningsprogram = OpplaringKategoriseringValg.ValgteFelt(
-        representerer = Representerer.UTDANNINGSPROGRAM_ID,
+        representerer = OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID,
         valg = mapOf(valgtUtdanningsgruppe.id to valgtUtdanningsgruppe.visningsnavn),
     )
 
     val valgteLarefag = OpplaringKategoriseringValg.ValgteFelt(
-        representerer = Representerer.LAREFAG,
+        representerer = OpplaringKategoriseringType.LAREFAG,
         valg = valgtUtdanningsgruppe.larefag.alternativer
             .filter { verdi -> verdi.valgt }
             .associate { verdi -> verdi.id to verdi.visningsnavn },

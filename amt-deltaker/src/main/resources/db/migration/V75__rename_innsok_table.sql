@@ -1,0 +1,1 @@
+ALTER TABLE innsok_paa_felles_oppstart RENAME TO innsok;

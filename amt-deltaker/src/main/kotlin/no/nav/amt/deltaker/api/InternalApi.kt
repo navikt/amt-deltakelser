@@ -27,7 +27,7 @@ import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -45,7 +45,7 @@ fun Routing.registerInternalApi(
     kladdService: KladdService,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
-    innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
+    innsokRepository: InnsokRepository,
     vurderingRepository: VurderingRepository,
     distribuerEndringService: DistribuerEndringService,
     endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
@@ -62,7 +62,7 @@ fun Routing.registerInternalApi(
     }
 
     fun slettDeltaker(deltakerId: UUID) = Database.transaction {
-        innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
+        innsokRepository.deleteForDeltaker(deltakerId)
         vurderingRepository.deleteForDeltaker(deltakerId)
         deltakerService.deleteDeltaker(deltakerId)
     }

@@ -44,6 +44,7 @@ data class Deltaker(
         bakgrunnsinformasjon = bakgrunnsinformasjon,
         deltakelsesinnhold = deltakelsesinnhold,
         status = status,
+        opplaringKategorisering = deltakerliste.opplaringKategorisering,
     )
 
     fun toDeltakerVedImport(innsoktDato: LocalDate) = DeltakerVedImport(

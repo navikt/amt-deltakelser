@@ -3,17 +3,17 @@ package no.nav.amt.deltaker.veileder
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.toPGObject
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
-class InnsokPaaFellesOppstartRepository {
-    fun insert(innsok: InnsokPaaFellesOppstart) {
+class InnsokRepository {
+    fun insert(innsok: Innsok) {
         val sql =
             """
-            INSERT INTO innsok_paa_felles_oppstart (
+            INSERT INTO innsok (
                 id, 
                 deltaker_id, 
                 innsokt, 
@@ -21,7 +21,8 @@ class InnsokPaaFellesOppstartRepository {
                 innsokt_av_enhet, 
                 utkast_godkjent_av_nav, 
                 utkast_delt, 
-                deltakelsesinnhold_ved_innsok
+                deltakelsesinnhold_ved_innsok,
+                kategorisering_ved_innsok
             ) 
             VALUES (
                 :id, 
@@ -31,7 +32,8 @@ class InnsokPaaFellesOppstartRepository {
                 :innsokt_av_enhet, 
                 :utkast_godkjent_av_nav, 
                 :utkast_delt, 
-                :deltakelsesinnhold_ved_innsok
+                :deltakelsesinnhold_ved_innsok,
+                :kategorisering_ved_innsok
             )
             """.trimIndent()
 
@@ -44,12 +46,13 @@ class InnsokPaaFellesOppstartRepository {
             "utkast_godkjent_av_nav" to innsok.utkastGodkjentAvNav,
             "utkast_delt" to innsok.utkastDelt,
             "deltakelsesinnhold_ved_innsok" to toPGObject(innsok.deltakelsesinnholdVedInnsok),
+            "kategorisering_ved_innsok" to toPGObject(innsok.opplaringKategoriseringVedInnsok),
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun get(id: UUID): Result<InnsokPaaFellesOppstart> = runCatching {
+    fun get(id: UUID): Result<Innsok> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -62,8 +65,9 @@ class InnsokPaaFellesOppstartRepository {
                         innsokt_av_enhet, 
                         utkast_godkjent_av_nav, 
                         utkast_delt, 
-                        deltakelsesinnhold_ved_innsok 
-                    FROM innsok_paa_felles_oppstart 
+                        deltakelsesinnhold_ved_innsok,
+                        kategorisering_ved_innsok
+                    FROM innsok 
                     WHERE id = :id
                     """.trimIndent(),
                     mapOf("id" to id),
@@ -72,7 +76,7 @@ class InnsokPaaFellesOppstartRepository {
         }
     }
 
-    fun getForDeltaker(deltakerId: UUID): Result<InnsokPaaFellesOppstart> = runCatching {
+    fun getForDeltaker(deltakerId: UUID): Result<Innsok> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
@@ -85,8 +89,9 @@ class InnsokPaaFellesOppstartRepository {
                         innsokt_av_enhet, 
                         utkast_godkjent_av_nav, 
                         utkast_delt, 
-                        deltakelsesinnhold_ved_innsok 
-                    FROM innsok_paa_felles_oppstart 
+                        deltakelsesinnhold_ved_innsok,
+                        kategorisering_ved_innsok
+                    FROM innsok 
                     WHERE deltaker_id = :deltaker_id
                     """.trimIndent(),
                     mapOf("deltaker_id" to deltakerId),
@@ -98,14 +103,14 @@ class InnsokPaaFellesOppstartRepository {
     fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
         session.update(
             queryOf(
-                "DELETE FROM innsok_paa_felles_oppstart WHERE deltaker_id = :deltaker_id",
+                "DELETE FROM innsok WHERE deltaker_id = :deltaker_id",
                 mapOf("deltaker_id" to deltakerId),
             ),
         )
     }
 
     companion object {
-        private fun rowMapper(row: Row) = InnsokPaaFellesOppstart(
+        private fun rowMapper(row: Row) = Innsok(
             id = row.uuid("id"),
             deltakerId = row.uuid("deltaker_id"),
             innsokt = row.localDateTime("innsokt"),
@@ -114,6 +119,9 @@ class InnsokPaaFellesOppstartRepository {
             utkastGodkjentAvNav = row.boolean("utkast_godkjent_av_nav"),
             utkastDelt = row.localDateTimeOrNull("utkast_delt"),
             deltakelsesinnholdVedInnsok = objectMapper.readValue(row.string("deltakelsesinnhold_ved_innsok")),
+            opplaringKategoriseringVedInnsok = row.stringOrNull("kategorisering_ved_innsok")?.let {
+                objectMapper.readValue(it)
+            },
         )
     }
 }
