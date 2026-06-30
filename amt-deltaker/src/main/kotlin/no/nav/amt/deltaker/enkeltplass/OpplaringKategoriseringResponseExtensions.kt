@@ -16,21 +16,21 @@ import java.util.UUID
  *
  * Early-return med bare sertifiseringer hvis ingen verdier er valgt.
  *
- * @param verdivalg settet med valgte IDer
+ * @param kategoriseringValg settet med valgte IDer
  * @param sertifiseringValg settet med valgte sertifiseringer
  * @return OpplaringKategoriseringValg med alle valgte kategoriseringer og sertifiseringer
  */
 fun OpplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-    verdivalg: Set<UUID>,
+    kategoriseringValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
-): OpplaringKategoriseringValg = if (verdivalg.isEmpty()) {
+): OpplaringKategoriseringValg = if (kategoriseringValg.isEmpty()) {
     OpplaringKategoriseringValg(
         valgteKategoriseringer = emptySet(),
         valgteSertifiseringer = sertifiseringValg,
     )
 } else {
     val kategoriseringResponseMedValgteElementer = settValg(
-        verdivalg = verdivalg,
+        verdivalg = kategoriseringValg,
         sertifiseringValg = sertifiseringValg,
     )
 

@@ -240,7 +240,7 @@ class EnkeltplassService(
             }
 
             val opplaringKategoriseringValg = kategoriseringResponse.toOpplaringKategoriseringValg(
-                verdivalg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
+                kategoriseringValg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
                 sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
             )
 
@@ -351,7 +351,7 @@ class EnkeltplassService(
         valgteSertifiseringer: Set<SertifiseringValg>?,
     ) {
         val opplaringKategoriseringValg = kategoriseringForTiltak.toOpplaringKategoriseringValg(
-            verdivalg = valgteKodeverk ?: emptySet(),
+            kategoriseringValg = valgteKodeverk ?: emptySet(),
             sertifiseringValg = valgteSertifiseringer ?: emptySet(),
         )
 

@@ -53,7 +53,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
 
         // Act
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
+            kategoriseringValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
@@ -126,7 +126,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
 
         // Act
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = setOf(valgtBransjeId, valgtForerkortId),
+            kategoriseringValg = setOf(valgtBransjeId, valgtForerkortId),
             sertifiseringValg = sertifiseringValg,
         )
 
@@ -174,7 +174,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = setOf(valgtKurstypeId),
+            kategoriseringValg = setOf(valgtKurstypeId),
             sertifiseringValg = emptySet(),
         )
 
@@ -211,7 +211,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = emptySet(),
+            kategoriseringValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
@@ -257,7 +257,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = emptySet(),
+            kategoriseringValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
@@ -280,7 +280,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = emptySet(),
+            kategoriseringValg = emptySet(),
             sertifiseringValg = emptySet(),
         )
 
@@ -330,7 +330,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = setOf(valgtUtdanningsprogramId),
+            kategoriseringValg = setOf(valgtUtdanningsprogramId),
             sertifiseringValg = emptySet(),
         )
 
@@ -396,7 +396,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId1, valgtLaerefagId2),
+            kategoriseringValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId1, valgtLaerefagId2),
             sertifiseringValg = emptySet(),
         )
 
@@ -473,7 +473,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = setOf(valgtUtdanningsprogramId1, valgtLaerefagId),
+            kategoriseringValg = setOf(valgtUtdanningsprogramId1, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
@@ -548,7 +548,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = setOf(valgtUtdanningsprogramId2, valgtLaerefagId),
+            kategoriseringValg = setOf(valgtUtdanningsprogramId2, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
@@ -608,7 +608,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
         )
 
         val valgteKategoriseringerOgSertifiseringer = opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
-            verdivalg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
+            kategoriseringValg = setOf(valgtUtdanningsprogramId, valgtLaerefagId),
             sertifiseringValg = emptySet(),
         )
 
