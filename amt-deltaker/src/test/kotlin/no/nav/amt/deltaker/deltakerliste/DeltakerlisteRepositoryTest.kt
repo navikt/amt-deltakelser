@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -66,7 +67,7 @@ class DeltakerlisteRepositoryTest {
         }
 
         @Test
-        fun `ny deltakerliste kladd - inserter`() {
+        fun `ny deltakerliste enkeltplass kladd - inserter`() {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
             val deltakerliste = lagDeltakerliste(
@@ -78,6 +79,45 @@ class DeltakerlisteRepositoryTest {
                 startDato = null,
                 sluttDato = null,
                 oppmoteSted = null,
+                opplaringKategorisering = OpplaringKategoriseringValg(
+                    valgteKategoriseringer = emptySet(),
+                    valgteSertifiseringer = emptySet(),
+                ),
+            )
+
+            val gjennomforingdbo = GjennomforingInsertDbo(
+                id = deltakerliste.id,
+                type = deltakerliste.gjennomforingstype,
+                tiltakId = tiltakstype.id,
+                navn = deltakerliste.navn,
+                status = deltakerliste.status,
+                oppstart = deltakerliste.oppstart,
+                apentForPamelding = deltakerliste.apentForPamelding,
+                pameldingstype = deltakerliste.pameldingstype,
+            )
+
+            arrangorRepository.upsert(arrangor)
+            tiltakRepository.upsert(tiltakstype)
+
+            deltakerlisteRepository.upsert(gjennomforingdbo)
+
+            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+        }
+
+        @Test
+        fun `ny deltakerliste kladd - inserter`() {
+            val arrangor = lagArrangor()
+            val tiltakstype = lagTiltakstype()
+            val deltakerliste = lagDeltakerliste(
+                arrangor = null,
+                tiltakstype = tiltakstype,
+                status = GjennomforingStatusType.KLADD,
+                oppstart = Oppstartstype.LOPENDE,
+                gjennomforingstype = GjennomforingType.Gruppe,
+                startDato = null,
+                sluttDato = null,
+                oppmoteSted = null,
+                opplaringKategorisering = null,
             )
 
             val gjennomforingdbo = GjennomforingInsertDbo(

@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.service
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -67,26 +69,31 @@ class DeltakerHistorikkServiceTest {
             TestRepository.insert(navAnsatt)
             navAnsattRepository.upsert(navAnsatt)
 
-            val deltaker = no.nav.amt.deltaker.utils.data.TestData
-                .lagDeltaker()
-
-            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
-                deltakerId = deltaker.id,
-                fattet = LocalDateTime.now().minusMonths(1),
-                opplaringKategorisering = OpplaringKategoriseringValg(
-                    valgteKategoriseringer = setOf(
-                        OpplaringKategoriseringValg.ValgteFelt(
-                            representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                            valg = mapOf(UUID.randomUUID() to "Bransje 1"),
-                        ),
-                    ),
-                    valgteSertifiseringer = setOf(
-                        SertifiseringValg(
-                            id = 32143L,
-                            navn = "Sertifisering 1",
-                        ),
+            val kategorisering = OpplaringKategoriseringValg(
+                valgteKategoriseringer = setOf(
+                    OpplaringKategoriseringValg.ValgteFelt(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valg = mapOf(UUID.randomUUID() to "Bransje 1"),
                     ),
                 ),
+                valgteSertifiseringer = setOf(
+                    SertifiseringValg(
+                        id = 32143L,
+                        navn = "Sertifisering 1",
+                    ),
+                ),
+            )
+
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData
+                .lagDeltaker(
+                    deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+                        opplaringKategorisering = kategorisering,
+                    ),
+                )
+
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = LocalDateTime.now().minusMonths(1),
                 opprettetAv = navAnsatt,
                 opprettetAvEnhet = navEnhet,
                 sistEndret = LocalDateTime.now().minusMonths(1),
@@ -97,10 +104,12 @@ class DeltakerHistorikkServiceTest {
 
             // Act
             val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
-
+            val vedtakResult = historikk.first()
             // Assert
             historikk.size shouldBe 1
-            DeltakerTestUtils.sammenlignHistorikk(historikk.first(), DeltakerHistorikk.Vedtak(vedtak))
+            vedtakResult.shouldBeInstanceOf<DeltakerHistorikk.Vedtak>()
+            vedtakResult.vedtak.deltakerVedVedtak.opplaringKategorisering shouldNotBe null
+            DeltakerTestUtils.sammenlignHistorikk(vedtakResult, DeltakerHistorikk.Vedtak(vedtak))
         }
     }
 
@@ -271,6 +280,7 @@ class DeltakerHistorikkServiceTest {
                     deltakelsesinnholdVedInnsok = null,
                     utkastDelt = null,
                     utkastGodkjentAvNav = true,
+                    opplaringKategoriseringVedInnsok = null,
                 ),
             ),
         )
@@ -290,7 +300,7 @@ class DeltakerHistorikkServiceTest {
         TestRepository.insert(navAnsatt)
         navEnhetRepository.upsert(navEnhet)
 
-        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsok(
             deltakerId = deltaker.id,
             innsoktAv = navAnsatt.id,
             innsoktAvEnhet = navEnhet.id,
@@ -373,7 +383,7 @@ class DeltakerHistorikkServiceTest {
         TestRepository.insert(navAnsatt)
         navEnhetRepository.upsert(navEnhet)
 
-        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsok(
             deltakerId = deltaker.id,
             innsokt = innsoktDato,
             innsoktAv = navAnsatt.id,
@@ -435,7 +445,7 @@ class DeltakerHistorikkServiceTest {
         )
         ImportertFraArenaRepository().upsert(importertFraArena)
 
-        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs(
+        val innsok = no.nav.amt.deltaker.utils.data.TestData.lagInnsok(
             deltakerId = deltaker.id,
             innsokt = LocalDateTime.now().minusMonths(1),
             innsoktAv = navAnsatt.id,

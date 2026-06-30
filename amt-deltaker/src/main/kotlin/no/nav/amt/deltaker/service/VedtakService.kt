@@ -10,6 +10,13 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
+/*
+    Vedtak representerer et øyeblikksbilde av deltakeren på tidspunktet hvor deltakelsen er vedtatt, og brukes for sporbarhet og populering av et eget element i historikk på deltakeren
+    Et vedtak blir gjort når:
+    - En innbygger blir søkt inn på et tiltak som ikke krever godkjenning av en annen rolle
+    - En deltakelse blir godkjent av beslutter, økonomi godkjent(enkeltplass)
+    - En deltakelse blir godkjent av tiltaksansvarlig, Tildelt plass (på gjennomføringer som krever godkjenning)
+ */
 class VedtakService(
     private val vedtakRepository: VedtakRepository,
 ) {

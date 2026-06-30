@@ -7,7 +7,6 @@ import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
@@ -126,12 +125,6 @@ class DeltakerResponseBuilder(
             includeOpplaringKategorisering && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
                 !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
 
-        val opplaringKategoriseringValg = if (skalHenteEnkeltplassValg) {
-            OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
-        } else {
-            null
-        }
-
         val prisinformasjon = if (skalHenteEnkeltplassValg) {
             PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
         } else {
@@ -141,7 +134,7 @@ class DeltakerResponseBuilder(
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
-            opplaringKategoriseringValg = opplaringKategoriseringValg,
+            opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
             prisinformasjon = prisinformasjon,
         )
     }

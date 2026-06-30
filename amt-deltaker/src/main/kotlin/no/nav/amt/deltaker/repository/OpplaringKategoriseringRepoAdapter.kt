@@ -22,11 +22,12 @@ object OpplaringKategoriseringRepoAdapter {
     }
 
     fun hentOpplaringKategoriseringValgForAmt(gjennomforingId: UUID): OpplaringKategoriseringValg {
-        val kategoriseringsValg = OpplaeringKategoriseringValgRepository.hentKategoriseringValg(gjennomforingId)
+        val kategoriseringValg = OpplaeringKategoriseringValgRepository.hentKategoriseringValg(gjennomforingId)
+        val sertifiseringValg = SertifiseringValgRepository.hentSertifiseringValg(gjennomforingId)
 
         return OpplaringKategoriseringValg(
-            valgteSertifiseringer = SertifiseringValgRepository.hentSertifiseringValg(gjennomforingId),
-            valgteKategoriseringer = kategoriseringsValg
+            valgteSertifiseringer = sertifiseringValg,
+            valgteKategoriseringer = kategoriseringValg
                 .groupBy { it.representerer }
                 .map { (representerer, valg) ->
                     ValgteFelt(

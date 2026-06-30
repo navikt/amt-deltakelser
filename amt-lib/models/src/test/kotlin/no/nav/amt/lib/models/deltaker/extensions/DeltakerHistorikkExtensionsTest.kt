@@ -153,6 +153,7 @@ class DeltakerHistorikkExtensionsTest {
                 deltakelsesinnholdVedInnsok = null,
                 utkastDelt = null,
                 utkastGodkjentAvNav = false,
+                opplaringKategoriseringVedInnsok = null,
             ),
         )
 

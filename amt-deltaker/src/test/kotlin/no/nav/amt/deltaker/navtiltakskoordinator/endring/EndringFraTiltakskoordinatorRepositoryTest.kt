@@ -108,7 +108,7 @@ data class EndringFraTiltakskoordinatorCtx(
     }
 
     fun medInnsok() {
-        val innsok = TestData.lagInnsoktPaaKurs(
+        val innsok = TestData.lagInnsok(
             deltakerId = deltaker.id,
             innsoktAv = navAnsatt.id,
             innsoktAvEnhet = navEnhet.id,

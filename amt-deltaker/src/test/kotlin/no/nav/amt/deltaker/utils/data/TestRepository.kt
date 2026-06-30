@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.tiltak.TiltakRepository
@@ -26,6 +27,7 @@ import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
@@ -36,6 +38,7 @@ import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
+import java.util.UUID
 
 object TestRepository {
     fun insert(navAnsatt: NavAnsatt) {
@@ -86,12 +89,25 @@ object TestRepository {
         }
     }
 
+    fun insertKategoriseringer(
+        deltakerlisteId: UUID,
+        kategoriseringValg: OpplaringKategoriseringValg?,
+    ) {
+        OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+            gjennomforingId = deltakerlisteId,
+            valgteVerdier = kategoriseringValg?.valgteKategoriseringer,
+            valgteSertifiseringer = kategoriseringValg?.valgteSertifiseringer,
+        )
+    }
+
     fun insert(
         deltaker: Deltaker,
         vedtak: Vedtak? = null,
     ) {
         insert(deltaker.navBruker)
         insert(deltaker.deltakerliste)
+        insertKategoriseringer(deltaker.deltakerliste.id, deltaker.deltakerliste.opplaringKategorisering)
+
         DeltakerRepository().upsert(deltaker)
         DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
         vedtak?.let { insert(vedtak) }

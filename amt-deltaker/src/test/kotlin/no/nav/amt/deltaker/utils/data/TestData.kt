@@ -93,6 +93,7 @@ object TestData {
         apentForPamelding: Boolean = true,
         pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         prisinformasjon: String? = null,
+        opplaringKategorisering: OpplaringKategoriseringValg? = null,
     ) = Deltakerliste(
         id = id,
         tiltakstype = tiltakstype,
@@ -108,6 +109,7 @@ object TestData {
         arrangor = arrangor,
         pameldingstype = pameldingType,
         prisinformasjon = prisinformasjon,
+        opplaringKategorisering = opplaringKategorisering,
     )
 
     fun lagDeltakerlisteMedDirekteVedtak(
@@ -253,7 +255,6 @@ object TestData {
         deltakerVedVedtak: Deltaker = lagDeltaker(
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         ),
-        opplaringKategorisering: OpplaringKategoriseringValg? = null,
         deltakerId: UUID = deltakerVedVedtak.id,
         fattet: LocalDateTime? = null,
         gyldigTil: LocalDateTime? = null,
@@ -269,7 +270,7 @@ object TestData {
         deltakerId,
         fattet,
         gyldigTil,
-        deltakerVedVedtak.toDeltakerVedVedtak(opplaringKategorisering),
+        deltakerVedVedtak.toDeltakerVedVedtak(),
         fattetAvNav,
         opprettet,
         opprettetAv.id,
@@ -279,13 +280,14 @@ object TestData {
         sistEndretAvEnhet.id,
     )
 
-    fun lagInnsoktPaaKurs(
+    fun lagInnsok(
         id: UUID = UUID.randomUUID(),
         deltakerId: UUID = UUID.randomUUID(),
         innsokt: LocalDateTime = LocalDateTime.now(),
         innsoktAv: UUID = UUID.randomUUID(),
         innsoktAvEnhet: UUID = UUID.randomUUID(),
         deltakelsesinnholdVedInnsok: Deltakelsesinnhold = Deltakelsesinnhold("", emptyList()),
+        opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
         utkastDelt: LocalDateTime = LocalDateTime.now().minusDays(2),
         utkastGodkjentAvNav: Boolean = false,
     ) = Innsok(
@@ -297,6 +299,7 @@ object TestData {
         deltakelsesinnholdVedInnsok = deltakelsesinnholdVedInnsok,
         utkastDelt = utkastDelt,
         utkastGodkjentAvNav = utkastGodkjentAvNav,
+        opplaringKategoriseringVedInnsok = opplaringKategoriseringValg,
     )
 
     fun lagVurdering(

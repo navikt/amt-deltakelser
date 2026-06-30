@@ -627,7 +627,7 @@ class DeltakerRepository {
 
         private fun deltakerRowMapper(row: Row): Deltaker {
             val status = DeltakerStatus.Type.valueOf(row.string("ds.type"))
-
+            val deltakerliste = DeltakerlisteRepository.rowMapper(row)
             val deltaker = Deltaker(
                 id = row.uuid("d.id"),
                 navBruker = NavBruker(
@@ -646,7 +646,7 @@ class DeltakerRepository {
                     oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
                     innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
                 ),
-                deltakerliste = DeltakerlisteRepository.rowMapper(row),
+                deltakerliste = deltakerliste,
                 startdato = row.localDateOrNull("d.startdato"),
                 sluttdato = row.localDateOrNull("d.sluttdato"),
                 dagerPerUke = row.floatOrNull("d.dager_per_uke"),

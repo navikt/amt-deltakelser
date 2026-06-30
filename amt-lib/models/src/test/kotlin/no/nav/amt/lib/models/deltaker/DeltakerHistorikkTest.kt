@@ -154,6 +154,7 @@ class DeltakerHistorikkTest {
                 deltakelsesinnholdVedInnsok = null,
                 utkastDelt = null,
                 utkastGodkjentAvNav = false,
+                opplaringKategoriseringVedInnsok = null,
             )
 
         val historikk = DeltakerHistorikk.InnsokPaaFellesOppstart(innsok)

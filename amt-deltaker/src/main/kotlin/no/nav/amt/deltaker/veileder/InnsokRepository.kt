@@ -21,7 +21,8 @@ class InnsokRepository {
                 innsokt_av_enhet, 
                 utkast_godkjent_av_nav, 
                 utkast_delt, 
-                deltakelsesinnhold_ved_innsok
+                deltakelsesinnhold_ved_innsok,
+                kategorisering_ved_innsok
             ) 
             VALUES (
                 :id, 
@@ -31,7 +32,8 @@ class InnsokRepository {
                 :innsokt_av_enhet, 
                 :utkast_godkjent_av_nav, 
                 :utkast_delt, 
-                :deltakelsesinnhold_ved_innsok
+                :deltakelsesinnhold_ved_innsok,
+                :kategorisering_ved_innsok
             )
             """.trimIndent()
 
@@ -44,6 +46,7 @@ class InnsokRepository {
             "utkast_godkjent_av_nav" to innsok.utkastGodkjentAvNav,
             "utkast_delt" to innsok.utkastDelt,
             "deltakelsesinnhold_ved_innsok" to toPGObject(innsok.deltakelsesinnholdVedInnsok),
+            "kategorisering_ved_innsok" to toPGObject(innsok.opplaringKategoriseringVedInnsok),
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
@@ -62,7 +65,8 @@ class InnsokRepository {
                         innsokt_av_enhet, 
                         utkast_godkjent_av_nav, 
                         utkast_delt, 
-                        deltakelsesinnhold_ved_innsok 
+                        deltakelsesinnhold_ved_innsok,
+                        kategorisering_ved_innsok
                     FROM innsok 
                     WHERE id = :id
                     """.trimIndent(),
@@ -85,7 +89,8 @@ class InnsokRepository {
                         innsokt_av_enhet, 
                         utkast_godkjent_av_nav, 
                         utkast_delt, 
-                        deltakelsesinnhold_ved_innsok 
+                        deltakelsesinnhold_ved_innsok,
+                        kategorisering_ved_innsok
                     FROM innsok 
                     WHERE deltaker_id = :deltaker_id
                     """.trimIndent(),
@@ -114,6 +119,9 @@ class InnsokRepository {
             utkastGodkjentAvNav = row.boolean("utkast_godkjent_av_nav"),
             utkastDelt = row.localDateTimeOrNull("utkast_delt"),
             deltakelsesinnholdVedInnsok = objectMapper.readValue(row.string("deltakelsesinnhold_ved_innsok")),
+            opplaringKategoriseringVedInnsok = row.stringOrNull("kategorisering_ved_innsok")?.let {
+                objectMapper.readValue(it)
+            },
         )
     }
 }

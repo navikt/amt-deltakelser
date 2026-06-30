@@ -6,6 +6,13 @@ import no.nav.amt.lib.models.deltaker.Innsok
 import java.time.LocalDateTime
 import java.util.UUID
 
+/*
+    Innsøk representerer et øyeblikksbilde av deltakeren på tidspunktet for innsøk, og brukes for sporbarhet og populering av et eget element i historikk på deltakeren
+    Innsøk brukes for deltakelser som skal søkes inn og må godkjennes av noen andre enn nav veileder
+    Innsøk må godkjennes av:
+     - tiltaksansvarlig(i egen fane i mulighetsrommet), eller
+     - Beslutter (på enkeltplasser i mulighetsrommet)
+ */
 class InnsokService(
     private val repository: InnsokRepository,
 ) {
@@ -35,6 +42,7 @@ class InnsokService(
             deltakelsesinnholdVedInnsok = deltaker.deltakelsesinnhold,
             utkastDelt = if (forrigeStatus.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) forrigeStatus.opprettet else null,
             utkastGodkjentAvNav = godkjentAvNav,
+            opplaringKategoriseringVedInnsok = deltaker.deltakerliste.opplaringKategorisering,
         )
         repository.insert(innsok)
         return innsok

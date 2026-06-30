@@ -318,7 +318,6 @@ class EnkeltplassService(
 
             lagreVedtak(
                 deltakerId = deltakerId,
-                gjennomforingId = gjennomforing.id,
                 endretAv = navAnsatt,
                 endretAvEnhet = navEnhet,
             )
@@ -364,19 +363,16 @@ class EnkeltplassService(
 
     private fun lagreVedtak(
         deltakerId: UUID,
-        gjennomforingId: UUID,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
     ) {
         val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
-        val opplaringKategorisering = OpplaringKategoriseringRepoAdapter
-            .hentOpplaringKategoriseringValgForAmt(gjennomforingId)
 
         vedtakService.opprettEllerOppdaterVedtak(
             fattetAvNav = false,
             endretAv = endretAv,
             endretAvEnhet = endretAvEnhet,
-            deltaker = oppdatertDeltaker.toDeltakerVedVedtak(opplaringKategorisering),
+            deltaker = oppdatertDeltaker.toDeltakerVedVedtak(),
             fattetDato = null,
         )
     }

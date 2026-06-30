@@ -10,6 +10,7 @@ data class Innsok(
     val innsoktAv: UUID,
     val innsoktAvEnhet: UUID,
     val deltakelsesinnholdVedInnsok: Deltakelsesinnhold?,
+    val opplaringKategoriseringVedInnsok: OpplaringKategoriseringValg?,
     val utkastDelt: LocalDateTime?,
     val utkastGodkjentAvNav: Boolean,
 )
