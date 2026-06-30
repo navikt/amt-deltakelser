@@ -225,6 +225,7 @@ class DeltakerlisteRepository {
 
             // Arena enkeltplasser har i praksis ikke kategoriseringer men skal ha det etter hvert
             val opplaringKategorisering = if (gjennomforingstype == GjennomforingType.Enkeltplass) {
+                // TODO: fikse dette med join isteden
                 OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(id)
             } else {
                 null

@@ -31,6 +31,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -392,9 +393,7 @@ class EnkeltplassService(
             organisasjonsnummer = orgnr,
             ansvarligEnhet = endretAvEnhet,
             opprettetAv = endretAvNavIdent,
-            kategorisering = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForMulighetsrommet(
-                deltaker.deltakerliste.id,
-            ),
+            kategorisering = deltaker.deltakerliste.opplaringKategorisering?.toMulighetsrommetKategorisering(),
         )
         val gjennomforingPayload = when (val statusType = deltaker.status.type) {
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
@@ -423,6 +422,12 @@ class EnkeltplassService(
     }
 
     companion object {
+        fun OpplaringKategoriseringValg.toMulighetsrommetKategorisering() =
+            GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
+                sertifiseringer = valgteSertifiseringer,
+                verdier = valgteKategoriseringer.associate { it.representerer to it.valg.keys },
+            )
+
         private fun lagDeltakerUpdateDbo(
             deltaker: Deltaker,
             startdato: LocalDate?,

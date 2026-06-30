@@ -14,6 +14,7 @@ import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassService.Companion.toMulighetsrommetKategorisering
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
@@ -25,6 +26,7 @@ import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
+import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -439,10 +441,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             organisasjonsnummer = "987654321",
             ansvarligEnhet = "1234",
             opprettetAv = "Z123456",
-            kategorisering = GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
-                verdier = emptyMap(),
-                sertifiseringer = emptySet(),
-            ),
+            kategorisering = deltakerliste.opplaringKategorisering?.toMulighetsrommetKategorisering(),
         )
 
         private val testPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
@@ -555,6 +554,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 status = GjennomforingStatusType.KLADD,
                 prisinformasjon = "1234",
+                opplaringKategorisering = TestData.lagOpplaringKategorisering(),
             ),
         )
 

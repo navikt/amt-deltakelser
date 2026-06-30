@@ -18,6 +18,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.Vurdering
@@ -25,6 +26,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -395,5 +397,18 @@ object TestData {
             )
         },
         pameldingstype = deltakerliste.pameldingstype,
+    )
+
+    fun lagOpplaringKategorisering(): OpplaringKategoriseringValg? = OpplaringKategoriseringValg(
+        valgteKategoriseringer = setOf(
+            OpplaringKategoriseringValg.ValgteFelt(
+                representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                valg = mapOf(UUID.randomUUID() to "Tralala"),
+            ),
+        ),
+        valgteSertifiseringer = setOf(
+            SertifiseringValg(id = 1, navn = "Truckfører T1"),
+            SertifiseringValg(id = 2, navn = "Truckfører T2"),
+        ),
     )
 }
