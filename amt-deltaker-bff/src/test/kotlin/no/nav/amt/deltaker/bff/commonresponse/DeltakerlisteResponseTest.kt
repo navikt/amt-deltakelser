@@ -40,7 +40,6 @@ class DeltakerlisteResponseTest {
         response.erEnkeltplass shouldBe false
         response.oppmoteSted shouldBe "Nav Grünerløkka"
         response.pameldingstype shouldBe GjennomforingPameldingType.DIREKTE_VEDTAK
-        response.kodeverk shouldBe null
         response.opplaringKategoriseringValg shouldBe null
         response.prisinformasjon shouldBe null
     }
@@ -72,7 +71,6 @@ class DeltakerlisteResponseTest {
         val response = DeltakerlisteResponse.fromModel(model)
 
         response.erEnkeltplass shouldBe true
-        response.kodeverk shouldBe kategorisering
         response.opplaringKategoriseringValg shouldBe OpplaringKategoriseringValgResponse(
             valgteKategoriseringer = setOf(
                 OpplaringKategoriseringValgResponse.Kategorisering(
@@ -103,7 +101,6 @@ class DeltakerlisteResponseTest {
         val response = DeltakerlisteResponse.fromModel(model)
 
         response.erEnkeltplass shouldBe true
-        response.kodeverk shouldBe null
         response.opplaringKategoriseringValg shouldBe null
     }
 
