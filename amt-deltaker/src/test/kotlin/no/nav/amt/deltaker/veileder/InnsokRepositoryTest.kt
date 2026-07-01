@@ -72,6 +72,8 @@ class InnsokRepositoryTest {
                 innsokt = innsokt,
                 innsoktAv = deltaker.vedtaksinformasjon!!.sistEndretAv,
                 innsoktAvEnhet = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet,
+                startdato = deltaker.startdato,
+                sluttdato = deltaker.sluttdato,
                 deltakelsesinnholdVedInnsok = deltakelsesinnhold,
                 opplaringKategoriseringVedInnsok = kategorisering,
                 utkastDelt = utkastDelt,
@@ -88,6 +90,8 @@ class InnsokRepositoryTest {
                 innsokt shouldBe innsok.innsokt
                 innsoktAv shouldBe innsok.innsoktAv
                 innsoktAvEnhet shouldBe innsok.innsoktAvEnhet
+                startdato shouldBe innsok.startdato
+                sluttdato shouldBe innsok.sluttdato
                 utkastGodkjentAvNav shouldBe true
                 utkastDelt shouldBe innsok.utkastDelt
                 deltakelsesinnholdVedInnsok shouldBe deltakelsesinnhold
@@ -112,6 +116,8 @@ fun TestData.lagInnsok(
     innsokt = innsokt,
     innsoktAv = innsoktAv,
     innsoktAvEnhet = innsoktAvEnhet,
+    startdato = deltaker.startdato,
+    sluttdato = deltaker.sluttdato,
     deltakelsesinnholdVedInnsok = deltakelsesinnholdVedInnsok,
     utkastDelt = utkastDelt,
     utkastGodkjentAvNav = utkastGodkjentAvNav,

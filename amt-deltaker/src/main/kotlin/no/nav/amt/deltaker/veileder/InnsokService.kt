@@ -39,6 +39,8 @@ class InnsokService(
             innsokt = LocalDateTime.now(),
             innsoktAv = deltaker.vedtaksinformasjon.sistEndretAv,
             innsoktAvEnhet = deltaker.vedtaksinformasjon.sistEndretAvEnhet,
+            startdato = deltaker.startdato,
+            sluttdato = deltaker.sluttdato,
             deltakelsesinnholdVedInnsok = deltaker.deltakelsesinnhold,
             utkastDelt = if (forrigeStatus.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) forrigeStatus.opprettet else null,
             utkastGodkjentAvNav = godkjentAvNav,

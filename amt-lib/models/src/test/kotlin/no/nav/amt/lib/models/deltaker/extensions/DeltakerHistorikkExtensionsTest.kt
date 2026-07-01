@@ -150,6 +150,8 @@ class DeltakerHistorikkExtensionsTest {
                 innsokt = innsokt,
                 innsoktAv = UUID.randomUUID(),
                 innsoktAvEnhet = UUID.randomUUID(),
+                startdato = null,
+                sluttdato = null,
                 deltakelsesinnholdVedInnsok = null,
                 utkastDelt = null,
                 utkastGodkjentAvNav = false,

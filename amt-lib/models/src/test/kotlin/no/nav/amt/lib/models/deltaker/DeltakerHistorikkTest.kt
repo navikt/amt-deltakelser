@@ -151,6 +151,8 @@ class DeltakerHistorikkTest {
                 innsokt = now.minusDays(1),
                 innsoktAv = UUID.randomUUID(),
                 innsoktAvEnhet = UUID.randomUUID(),
+                startdato = null,
+                sluttdato = null,
                 deltakelsesinnholdVedInnsok = null,
                 utkastDelt = null,
                 utkastGodkjentAvNav = false,
