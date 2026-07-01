@@ -12,7 +12,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
-import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -257,7 +256,7 @@ data class InnsokPaaFellesOppstartResponse(
     val innsoktAv: String,
     val innsoktAvEnhet: String,
     val deltakelsesinnholdVedInnsok: Deltakelsesinnhold?,
-    val opplaringKategorisering: OpplaringKategoriseringValg?,
+    val opplaringKategorisering: OpplaringKategoriseringValgResponse?,
     val utkastDelt: LocalDateTime?,
     val utkastGodkjentAvNav: Boolean,
 ) : DeltakerHistorikkResponse {
@@ -273,7 +272,9 @@ data class InnsokPaaFellesOppstartResponse(
             deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok,
             utkastDelt = model.utkastDelt,
             utkastGodkjentAvNav = model.utkastGodkjentAvNav,
-            opplaringKategorisering = model.opplaringKategoriseringVedInnsok,
+            opplaringKategorisering = OpplaringKategoriseringValgResponse.fromOpplaringKategoriseringValg(
+                model.opplaringKategoriseringVedInnsok,
+            ),
         )
     }
 }
