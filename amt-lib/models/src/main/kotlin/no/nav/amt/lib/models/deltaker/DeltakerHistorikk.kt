@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.time.LocalDateTime
 import java.util.UUID
 
+/*
+    Lagres som Json i amt-tiltaksarrangor-bff
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface DeltakerHistorikk {
     val sistEndret: LocalDateTime
