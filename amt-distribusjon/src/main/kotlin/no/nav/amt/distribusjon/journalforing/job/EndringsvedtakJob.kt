@@ -19,6 +19,18 @@ class EndringsvedtakJob(
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
+    init {
+        require(!initialDelay.isNegative) {
+            "Initial delay for endringsvedtak-jobb kan ikke være negativ"
+        }
+        require(!jobPeriod.isNegative && !jobPeriod.isZero) {
+            "Jobbperiode for endringsvedtak-jobb må være større enn 0"
+        }
+        require(!gracePeriod.isNegative) {
+            "Grace-periode for endringsvedtak-jobb kan ikke være negativ"
+        }
+    }
+
     fun startJob() = jobManager.startJob(
         name = this.javaClass.simpleName,
         initialDelay = initialDelay,

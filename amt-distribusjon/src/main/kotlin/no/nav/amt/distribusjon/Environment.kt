@@ -27,7 +27,7 @@ data class Environment(
     val dokdistfordelingUrl: String = getEnvVar(DOKDISTFORDELING_URL_KEY),
     val dokdistfordelingScope: String = getEnvVar(DOKDISTFORDELING_SCOPE_KEY),
     val leaderElectorUrl: String = getEnvVar(LEADER_ELECTOR_URL),
-    val port: Int = getEnvVar(PORT, "").ifBlank { "8080" }.toInt(),
+    val port: Int = getEnvVar(PORT).ifBlank { "8080" }.toInt(),
     val endringsvedtakJobInitialDelay: Duration = getEnvVar(ENDRINGSVEDTAK_JOB_INITIAL_DELAY_KEY, "")
         .ifBlank { "PT5M" }
         .let(Duration::parse),

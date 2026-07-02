@@ -1,5 +1,7 @@
 package no.nav.amt.distribusjon.journalforing.job
 
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -19,6 +21,37 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class EndringsvedtakJobTest {
+    @Test
+    fun `init - kaster exception ved negativ initialDelay`() {
+        val exception = shouldThrow<IllegalArgumentException> {
+            lagJob(initialDelay = Duration.ofMinutes(-1))
+        }
+
+        exception.message shouldBe "Initial delay for endringsvedtak-jobb kan ikke være negativ"
+    }
+
+    @Test
+    fun `init - kaster exception ved null eller negativ jobPeriod`() {
+        val exceptionVedNullPeriode = shouldThrow<IllegalArgumentException> {
+            lagJob(jobPeriod = Duration.ZERO)
+        }
+        exceptionVedNullPeriode.message shouldBe "Jobbperiode for endringsvedtak-jobb må være større enn 0"
+
+        val exceptionVedNegativPeriode = shouldThrow<IllegalArgumentException> {
+            lagJob(jobPeriod = Duration.ofMinutes(-1))
+        }
+        exceptionVedNegativPeriode.message shouldBe "Jobbperiode for endringsvedtak-jobb må være større enn 0"
+    }
+
+    @Test
+    fun `init - kaster exception ved negativ gracePeriod`() {
+        val exception = shouldThrow<IllegalArgumentException> {
+            lagJob(gracePeriod = Duration.ofMinutes(-1))
+        }
+
+        exception.message shouldBe "Grace-periode for endringsvedtak-jobb kan ikke være negativ"
+    }
+
     @Test
     fun `journalforEndringsvedtak - journalforer og distribuerer endringsvedtak naar nyeste hendelse er eldre enn graceperiode`() =
         runTest {
@@ -148,6 +181,19 @@ class EndringsvedtakJobTest {
             )
         }
     }
+
+    private fun lagJob(
+        initialDelay: Duration = Duration.ofMinutes(5),
+        jobPeriod: Duration = Duration.ofMinutes(10),
+        gracePeriod: Duration = Duration.ofMinutes(30),
+    ) = EndringsvedtakJob(
+        jobManager = mockk(relaxUnitFun = true),
+        hendelseRepository = mockk(),
+        journalforingService = mockk(),
+        initialDelay = initialDelay,
+        jobPeriod = jobPeriod,
+        gracePeriod = gracePeriod,
+    )
 
     private fun testSetup(hendelser: List<HendelseMedJournalforingstatus>): TestSetup {
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
