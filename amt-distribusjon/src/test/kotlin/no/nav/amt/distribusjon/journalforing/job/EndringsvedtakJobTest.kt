@@ -16,7 +16,6 @@ import no.nav.amt.lib.utils.job.JobManager
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class EndringsvedtakJobTest {
@@ -128,13 +127,23 @@ class EndringsvedtakJobTest {
         val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
 
-        EndringsvedtakJob(jobManager, hendelseRepository, journalforingService).startJob()
+        val initialDelay = Duration.ofMinutes(5)
+        val period = Duration.ofMinutes(10)
+
+        EndringsvedtakJob(
+            jobManager,
+            hendelseRepository,
+            journalforingService,
+            initialDelay,
+            period,
+            Duration.ofHours(1),
+        ).startJob()
 
         verify(exactly = 1) {
             jobManager.startJob(
                 name = "EndringsvedtakJob",
-                initialDelay = Duration.of(5, ChronoUnit.MINUTES),
-                period = Duration.of(10, ChronoUnit.MINUTES),
+                initialDelay = initialDelay,
+                period = period,
                 job = any(),
             )
         }
@@ -149,7 +158,14 @@ class EndringsvedtakJobTest {
         every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
 
         return TestSetup(
-            job = EndringsvedtakJob(jobManager, hendelseRepository, journalforingService),
+            job = EndringsvedtakJob(
+                jobManager,
+                hendelseRepository,
+                journalforingService,
+                initialDelay = Duration.ofMinutes(5),
+                jobPeriod = Duration.ofMinutes(10),
+                gracePeriod = Duration.ofMinutes(30),
+            ),
             journalforingService = journalforingService,
         )
     }
