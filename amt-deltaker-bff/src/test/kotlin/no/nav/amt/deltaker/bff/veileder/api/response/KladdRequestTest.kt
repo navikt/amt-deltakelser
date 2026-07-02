@@ -6,7 +6,7 @@ import no.nav.amt.deltaker.bff.utils.TestData.input
 import no.nav.amt.deltaker.bff.veileder.api.request.sanitize
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_ANNET_INNHOLD_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_BAKGRUNNSINFORMASJON_LENGDE
-import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DAGER_PER_UKE
+import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DAGER_PER_UKE_ENKELTPLASS
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DELTAKELSESPROSENT
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DAGER_PER_UKE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DELTAKELSESPROSENT
@@ -80,10 +80,10 @@ class KladdRequestTest {
             innhold = emptyList(),
             bakgrunnsinformasjon = null,
             deltakelsesprosent = null,
-            dagerPerUke = MAX_DAGER_PER_UKE + 1,
+            dagerPerUke = MAX_DAGER_PER_UKE_ENKELTPLASS + 1,
         )
 
-        request.sanitize().dagerPerUke shouldBe MAX_DAGER_PER_UKE
+        request.sanitize().dagerPerUke shouldBe MAX_DAGER_PER_UKE_ENKELTPLASS
     }
 
     @Test
