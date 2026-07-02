@@ -254,6 +254,68 @@ class PdfUtilsTest {
         }
 
         @Test
+        fun `lagEndringsvedtakPdfDto - EndreDeltakelsesmengde for enkeltplass viser kun dager i uka`() {
+            val deltakerliste = Hendelsesdata.lagDeltakerliste().copy(erEnkeltplass = true)
+            val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+            val hendelser: List<Hendelse> = listOf(
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.endreDeltakelsesmengde(
+                        deltakelsesprosent = 50F,
+                        dagerPerUke = 3F,
+                    ),
+                    deltaker = deltaker,
+                    ansvarlig = ansvarligNavVeileder,
+                    opprettet = LocalDateTime.now().minusMinutes(20),
+                ),
+            )
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = hendelser,
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.endringer.size shouldBe 1
+            val endring = pdfDto.endringer.first() as EndringDto.EndreDeltakelsesmengde
+            endring.tittel shouldBe "Deltakelsen er endret til 3 dager i uka"
+        }
+
+        @Test
+        fun `lagEndringsvedtakPdfDto - EndreDeltakelsesmengde for gruppe viser prosent fordelt pa dager`() {
+            val deltakerliste = Hendelsesdata.lagDeltakerliste().copy(erEnkeltplass = false)
+            val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+            val hendelser: List<Hendelse> = listOf(
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.endreDeltakelsesmengde(
+                        deltakelsesprosent = 50F,
+                        dagerPerUke = 3F,
+                    ),
+                    deltaker = deltaker,
+                    ansvarlig = ansvarligNavVeileder,
+                    opprettet = LocalDateTime.now().minusMinutes(20),
+                ),
+            )
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = hendelser,
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.endringer.size shouldBe 1
+            val endring = pdfDto.endringer.first() as EndringDto.EndreDeltakelsesmengde
+            endring.tittel shouldBe "Deltakelsen er endret til 50 % fordelt på 3 dager i uka"
+        }
+
+        @Test
         fun `lagEndringsvedtakPdfDto - Avslutt deltakelse, opplæringstiltak, har fullført - tar med fullført og deltatt `() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
                 oppstartstype = Oppstartstype.LOPENDE,
