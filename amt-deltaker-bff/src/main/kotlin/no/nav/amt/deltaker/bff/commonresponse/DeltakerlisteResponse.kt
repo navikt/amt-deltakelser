@@ -27,7 +27,6 @@ data class DeltakerlisteResponse(
     val pameldingstype: GjennomforingPameldingType,
     val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse? = null,
     val prisinformasjon: PrisinformasjonDto? = null,
-    val harDeltakelsesmengde: Boolean,
 ) {
     data class ArrangorResponse(
         val navn: String,
@@ -61,7 +60,6 @@ data class DeltakerlisteResponse(
                 opplaringKategoriseringValg = OpplaringKategoriseringValgResponse
                     .fromOpplaringKategoriseringValg(opplaringKategoriseringValg),
                 prisinformasjon = prisinformasjon,
-                harDeltakelsesmengde = tiltak.tiltakskode.harDeltakelsesMengde(),
             )
         }
     }
