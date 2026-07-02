@@ -4,6 +4,7 @@ import no.nav.amt.lib.ktor.auth.PreAuthorizedApp
 import no.nav.amt.lib.utils.database.DatabaseConfig
 import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
+import java.time.Duration
 
 data class Environment(
     val databaseConfig: DatabaseConfig = DatabaseConfig(),
@@ -27,6 +28,13 @@ data class Environment(
     val dokdistfordelingScope: String = getEnvVar(DOKDISTFORDELING_SCOPE_KEY),
     val leaderElectorUrl: String = getEnvVar(LEADER_ELECTOR_URL),
     val port: Int = getEnvVar(PORT).ifBlank { "8080" }.toInt(),
+    val endringsvedtakJobInitialDelay: Duration = getEnvVar(ENDRINGSVEDTAK_JOB_INITIAL_DELAY_KEY, "")
+        .ifBlank { "PT5M" }
+        .let(Duration::parse),
+    val endringsvedtakJobPeriod: Duration = getEnvVar(ENDRINGSVEDTAK_JOB_PERIOD_KEY, "").ifBlank { "PT10M" }.let(Duration::parse),
+    val endringsvedtakJobGracePeriod: Duration = getEnvVar(ENDRINGSVEDTAK_JOB_GRACE_PERIOD_KEY, "")
+        .ifBlank { "PT30M" }
+        .let(Duration::parse),
     val preAuthorizedApps: List<PreAuthorizedApp> = getEnvVar(
         varName = AZURE_APP_PRE_AUTHORIZED_APPS,
         defaultValue = objectMapper.writeValueAsString(emptyList<PreAuthorizedApp>()),
@@ -58,6 +66,10 @@ data class Environment(
         const val SAF_TEMA = "OPP"
 
         const val LEADER_ELECTOR_URL = "ELECTOR_GET_URL"
+
+        const val ENDRINGSVEDTAK_JOB_INITIAL_DELAY_KEY = "ENDRINGSVEDTAK_JOB_INITIAL_DELAY"
+        const val ENDRINGSVEDTAK_JOB_PERIOD_KEY = "ENDRINGSVEDTAK_JOB_PERIOD"
+        const val ENDRINGSVEDTAK_JOB_GRACE_PERIOD_KEY = "ENDRINGSVEDTAK_JOB_GRACE_PERIOD"
 
         const val PORT = "PORT"
         const val HTTP_REQUEST_TIMEOUT_MILLIS = 20_000L

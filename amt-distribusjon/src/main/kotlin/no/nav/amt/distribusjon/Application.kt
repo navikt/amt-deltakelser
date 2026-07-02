@@ -203,7 +203,14 @@ fun Application.module() {
     configureRouting(digitalBrukerService, tiltakshendelseService)
     configureMonitoring()
 
-    val endringsvedtakJob = EndringsvedtakJob(jobManager, hendelseRepository, journalforingService)
+    val endringsvedtakJob = EndringsvedtakJob(
+        jobManager,
+        hendelseRepository,
+        journalforingService,
+        initialDelay = environment.endringsvedtakJobInitialDelay,
+        jobPeriod = environment.endringsvedtakJobPeriod,
+        gracePeriod = environment.endringsvedtakJobGracePeriod,
+    )
     endringsvedtakJob.startJob()
 
     val varselJobService = VarselJobService(jobManager, varselService)
