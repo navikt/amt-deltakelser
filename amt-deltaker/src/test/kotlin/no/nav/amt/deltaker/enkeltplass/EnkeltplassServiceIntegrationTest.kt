@@ -139,6 +139,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 tiltakInTest.tiltakskode,
                 navBrukerInTest.personident,
             )
+            val dagerPerUke = 3
 
             val arrangorInTest = lagArrangor()
             arrangorRepository.upsert(arrangorInTest)
@@ -152,6 +153,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                         ?.ledetekst,
                     innhold = listOf(Innhold.createFritekstInnhold("Beskrivelse")),
                 ),
+                dagerPerUke = dagerPerUke.toFloat(),
             )
 
             val oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
@@ -166,6 +168,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 prisinformasjon = PrisinformasjonDto.Anskaffelse(
                     pris = 42,
                 ),
+                dagerPerUke = dagerPerUke,
             )
 
             // Act
@@ -181,7 +184,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 id shouldBe expectedDeltaker.id
                 startdato shouldBe expectedDeltaker.startdato
                 sluttdato shouldBe expectedDeltaker.sluttdato
-                dagerPerUke shouldBe null
+                dagerPerUke shouldBe expectedDeltaker.dagerPerUke
                 deltakelsesprosent shouldBe null
                 bakgrunnsinformasjon shouldBe null
                 vedtaksinformasjon shouldBe null

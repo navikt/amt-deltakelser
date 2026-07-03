@@ -240,6 +240,7 @@ class DeltakerRepositoryTest {
                         ?.ledetekst,
                     innhold = listOf(Innhold.createFritekstInnhold("Dette er beskrivelsen")),
                 ),
+                dagerPerUke = 3.0F,
             )
 
             deltakerRepository.updateEnkeltplass(oppdatertDeltaker)
@@ -251,6 +252,7 @@ class DeltakerRepositoryTest {
                 id shouldBe deltaker.id
                 startdato shouldBe oppdatertDeltaker.startdato
                 sluttdato shouldBe oppdatertDeltaker.sluttdato
+                dagerPerUke shouldBe oppdatertDeltaker.dagerPerUke
                 deltakelsesinnhold shouldBe oppdatertDeltaker.deltakelsesinnhold
             }
         }

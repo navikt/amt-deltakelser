@@ -18,7 +18,7 @@ data class EndreDeltakelsesmengdeRequest(
 ) : EndringMedForslagRequest {
     override fun valider(deltaker: DeltakerModel) {
         validerDeltakelsesProsent(deltakelsesprosent)
-        validerDagerPerUke(dagerPerUke)
+        validerDagerPerUke(dagerPerUke, deltaker.gjennomforing.erEnkeltplass)
 
         deltaker.sluttdato?.let {
             require(!gyldigFra.isAfter(it)) {

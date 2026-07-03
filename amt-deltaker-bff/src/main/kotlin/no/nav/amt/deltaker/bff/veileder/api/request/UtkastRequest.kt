@@ -28,7 +28,7 @@ data class UtkastRequest(
         }
         validerBakgrunnsinformasjon(bakgrunnsinformasjon)
         validerDeltakelsesProsent(deltakelsesprosent)
-        validerDagerPerUke(dagerPerUke)
+        validerDagerPerUke(dagerPerUke, deltaker.gjennomforing.erEnkeltplass)
         validerDeltakelsesinnhold(
             innhold,
             deltaker.gjennomforing.tiltak.innhold,

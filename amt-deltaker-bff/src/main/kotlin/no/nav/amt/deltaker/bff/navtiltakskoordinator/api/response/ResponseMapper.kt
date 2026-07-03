@@ -63,6 +63,7 @@ object ResponseMapper {
                 pameldingstype = gjennomforing.pameldingstype,
                 deltakelsesinnhold = deltakelsesinnhold,
             ),
+            erEnkeltplass = gjennomforing.erEnkeltplass,
         )
     }
 

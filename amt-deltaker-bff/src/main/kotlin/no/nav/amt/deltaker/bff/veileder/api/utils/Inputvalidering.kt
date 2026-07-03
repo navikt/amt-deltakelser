@@ -24,7 +24,8 @@ const val MAX_BAKGRUNNSINFORMASJON_LENGDE = 1000
 const val MAX_ANNET_INNHOLD_LENGDE = 250
 const val MAX_AARSAK_BESKRIVELSE_LENGDE = 40
 const val MIN_DAGER_PER_UKE = 1
-const val MAX_DAGER_PER_UKE = 5
+const val MAX_DAGER_PER_UKE_GRUPPE = 5
+const val MAX_DAGER_PER_UKE_ENKELTPLASS = 7
 const val MIN_DELTAKELSESPROSENT = 1
 const val MAX_DELTAKELSESPROSENT = 100
 const val MAX_BEGRUNNELSE_LENGDE = 200
@@ -61,9 +62,14 @@ fun validerAktivGjennomforing(gjennomforing: GjennomforingModel) = require(gjenn
     "Gjennomføring status må være GJENNOMFORES men var ${gjennomforing.status}"
 }
 
-fun validerDagerPerUke(n: Int?) = n?.let {
-    require(n in MIN_DAGER_PER_UKE..MAX_DAGER_PER_UKE) {
-        "Dager per uke kan ikke være mindre enn $MIN_DAGER_PER_UKE eller større enn $MAX_DAGER_PER_UKE"
+fun validerDagerPerUke(
+    n: Int?,
+    erEnkeltplass: Boolean,
+) = n?.let {
+    val maxDager = if (erEnkeltplass) MAX_DAGER_PER_UKE_ENKELTPLASS else MAX_DAGER_PER_UKE_GRUPPE
+
+    require(n in MIN_DAGER_PER_UKE..maxDager) {
+        "Dager per uke kan ikke være mindre enn $MIN_DAGER_PER_UKE eller større enn $maxDager"
     }
 }
 

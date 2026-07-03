@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.bff.veileder.api.request
 
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_ANNET_INNHOLD_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_BAKGRUNNSINFORMASJON_LENGDE
-import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DAGER_PER_UKE
+import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DAGER_PER_UKE_ENKELTPLASS
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_DELTAKELSESPROSENT
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DAGER_PER_UKE
 import no.nav.amt.deltaker.bff.veileder.api.utils.MIN_DELTAKELSESPROSENT
@@ -21,7 +21,12 @@ fun KladdRequest.sanitize() = KladdRequest(
     innhold = innhold.sanitize(),
     bakgrunnsinformasjon = bakgrunnsinformasjon?.sanitize(),
     deltakelsesprosent = deltakelsesprosent?.clamp(MIN_DELTAKELSESPROSENT, MAX_DELTAKELSESPROSENT),
-    dagerPerUke = dagerPerUke?.clamp(MIN_DAGER_PER_UKE, MAX_DAGER_PER_UKE),
+    dagerPerUke = dagerPerUke?.clamp(
+        MIN_DAGER_PER_UKE,
+        // Grense for gruppe-påmelding er litt lavere, men i denne sammenhengen gjør det liten forskjell
+        // nøyaktig hvor vi setter grensen, se kommentar ovenfor.
+        MAX_DAGER_PER_UKE_ENKELTPLASS,
+    ),
 )
 
 private fun String.sanitize(): String {
