@@ -494,6 +494,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             produced shouldBe GjennomforingRequestPayload.EnkeltplassSoktInn(
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = payload,
+                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = deltaker.id,
+                    behandletAv = payload.opprettetAv,
+                ),
             )
         }
 
