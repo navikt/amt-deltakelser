@@ -154,7 +154,7 @@ class TotrinnskontrollConsumerTest {
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
 
             // Act
-            consumer.processGodkjentTotrinnskontroll(gjennomforingId)
+            consumer.processGodkjentInnsoking(gjennomforingId)
 
             // Assert
             verify(exactly = 0) {
@@ -191,7 +191,7 @@ class TotrinnskontrollConsumerTest {
             }
 
             // Act
-            consumer.processGodkjentTotrinnskontroll(gjennomforingId)
+            consumer.processGodkjentInnsoking(gjennomforingId)
 
             // Assert
             verify { vedtakService.godkjentOkonomiFattVedtak(deltaker) }

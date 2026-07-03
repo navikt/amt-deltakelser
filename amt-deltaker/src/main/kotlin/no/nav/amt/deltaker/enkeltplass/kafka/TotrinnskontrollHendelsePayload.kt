@@ -6,7 +6,7 @@ import java.time.Instant
 import java.util.UUID
 
 data class TotrinnskontrollHendelsePayload(
-    val id: UUID,
+    val id: UUID, // id for totrinnskontroll vi sendte i gjennomforing-requesten
     val entityId: UUID,
     val type: TotrinnskontrollType,
     val behandletAv: TotrinnskontrollAgent,

@@ -66,9 +66,35 @@ class TotrinnskontrollConsumer(
 
         val payload = objectMapper.readValue<TotrinnskontrollHendelsePayload>(value)
 
-        if (payload.status == TotrinnskontrollHendelsePayload.Status.GODKJENT) {
-            processGodkjentTotrinnskontroll(payload.entityId)
+        if (payload.status == TotrinnskontrollHendelsePayload.Status.GODKJENT &&
+            payload.type == TotrinnskontrollType.ENKELTPLASS_OKONOMI
+        ) {
+            processGodkjentInnsoking(payload.entityId)
         }
+        if (payload.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
+            processGodkjentPrisinformasjon(payload)
+        }
+    }
+
+    internal fun processGodkjentPrisinformasjon(totrinnskontrollPayload: TotrinnskontrollHendelsePayload) {
+        // Finn forslaget med riktig totrinnskontrollId for å garantere at der er riktig prisionfo
+        if (totrinnskontrollPayload.status == TotrinnskontrollHendelsePayload.Status.TIL_BEHANDLING) {
+            // sendes automatisk når valp har mottatt meldingen
+        }
+        // Finn forslaget med riktig totrinnskontrollId for å garantere at der er riktig prisionfo
+
+        /*
+            if(deltakelse allerede godkjent/økonomi allerede har blitt godkjent) {
+                //Generer endringsvedtak for prisendring
+                //Godkjenn forslag
+            }
+            else {
+                //prisendringer blir automatisk godkjent når deltakelsen er bare søkt inn
+                oppdater deltaker med ny prisinformasjon
+                ikke lage vedtak
+                godkjenne forslag(skal det vises for veileder?)
+            }
+         */
     }
 
     /**
@@ -79,7 +105,7 @@ class TotrinnskontrollConsumer(
      *
      * @param gjennomforingId id for gjennomføringen som brukes til å finne deltaker
      */
-    internal fun processGodkjentTotrinnskontroll(gjennomforingId: UUID) {
+    internal fun processGodkjentInnsoking(gjennomforingId: UUID) {
         val deltaker = deltakerRepository
             .getEnkeltplassdeltaker(gjennomforingId)
             .getOrThrow()
