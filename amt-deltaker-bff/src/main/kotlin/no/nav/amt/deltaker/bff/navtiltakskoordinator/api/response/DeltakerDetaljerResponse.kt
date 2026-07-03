@@ -33,4 +33,5 @@ data class DeltakerDetaljerResponse(
     val oppstartstype: Oppstartstype?,
     val pameldingstype: GjennomforingPameldingType,
     val deltakelsesinnhold: String?,
+    val erEnkeltplass: Boolean,
 )
