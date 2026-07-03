@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.enkeltplass.kafka
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollHendelsePayload.TotrinnskontrollBesluttelse
 import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollHendelsePayload.TotrinnskontrollType
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
@@ -67,7 +66,7 @@ class TotrinnskontrollConsumer(
 
         val payload = objectMapper.readValue<TotrinnskontrollHendelsePayload>(value)
 
-        if (payload.besluttelse == TotrinnskontrollBesluttelse.GODKJENT) {
+        if (payload.status == TotrinnskontrollHendelsePayload.Status.GODKJENT) {
             processGodkjentTotrinnskontroll(payload.entityId)
         }
     }
@@ -97,7 +96,8 @@ class TotrinnskontrollConsumer(
             erDeltakerSluttdatoEndret = false,
             beforeUpsert = { deltaker ->
                 vedtakService.godkjentOkonomiFattVedtak(deltaker = deltaker)
-
+                // TODO: Generer melding om hovedvedtak til amt-distribusjon
+                // TODO: Sjekkk om status skal være deltar eller venter på oppstart
                 deltaker.copy(
                     status = DeltakerUtils.nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 )
@@ -124,6 +124,10 @@ class TotrinnskontrollConsumer(
             ?.asString()
 
         return if (typeName == TotrinnskontrollType.ENKELTPLASS_OKONOMI.name) {
+            // Søkt inn deltakelse godkjent
+            true
+        } else if (typeName == TotrinnskontrollType.ENKELTPLASS_PRISENDRING.name) {
+            // Godkjent prisendring for deltakelse
             true
         } else {
             log.info("Totrinnskontrollhendelse av type $typeName ignorert")

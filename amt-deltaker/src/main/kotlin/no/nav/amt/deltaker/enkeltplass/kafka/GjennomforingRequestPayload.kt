@@ -19,6 +19,7 @@ sealed interface GjennomforingRequestPayload {
 
     data class EnkeltplassSoktInn(
         override val gjennomforingId: UUID,
+        val totrinnkontroll: Totrinnskontroll,
         val payload: UpsertEnkeltplass,
     ) : GjennomforingRequestPayload
 
@@ -38,6 +39,7 @@ sealed interface GjennomforingRequestPayload {
 
     data class EnkeltplassEndrePrisinformasjon(
         override val gjennomforingId: UUID,
+        val totrinnkontroll: Totrinnskontroll,
         val payload: Prisinformasjon,
     ) : GjennomforingRequestPayload
 
@@ -52,6 +54,11 @@ sealed interface GjennomforingRequestPayload {
         JsonSubTypes.Type(value = Prisinformasjon.Tilskudd::class, name = "Tilskudd"),
         JsonSubTypes.Type(value = Prisinformasjon.IngenKostnader::class, name = "IngenKostnader"),
     )
+    data class Totrinnskontroll(
+        val id: UUID, //
+        val behandletAv: String,
+    )
+
     sealed interface Prisinformasjon {
         data class Anskaffelse(
             val pris: Int,

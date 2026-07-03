@@ -13,16 +13,25 @@ data class TotrinnskontrollHendelsePayload(
     val behandletTidspunkt: Instant,
     val besluttetAv: TotrinnskontrollAgent?,
     val besluttetTidspunkt: Instant?,
-    val besluttelse: TotrinnskontrollBesluttelse?,
+    val besluttelse: TotrinnskontrollBesluttelse?, // Skal slettes
+    val status: Status,
     val aarsaker: List<String>,
     val forklaring: String?,
 ) {
+    enum class Status {
+        TIL_BEHANDLING, // Kommer med en gang /ack på meldingen
+        SATT_PA_VENT,
+        GODKJENT,
+        RETURNERT, // Forslaget returneres til avsender(avvist), brukes også for erstattning(besluttet av system)
+    }
+
     enum class TotrinnskontrollType {
         TILSAGN_OPPRETTELSE,
         TILSAGN_ANNULLERING,
         TILSAGN_OPPGJOR,
         UTBETALING_LINJE_OPPRETTELSE,
         ENKELTPLASS_OKONOMI,
+        ENKELTPLASS_PRISENDRING,
         TILSKUDD_OPPRETTELSE,
     }
 
