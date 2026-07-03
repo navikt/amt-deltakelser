@@ -21,6 +21,8 @@ class InnsokRepository {
                 innsokt_av_enhet, 
                 utkast_godkjent_av_nav, 
                 utkast_delt, 
+                startdato,
+                sluttdato,
                 deltakelsesinnhold_ved_innsok,
                 kategorisering_ved_innsok
             ) 
@@ -32,6 +34,8 @@ class InnsokRepository {
                 :innsokt_av_enhet, 
                 :utkast_godkjent_av_nav, 
                 :utkast_delt, 
+                :startdato,
+                :sluttdato,
                 :deltakelsesinnhold_ved_innsok,
                 :kategorisering_ved_innsok
             )
@@ -45,6 +49,8 @@ class InnsokRepository {
             "innsokt_av_enhet" to innsok.innsoktAvEnhet,
             "utkast_godkjent_av_nav" to innsok.utkastGodkjentAvNav,
             "utkast_delt" to innsok.utkastDelt,
+            "startdato" to innsok.startdato,
+            "sluttdato" to innsok.sluttdato,
             "deltakelsesinnhold_ved_innsok" to toPGObject(innsok.deltakelsesinnholdVedInnsok),
             "kategorisering_ved_innsok" to toPGObject(innsok.opplaringKategoriseringVedInnsok),
         )
@@ -65,6 +71,8 @@ class InnsokRepository {
                         innsokt_av_enhet, 
                         utkast_godkjent_av_nav, 
                         utkast_delt, 
+                        startdato,
+                        sluttdato,
                         deltakelsesinnhold_ved_innsok,
                         kategorisering_ved_innsok
                     FROM innsok 
@@ -89,6 +97,8 @@ class InnsokRepository {
                         innsokt_av_enhet, 
                         utkast_godkjent_av_nav, 
                         utkast_delt, 
+                        startdato,
+                        sluttdato,
                         deltakelsesinnhold_ved_innsok,
                         kategorisering_ved_innsok
                     FROM innsok 
@@ -118,7 +128,9 @@ class InnsokRepository {
             innsoktAvEnhet = row.uuid("innsokt_av_enhet"),
             utkastGodkjentAvNav = row.boolean("utkast_godkjent_av_nav"),
             utkastDelt = row.localDateTimeOrNull("utkast_delt"),
-            deltakelsesinnholdVedInnsok = objectMapper.readValue(row.string("deltakelsesinnhold_ved_innsok")),
+            startdato = row.localDateOrNull("startdato"),
+            sluttdato = row.localDateOrNull("sluttdato"),
+            deltakelsesinnholdVedInnsok = row.stringOrNull("deltakelsesinnhold_ved_innsok")?.let { objectMapper.readValue(it) },
             opplaringKategoriseringVedInnsok = row.stringOrNull("kategorisering_ved_innsok")?.let {
                 objectMapper.readValue(it)
             },

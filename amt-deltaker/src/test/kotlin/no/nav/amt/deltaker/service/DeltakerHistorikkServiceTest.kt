@@ -277,6 +277,8 @@ class DeltakerHistorikkServiceTest {
                     innsokt = innsoktDato.atStartOfDay(),
                     innsoktAv = UUID.randomUUID(),
                     innsoktAvEnhet = UUID.randomUUID(),
+                    startdato = null,
+                    sluttdato = null,
                     deltakelsesinnholdVedInnsok = null,
                     utkastDelt = null,
                     utkastGodkjentAvNav = true,
