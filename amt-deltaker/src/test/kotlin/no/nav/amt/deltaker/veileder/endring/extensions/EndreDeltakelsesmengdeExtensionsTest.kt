@@ -173,11 +173,12 @@ class EndreDeltakelsesmengdeExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - gyldigFra lik startdato i framtid - endrer deltakelsesprosent umiddelbart`() {
-        val startdato = LocalDate.now().plusDays(5)
+        val today = LocalDate.now()
+        val startdato = today.plusDays(5)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = startdato,
-            sluttdato = LocalDate.now().plusMonths(3),
+            sluttdato = today.plusMonths(3),
             deltakelsesprosent = 100F,
         )
         val request = DeltakelsesmengdeRequest(
