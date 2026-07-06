@@ -170,4 +170,36 @@ class EndreDeltakelsesmengdeExtensionsTest {
 
         resultat.erFremtidigEndring shouldBe true
     }
+
+    @Test
+    fun `oppdaterDeltaker - gyldigFra lik startdato i framtid - endrer deltakelsesprosent umiddelbart`() {
+        val today = LocalDate.now()
+        val startdato = today.plusDays(5)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = startdato,
+            sluttdato = today.plusMonths(3),
+            deltakelsesprosent = 100F,
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 50,
+            dagerPerUke = 3,
+            begrunnelse = null,
+            gyldigFra = startdato,
+        )
+
+        val resultat = request
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        resultat.deltaker.deltakelsesprosent shouldBe 50F
+        resultat.deltaker.dagerPerUke shouldBe 3F
+        resultat.erFremtidigEndring shouldBe false
+    }
 }

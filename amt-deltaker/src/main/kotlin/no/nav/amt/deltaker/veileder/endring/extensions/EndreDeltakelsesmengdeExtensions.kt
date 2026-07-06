@@ -33,7 +33,12 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(deltak
     // Defence-in-depth: også validert i DeltakerService før runCatching for å gi 400 Bad Request
     validerGyldigFra(deltaker)
 
-    return if (nyDeltakelsesmengde.gyldigFra <= LocalDate.now()) {
+    val skalGjeldeUmiddelbart = nyDeltakelsesmengde.gyldigFra <= LocalDate.now() ||
+        // Hvis ny deltakelsesmengde settes fra startdato, ønsker vi å vise/lagre dette på samme måte som
+        // hvis deltakelsen var opprettet med deltakelsesmengde i utgangspunktet.
+        (deltaker.startdato != null && nyDeltakelsesmengde.gyldigFra == deltaker.startdato)
+
+    return if (skalGjeldeUmiddelbart) {
         VellykketEndring(
             deltaker.copy(
                 deltakelsesprosent = this.deltakelsesprosent,
