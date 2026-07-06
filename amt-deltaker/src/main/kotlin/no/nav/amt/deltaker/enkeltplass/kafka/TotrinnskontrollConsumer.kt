@@ -72,9 +72,10 @@ class TotrinnskontrollConsumer(
             processGodkjentInnsoking(payload.entityId)
         }
 
-        if (payload.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
+/* For bruk senere
+    if (payload.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
             processGodkjentPrisinformasjon(payload)
-        }
+        }*/
     }
 
     internal fun processGodkjentPrisinformasjon(totrinnskontrollPayload: TotrinnskontrollHendelsePayload) {
