@@ -329,6 +329,12 @@ fun Routing.registerInternalApi(
                         // TODO: Dette blir litt rart for VENTER_PA_OPPSTART
                         GjennomforingRequestPayload.EnkeltplassSoktInn(
                             gjennomforingId = gjennomforing.id,
+                            totrinnkontroll = (
+                                GjennomforingRequestPayload.Totrinnskontroll(
+                                    id = deltaker.id,
+                                    behandletAv = opprettetAv,
+                                )
+                            ),
                             payload = GjennomforingRequestPayload.UpsertEnkeltplass(
                                 tiltakskode = gjennomforing.tiltakstype.tiltakskode,
                                 // TODO: Hardkodet IngenKostnader

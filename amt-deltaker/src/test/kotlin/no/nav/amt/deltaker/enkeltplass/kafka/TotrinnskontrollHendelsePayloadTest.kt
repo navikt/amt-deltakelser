@@ -21,7 +21,7 @@ class TotrinnskontrollHendelsePayloadTest {
               "behandletTidspunkt": "2026-05-12T12:11:55.466070Z",
               "besluttetAv": null,
               "besluttetTidspunkt": null,
-              "besluttelse": null,
+              "status": "TIL_BEHANDLING",
               "aarsaker": [],
               "forklaring": null
             }
@@ -45,7 +45,7 @@ class TotrinnskontrollHendelsePayloadTest {
               "behandletTidspunkt": "2026-05-12T12:11:55.466070Z",
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "L164122" },
               "besluttetTidspunkt": "2026-05-12T12:12:20.268043Z",
-              "besluttelse": "GODKJENT",
+              "status": "GODKJENT",
               "aarsaker": [],
               "forklaring": null
             }
@@ -54,6 +54,6 @@ class TotrinnskontrollHendelsePayloadTest {
         val payload = objectMapper.readValue<TotrinnskontrollHendelsePayload>(json)
 
         payload.besluttetAv shouldBe TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt(navIdent = "L164122")
-        payload.besluttelse shouldBe TotrinnskontrollHendelsePayload.TotrinnskontrollBesluttelse.GODKJENT
+        payload.status shouldBe TotrinnskontrollHendelsePayload.Status.GODKJENT
     }
 }

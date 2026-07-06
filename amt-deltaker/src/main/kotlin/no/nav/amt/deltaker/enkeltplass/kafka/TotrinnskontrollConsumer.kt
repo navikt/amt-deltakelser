@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.enkeltplass.kafka
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollHendelsePayload.TotrinnskontrollBesluttelse
 import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollHendelsePayload.TotrinnskontrollType
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
@@ -67,9 +66,37 @@ class TotrinnskontrollConsumer(
 
         val payload = objectMapper.readValue<TotrinnskontrollHendelsePayload>(value)
 
-        if (payload.besluttelse == TotrinnskontrollBesluttelse.GODKJENT) {
-            processGodkjentTotrinnskontroll(payload.entityId)
+        if (payload.status == TotrinnskontrollHendelsePayload.Status.GODKJENT &&
+            payload.type == TotrinnskontrollType.ENKELTPLASS_OKONOMI
+        ) {
+            processGodkjentInnsoking(payload.entityId)
         }
+
+/* For bruk senere
+    if (payload.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
+            processGodkjentPrisinformasjon(payload)
+        }*/
+    }
+
+    internal fun processGodkjentPrisinformasjon(totrinnskontrollPayload: TotrinnskontrollHendelsePayload) {
+        // Finn forslaget med riktig totrinnskontrollId for å garantere at der er riktig prisionfo
+        if (totrinnskontrollPayload.status == TotrinnskontrollHendelsePayload.Status.TIL_BEHANDLING) {
+            // sendes automatisk når valp har mottatt meldingen
+        }
+        // Finn forslaget med riktig totrinnskontrollId for å garantere at der er riktig prisionfo
+
+        /*
+            if(deltakelse allerede godkjent/økonomi allerede har blitt godkjent) {
+                //Generer endringsvedtak for prisendring
+                //Godkjenn forslag
+            }
+            else {
+                //prisendringer blir automatisk godkjent når deltakelsen er bare søkt inn
+                oppdater deltaker med ny prisinformasjon
+                ikke lage vedtak
+                godkjenne forslag(skal det vises for veileder?)
+            }
+         */
     }
 
     /**
@@ -80,7 +107,7 @@ class TotrinnskontrollConsumer(
      *
      * @param gjennomforingId id for gjennomføringen som brukes til å finne deltaker
      */
-    internal fun processGodkjentTotrinnskontroll(gjennomforingId: UUID) {
+    internal fun processGodkjentInnsoking(gjennomforingId: UUID) {
         val deltaker = deltakerRepository
             .getEnkeltplassdeltaker(gjennomforingId)
             .getOrThrow()
@@ -97,7 +124,8 @@ class TotrinnskontrollConsumer(
             erDeltakerSluttdatoEndret = false,
             beforeUpsert = { deltaker ->
                 vedtakService.godkjentOkonomiFattVedtak(deltaker = deltaker)
-
+                // TODO: Generer melding om hovedvedtak til amt-distribusjon
+                // TODO: Sjekkk om status skal være deltar eller venter på oppstart
                 deltaker.copy(
                     status = DeltakerUtils.nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 )
@@ -123,11 +151,21 @@ class TotrinnskontrollConsumer(
             .get(TYPE_KEY)
             ?.asString()
 
-        return if (typeName == TotrinnskontrollType.ENKELTPLASS_OKONOMI.name) {
-            true
-        } else {
-            log.info("Totrinnskontrollhendelse av type $typeName ignorert")
-            false
+        return when (typeName) {
+            TotrinnskontrollType.ENKELTPLASS_OKONOMI.name -> {
+                // Søkt inn deltakelse godkjent
+                true
+            }
+
+            TotrinnskontrollType.ENKELTPLASS_PRISENDRING.name -> {
+                // Godkjent prisendring for deltakelse
+                true
+            }
+
+            else -> {
+                log.info("Totrinnskontrollhendelse av type $typeName ignorert")
+                false
+            }
         }
     }
 

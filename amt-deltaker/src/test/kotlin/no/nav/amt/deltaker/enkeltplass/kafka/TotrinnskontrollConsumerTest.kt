@@ -57,7 +57,6 @@ class TotrinnskontrollConsumerTest {
                   "behandletTidspunkt": "2026-05-11T15:13:21.311216Z",
                   "besluttetAv": null,
                   "besluttetTidspunkt": null,
-                  "besluttelse": null,
                   "aarsaker": [],
                   "forklaring": null
                 }
@@ -154,7 +153,7 @@ class TotrinnskontrollConsumerTest {
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
 
             // Act
-            consumer.processGodkjentTotrinnskontroll(gjennomforingId)
+            consumer.processGodkjentInnsoking(gjennomforingId)
 
             // Assert
             verify(exactly = 0) {
@@ -191,7 +190,7 @@ class TotrinnskontrollConsumerTest {
             }
 
             // Act
-            consumer.processGodkjentTotrinnskontroll(gjennomforingId)
+            consumer.processGodkjentInnsoking(gjennomforingId)
 
             // Assert
             verify { vedtakService.godkjentOkonomiFattVedtak(deltaker) }
@@ -237,7 +236,7 @@ class TotrinnskontrollConsumerTest {
               "behandletTidspunkt": "2026-06-01T10:00:00Z",
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "besluttelse": "GODKJENT",
+              "status": "GODKJENT",
               "aarsaker": [],
               "forklaring": null
             }
@@ -253,9 +252,13 @@ class TotrinnskontrollConsumerTest {
               "behandletTidspunkt": "2026-06-01T10:00:00Z",
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "besluttelse": "AVVIST",
+              "status": "RETURNERT",
               "aarsaker": ["MANGLER_DOKUMENTASJON"],
-              "forklaring": "Ikke godkjent"
+              "forklaring": "Ikke godkjent",
+              "totrinnskontroll": {
+                "id": "${UUID.randomUUID()}",
+                "behandletAv": "VEILEDER"
+              }
             }
             """.trimIndent()
     }

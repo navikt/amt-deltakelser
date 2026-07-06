@@ -51,6 +51,10 @@ class GjennomforingRequestPayloadTest {
                     aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                     tilleggsopplysninger = null,
                 ),
+                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = UUID.randomUUID(),
+                    behandletAv = "Z123456",
+                ),
             )
 
             val json = objectMapper.writeValueAsString(payload)
@@ -117,6 +121,10 @@ class GjennomforingRequestPayloadTest {
                     aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                     tilleggsopplysninger = "Forklaring",
                 ),
+                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = UUID.randomUUID(),
+                    behandletAv = "Z123456",
+                ),
             )
 
             val json = objectMapper.writeValueAsString(original)
@@ -130,6 +138,10 @@ class GjennomforingRequestPayloadTest {
             val original = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
                 gjennomforingId = UUID.randomUUID(),
                 payload = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(pris = 99000),
+                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = UUID.randomUUID(),
+                    behandletAv = "Z123456",
+                ),
             )
 
             val json = objectMapper.writeValueAsString(original)
@@ -163,6 +175,10 @@ class GjennomforingRequestPayloadTest {
                     ansvarligEnhet = "1234",
                     opprettetAv = "Z123456",
                     kategorisering = null,
+                ),
+                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = UUID.randomUUID(),
+                    behandletAv = "Z123456",
                 ),
             )
 

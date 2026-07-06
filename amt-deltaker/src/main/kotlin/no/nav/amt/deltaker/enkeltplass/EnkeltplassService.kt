@@ -261,6 +261,8 @@ class EnkeltplassService(
     /**
      * Lagrer oppdateringer til deltaker og gjennomføring i én transaksjon,
      * oppretter/oppdaterer vedtak og publiserer gjennomføringsrequest til Kafka.
+     * OBS: Denne kan ikke brukes for andre endringer på deltakelse i dette formatet
+     * Fordi det må ikke publiseres flere meldinger av
      */
     private suspend fun lagreOgPubliser(
         deltakerId: UUID,
@@ -407,6 +409,10 @@ class EnkeltplassService(
             DeltakerStatus.Type.SOKT_INN -> GjennomforingRequestPayload.EnkeltplassSoktInn(
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = upsertPayload,
+                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = deltaker.id,
+                    behandletAv = endretAvNavIdent,
+                ),
             )
 
             else -> throw IllegalStateException("Deltaker ${deltaker.id} har status $statusType")
