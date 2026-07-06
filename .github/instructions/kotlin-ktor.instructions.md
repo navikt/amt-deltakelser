@@ -1,10 +1,8 @@
 ---
-name: Kotlin Ktor Patterns
-description: "Ktor- og Rapids & Rivers-mønstre for Nav-backends: ApplicationBuilder, sealed config, Kotliquery, Koin og feilhåndtering."
 applyTo: "**/*.kt"
 ---
 
-Ktor and Rapids & Rivers patterns for Nav backends: ApplicationBuilder, sealed config, Kotliquery, Koin, and error handling.
+Ktor- og Rapids & Rivers-mønstre for Nav-backends: ApplicationBuilder, sealed config, Kotliquery, Koin og feilhåndtering.
 
 > Ktor/Rapids & Rivers patterns for Nav backends. Apply when the file uses Ktor (`RapidApplication`, `routing`, `River`) — for Spring Boot apps, see `kotlin-spring.instructions.md` instead.
 

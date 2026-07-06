@@ -1,12 +1,10 @@
 ---
-name: Kotlin Testing
-description: "Kotlin-spesifikke testmønstre for Nav: Kotest-matchers, TestRapid, Testcontainers og MockOAuth2Server."
 applyTo: "**/*.test.{kt,kts}"
 ---
 
 # Kotlin Testing (Kotest & JUnit 5)
 
-Kotlin-specific test patterns for Nav: Kotest-matchers, TestRapid, Testcontainers, and MockOAuth2Server.
+Kotlin-spesifikke testmønstre for Nav: Kotest-matchers, TestRapid, Testcontainers og MockOAuth2Server.
 
 ## Test Structure
 

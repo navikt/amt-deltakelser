@@ -1,12 +1,10 @@
 ---
-name: Database Migration Standards
-description: "Standarder for databasemigrasjoner med Flyway: navnekonvensjoner, sikre endringer og idempotente skript."
 applyTo: "**/db/migration/**/*.sql"
 ---
 
 # Database Migration Standards (Flyway)
 
-Standards for database migrations with Flyway: naming conventions, safe changes, and idempotent scripts.
+Standarder for databasemigrasjoner med Flyway: navnekonvensjoner, sikre endringer og idempotente skript.
 
 ## Migration File Naming
 
