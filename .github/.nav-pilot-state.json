@@ -1,13 +1,13 @@
 {
   "collection": "kotlin-backend",
-  "version": "2026.06.16-091529-95c7081",
+  "version": "2026.07.05-165716-b264d34",
   "scope": "repo",
-  "source_sha": "95c7081",
+  "source_sha": "b264d34",
   "installed_at": "2026-06-16T09:55:47Z",
   "files": [
     {
       "path": ".github/agents/code-review.agent.md",
-      "hash": "3f32b4e215bca95d"
+      "hash": "ba64c6ac567371bb"
     },
     {
       "path": ".github/agents/research.agent.md",
@@ -19,7 +19,7 @@
     },
     {
       "path": ".github/agents/nav-pilot.agent.md",
-      "hash": "f490eb3f9ca1e9a3"
+      "hash": "09c7351bf3ceb03b"
     },
     {
       "path": ".github/skills/api-design/",
@@ -27,7 +27,7 @@
     },
     {
       "path": ".github/skills/conventional-commit/",
-      "hash": "b81a4898fed3139d"
+      "hash": "0c21beaedabd1e39"
     },
     {
       "path": ".github/skills/flyway-migration/",
@@ -127,19 +127,19 @@
     },
     {
       "path": ".github/instructions/kotlin-ktor.instructions.md",
-      "hash": "495a1016fde29289"
+      "hash": "f180c7d9ebb3ddee"
     },
     {
       "path": ".github/instructions/kotlin-spring.instructions.md",
-      "hash": "bdf9d1bfd4121803"
+      "hash": "9c5bc41afd68d962"
     },
     {
       "path": ".github/instructions/testing.instructions.md",
-      "hash": "4a6a7547a3701ce1"
+      "hash": "ca2a23744bef3a2c"
     },
     {
       "path": ".github/instructions/testing-kotlin.instructions.md",
-      "hash": "13a5a10d86577f84"
+      "hash": "183e7a28acecdbb5"
     },
     {
       "path": ".github/instructions/github-actions.instructions.md",
@@ -151,7 +151,7 @@
     },
     {
       "path": ".github/instructions/database.instructions.md",
-      "hash": "5b4639fd54c7b4f3"
+      "hash": "9fb524bf4111f25f"
     },
     {
       "path": ".github/instructions/security-owasp.instructions.md",
