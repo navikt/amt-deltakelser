@@ -22,6 +22,7 @@ class TotrinnskontrollHendelsePayloadTest {
               "besluttetAv": null,
               "besluttetTidspunkt": null,
               "besluttelse": null,
+              "status": "TIL_BEHANDLING",
               "aarsaker": [],
               "forklaring": null
             }
@@ -46,6 +47,7 @@ class TotrinnskontrollHendelsePayloadTest {
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "L164122" },
               "besluttetTidspunkt": "2026-05-12T12:12:20.268043Z",
               "besluttelse": "GODKJENT",
+              "status": "GODKJENT",
               "aarsaker": [],
               "forklaring": null
             }

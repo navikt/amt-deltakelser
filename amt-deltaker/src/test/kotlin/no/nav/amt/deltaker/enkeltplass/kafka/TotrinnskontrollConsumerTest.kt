@@ -238,6 +238,7 @@ class TotrinnskontrollConsumerTest {
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
               "besluttelse": "GODKJENT",
+              "status": "GODKJENT",
               "aarsaker": [],
               "forklaring": null
             }
@@ -254,8 +255,13 @@ class TotrinnskontrollConsumerTest {
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
               "besluttelse": "AVVIST",
+              "status": "RETURNERT",
               "aarsaker": ["MANGLER_DOKUMENTASJON"],
-              "forklaring": "Ikke godkjent"
+              "forklaring": "Ikke godkjent",
+              "totrinnskontroll": {
+                "id": "${UUID.randomUUID()}",
+                "behandletAv": "VEILEDER"
+              }
             }
             """.trimIndent()
     }
