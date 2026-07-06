@@ -13,7 +13,6 @@ data class TotrinnskontrollHendelsePayload(
     val behandletTidspunkt: Instant,
     val besluttetAv: TotrinnskontrollAgent?,
     val besluttetTidspunkt: Instant?,
-    val besluttelse: TotrinnskontrollBesluttelse?, // Skal slettes
     val status: Status,
     val aarsaker: List<String>,
     val forklaring: String?,
@@ -33,11 +32,6 @@ data class TotrinnskontrollHendelsePayload(
         ENKELTPLASS_OKONOMI,
         ENKELTPLASS_PRISENDRING,
         TILSKUDD_OPPRETTELSE,
-    }
-
-    enum class TotrinnskontrollBesluttelse {
-        GODKJENT,
-        AVVIST,
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

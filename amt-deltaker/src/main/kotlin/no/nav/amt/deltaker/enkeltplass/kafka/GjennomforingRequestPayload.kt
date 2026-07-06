@@ -12,22 +12,25 @@ import java.util.UUID
 sealed interface GjennomforingRequestPayload {
     val gjennomforingId: UUID
 
+    data class Totrinnskontroll(
+        val id: UUID, //
+        val behandletAv: String, // veileder
+    )
+
+    // kommer først
     data class EnkeltplassUtkast(
         override val gjennomforingId: UUID,
         val payload: UpsertEnkeltplass,
     ) : GjennomforingRequestPayload
 
-    data class Totrinnskontroll(
-        val id: UUID, //
-        val behandletAv: String,
-    )
-
+    // kommer etter utkast
     data class EnkeltplassSoktInn(
         override val gjennomforingId: UUID,
-        val totrinnkontroll: Totrinnskontroll,
+        val totrinnkontroll: Totrinnskontroll, // Komet oppretter record med id
         val payload: UpsertEnkeltplass,
     ) : GjennomforingRequestPayload
 
+    // payload i enkeltplass-sokt-inn og enkeltplass-utkast
     data class UpsertEnkeltplass(
         val tiltakskode: Tiltakskode,
         val organisasjonsnummer: String,
@@ -50,7 +53,7 @@ sealed interface GjennomforingRequestPayload {
 
     data class EnkeltplassEndreInnhold(
         override val gjennomforingId: UUID,
-        val payload: UpsertEnkeltplass.OpplaringKategorisering?,
+        val payload: UpsertEnkeltplass.OpplaringKategorisering?, // ikke alle gjennomføringer har dette
     ) : GjennomforingRequestPayload
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
