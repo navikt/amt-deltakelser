@@ -11,5 +11,6 @@ data class DeltakerVedVedtak(
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
     val deltakelsesinnhold: Deltakelsesinnhold?,
+    val opplaringKategorisering: OpplaringKategoriseringValg? = null,
     val status: DeltakerStatus,
 )

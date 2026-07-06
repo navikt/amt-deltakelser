@@ -296,7 +296,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 it.sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
             }
 
-            innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
+            innsokRepository.getForDeltaker(deltaker.id).shouldBeFailure()
 
             outboxService.assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltaker.id)
         }
@@ -338,7 +338,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             vedtak.fattet shouldBe null
             vedtak.fattetAvNav shouldBe false
 
-            val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
+            val innsok = innsokRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
             assertSoftly(innsok) {
                 utkastGodkjentAvNav shouldBe true
                 utkastDelt shouldBe null
@@ -444,7 +444,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
             }
 
-            innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
+            innsokRepository.getForDeltaker(deltaker.id).shouldBeFailure()
 
             assertProduced(deltaker.id)
         }
@@ -470,7 +470,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 vedtaksinformasjon.fattet shouldBe null
             }
 
-            val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
+            val innsok = innsokRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
             assertSoftly(innsok) {
                 utkastGodkjentAvNav shouldBe false
                 utkastDelt shouldNotBe null

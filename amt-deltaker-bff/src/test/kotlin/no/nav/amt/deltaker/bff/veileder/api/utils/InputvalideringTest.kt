@@ -80,16 +80,23 @@ class InputvalideringTest {
     @Test
     fun testValiderDagerPerUke() {
         shouldThrow<IllegalArgumentException> {
-            validerDagerPerUke(MIN_DAGER_PER_UKE - 1)
+            validerDagerPerUke(MIN_DAGER_PER_UKE - 1, erEnkeltplass = false)
         }
         shouldThrow<IllegalArgumentException> {
-            validerDagerPerUke(MAX_DAGER_PER_UKE + 1)
+            validerDagerPerUke(MAX_DAGER_PER_UKE_GRUPPE + 1, erEnkeltplass = false)
         }
         shouldNotThrow<IllegalArgumentException> {
-            validerDagerPerUke(MIN_DAGER_PER_UKE)
+            validerDagerPerUke(MIN_DAGER_PER_UKE, erEnkeltplass = false)
         }
         shouldNotThrow<IllegalArgumentException> {
-            validerDagerPerUke(MAX_DAGER_PER_UKE)
+            validerDagerPerUke(MAX_DAGER_PER_UKE_GRUPPE, erEnkeltplass = false)
+        }
+
+        shouldNotThrow<IllegalArgumentException> {
+            validerDagerPerUke(MAX_DAGER_PER_UKE_ENKELTPLASS, erEnkeltplass = true)
+        }
+        shouldThrow<IllegalArgumentException> {
+            validerDagerPerUke(MAX_DAGER_PER_UKE_ENKELTPLASS + 1, erEnkeltplass = true)
         }
     }
 

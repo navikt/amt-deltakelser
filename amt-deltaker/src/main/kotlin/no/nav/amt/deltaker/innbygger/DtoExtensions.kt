@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.hendelse.HendelseDeltaker
 import no.nav.amt.lib.models.hendelse.InnholdDto
 import no.nav.amt.lib.models.hendelse.UtkastDto
@@ -38,6 +39,7 @@ fun Deltaker.toHendelseDeltaker(
         ),
         oppmoteSted = deltakerliste.oppmoteSted,
         pameldingstype = deltakerliste.pameldingstype.let { GjennomforingPameldingType.valueOf(it.name) },
+        erEnkeltplass = deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass,
     ),
     forsteVedtakFattet = forsteVedtakFattet,
     opprettetDato = opprettet.toLocalDate(),

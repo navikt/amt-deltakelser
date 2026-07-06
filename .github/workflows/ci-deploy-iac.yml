@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         id: filter
         with:
           filters: |
@@ -63,7 +63,7 @@ jobs:
 
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ endsWith(matrix.iac_folder, '/dev') }}
-        uses: nais/deploy/actions/deploy@5fdd91aaf69bb0d6dd5e5118cdacb639f487b93b # v2
+        uses: nais/deploy/actions/deploy@2d18f050f07b6a007864c6a57070ed915d571beb # v2
         env:
           CLUSTER: dev-gcp
           RESOURCE: ${{ env.RESOURCE_FILES }}
@@ -71,7 +71,7 @@ jobs:
 
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ github.ref == 'refs/heads/main' && endsWith(matrix.iac_folder, '/prod') }}
-        uses: nais/deploy/actions/deploy@5fdd91aaf69bb0d6dd5e5118cdacb639f487b93b # v2
+        uses: nais/deploy/actions/deploy@2d18f050f07b6a007864c6a57070ed915d571beb # v2
         env:
           CLUSTER: prod-gcp
           RESOURCE: ${{ env.RESOURCE_FILES }}

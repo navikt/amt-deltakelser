@@ -26,10 +26,11 @@ import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -123,7 +124,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                         opplaringKategoriseringValg = OpplaringKategoriseringValg(
                             valgteKategoriseringer = setOf(
                                 OpplaringKategoriseringValg.ValgteFelt(
-                                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                                     valg = mapOf(verdiId to "Bygg"),
                                 ),
                             ),
@@ -141,7 +142,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                         id = UUID.randomUUID(),
                         pakrevd = true,
                         visningsnavn = "Bransje",
-                        representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
                         seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
                         alternativer = listOf(
                             OpplaringKategoriseringResponse.Alternativ.Verdi(

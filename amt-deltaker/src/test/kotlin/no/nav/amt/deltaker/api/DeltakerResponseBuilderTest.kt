@@ -13,7 +13,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -23,14 +23,14 @@ import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -156,28 +156,26 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     @Test
     fun `buildGjennomforingResponse - enkeltplass med includeKodeverk - henter kodeverk og sertifiseringer`() {
         // Arrange
-        val deltakerliste = lagDeltakerliste(
-            gjennomforingstype = GjennomforingType.Enkeltplass,
-        )
-
         val opplaringKategoriseringValg = OpplaringKategoriseringValg(
             valgteSertifiseringer = setOf(
                 SertifiseringValg(id = 1, navn = "Truckfører T1"),
             ),
             valgteKategoriseringer = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     valg = mapOf(UUID.randomUUID() to "Bygg og anlegg"),
                 ),
             ),
         )
+        val deltakerliste = lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+            opplaringKategorisering = opplaringKategoriseringValg,
+        )
 
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
-        mockkObject(OpplaringKategoriseringRepoAdapter)
+        mockkObject(PrisinfoRepoAdapter)
         try {
-            every {
-                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValgForAmt(deltakerliste.id)
-            } returns opplaringKategoriseringValg
+            every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns null
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
@@ -185,7 +183,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             // Assert
             response.opplaringKategoriseringValg shouldBe opplaringKategoriseringValg
         } finally {
-            unmockkObject(OpplaringKategoriseringRepoAdapter)
+            unmockkObject(PrisinfoRepoAdapter)
         }
     }
 

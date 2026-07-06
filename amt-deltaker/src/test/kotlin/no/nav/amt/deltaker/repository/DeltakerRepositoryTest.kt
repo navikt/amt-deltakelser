@@ -240,9 +240,10 @@ class DeltakerRepositoryTest {
                         ?.ledetekst,
                     innhold = listOf(Innhold.createFritekstInnhold("Dette er beskrivelsen")),
                 ),
+                dagerPerUke = 3.0F,
             )
 
-            deltakerRepository.updateEnkeltplassKladd(oppdatertDeltaker)
+            deltakerRepository.updateEnkeltplass(oppdatertDeltaker)
             val kladdResult = deltakerRepository
                 .get(deltaker.id)
                 .getOrThrow()
@@ -251,6 +252,7 @@ class DeltakerRepositoryTest {
                 id shouldBe deltaker.id
                 startdato shouldBe oppdatertDeltaker.startdato
                 sluttdato shouldBe oppdatertDeltaker.sluttdato
+                dagerPerUke shouldBe oppdatertDeltaker.dagerPerUke
                 deltakelsesinnhold shouldBe oppdatertDeltaker.deltakelsesinnhold
             }
         }
@@ -847,7 +849,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltaker)
             TestRepository.insertAll(ansatt, enhet)
             val innsoktTidspunkt = LocalDateTime.of(2024, 5, 20, 14, 30)
-            val innsok = TestData.lagInnsoktPaaKurs(
+            val innsok = TestData.lagInnsok(
                 deltakerId = deltaker.id,
                 innsokt = innsoktTidspunkt,
                 innsoktAv = ansatt.id,
@@ -900,7 +902,7 @@ class DeltakerRepositoryTest {
                 deltakerId = deltaker.id,
                 deltakerVedImport = lagDeltakerVedImport(innsoktDato = arenaDato),
             )
-            val innsok = TestData.lagInnsoktPaaKurs(
+            val innsok = TestData.lagInnsok(
                 deltakerId = deltaker.id,
                 innsokt = LocalDateTime.of(2024, 6, 1, 12, 0),
                 innsoktAv = ansatt.id,
@@ -931,7 +933,7 @@ class DeltakerRepositoryTest {
             TestRepository.insertAll(ansatt, enhet)
 
             val innsoktTidspunkt = LocalDateTime.of(2024, 5, 15, 10, 0)
-            val innsok = TestData.lagInnsoktPaaKurs(
+            val innsok = TestData.lagInnsok(
                 deltakerId = deltaker.id,
                 innsokt = innsoktTidspunkt,
                 innsoktAv = ansatt.id,

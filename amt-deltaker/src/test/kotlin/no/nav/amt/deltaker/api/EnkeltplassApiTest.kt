@@ -186,7 +186,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             } returns listOf(lagNavEnhet(id = deltakerInTest.navBruker.navEnhetId.shouldNotBeNull()))
 
             every {
-                innsokPaaFellesOppstartRepository.getForDeltaker(deltakerInTest.id)
+                innsokRepository.getForDeltaker(deltakerInTest.id)
             } returns Result.success(TestData.lagInnsok(deltakerInTest))
 
             every {

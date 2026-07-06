@@ -8,7 +8,7 @@ for lesbarhet. Speiler skjemaet **etter V59-migreringen**. Se
 
 > **Forskjeller fra `amt-deltaker`:**
 > - Ingen `vedtak`, `deltaker_endring`, `endring_fra_*`, `importert_fra_arena`
->   eller `innsok_paa_felles_oppstart` — endringshistorikk lagres som JSONB i
+>   eller `innsok` — endringshistorikk lagres som JSONB i
 >   `deltaker.historikk`.
 > - `deltaker_status` har **én** rad per deltaker (UNIQUE INDEX `(deltaker_id)`
 >   INCLUDE `(type)`) — ikke historikk slik som i `amt-deltaker`.

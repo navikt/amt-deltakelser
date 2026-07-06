@@ -22,7 +22,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagEndringFraArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -61,7 +61,7 @@ class DeltakerResponseMapperServiceTest {
         forslagRepository,
         endringFraArrangorRepository,
         importertFraArenaRepository,
-        InnsokPaaFellesOppstartRepository(),
+        InnsokRepository(),
         EndringFraTiltakskoordinatorRepository(),
         vurderingRepository,
     )

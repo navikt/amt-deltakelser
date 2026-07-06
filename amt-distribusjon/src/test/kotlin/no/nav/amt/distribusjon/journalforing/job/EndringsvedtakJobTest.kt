@@ -1,5 +1,7 @@
 package no.nav.amt.distribusjon.journalforing.job
 
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -16,10 +18,40 @@ import no.nav.amt.lib.utils.job.JobManager
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class EndringsvedtakJobTest {
+    @Test
+    fun `init - kaster exception ved negativ initialDelay`() {
+        val exception = shouldThrow<IllegalArgumentException> {
+            lagJob(initialDelay = Duration.ofMinutes(-1))
+        }
+
+        exception.message shouldBe "Initial delay for endringsvedtak-jobb kan ikke være negativ"
+    }
+
+    @Test
+    fun `init - kaster exception ved null eller negativ jobPeriod`() {
+        val exceptionVedNullPeriode = shouldThrow<IllegalArgumentException> {
+            lagJob(jobPeriod = Duration.ZERO)
+        }
+        exceptionVedNullPeriode.message shouldBe "Jobbperiode for endringsvedtak-jobb må være større enn 0"
+
+        val exceptionVedNegativPeriode = shouldThrow<IllegalArgumentException> {
+            lagJob(jobPeriod = Duration.ofMinutes(-1))
+        }
+        exceptionVedNegativPeriode.message shouldBe "Jobbperiode for endringsvedtak-jobb må være større enn 0"
+    }
+
+    @Test
+    fun `init - kaster exception ved negativ gracePeriod`() {
+        val exception = shouldThrow<IllegalArgumentException> {
+            lagJob(gracePeriod = Duration.ofMinutes(-1))
+        }
+
+        exception.message shouldBe "Grace-periode for endringsvedtak-jobb kan ikke være negativ"
+    }
+
     @Test
     fun `journalforEndringsvedtak - journalforer og distribuerer endringsvedtak naar nyeste hendelse er eldre enn graceperiode`() =
         runTest {
@@ -128,17 +160,40 @@ class EndringsvedtakJobTest {
         val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
 
-        EndringsvedtakJob(jobManager, hendelseRepository, journalforingService).startJob()
+        val initialDelay = Duration.ofMinutes(5)
+        val period = Duration.ofMinutes(10)
+
+        EndringsvedtakJob(
+            jobManager,
+            hendelseRepository,
+            journalforingService,
+            initialDelay,
+            period,
+            Duration.ofHours(1),
+        ).startJob()
 
         verify(exactly = 1) {
             jobManager.startJob(
                 name = "EndringsvedtakJob",
-                initialDelay = Duration.of(5, ChronoUnit.MINUTES),
-                period = Duration.of(10, ChronoUnit.MINUTES),
+                initialDelay = initialDelay,
+                period = period,
                 job = any(),
             )
         }
     }
+
+    private fun lagJob(
+        initialDelay: Duration = Duration.ofMinutes(5),
+        jobPeriod: Duration = Duration.ofMinutes(10),
+        gracePeriod: Duration = Duration.ofMinutes(30),
+    ) = EndringsvedtakJob(
+        jobManager = mockk(relaxUnitFun = true),
+        hendelseRepository = mockk(),
+        journalforingService = mockk(),
+        initialDelay = initialDelay,
+        jobPeriod = jobPeriod,
+        gracePeriod = gracePeriod,
+    )
 
     private fun testSetup(hendelser: List<HendelseMedJournalforingstatus>): TestSetup {
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
@@ -149,7 +204,14 @@ class EndringsvedtakJobTest {
         every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
 
         return TestSetup(
-            job = EndringsvedtakJob(jobManager, hendelseRepository, journalforingService),
+            job = EndringsvedtakJob(
+                jobManager,
+                hendelseRepository,
+                journalforingService,
+                initialDelay = Duration.ofMinutes(5),
+                jobPeriod = Duration.ofMinutes(10),
+                gracePeriod = Duration.ofMinutes(30),
+            ),
             journalforingService = journalforingService,
         )
     }

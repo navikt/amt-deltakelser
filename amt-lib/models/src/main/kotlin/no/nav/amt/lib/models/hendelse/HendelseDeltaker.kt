@@ -23,6 +23,7 @@ data class HendelseDeltaker(
         val oppstartstype: Oppstartstype? = null, // Må være nullable fordi de benyttes som dbo i amt-distribusjon
         val pameldingstype: GjennomforingPameldingType? = null,
         val oppmoteSted: String? = null,
+        val erEnkeltplass: Boolean? = null,
     ) {
         data class Arrangor(
             val id: UUID,

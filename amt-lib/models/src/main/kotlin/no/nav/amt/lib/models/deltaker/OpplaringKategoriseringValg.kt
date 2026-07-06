@@ -1,4 +1,4 @@
-package no.nav.amt.internapi.enkeltplass
+package no.nav.amt.lib.models.deltaker
 
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
@@ -12,7 +12,7 @@ data class OpplaringKategoriseringValg(
     val valgteSertifiseringer: Set<SertifiseringValg>,
 ) {
     data class ValgteFelt(
-        val representerer: OpplaringKategoriseringResponse.Representerer,
+        val representerer: OpplaringKategoriseringType,
         val valg: Map<UUID, String>,
     )
 }

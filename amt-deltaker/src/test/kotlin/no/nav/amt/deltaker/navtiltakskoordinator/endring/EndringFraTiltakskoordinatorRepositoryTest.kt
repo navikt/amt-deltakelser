@@ -7,7 +7,7 @@ import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRep
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
@@ -93,7 +93,7 @@ data class EndringFraTiltakskoordinatorCtx(
         endret = LocalDateTime.now(),
     ),
 ) {
-    private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
+    private val innsokRepository = InnsokRepository()
 
     init {
         TestRepository.insertAll(navEnhet, navAnsatt, deltakerliste, deltaker)
@@ -108,12 +108,12 @@ data class EndringFraTiltakskoordinatorCtx(
     }
 
     fun medInnsok() {
-        val innsok = TestData.lagInnsoktPaaKurs(
+        val innsok = TestData.lagInnsok(
             deltakerId = deltaker.id,
             innsoktAv = navAnsatt.id,
             innsoktAvEnhet = navEnhet.id,
         )
 
-        innsokPaaFellesOppstartRepository.insert(innsok)
+        innsokRepository.insert(innsok)
     }
 }

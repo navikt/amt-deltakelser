@@ -25,6 +25,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -306,6 +307,10 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             startDato = null,
             sluttDato = null,
             oppmoteSted = null,
+            opplaringKategorisering = OpplaringKategoriseringValg(
+                valgteKategoriseringer = emptySet(),
+                valgteSertifiseringer = emptySet(),
+            ),
         )
     }
 

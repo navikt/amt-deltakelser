@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.model
 
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -24,6 +25,7 @@ data class Deltakerliste(
     val arrangor: Arrangor?,
     val pameldingstype: GjennomforingPameldingType,
     val prisinformasjon: String?,
+    val opplaringKategorisering: OpplaringKategoriseringValg? = null,
 ) {
     fun erAvlystEllerAvbrutt(): Boolean = status == GjennomforingStatusType.AVLYST ||
         status == GjennomforingStatusType.AVBRUTT

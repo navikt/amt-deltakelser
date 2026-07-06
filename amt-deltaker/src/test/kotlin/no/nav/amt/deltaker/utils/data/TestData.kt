@@ -16,14 +16,17 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -92,6 +95,7 @@ object TestData {
         apentForPamelding: Boolean = true,
         pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         prisinformasjon: String? = null,
+        opplaringKategorisering: OpplaringKategoriseringValg? = null,
     ) = Deltakerliste(
         id = id,
         tiltakstype = tiltakstype,
@@ -107,6 +111,7 @@ object TestData {
         arrangor = arrangor,
         pameldingstype = pameldingType,
         prisinformasjon = prisinformasjon,
+        opplaringKategorisering = opplaringKategorisering,
     )
 
     fun lagDeltakerlisteMedDirekteVedtak(
@@ -279,24 +284,30 @@ object TestData {
         sistEndretAvEnhet.id,
     )
 
-    fun lagInnsoktPaaKurs(
+    fun lagInnsok(
         id: UUID = UUID.randomUUID(),
         deltakerId: UUID = UUID.randomUUID(),
         innsokt: LocalDateTime = LocalDateTime.now(),
         innsoktAv: UUID = UUID.randomUUID(),
         innsoktAvEnhet: UUID = UUID.randomUUID(),
+        startdato: LocalDate? = null,
+        sluttdato: LocalDate? = null,
         deltakelsesinnholdVedInnsok: Deltakelsesinnhold = Deltakelsesinnhold("", emptyList()),
+        opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
         utkastDelt: LocalDateTime = LocalDateTime.now().minusDays(2),
         utkastGodkjentAvNav: Boolean = false,
-    ) = InnsokPaaFellesOppstart(
+    ) = Innsok(
         id = id,
         deltakerId = deltakerId,
         innsokt = innsokt,
         innsoktAv = innsoktAv,
         innsoktAvEnhet = innsoktAvEnhet,
+        startdato = startdato,
+        sluttdato = sluttdato,
         deltakelsesinnholdVedInnsok = deltakelsesinnholdVedInnsok,
         utkastDelt = utkastDelt,
         utkastGodkjentAvNav = utkastGodkjentAvNav,
+        opplaringKategoriseringVedInnsok = opplaringKategoriseringValg,
     )
 
     fun lagVurdering(
@@ -392,5 +403,18 @@ object TestData {
             )
         },
         pameldingstype = deltakerliste.pameldingstype,
+    )
+
+    fun lagOpplaringKategorisering(): OpplaringKategoriseringValg? = OpplaringKategoriseringValg(
+        valgteKategoriseringer = setOf(
+            OpplaringKategoriseringValg.ValgteFelt(
+                representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                valg = mapOf(UUID.randomUUID() to "Tralala"),
+            ),
+        ),
+        valgteSertifiseringer = setOf(
+            SertifiseringValg(id = 1, navn = "Truckfører T1"),
+            SertifiseringValg(id = 2, navn = "Truckfører T2"),
+        ),
     )
 }

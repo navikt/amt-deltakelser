@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     image: amt-pdfgen:latest
     ports:
-      - "8080:8080"
+      - "${PDFGEN_PORT:-8080}:8080"
     volumes:
       - ./templates:/app/templates
       - ./fonts:/app/fonts

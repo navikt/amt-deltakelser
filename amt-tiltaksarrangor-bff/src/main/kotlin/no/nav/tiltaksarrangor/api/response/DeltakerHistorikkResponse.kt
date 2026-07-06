@@ -10,7 +10,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -250,7 +250,7 @@ fun Forslag.toResponse(
     status = getForslagResponseStatus(ansatte, enheter),
 )
 
-fun InnsokPaaFellesOppstart.toResponse(
+fun Innsok.toResponse(
     ansatte: Map<UUID, NavAnsatt>,
     enheter: Map<UUID, NavEnhet>,
 ) = InnsokPaaFellesOppstartResponse(

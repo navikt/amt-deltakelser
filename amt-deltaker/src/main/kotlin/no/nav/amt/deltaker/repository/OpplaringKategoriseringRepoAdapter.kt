@@ -1,32 +1,19 @@
 package no.nav.amt.deltaker.repository
 
-import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.repository.dbo.OpplaeringKategoriseringValgDbo
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringValg.ValgteFelt
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg.ValgteFelt
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
 object OpplaringKategoriseringRepoAdapter {
-    fun hentOpplaringKategoriseringValgForMulighetsrommet(
-        gjennomforingId: UUID,
-    ): GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering {
-        val kategoriseringsValg = OpplaeringKategoriseringValgRepository.hentKategoriseringValg(gjennomforingId)
-
-        return GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
-            sertifiseringer = SertifiseringValgRepository.hentSertifiseringValg(gjennomforingId),
-            verdier = kategoriseringsValg
-                .groupBy { it.representerer }
-                .mapValues { (_, valg) -> valg.map { it.kodeverkId }.toSet() },
-        )
-    }
-
-    fun hentOpplaringKategoriseringValgForAmt(gjennomforingId: UUID): OpplaringKategoriseringValg {
-        val kategoriseringsValg = OpplaeringKategoriseringValgRepository.hentKategoriseringValg(gjennomforingId)
+    fun hentOpplaringKategoriseringValg(gjennomforingId: UUID): OpplaringKategoriseringValg {
+        val kategoriseringValg = OpplaeringKategoriseringValgRepository.hentKategoriseringValg(gjennomforingId)
+        val sertifiseringValg = SertifiseringValgRepository.hentSertifiseringValg(gjennomforingId)
 
         return OpplaringKategoriseringValg(
-            valgteSertifiseringer = SertifiseringValgRepository.hentSertifiseringValg(gjennomforingId),
-            valgteKategoriseringer = kategoriseringsValg
+            valgteSertifiseringer = sertifiseringValg,
+            valgteKategoriseringer = kategoriseringValg
                 .groupBy { it.representerer }
                 .map { (representerer, valg) ->
                     ValgteFelt(

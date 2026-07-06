@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.repository.dbo.OpplaeringKategoriseringValgDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -42,7 +42,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
 
             val valg = listOf(
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Bygg og anlegg",
                 ),
@@ -65,22 +65,22 @@ class OpplaeringKategoriseringValgRepositoryTest {
 
             val valg = listOf(
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Bygg og anlegg",
                 ),
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Helse og omsorg",
                 ),
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                    representerer = OpplaringKategoriseringType.FORERKORT,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "B",
                 ),
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.SERTIFISERINGER,
+                    representerer = OpplaringKategoriseringType.SERTIFISERINGER,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Truckfører T1",
                 ),
@@ -106,7 +106,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
 
             val valg1 = listOf(
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Bygg og anlegg",
                 ),
@@ -114,7 +114,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
 
             val valg2 = listOf(
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                    representerer = OpplaringKategoriseringType.FORERKORT,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "B",
                 ),
@@ -155,12 +155,12 @@ class OpplaeringKategoriseringValgRepositoryTest {
 
             val valg = listOf(
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Bygg og anlegg",
                 ),
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                    representerer = OpplaringKategoriseringType.FORERKORT,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "B",
                 ),
@@ -183,17 +183,17 @@ class OpplaeringKategoriseringValgRepositoryTest {
 
             val valg = listOf(
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Bygg og anlegg",
                 ),
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Helse og omsorg",
                 ),
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                    representerer = OpplaringKategoriseringType.FORERKORT,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "B",
                 ),
@@ -219,12 +219,12 @@ class OpplaeringKategoriseringValgRepositoryTest {
 
             val valg = listOf(
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Bygg og anlegg",
                 ),
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.FORERKORT,
+                    representerer = OpplaringKategoriseringType.FORERKORT,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "B",
                 ),
@@ -249,7 +249,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
 
             val valg = listOf(
                 OpplaeringKategoriseringValgDbo(
-                    representerer = OpplaringKategoriseringResponse.Representerer.BRANSJE_ID,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
                     kodeverkId = UUID.randomUUID(),
                     tekst = "Bygg og anlegg",
                 ),

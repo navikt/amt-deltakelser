@@ -42,7 +42,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
-import no.nav.amt.deltaker.veileder.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
@@ -75,7 +75,7 @@ fun Application.configureRouting(
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
     unleashToggle: CommonUnleashToggle,
-    innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
+    innsokRepository: InnsokRepository,
     vurderingRepository: VurderingRepository,
     distribuerEndringService: DistribuerEndringService,
     endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
@@ -148,7 +148,7 @@ fun Application.configureRouting(
             kladdService,
             deltakerProducerService,
             vedtakService,
-            innsokPaaFellesOppstartRepository,
+            innsokRepository,
             vurderingRepository,
             distribuerEndringService,
             endringFraTiltakskoordinatorRepository,

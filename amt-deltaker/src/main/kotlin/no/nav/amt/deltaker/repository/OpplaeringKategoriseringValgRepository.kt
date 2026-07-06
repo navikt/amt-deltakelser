@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.queryOf
 import no.nav.amt.deltaker.repository.dbo.OpplaeringKategoriseringValgDbo
-import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -69,7 +69,7 @@ object OpplaeringKategoriseringValgRepository {
                 queryOf(sql, gjennomforingId)
                     .map { row ->
                         OpplaeringKategoriseringValgDbo(
-                            representerer = OpplaringKategoriseringResponse.Representerer.valueOf(row.string("representerer")),
+                            representerer = OpplaringKategoriseringType.valueOf(row.string("representerer")),
                             kodeverkId = row.uuid("kodeverk_id"),
                             tekst = row.string("tekst"),
                         )

@@ -12,6 +12,7 @@
     </root>
 
     <logger name="no.nav.amt.deltaker" level="DEBUG"/>
+    <logger name="no.nav.amt.deltaker.job.leaderelection" level="WARN"/>
 
 </configuration>
 
