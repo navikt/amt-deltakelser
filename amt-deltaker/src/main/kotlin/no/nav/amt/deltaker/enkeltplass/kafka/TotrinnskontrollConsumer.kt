@@ -71,6 +71,7 @@ class TotrinnskontrollConsumer(
         ) {
             processGodkjentInnsoking(payload.entityId)
         }
+
         if (payload.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
             processGodkjentPrisinformasjon(payload)
         }
@@ -149,15 +150,21 @@ class TotrinnskontrollConsumer(
             .get(TYPE_KEY)
             ?.asString()
 
-        return if (typeName == TotrinnskontrollType.ENKELTPLASS_OKONOMI.name) {
-            // Søkt inn deltakelse godkjent
-            true
-        } else if (typeName == TotrinnskontrollType.ENKELTPLASS_PRISENDRING.name) {
-            // Godkjent prisendring for deltakelse
-            true
-        } else {
-            log.info("Totrinnskontrollhendelse av type $typeName ignorert")
-            false
+        return when (typeName) {
+            TotrinnskontrollType.ENKELTPLASS_OKONOMI.name -> {
+                // Søkt inn deltakelse godkjent
+                true
+            }
+
+            TotrinnskontrollType.ENKELTPLASS_PRISENDRING.name -> {
+                // Godkjent prisendring for deltakelse
+                true
+            }
+
+            else -> {
+                log.info("Totrinnskontrollhendelse av type $typeName ignorert")
+                false
+            }
         }
     }
 
