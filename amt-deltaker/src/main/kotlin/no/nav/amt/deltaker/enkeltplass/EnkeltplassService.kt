@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
@@ -38,6 +39,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.database.Database
@@ -60,6 +62,7 @@ class EnkeltplassService(
     private val opplaringKategoriseringClient: OpplaringKategoriseringClient,
     private val deltakerProducerService: DeltakerProducerService,
     private val innsokService: InnsokService,
+    private val distribuerEndringService: DistribuerEndringService,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
@@ -137,7 +140,10 @@ class EnkeltplassService(
                 "Deltaker $deltakerId har status ${deltaker.status.type}"
         }
 
-        oppdaterKladdEllerUtkast(
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
+
+        return oppdaterKladdEllerUtkast(
             deltaker = deltaker,
             // TODO: Vurder å benytte kun OppdaterEnkeltplassKladdRequest
             // EnkeltplassPameldingRequest og OppdaterEnkeltplassKladdRequest er veldig like
@@ -153,9 +159,12 @@ class EnkeltplassService(
                     dagerPerUke = dagerPerUke,
                 )
             },
+            afterUpdate = { oppdatertDeltaker ->
+                distribuerEndringService.produceHendelseForUtkast(oppdatertDeltaker, navAnsatt, navEnhet) {
+                    HendelseType.EndreUtkast(it)
+                }
+            },
         )
-
-        return deltakerRepository.get(deltakerId).getOrThrow()
     }
 
     /** Oppdaterer utkastet og setter status til [DeltakerStatus.Type.UTKAST_TIL_PAMELDING] for deling med innbygger. */
@@ -199,7 +208,8 @@ class EnkeltplassService(
     private suspend fun oppdaterKladdEllerUtkast(
         deltaker: Deltaker,
         oppdaterKladdRequest: OppdaterEnkeltplassKladdRequest,
-    ) {
+        afterUpdate: ((Deltaker) -> Unit)? = null,
+    ): Deltaker {
         require(deltaker.deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
             "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id ${deltaker.id} har gjennomforingstype ${deltaker.deltakerliste.gjennomforingstype}"
         }
@@ -216,7 +226,7 @@ class EnkeltplassService(
             deltaker.deltakerliste.tiltakstype.tiltakskode,
         )
 
-        Database.transaction {
+        return Database.transaction {
             deltakerlisteRepository.update(
                 EnkeltplassGjennomforingUpdateDbo(
                     id = deltaker.deltakerliste.id,
@@ -255,6 +265,10 @@ class EnkeltplassService(
                     opplaringKategoriseringValg.valgteSertifiseringer
                 },
             )
+
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+            afterUpdate?.invoke(oppdatertDeltaker)
+            oppdatertDeltaker
         }
     }
 
@@ -331,6 +345,18 @@ class EnkeltplassService(
             val deltakerMedVedtak = deltakerRepository.get(deltakerId).getOrThrow()
             if (nyStatus == DeltakerStatus.Type.SOKT_INN) {
                 innsokService.nyttInnsokUtkastGodkjentAvNav(deltakerMedVedtak, deltaker.status)
+            }
+
+            distribuerEndringService.produceHendelseForUtkast(
+                deltaker = deltakerMedVedtak,
+                navAnsatt = navAnsatt,
+                enhet = navEnhet,
+            ) { utkastDto ->
+                when {
+                    nyStatus == DeltakerStatus.Type.SOKT_INN -> HendelseType.NavGodkjennUtkast(utkastDto)
+                    deltaker.status.type == DeltakerStatus.Type.KLADD -> HendelseType.OpprettUtkast(utkastDto)
+                    else -> HendelseType.EndreUtkast(utkastDto)
+                }
             }
 
             produceUpsertGjennomforing(

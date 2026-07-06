@@ -330,6 +330,7 @@ abstract class IntegrationTestBase {
             opplaringKategoriseringClient = opplaringKategoriseringClient,
             deltakerProducerService = deltakerProducerService,
             innsokService = innsokService,
+            distribuerEndringService = distribuerEndringService,
         )
     }
 

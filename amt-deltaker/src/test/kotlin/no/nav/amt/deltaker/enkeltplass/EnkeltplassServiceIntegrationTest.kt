@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
+import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -28,6 +29,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
@@ -315,6 +317,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 navn shouldBe tiltakInTest.navn
                 arrangor shouldBe arrangorInTest
             }
+
+            outboxService.assertProducedHendelse<HendelseType.OpprettUtkast>(deltakerInTest.id)
         }
 
         @Test
@@ -359,6 +363,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 navn shouldBe tiltakInTest.navn
                 arrangor shouldBe arrangorInTest
             }
+
+            outboxService.assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltakerInTest.id)
         }
 
         @Test
@@ -420,6 +426,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 navn shouldBe tiltakInTest.navn
                 arrangor shouldBe arrangorInTest
             }
+
+            outboxService.assertProducedHendelse<HendelseType.EndreUtkast>(deltaker.id)
         }
     }
 

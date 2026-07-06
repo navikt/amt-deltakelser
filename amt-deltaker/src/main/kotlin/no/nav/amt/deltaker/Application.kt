@@ -405,6 +405,7 @@ fun Application.module() {
         opplaringKategoriseringClient = opplaringKategoriseringClient,
         deltakerProducerService = deltakerProducerService,
         innsokService = innsokService,
+        distribuerEndringService = distribuerEndringService,
     )
 
     val pameldingService = PameldingService(
