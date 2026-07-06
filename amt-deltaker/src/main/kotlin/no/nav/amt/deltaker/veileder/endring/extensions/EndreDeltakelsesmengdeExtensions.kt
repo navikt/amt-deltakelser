@@ -34,7 +34,7 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(deltak
     validerGyldigFra(deltaker)
 
     val skalGjeldeUmiddelbart = nyDeltakelsesmengde.gyldigFra <= LocalDate.now() ||
-        // Hvis startdato er i fremtiden, og ny deltakelsesmengde settes fra startdato, ønsker vi å vise/lagre dette på samme måte som
+        // Hvis ny deltakelsesmengde settes fra startdato, ønsker vi å vise/lagre dette på samme måte som
         // hvis deltakelsen var opprettet med deltakelsesmengde i utgangspunktet.
         (deltaker.startdato != null && nyDeltakelsesmengde.gyldigFra == deltaker.startdato)
 
