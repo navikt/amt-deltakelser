@@ -160,6 +160,12 @@ class EnkeltplassService(
                 )
             },
             afterUpdate = { oppdatertDeltaker ->
+                // Gjør det mulig for Utkast-siden å vise riktig endringstidspunkt
+                lagreVedtakIkkeFattet(
+                    deltakerId = oppdatertDeltaker.id,
+                    endretAv = navAnsatt,
+                    endretAvEnhet = navEnhet,
+                )
                 distribuerEndringService.produceHendelseForUtkast(oppdatertDeltaker, navAnsatt, navEnhet) {
                     HendelseType.EndreUtkast(it)
                 }
@@ -336,7 +342,7 @@ class EnkeltplassService(
                 valgteSertifiseringer = request.sertifiseringValg,
             )
 
-            lagreVedtak(
+            lagreVedtakIkkeFattet(
                 deltakerId = deltakerId,
                 endretAv = navAnsatt,
                 endretAvEnhet = navEnhet,
@@ -393,7 +399,7 @@ class EnkeltplassService(
         )
     }
 
-    private fun lagreVedtak(
+    private fun lagreVedtakIkkeFattet(
         deltakerId: UUID,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,

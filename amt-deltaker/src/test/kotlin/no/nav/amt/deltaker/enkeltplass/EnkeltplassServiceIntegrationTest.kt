@@ -368,7 +368,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `oppdater utkast - lagrer utkast`() = runTest {
+        fun `oppdater utkast - oppdaterer vedtak sist endret`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
             val deltaker = lagDeltaker(
@@ -387,12 +387,23 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             deltakerRepository.upsert(deltaker)
             DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
 
+            val opprinneligSistEndretAvEnhet = lagNavEnhet()
+            val opprinneligSistEndretAv = lagNavAnsatt(navEnhetId = opprinneligSistEndretAvEnhet.id)
+            navEnhetRepository.upsert(opprinneligSistEndretAvEnhet)
+            navAnsattRepository.upsert(opprinneligSistEndretAv)
+
+            val opprinneligOpprettet = LocalDateTime.now().minusDays(30)
+            val opprinneligSistEndret = LocalDateTime.now().minusDays(14)
             val vedtak = TestData.lagVedtak(
                 deltakerId = deltaker.id,
                 deltakerVedVedtak = deltaker,
                 fattetAvNav = false,
-                opprettetAv = sistEndretAvNavAnsatt,
-                opprettetAvEnhet = sistEndretAvNavEnhet,
+                opprettet = opprinneligOpprettet,
+                opprettetAv = opprinneligSistEndretAv,
+                opprettetAvEnhet = opprinneligSistEndretAvEnhet,
+                sistEndret = opprinneligSistEndret,
+                sistEndretAv = opprinneligSistEndretAv,
+                sistEndretAvEnhet = opprinneligSistEndretAvEnhet,
             )
             vedtakRepository.upsert(vedtak)
 
@@ -417,7 +428,11 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             assertSoftly(oppdatertDeltaker.vedtaksinformasjon) {
                 this.shouldNotBeNull().fattet shouldBe null
                 fattetAvNav shouldBe false
-                opprettet shouldBeCloseTo LocalDateTime.now()
+                opprettet shouldBeCloseTo opprinneligOpprettet
+                sistEndret shouldBeCloseTo LocalDateTime.now()
+                sistEndretAv shouldBe sistEndretAvNavAnsatt.id
+                sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
+                sistEndret.isAfter(opprinneligSistEndret) shouldBe true
             }
 
             assertSoftly(oppdatertDeltaker.deltakerliste) {
