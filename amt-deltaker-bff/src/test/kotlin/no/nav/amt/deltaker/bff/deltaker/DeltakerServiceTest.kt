@@ -26,7 +26,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -517,7 +516,6 @@ class DeltakerServiceTest {
     }
 
     @Test
-    @Disabled("fix me")
     fun `oppdaterDeltakerLaas - flere deltakelser på samme deltakerliste med samme reg dato - kaster exception`() {
         val deltaker = lagDeltakerOld(
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),

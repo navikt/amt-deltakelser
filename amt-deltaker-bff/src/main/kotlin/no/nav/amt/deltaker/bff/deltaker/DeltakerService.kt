@@ -76,7 +76,6 @@ class DeltakerService(
         val laasesMedAktivStatus = deltakelserSomSkalLaases
             .filter { it.status.type in AKTIVE_STATUSER }
 
-/* emergency temp-fix to be rolled back
         if (laasesMedAktivStatus.isNotEmpty()) {
             throw IllegalStateException(
                 "ugyldig state. Fant eldre deltakelser med aktiv status: " +
@@ -88,7 +87,6 @@ class DeltakerService(
                     "har status ${laasesMedAktivStatus.map { it.status.type }}. ",
             )
         }
-*/
 
         if (!nyesteDeltakelse.kanEndres) {
             // Dette skal ikke skje i en ventet funksjonell flyt men mange feil med
