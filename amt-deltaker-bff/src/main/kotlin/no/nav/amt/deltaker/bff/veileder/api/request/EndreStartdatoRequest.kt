@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerSluttdatoForDeltaker
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerStatus.Type
 import java.time.LocalDate
 import java.util.UUID
 
@@ -17,7 +17,8 @@ data class EndreStartdatoRequest(
     override fun valider(deltaker: DeltakerModel) {
         validerDeltakerKanEndres(this, deltaker)
         validerBegrunnelse(begrunnelse)
-        require(deltaker.status.type in kanEndreStartdato) {
+        val erEnkeltplass = deltaker.gjennomforing.erEnkeltplass
+        require(kanEndreStartdato(deltaker.status.type, erEnkeltplass)) {
             "Kan ikke endre startdato for deltaker med status ${deltaker.status.type}"
         }
 
@@ -27,8 +28,9 @@ data class EndreStartdatoRequest(
 
         sluttdato?.let { validerSluttdatoForDeltaker(it, startdato, deltaker) }
 
-        // enkeltplassgjennomføringer har ikke start-/sluttdato
-        if (deltaker.gjennomforing.erEnkeltplass) return
+        // For enkeltplasser gir det ikke mening å validere mot gjennomførings-objektet, for dette har
+        // ikke start-/sluttdato. For enkeltplasser er startdato/sluttdato lagret på deltaker-objektet.
+        if (erEnkeltplass) return
 
         require(startdato == null || !startdato.isBefore(deltaker.gjennomforing.startDato)) {
             "Startdato kan ikke være tidligere enn deltakerlistens startdato"
@@ -39,12 +41,15 @@ data class EndreStartdatoRequest(
         deltaker.sluttdato != sluttdato
 
     companion object {
-        private val kanEndreStartdato = setOf(
-            DeltakerStatus.Type.VENTER_PA_OPPSTART,
-            DeltakerStatus.Type.DELTAR,
-            DeltakerStatus.Type.HAR_SLUTTET,
-            DeltakerStatus.Type.FULLFORT,
-            DeltakerStatus.Type.AVBRUTT,
-        )
+        private fun kanEndreStartdato(
+            deltakerStatusType: Type,
+            erEnkeltplass: Boolean,
+        ): Boolean = deltakerStatusType in setOf(
+            Type.VENTER_PA_OPPSTART,
+            Type.DELTAR,
+            Type.HAR_SLUTTET,
+            Type.FULLFORT,
+            Type.AVBRUTT,
+        ) || (erEnkeltplass && deltakerStatusType == Type.SOKT_INN)
     }
 }
