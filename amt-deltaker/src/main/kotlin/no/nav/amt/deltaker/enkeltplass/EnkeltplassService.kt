@@ -166,7 +166,8 @@ class EnkeltplassService(
                     endretAv = navAnsatt,
                     endretAvEnhet = navEnhet,
                 )
-                distribuerEndringService.produceHendelseForUtkast(oppdatertDeltaker, navAnsatt, navEnhet) {
+                val oppdatertDeltakerMedVedtak = deltakerRepository.get(oppdatertDeltaker.id).getOrThrow()
+                distribuerEndringService.produceHendelseForUtkast(oppdatertDeltakerMedVedtak, navAnsatt, navEnhet) {
                     HendelseType.EndreUtkast(it)
                 }
             },
@@ -274,7 +275,7 @@ class EnkeltplassService(
 
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
             afterUpdate?.invoke(oppdatertDeltaker)
-            oppdatertDeltaker
+            deltakerRepository.get(deltaker.id).getOrThrow()
         }
     }
 
