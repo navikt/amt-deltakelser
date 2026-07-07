@@ -217,10 +217,11 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentTotrinnskontroll - setter VENTER_PA_OPPSTART når startdato er i fremtiden`() {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now().plusDays(2),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag.plusDays(2),
+                sluttdato = idag.plusWeeks(4),
             )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
