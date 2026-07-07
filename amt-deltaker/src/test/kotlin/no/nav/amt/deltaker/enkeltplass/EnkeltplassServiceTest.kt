@@ -24,6 +24,7 @@ import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
@@ -60,6 +61,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     override val navEnhetService = mockk<NavEnhetService>()
     override val navAnsattService = mockk<NavAnsattService>()
     override val deltakerProducerService = mockk<DeltakerProducerService>()
+    override val distribuerEndringService = mockk<DistribuerEndringService>(relaxed = true)
 
     @BeforeEach
     fun setup() {
