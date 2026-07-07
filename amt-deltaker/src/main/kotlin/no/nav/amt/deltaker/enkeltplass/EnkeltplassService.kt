@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.enkeltplass
 
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
@@ -161,15 +162,15 @@ class EnkeltplassService(
             },
             afterUpdate = { oppdatertDeltaker ->
                 // Gjør det mulig for Utkast-siden å vise riktig endringstidspunkt
-                lagreVedtakIkkeFattet(
-                    deltakerId = oppdatertDeltaker.id,
+                val oppdatertDeltakerMedVedtak = lagreVedtakIkkeFattet(
+                    deltaker = oppdatertDeltaker,
                     endretAv = navAnsatt,
                     endretAvEnhet = navEnhet,
                 )
-                val oppdatertDeltakerMedVedtak = deltakerRepository.get(oppdatertDeltaker.id).getOrThrow()
                 distribuerEndringService.produceHendelseForUtkast(oppdatertDeltakerMedVedtak, navAnsatt, navEnhet) {
                     HendelseType.EndreUtkast(it)
                 }
+                oppdatertDeltakerMedVedtak
             },
         )
     }
@@ -215,7 +216,7 @@ class EnkeltplassService(
     private suspend fun oppdaterKladdEllerUtkast(
         deltaker: Deltaker,
         oppdaterKladdRequest: OppdaterEnkeltplassKladdRequest,
-        afterUpdate: ((Deltaker) -> Unit)? = null,
+        afterUpdate: ((Deltaker) -> Deltaker)? = null,
     ): Deltaker {
         require(deltaker.deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
             "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id ${deltaker.id} har gjennomforingstype ${deltaker.deltakerliste.gjennomforingstype}"
@@ -274,8 +275,7 @@ class EnkeltplassService(
             )
 
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-            afterUpdate?.invoke(oppdatertDeltaker)
-            deltakerRepository.get(deltaker.id).getOrThrow()
+            afterUpdate?.invoke(oppdatertDeltaker) ?: oppdatertDeltaker
         }
     }
 
@@ -343,13 +343,12 @@ class EnkeltplassService(
                 valgteSertifiseringer = request.sertifiseringValg,
             )
 
-            lagreVedtakIkkeFattet(
-                deltakerId = deltakerId,
+            val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
+            val deltakerMedVedtak = lagreVedtakIkkeFattet(
+                deltaker = oppdatertDeltaker,
                 endretAv = navAnsatt,
                 endretAvEnhet = navEnhet,
             )
-
-            val deltakerMedVedtak = deltakerRepository.get(deltakerId).getOrThrow()
             if (nyStatus == DeltakerStatus.Type.SOKT_INN) {
                 innsokService.nyttInnsokUtkastGodkjentAvNav(deltakerMedVedtak, deltaker.status)
             }
@@ -401,19 +400,19 @@ class EnkeltplassService(
     }
 
     private fun lagreVedtakIkkeFattet(
-        deltakerId: UUID,
+        deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
-    ) {
-        val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
-
-        vedtakService.opprettEllerOppdaterVedtak(
+    ): Deltaker {
+        val vedtak = vedtakService.opprettEllerOppdaterVedtak(
             fattetAvNav = false,
             endretAv = endretAv,
             endretAvEnhet = endretAvEnhet,
-            deltaker = oppdatertDeltaker.toDeltakerVedVedtak(),
+            deltaker = deltaker.toDeltakerVedVedtak(),
             fattetDato = null,
         )
+
+        return deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
     }
 
     internal fun produceUpsertGjennomforing(
