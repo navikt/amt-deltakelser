@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 class TotrinnskontrollConsumerTest {
@@ -95,7 +96,12 @@ class TotrinnskontrollConsumerTest {
         fun `consume - godkjent ENKELTPLASS_OKONOMI prosesseres`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+            val idag = LocalDate.now()
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
+            )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
@@ -110,7 +116,7 @@ class TotrinnskontrollConsumerTest {
                 @Suppress("UNCHECKED_CAST")
                 val beforeUpsert = args[4] as (Deltaker) -> Deltaker
                 val updated = beforeUpsert(deltaker)
-                updated.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+                updated.status.type shouldBe DeltakerStatus.Type.DELTAR
                 updated
             }
 
@@ -170,7 +176,54 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentTotrinnskontroll - oppdaterer og publiserer når deltaker har status SOKT_INN`() {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+            val idag = LocalDate.now()
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
+            )
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
+            every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
+
+            every {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = deltaker,
+                    erDeltakerSluttdatoEndret = false,
+                    beforeUpsert = any(),
+                )
+            } answers {
+                @Suppress("UNCHECKED_CAST")
+                val beforeUpsert = args[4] as (Deltaker) -> Deltaker
+                val updated = beforeUpsert(deltaker)
+                updated.status.type shouldBe DeltakerStatus.Type.DELTAR
+                updated
+            }
+
+            // Act
+            consumer.processGodkjentInnsoking(gjennomforingId)
+
+            // Assert
+            verify { vedtakService.godkjentOkonomiFattVedtak(deltaker) }
+            verify {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = deltaker,
+                    erDeltakerSluttdatoEndret = false,
+                    beforeUpsert = any(),
+                )
+            }
+        }
+
+        @Test
+        fun `processGodkjentTotrinnskontroll - setter VENTER_PA_OPPSTART når startdato er i fremtiden`() {
+            // Arrange
+            val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = idag.plusDays(2),
+                sluttdato = idag.plusWeeks(4),
+            )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
