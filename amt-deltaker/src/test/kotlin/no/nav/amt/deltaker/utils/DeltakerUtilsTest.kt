@@ -109,6 +109,29 @@ class DeltakerUtilsTest {
     }
 
     @Test
+    fun `sjekkEndringUtfall - tildel plass - felles oppstart med startdato i dag setter ikke datoer`() = runTest {
+        with(
+            EndringFraTiltakskoordinatorCtx(
+                deltakerliste = lagDeltakerliste(
+                    oppstart = Oppstartstype.FELLES,
+                    startDato = LocalDate.now(),
+                    sluttDato = LocalDate.now().plusDays(30),
+                ),
+            ),
+        ) {
+            val endretDeltaker = DeltakerUtils
+                .sjekkEndringUtfall(
+                    deltaker,
+                    EndringFraTiltakskoordinator.TildelPlass,
+                ).getOrThrow()
+
+            endretDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            endretDeltaker.startdato shouldBe null
+            endretDeltaker.sluttdato shouldBe null
+        }
+    }
+
+    @Test
     fun `sjekkEndringUtfall - tildel plass - lopende oppstart setter ikke datoer`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
