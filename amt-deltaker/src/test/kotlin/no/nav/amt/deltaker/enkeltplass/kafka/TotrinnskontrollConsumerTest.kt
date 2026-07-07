@@ -175,10 +175,11 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentTotrinnskontroll - oppdaterer og publiserer når deltaker har status SOKT_INN`() {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
             )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
