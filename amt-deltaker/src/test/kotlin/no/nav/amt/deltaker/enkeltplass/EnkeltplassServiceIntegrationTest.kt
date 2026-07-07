@@ -392,20 +392,16 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             navEnhetRepository.upsert(opprinneligSistEndretAvEnhet)
             navAnsattRepository.upsert(opprinneligSistEndretAv)
 
-            val opprinneligOpprettet = LocalDateTime.now().minusDays(30)
-            val opprinneligSistEndret = LocalDateTime.now().minusDays(14)
             val vedtak = TestData.lagVedtak(
                 deltakerId = deltaker.id,
                 deltakerVedVedtak = deltaker,
                 fattetAvNav = false,
-                opprettet = opprinneligOpprettet,
                 opprettetAv = opprinneligSistEndretAv,
                 opprettetAvEnhet = opprinneligSistEndretAvEnhet,
-                sistEndret = opprinneligSistEndret,
                 sistEndretAv = opprinneligSistEndretAv,
                 sistEndretAvEnhet = opprinneligSistEndretAvEnhet,
             )
-            vedtakRepository.upsert(vedtak)
+            val opprinneligVedtak = vedtakRepository.upsert(vedtak)
 
             // Act
             val oppdatertDeltaker = enkeltplassService.oppdaterUtkast(
@@ -428,11 +424,11 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             assertSoftly(oppdatertDeltaker.vedtaksinformasjon) {
                 this.shouldNotBeNull().fattet shouldBe null
                 fattetAvNav shouldBe false
-                opprettet shouldBeCloseTo opprinneligOpprettet
+                opprettet shouldBeCloseTo opprinneligVedtak.opprettet
                 sistEndret shouldBeCloseTo LocalDateTime.now()
                 sistEndretAv shouldBe sistEndretAvNavAnsatt.id
                 sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
-                sistEndret.isAfter(opprinneligSistEndret) shouldBe true
+                sistEndret.isAfter(opprinneligVedtak.sistEndret) shouldBe true
             }
 
             assertSoftly(oppdatertDeltaker.deltakerliste) {
