@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
+import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -103,7 +104,8 @@ class TotrinnskontrollConsumer(
      * Prosesserer godkjent totrinnskontroll for en enkeltplassdeltaker.
      *
      * Kun deltakere med status `SOKT_INN` behandles. Ved behandling fattes vedtak,
-     * og deltaker settes til status `VENTER_PA_OPPSTART`.
+     * og deltaker settes til status `DELTAR` hvis startdato er i dag eller tidligere,
+     * ellers `VENTER_PA_OPPSTART`.
      *
      * @param gjennomforingId id for gjennomføringen som brukes til å finne deltaker
      */
@@ -125,9 +127,13 @@ class TotrinnskontrollConsumer(
             beforeUpsert = { deltaker ->
                 vedtakService.godkjentOkonomiFattVedtak(deltaker = deltaker)
                 // TODO: Generer melding om hovedvedtak til amt-distribusjon
-                // TODO: Sjekkk om status skal være deltar eller venter på oppstart
+                val nyStatusType = if (deltaker.startdato != null && deltaker.startdato.isAfter(LocalDate.now())) {
+                    DeltakerStatus.Type.VENTER_PA_OPPSTART
+                } else {
+                    DeltakerStatus.Type.DELTAR
+                }
                 deltaker.copy(
-                    status = DeltakerUtils.nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                    status = DeltakerUtils.nyDeltakerStatus(nyStatusType),
                 )
             },
         )
