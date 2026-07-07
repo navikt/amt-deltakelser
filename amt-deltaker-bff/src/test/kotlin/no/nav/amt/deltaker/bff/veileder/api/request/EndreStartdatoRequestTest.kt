@@ -320,6 +320,47 @@ class EndreStartdatoRequestTest {
         }
 
         @Test
+        fun `valider - status SOKT_INN for enkeltplass - skal ikke kaste exception`() {
+            val deltaker = lagDeltakerModel(
+                startdato = LocalDate.now().minusMonths(1),
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                gjennomforingType = GjennomforingType.Enkeltplass,
+            )
+
+            val request = EndreStartdatoRequest(
+                startdato = LocalDate.now(),
+                sluttdato = null,
+                begrunnelse = "Justerer startdato",
+                forslagId = null,
+            )
+
+            shouldNotThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
+        }
+
+        @Test
+        fun `valider - status SOKT_INN for gruppe - skal kaste exception`() {
+            val deltaker = lagDeltakerModel(
+                startdato = LocalDate.now().minusMonths(1),
+                status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                gjennomforingType = GjennomforingType.Gruppe,
+            )
+
+            val request = EndreStartdatoRequest(
+                startdato = LocalDate.now(),
+                sluttdato = null,
+                begrunnelse = "Justerer startdato",
+                forslagId = null,
+            )
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
+            exception.message shouldContain "Kan ikke endre startdato for deltaker med status"
+        }
+
+        @Test
         fun `valider - enkeltplass med startdato for gjennomforingens startdato - skal ikke kaste exception`() {
             val gjennomforingStartDato = LocalDate.now().minusMonths(3)
 
