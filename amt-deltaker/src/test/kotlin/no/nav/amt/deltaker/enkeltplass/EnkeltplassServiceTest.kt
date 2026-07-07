@@ -368,22 +368,30 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal oppdatere deltaker og vedtak uten aa endre status`() = runTest {
             // Arrange
-            every {
-                deltakerRepository.get(kladdDeltakerInTest.id)
-            } returns Result.success(
-                kladdDeltakerInTest.copy(
-                    status = kladdDeltakerInTest.status.copy(
-                        type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-                    ),
+            val deltaker = kladdDeltakerInTest.copy(
+                status = kladdDeltakerInTest.status.copy(
+                    type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
                 ),
             )
+            every {
+                deltakerRepository.get(kladdDeltakerInTest.id)
+            } returns Result.success(deltaker)
 
             every { arrangorRepository.get(any<String>()) } returns arrangorInTest
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
             every { deltakerlisteRepository.update(any()) } just Runs
+            val oppdatertVedtak = TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+                sistEndretAv = navAnsattInTest,
+                sistEndretAvEnhet = navEnhetInTest,
+            )
+            every { vedtakService.opprettEllerOppdaterVedtak(any(), any(), any(), any(), any()) } returns oppdatertVedtak
 
             // Act
-            enkeltplassService.oppdaterUtkast(
+            val oppdatertDeltaker = enkeltplassService.oppdaterUtkast(
                 deltakerId = kladdDeltakerInTest.id,
                 decoratedRequest = decoratedRequest,
             )
@@ -394,6 +402,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             }
             verify { deltakerlisteRepository.update(any()) }
             verify { deltakerRepository.updateEnkeltplass(any()) }
+            verify(exactly = 1) { vedtakService.opprettEllerOppdaterVedtak(any(), any(), any(), any(), any()) }
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            oppdatertDeltaker.vedtaksinformasjon?.sistEndretAv shouldBe navAnsattInTest.id
+            oppdatertDeltaker.vedtaksinformasjon?.sistEndretAvEnhet shouldBe navEnhetInTest.id
         }
 
         @Test
