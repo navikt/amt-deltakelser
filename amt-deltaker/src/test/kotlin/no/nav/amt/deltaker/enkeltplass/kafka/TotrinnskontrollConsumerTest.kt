@@ -255,6 +255,48 @@ class TotrinnskontrollConsumerTest {
                 )
             }
         }
+
+        @Test
+        fun `processGodkjentTotrinnskontroll - setter FULLFORT når startdato og sluttdato er i fortiden`() {
+            // Arrange
+            val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = idag.minusWeeks(3),
+                sluttdato = idag.minusDays(1),
+            )
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
+            every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
+
+            every {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = deltaker,
+                    erDeltakerSluttdatoEndret = false,
+                    beforeUpsert = any(),
+                )
+            } answers {
+                @Suppress("UNCHECKED_CAST")
+                val beforeUpsert = args[4] as (Deltaker) -> Deltaker
+                val updated = beforeUpsert(deltaker)
+                updated.status.type shouldBe DeltakerStatus.Type.FULLFORT
+                updated
+            }
+
+            // Act
+            consumer.processGodkjentInnsoking(gjennomforingId)
+
+            // Assert
+            verify { vedtakService.godkjentOkonomiFattVedtak(deltaker) }
+            verify {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = deltaker,
+                    erDeltakerSluttdatoEndret = false,
+                    beforeUpsert = any(),
+                )
+            }
+        }
     }
 
     @Nested

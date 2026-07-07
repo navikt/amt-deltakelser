@@ -104,8 +104,10 @@ class TotrinnskontrollConsumer(
      * Prosesserer godkjent totrinnskontroll for en enkeltplassdeltaker.
      *
      * Kun deltakere med status `SOKT_INN` behandles. Ved behandling fattes vedtak,
-     * og deltaker settes til status `DELTAR` hvis startdato er i dag eller tidligere,
-     * ellers `VENTER_PA_OPPSTART`.
+     * og deltaker settes til:
+     * - `VENTER_PA_OPPSTART` når startdato er i fremtiden
+     * - `DELTAR` når startdato er i dag eller fortid og sluttdato er i fremtiden
+     * - `FULLFORT` når startdato og sluttdato er i fortid
      *
      * @param gjennomforingId id for gjennomføringen som brukes til å finne deltaker
      */
@@ -127,10 +129,19 @@ class TotrinnskontrollConsumer(
             beforeUpsert = { deltaker ->
                 vedtakService.godkjentOkonomiFattVedtak(deltaker = deltaker)
                 // TODO: Generer melding om hovedvedtak til amt-distribusjon
-                val nyStatusType = if (deltaker.startdato != null && deltaker.startdato.isAfter(LocalDate.now())) {
-                    DeltakerStatus.Type.VENTER_PA_OPPSTART
-                } else {
-                    DeltakerStatus.Type.DELTAR
+                val idag = LocalDate.now()
+                val nyStatusType = when {
+                    deltaker.startdato != null &&
+                        deltaker.sluttdato != null &&
+                        deltaker.startdato.isBefore(idag) &&
+                        deltaker.sluttdato.isBefore(idag) ->
+                        DeltakerStatus.Type.FULLFORT
+
+                    deltaker.startdato != null && deltaker.startdato.isAfter(idag) ->
+                        DeltakerStatus.Type.VENTER_PA_OPPSTART
+
+                    else ->
+                        DeltakerStatus.Type.DELTAR
                 }
                 deltaker.copy(
                     status = DeltakerUtils.nyDeltakerStatus(nyStatusType),
