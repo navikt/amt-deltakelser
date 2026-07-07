@@ -368,7 +368,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `oppdater utkast - oppdaterer vedtak sist endret`() = runTest {
+        fun `oppdater utkast - lagrer utkast, oppdaterer vedtak, produserer hendelse`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
             val deltaker = lagDeltaker(
