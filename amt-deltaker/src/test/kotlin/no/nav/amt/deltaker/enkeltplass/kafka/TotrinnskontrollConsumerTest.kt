@@ -96,7 +96,11 @@ class TotrinnskontrollConsumerTest {
         fun `consume - godkjent ENKELTPLASS_OKONOMI prosesseres`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = LocalDate.now(),
+                sluttdato = LocalDate.now().plusWeeks(4),
+            )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
@@ -171,7 +175,11 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentTotrinnskontroll - oppdaterer og publiserer når deltaker har status SOKT_INN`() {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = LocalDate.now(),
+                sluttdato = LocalDate.now().plusWeeks(4),
+            )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
@@ -210,7 +218,8 @@ class TotrinnskontrollConsumerTest {
             val gjennomforingId = UUID.randomUUID()
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now().plusDays(1),
+                startdato = LocalDate.now().plusDays(2),
+                sluttdato = LocalDate.now().plusWeeks(4),
             )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
