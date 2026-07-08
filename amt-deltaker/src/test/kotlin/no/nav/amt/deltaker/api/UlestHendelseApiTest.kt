@@ -7,9 +7,9 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.http.ContentType
 import io.mockk.every
 import io.mockk.verify
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
@@ -41,11 +41,12 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         every { ulestHendelseRepository.getForDeltaker(deltakerId) } returns expected
 
         val responseBody = withTestApplicationContext { client ->
-            client.get("/tiltakskoordinator/ulest-hendelse/$deltakerId") {
-                bearerAuth(systemToken)
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-            }.body<String>()
+            client
+                .get("/tiltakskoordinator/ulest-hendelse/$deltakerId") {
+                    bearerAuth(systemToken)
+                }.apply {
+                    status shouldBe HttpStatusCode.OK
+                }.body<String>()
         }
 
         responseBody shouldBe objectMapper.writeValueAsString(expected)
@@ -70,13 +71,14 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         every { ulestHendelseRepository.getForDeltakere(setOf(deltakerId)) } returns expected
 
         val responseBody = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/ulest-hendelse/deltakere") {
-                bearerAuth(systemToken)
-                contentType(ContentType.Application.Json)
-                setBody(objectMapper.writeValueAsString(listOf(deltakerId)))
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-            }.body<String>()
+            client
+                .post("/tiltakskoordinator/ulest-hendelse/deltakere") {
+                    bearerAuth(systemToken)
+                    contentType(ContentType.Application.Json)
+                    setBody(objectMapper.writeValueAsString(listOf(deltakerId)))
+                }.apply {
+                    status shouldBe HttpStatusCode.OK
+                }.body<String>()
         }
 
         responseBody shouldBe objectMapper.writeValueAsString(expected)
@@ -90,13 +92,14 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         every { ulestHendelseRepository.getTypeCountsForDeltakere(setOf(deltakerId)) } returns expected
 
         val responseBody = withTestApplicationContext { client ->
-            client.post("/tiltakskoordinator/ulest-hendelse/type-counts") {
-                bearerAuth(systemToken)
-                contentType(ContentType.Application.Json)
-                setBody(objectMapper.writeValueAsString(listOf(deltakerId)))
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-            }.body<String>()
+            client
+                .post("/tiltakskoordinator/ulest-hendelse/type-counts") {
+                    bearerAuth(systemToken)
+                    contentType(ContentType.Application.Json)
+                    setBody(objectMapper.writeValueAsString(listOf(deltakerId)))
+                }.apply {
+                    status shouldBe HttpStatusCode.OK
+                }.body<String>()
         }
 
         responseBody shouldBe objectMapper.writeValueAsString(expected)
