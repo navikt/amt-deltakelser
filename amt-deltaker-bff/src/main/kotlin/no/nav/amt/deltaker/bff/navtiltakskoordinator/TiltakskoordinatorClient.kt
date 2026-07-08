@@ -41,12 +41,11 @@ class TiltakskoordinatorClient(
     ).failIfNotSuccess("Fant ikke gjennomforing ${request.gjennomforingId} i amt-deltaker.")
         .body()
 
-    suspend fun getDeltakereCountPerStatus(
-        request: TiltaksKoordinatorDeltakerlisteRequest,
-    ): DeltakerlisteFilterCountsResponse = performPost(
-        "tiltakskoordinator/deltakere/status-counts",
-        request,
-    ).failIfNotSuccess("Kunne ikke hente deltakerantall per status i amt-deltaker.").body()
+    suspend fun getDeltakereCountPerStatus(request: TiltaksKoordinatorDeltakerlisteRequest): DeltakerlisteFilterCountsResponse =
+        performPost(
+            "tiltakskoordinator/deltakere/status-counts",
+            request,
+        ).failIfNotSuccess("Kunne ikke hente deltakerantall per status i amt-deltaker.").body()
 
     suspend fun delMedArrangor(
         gjennomforingId: UUID,
