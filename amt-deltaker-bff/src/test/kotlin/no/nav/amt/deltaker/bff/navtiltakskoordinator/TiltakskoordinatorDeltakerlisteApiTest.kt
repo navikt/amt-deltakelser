@@ -364,7 +364,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post status-counts - tomme statuser - returnerer 400`() {
+    fun `post status-counts - tomme statuser - downstream returnerer 400`() {
         mockTilgangTilDeltakerliste()
         coEvery {
             tiltakskoordinatorClient.getDeltakereCountPerStatus(any())
