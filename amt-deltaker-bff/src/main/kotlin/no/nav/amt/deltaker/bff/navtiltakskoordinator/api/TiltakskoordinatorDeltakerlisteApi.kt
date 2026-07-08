@@ -93,7 +93,6 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
             post("/deltakere/status-counts") {
                 val gjennomforingId = getGjennomforingId()
 
-                deltakerlisteService.verifiserTilgjengeligDeltakerliste(gjennomforingId)
                 selfServiceTilgang.verifiserTiltakskoordinatorTilgang(
                     navIdent = call.getNavIdent(),
                     deltakerlisteId = gjennomforingId,

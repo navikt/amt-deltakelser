@@ -352,7 +352,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         )
 
         coEvery { tiltakskoordinatorClient.getDeltakereCountPerStatus(expectedRequest) } returns expectedResponse
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
 
         withTestApplicationContext { client ->
             val response = client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/status-counts") {
@@ -367,7 +366,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @Test
     fun `post status-counts - tomme statuser - returnerer 400`() {
         mockTilgangTilDeltakerliste()
-        every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
         coEvery {
             tiltakskoordinatorClient.getDeltakereCountPerStatus(any())
         } throws IllegalArgumentException("Statuser må spesifiseres for å hente deltakerantall per status")
