@@ -61,34 +61,19 @@ class TiltakskoordinatorViewRepository {
                     CountPerStatusRow(
                         status = DeltakerStatus.Type.valueOf(it.string("type")),
                         count = it.int("count"),
+                        erNyDeltakerCount = it.int("er_ny_deltaker_count"),
+                        harOppdateringFraNavCount = it.int("har_oppdatering_fra_nav_count"),
                         harAktivtForslagCount = it.int("har_aktivt_forslag_count"),
                     )
                 }.asList,
             )
         }
 
-        /*
-         * TODO(amt-deltaker): Restore exact handling counts for NyeDeltakere and OppdateringFraNav.
-         *
-         * Before this endpoint move, the BFF calculated those two counters from its own ulest_hendelse table.
-         * That table is a BFF-only unread-event projection and does not exist in amt-deltaker, so the copied
-         * SQL could not run here. We still move the endpoint now so BFF can stop reading status counts from its
-         * own deltakerliste-projection, but the unread-state part of the logic is intentionally incomplete.
-         *
-         * What still needs to happen to finish the migration:
-         * 1. Move the source of truth for tiltakskoordinator unread state into amt-deltaker, or expose another
-         *    domain-safe read model from amt-deltaker that answers the same question.
-         * 2. Backfill/migrate the state so existing unread markers are preserved.
-         * 3. Replace the hardcoded 0 values below with exact counts for the event families that the BFF used:
-         *    - InnbyggerGodkjennUtkast / NavGodkjennUtkast -> HandlingFilterValg.NyeDeltakere
-         *    - IkkeAktuell / AvsluttDeltakelse / AvbrytDeltakelse / ReaktiverDeltakelse
-         *      -> HandlingFilterValg.OppdateringFraNav
-         */
         return DeltakerlisteFilterCountsResponse(
             statusCounts = rows.associate { it.status to it.count },
             handlingCounts = mapOf(
-                HandlingFilterValg.NyeDeltakere to 0,
-                HandlingFilterValg.OppdateringFraNav to 0,
+                HandlingFilterValg.NyeDeltakere to rows.sumOf { it.erNyDeltakerCount },
+                HandlingFilterValg.OppdateringFraNav to rows.sumOf { it.harOppdateringFraNavCount },
                 HandlingFilterValg.AktiveForslag to rows.sumOf { it.harAktivtForslagCount },
             ),
         )
@@ -98,6 +83,8 @@ class TiltakskoordinatorViewRepository {
         private data class CountPerStatusRow(
             val status: DeltakerStatus.Type,
             val count: Int,
+            val erNyDeltakerCount: Int,
+            val harOppdateringFraNavCount: Int,
             val harAktivtForslagCount: Int,
         )
 
@@ -107,11 +94,23 @@ class TiltakskoordinatorViewRepository {
                 SELECT id
                 FROM deltaker
                 WHERE deltakerliste_id = :deltakerliste_id
+            ),
+            uh_flags AS (
+                SELECT
+                    deltaker_id,
+                    COALESCE(BOOL_OR(hendelse->>'type' IN ('InnbyggerGodkjennUtkast', 'NavGodkjennUtkast')), false) AS er_ny_deltaker,
+                    COALESCE(BOOL_OR(hendelse->>'type' IN ('IkkeAktuell', 'AvsluttDeltakelse', 'AvbrytDeltakelse', 'ReaktiverDeltakelse')), false) AS har_oppdatering_fra_nav
+                FROM
+                    ulest_hendelse AS uh
+                    JOIN d ON d.id = uh.deltaker_id
+                GROUP BY deltaker_id
             )
 
             SELECT
                 ds.type,
                 COUNT(*) AS count,
+                COUNT(*) FILTER (WHERE uh.er_ny_deltaker) AS er_ny_deltaker_count,
+                COUNT(*) FILTER (WHERE uh.har_oppdatering_fra_nav) AS har_oppdatering_fra_nav_count,
                 COUNT(*) FILTER (WHERE af.har_aktivt) AS har_aktivt_forslag_count
             FROM
                 d
@@ -120,6 +119,7 @@ class TiltakskoordinatorViewRepository {
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
                     AND ds.type = ANY(:statuser)
+                LEFT JOIN uh_flags uh ON uh.deltaker_id = d.id
                 LEFT JOIN LATERAL (
                     SELECT true AS har_aktivt
                     FROM forslag f

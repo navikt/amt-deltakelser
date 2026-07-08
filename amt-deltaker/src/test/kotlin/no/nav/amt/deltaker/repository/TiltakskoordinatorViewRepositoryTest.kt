@@ -7,6 +7,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerCacheRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -36,6 +40,7 @@ import java.util.UUID
 
 class TiltakskoordinatorViewRepositoryTest {
     private val viewRepository = TiltakskoordinatorViewRepository()
+    private val ulestHendelseRepository = UlestHendelseRepository()
     private val forslagRepository = ForslagRepository()
     private val vurderingRepository = VurderingRepository()
 
@@ -602,6 +607,24 @@ class TiltakskoordinatorViewRepositoryTest {
                 TestRepository.insert(aktiv)
                 TestRepository.insert(ventende)
                 forslagRepository.upsert(lagForslag(deltakerId = aktiv.id, status = Forslag.Status.VenterPaSvar))
+                ulestHendelseRepository.upsert(
+                    UlestHendelse(
+                        id = UUID.randomUUID(),
+                        opprettet = LocalDateTime.now(),
+                        deltakerId = aktiv.id,
+                        ansvarlig = AnsvarligNavnOgEnhet("Navn", "Enhet"),
+                        hendelse = UlestHendelseType.InnbyggerGodkjennUtkast,
+                    ),
+                )
+                ulestHendelseRepository.upsert(
+                    UlestHendelse(
+                        id = UUID.randomUUID(),
+                        opprettet = LocalDateTime.now(),
+                        deltakerId = ventende.id,
+                        ansvarlig = AnsvarligNavnOgEnhet("Navn"),
+                        hendelse = UlestHendelseType.ReaktiverDeltakelse("begrunnelse"),
+                    ),
+                )
 
                 val request = TiltaksKoordinatorDeltakerlisteRequest(
                     gjennomforingId = deltakerliste.id,
@@ -619,8 +642,8 @@ class TiltakskoordinatorViewRepositoryTest {
                         DeltakerStatus.Type.VENTER_PA_OPPSTART to 1,
                     ),
                     handlingCounts = mapOf(
-                        HandlingFilterValg.NyeDeltakere to 0,
-                        HandlingFilterValg.OppdateringFraNav to 0,
+                        HandlingFilterValg.NyeDeltakere to 1,
+                        HandlingFilterValg.OppdateringFraNav to 1,
                         HandlingFilterValg.AktiveForslag to 1,
                     ),
                 )
