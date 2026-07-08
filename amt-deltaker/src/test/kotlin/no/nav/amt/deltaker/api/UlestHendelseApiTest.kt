@@ -53,6 +53,17 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `get ulest hendelser for deltaker - ugyldig uuid - returnerer 400`() {
+        val response = withTestApplicationContext { client ->
+            client.get("/tiltakskoordinator/ulest-hendelse/ikke-en-uuid") {
+                bearerAuth(systemToken)
+            }
+        }
+
+        response.status shouldBe HttpStatusCode.BadRequest
+    }
+
+    @Test
     fun `post deltakere - returnerer flags per deltaker`() {
         val deltakerId = UUID.randomUUID()
         val expected = mapOf(deltakerId to UlestHendelseFlags(erNyDeltaker = true, harOppdateringFraNav = false))

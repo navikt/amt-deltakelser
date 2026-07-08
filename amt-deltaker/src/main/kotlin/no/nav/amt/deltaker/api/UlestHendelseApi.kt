@@ -16,7 +16,8 @@ fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepos
     authenticate("SYSTEM") {
         route("/tiltakskoordinator/ulest-hendelse") {
             get("/{deltakerId}") {
-                val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+                val deltakerId = call.parameters["deltakerId"]?.let(UUID::fromString)
+                    ?: throw IllegalArgumentException("Påkrevd URL parameter 'deltakerId' mangler.")
                 call.respond(ulestHendelseRepository.getForDeltaker(deltakerId))
             }
 
@@ -31,7 +32,9 @@ fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepos
             }
 
             delete("/{id}") {
-                ulestHendelseRepository.delete(UUID.fromString(call.parameters["id"]))
+                val id = call.parameters["id"]?.let(UUID::fromString)
+                    ?: throw IllegalArgumentException("Påkrevd URL parameter 'id' mangler.")
+                ulestHendelseRepository.delete(id)
                 call.respond(HttpStatusCode.NoContent)
             }
         }
