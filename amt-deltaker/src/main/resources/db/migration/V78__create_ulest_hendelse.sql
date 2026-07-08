@@ -9,10 +9,3 @@ CREATE TABLE ulest_hendelse (
 );
 
 CREATE INDEX ulest_hendelse_deltaker_id_idx ON ulest_hendelse (deltaker_id);
-
--- Migration note:
--- The rows currently live in amt-deltaker-bff. Backfill this table from the old table
--- in a dedicated cutover step before switching the bff to read from amt-deltaker.
--- During the migration window, keep both consumers running so events are written to
--- both databases. After the bff reads have been moved, remove the old bff-owned table
--- and its consumer in a later migration.
