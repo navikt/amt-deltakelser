@@ -18,8 +18,8 @@ import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
 import no.nav.amt.deltaker.api.registerEnkeltplassApi
 import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
-import no.nav.amt.deltaker.api.registerUlestHendelseApi
 import no.nav.amt.deltaker.api.registerPameldingApi
+import no.nav.amt.deltaker.api.registerUlestHendelseApi
 import no.nav.amt.deltaker.api.registerVeilederApi
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
