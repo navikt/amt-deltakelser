@@ -74,6 +74,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                 val deltakerResponses = tiltakskoordinatorClient
                     .getDeltakereForGjennomforing(request)
                     .data
+                val ulesteHendelserPerDeltaker = tiltakskoordinatorClient
+                    .getUlestHendelserForDeltakere(deltakerResponses.map { it.id }.toSet())
 
                 val navAnsattAzureId = call.getNavAnsattAzureId()
 
@@ -87,6 +89,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                                 adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                             )
                         },
+                        ulesteHendelserPerDeltaker = ulesteHendelserPerDeltaker,
                     ).filter { deltaker -> deltaker.matchesHandlingFilter(request.handlingFilterValg) }
 
                 call.respond(deltakere)
@@ -137,6 +140,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                             adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                         )
                     },
+                    ulesteHendelserPerDeltaker = tiltakskoordinatorClient
+                        .getUlestHendelserForDeltakere(oppdaterteDeltakere.map { it.deltaker.id }.toSet()),
                 )
 
                 call.respond(response)
@@ -167,6 +172,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                             adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                         )
                     },
+                    ulesteHendelserPerDeltaker = tiltakskoordinatorClient
+                        .getUlestHendelserForDeltakere(oppdaterteDeltakere.map { it.deltaker.id }.toSet()),
                 )
 
                 call.respond(response)
@@ -193,6 +200,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                             adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                         )
                     },
+                    ulesteHendelserPerDeltaker = tiltakskoordinatorClient
+                        .getUlestHendelserForDeltakere(oppdaterteDeltakere.map { it.deltaker.id }.toSet()),
                 )
 
                 call.respond(response)
@@ -224,6 +233,8 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                                 adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
                             )
                         },
+                        ulesteHendelserPerDeltaker = tiltakskoordinatorClient
+                            .getUlestHendelserForDeltakere(setOf(deltakerOppdatering.deltaker.id)),
                     ).single()
 
                 call.respond(response)

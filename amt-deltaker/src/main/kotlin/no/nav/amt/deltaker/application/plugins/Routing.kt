@@ -18,6 +18,7 @@ import no.nav.amt.deltaker.api.external.response.DeltakelserResponseMapper
 import no.nav.amt.deltaker.api.registerEnkeltplassApi
 import no.nav.amt.deltaker.api.registerInternalApi
 import no.nav.amt.deltaker.api.registerKladdApi
+import no.nav.amt.deltaker.api.registerUlestHendelseApi
 import no.nav.amt.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.api.registerVeilederApi
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
@@ -31,6 +32,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
@@ -88,6 +90,7 @@ fun Application.configureRouting(
     gjennomforingRequestProducer: GjennomforingRequestProducer,
     forslagService: ForslagService,
     forslagRepository: ForslagRepository,
+    ulestHendelseRepository: UlestHendelseRepository,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -164,6 +167,7 @@ fun Application.configureRouting(
             tiltakskoordinatorService = tiltakskoordinatorService,
             tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
         )
+        registerUlestHendelseApi(ulestHendelseRepository)
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 
         val catchAllRoute = "{...}"

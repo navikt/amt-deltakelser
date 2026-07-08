@@ -45,7 +45,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
             coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltaker
 
-            every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
+            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltaker(any()) } returns emptyList()
 
             coEvery {
                 tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(
