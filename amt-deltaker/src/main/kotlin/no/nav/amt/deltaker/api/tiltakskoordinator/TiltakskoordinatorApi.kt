@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.extensions.getGjennomforingId
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteStengtException
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
@@ -48,6 +49,7 @@ fun Routing.registerTiltakskoordinatorApi(
                 require(request.statuser.isNotEmpty()) {
                     "Statuser må spesifiseres for å hente deltakerantall per status"
                 }
+                deltakerlisteRepository.verifiserTilgjengeligDeltakerliste(request.gjennomforingId)
                 call.respond(tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(request))
             }
 

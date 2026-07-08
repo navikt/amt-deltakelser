@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteStengtException
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -31,6 +32,7 @@ import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringRespo
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
@@ -167,17 +169,18 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `status-counts - har tilgang - returnerer counts fra repository`() {
+        val deltakerliste = lagDeltakerliste()
         val request = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = UUID.randomUUID(),
+            gjennomforingId = deltakerliste.id,
             statuser = setOf(
-                no.nav.amt.lib.models.deltaker.DeltakerStatus.Type.DELTAR,
-                no.nav.amt.lib.models.deltaker.DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                DeltakerStatus.Type.DELTAR,
+                DeltakerStatus.Type.VENTER_PA_OPPSTART,
             ),
         )
         val expectedResponse = DeltakerlisteFilterCountsResponse(
             statusCounts = mapOf(
-                no.nav.amt.lib.models.deltaker.DeltakerStatus.Type.DELTAR to 2,
-                no.nav.amt.lib.models.deltaker.DeltakerStatus.Type.VENTER_PA_OPPSTART to 1,
+                DeltakerStatus.Type.DELTAR to 2,
+                DeltakerStatus.Type.VENTER_PA_OPPSTART to 1,
             ),
             handlingCounts = mapOf(
                 HandlingFilterValg.NyeDeltakere to 1,
@@ -186,6 +189,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             ),
         )
 
+        every { deltakerlisteRepository.verifiserTilgjengeligDeltakerliste(deltakerliste.id) } returns deltakerliste
         every { tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(request) } returns expectedResponse
 
         withTestApplicationContext { client ->
@@ -200,10 +204,10 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     @Test
     fun `status-counts - tomme statuser - returnerer 400`() {
-        val request = TiltaksKoordinatorDeltakerlisteRequest(
-            gjennomforingId = UUID.randomUUID(),
-        )
+        val deltakerliste = lagDeltakerliste()
+        val request = TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = deltakerliste.id)
 
+        every { deltakerlisteRepository.verifiserTilgjengeligDeltakerliste(deltakerliste.id) } returns deltakerliste
         withTestApplicationContext { client ->
             client.post("$API_PATH/status-counts") {
                 postRequest(request)
@@ -213,6 +217,26 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         }
 
         coVerify(exactly = 0) { tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(any()) }
+    }
+
+    @Test
+    fun `status-counts - deltakerliste er stengt - returnerer 410`() {
+        val deltakerliste = lagDeltakerliste()
+        every { deltakerlisteRepository.verifiserTilgjengeligDeltakerliste(deltakerliste.id) } throws
+            DeltakerlisteStengtException("Deltakerlisten er stengt")
+
+        val request = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = deltakerliste.id,
+            statuser = setOf(DeltakerStatus.Type.DELTAR),
+        )
+
+        withTestApplicationContext { client ->
+            client.post("$API_PATH/status-counts") {
+                postRequest(request)
+            }.apply {
+                status shouldBe HttpStatusCode.Gone
+            }
+        }
     }
 
     @Test

@@ -2,7 +2,9 @@ package no.nav.amt.deltaker.deltakerliste
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.assertions.throwables.shouldThrow
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteStengtException
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
@@ -186,5 +188,40 @@ class DeltakerlisteRepositoryTest {
 
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
         deltakerlisteMedArrangor.arrangor.shouldNotBeNull().navn shouldBe arrangor.navn
+    }
+
+    @Nested
+    inner class VerifiserTilgjengeligDeltakerliste {
+        @Test
+        fun `deltakerliste er åpen - returnerer deltakerliste`() {
+            val arrangor = lagArrangor()
+            val tiltakstype = lagTiltakstype()
+            val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+
+            arrangorRepository.upsert(arrangor)
+            tiltakRepository.upsert(tiltakstype)
+            deltakerlisteRepository.upsert(deltakerliste)
+
+            deltakerlisteRepository.verifiserTilgjengeligDeltakerliste(deltakerliste.id) shouldBe deltakerliste
+        }
+
+        @Test
+        fun `deltakerliste er stengt - kaster exception`() {
+            val arrangor = lagArrangor()
+            val tiltakstype = lagTiltakstype()
+            val deltakerliste = lagDeltakerliste(
+                arrangor = arrangor,
+                tiltakstype = tiltakstype,
+                sluttDato = LocalDate.now().minus(DeltakerlisteRepository.tiltakskoordinatorGraceperiode).minusDays(1),
+            )
+
+            arrangorRepository.upsert(arrangor)
+            tiltakRepository.upsert(tiltakstype)
+            deltakerlisteRepository.upsert(deltakerliste)
+
+            shouldThrow<DeltakerlisteStengtException> {
+                deltakerlisteRepository.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
+            }
+        }
     }
 }

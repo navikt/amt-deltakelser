@@ -14,6 +14,8 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.Period
 import java.util.UUID
 
 class DeltakerlisteRepository {
@@ -216,7 +218,20 @@ class DeltakerlisteRepository {
         }
     }
 
+    fun verifiserTilgjengeligDeltakerliste(id: UUID): Deltakerliste {
+        val deltakerliste = get(id).getOrThrow()
+
+        deltakerliste.sluttDato?.let { sluttdato ->
+            if (LocalDate.now().isAfter(sluttdato.plus(tiltakskoordinatorGraceperiode))) {
+                throw DeltakerlisteStengtException("Deltakerlisten $id er stengt for tiltakskoordinator")
+            }
+        }
+
+        return deltakerliste
+    }
+
     companion object {
+        val tiltakskoordinatorGraceperiode: Period = Period.ofDays(14)
         private val col = prefixColumn("dl")
 
         fun rowMapper(row: Row): Deltakerliste {

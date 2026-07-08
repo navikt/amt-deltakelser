@@ -33,6 +33,7 @@ import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRep
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteStengtException
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
@@ -107,6 +108,10 @@ fun Application.configureRouting(
         exception<NoSuchElementException> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.NotFound, call, cause)
             call.respondText(text = "404: ${cause.message}", status = HttpStatusCode.NotFound)
+        }
+        exception<DeltakerlisteStengtException> { call, cause ->
+            StatusPageLogger.log(HttpStatusCode.Gone, call, cause)
+            call.respondText(text = "410: ${cause.message}", status = HttpStatusCode.Gone)
         }
         exception<Throwable> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.InternalServerError, call, cause)
