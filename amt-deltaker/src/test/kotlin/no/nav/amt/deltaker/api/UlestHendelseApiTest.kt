@@ -8,6 +8,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.http.ContentType
 import io.mockk.every
 import io.mockk.verify
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
@@ -59,7 +61,8 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         val responseBody = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/ulest-hendelse/deltakere") {
                 bearerAuth(systemToken)
-                setBody(listOf(deltakerId))
+                contentType(ContentType.Application.Json)
+                setBody(objectMapper.writeValueAsString(listOf(deltakerId)))
             }.apply {
                 status shouldBe HttpStatusCode.OK
             }.body<String>()
@@ -78,7 +81,8 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         val responseBody = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/ulest-hendelse/type-counts") {
                 bearerAuth(systemToken)
-                setBody(listOf(deltakerId))
+                contentType(ContentType.Application.Json)
+                setBody(objectMapper.writeValueAsString(listOf(deltakerId)))
             }.apply {
                 status shouldBe HttpStatusCode.OK
             }.body<String>()

@@ -3,7 +3,9 @@ package no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse
 import io.kotest.matchers.shouldBe
 import io.mockk.confirmVerified
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
@@ -28,6 +30,7 @@ class DeltakerEndringHendelseConsumerTest : IntegrationTestBase() {
     @Test
     fun `consume tombstone - sletter ulest hendelse`() = runTest {
         val key = UUID.randomUUID()
+        every { ulestHendelseRepository.delete(key) } just runs
 
         consumer.consume(key, null)
 
