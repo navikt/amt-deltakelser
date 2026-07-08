@@ -12,9 +12,9 @@ import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.ModelMapper
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
@@ -24,7 +24,7 @@ import java.util.UUID
 fun Routing.registerTiltakskoordinatorDeltakerApi(
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     amtDeltakerClient: AmtDeltakerClient,
-    ulestHendelseRepository: UlestHendelseRepository,
+    tiltakskoordinatorClient: TiltakskoordinatorClient,
 ) {
     authenticate(AuthLevel.TILTAKSKOORDINATOR.name) {
         route("/tiltakskoordinator/deltaker/{id}") {
@@ -44,7 +44,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                     deltakerlisteId = deltaker.gjennomforing.id,
                 )
 
-                val ulesteHendelser = ulestHendelseRepository.getForDeltaker(deltakerId)
+                val ulesteHendelser = tiltakskoordinatorClient.getUlesteHendelserForDeltaker(deltakerId)
 
                 val responseBody = deltaker.let {
                     ResponseMapper.buildDeltakerDetaljerResponse(

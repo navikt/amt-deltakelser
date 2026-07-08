@@ -11,8 +11,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.mockk.every
-import io.mockk.just
-import io.mockk.runs
 import io.mockk.verify
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
@@ -28,7 +26,7 @@ import java.util.UUID
 
 class UlestHendelseApiTest : IntegrationTestBase() {
     @Test
-    fun `skal returnere Unauthorized nar token mangler`() {
+    fun `skal returnere Unauthorized når token mangler`() {
         val response = withTestApplicationContext { client ->
             client.delete("/tiltakskoordinator/ulest-hendelse/${UUID.randomUUID()}")
         }
@@ -37,7 +35,7 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get ulest hendelser for deltaker - returnerer 200 og data`() {
+    fun `get uleste hendelser for deltaker - returnerer 200 og data`() {
         val deltakerId = UUID.randomUUID()
         val expected = listOf(lagUlestHendelse(deltakerId))
         every { ulestHendelseRepository.getForDeltaker(deltakerId) } returns expected
@@ -56,7 +54,7 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get ulest hendelser for deltaker - ugyldig uuid - returnerer 400`() {
+    fun `get uleste hendelser for deltaker - ugyldig uuid - returnerer 400`() {
         val response = withTestApplicationContext { client ->
             client.get("/tiltakskoordinator/ulest-hendelse/ikke-en-uuid") {
                 bearerAuth(systemToken)
@@ -67,7 +65,7 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post deltakere - returnerer flags per deltaker`() {
+    fun `post deltakere - returnerer flagg per deltaker`() {
         val deltakerId = UUID.randomUUID()
         val expected = mapOf(deltakerId to UlestHendelseFlags(erNyDeltaker = true, harOppdateringFraNav = false))
         every { ulestHendelseRepository.getForDeltakere(setOf(deltakerId)) } returns expected

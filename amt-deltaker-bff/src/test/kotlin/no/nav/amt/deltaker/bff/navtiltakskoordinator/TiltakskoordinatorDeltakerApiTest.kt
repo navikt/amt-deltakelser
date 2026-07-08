@@ -7,7 +7,6 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import io.mockk.every
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerDetaljerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
@@ -20,6 +19,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -27,6 +27,11 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
 
 class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
+    @BeforeEach
+    fun setupTiltakskoordinatorClientDefaults() {
+        coEvery { tiltakskoordinatorClient.getUlesteHendelserForDeltaker(any()) } returns emptyList()
+    }
+
     @Nested
     inner class HentDeltaker {
         private val urlString = "/tiltakskoordinator/deltaker/${UUID.randomUUID()}"
@@ -45,7 +50,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
 
             coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltaker
 
-            every { ulestHendelseRepository.getForDeltaker(any()) } returns emptyList()
+            coEvery { tiltakskoordinatorClient.getUlesteHendelserForDeltaker(any()) } returns emptyList()
 
             coEvery {
                 tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(

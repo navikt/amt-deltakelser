@@ -53,9 +53,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.DeltakerEndringHendelseConsumer
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.bff.tiltak.TiltakConsumer
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorConsumer
@@ -268,9 +265,6 @@ fun Application.module() {
         paameldingClient = paameldingClient,
     )
 
-    val ulestHendelseRepository = UlestHendelseRepository()
-    val ulestHendelseService = UlestHendelseService(ulestHendelseRepository)
-
     val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient,
     )
@@ -313,7 +307,6 @@ fun Application.module() {
             unleashToggle,
         ),
         ArrangorMeldingConsumer(forslagRepository),
-        DeltakerEndringHendelseConsumer(ulestHendelseService, ulestHendelseRepository),
         NavEnhetConsumer(navEnhetService),
     )
     consumers.forEach { it.start() }
@@ -333,15 +326,13 @@ fun Application.module() {
         enkeltplassClient = enkeltplassClient,
         sporbarhetsloggService = sporbarhetsloggService,
         deltakerlisteService = deltakerlisteService,
-        deltakerlisteRepository = deltakerlisteRepository,
         unleash = unleash,
         tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
-        ulestHendelseRepository = ulestHendelseRepository,
         selfServiceTilgangService = selfServiceTilgangService,
         opplaringKategoriseringClient = opplaringKategoriseringClient,
         tiltakskoordinatorClient = tiltakskoordinatorClient,
-        tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(ulestHendelseRepository),
+        tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(),
     )
     configureMonitoring()
 
