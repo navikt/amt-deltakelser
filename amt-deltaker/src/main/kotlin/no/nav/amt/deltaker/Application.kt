@@ -511,6 +511,7 @@ fun Application.module() {
         deltakerService = deltakerService,
         deltakerRepository = deltakerRepository,
         deltakerlisteRepository = deltakerlisteRepository,
+        tiltakskoordinatorViewRepository = tiltakskoordinatorViewRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         tilgangskontrollService = tilgangskontrollService,
         deltakelserResponseMapper = deltakelserResponseMapper,

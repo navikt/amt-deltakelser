@@ -28,7 +28,9 @@ import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
@@ -108,6 +110,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("$API_PATH/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("$API_PATH/status-counts") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
@@ -160,6 +163,56 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         }
 
         coVerify(exactly = 0) { tiltakskoordinatorResponseBuilder.buildResponse(any()) }
+    }
+
+    @Test
+    fun `status-counts - har tilgang - returnerer counts fra repository`() {
+        val request = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = UUID.randomUUID(),
+            statuser = setOf(
+                no.nav.amt.lib.models.deltaker.DeltakerStatus.Type.DELTAR,
+                no.nav.amt.lib.models.deltaker.DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            ),
+        )
+        val expectedResponse = DeltakerlisteFilterCountsResponse(
+            statusCounts = mapOf(
+                no.nav.amt.lib.models.deltaker.DeltakerStatus.Type.DELTAR to 2,
+                no.nav.amt.lib.models.deltaker.DeltakerStatus.Type.VENTER_PA_OPPSTART to 1,
+            ),
+            handlingCounts = mapOf(
+                HandlingFilterValg.NyeDeltakere to 1,
+                HandlingFilterValg.OppdateringFraNav to 0,
+                HandlingFilterValg.AktiveForslag to 0,
+            ),
+        )
+
+        every { tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(request) } returns expectedResponse
+
+        withTestApplicationContext { client ->
+            client.post("$API_PATH/status-counts") {
+                postRequest(request)
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
+            }
+        }
+    }
+
+    @Test
+    fun `status-counts - tomme statuser - returnerer 400`() {
+        val request = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = UUID.randomUUID(),
+        )
+
+        withTestApplicationContext { client ->
+            client.post("$API_PATH/status-counts") {
+                postRequest(request)
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+            }
+        }
+
+        coVerify(exactly = 0) { tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(any()) }
     }
 
     @Test

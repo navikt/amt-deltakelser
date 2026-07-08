@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.assertions.throwables.shouldThrow
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerCacheRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
@@ -16,6 +17,8 @@ import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestData.lagVurdering
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -583,6 +586,91 @@ class TiltakskoordinatorViewRepositoryTest {
                 val result = getDeltakereMedBerikelse(deltakerliste.id).single()
 
                 result.erDigitalCached shouldBe true
+            }
+        }
+
+        @Nested
+        inner class GetDeltakereCountPerStatusTests {
+            @Test
+            fun `skal returnere counts per status`() {
+                val deltakerliste = lagDeltakerliste()
+                val aktiv = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val ventende = lagDeltaker(
+                    deltakerliste = deltakerliste,
+                    status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                )
+                TestRepository.insert(aktiv)
+                TestRepository.insert(ventende)
+                forslagRepository.upsert(lagForslag(deltakerId = aktiv.id, status = Forslag.Status.VenterPaSvar))
+
+                val request = TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(
+                        DeltakerStatus.Type.DELTAR,
+                        DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                    ),
+                )
+
+                val result = viewRepository.getDeltakereCountPerStatus(request)
+
+                result shouldBe DeltakerlisteFilterCountsResponse(
+                    statusCounts = mapOf(
+                        DeltakerStatus.Type.DELTAR to 1,
+                        DeltakerStatus.Type.VENTER_PA_OPPSTART to 1,
+                    ),
+                    handlingCounts = mapOf(
+                        HandlingFilterValg.NyeDeltakere to 0,
+                        HandlingFilterValg.OppdateringFraNav to 0,
+                        HandlingFilterValg.AktiveForslag to 1,
+                    ),
+                )
+            }
+
+            @Test
+            fun `skal bare telle aktiv status`() {
+                val deltakerliste = lagDeltakerliste()
+                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                TestRepository.insert(deltaker)
+                DeltakerStatusRepository.lagreStatus(
+                    deltaker.id,
+                    lagDeltakerStatus(
+                        statusType = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                        gyldigFra = LocalDateTime.now().minusDays(2),
+                        gyldigTil = LocalDateTime.now().minusDays(1),
+                    ),
+                )
+
+                val request = TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(
+                        DeltakerStatus.Type.DELTAR,
+                        DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                    ),
+                )
+
+                val result = viewRepository.getDeltakereCountPerStatus(request)
+
+                result shouldBe DeltakerlisteFilterCountsResponse(
+                    statusCounts = mapOf(
+                        DeltakerStatus.Type.DELTAR to 1,
+                    ),
+                    handlingCounts = mapOf(
+                        HandlingFilterValg.NyeDeltakere to 0,
+                        HandlingFilterValg.OppdateringFraNav to 0,
+                        HandlingFilterValg.AktiveForslag to 0,
+                    ),
+                )
+            }
+
+            @Test
+            fun `skal kreve statuser`() {
+                val request = TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = UUID.randomUUID(),
+                )
+
+                shouldThrow<IllegalArgumentException> {
+                    viewRepository.getDeltakereCountPerStatus(request)
+                }
             }
         }
     }

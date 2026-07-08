@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.extensions.getGjennomforingId
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
@@ -20,6 +21,7 @@ import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 
 fun Routing.registerTiltakskoordinatorApi(
     deltakerlisteRepository: DeltakerlisteRepository,
+    tiltakskoordinatorViewRepository: TiltakskoordinatorViewRepository,
     deltakerResponseBuilder: DeltakerResponseBuilder,
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
@@ -41,6 +43,14 @@ fun Routing.registerTiltakskoordinatorApi(
         }
 
         route("/tiltakskoordinator/deltakere") {
+            post("/status-counts") {
+                val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                require(request.statuser.isNotEmpty()) {
+                    "Statuser må spesifiseres for å hente deltakerantall per status"
+                }
+                call.respond(tiltakskoordinatorViewRepository.getDeltakereCountPerStatus(request))
+            }
+
             post("/{gjennomforingId}") {
                 val gjennomforingId = call.getGjennomforingId()
                 val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()

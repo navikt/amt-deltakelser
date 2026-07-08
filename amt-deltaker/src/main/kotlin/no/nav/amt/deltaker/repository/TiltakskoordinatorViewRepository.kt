@@ -2,7 +2,9 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
@@ -44,7 +46,90 @@ class TiltakskoordinatorViewRepository {
         )
     }
 
+    fun getDeltakereCountPerStatus(request: TiltaksKoordinatorDeltakerlisteRequest): DeltakerlisteFilterCountsResponse {
+        require(request.statuser.isNotEmpty()) { "Statuser må spesifiseres for å hente deltakerantall per status" }
+
+        val rows = Database.query { session ->
+            session.run(
+                queryOf(
+                    DELTAKERE_COUNT_SQL,
+                    mapOf(
+                        "deltakerliste_id" to request.gjennomforingId,
+                        "statuser" to request.statuser.map { it.name }.toTypedArray(),
+                    ),
+                ).map {
+                    CountPerStatusRow(
+                        status = DeltakerStatus.Type.valueOf(it.string("type")),
+                        count = it.int("count"),
+                        harAktivtForslagCount = it.int("har_aktivt_forslag_count"),
+                    )
+                }.asList,
+            )
+        }
+
+        /*
+         * TODO(amt-deltaker): Restore exact handling counts for NyeDeltakere and OppdateringFraNav.
+         *
+         * Before this endpoint move, the BFF calculated those two counters from its own ulest_hendelse table.
+         * That table is a BFF-only unread-event projection and does not exist in amt-deltaker, so the copied
+         * SQL could not run here. We still move the endpoint now so BFF can stop reading status counts from its
+         * own deltakerliste-projection, but the unread-state part of the logic is intentionally incomplete.
+         *
+         * What still needs to happen to finish the migration:
+         * 1. Move the source of truth for tiltakskoordinator unread state into amt-deltaker, or expose another
+         *    domain-safe read model from amt-deltaker that answers the same question.
+         * 2. Backfill/migrate the state so existing unread markers are preserved.
+         * 3. Replace the hardcoded 0 values below with exact counts for the event families that the BFF used:
+         *    - InnbyggerGodkjennUtkast / NavGodkjennUtkast -> HandlingFilterValg.NyeDeltakere
+         *    - IkkeAktuell / AvsluttDeltakelse / AvbrytDeltakelse / ReaktiverDeltakelse
+         *      -> HandlingFilterValg.OppdateringFraNav
+         */
+        return DeltakerlisteFilterCountsResponse(
+            statusCounts = rows.associate { it.status to it.count },
+            handlingCounts = mapOf(
+                HandlingFilterValg.NyeDeltakere to 0,
+                HandlingFilterValg.OppdateringFraNav to 0,
+                HandlingFilterValg.AktiveForslag to rows.sumOf { it.harAktivtForslagCount },
+            ),
+        )
+    }
+
     companion object {
+        private data class CountPerStatusRow(
+            val status: DeltakerStatus.Type,
+            val count: Int,
+            val harAktivtForslagCount: Int,
+        )
+
+        private val DELTAKERE_COUNT_SQL =
+            """
+            WITH d AS (
+                SELECT id
+                FROM deltaker
+                WHERE deltakerliste_id = :deltakerliste_id
+            )
+
+            SELECT
+                ds.type,
+                COUNT(*) AS count,
+                COUNT(*) FILTER (WHERE af.har_aktivt) AS har_aktivt_forslag_count
+            FROM
+                d
+                JOIN deltaker_status ds
+                    ON ds.deltaker_id = d.id
+                    AND ds.gyldig_til IS NULL
+                    AND ds.gyldig_fra <= CURRENT_TIMESTAMP
+                    AND ds.type = ANY(:statuser)
+                LEFT JOIN LATERAL (
+                    SELECT true AS har_aktivt
+                    FROM forslag f
+                    WHERE f.deltaker_id = d.id
+                    AND f.status->>'type' = 'VenterPaSvar'
+                    LIMIT 1
+                ) af ON true
+            GROUP BY ds.type;
+            """.trimIndent()
+
         // Disse statusene skal aldri vises for tiltakskoordinator
         val SKJULTE_STATUSER = setOf(
             DeltakerStatus.Type.KLADD,

@@ -13,7 +13,6 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
@@ -33,6 +32,7 @@ import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -66,8 +66,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal teste autentisering - mangler AD rolle - returnerer 401`() {
-        every { deltakerlisteRepository.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
-
         withTestApplicationContext { client ->
             client
                 .get("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}") { noBodyRequest() }
@@ -118,7 +116,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         val gjennomforing = lagGjennomforingResponse()
         val expected = ResponseMapper.buildGjennomforing(gjennomforing, listOf(tiltakskoordinatorInTest))
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(any<String>()) } returns lagNavAnsatt()
-        every { deltakerlisteRepository.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
         coEvery { tiltakskoordinatorClient.getGjennomforing(deltakerlisteInTest.id) } returns gjennomforing
 
         every {
@@ -354,7 +351,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             handlingCounts = emptyMap(),
         )
 
-        coEvery { deltakerlisteRepository.getDeltakereCountPerStatus(expectedRequest) } returns expectedResponse
+        coEvery { tiltakskoordinatorClient.getDeltakereCountPerStatus(expectedRequest) } returns expectedResponse
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
 
         withTestApplicationContext { client ->
@@ -371,6 +368,9 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     fun `post status-counts - tomme statuser - returnerer 400`() {
         mockTilgangTilDeltakerliste()
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
+        coEvery {
+            tiltakskoordinatorClient.getDeltakereCountPerStatus(any())
+        } throws IllegalArgumentException("Statuser må spesifiseres for å hente deltakerantall per status")
 
         val response = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/deltakerliste/${deltakerlisteInTest.id}/deltakere/status-counts") {
@@ -379,7 +379,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         }
 
         response.status shouldBe HttpStatusCode.BadRequest
-        coVerify(exactly = 0) { deltakerlisteRepository.getDeltakereCountPerStatus(any()) }
+        coVerify(exactly = 1) { tiltakskoordinatorClient.getDeltakereCountPerStatus(any()) }
     }
 
     @Test

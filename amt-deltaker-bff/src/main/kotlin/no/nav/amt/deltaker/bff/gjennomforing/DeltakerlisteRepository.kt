@@ -3,13 +3,9 @@ package no.nav.amt.deltaker.bff.gjennomforing
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.bff.model.Deltakerliste
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.utils.prefixColumn
-import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
-import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.deltaker.Arrangor
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -19,50 +15,6 @@ import java.util.UUID
 
 class DeltakerlisteRepository {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    /**
-     * Henter antall deltakere per deltakerstatus for en gjennomføring.
-     *
-     * Aggregerer deltakere etter status, uavhengig av øvrige filter (f.eks. harForslagFraArrangor).
-     * Statuser må spesifiseres i requesten — returnerer tom map hvis ingen deltakere finnes.
-     *
-     * @param request inneholder gjennomforingId og statuser (påkrevd, må være ikke-tomt)
-     * @return Map av deltakerstatus til antall deltakere med den statusen
-     * @throws IllegalArgumentException hvis request.statuser er tomt
-     */
-    fun getDeltakereCountPerStatus(request: TiltaksKoordinatorDeltakerlisteRequest): DeltakerlisteFilterCountsResponse {
-        require(request.statuser.isNotEmpty()) { "Statuser må spesifiseres for å hente deltakerantall per status" }
-
-        val rows = Database.query { session ->
-            session
-                .run(
-                    queryOf(
-                        DELTAKERE_COUNT_SQL,
-                        mapOf(
-                            "deltakerliste_id" to request.gjennomforingId,
-                            "statuser" to request.statuser.map { it.name }.toTypedArray(),
-                        ),
-                    ).map { row ->
-                        CountPerStatusRow(
-                            status = DeltakerStatus.Type.valueOf(row.string("type")),
-                            count = row.int("count"),
-                            erNyDeltakerCount = row.int("er_ny_deltaker_count"),
-                            harOppdateringFraNavCount = row.int("har_oppdatering_fra_nav_count"),
-                            harAktivtForslagCount = row.int("har_aktivt_forslag_count"),
-                        )
-                    }.asList,
-                )
-        }
-
-        return DeltakerlisteFilterCountsResponse(
-            statusCounts = rows.associate { it.status to it.count },
-            handlingCounts = mapOf(
-                HandlingFilterValg.NyeDeltakere to rows.sumOf { it.erNyDeltakerCount },
-                HandlingFilterValg.OppdateringFraNav to rows.sumOf { it.harOppdateringFraNavCount },
-                HandlingFilterValg.AktiveForslag to rows.sumOf { it.harAktivtForslagCount },
-            ),
-        )
-    }
 
     fun upsert(deltakerliste: Deltakerliste) {
         val sql =
@@ -179,54 +131,6 @@ class DeltakerlisteRepository {
     }
 
     companion object {
-        private data class CountPerStatusRow(
-            val status: DeltakerStatus.Type,
-            val count: Int,
-            val erNyDeltakerCount: Int,
-            val harOppdateringFraNavCount: Int,
-            val harAktivtForslagCount: Int,
-        )
-
-        private val DELTAKERE_COUNT_SQL =
-            """
-            WITH d AS (
-                SELECT id
-                FROM deltaker
-                WHERE deltakerliste_id = :deltakerliste_id
-            ),
-            uh_flags AS (
-                SELECT
-                    deltaker_id,
-                    BOOL_OR(hendelse->>'type' IN ('InnbyggerGodkjennUtkast', 'NavGodkjennUtkast')) AS er_ny_deltaker,
-                    BOOL_OR(hendelse->>'type' IN ('IkkeAktuell', 'AvsluttDeltakelse', 'AvbrytDeltakelse', 'ReaktiverDeltakelse')) AS har_oppdatering_fra_nav
-                FROM 
-                    ulest_hendelse AS uh
-                    JOIN d ON d.id = uh.deltaker_id
-                GROUP BY deltaker_id
-            )
-            
-            SELECT
-                ds.type,
-                COUNT(*) AS count,
-                COUNT(*) FILTER (WHERE uh.er_ny_deltaker)         AS er_ny_deltaker_count,
-                COUNT(*) FILTER (WHERE uh.har_oppdatering_fra_nav) AS har_oppdatering_fra_nav_count,
-                COUNT(*) FILTER (WHERE af.har_aktivt)             AS har_aktivt_forslag_count
-            FROM 
-                d
-                JOIN deltaker_status ds
-                    ON ds.deltaker_id = d.id
-                    AND ds.type = ANY(:statuser)
-                LEFT JOIN uh_flags uh ON uh.deltaker_id = d.id
-                LEFT JOIN LATERAL (
-                    SELECT true AS har_aktivt
-                    FROM forslag f
-                    WHERE f.deltaker_id = d.id
-                    AND f.status->>'type' = 'VenterPaSvar'
-                    LIMIT 1
-                ) af ON true
-            GROUP BY ds.type;                
-            """.trimIndent()
-
         private val col = prefixColumn("dl")
 
         fun rowMapper(row: Row): Deltakerliste = Deltakerliste(

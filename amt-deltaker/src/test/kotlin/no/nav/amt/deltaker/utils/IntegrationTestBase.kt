@@ -464,6 +464,7 @@ abstract class IntegrationTestBase {
                     vedtakRepository = vedtakRepository,
                     navAnsattService = navAnsattService,
                     deltakerResponseBuilder = deltakerResponseBuilder,
+                    tiltakskoordinatorViewRepository = tiltakskoordinatorViewRepository,
                     tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
                     deltakerlisteRepository = deltakerlisteRepository,
                     arrangorService = arrangorService,

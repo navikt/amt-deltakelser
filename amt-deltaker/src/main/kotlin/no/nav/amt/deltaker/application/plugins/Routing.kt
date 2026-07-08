@@ -33,6 +33,7 @@ import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRep
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
@@ -69,6 +70,7 @@ fun Application.configureRouting(
     tiltakskoordinatorService: TiltakskoordinatorService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteRepository: DeltakerlisteRepository,
+    tiltakskoordinatorViewRepository: TiltakskoordinatorViewRepository,
     deltakerHistorikkService: DeltakerHistorikkService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
@@ -160,6 +162,7 @@ fun Application.configureRouting(
 
         registerTiltakskoordinatorApi(
             deltakerlisteRepository = deltakerlisteRepository,
+            tiltakskoordinatorViewRepository = tiltakskoordinatorViewRepository,
             deltakerResponseBuilder = deltakerResponseBuilder,
             tiltakskoordinatorService = tiltakskoordinatorService,
             tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
