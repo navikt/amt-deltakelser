@@ -1,6 +1,6 @@
 CREATE TABLE ulest_hendelse (
     id uuid PRIMARY KEY,
-    deltaker_id uuid NOT NULL,
+    deltaker_id uuid NOT NULL REFERENCES deltaker (id) ON DELETE CASCADE,
     opprettet timestamp with time zone NOT NULL,
     ansvarlig jsonb,
     hendelse jsonb NOT NULL,
