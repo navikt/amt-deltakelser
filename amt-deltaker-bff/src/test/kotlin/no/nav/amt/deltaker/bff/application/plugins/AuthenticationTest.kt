@@ -94,6 +94,7 @@ class AuthenticationTest {
                 unleash = mockk(),
                 tiltakskoordinatorTilgangskontrollService = mockk(),
                 tiltakskoordinatorTilgangRepository = mockk(),
+                ulestHendelseRepository = mockk(),
                 paameldingClient = mockk(),
                 opplaringKategoriseringClient = mockk(),
                 selfServiceTilgangService = mockk(),

@@ -3,9 +3,6 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseFlags
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseTypeCounts
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
@@ -89,26 +86,5 @@ class TiltakskoordinatorClient(
             "tiltakskoordinator/deltakere/gi-avslag",
             requestBody,
         ).failIfNotSuccess("Kunne ikke gi avslag i amt-deltaker.").body()
-    }
-
-    suspend fun getUlestHendelserForDeltaker(deltakerId: UUID): List<UlestHendelse> = performGet("tiltakskoordinator/ulest-hendelse/$deltakerId")
-        .failIfNotSuccess("Fant ikke uleste hendelser for deltaker $deltakerId i amt-deltaker.")
-        .body()
-
-    suspend fun getUlestHendelserForDeltakere(deltakerIder: Set<UUID>): Map<UUID, UlestHendelseFlags> = performPost(
-        "tiltakskoordinator/ulest-hendelse/deltakere",
-        deltakerIder.toList(),
-    ).failIfNotSuccess("Fant ikke uleste hendelser for deltakere i amt-deltaker.")
-        .body()
-
-    suspend fun getUlestHendelseTypeCountsForDeltakere(deltakerIder: Set<UUID>): UlestHendelseTypeCounts = performPost(
-        "tiltakskoordinator/ulest-hendelse/type-counts",
-        deltakerIder.toList(),
-    ).failIfNotSuccess("Fant ikke uleste hendelse-teller for deltakere i amt-deltaker.")
-        .body()
-
-    suspend fun slettUlestHendelse(id: UUID) {
-        performDelete("tiltakskoordinator/ulest-hendelse/$id")
-            .failIfNotSuccess("Kunne ikke slette ulest hendelse $id i amt-deltaker.")
     }
 }

@@ -36,6 +36,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilde
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
@@ -75,6 +76,7 @@ fun Application.configureRouting(
     unleash: Unleash,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
+    ulestHendelseRepository: UlestHendelseRepository,
     opplaringKategoriseringClient: OpplaringKategoriseringClient,
     tiltakskoordinatorResponseBuilder: ResponseBuilder,
     tiltakskoordinatorClient: TiltakskoordinatorClient,
@@ -149,7 +151,7 @@ fun Application.configureRouting(
         registerTiltakskoordinatorDeltakerApi(
             tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
             amtDeltakerClient = amtDeltakerClient,
-            tiltakskoordinatorClient = tiltakskoordinatorClient,
+            ulestHendelseRepository = ulestHendelseRepository,
         )
 
         registerTiltakskoordinatorDeltakerlisteApi(
@@ -163,7 +165,7 @@ fun Application.configureRouting(
             deltakerlisteRepository = deltakerlisteRepository,
         )
 
-        registerUlestHendelseApi(tiltakskoordinatorClient)
+        registerUlestHendelseApi(ulestHendelseRepository)
 
         registerArrangorsokApi(arrangorsokClient = arrangorsokClient)
 

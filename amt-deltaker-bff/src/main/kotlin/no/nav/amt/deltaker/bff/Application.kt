@@ -337,10 +337,11 @@ fun Application.module() {
         unleash = unleash,
         tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
         tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
+        ulestHendelseRepository = ulestHendelseRepository,
         selfServiceTilgangService = selfServiceTilgangService,
         opplaringKategoriseringClient = opplaringKategoriseringClient,
         tiltakskoordinatorClient = tiltakskoordinatorClient,
-        tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(),
+        tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(ulestHendelseRepository),
     )
     configureMonitoring()
 

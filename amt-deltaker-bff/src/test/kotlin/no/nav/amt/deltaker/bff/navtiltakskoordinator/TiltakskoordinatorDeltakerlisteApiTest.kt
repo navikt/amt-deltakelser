@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
-    override val tiltakskoordinatorResponseBuilder = ResponseBuilder()
+    override val tiltakskoordinatorResponseBuilder = ResponseBuilder(ulestHendelseRepository)
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
@@ -202,7 +202,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
             coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakereRequest()) } returns deltakereResponse
             every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
 
             deltakere.forEach {
                 every {
@@ -237,7 +237,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakereRequest()) } returns
                 tiltakskoordinatorDeltakereResponse(listOf(deltaker1, deltaker2))
             every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
             every {
                 tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
             } returns true
@@ -266,7 +266,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(deltakereRequest()) } returns
                 tiltakskoordinatorDeltakereResponse(listOf(skjermetDeltaker))
             every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
             every {
                 tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(
                     any(),
@@ -303,7 +303,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
             coEvery { tiltakskoordinatorClient.getDeltakereForGjennomforing(request) } returns deltakereResponse
             every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
             every {
                 tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
             } returns true
@@ -451,7 +451,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
                     endretAv = any(),
                 )
             } returns listOf(oppdateringResponse)
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
             every {
                 tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
             } returns true
@@ -482,7 +482,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             coEvery {
                 tiltakskoordinatorClient.tildelPlass(any(), any(), any())
             } returns listOf(oppdateringResponse)
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
             every {
                 tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
             } returns true
@@ -529,7 +529,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
                     endretAv = any(),
                 )
             } returns listOf(oppdateringResponse)
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
             every {
                 tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
             } returns true
@@ -607,7 +607,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
                     endretAv = any(),
                 )
             } returns listOf(oppdateringResponse)
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
             every {
                 tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
             } returns true
@@ -672,7 +672,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
                     endretAv = any(),
                 )
             } returns oppdateringResponse
-            coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
             every {
                 tiltakskoordinatorTilgangskontrollService.harTilgangTilPersonMedRestriksjoner(any(), any(), any())
             } returns true

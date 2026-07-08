@@ -1,26 +1,26 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseFlags
 import java.util.UUID
 
-class ResponseBuilder {
+class ResponseBuilder(
+    private val ulestHendelseRepository: UlestHendelseRepository,
+) {
     fun toOppdatertDeltakerResponse(
         deltakere: List<DeltakerOppdateringResponse>,
         kanSeInnbyggersNavn: (TiltakskoordinatorDeltakerIListeResponse) -> Boolean,
-        ulesteHendelserPerDeltaker: Map<UUID, UlestHendelseFlags> = emptyMap(),
     ) = toDeltakereResponse(
         deltakere = deltakere.map { it.deltaker },
         feilkoder = deltakere.associateBy { it.deltaker.id }.mapValues { it.value.feilkode },
         kanSeInnbyggersNavn = kanSeInnbyggersNavn,
-        ulesteHendelserPerDeltaker = ulesteHendelserPerDeltaker,
     )
 
     /**
      * Bygger liste-respons fra den spissede [TiltakskoordinatorDeltakerIListeResponse] fra amt-deltaker.
-     * Ulestehendelser hentes i bulk av kalleren og sendes inn her for å unngå N+1-spørringer.
+     * Henter ulestehendelser i bulk for å unngå N+1-spørringer.
      * Feilkode vil i tilfelle ren uthenting alltid være null men settes
      * i tilfelle en oppdatering av deltaker har feilet.
      */
@@ -28,8 +28,10 @@ class ResponseBuilder {
         deltakere: List<TiltakskoordinatorDeltakerIListeResponse>,
         feilkoder: Map<UUID, DeltakerOppdateringFeilkode?> = emptyMap(),
         kanSeInnbyggersNavn: (TiltakskoordinatorDeltakerIListeResponse) -> Boolean,
-        ulesteHendelserPerDeltaker: Map<UUID, UlestHendelseFlags> = emptyMap(),
     ): List<DeltakerResponse> {
+        val ulesteHendelserPerDeltaker = ulestHendelseRepository
+            .getForDeltakere(deltakere.map { it.id }.toSet())
+
         return deltakere.map { deltaker ->
             val ulestFlags = ulesteHendelserPerDeltaker[deltaker.id]
             buildDeltakerResponse(

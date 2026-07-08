@@ -4,9 +4,12 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJERMET_PERSON_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerModel
@@ -264,7 +267,8 @@ class ResponseBuilderTest {
 
     @Nested
     inner class ToOppdatertDeltakerResponseTest {
-        private val responseBuilder = ResponseBuilder()
+        private val ulestHendelseRepository = mockk<UlestHendelseRepository>()
+        private val responseBuilder = ResponseBuilder(ulestHendelseRepository)
 
         @Test
         fun `toOppdatertDeltakerResponse - propagerer feilkode fra DeltakerOppdateringResponse`() {
@@ -275,6 +279,8 @@ class ResponseBuilderTest {
                     feilkode = no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode.UGYLDIG_STATE,
                 ),
             )
+
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
 
             val result = responseBuilder.toOppdatertDeltakerResponse(
                 deltakere = oppdateringer,
@@ -296,6 +302,8 @@ class ResponseBuilderTest {
                 ),
             )
 
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
+
             val result = responseBuilder.toOppdatertDeltakerResponse(
                 deltakere = oppdateringer,
                 kanSeInnbyggersNavn = { true },
@@ -312,6 +320,8 @@ class ResponseBuilderTest {
                 sisteVurderingstype = no.nav.amt.lib.models.arrangor.melding.Vurderingstype.OPPFYLLER_KRAVENE,
                 kanEndres = false,
             )
+
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
 
             val result = responseBuilder.toDeltakereResponse(
                 deltakere = listOf(deltaker),
@@ -339,6 +349,8 @@ class ResponseBuilderTest {
             val deltaker = lagTiltakskoordinatorDeltakerResponse(
                 navBruker = lagTiltakskoordinatorNavBrukerResponse(erSkjermet = true),
             )
+
+            every { ulestHendelseRepository.getForDeltakere(any()) } returns emptyMap()
 
             val result = responseBuilder.toDeltakereResponse(
                 deltakere = listOf(deltaker),

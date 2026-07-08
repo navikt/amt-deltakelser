@@ -6,11 +6,8 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.jackson3.jackson
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
-import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.bff.application.plugins.configureRequestValidation
@@ -118,18 +115,13 @@ abstract class IntegrationTestBase {
                     unleash = unleash,
                     tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
+                    ulestHendelseRepository = ulestHendelseRepository,
                     paameldingClient = paameldingClient,
                     opplaringKategoriseringClient = opplaringKategoriseringClient,
                     selfServiceTilgangService = selfServiceTilgangskontrollService,
                     tiltakskoordinatorClient = tiltakskoordinatorClient,
                     tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
                 )
-
-                coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltaker(any()) } returns emptyList()
-                coEvery { tiltakskoordinatorClient.getUlestHendelserForDeltakere(any()) } returns emptyMap()
-                coEvery { tiltakskoordinatorClient.getUlestHendelseTypeCountsForDeltakere(any()) } returns
-                    no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseTypeCounts()
-                coEvery { tiltakskoordinatorClient.slettUlestHendelse(any()) } just runs
 
                 attributes.put(isReadyKey, appIsReady)
             }
