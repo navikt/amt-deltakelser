@@ -85,6 +85,34 @@ class UlestHendelseRepository {
         }
     }
 
+    fun getRangeOrderedByOpprettet(
+        offset: Int,
+        limit: Int,
+    ): List<UlestHendelse> {
+        if (limit <= 0) return emptyList()
+
+        val query = queryOf(
+            """
+            SELECT
+                id,
+                deltaker_id,
+                opprettet,
+                ansvarlig,
+                hendelse
+            FROM ulest_hendelse
+            ORDER BY opprettet ASC, id ASC
+            OFFSET :offset
+            LIMIT :limit
+            """.trimIndent(),
+            mapOf(
+                "offset" to offset,
+                "limit" to limit,
+            ),
+        ).map(::rowMapper).asList
+
+        return Database.query { session -> session.run(query) }
+    }
+
     fun upsert(ulestHendelse: UlestHendelse) {
         val sql =
             """

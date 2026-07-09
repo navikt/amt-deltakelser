@@ -11,6 +11,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.mockk.every
+import io.mockk.just
+import io.mockk.runs
 import io.mockk.verify
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
@@ -104,6 +106,27 @@ class UlestHendelseApiTest : IntegrationTestBase() {
 
         responseBody shouldBe objectMapper.writeValueAsString(expected)
         verify(exactly = 1) { ulestHendelseRepository.getTypeCountsForDeltakere(setOf(deltakerId)) }
+    }
+
+    @Test
+    fun `post upsert - upserter uleste hendelser`() {
+        val ulesteHendelser = listOf(lagUlestHendelse(UUID.randomUUID()), lagUlestHendelse(UUID.randomUUID()))
+        every { ulestHendelseRepository.upsert(any()) } just runs
+
+        val responseBody = withTestApplicationContext { client ->
+            client
+                .post("/tiltakskoordinator/ulest-hendelse/upsert") {
+                    bearerAuth(systemToken)
+                    contentType(ContentType.Application.Json)
+                    setBody(objectMapper.writeValueAsString(ulesteHendelser))
+                }.apply {
+                    status shouldBe HttpStatusCode.OK
+                }.body<String>()
+        }
+
+        responseBody shouldBe """{"upserted":2}"""
+        verify(exactly = 1) { ulestHendelseRepository.upsert(ulesteHendelser[0]) }
+        verify(exactly = 1) { ulestHendelseRepository.upsert(ulesteHendelser[1]) }
     }
 
     @Test

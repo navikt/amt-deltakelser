@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
@@ -87,4 +88,18 @@ class TiltakskoordinatorClient(
             requestBody,
         ).failIfNotSuccess("Kunne ikke gi avslag i amt-deltaker.").body()
     }
+
+    suspend fun upsertUlesteHendelser(ulesteHendelser: List<UlestHendelse>): Int {
+        val response = performPost(
+            "tiltakskoordinator/ulest-hendelse/upsert",
+            ulesteHendelser,
+        ).failIfNotSuccess("Kunne ikke upserte uleste hendelser i amt-deltaker.")
+            .body<UpsertUlesteHendelserResponse>()
+
+        return response.upserted
+    }
+
+    private data class UpsertUlesteHendelserResponse(
+        val upserted: Int,
+    )
 }

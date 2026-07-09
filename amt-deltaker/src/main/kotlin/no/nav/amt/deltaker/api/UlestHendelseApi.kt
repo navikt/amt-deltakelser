@@ -10,6 +10,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import java.util.UUID
 
 fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepository) {
@@ -31,6 +32,12 @@ fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepos
                 call.respond(ulestHendelseRepository.getTypeCountsForDeltakere(deltakerIder))
             }
 
+            post("/upsert") {
+                val ulesteHendelser = call.receive<List<UlestHendelse>>()
+                ulesteHendelser.forEach(ulestHendelseRepository::upsert)
+                call.respond(UpsertUlesteHendelserResponse(upserted = ulesteHendelser.size))
+            }
+
             delete("/{id}") {
                 val id = call.parameters["id"]?.let(UUID::fromString)
                     ?: throw IllegalArgumentException("Påkrevd URL parameter 'id' mangler.")
@@ -40,3 +47,7 @@ fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepos
         }
     }
 }
+
+private data class UpsertUlesteHendelserResponse(
+    val upserted: Int,
+)

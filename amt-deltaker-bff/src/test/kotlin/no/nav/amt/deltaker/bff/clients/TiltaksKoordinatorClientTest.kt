@@ -8,6 +8,8 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
@@ -24,6 +26,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.UUID
 import kotlin.reflect.KClass
+import java.time.LocalDateTime
 
 class TiltaksKoordinatorClientTest {
     @Nested
@@ -196,6 +199,40 @@ class TiltaksKoordinatorClientTest {
                 )
             }
 
+            @Nested
+            inner class UpsertUlesteHendelser {
+                val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/ulest-hendelse/upsert"
+                val expectedErrorMessage = "Kunne ikke upserte uleste hendelser i amt-deltaker."
+                val upsertUlesteHendelserLambda: suspend (TiltakskoordinatorClient) -> Int =
+                    { client -> client.upsertUlesteHendelser(lagUlesteHendelser()) }
+
+                @ParameterizedTest
+                @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+                fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+                    val (statusCode, expectedExceptionType) = testCase
+                    runFailureTest(
+                        expectedExceptionType,
+                        statusCode,
+                        expectedUrl,
+                        expectedErrorMessage,
+                        upsertUlesteHendelserLambda,
+                        expectedMethod = HttpMethod.Post,
+                    )
+                }
+
+                @Test
+                fun `skal returnere antall upsertede hendelser`() = runTest {
+                    val client = createTiltaksKoordinatorClient(
+                        expectedUrl = expectedUrl,
+                        statusCode = HttpStatusCode.OK,
+                        responseBody = mapOf("upserted" to 2),
+                        expectedMethod = HttpMethod.Post,
+                    )
+
+                    client.upsertUlesteHendelser(lagUlesteHendelser()) shouldBe 2
+                }
+            }
+
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
@@ -225,6 +262,23 @@ class TiltaksKoordinatorClientTest {
             totalCount = 1,
             pageSize = 50,
             data = listOf(lagTiltakskoordinatorDeltakerResponse()),
+        )
+
+        private fun lagUlesteHendelser() = listOf(
+            UlestHendelse(
+                id = UUID.randomUUID(),
+                opprettet = LocalDateTime.now(),
+                deltakerId = UUID.randomUUID(),
+                ansvarlig = null,
+                hendelse = UlestHendelseType.NavGodkjennUtkast,
+            ),
+            UlestHendelse(
+                id = UUID.randomUUID(),
+                opprettet = LocalDateTime.now(),
+                deltakerId = UUID.randomUUID(),
+                ansvarlig = null,
+                hendelse = UlestHendelseType.InnbyggerGodkjennUtkast,
+            ),
         )
 
         private fun runFailureTest(
