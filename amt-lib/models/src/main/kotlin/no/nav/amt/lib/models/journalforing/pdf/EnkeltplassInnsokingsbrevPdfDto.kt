@@ -25,8 +25,8 @@ data class EnkeltplassInnsokingsbrevPdfDto(
     )
 
     data class DeltakerlisteDto(
-        val startdato: LocalDate?,
-        val sluttdato: LocalDate?,
+        val startdato: LocalDate,
+        val sluttdato: LocalDate,
         val oppstartstype: Oppstartstype,
     )
 
