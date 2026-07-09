@@ -41,7 +41,3 @@ fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepos
         }
     }
 }
-
-private data class UpsertUlesteHendelserResponse(
-    val upserted: Int,
-)
