@@ -14,7 +14,6 @@ import io.mockk.verify
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
-import no.nav.amt.deltaker.bff.utils.generateJWT
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.UUID
@@ -63,12 +62,15 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `skal returnere Forbidden for intern sync nar request ikke er intern`() {
+    fun `skal synce intern endpoint uten token nar request er intern`() {
+        every { ulestHendelseRepository.getRangeOrderedByOpprettet(0, 10) } returns emptyList()
+        coEvery { tiltakskoordinatorClient.upsertUlesteHendelser(emptyList()) } returns 0
+
         val response = withTestApplicationContext { client ->
             client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=0&tom=9")
         }
 
-        response.status shouldBe HttpStatusCode.Forbidden
+        response.status shouldBe HttpStatusCode.OK
     }
 
     @Test
@@ -83,7 +85,7 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         coEvery { tiltakskoordinatorClient.upsertUlesteHendelser(hendelser) } returns hendelser.size
 
         val response = withTestApplicationContext { client ->
-            client.post("http://127.0.0.1/internal/tiltakskoordinator/ulest-hendelse/sync?fom=$fom&tom=$tom")
+            client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=$fom&tom=$tom")
         }
 
         response.status shouldBe HttpStatusCode.OK
@@ -94,7 +96,7 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     @Test
     fun `skal returnere BadRequest nar sync-parametere er ugyldige`() {
         val response = withTestApplicationContext { client ->
-            client.post("http://127.0.0.1/internal/tiltakskoordinator/ulest-hendelse/sync?fom=5&tom=2")
+            client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=5&tom=2")
         }
 
         response.status shouldBe HttpStatusCode.BadRequest
