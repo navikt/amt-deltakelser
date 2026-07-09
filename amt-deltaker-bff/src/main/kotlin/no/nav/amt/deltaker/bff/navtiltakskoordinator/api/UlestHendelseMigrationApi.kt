@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 
+// Midlertidig API for migrering ved flytting av tabell
 fun Routing.registerUlestHendelseMigrationApi(
     ulestHendelseRepository: UlestHendelseRepository,
     tiltakskoordinatorClient: TiltakskoordinatorClient,

@@ -89,6 +89,7 @@ class TiltakskoordinatorClient(
         ).failIfNotSuccess("Kunne ikke gi avslag i amt-deltaker.").body()
     }
 
+    // Midlertidig API for migrering ved flytting av tabell
     suspend fun upsertUlesteHendelser(ulesteHendelser: List<UlestHendelse>): Int {
         val response = performPost(
             "tiltakskoordinator/ulest-hendelse/upsert",

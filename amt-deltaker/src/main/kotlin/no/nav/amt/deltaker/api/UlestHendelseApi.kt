@@ -32,6 +32,7 @@ fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepos
                 call.respond(ulestHendelseRepository.getTypeCountsForDeltakere(deltakerIder))
             }
 
+            // Midlertidig API for migrering ved flytting av tabell
             post("/upsert") {
                 val ulesteHendelser = call.receive<List<UlestHendelse>>()
                 ulesteHendelser.forEach(ulestHendelseRepository::upsert)

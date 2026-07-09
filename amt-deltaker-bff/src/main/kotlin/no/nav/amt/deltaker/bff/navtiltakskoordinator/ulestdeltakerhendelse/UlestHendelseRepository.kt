@@ -85,6 +85,7 @@ class UlestHendelseRepository {
         }
     }
 
+    // Midlertidig API for migrering ved flytting av tabell
     fun getRangeOrderedByOpprettet(
         offset: Int,
         limit: Int,
