@@ -93,19 +93,4 @@ class TiltakskoordinatorClient(
         performDelete("tiltakskoordinator/ulest-hendelse/$id")
             .failIfNotSuccess("Kunne ikke slette ulest hendelse i amt-deltaker.")
     }
-
-    // Midlertidig API for migrering ved flytting av tabell
-    suspend fun upsertUlesteHendelser(ulesteHendelser: List<UlestHendelse>): Int {
-        val response = performPost(
-            "internal/tiltakskoordinator/ulest-hendelse/upsert",
-            ulesteHendelser,
-        ).failIfNotSuccess("Kunne ikke upserte uleste hendelser i amt-deltaker.")
-            .body<UpsertUlesteHendelserResponse>()
-
-        return response.upserted
-    }
-
-    private data class UpsertUlesteHendelserResponse(
-        val upserted: Int,
-    )
 }

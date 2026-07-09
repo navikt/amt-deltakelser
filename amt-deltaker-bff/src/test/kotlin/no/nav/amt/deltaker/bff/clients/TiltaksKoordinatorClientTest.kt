@@ -199,40 +199,6 @@ class TiltaksKoordinatorClientTest {
                 )
             }
 
-        @Nested
-        inner class UpsertUlesteHendelser {
-            val expectedUrl = "$CLIENT_BASE_URL/internal/tiltakskoordinator/ulest-hendelse/upsert"
-            val expectedErrorMessage = "Kunne ikke upserte uleste hendelser i amt-deltaker."
-            val upsertUlesteHendelserLambda: suspend (TiltakskoordinatorClient) -> Int =
-                { client -> client.upsertUlesteHendelser(lagUlesteHendelser()) }
-
-            @ParameterizedTest
-            @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-            fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
-                val (statusCode, expectedExceptionType) = testCase
-                runFailureTest(
-                    expectedExceptionType,
-                    statusCode,
-                    expectedUrl,
-                    expectedErrorMessage,
-                    upsertUlesteHendelserLambda,
-                    expectedMethod = HttpMethod.Post,
-                )
-            }
-
-            @Test
-            fun `skal returnere antall upsertede hendelser`() = runTest {
-                val client = createTiltaksKoordinatorClient(
-                    expectedUrl = expectedUrl,
-                    statusCode = HttpStatusCode.OK,
-                    responseBody = mapOf("upserted" to 2),
-                    expectedMethod = HttpMethod.Post,
-                )
-
-                client.upsertUlesteHendelser(lagUlesteHendelser()) shouldBe 2
-            }
-        }
-
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
         fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
