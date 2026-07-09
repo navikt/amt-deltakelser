@@ -29,7 +29,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.KladdService
-import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
+import no.nav.amt.lib.ktor.auth.requireInternal
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -56,10 +56,6 @@ fun Routing.registerInternalApi(
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
     val log: Logger = LoggerFactory.getLogger(javaClass)
-
-    fun requireInternal(remoteAddress: String) {
-        if (!isInternal(remoteAddress)) throw AuthorizationException("Ikke tilgang til api")
-    }
 
     fun slettDeltaker(deltakerId: UUID) = Database.transaction {
         innsokRepository.deleteForDeltaker(deltakerId)
@@ -455,5 +451,3 @@ data class RepubliserTiltakskoderRequest(
 data class OpprettEnkeltplassGjennomforingerInternalRequest(
     val gjennomforingIder: List<UUID>,
 )
-
-fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"
