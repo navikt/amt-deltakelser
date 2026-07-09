@@ -93,8 +93,4 @@ class TiltakskoordinatorClient(
         performDelete("tiltakskoordinator/ulest-hendelse/$id")
             .failIfNotSuccess("Kunne ikke slette ulest hendelse i amt-deltaker.")
     }
-
-    private data class UpsertUlesteHendelserResponse(
-        val upserted: Int,
-    )
 }
