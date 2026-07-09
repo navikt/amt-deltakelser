@@ -96,7 +96,7 @@ class EnkeltplassInnsokingsbrevTest :
                             forerkortOgSertifiseringer = listOf(
                                 "D1 - Minibuss",
                                 "Førstehjelpskurs",
-                                "Beskrittelse av sårbehandling",
+                                "Beskrivelse av sårbehandling",
                             ),
                         ),
                         prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
@@ -107,7 +107,7 @@ class EnkeltplassInnsokingsbrevTest :
                     doc.text() shouldContain "Førerkort og sertifisering:"
                     doc.text() shouldContain "D1 - Minibuss"
                     doc.text() shouldContain "Førstehjelpskurs"
-                    doc.text() shouldContain "Beskrittelse av sårbehandling"
+                    doc.text() shouldContain "Beskrivelse av sårbehandling"
                 }
 
                 it("Arbeidsmarkedsopplaering - skal ikke vise sertifiseringer når listen er tom") {
