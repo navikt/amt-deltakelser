@@ -46,6 +46,23 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `skal returnere NoContent og slette lokalt selv om sletting i amt-deltaker feiler`() {
+        val ulestHendelseId = UUID.randomUUID()
+        coEvery { tiltakskoordinatorClient.slettUlestHendelse(ulestHendelseId) } throws IllegalStateException("feil")
+        every { ulestHendelseRepository.delete(ulestHendelseId) } just runs
+
+        val response = withTestApplicationContext { client ->
+            client.delete("/tiltakskoordinator/ulest-hendelse/$ulestHendelseId") {
+                bearerAuth(bearerTokenInTest)
+            }
+        }
+
+        response.status shouldBe HttpStatusCode.NoContent
+        coVerify(exactly = 1) { tiltakskoordinatorClient.slettUlestHendelse(ulestHendelseId) }
+        verify(exactly = 1) { ulestHendelseRepository.delete(ulestHendelseId) }
+    }
+
+    @Test
     fun `skal returnere Unauthorized for intern sync nar token mangler`() {
         val response = withTestApplicationContext { client ->
             client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=0&tom=9")
