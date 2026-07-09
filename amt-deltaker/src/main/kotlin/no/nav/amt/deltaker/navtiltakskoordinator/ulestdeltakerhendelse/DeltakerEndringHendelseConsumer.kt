@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.utils.AUTO_OFFSET_RESET_LATEST
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -22,7 +22,7 @@ class DeltakerEndringHendelseConsumer(
         topic = Environment.DELTAKER_HENDELSE_TOPIC,
         // Vi ønsker ikke at denne consumeren leser inn gamle innslag, ettersom disse kan
         // ha blitt slettet direkte i databasen uten at det finnes Kafka-meldinger om dette.
-        kafkaAutoOffsetReset = AUTO_OFFSET_RESET_LATEST,
+        kafkaAutoOffsetReset = KafkaConfigImpl.AUTO_OFFSET_RESET_LATEST,
         consumeFunc = ::consume,
     )
 

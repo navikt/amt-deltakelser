@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -19,7 +20,7 @@ class DeltakerEndringHendelseConsumer(
 
     private val consumer = KafkaConsumerFactory.buildManagedKafkaConsumer(
         topic = Environment.DELTAKER_HENDELSE_TOPIC,
-        kafkaAutoOffsetReset = KafkaConsumerFactory.AUTO_OFFSET_RESET_LATEST,
+        kafkaAutoOffsetReset = KafkaConfigImpl.AUTO_OFFSET_RESET_LATEST,
         consumeFunc = ::consume,
     )
 

@@ -10,9 +10,6 @@ import org.apache.kafka.common.serialization.UUIDDeserializer
 import java.util.UUID
 
 object KafkaConsumerFactory {
-    const val AUTO_OFFSET_RESET_EARLIEST = "earliest"
-    const val AUTO_OFFSET_RESET_LATEST = "latest"
-
     /**
      * Oppretter instans av [ManagedKafkaConsumer] med [UUID] som nøkkel og
      * nullable [String] som verdi.
@@ -26,7 +23,7 @@ object KafkaConsumerFactory {
     fun buildManagedKafkaConsumer(
         topic: String,
         consumerGroupId: String = Environment.KAFKA_CONSUMER_GROUP_ID,
-        kafkaAutoOffsetReset: String = AUTO_OFFSET_RESET_EARLIEST, // alt: AUTO_OFFSET_RESET_LATEST
+        kafkaAutoOffsetReset: String = KafkaConfigImpl.AUTO_OFFSET_RESET_EARLIEST,
         consumeFunc: suspend (key: UUID, value: String?) -> Unit,
         skipFilter: (ConsumerRecord<UUID, String?>) -> Boolean = { false },
     ): ManagedKafkaConsumer<UUID, String?> {

@@ -8,7 +8,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 
 class LocalKafkaConfig(
     private val kafkaBrokers: String = System.getenv("KAFKA_BROKERS") ?: "localhost:9092",
-    private val kafkaAutoOffsetReset: String = "earliest",
+    private val kafkaAutoOffsetReset: String = KafkaConfigImpl.AUTO_OFFSET_RESET_EARLIEST,
 ) : KafkaConfig {
     override fun commonConfig() = mapOf(
         CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers,
