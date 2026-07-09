@@ -92,7 +92,7 @@ class TiltakskoordinatorClient(
     // Midlertidig API for migrering ved flytting av tabell
     suspend fun upsertUlesteHendelser(ulesteHendelser: List<UlestHendelse>): Int {
         val response = performPost(
-            "tiltakskoordinator/ulest-hendelse/upsert",
+            "internal/tiltakskoordinator/ulest-hendelse/upsert",
             ulesteHendelser,
         ).failIfNotSuccess("Kunne ikke upserte uleste hendelser i amt-deltaker.")
             .body<UpsertUlesteHendelserResponse>()

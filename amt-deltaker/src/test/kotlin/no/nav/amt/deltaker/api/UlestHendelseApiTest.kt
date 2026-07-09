@@ -111,11 +111,11 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     @Test
     fun `post upsert - upserter uleste hendelser`() {
         val ulesteHendelser = listOf(lagUlestHendelse(UUID.randomUUID()), lagUlestHendelse(UUID.randomUUID()))
-        every { ulestHendelseRepository.upsert(any()) } just runs
+        every { ulestHendelseRepository.upsertMany(ulesteHendelser) } just runs
 
         val responseBody = withTestApplicationContext { client ->
             client
-                .post("/tiltakskoordinator/ulest-hendelse/upsert") {
+                .post("/internal/tiltakskoordinator/ulest-hendelse/upsert") {
                     bearerAuth(systemToken)
                     contentType(ContentType.Application.Json)
                     setBody(objectMapper.writeValueAsString(ulesteHendelser))
@@ -125,8 +125,7 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         }
 
         responseBody shouldBe """{"upserted":2}"""
-        verify(exactly = 1) { ulestHendelseRepository.upsert(ulesteHendelser[0]) }
-        verify(exactly = 1) { ulestHendelseRepository.upsert(ulesteHendelser[1]) }
+        verify(exactly = 1) { ulestHendelseRepository.upsertMany(ulesteHendelser) }
     }
 
     @Test

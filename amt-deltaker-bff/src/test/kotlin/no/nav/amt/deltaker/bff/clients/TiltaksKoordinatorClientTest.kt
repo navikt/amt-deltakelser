@@ -201,7 +201,7 @@ class TiltaksKoordinatorClientTest {
 
             @Nested
             inner class UpsertUlesteHendelser {
-                val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/ulest-hendelse/upsert"
+                val expectedUrl = "$CLIENT_BASE_URL/internal/tiltakskoordinator/ulest-hendelse/upsert"
                 val expectedErrorMessage = "Kunne ikke upserte uleste hendelser i amt-deltaker."
                 val upsertUlesteHendelserLambda: suspend (TiltakskoordinatorClient) -> Int =
                     { client -> client.upsertUlesteHendelser(lagUlesteHendelser()) }

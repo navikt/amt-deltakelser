@@ -32,18 +32,20 @@ fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepos
                 call.respond(ulestHendelseRepository.getTypeCountsForDeltakere(deltakerIder))
             }
 
-            // Midlertidig API for migrering ved flytting av tabell
-            post("/upsert") {
-                val ulesteHendelser = call.receive<List<UlestHendelse>>()
-                ulesteHendelser.forEach(ulestHendelseRepository::upsert)
-                call.respond(UpsertUlesteHendelserResponse(upserted = ulesteHendelser.size))
-            }
-
             delete("/{id}") {
                 val id = call.parameters["id"]?.let(UUID::fromString)
                     ?: throw IllegalArgumentException("Påkrevd URL parameter 'id' mangler.")
                 ulestHendelseRepository.delete(id)
                 call.respond(HttpStatusCode.NoContent)
+            }
+        }
+
+        route("/internal/tiltakskoordinator/ulest-hendelse") {
+            // Midlertidig API for migrering ved flytting av tabell
+            post("/upsert") {
+                val ulesteHendelser = call.receive<List<UlestHendelse>>()
+                ulestHendelseRepository.upsertMany(ulesteHendelser)
+                call.respond(UpsertUlesteHendelserResponse(upserted = ulesteHendelser.size))
             }
         }
     }
