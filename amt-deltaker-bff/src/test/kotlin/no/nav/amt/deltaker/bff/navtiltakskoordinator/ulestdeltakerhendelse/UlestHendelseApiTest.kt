@@ -63,12 +63,12 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `skal returnere Unauthorized for intern sync nar token mangler`() {
+    fun `skal returnere Forbidden for intern sync nar request ikke er intern`() {
         val response = withTestApplicationContext { client ->
             client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=0&tom=9")
         }
 
-        response.status shouldBe HttpStatusCode.Unauthorized
+        response.status shouldBe HttpStatusCode.Forbidden
     }
 
     @Test
@@ -83,9 +83,7 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         coEvery { tiltakskoordinatorClient.upsertUlesteHendelser(hendelser) } returns hendelser.size
 
         val response = withTestApplicationContext { client ->
-            client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=$fom&tom=$tom") {
-                bearerAuth(systemToken)
-            }
+            client.post("http://127.0.0.1/internal/tiltakskoordinator/ulest-hendelse/sync?fom=$fom&tom=$tom")
         }
 
         response.status shouldBe HttpStatusCode.OK
@@ -96,25 +94,13 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     @Test
     fun `skal returnere BadRequest nar sync-parametere er ugyldige`() {
         val response = withTestApplicationContext { client ->
-            client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=5&tom=2") {
-                bearerAuth(systemToken)
-            }
+            client.post("http://127.0.0.1/internal/tiltakskoordinator/ulest-hendelse/sync?fom=5&tom=2")
         }
 
         response.status shouldBe HttpStatusCode.BadRequest
     }
 
     companion object {
-        private val systemToken = run {
-            val oid = UUID.randomUUID().toString()
-            generateJWT(
-                consumerClientId = "tiltakspenger-tiltak",
-                navAnsattAzureId = oid,
-                audience = "deltaker-bff",
-                subject = oid,
-            )
-        }
-
         private fun lagUlestHendelse() = UlestHendelse(
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now(),
