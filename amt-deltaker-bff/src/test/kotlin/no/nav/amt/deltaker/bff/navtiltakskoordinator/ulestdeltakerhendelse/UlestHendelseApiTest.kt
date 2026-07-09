@@ -29,17 +29,20 @@ class UlestHendelseApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal returnere NoContent nar hendelse er slettet`() {
-        every { ulestHendelseRepository.delete(any()) } just runs
+        val ulestHendelseId = UUID.randomUUID()
+        coEvery { tiltakskoordinatorClient.slettUlestHendelse(ulestHendelseId) } returns Unit
+        every { ulestHendelseRepository.delete(ulestHendelseId) } just runs
 
         val response = withTestApplicationContext { client ->
-            client.delete("/tiltakskoordinator/ulest-hendelse/${UUID.randomUUID()}") {
+            client.delete("/tiltakskoordinator/ulest-hendelse/$ulestHendelseId") {
                 bearerAuth(bearerTokenInTest)
             }
         }
 
         response.status shouldBe HttpStatusCode.NoContent
 
-        verify { ulestHendelseRepository.delete(any()) }
+        coVerify(exactly = 1) { tiltakskoordinatorClient.slettUlestHendelse(ulestHendelseId) }
+        verify(exactly = 1) { ulestHendelseRepository.delete(ulestHendelseId) }
     }
 
     @Test

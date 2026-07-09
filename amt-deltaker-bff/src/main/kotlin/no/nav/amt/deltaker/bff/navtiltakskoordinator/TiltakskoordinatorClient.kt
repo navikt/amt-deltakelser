@@ -89,6 +89,11 @@ class TiltakskoordinatorClient(
         ).failIfNotSuccess("Kunne ikke gi avslag i amt-deltaker.").body()
     }
 
+    suspend fun slettUlestHendelse(id: UUID) {
+        performDelete("tiltakskoordinator/ulest-hendelse/$id")
+            .failIfNotSuccess("Kunne ikke slette ulest hendelse i amt-deltaker.")
+    }
+
     // Midlertidig API for migrering ved flytting av tabell
     suspend fun upsertUlesteHendelser(ulesteHendelser: List<UlestHendelse>): Int {
         val response = performPost(

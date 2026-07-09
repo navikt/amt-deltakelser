@@ -166,7 +166,10 @@ fun Application.configureRouting(
             deltakerlisteRepository = deltakerlisteRepository,
         )
 
-        registerUlestHendelseApi(ulestHendelseRepository)
+        registerUlestHendelseApi(
+            ulestHendelseRepository = ulestHendelseRepository,
+            tiltakskoordinatorClient = tiltakskoordinatorClient,
+        )
         registerUlestHendelseMigrationApi(
             ulestHendelseRepository = ulestHendelseRepository,
             tiltakskoordinatorClient = tiltakskoordinatorClient,

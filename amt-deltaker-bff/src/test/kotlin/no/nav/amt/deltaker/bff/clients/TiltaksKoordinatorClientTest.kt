@@ -250,6 +250,39 @@ class TiltaksKoordinatorClientTest {
         }
     }
 
+    @Nested
+    inner class SlettUlestHendelse {
+        private val ulestHendelseId = UUID.randomUUID()
+        private val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/ulest-hendelse/$ulestHendelseId"
+        private val expectedErrorMessage = "Kunne ikke slette ulest hendelse i amt-deltaker."
+        private val slettUlestHendelseLambda: suspend (TiltakskoordinatorClient) -> Any =
+            { client -> client.slettUlestHendelse(ulestHendelseId) }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(
+                expectedExceptionType,
+                statusCode,
+                expectedUrl,
+                expectedErrorMessage,
+                slettUlestHendelseLambda,
+                expectedMethod = HttpMethod.Delete,
+            )
+        }
+
+        @Test
+        fun `skal slette ulest hendelse`() {
+            runHappyPathTest(
+                expectedUrl = expectedUrl,
+                expectedResponse = Unit,
+                block = { client -> client.slettUlestHendelse(ulestHendelseId) },
+                expectedMethod = HttpMethod.Delete,
+            )
+        }
+    }
+
     companion object {
         private const val CLIENT_BASE_URL = "http://amt-tiltakskoordinator"
         private val gjennomforingId = UUID.randomUUID()
