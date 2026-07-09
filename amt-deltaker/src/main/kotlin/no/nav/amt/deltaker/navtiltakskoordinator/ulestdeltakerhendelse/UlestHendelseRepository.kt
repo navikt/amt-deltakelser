@@ -86,6 +86,12 @@ class UlestHendelseRepository {
     }
 
     fun upsert(ulestHendelse: UlestHendelse) {
+        upsertMany(listOf(ulestHendelse))
+    }
+
+    fun upsertMany(ulesteHendelser: List<UlestHendelse>) {
+        if (ulesteHendelser.isEmpty()) return
+
         val sql =
             """
             INSERT INTO ulest_hendelse(
@@ -110,15 +116,17 @@ class UlestHendelseRepository {
                 modified_at         = CURRENT_TIMESTAMP
             """.trimIndent()
 
-        val params = mapOf(
-            "id" to ulestHendelse.id,
-            "deltaker_id" to ulestHendelse.deltakerId,
-            "opprettet" to ulestHendelse.opprettet,
-            "ansvarlig" to toPGObject(ulestHendelse.ansvarlig),
-            "hendelse" to toPGObject(ulestHendelse.hendelse),
-        )
+        val params = ulesteHendelser.map { ulestHendelse ->
+            mapOf(
+                "id" to ulestHendelse.id,
+                "deltaker_id" to ulestHendelse.deltakerId,
+                "opprettet" to ulestHendelse.opprettet,
+                "ansvarlig" to toPGObject(ulestHendelse.ansvarlig),
+                "hendelse" to toPGObject(ulestHendelse.hendelse),
+            )
+        }
 
-        Database.query { session -> session.update(queryOf(sql, params)) }
+        Database.query { session -> session.batchPreparedNamedStatement(sql, params) }
     }
 
     fun delete(id: UUID) {
