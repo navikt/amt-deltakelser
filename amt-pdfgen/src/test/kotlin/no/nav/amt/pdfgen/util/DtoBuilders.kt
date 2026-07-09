@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.journalforing.pdf.ArrangorDto
 import no.nav.amt.lib.models.journalforing.pdf.AvsenderDto
 import no.nav.amt.lib.models.journalforing.pdf.EndringDto
 import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.lib.models.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
 import no.nav.amt.lib.models.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakPdfDto
 import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
@@ -156,6 +157,35 @@ object DtoBuilders {
     fun hovedvedtakVedTildeltPlassAvsender() = HovedvedtakVedTildeltPlassPdfDto.AvsenderDto(
         navn = "Nav Saksbehandler",
         enhet = "Nav Oslo",
+    )
+
+    fun enkeltplassInnsokingsbrev(
+        innhold: EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold,
+        tiltaksnavn: String = "Arbeidsforberedende trening",
+        arrangor: ArrangorDto = ArrangorDto("Jada Fangst AS"),
+    ) = EnkeltplassInnsokingsbrevPdfDto(
+        deltaker = enkeltplassInnsokingsbrevDeltaker(),
+        deltakerliste = enkeltplassInnsokingsbrevDeltakerliste(),
+        avsender = innsokingsbrevAvsender(),
+        opprettetDato = fixedDate.minusMonths(1),
+        innhold = innhold,
+        innholdFritekst = "Dette er en fritekst",
+        tiltaksnavn = tiltaksnavn,
+        arrangorNavn = arrangor.navn,
+        deltakelsesmengdeAntallDager = 5,
+    )
+
+    fun enkeltplassInnsokingsbrevDeltaker() = EnkeltplassInnsokingsbrevPdfDto.DeltakerDto(
+        fornavn = "Ola",
+        mellomnavn = "Erik",
+        etternavn = "Nordmann",
+        personident = "12345678910",
+    )
+
+    fun enkeltplassInnsokingsbrevDeltakerliste() = EnkeltplassInnsokingsbrevPdfDto.DeltakerlisteDto(
+        startdato = fixedDate,
+        sluttdato = fixedDate.plusMonths(3),
+        oppstartstype = Oppstartstype.ENKELTPLASS,
     )
 
     fun innsokingsbrev(
