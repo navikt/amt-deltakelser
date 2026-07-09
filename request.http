@@ -1,4 +1,14 @@
 ### Feilregistrer deltaker
-## kubectl port-forward pod/amt-deltaker-bb84cb886-kpqgp 8080:8080
-POST http://localhost:8080/internal/feilregistrer/d140a421-ee0d-4012-9986-d5d55e520823
+## kubectl port-forward pod/amt-deltaker-856b7b5dc8-297z8  8080:8080
+POST http://localhost:8080/internal/tving-arena-innlesing
 Content-Type: application/json
+
+{
+	"republiserRequest": {
+		"forcedUpdate": false,
+		"publiserTilDeltakerV1": true,
+		"publiserTilDeltakerEksternV1": true,
+		"publiserTilDeltakerV2": false
+	},
+	"deltakere":["5917e9bc-cfc3-4f68-82ec-2b42175dcf2c"]
+}
