@@ -163,6 +163,7 @@ object DtoBuilders {
         innhold: EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold,
         tiltaksnavn: String = "Arbeidsforberedende trening",
         arrangor: ArrangorDto = ArrangorDto("Jada Fangst AS"),
+        prisinformasjon: EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon,
     ) = EnkeltplassInnsokingsbrevPdfDto(
         deltaker = enkeltplassInnsokingsbrevDeltaker(),
         deltakerliste = enkeltplassInnsokingsbrevDeltakerliste(),
@@ -171,8 +172,9 @@ object DtoBuilders {
         innhold = innhold,
         innholdFritekst = "Dette er en fritekst",
         tiltaksnavn = tiltaksnavn,
-        arrangorNavn = arrangor.navn,
+        arrangornavn = arrangor.navn,
         deltakelsesmengdeAntallDager = 5,
+        prisinformasjon = prisinformasjon,
     )
 
     fun enkeltplassInnsokingsbrevDeltaker() = EnkeltplassInnsokingsbrevPdfDto.DeltakerDto(

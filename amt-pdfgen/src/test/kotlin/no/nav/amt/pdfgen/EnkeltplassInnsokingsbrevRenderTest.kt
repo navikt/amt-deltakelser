@@ -6,7 +6,7 @@ import no.nav.amt.lib.models.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
 import no.nav.amt.pdfgen.util.DtoBuilders.enkeltplassInnsokingsbrev
 import no.nav.amt.pdfgen.util.RenderUtils.render
 
-class EnkeltplassInnsokingsbrevTest :
+class EnkeltplassInnsokingsbrevRenderTest :
     DescribeSpec({
 
         describe("Enkeltplass innsøkingsbrev PDF") {
@@ -14,6 +14,19 @@ class EnkeltplassInnsokingsbrevTest :
                 val brev = enkeltplassInnsokingsbrev(
                     tiltaksnavn = "Norskopplæring",
                     innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd(
+                        tilleggsopplysninger = null,
+                        tilskudd = listOf(
+                            EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                                type = "Tilskuddstype 1",
+                                pris = 1000,
+                            ),
+                            EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                                type = "Tilskuddstype 2",
+                                pris = 2000,
+                            ),
+                        ),
+                    ),
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
                 doc.text() shouldContain "Ola Erik Nordmann"
@@ -30,6 +43,9 @@ class EnkeltplassInnsokingsbrevTest :
                             "Droneoperatør",
                         ),
                     ),
+                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Innbyggerfinansiert(
+                        tilleggsopplysninger = "Dette er en tilleggsopplysning",
+                    ),
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
                 doc.text() shouldContain "Ola Erik Nordmann"
@@ -45,6 +61,9 @@ class EnkeltplassInnsokingsbrevTest :
                             "D1 - Minibuss",
                             "HP QuickTest Professional (QTP)",
                         ),
+                    ),
+                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Innbyggerfinansiert(
+                        tilleggsopplysninger = "Dette er en tilleggsopplysning",
                     ),
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
