@@ -109,26 +109,6 @@ class UlestHendelseApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post upsert - upserter uleste hendelser`() {
-        val ulesteHendelser = listOf(lagUlestHendelse(UUID.randomUUID()), lagUlestHendelse(UUID.randomUUID()))
-        every { ulestHendelseRepository.upsertMany(ulesteHendelser) } just runs
-
-        val responseBody = withTestApplicationContext { client ->
-            client
-                .post("/internal/tiltakskoordinator/ulest-hendelse/upsert") {
-                    bearerAuth(systemToken)
-                    contentType(ContentType.Application.Json)
-                    setBody(objectMapper.writeValueAsString(ulesteHendelser))
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                }.body<String>()
-        }
-
-        responseBody shouldBe """{"upserted":2}"""
-        verify(exactly = 1) { ulestHendelseRepository.upsertMany(ulesteHendelser) }
-    }
-
-    @Test
     fun `delete ulest hendelse - returnerer NoContent`() {
         val ulestHendelseId = UUID.randomUUID()
         every { ulestHendelseRepository.delete(ulestHendelseId) } returns Unit

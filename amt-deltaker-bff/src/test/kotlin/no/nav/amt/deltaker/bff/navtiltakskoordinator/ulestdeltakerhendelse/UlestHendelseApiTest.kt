@@ -61,47 +61,6 @@ class UlestHendelseApiTest : IntegrationTestBase() {
         verify(exactly = 1) { ulestHendelseRepository.delete(ulestHendelseId) }
     }
 
-    @Test
-    fun `skal synce intern endpoint uten token nar request er intern`() {
-        every { ulestHendelseRepository.getRangeOrderedByOpprettet(0, 10) } returns emptyList()
-        coEvery { tiltakskoordinatorClient.upsertUlesteHendelser(emptyList()) } returns 0
-
-        val response = withTestApplicationContext { client ->
-            client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=0&tom=9")
-        }
-
-        response.status shouldBe HttpStatusCode.OK
-    }
-
-    @Test
-    fun `skal synce uleste hendelser for valgt intervall`() {
-        val fom = 10
-        val tom = 19
-        val hendelser = listOf(
-            lagUlestHendelse(),
-            lagUlestHendelse(),
-        )
-        every { ulestHendelseRepository.getRangeOrderedByOpprettet(fom, tom - fom + 1) } returns hendelser
-        coEvery { tiltakskoordinatorClient.upsertUlesteHendelser(hendelser) } returns hendelser.size
-
-        val response = withTestApplicationContext { client ->
-            client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=$fom&tom=$tom")
-        }
-
-        response.status shouldBe HttpStatusCode.OK
-        verify(exactly = 1) { ulestHendelseRepository.getRangeOrderedByOpprettet(fom, tom - fom + 1) }
-        coVerify(exactly = 1) { tiltakskoordinatorClient.upsertUlesteHendelser(hendelser) }
-    }
-
-    @Test
-    fun `skal returnere BadRequest nar sync-parametere er ugyldige`() {
-        val response = withTestApplicationContext { client ->
-            client.post("/internal/tiltakskoordinator/ulest-hendelse/sync?fom=5&tom=2")
-        }
-
-        response.status shouldBe HttpStatusCode.BadRequest
-    }
-
     companion object {
         private fun lagUlestHendelse() = UlestHendelse(
             id = UUID.randomUUID(),

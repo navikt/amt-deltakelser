@@ -39,15 +39,6 @@ fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepos
                 call.respond(HttpStatusCode.NoContent)
             }
         }
-
-        route("/internal/tiltakskoordinator/ulest-hendelse") {
-            // Midlertidig API for migrering ved flytting av tabell
-            post("/upsert") {
-                val ulesteHendelser = call.receive<List<UlestHendelse>>()
-                ulestHendelseRepository.upsertMany(ulesteHendelser)
-                call.respond(UpsertUlesteHendelserResponse(upserted = ulesteHendelser.size))
-            }
-        }
     }
 }
 

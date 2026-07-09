@@ -89,7 +89,7 @@ class UlestHendelseRepository {
         upsertMany(listOf(ulestHendelse))
     }
 
-    fun upsertMany(ulesteHendelser: List<UlestHendelse>) {
+    private fun upsertMany(ulesteHendelser: List<UlestHendelse>) {
         if (ulesteHendelser.isEmpty()) return
 
         val sql =

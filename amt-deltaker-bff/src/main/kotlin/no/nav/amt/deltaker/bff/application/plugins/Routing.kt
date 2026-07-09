@@ -32,7 +32,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerTiltakskoordinatorDeltakerlisteApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerUlestHendelseApi
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.registerUlestHendelseMigrationApi
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
@@ -167,10 +166,6 @@ fun Application.configureRouting(
         )
 
         registerUlestHendelseApi(
-            ulestHendelseRepository = ulestHendelseRepository,
-            tiltakskoordinatorClient = tiltakskoordinatorClient,
-        )
-        registerUlestHendelseMigrationApi(
             ulestHendelseRepository = ulestHendelseRepository,
             tiltakskoordinatorClient = tiltakskoordinatorClient,
         )
