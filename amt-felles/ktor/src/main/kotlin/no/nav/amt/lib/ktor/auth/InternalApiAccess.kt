@@ -6,4 +6,9 @@ fun requireInternal(remoteAddress: String) {
     if (!isInternal(remoteAddress)) throw AuthorizationException("Ikke tilgang til api")
 }
 
-fun isInternal(remoteAddress: String): Boolean = remoteAddress == "127.0.0.1"
+fun isInternal(remoteAddress: String): Boolean = remoteAddress in setOf(
+    "127.0.0.1",
+    "::1",
+    "0:0:0:0:0:0:0:1",
+    "localhost",
+)
