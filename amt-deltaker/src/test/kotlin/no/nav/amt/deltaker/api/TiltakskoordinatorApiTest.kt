@@ -28,8 +28,8 @@ import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
-import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
