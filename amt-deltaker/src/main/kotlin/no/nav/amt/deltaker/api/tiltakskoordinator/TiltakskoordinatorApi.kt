@@ -50,8 +50,12 @@ fun Routing.registerTiltakskoordinatorApi(
                 call.respond(tiltakskoordinatorResponseBuilder.buildResponse(request))
             }
 
-            post("/status-counts") {
+            post("/{gjennomforingId}/status-counts") {
+                val gjennomforingId = call.getGjennomforingId()
                 val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                require(request.gjennomforingId == gjennomforingId) {
+                    "GjennomforingId i path matcher ikke gjennomforingId i request body"
+                }
                 require(request.statuser.isNotEmpty()) {
                     "Statuser må spesifiseres for å hente deltakerantall per status"
                 }

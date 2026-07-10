@@ -115,7 +115,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/gi-avslag") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("$API_PATH/status-counts") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("$API_PATH/${UUID.randomUUID()}/status-counts") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -182,7 +182,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
         withTestApplicationContext { client ->
             client
-                .post("$API_PATH/status-counts") {
+                .post("$API_PATH/$gjennomforingId/status-counts") {
                     postRequest(request)
                 }.apply {
                     status shouldBe HttpStatusCode.OK
@@ -200,9 +200,29 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
         withTestApplicationContext { client ->
             client
-                .post("$API_PATH/status-counts") {
+                .post("$API_PATH/$gjennomforingId/status-counts") {
                     postRequest(request)
                 }.status shouldBe HttpStatusCode.BadRequest
+        }
+
+        verify(exactly = 0) { tiltakskoordinatorResponseBuilder.buildStatusCountsResponse(any()) }
+    }
+
+    @Test
+    fun `getDeltakereCountPerStatus - gjennomforingId i path og body matcher ikke - returnerer 400`() {
+        val pathGjennomforingId = UUID.randomUUID()
+        val request = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = UUID.randomUUID(),
+            statuser = setOf(DeltakerStatus.Type.DELTAR),
+        )
+
+        withTestApplicationContext { client ->
+            client
+                .post("$API_PATH/$pathGjennomforingId/status-counts") {
+                    postRequest(request)
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                }
         }
 
         verify(exactly = 0) { tiltakskoordinatorResponseBuilder.buildStatusCountsResponse(any()) }

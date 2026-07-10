@@ -141,7 +141,7 @@ class TiltaksKoordinatorClientTest {
 
         @Nested
         inner class GetDeltakereCountPerStatus {
-            val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/status-counts"
+            val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/$gjennomforingId/status-counts"
             val expectedErrorMessage = "Kunne ikke hente deltakerantall per status i amt-deltaker."
             val getDeltakereCountPerStatusLambda: suspend (TiltakskoordinatorClient) -> DeltakerlisteFilterCountsResponse =
                 { client -> client.getDeltakereCountPerStatus(deltakereRequest) }

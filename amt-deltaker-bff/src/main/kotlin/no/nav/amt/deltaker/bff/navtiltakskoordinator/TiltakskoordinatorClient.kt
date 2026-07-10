@@ -44,7 +44,7 @@ class TiltakskoordinatorClient(
 
     suspend fun getDeltakereCountPerStatus(request: TiltaksKoordinatorDeltakerlisteRequest): DeltakerlisteFilterCountsResponse =
         performPost(
-            "tiltakskoordinator/deltakere/status-counts",
+            "tiltakskoordinator/deltakere/${request.gjennomforingId}/status-counts",
             request,
         ).failIfNotSuccess("Kunne ikke hente deltakerantall per status i amt-deltaker.")
             .body()
