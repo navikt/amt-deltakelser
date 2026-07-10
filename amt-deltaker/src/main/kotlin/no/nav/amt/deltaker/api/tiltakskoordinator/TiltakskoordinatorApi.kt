@@ -50,6 +50,15 @@ fun Routing.registerTiltakskoordinatorApi(
                 call.respond(tiltakskoordinatorResponseBuilder.buildResponse(request))
             }
 
+            post("/status-counts") {
+                val request = call.receive<TiltaksKoordinatorDeltakerlisteRequest>()
+                require(request.statuser.isNotEmpty()) {
+                    "Statuser må spesifiseres for å hente deltakerantall per status"
+                }
+
+                call.respond(tiltakskoordinatorResponseBuilder.buildStatusCountsResponse(request))
+            }
+
             post("/del-med-arrangor") {
                 val request = call.receive<DelMedArrangorRequest>()
 

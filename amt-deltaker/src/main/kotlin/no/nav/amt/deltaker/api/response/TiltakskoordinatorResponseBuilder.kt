@@ -10,6 +10,7 @@ import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 import java.net.SocketException
@@ -17,7 +18,7 @@ import java.sql.SQLException
 import java.util.UUID
 
 /**
- * Bygger spisset respons for tiltakskoordinator-lista (`POST /tiltakskoordinator/deltakere/{gjennomforingId}`).
+ * Bygger spisset respons for tiltakskoordinator-lista (`POST /tiltakskoordinator/deltakere`).
  * Optimalisert for kall med mange deltakere (kan være >2000 per request).
  *
  * Henter data i **to SQL-spørringer**:
@@ -70,6 +71,9 @@ class TiltakskoordinatorResponseBuilder(
             },
         )
     }
+
+    fun buildStatusCountsResponse(request: TiltaksKoordinatorDeltakerlisteRequest): DeltakerlisteFilterCountsResponse =
+        viewRepository.getDeltakereCountPerStatus(request)
 
     suspend fun buildResponse(
         gjennomforingId: UUID,

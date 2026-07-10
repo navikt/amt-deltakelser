@@ -10,6 +10,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltakskoordinator.DeltakerOppdateringResult
@@ -27,8 +28,10 @@ import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
@@ -112,6 +115,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             client.post("$API_PATH/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("$API_PATH/gi-avslag") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("$API_PATH/status-counts") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -160,6 +164,48 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         }
 
         coVerify(exactly = 0) { tiltakskoordinatorResponseBuilder.buildResponse(any()) }
+    }
+
+    @Test
+    fun `getDeltakereCountPerStatus - gyldig request - returnerer 200 med counts`() {
+        val gjennomforingId = UUID.randomUUID()
+        val request = TiltaksKoordinatorDeltakerlisteRequest(
+            gjennomforingId = gjennomforingId,
+            statuser = setOf(DeltakerStatus.Type.DELTAR),
+        )
+        val expectedResponse = DeltakerlisteFilterCountsResponse(
+            statusCounts = mapOf(DeltakerStatus.Type.DELTAR to 1),
+            handlingCounts = emptyMap(),
+        )
+
+        every { tiltakskoordinatorResponseBuilder.buildStatusCountsResponse(request) } returns expectedResponse
+
+        withTestApplicationContext { client ->
+            client
+                .post("$API_PATH/status-counts") {
+                    postRequest(request)
+                }.apply {
+                    status shouldBe HttpStatusCode.OK
+                    bodyAsText() shouldBe objectMapper.writeValueAsString(expectedResponse)
+                }
+        }
+
+        verify(exactly = 1) { tiltakskoordinatorResponseBuilder.buildStatusCountsResponse(request) }
+    }
+
+    @Test
+    fun `getDeltakereCountPerStatus - tomme statuser - returnerer 400`() {
+        val gjennomforingId = UUID.randomUUID()
+        val request = TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId)
+
+        withTestApplicationContext { client ->
+            client
+                .post("$API_PATH/status-counts") {
+                    postRequest(request)
+                }.status shouldBe HttpStatusCode.BadRequest
+        }
+
+        verify(exactly = 0) { tiltakskoordinatorResponseBuilder.buildStatusCountsResponse(any()) }
     }
 
     @Test

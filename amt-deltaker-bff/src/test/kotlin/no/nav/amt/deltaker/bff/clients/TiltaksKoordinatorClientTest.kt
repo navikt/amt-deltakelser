@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -136,6 +137,38 @@ class TiltaksKoordinatorClientTest {
                 getDeltakereForGjennomforingLambda,
                 expectedMethod = HttpMethod.Post,
             )
+        }
+
+        @Nested
+        inner class GetDeltakereCountPerStatus {
+            val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/status-counts"
+            val expectedErrorMessage = "Kunne ikke hente deltakerantall per status i amt-deltaker."
+            val getDeltakereCountPerStatusLambda: suspend (TiltakskoordinatorClient) -> DeltakerlisteFilterCountsResponse =
+                { client -> client.getDeltakereCountPerStatus(deltakereRequest) }
+
+            @ParameterizedTest
+            @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+            fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+                val (statusCode, expectedExceptionType) = testCase
+                runFailureTest(
+                    expectedExceptionType,
+                    statusCode,
+                    expectedUrl,
+                    expectedErrorMessage,
+                    getDeltakereCountPerStatusLambda,
+                    expectedMethod = HttpMethod.Post,
+                )
+            }
+
+            @Test
+            fun `skal returnere status counts`() {
+                runHappyPathTest(
+                    expectedUrl,
+                    DeltakerlisteFilterCountsResponse(statusCounts = emptyMap(), handlingCounts = emptyMap()),
+                    getDeltakereCountPerStatusLambda,
+                    expectedMethod = HttpMethod.Post,
+                )
+            }
         }
 
         @Test

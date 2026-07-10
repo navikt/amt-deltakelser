@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 /**
- * Spisset respons-type for tiltakskoordinator-lista (`POST /tiltakskoordinator/deltakere/{gjennomforingId}`).
+ * Spisset respons-type for tiltakskoordinator-lista (`POST /tiltakskoordinator/deltakere`).
  *
  * Kun data BFF faktisk bruker for å rendre liste-visningen er med — ingen forslag-JSONB,
  * ingen full vurdering, ingen vedtaksinformasjon, deltakelsesinnhold eller bakgrunnsinformasjon.

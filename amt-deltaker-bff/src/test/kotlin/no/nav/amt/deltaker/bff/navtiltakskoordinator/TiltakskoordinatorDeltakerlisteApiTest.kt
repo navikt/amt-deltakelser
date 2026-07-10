@@ -13,7 +13,6 @@ import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
@@ -31,6 +30,7 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyTiltakskoordinatorRequest
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
@@ -354,7 +354,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             handlingCounts = emptyMap(),
         )
 
-        coEvery { deltakerlisteRepository.getDeltakereCountPerStatus(expectedRequest) } returns expectedResponse
+        coEvery { tiltakskoordinatorClient.getDeltakereCountPerStatus(expectedRequest) } returns expectedResponse
         every { deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerlisteInTest.id) } returns deltakerlisteInTest
 
         withTestApplicationContext { client ->
@@ -365,6 +365,8 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             response.status shouldBe HttpStatusCode.OK
             response.body<DeltakerlisteFilterCountsResponse>() shouldBe expectedResponse
         }
+
+        coVerify(exactly = 1) { tiltakskoordinatorClient.getDeltakereCountPerStatus(expectedRequest) }
     }
 
     @Test
@@ -379,7 +381,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         }
 
         response.status shouldBe HttpStatusCode.BadRequest
-        coVerify(exactly = 0) { deltakerlisteRepository.getDeltakereCountPerStatus(any()) }
+        coVerify(exactly = 0) { tiltakskoordinatorClient.getDeltakereCountPerStatus(any()) }
     }
 
     @Test

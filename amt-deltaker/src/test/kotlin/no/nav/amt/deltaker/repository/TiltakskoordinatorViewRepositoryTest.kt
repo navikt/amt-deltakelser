@@ -1,11 +1,15 @@
 package no.nav.amt.deltaker.repository
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerCacheRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -15,9 +19,11 @@ import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestData.lagVurdering
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagDeltakerVedImport
@@ -35,6 +41,7 @@ class TiltakskoordinatorViewRepositoryTest {
     private val viewRepository = TiltakskoordinatorViewRepository()
     private val forslagRepository = ForslagRepository()
     private val vurderingRepository = VurderingRepository()
+    private val ulestHendelseRepository = UlestHendelseRepository()
 
     private fun getDeltakereMedBerikelse(gjennomforingId: UUID) = viewRepository.getDeltakere(
         TiltaksKoordinatorDeltakerlisteRequest(
@@ -45,6 +52,193 @@ class TiltakskoordinatorViewRepositoryTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
+    }
+
+    @Nested
+    inner class GetDeltakereCountPerStatusTests {
+        @Test
+        fun `skal kaste IllegalArgumentException nar statuser er tomme`() {
+            val exception = shouldThrow<IllegalArgumentException> {
+                viewRepository.getDeltakereCountPerStatus(
+                    TiltaksKoordinatorDeltakerlisteRequest(
+                        gjennomforingId = UUID.randomUUID(),
+                        statuser = emptySet(),
+                    ),
+                )
+            }
+
+            exception.message shouldBe "Statuser må spesifiseres for å hente deltakerantall per status"
+        }
+
+        @Test
+        fun `skal kun telle aktiv status nar deltaker har statushistorikk`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.DELTAR,
+                    gyldigFra = LocalDateTime.now().minusHours(1),
+                    gyldigTil = null,
+                ),
+            )
+            TestRepository.insert(deltaker)
+
+            DeltakerStatusRepository.lagreStatus(
+                deltakerId = deltaker.id,
+                deltakerStatus = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    gyldigFra = LocalDateTime.now().minusDays(7),
+                    gyldigTil = LocalDateTime.now().minusDays(1),
+                ),
+            )
+
+            val request = TiltaksKoordinatorDeltakerlisteRequest(
+                gjennomforingId = deltakerliste.id,
+                statuser = setOf(DeltakerStatus.Type.DELTAR, DeltakerStatus.Type.HAR_SLUTTET),
+            )
+
+            val result = viewRepository.getDeltakereCountPerStatus(request)
+
+            result.statusCounts[DeltakerStatus.Type.DELTAR] shouldBe 1
+            result.statusCounts.containsKey(DeltakerStatus.Type.HAR_SLUTTET) shouldBe false
+            result.handlingCounts[HandlingFilterValg.NyeDeltakere] shouldBe 0
+            result.handlingCounts[HandlingFilterValg.OppdateringFraNav] shouldBe 0
+            result.handlingCounts[HandlingFilterValg.AktiveForslag] shouldBe 0
+        }
+
+        @Test
+        fun `skal telle NyeDeltakere basert på uleste godkjenn-utkast-hendelser`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(deltaker)
+
+            ulestHendelseRepository.upsert(
+                UlestHendelse(
+                    id = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    deltakerId = deltaker.id,
+                    ansvarlig = null,
+                    hendelse = UlestHendelseType.InnbyggerGodkjennUtkast,
+                ),
+            )
+            ulestHendelseRepository.upsert(
+                UlestHendelse(
+                    id = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    deltakerId = deltaker.id,
+                    ansvarlig = null,
+                    hendelse = UlestHendelseType.NavGodkjennUtkast,
+                ),
+            )
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(DeltakerStatus.Type.DELTAR),
+                ),
+            )
+
+            result.handlingCounts[HandlingFilterValg.NyeDeltakere] shouldBe 1
+        }
+
+        @Test
+        fun `skal telle OppdateringFraNav basert på uleste nav-hendelser`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
+            )
+            TestRepository.insert(deltaker)
+
+            ulestHendelseRepository.upsert(
+                UlestHendelse(
+                    id = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    deltakerId = deltaker.id,
+                    ansvarlig = null,
+                    hendelse = UlestHendelseType.IkkeAktuell(
+                        aarsak = DeltakerEndring.Aarsak(
+                            type = DeltakerEndring.Aarsak.Type.ANNET,
+                            beskrivelse = null,
+                        ),
+                        begrunnelseFraNav = null,
+                        begrunnelseFraArrangor = null,
+                        endringFraForslag = null,
+                    ),
+                ),
+            )
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(DeltakerStatus.Type.IKKE_AKTUELL),
+                ),
+            )
+
+            result.handlingCounts[HandlingFilterValg.OppdateringFraNav] shouldBe 1
+        }
+
+        @Test
+        fun `skal telle AktiveForslag og ikke dobbeltelle samme deltaker`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(deltaker)
+
+            forslagRepository.upsert(lagForslag(deltakerId = deltaker.id, status = Forslag.Status.VenterPaSvar))
+            forslagRepository.upsert(lagForslag(deltakerId = deltaker.id, status = Forslag.Status.VenterPaSvar))
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(DeltakerStatus.Type.DELTAR),
+                ),
+            )
+
+            result.handlingCounts[HandlingFilterValg.AktiveForslag] shouldBe 1
+        }
+
+        @Test
+        fun `skal ikke telle handlingCounts fra annen gjennomforing`() {
+            val deltakerliste1 = lagDeltakerliste()
+            val deltakerliste2 = lagDeltakerliste()
+            val deltaker1 = lagDeltaker(
+                deltakerliste = deltakerliste1,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            val deltaker2 = lagDeltaker(
+                deltakerliste = deltakerliste2,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(deltaker1)
+            TestRepository.insert(deltaker2)
+
+            ulestHendelseRepository.upsert(
+                UlestHendelse(
+                    id = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    deltakerId = deltaker2.id,
+                    ansvarlig = null,
+                    hendelse = UlestHendelseType.InnbyggerGodkjennUtkast,
+                ),
+            )
+            forslagRepository.upsert(lagForslag(deltakerId = deltaker2.id, status = Forslag.Status.VenterPaSvar))
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste1.id,
+                    statuser = setOf(DeltakerStatus.Type.DELTAR),
+                ),
+            )
+
+            result.handlingCounts[HandlingFilterValg.NyeDeltakere] shouldBe 0
+            result.handlingCounts[HandlingFilterValg.AktiveForslag] shouldBe 0
+        }
     }
 
     @Nested
@@ -557,6 +751,43 @@ class TiltakskoordinatorViewRepositoryTest {
                 // v_active filtrerer på gyldig_til IS NULL, så expired vedtak gir null
                 result.vedtakFattet.shouldBeNull()
             }
+        }
+
+        // Regresjonstest for gotcha: amt-deltaker lagrer full statushistorikk per deltaker.
+        // Uten filteret "gyldig_til IS NULL AND gyldig_fra <= CURRENT_TIMESTAMP" i JOINen mot
+        // deltaker_status ville spørringen returnere én rad per historisk status, ikke én per deltaker.
+        @Test
+        fun `historiske statuser (gyldig_til satt) ekskluderes - kun aktiv status returneres`() {
+            // Arrange — én deltaker med én historisk KLADD-status og én aktiv DELTAR-status
+            val deltakerliste = lagDeltakerliste()
+            val historiskStatusTidspunkt = LocalDateTime.now().minusWeeks(2)
+            val aktivStatusTidspunkt = LocalDateTime.now().minusWeeks(1)
+
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.DELTAR,
+                    gyldigFra = aktivStatusTidspunkt,
+                ),
+            )
+            TestRepository.insert(deltaker)
+
+            // Legg til en historisk status (gyldig_til er satt — den er ikke lenger aktiv)
+            DeltakerStatusRepository.lagreStatus(
+                deltakerId = deltaker.id,
+                deltakerStatus = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.KLADD,
+                    gyldigFra = historiskStatusTidspunkt,
+                    gyldigTil = aktivStatusTidspunkt,
+                ),
+            )
+
+            // Act — uten status-filter (henter alle synlige statuser)
+            val result = getDeltakereMedBerikelse(deltakerliste.id)
+
+            // Assert — kun én rad returneres (den aktive), ikke to (historisk + aktiv)
+            result shouldHaveSize 1
+            result.single().status.type shouldBe DeltakerStatus.Type.DELTAR
         }
 
         @Nested
