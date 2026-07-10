@@ -26,7 +26,7 @@ sealed interface GjennomforingRequestPayload {
     // kommer etter utkast
     data class EnkeltplassSoktInn(
         override val gjennomforingId: UUID,
-        val totrinnkontroll: Totrinnskontroll, // Komet oppretter record med id
+        val totrinnskontroll: Totrinnskontroll, // Komet oppretter record med id
         val payload: UpsertEnkeltplass,
     ) : GjennomforingRequestPayload
 

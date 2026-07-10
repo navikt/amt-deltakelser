@@ -441,7 +441,7 @@ class EnkeltplassService(
             DeltakerStatus.Type.SOKT_INN -> GjennomforingRequestPayload.EnkeltplassSoktInn(
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = upsertPayload,
-                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = deltaker.id,
                     behandletAv = endretAvNavIdent,
                 ),

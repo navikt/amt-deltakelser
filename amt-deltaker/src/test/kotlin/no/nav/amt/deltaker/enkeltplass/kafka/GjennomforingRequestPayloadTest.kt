@@ -176,7 +176,7 @@ class GjennomforingRequestPayloadTest {
                     opprettetAv = "Z123456",
                     kategorisering = null,
                 ),
-                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = UUID.randomUUID(),
                     behandletAv = "Z123456",
                 ),
