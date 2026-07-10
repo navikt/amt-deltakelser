@@ -3,12 +3,14 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
@@ -39,6 +41,13 @@ class TiltakskoordinatorClient(
         request,
     ).failIfNotSuccess("Fant ikke gjennomforing ${request.gjennomforingId} i amt-deltaker.")
         .body()
+
+    suspend fun getDeltakereCountPerStatus(request: TiltaksKoordinatorDeltakerlisteRequest): DeltakerlisteFilterCountsResponse =
+        performPost(
+            "tiltakskoordinator/deltakere/${request.gjennomforingId}/status-counts",
+            request,
+        ).failIfNotSuccess("Kunne ikke hente deltakerantall per status i amt-deltaker.")
+            .body()
 
     suspend fun delMedArrangor(
         gjennomforingId: UUID,
@@ -86,5 +95,10 @@ class TiltakskoordinatorClient(
             "tiltakskoordinator/deltakere/gi-avslag",
             requestBody,
         ).failIfNotSuccess("Kunne ikke gi avslag i amt-deltaker.").body()
+    }
+
+    suspend fun slettUlestHendelse(id: UUID) {
+        performDelete("tiltakskoordinator/ulest-hendelse/$id")
+            .failIfNotSuccess("Kunne ikke slette ulest hendelse i amt-deltaker.")
     }
 }

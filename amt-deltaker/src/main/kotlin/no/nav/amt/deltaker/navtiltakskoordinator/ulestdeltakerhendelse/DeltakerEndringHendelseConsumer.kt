@@ -1,12 +1,12 @@
-package no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse
+package no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse
 
-import no.nav.amt.deltaker.bff.Environment
-import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
-import no.nav.amt.internapi.hendelse.Hendelse
-import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.hendelse.Hendelse
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
@@ -18,8 +18,10 @@ class DeltakerEndringHendelseConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val consumer = KafkaConsumerFactory.buildManagedKafkaConsumer(
+    private val consumer = buildManagedKafkaConsumer(
         topic = Environment.DELTAKER_HENDELSE_TOPIC,
+        // Vi ønsker ikke at denne consumeren leser inn gamle innslag, ettersom disse kan
+        // ha blitt slettet direkte i databasen uten at det finnes Kafka-meldinger om dette.
         kafkaAutoOffsetReset = KafkaConfigImpl.AUTO_OFFSET_RESET_LATEST,
         consumeFunc = ::consume,
     )

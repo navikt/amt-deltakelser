@@ -22,10 +22,15 @@ import java.util.UUID
 fun buildManagedKafkaConsumer(
     topic: String,
     consumerGroupId: String = Environment.KAFKA_CONSUMER_GROUP_ID,
+    kafkaAutoOffsetReset: String = KafkaConfigImpl.AUTO_OFFSET_RESET_EARLIEST,
     skipFilter: (ConsumerRecord<UUID, String?>) -> Boolean = { false },
     consumeFunc: suspend (key: UUID, value: String?) -> Unit,
 ): ManagedKafkaConsumer<UUID, String?> {
-    val kafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl()
+    val kafkaConfig = if (Environment.isLocal()) {
+        LocalKafkaConfig(kafkaAutoOffsetReset = kafkaAutoOffsetReset)
+    } else {
+        KafkaConfigImpl(autoOffsetReset = kafkaAutoOffsetReset)
+    }
 
     return ManagedKafkaConsumer(
         topic = topic,

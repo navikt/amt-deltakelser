@@ -57,6 +57,9 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.DeltakerEndringHendelseConsumer
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
+import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
@@ -255,6 +258,8 @@ fun Application.module() {
     val innsokRepository = InnsokRepository()
     val innsokService = InnsokService(innsokRepository)
     val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
+    val ulestHendelseRepository = UlestHendelseRepository()
+    val ulestHendelseService = UlestHendelseService(ulestHendelseRepository)
 
     val deltakerHistorikkService = DeltakerHistorikkService(
         deltakerEndringRepository = deltakerEndringRepository,
@@ -497,6 +502,7 @@ fun Application.module() {
             deltakerProducerService,
         ),
         NavEnhetConsumer(navEnhetRepository),
+        DeltakerEndringHendelseConsumer(ulestHendelseService, ulestHendelseRepository),
     )
     consumers.forEach { it.start() }
 
@@ -533,6 +539,7 @@ fun Application.module() {
         tiltakskoordinatorService = tiltakskoordinatorService,
         forslagService = forslagService,
         forslagRepository = forslagRepository,
+        ulestHendelseRepository = ulestHendelseRepository,
     )
     configureMonitoring()
 

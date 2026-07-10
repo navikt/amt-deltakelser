@@ -8,11 +8,14 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
+import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -135,6 +139,38 @@ class TiltaksKoordinatorClientTest {
             )
         }
 
+        @Nested
+        inner class GetDeltakereCountPerStatus {
+            val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/deltakere/$gjennomforingId/status-counts"
+            val expectedErrorMessage = "Kunne ikke hente deltakerantall per status i amt-deltaker."
+            val getDeltakereCountPerStatusLambda: suspend (TiltakskoordinatorClient) -> DeltakerlisteFilterCountsResponse =
+                { client -> client.getDeltakereCountPerStatus(deltakereRequest) }
+
+            @ParameterizedTest
+            @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+            fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+                val (statusCode, expectedExceptionType) = testCase
+                runFailureTest(
+                    expectedExceptionType,
+                    statusCode,
+                    expectedUrl,
+                    expectedErrorMessage,
+                    getDeltakereCountPerStatusLambda,
+                    expectedMethod = HttpMethod.Post,
+                )
+            }
+
+            @Test
+            fun `skal returnere status counts`() {
+                runHappyPathTest(
+                    expectedUrl,
+                    DeltakerlisteFilterCountsResponse(statusCounts = emptyMap(), handlingCounts = emptyMap()),
+                    getDeltakereCountPerStatusLambda,
+                    expectedMethod = HttpMethod.Post,
+                )
+            }
+        }
+
         @Test
         fun `skal returnere deltakere for gjennomforing`() {
             runHappyPathTest(
@@ -213,6 +249,39 @@ class TiltaksKoordinatorClientTest {
         }
     }
 
+    @Nested
+    inner class SlettUlestHendelse {
+        private val ulestHendelseId = UUID.randomUUID()
+        private val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/ulest-hendelse/$ulestHendelseId"
+        private val expectedErrorMessage = "Kunne ikke slette ulest hendelse i amt-deltaker."
+        private val slettUlestHendelseLambda: suspend (TiltakskoordinatorClient) -> Any =
+            { client -> client.slettUlestHendelse(ulestHendelseId) }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(
+                expectedExceptionType,
+                statusCode,
+                expectedUrl,
+                expectedErrorMessage,
+                slettUlestHendelseLambda,
+                expectedMethod = HttpMethod.Delete,
+            )
+        }
+
+        @Test
+        fun `skal slette ulest hendelse`() {
+            runHappyPathTest(
+                expectedUrl = expectedUrl,
+                expectedResponse = Unit,
+                block = { client -> client.slettUlestHendelse(ulestHendelseId) },
+                expectedMethod = HttpMethod.Delete,
+            )
+        }
+    }
+
     companion object {
         private const val CLIENT_BASE_URL = "http://amt-tiltakskoordinator"
         private val gjennomforingId = UUID.randomUUID()
@@ -225,6 +294,23 @@ class TiltaksKoordinatorClientTest {
             totalCount = 1,
             pageSize = 50,
             data = listOf(lagTiltakskoordinatorDeltakerResponse()),
+        )
+
+        private fun lagUlesteHendelser() = listOf(
+            UlestHendelse(
+                id = UUID.randomUUID(),
+                opprettet = LocalDateTime.now(),
+                deltakerId = UUID.randomUUID(),
+                ansvarlig = null,
+                hendelse = UlestHendelseType.NavGodkjennUtkast,
+            ),
+            UlestHendelse(
+                id = UUID.randomUUID(),
+                opprettet = LocalDateTime.now(),
+                deltakerId = UUID.randomUUID(),
+                ansvarlig = null,
+                hendelse = UlestHendelseType.InnbyggerGodkjennUtkast,
+            ),
         )
 
         private fun runFailureTest(

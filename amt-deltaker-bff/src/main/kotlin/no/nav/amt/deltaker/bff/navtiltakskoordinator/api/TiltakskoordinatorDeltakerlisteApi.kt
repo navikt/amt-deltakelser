@@ -12,7 +12,6 @@ import io.ktor.server.routing.route
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
-import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
@@ -26,7 +25,6 @@ import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
     deltakerlisteService: DeltakerlisteService,
-    deltakerlisteRepository: DeltakerlisteRepository,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     selfServiceTilgang: SelfServiceTilgangService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
@@ -109,7 +107,7 @@ fun Routing.registerTiltakskoordinatorDeltakerlisteApi(
                     "Statuser må spesifiseres for å hente deltakerantall per status"
                 }
 
-                call.respond(deltakerlisteRepository.getDeltakereCountPerStatus(request))
+                call.respond(tiltakskoordinatorClient.getDeltakereCountPerStatus(request))
             }
 
             post("/deltakere/tildel-plass") {

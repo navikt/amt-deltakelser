@@ -162,10 +162,12 @@ fun Application.configureRouting(
             selfServiceTilgang = selfServiceTilgangService,
             tiltakskoordinatorClient = tiltakskoordinatorClient,
             responseBuilder = tiltakskoordinatorResponseBuilder,
-            deltakerlisteRepository = deltakerlisteRepository,
         )
 
-        registerUlestHendelseApi(ulestHendelseRepository)
+        registerUlestHendelseApi(
+            ulestHendelseRepository = ulestHendelseRepository,
+            tiltakskoordinatorClient = tiltakskoordinatorClient,
+        )
 
         registerArrangorsokApi(arrangorsokClient = arrangorsokClient)
 
