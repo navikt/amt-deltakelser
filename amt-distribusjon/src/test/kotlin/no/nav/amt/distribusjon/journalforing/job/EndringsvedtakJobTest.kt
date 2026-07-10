@@ -14,6 +14,7 @@ import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatu
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.utils.job.JobManager
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -224,7 +225,7 @@ class EndringsvedtakJobTest {
     private fun hendelseMedStatus(
         deltakerId: UUID,
         opprettet: LocalDateTime,
-        payload: no.nav.amt.lib.models.hendelse.HendelseType = HendelseTypeData.endreStartdato(),
+        payload: HendelseType = HendelseTypeData.endreStartdato(),
     ): HendelseMedJournalforingstatus {
         val deltaker = Hendelsesdata.lagDeltaker(id = deltakerId)
         val hendelse = Hendelsesdata.hendelse(payload = payload, deltaker = deltaker, opprettet = opprettet)

@@ -1,13 +1,13 @@
 package no.nav.amt.deltaker.innbygger
 
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.InnholdDto
+import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
-import no.nav.amt.lib.models.hendelse.InnholdDto
-import no.nav.amt.lib.models.hendelse.UtkastDto
 import java.time.LocalDate
 
 fun Deltaker.toUtkastDto() = UtkastDto(

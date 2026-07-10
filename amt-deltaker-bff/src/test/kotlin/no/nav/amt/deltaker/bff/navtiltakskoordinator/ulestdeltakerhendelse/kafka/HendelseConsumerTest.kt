@@ -11,8 +11,8 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagHendelse
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.deltaker.bff.utils.TestRepository
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test

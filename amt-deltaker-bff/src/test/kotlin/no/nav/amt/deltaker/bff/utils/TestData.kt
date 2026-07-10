@@ -18,6 +18,10 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.toInnhold
+import no.nav.amt.internapi.hendelse.Hendelse
+import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
+import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
@@ -43,10 +47,6 @@ import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
-import no.nav.amt.lib.models.hendelse.Hendelse
-import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
-import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.Oppfolgingsperiode

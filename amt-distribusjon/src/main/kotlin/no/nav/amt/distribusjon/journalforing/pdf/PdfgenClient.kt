@@ -10,6 +10,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.lib.models.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
 import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakPdfDto
 import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
 import no.nav.amt.lib.models.journalforing.pdf.InnsokingsbrevPdfDto
@@ -71,6 +72,19 @@ class PdfgenClient(
     }
 
     suspend fun genererInnsokingsbrevPDF(innsokingsbrevPdfDto: InnsokingsbrevPdfDto): ByteArray {
+        val response = httpClient.post("$url/innsokingsbrev") {
+            contentType(ContentType.Application.Json)
+            setBody(objectMapper.writeValueAsString(innsokingsbrevPdfDto))
+        }
+        if (!response.status.isSuccess()) {
+            error(
+                "Kunne ikke hente opprette kurs-innsoking-pdf i amt-pdfgen. Status=${response.status.value} error=${response.bodyAsText()}",
+            )
+        }
+        return response.body()
+    }
+
+    suspend fun genererEnkeltplassInnsokingsbrevPDF(innsokingsbrevPdfDto: EnkeltplassInnsokingsbrevPdfDto): ByteArray {
         val response = httpClient.post("$url/innsokingsbrev") {
             contentType(ContentType.Application.Json)
             setBody(objectMapper.writeValueAsString(innsokingsbrevPdfDto))

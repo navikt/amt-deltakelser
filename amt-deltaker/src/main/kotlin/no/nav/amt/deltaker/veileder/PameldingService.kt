@@ -10,11 +10,11 @@ import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.DeltakerUtils
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.UtkastRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.hendelse.HendelseType
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID

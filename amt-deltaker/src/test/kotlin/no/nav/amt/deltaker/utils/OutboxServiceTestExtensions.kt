@@ -2,9 +2,9 @@ package no.nav.amt.deltaker.utils
 
 import io.mockk.verify
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.internapi.hendelse.Hendelse
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.hendelse.Hendelse
-import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.outbox.OutboxService
 import java.util.UUID
 

@@ -17,6 +17,7 @@ import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -24,7 +25,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.utils.TestData
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

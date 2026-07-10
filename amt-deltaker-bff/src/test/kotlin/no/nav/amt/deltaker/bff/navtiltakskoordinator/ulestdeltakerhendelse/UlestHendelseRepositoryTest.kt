@@ -9,10 +9,10 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagHendelse
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.deltaker.bff.utils.TestRepository
+import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.models.hendelse.UtkastDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

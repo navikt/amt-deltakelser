@@ -29,10 +29,10 @@ import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.KladdService
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

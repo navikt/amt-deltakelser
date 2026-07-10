@@ -166,13 +166,14 @@ object DtoBuilders {
         prisinformasjon: EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon,
     ) = EnkeltplassInnsokingsbrevPdfDto(
         deltaker = enkeltplassInnsokingsbrevDeltaker(),
-        deltakerliste = enkeltplassInnsokingsbrevDeltakerliste(),
+        deltakerliste = enkeltplassInnsokingsbrevDeltakerliste(
+            tiltaksnavn = tiltaksnavn,
+            arrangor = arrangor,
+        ),
         avsender = innsokingsbrevAvsender(),
         opprettetDato = fixedDate.minusMonths(1),
         innhold = innhold,
         innholdFritekst = "Dette er en fritekst",
-        tiltaksnavn = tiltaksnavn,
-        arrangornavn = arrangor.navn,
         deltakelsesmengdeAntallDager = 5,
         prisinformasjon = prisinformasjon,
     )
@@ -184,7 +185,12 @@ object DtoBuilders {
         personident = "12345678910",
     )
 
-    fun enkeltplassInnsokingsbrevDeltakerliste() = EnkeltplassInnsokingsbrevPdfDto.DeltakerlisteDto(
+    fun enkeltplassInnsokingsbrevDeltakerliste(
+        tiltaksnavn: String = "Arbeidsforberedende trening",
+        arrangor: ArrangorDto = ArrangorDto("Jada Fangst AS"),
+    ) = EnkeltplassInnsokingsbrevPdfDto.DeltakerlisteDto(
+        tiltaksnavn = tiltaksnavn,
+        arrangornavn = arrangor.navn,
         startdato = fixedDate,
         sluttdato = fixedDate.plusMonths(3),
         oppstartstype = Oppstartstype.ENKELTPLASS,

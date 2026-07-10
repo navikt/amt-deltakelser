@@ -12,8 +12,6 @@ data class EnkeltplassInnsokingsbrevPdfDto(
     val opprettetDato: LocalDate,
     val innhold: EnkeltplassInnhold,
     val innholdFritekst: String,
-    val tiltaksnavn: String,
-    val arrangornavn: String,
     val deltakelsesmengdeAntallDager: Int,
     val prisinformasjon: Prisinformasjon,
 ) {
@@ -25,6 +23,8 @@ data class EnkeltplassInnsokingsbrevPdfDto(
     )
 
     data class DeltakerlisteDto(
+        val tiltaksnavn: String,
+        val arrangornavn: String,
         val startdato: LocalDate,
         val sluttdato: LocalDate,
         val oppstartstype: Oppstartstype,

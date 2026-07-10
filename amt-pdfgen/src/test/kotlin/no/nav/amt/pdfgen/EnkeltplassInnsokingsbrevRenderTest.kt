@@ -30,7 +30,7 @@ class EnkeltplassInnsokingsbrevRenderTest :
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
                 doc.text() shouldContain "Ola Erik Nordmann"
-                // java.io.File("/tmp/enkeltplass-preview.html").writeText(doc.outerHtml())
+                java.io.File("/tmp/enkeltplass-preview.html").writeText(doc.outerHtml())
             }
 
             it("FagOgYrkesopplaering") {

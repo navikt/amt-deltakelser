@@ -4,8 +4,8 @@ import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
 import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.varsel.model.Varsel
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
-import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.ZoneId

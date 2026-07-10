@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse
 
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions.toUlestHendelse
-import no.nav.amt.lib.models.hendelse.Hendelse
+import no.nav.amt.internapi.hendelse.Hendelse
 import org.slf4j.LoggerFactory
 
 class UlestHendelseService(
