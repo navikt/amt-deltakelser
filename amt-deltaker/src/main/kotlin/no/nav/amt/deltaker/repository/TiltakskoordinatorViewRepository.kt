@@ -165,10 +165,6 @@ class TiltakskoordinatorViewRepository {
                 JOIN nav_bruker nb ON d.person_id = nb.person_id
                 JOIN deltaker_status ds ON
                     d.id = ds.deltaker_id
-                    -- amt-deltaker bevarer full statushistorikk per deltaker (i motsetning til
-                    -- amt-deltaker-bff som kun lagrer én status). Historiske statuser har gyldig_til
-                    -- IS NOT NULL. Uten disse filtrene ville spørringen returnere én rad per historisk
-                    -- status — ikke én per deltaker.
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
                     ${statusFilterSql(statuser)}
@@ -229,6 +225,10 @@ class TiltakskoordinatorViewRepository {
                 d
                 JOIN deltaker_status ds
                     ON ds.deltaker_id = d.id
+                    -- amt-deltaker bevarer full statushistorikk per deltaker (i motsetning til
+                    -- amt-deltaker-bff som kun lagrer én status). Historiske statuser har gyldig_til
+                    -- IS NOT NULL. Uten disse filtrene ville spørringen returnere én rad per historisk
+                    -- status — ikke én per deltaker.
                     AND ds.gyldig_til IS NULL
                     AND ds.gyldig_fra <= CURRENT_TIMESTAMP
                     AND ds.type = ANY(:statuser)

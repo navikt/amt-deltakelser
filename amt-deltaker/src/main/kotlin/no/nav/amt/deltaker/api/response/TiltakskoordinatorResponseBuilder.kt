@@ -18,7 +18,7 @@ import java.sql.SQLException
 import java.util.UUID
 
 /**
- * Bygger spisset respons for tiltakskoordinator-lista (`POST /tiltakskoordinator/deltakere`).
+ * Bygger spisset respons for tiltakskoordinator-lista (`POST /tiltakskoordinator/deltakere/{gjennomforingId}`).
  * Optimalisert for kall med mange deltakere (kan være >2000 per request).
  *
  * Henter data i **to SQL-spørringer**:
