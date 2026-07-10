@@ -96,6 +96,34 @@ class KladdApiTest : IntegrationTestBase() {
         }
     }
 
+    @Test
+    fun `post kladd-og-deltaker - slett lyktes - returnerer true`() {
+        val deltakerId = UUID.randomUUID()
+        coEvery { kladdService.slettKladd(deltakerId) } just Runs
+
+        withTestApplicationContext { client ->
+            client.post("/kladd-og-deltaker/$deltakerId") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.OK
+                val body = objectMapper.readValue(bodyAsText(), Map::class.java)
+                body["slettet"] shouldBe true
+            }
+        }
+    }
+
+    @Test
+    fun `post kladd-og-deltaker - slett feiler - returnerer false`() {
+        val deltakerId = UUID.randomUUID()
+        coEvery { kladdService.slettKladd(deltakerId) } throws IllegalArgumentException("Kan ikke slette deltaker")
+
+        withTestApplicationContext { client ->
+            client.post("/kladd-og-deltaker/$deltakerId") { noBodyRequest() }.apply {
+                status shouldBe HttpStatusCode.OK
+                val body = objectMapper.readValue(bodyAsText(), Map::class.java)
+                body["slettet"] shouldBe false
+            }
+        }
+    }
+
     companion object {
         private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
     }

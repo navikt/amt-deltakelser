@@ -65,7 +65,7 @@ fun Routing.registerKladdApi(
                 norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
             )
 
-            paameldingClient.slettKladd(deltakerId)
+            paameldingService.slettKladd(deltakerId)
 
             log.info("${call.getNavIdent()} har slettet kladd for deltaker med id $deltakerId")
             call.respond(HttpStatusCode.OK)

@@ -7,6 +7,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
+import no.nav.amt.internapi.paamelding.response.SlettKladdResponse
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
@@ -42,6 +43,15 @@ class PaameldingClient(
 
     suspend fun slettKladd(deltakerId: UUID) = performDelete("kladd/$deltakerId")
         .failIfNotSuccess("Kunne ikke slette kladd i amt-deltaker.")
+
+    suspend fun slettKladdOgDeltaker(deltakerId: UUID): Boolean {
+        val response = performPost(
+            "kladd-og-deltaker/$deltakerId",
+            Unit,
+        ).failIfNotSuccess("Kunne ikke slette kladd og deltaker i amt-deltaker.")
+            .body<SlettKladdResponse>()
+        return response.slettet
+    }
 
     suspend fun utkast(utkast: Utkast) = performPost(
         urlSubPath = "pamelding/${utkast.deltakerId}",

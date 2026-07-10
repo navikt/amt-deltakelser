@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
+import no.nav.amt.internapi.paamelding.response.SlettKladdResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 fun Routing.registerKladdApi(
@@ -64,6 +65,23 @@ fun Routing.registerKladdApi(
         delete("/kladd/{deltakerId}") {
             kladdService.slettKladd(call.getDeltakerId())
             call.respond(HttpStatusCode.OK)
+        }
+
+        post("/kladd-og-deltaker/{deltakerId}") {
+            val deltakerId = call.getDeltakerId()
+            try {
+                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                
+                if (deltaker.status.type != DeltakerStatus.Type.KLADD) {
+                    call.respond(SlettKladdResponse(slettet = false))
+                    return@post
+                }
+                
+                kladdService.slettKladd(deltakerId)
+                call.respond(SlettKladdResponse(slettet = true))
+            } catch (e: Exception) {
+                call.respond(SlettKladdResponse(slettet = false))
+            }
         }
     }
 }

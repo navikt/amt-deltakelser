@@ -127,9 +127,7 @@ class KladdApiTest : IntegrationTestBase() {
     fun `slett kladd - deltaker er KLADD - sletter deltaker og returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
-        coEvery { paameldingClient.slettKladd(deltakerInTest.id) } returns mockk<HttpResponse> {
-            every { status } returns HttpStatusCode.OK
-        }
+        coEvery { paameldingClient.slettKladdOgDeltaker(deltakerInTest.id) } returns true
 
         withTestApplicationContext { httpClient ->
             httpClient.delete("/kladd/${deltakerInTest.id}") { noBodyRequest() }.apply {
