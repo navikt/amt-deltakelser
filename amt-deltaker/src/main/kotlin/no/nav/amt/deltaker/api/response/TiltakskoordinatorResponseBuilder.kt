@@ -10,6 +10,7 @@ import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerlisteFilterCountsResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 import java.net.SocketException
@@ -70,6 +71,9 @@ class TiltakskoordinatorResponseBuilder(
             },
         )
     }
+
+    fun buildStatusCountsResponse(request: TiltaksKoordinatorDeltakerlisteRequest): DeltakerlisteFilterCountsResponse =
+        viewRepository.getDeltakereCountPerStatus(request)
 
     suspend fun buildResponse(
         gjennomforingId: UUID,

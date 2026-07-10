@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
+package no.nav.amt.internapi.tiltakskoordinator.response
 
 import no.nav.amt.internapi.tiltakskoordinator.HandlingFilterValg
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
