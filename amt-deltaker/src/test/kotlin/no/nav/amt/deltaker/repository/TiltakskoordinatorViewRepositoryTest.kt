@@ -71,6 +71,188 @@ class TiltakskoordinatorViewRepositoryTest {
         }
 
         @Test
+        fun `skal returnere tomme counts nar ingen deltakere finnes`() {
+            val deltakerliste = lagDeltakerliste()
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(DeltakerStatus.Type.DELTAR),
+                ),
+            )
+
+            result.statusCounts.isEmpty() shouldBe true
+            result.handlingCounts[HandlingFilterValg.NyeDeltakere] shouldBe 0
+            result.handlingCounts[HandlingFilterValg.OppdateringFraNav] shouldBe 0
+            result.handlingCounts[HandlingFilterValg.AktiveForslag] shouldBe 0
+        }
+
+        @Test
+        fun `skal telle deltakere per status`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker3 =
+                lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker4 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            TestRepository.insert(deltaker1)
+            TestRepository.insert(deltaker2)
+            TestRepository.insert(deltaker3)
+            TestRepository.insert(deltaker4)
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(
+                        DeltakerStatus.Type.DELTAR,
+                        DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                        DeltakerStatus.Type.HAR_SLUTTET,
+                    ),
+                ),
+            )
+
+            result.statusCounts.size shouldBe 3
+            result.statusCounts[DeltakerStatus.Type.DELTAR] shouldBe 2
+            result.statusCounts[DeltakerStatus.Type.VENTER_PA_OPPSTART] shouldBe 1
+            result.statusCounts[DeltakerStatus.Type.HAR_SLUTTET] shouldBe 1
+        }
+
+        @Test
+        fun `skal filtrere pa spesifiserte statuser`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 =
+                lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker3 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            TestRepository.insert(deltaker1)
+            TestRepository.insert(deltaker2)
+            TestRepository.insert(deltaker3)
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(DeltakerStatus.Type.DELTAR, DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                ),
+            )
+
+            result.statusCounts.size shouldBe 2
+            result.statusCounts[DeltakerStatus.Type.DELTAR] shouldBe 1
+            result.statusCounts[DeltakerStatus.Type.VENTER_PA_OPPSTART] shouldBe 1
+            result.statusCounts.containsKey(DeltakerStatus.Type.HAR_SLUTTET) shouldBe false
+        }
+
+        @Test
+        fun `skal telle OppdateringFraNav for alle relevante nav-hendelser`() {
+            val deltakerliste = lagDeltakerliste()
+            val ikkeAktuell = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
+            val harSluttet = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            val avbrutt = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT))
+            val reaktivert =
+                lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            TestRepository.insertAll(ikkeAktuell, harSluttet, avbrutt, reaktivert)
+
+            ulestHendelseRepository.upsert(
+                UlestHendelse(
+                    id = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    deltakerId = ikkeAktuell.id,
+                    ansvarlig = null,
+                    hendelse = UlestHendelseType.IkkeAktuell(
+                        aarsak = DeltakerEndring.Aarsak(
+                            type = DeltakerEndring.Aarsak.Type.ANNET,
+                            beskrivelse = null,
+                        ),
+                        begrunnelseFraNav = null,
+                        begrunnelseFraArrangor = null,
+                        endringFraForslag = null,
+                    ),
+                ),
+            )
+            ulestHendelseRepository.upsert(
+                UlestHendelse(
+                    id = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    deltakerId = harSluttet.id,
+                    ansvarlig = null,
+                    hendelse = UlestHendelseType.AvsluttDeltakelse(
+                        aarsak = null,
+                        sluttdato = LocalDate.now(),
+                        begrunnelseFraNav = null,
+                        begrunnelseFraArrangor = null,
+                        endringFraForslag = null,
+                    ),
+                ),
+            )
+            ulestHendelseRepository.upsert(
+                UlestHendelse(
+                    id = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    deltakerId = avbrutt.id,
+                    ansvarlig = null,
+                    hendelse = UlestHendelseType.AvbrytDeltakelse(
+                        aarsak = null,
+                        sluttdato = LocalDate.now(),
+                        begrunnelseFraNav = null,
+                        begrunnelseFraArrangor = null,
+                        endringFraForslag = null,
+                    ),
+                ),
+            )
+            ulestHendelseRepository.upsert(
+                UlestHendelse(
+                    id = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    deltakerId = reaktivert.id,
+                    ansvarlig = null,
+                    hendelse = UlestHendelseType.ReaktiverDeltakelse(begrunnelseFraNav = "Reaktivering"),
+                ),
+            )
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(
+                        DeltakerStatus.Type.IKKE_AKTUELL,
+                        DeltakerStatus.Type.HAR_SLUTTET,
+                        DeltakerStatus.Type.AVBRUTT,
+                        DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                    ),
+                ),
+            )
+
+            result.handlingCounts[HandlingFilterValg.OppdateringFraNav] shouldBe 4
+        }
+
+        @Test
+        fun `skal ikke telle ikke-aktive forslag`() {
+            val deltakerliste = lagDeltakerliste()
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(deltaker)
+
+            forslagRepository.upsert(
+                lagForslag(
+                    deltakerId = deltaker.id,
+                    status = Forslag.Status.Godkjent(
+                        godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                        godkjent = LocalDateTime.now(),
+                    ),
+                ),
+            )
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste.id,
+                    statuser = setOf(DeltakerStatus.Type.DELTAR),
+                ),
+            )
+
+            result.handlingCounts[HandlingFilterValg.AktiveForslag] shouldBe 0
+        }
+
+        @Test
         fun `skal kun telle aktiv status nar deltaker har statushistorikk`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
@@ -238,6 +420,31 @@ class TiltakskoordinatorViewRepositoryTest {
 
             result.handlingCounts[HandlingFilterValg.NyeDeltakere] shouldBe 0
             result.handlingCounts[HandlingFilterValg.AktiveForslag] shouldBe 0
+        }
+
+        @Test
+        fun `skal ikke telle statusCounts fra annen gjennomforing`() {
+            val deltakerliste1 = lagDeltakerliste()
+            val deltakerliste2 = lagDeltakerliste()
+            val deltaker1 = lagDeltaker(
+                deltakerliste = deltakerliste1,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            val deltaker2 = lagDeltaker(
+                deltakerliste = deltakerliste2,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(deltaker1)
+            TestRepository.insert(deltaker2)
+
+            val result = viewRepository.getDeltakereCountPerStatus(
+                TiltaksKoordinatorDeltakerlisteRequest(
+                    gjennomforingId = deltakerliste1.id,
+                    statuser = setOf(DeltakerStatus.Type.DELTAR),
+                ),
+            )
+
+            result.statusCounts[DeltakerStatus.Type.DELTAR] shouldBe 1
         }
     }
 
