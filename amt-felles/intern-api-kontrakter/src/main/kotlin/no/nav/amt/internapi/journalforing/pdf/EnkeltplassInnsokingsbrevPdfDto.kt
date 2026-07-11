@@ -10,9 +10,9 @@ data class EnkeltplassInnsokingsbrevPdfDto(
     val deltakerliste: DeltakerlisteDto,
     val avsender: AvsenderDto,
     val opprettetDato: LocalDate,
-    val innhold: EnkeltplassInnhold,
     val innholdFritekst: String,
-    val deltakelsesmengdeAntallDager: Int,
+    val deltakelsesmengdeAntallDager: Int?,
+    val innhold: EnkeltplassInnhold,
     val prisinformasjon: Prisinformasjon,
 ) {
     data class DeltakerDto(

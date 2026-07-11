@@ -35,7 +35,7 @@
 
     <section>
         <h2>Dette er innholdet</h2>
-        <p class="fritekst">{{this.innholdFritekst}}</p>
+        <p class="fritekst">{{innholdFritekst}}</p>
 
         {{#eq innhold.type "Arbeidsmarkedsopplaering"}}
             <p class="margins-1-rem">
@@ -69,10 +69,12 @@
         {{/eq}}
     </section>
 
-    <section id="deltakelsesmengde">
-        <h2>Deltakelsesmengde</h2>
-        <p>{{this.deltakelsesmengdeAntallDager}} dager i uka</p>
-    </section>
+    {{#if deltakelsesmengdeAntallDager}}
+        <section id="deltakelsesmengde">
+            <h2>Deltakelsesmengde</h2>
+            <p>{{deltakelsesmengdeAntallDager}} dager i uka</p>
+        </section>
+    {{/if}}
 
     <section>
         <h2>Pris og betalingsbetingelser</h2>

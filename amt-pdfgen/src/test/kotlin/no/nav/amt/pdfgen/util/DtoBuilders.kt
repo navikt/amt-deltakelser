@@ -164,6 +164,7 @@ object DtoBuilders {
         tiltaksnavn: String = "Arbeidsforberedende trening",
         arrangor: ArrangorDto = ArrangorDto("Jada Fangst AS"),
         prisinformasjon: EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon,
+        deltakelsesmengdeAntallDager: Int? = null,
     ) = EnkeltplassInnsokingsbrevPdfDto(
         deltaker = enkeltplassInnsokingsbrevDeltaker(),
         deltakerliste = enkeltplassInnsokingsbrevDeltakerliste(
@@ -174,7 +175,7 @@ object DtoBuilders {
         opprettetDato = fixedDate.minusMonths(1),
         innhold = innhold,
         innholdFritekst = "Dette er en fritekst",
-        deltakelsesmengdeAntallDager = 5,
+        deltakelsesmengdeAntallDager = deltakelsesmengdeAntallDager,
         prisinformasjon = prisinformasjon,
     )
 

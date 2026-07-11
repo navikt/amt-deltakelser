@@ -208,6 +208,7 @@ class EnkeltplassInnsokingsbrevTest :
                 val brev = enkeltplassInnsokingsbrev(
                     innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
                     prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                    deltakelsesmengdeAntallDager = 5,
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 

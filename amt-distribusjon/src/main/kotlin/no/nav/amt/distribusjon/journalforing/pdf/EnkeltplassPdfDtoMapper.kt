@@ -54,9 +54,7 @@ object EnkeltplassPdfDtoMapper {
             ?: throw IllegalStateException(
                 "Deltakerliste ${deltaker.deltakerliste.id} må ha beskrivelse for å lage enkeltplass innsøkingsbrev",
             ),
-        deltakelsesmengdeAntallDager = utkast.dagerPerUke?.toInt() ?: throw IllegalStateException(
-            "Deltaker ${deltaker.id} må ha dagerPerUke for å lage enkeltplass innsøkingsbrev",
-        ),
+        deltakelsesmengdeAntallDager = utkast.dagerPerUke?.toInt(),
         innhold = deltaker.deltakerliste.toInnhold(),
         prisinformasjon = deltaker.deltakerliste.toPrisinformasjon(),
     )
