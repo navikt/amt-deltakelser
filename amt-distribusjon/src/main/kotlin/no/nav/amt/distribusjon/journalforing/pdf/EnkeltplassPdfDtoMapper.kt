@@ -33,12 +33,16 @@ object EnkeltplassPdfDtoMapper {
         deltakerliste = DeltakerlisteDto(
             tiltaksnavn = deltaker.deltakerliste.tiltakskodenavn(),
             arrangornavn = deltaker.deltakerliste.arrangor.navn,
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(10),
+/*
             startdato = deltaker.startdato ?: throw IllegalStateException(
                 "Deltaker ${deltaker.id} må ha startdato for å lage enkeltplass innsøkingsbrev",
             ),
             sluttdato = deltaker.sluttdato ?: throw IllegalStateException(
                 "Deltaker ${deltaker.id} må ha sluttdato for å lage enkeltplass innsøkingsbrev",
             ),
+*/
             oppstartstype = deltaker.deltakerliste.oppstartstype ?: throw IllegalStateException(
                 "Deltakerliste ${deltaker.deltakerliste.id} må ha oppstartstype for å lage enkeltplass innsøkingsbrev",
             ),
