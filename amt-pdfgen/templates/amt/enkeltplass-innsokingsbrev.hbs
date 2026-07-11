@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="description" content="Innsøking på tiltak"/>
+    <meta name="author" content="amt-pdfgen"/>
+    <meta name="subject" content="Innsøkingsbrev"/>
+
+    {{#block 'amt/style' }}
+    {{/block}}
+
+    <title>Innsøking på tiltak</title>
+</head>
+
+<body>
+<div id="footer">
+    <span class="sidetall">side <span id="pagenumber"></span> av <span id="pagecount"></span></span>
+</div>
+
+{{> sections/header}}
+
+<main>
+    <section>
+        <h1>
+            {{deltakerliste.tiltaksnavn}} hos {{deltakerliste.arrangornavn}}
+        </h1>
+
+        <p>Du er søkt inn og Nav vurderer søknaden din. Du vil få beskjed om resultatet.</p>
+
+        <p class="margins-1-rem">
+            Opplæringen starter {{iso_to_long_date deltakerliste.startdato}}, og slutter {{iso_to_long_date
+                deltakerliste.sluttdato}}.
+        </p>
+    </section>
+
+    <section>
+        <h2>Dette er innholdet</h2>
+        <p class="fritekst">{{innholdFritekst}}</p>
+
+        {{#eq innhold.type "Arbeidsmarkedsopplaering"}}
+            <p class="margins-1-rem">
+                Bransje: {{innhold.bransje}}
+            </p>
+
+            {{#if innhold.forerkortOgSertifiseringer.length}}
+                <p class="list-heading-tight">
+                    Førerkort og sertifisering:
+                </p>
+
+                <ul id="innholdselementer">
+                    {{#each innhold.forerkortOgSertifiseringer}}
+                        <li class="fritekst">{{this}}</li>
+                    {{/each}}
+                </ul>
+            {{/if}}
+        {{/eq}}
+
+        {{#eq innhold.type "FagOgYrkesopplaering"}}
+            <p class="margins-1-rem">
+                Utdanningsprogram: {{innhold.utdanningsprogram}}
+            </p>
+
+            <p class="list-heading-tight">Lærefag:</p>
+            <ul id="innholdselementer">
+                {{#each innhold.laerefag}}
+                    <li class="fritekst">{{this}}</li>
+                {{/each}}
+            </ul>
+        {{/eq}}
+    </section>
+
+    {{#if deltakelsesmengdeAntallDager}}
+        <section id="deltakelsesmengde">
+            <h2>Deltakelsesmengde</h2>
+            <p>{{deltakelsesmengdeAntallDager}} dager i uka</p>
+        </section>
+    {{/if}}
+
+    <section>
+        <h2>Pris og betalingsbetingelser</h2>
+
+        {{#eq prisinformasjon.type "Anskaffelse"}}
+            <p class="margins-1-rem">
+                Nav har kjøpt en plass hos opplæringsstedet. Nav betaler for opplæringen.
+            </p>
+
+            <p class="margins-1-rem">
+                Totalkostnaden er {{currency_no prisinformasjon.pris true}} kroner.
+            </p>
+        {{/eq}}
+
+        {{#eq prisinformasjon.type "IngenKostnader"}}
+            <p class="margins-1-rem">
+                Du eller Nav skal ikke betale for opplæringen.
+            </p>
+        {{/eq}}
+
+        {{#eq prisinformasjon.type "Innbyggerfinansiert"}}
+            <p class="margins-1-rem">
+                Du må selv betale for opplæringen.
+            </p>
+
+            <p class="margins-1-rem">
+                {{prisinformasjon.tilleggsopplysninger}}
+            </p>
+        {{/eq}}
+
+        {{#eq prisinformasjon.type "Tilskudd"}}
+            <p class="list-heading-tight">
+                Du kan få tilskudd til å dekke disse utgiftene:
+            </p>
+            <ul class="list-tight-top">
+                {{#each prisinformasjon.tilskudd}}
+                    <li class="fritekst">{{this.type}}: {{currency_no this.pris true}}</li>
+                {{/each}}
+            </ul>
+
+            <p class="margins-1-rem">
+                Totalt anslått tilskudd: {{currency_no prisinformasjon.totalpris true}} kroner.
+            </p>
+
+            <p class="margins-1-rem">
+                Utbetaling skjer når utgiftene er dokumentert.
+            </p>
+
+            {{#if prisinformasjon.tilleggsopplysninger}}
+                <p class="margins-1-rem">
+                    {{prisinformasjon.tilleggsopplysninger}}
+                </p>
+            {{/if}}
+        {{/eq}}
+
+        <p class="margins-1-rem">
+            Les mer om støtte til andre utgifter knyttet til opplæringen på nav.no/tilleggsstønader.
+        </p>
+    </section>
+
+    {{> sections/sporsmal}}
+
+    {{> sections/avsender}}
+</main>
+</body>
+</html>

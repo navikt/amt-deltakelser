@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.hendelse
+package no.nav.amt.internapi.hendelse
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.util.UUID

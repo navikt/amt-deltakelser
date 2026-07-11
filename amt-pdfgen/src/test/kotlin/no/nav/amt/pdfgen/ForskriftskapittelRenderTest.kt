@@ -3,8 +3,8 @@ package no.nav.amt.pdfgen
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.pdfgen.util.DtoBuilders.endringsvedtak
 import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtak
 import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtakVedTildeltPlass

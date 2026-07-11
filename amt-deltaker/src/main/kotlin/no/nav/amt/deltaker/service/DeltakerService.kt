@@ -20,10 +20,10 @@ import no.nav.amt.deltaker.veileder.endring.extensions.anvendPaaDeltaker
 import no.nav.amt.deltaker.veileder.endring.extensions.validerGyldigFra
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory

@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse
 
-import io.kotest.matchers.shouldBe
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.just
@@ -8,15 +7,15 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.utils.IntegrationTestBase
+import no.nav.amt.internapi.hendelse.Hendelse
+import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
+import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.hendelse.Hendelse
-import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
-import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.models.hendelse.UtkastDto
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -81,7 +80,7 @@ class DeltakerEndringHendelseConsumerTest : IntegrationTestBase() {
                 tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
                     navn = "Tiltak",
                     ledetekst = null,
-                    tiltakskode = no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+                    tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 ),
                 startdato = LocalDate.of(2026, 7, 1),
                 sluttdato = LocalDate.of(2026, 12, 31),

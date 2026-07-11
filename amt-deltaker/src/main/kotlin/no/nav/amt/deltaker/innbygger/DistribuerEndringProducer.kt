@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.innbygger
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.lib.models.hendelse.Hendelse
+import no.nav.amt.internapi.hendelse.Hendelse
 import no.nav.amt.lib.outbox.OutboxService
 
 class DistribuerEndringProducer(

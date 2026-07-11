@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.navtiltakskoordinator.extensions
 
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
-import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
+import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 
 fun HendelseAnsvarlig.toAnsvarligNavnOgEnhet(): AnsvarligNavnOgEnhet? = when (this) {
     is HendelseAnsvarlig.NavTiltakskoordinator -> AnsvarligNavnOgEnhet(endretAvNavn = navn, endretAvEnhet = enhet.navn)

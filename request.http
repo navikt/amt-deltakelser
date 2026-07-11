@@ -1,4 +1,0 @@
-### Feilregistrer deltaker
-## kubectl port-forward pod/amt-deltaker-bb84cb886-kpqgp 8080:8080
-POST http://localhost:8080/internal/feilregistrer/d140a421-ee0d-4012-9986-d5d55e520823
-Content-Type: application/json

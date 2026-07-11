@@ -9,11 +9,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.amt.distribusjon.Environment
-import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.InnsokingsbrevPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.VentelistebrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.HovedvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
+import no.nav.amt.internapi.journalforing.pdf.InnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.VentelistebrevPdfDto
 import no.nav.amt.lib.utils.objectMapper
 
 class PdfgenClient(
@@ -77,7 +78,20 @@ class PdfgenClient(
         }
         if (!response.status.isSuccess()) {
             error(
-                "Kunne ikke hente opprette kurs-innsoking-pdf i amt-pdfgen. Status=${response.status.value} error=${response.bodyAsText()}",
+                "Kunne ikke hente PDF for innsokingsbrev i amt-pdfgen. Status=${response.status.value} error=${response.bodyAsText()}",
+            )
+        }
+        return response.body()
+    }
+
+    suspend fun genererEnkeltplassInnsokingsbrevPdf(innsokingsbrevPdfDto: EnkeltplassInnsokingsbrevPdfDto): ByteArray {
+        val response = httpClient.post("$url/enkeltplass-innsokingsbrev") {
+            contentType(ContentType.Application.Json)
+            setBody(objectMapper.writeValueAsString(innsokingsbrevPdfDto))
+        }
+        if (!response.status.isSuccess()) {
+            error(
+                "Kunne ikke hente PDF for enkeltplass-innsokingsbrev i amt-pdfgen. Status=${response.status.value} error=${response.bodyAsText()}",
             )
         }
         return response.body()

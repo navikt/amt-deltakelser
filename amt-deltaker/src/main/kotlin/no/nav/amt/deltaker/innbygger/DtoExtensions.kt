@@ -1,13 +1,15 @@
 package no.nav.amt.deltaker.innbygger
 
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.InnholdDto
+import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
-import no.nav.amt.lib.models.hendelse.InnholdDto
-import no.nav.amt.lib.models.hendelse.UtkastDto
 import java.time.LocalDate
 
 fun Deltaker.toUtkastDto() = UtkastDto(
@@ -22,9 +24,15 @@ fun Deltaker.toUtkastDto() = UtkastDto(
 fun Deltaker.toHendelseDeltaker(
     overordnetArrangor: Arrangor?,
     forsteVedtakFattet: LocalDate?,
+    opplaringKategoriseringValg: OpplaringKategoriseringValg?,
+    prisinformasjon: PrisinformasjonDto?,
 ) = HendelseDeltaker(
     id = id,
     personident = navBruker.personident,
+    forsteVedtakFattet = forsteVedtakFattet,
+    opprettetDato = opprettet.toLocalDate(),
+    startdato = startdato,
+    sluttdato = sluttdato,
     deltakerliste = HendelseDeltaker.Deltakerliste(
         id = deltakerliste.id,
         navn = deltakerliste.navn,
@@ -40,9 +48,9 @@ fun Deltaker.toHendelseDeltaker(
         oppmoteSted = deltakerliste.oppmoteSted,
         pameldingstype = deltakerliste.pameldingstype.let { GjennomforingPameldingType.valueOf(it.name) },
         erEnkeltplass = deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass,
+        opplaringKategoriseringValg = opplaringKategoriseringValg,
+        prisinformasjon = prisinformasjon,
     ),
-    forsteVedtakFattet = forsteVedtakFattet,
-    opprettetDato = opprettet.toLocalDate(),
 )
 
 private fun List<Innhold>.toInnholdDtoList() = this.map {

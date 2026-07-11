@@ -10,9 +10,9 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData.utkast
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata.ansvarligNavVeileder
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata.lagDeltaker
 import no.nav.amt.distribusjon.utils.data.Persondata
+import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.Innhold
-import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -94,7 +94,7 @@ class PdfgenClientTest {
             sut.genererInnsokingsbrevPDF(innsokingsbrevPdfDto)
         }
 
-        thrown.message shouldStartWith "Kunne ikke hente opprette kurs-innsoking-pdf i amt-pdfgen."
+        thrown.message shouldStartWith "Kunne ikke hente PDF for innsokingsbrev i amt-pdfgen."
     }
 
     @Test

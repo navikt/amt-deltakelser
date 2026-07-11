@@ -6,9 +6,9 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.amt.internapi.journalforing.pdf.HovedvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.InnholdPdfDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.InnholdPdfDto
 import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtak
 import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtakDeltaker
 import no.nav.amt.pdfgen.util.RenderUtils.render

@@ -1,7 +1,7 @@
 package no.nav.amt.distribusjon.hendelse.model
 
+import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.hendelse.InnholdDto
 
 fun InnholdDto.visningsnavn(): String = beskrivelse ?: tekst
 

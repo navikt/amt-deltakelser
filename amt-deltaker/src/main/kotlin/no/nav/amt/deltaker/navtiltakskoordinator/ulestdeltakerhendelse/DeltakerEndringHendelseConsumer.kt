@@ -2,11 +2,11 @@ package no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse
 
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
+import no.nav.amt.internapi.hendelse.Hendelse
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.hendelse.Hendelse
-import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue

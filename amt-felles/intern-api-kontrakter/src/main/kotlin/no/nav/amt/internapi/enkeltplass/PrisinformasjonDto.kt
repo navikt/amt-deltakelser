@@ -18,12 +18,6 @@ sealed interface PrisinformasjonDto {
 
     fun sanitize(): PrisinformasjonDto
 
-    companion object {
-        const val MAX_LENGTH_TILLEGGSOPPLYSNINGER = 600
-        const val POSITIV_PRIS_REQUIRED_MSG = "Pris må være større enn 0"
-        const val TILSKUDD_REQUIRED_MSG = "Tilskudd må inneholde minst ett element"
-    }
-
     data class Anskaffelse(
         val pris: Int,
     ) : PrisinformasjonDto {
@@ -40,6 +34,16 @@ sealed interface PrisinformasjonDto {
             val type: Tilskuddstype,
             val pris: Int,
         )
+
+        enum class Tilskuddstype(
+            val sortOrder: Int,
+        ) {
+            SKOLEPENGER(1),
+            SEMESTERAVGIFT(2),
+            EKSAMENSGEBYR(3),
+            STUDIEREISE(4),
+            INTEGRERT_BOTILBUD(5),
+        }
 
         override fun validate(): List<String> {
             if (tilskudd.isEmpty()) return listOf(TILSKUDD_REQUIRED_MSG)
@@ -63,22 +67,17 @@ sealed interface PrisinformasjonDto {
                 ?.trim()
                 ?.take(MAX_LENGTH_TILLEGGSOPPLYSNINGER),
         )
-
-        enum class Tilskuddstype(
-            val sortOrder: Int,
-        ) {
-            SKOLEPENGER(1),
-            SEMESTERAVGIFT(2),
-            EKSAMENSGEBYR(3),
-            STUDIEREISE(4),
-            INTEGRERT_BOTILBUD(5),
-        }
     }
 
     data class IngenKostnader(
         val aarsak: Aarsak,
         val tilleggsopplysninger: String?,
     ) : PrisinformasjonDto {
+        enum class Aarsak {
+            OPPLAERINGEN_ER_KOSTNADSFRI,
+            OPPLAERINGEN_ER_EGENFINANSIERT,
+        }
+
         override fun validate(): List<String> = emptyList()
 
         override fun sanitize(): PrisinformasjonDto = copy(
@@ -86,10 +85,11 @@ sealed interface PrisinformasjonDto {
                 ?.trim()
                 ?.take(MAX_LENGTH_TILLEGGSOPPLYSNINGER),
         )
+    }
 
-        enum class Aarsak {
-            OPPLAERINGEN_ER_KOSTNADSFRI,
-            OPPLAERINGEN_ER_EGENFINANSIERT,
-        }
+    companion object {
+        const val MAX_LENGTH_TILLEGGSOPPLYSNINGER = 600
+        const val POSITIV_PRIS_REQUIRED_MSG = "Pris må være større enn 0"
+        const val TILSKUDD_REQUIRED_MSG = "Tilskudd må inneholde minst ett element"
     }
 }

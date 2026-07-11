@@ -9,6 +9,7 @@ import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DistribuerJournalp
 import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
+import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto
 import no.nav.amt.distribusjon.journalforing.pdf.PdfgenClient
 import no.nav.amt.distribusjon.journalforing.pdf.lagEndringsvedtakPdfDto
 import no.nav.amt.distribusjon.journalforing.pdf.lagHovedopptakForTildeltPlass
@@ -19,13 +20,13 @@ import no.nav.amt.distribusjon.journalforing.person.AmtPersonClient
 import no.nav.amt.distribusjon.journalforing.person.model.DokumentType
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
+import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
+import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
-import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.models.hendelse.UtkastDto
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -98,8 +99,18 @@ class JournalforingService(
         journalforingstatus: Journalforingstatus?,
     ) {
         when (val pameldingType = hendelse.deltaker.deltakerliste.pameldingstype) {
-            GjennomforingPameldingType.DIREKTE_VEDTAK -> journalforHovedvedtak(hendelse, utkast, journalforingstatus)
-            GjennomforingPameldingType.TRENGER_GODKJENNING -> journalforOgSendInnsokingsbrev(hendelse, utkast, journalforingstatus)
+            GjennomforingPameldingType.DIREKTE_VEDTAK -> journalforHovedvedtak(
+                hendelse = hendelse,
+                utkast = utkast,
+                journalforingstatus = journalforingstatus,
+            )
+
+            GjennomforingPameldingType.TRENGER_GODKJENNING -> journalforOgSendInnsokingsbrev(
+                hendelse = hendelse,
+                utkast = utkast,
+                journalforingstatus = journalforingstatus,
+            )
+
             else -> throw IllegalStateException("Pameldingstype $pameldingType er ikke implementert")
         }
     }
@@ -177,25 +188,38 @@ class JournalforingService(
     ) {
         val navBruker = amtPersonClient.hentNavBruker(hendelse.deltaker.personident)
         val veileder = hendelse.ansvarlig.hentVeileder()
-        val pdf: suspend () -> ByteArray = {
-            pdfgenClient.genererInnsokingsbrevPDF(
-                lagInnsokingsbrevPdfDto(
-                    deltaker = hendelse.deltaker,
-                    navBruker = navBruker,
-                    veileder = hendelse.ansvarlig.hentVeileder(),
-                    opprettetDato = hendelse.opprettet.toLocalDate(),
-                    utkast = utkast,
-                ),
-            )
+
+        val pdfFunc: suspend () -> ByteArray = {
+            if (hendelse.deltaker.deltakerliste.erEnkeltplass == true) {
+                pdfgenClient.genererEnkeltplassInnsokingsbrevPdf(
+                    lagEnkeltplassInnsokingsbrevPdfDto(
+                        deltaker = hendelse.deltaker,
+                        navBruker = navBruker,
+                        veileder = hendelse.ansvarlig.hentVeileder(),
+                        opprettetDato = hendelse.opprettet.toLocalDate(),
+                        utkast = utkast,
+                    ),
+                )
+            } else {
+                pdfgenClient.genererInnsokingsbrevPDF(
+                    lagInnsokingsbrevPdfDto(
+                        deltaker = hendelse.deltaker,
+                        navBruker = navBruker,
+                        veileder = hendelse.ansvarlig.hentVeileder(),
+                        opprettetDato = hendelse.opprettet.toLocalDate(),
+                        utkast = utkast,
+                    ),
+                )
+            }
         }
 
         journalforOgSend(
-            pdf,
-            hendelse,
-            veileder.enhet.enhetsnummer,
-            journalforingstatus,
-            DokumentType.INNSOKINGSBREV,
-            DistribuerJournalpostRequest.Distribusjonstype.ANNET,
+            genererPDF = pdfFunc,
+            hendelse = hendelse,
+            journalforendeEnhet = veileder.enhet.enhetsnummer,
+            journalforingstatus = journalforingstatus,
+            dokumentType = DokumentType.INNSOKINGSBREV,
+            distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.ANNET,
         )
 
         log.info("Journalførte innsøkingsbrev for deltaker ${hendelse.deltaker.id}")

@@ -1,9 +1,9 @@
 package no.nav.amt.distribusjon.hendelse.model
 
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
-import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
-import no.nav.amt.lib.models.hendelse.HendelseDeltaker
-import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
+import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.HendelseType
 import java.time.LocalDateTime
 import java.util.UUID
 

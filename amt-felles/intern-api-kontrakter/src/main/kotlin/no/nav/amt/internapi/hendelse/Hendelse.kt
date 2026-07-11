@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.hendelse
+package no.nav.amt.internapi.hendelse
 
 import java.time.LocalDateTime
 import java.util.UUID

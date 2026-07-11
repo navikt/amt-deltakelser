@@ -11,12 +11,13 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.utils.formatDateWithMonthName
+import no.nav.amt.internapi.hendelse.InnholdDto
+import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.hendelse.InnholdDto
-import no.nav.amt.lib.models.journalforing.pdf.EndringDto
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -30,7 +31,7 @@ class PdfUtilsTest {
             val innholdListeInTest = listOf(
                 Innhold(
                     tekst = "tekst 1",
-                    innholdskode = "annet",
+                    innholdskode = INNHOLDSKODE_ANNET,
                     valgt = true,
                     beskrivelse = "~innholdsbeskrivelse~",
                 ),
@@ -159,7 +160,7 @@ class PdfUtilsTest {
             val innhold = listOf(
                 InnholdDto("tekst 1", "kode 1", null),
                 InnholdDto("tekst 2", "kode 2", null),
-                InnholdDto("annet tekst", "annet", "beskrivelse"),
+                InnholdDto("annet tekst", INNHOLDSKODE_ANNET, "beskrivelse"),
             )
             val hendelser: List<Hendelse> = listOf(
                 Hendelsesdata.hendelse(
@@ -194,7 +195,7 @@ class PdfUtilsTest {
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
             val innhold = listOf(
-                InnholdDto("annet tekst", "annet", "beskrivelse"),
+                InnholdDto("annet tekst", INNHOLDSKODE_ANNET, "beskrivelse"),
             )
             val hendelser: List<Hendelse> = listOf(
                 Hendelsesdata.hendelse(
@@ -229,7 +230,7 @@ class PdfUtilsTest {
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
             val innhold = listOf(
-                InnholdDto("annet tekst", "annet", "beskrivelse"),
+                InnholdDto("annet tekst", INNHOLDSKODE_ANNET, "beskrivelse"),
             )
             val hendelser: List<Hendelse> = listOf(
                 Hendelsesdata.hendelse(

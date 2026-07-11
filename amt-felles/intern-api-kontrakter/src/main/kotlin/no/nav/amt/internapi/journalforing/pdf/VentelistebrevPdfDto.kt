@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.journalforing.pdf
+package no.nav.amt.internapi.journalforing.pdf
 
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate

@@ -9,6 +9,7 @@ repositories {
 
 dependencies {
     testImplementation(project(":amt-lib:models"))
+    testImplementation(project(":amt-felles:intern-api-kontrakter"))
     testImplementation(libs.jsoup)
     testImplementation(libs.pdfgen.core)
 

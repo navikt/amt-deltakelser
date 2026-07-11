@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.extensions
 
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
-import no.nav.amt.lib.models.hendelse.Hendelse
+import no.nav.amt.internapi.hendelse.Hendelse
 
 fun Hendelse.toUlestHendelse() = this.payload.toUlestHendelseType()?.let {
     UlestHendelse(
