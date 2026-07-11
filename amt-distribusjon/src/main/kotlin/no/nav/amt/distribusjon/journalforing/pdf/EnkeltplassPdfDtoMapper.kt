@@ -11,6 +11,7 @@ import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.De
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.DeltakerlisteDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon
+import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
@@ -48,7 +49,7 @@ object EnkeltplassPdfDtoMapper {
         ),
         opprettetDato = opprettetDato,
         innholdFritekst = utkast.innhold
-            ?.find { it.innholdskode == "annet" }
+            ?.find { it.innholdskode == INNHOLDSKODE_ANNET }
             ?.beskrivelse
             ?: throw IllegalStateException(
                 "Deltakerliste ${deltaker.deltakerliste.id} må ha beskrivelse for å lage enkeltplass innsøkingsbrev",

@@ -28,6 +28,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
@@ -330,10 +331,10 @@ private fun InnholdDto.toInnhold() = Innhold(
 fun List<Innhold>.toInnholdPdfDto(ledetekst: String?): InnholdPdfDto? {
     if (this.isEmpty() && ledetekst == null) return null
 
-    return if (this.none { it.innholdskode != "annet" }) {
+    return if (this.none { it.innholdskode != INNHOLDSKODE_ANNET }) {
         InnholdPdfDto(
             valgteInnholdselementer = emptyList(),
-            fritekstBeskrivelse = this.firstOrNull { it.innholdskode == "annet" }?.beskrivelse,
+            fritekstBeskrivelse = this.firstOrNull { it.innholdskode == INNHOLDSKODE_ANNET }?.beskrivelse,
             ledetekst = ledetekst,
         )
     } else {
@@ -514,7 +515,7 @@ private fun tilEndringDto(
             tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER ||
             tiltakskode.erOpplaeringstiltak()
         ) {
-            hendelseType.innhold.firstOrNull { it.innholdskode == "annet" }?.beskrivelse
+            hendelseType.innhold.firstOrNull { it.innholdskode == INNHOLDSKODE_ANNET }?.beskrivelse
         } else {
             null
         },

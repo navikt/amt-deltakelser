@@ -6,12 +6,14 @@ data class Innhold(
     val valgt: Boolean,
     val beskrivelse: String?,
 ) {
-    val erFritekstInnholdsElement = innholdskode == "annet"
+    val erFritekstInnholdsElement = innholdskode == INNHOLDSKODE_ANNET
 
     companion object {
+        const val INNHOLDSKODE_ANNET = "annet"
+
         fun createFritekstInnhold(beskrivelse: String) = Innhold(
             tekst = "Annet",
-            innholdskode = "annet",
+            innholdskode = INNHOLDSKODE_ANNET,
             valgt = true,
             beskrivelse = beskrivelse,
         )

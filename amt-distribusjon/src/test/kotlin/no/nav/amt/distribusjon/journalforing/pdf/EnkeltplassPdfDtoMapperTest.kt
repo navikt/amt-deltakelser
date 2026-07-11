@@ -12,6 +12,7 @@ import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -535,7 +536,7 @@ class EnkeltplassPdfDtoMapperTest {
 
         private fun createValidUtkast(
             dagerPerUke: Float = 4F,
-            innhold: List<InnholdDto> = listOf(InnholdDto("Annet", "annet", "Test beskrivelse")),
+            innhold: List<InnholdDto> = listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, "Test beskrivelse")),
         ) = UtkastDto(
             startdato = null,
             sluttdato = null,
@@ -567,7 +568,7 @@ class EnkeltplassPdfDtoMapperTest {
             val deltaker = createValidDeltaker()
             val fritekst = "Spesial fritekst for testen"
             val utkast = createValidUtkast(
-                innhold = listOf(InnholdDto("Annet", "annet", fritekst)),
+                innhold = listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, fritekst)),
             )
 
             val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto(
