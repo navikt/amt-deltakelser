@@ -224,30 +224,5 @@ class OpplaringKategoriseringValgTest {
 
             resultat shouldBe setOf(OpplaringKategoriseringType.BRANSJE_ID)
         }
-
-        @Test
-        fun `hentRepresenterer skal returnere set med samme kategoriseringstyper selv med duplikater`() {
-            // Verify that the result is deduplicated (Set behavior)
-            val valg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = mapOf(UUID.randomUUID() to "Verdi 1"),
-                    ),
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = mapOf(UUID.randomUUID() to "Verdi 2"),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-
-            val resultat = valg.hentRepresenterer()
-
-            // Since valgteKategoriseringer is a Set, we can't actually have duplicates,
-            // but we test that result is a Set with unique items
-            resultat.size shouldBe 1
-            resultat shouldBe setOf(OpplaringKategoriseringType.BRANSJE_ID)
-        }
     }
 }

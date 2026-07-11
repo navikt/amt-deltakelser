@@ -47,7 +47,12 @@ object EnkeltplassPdfDtoMapper {
             enhet = navBruker.navEnhet?.navn ?: "NAV",
         ),
         opprettetDato = opprettetDato,
-        innholdFritekst = "TODO", // Denne er mest sannsynlig OppdaterEnkeltplassKladdRequest#beskrivelse
+        innholdFritekst = utkast.innhold
+            ?.find { it.innholdskode == "annet" }
+            ?.beskrivelse
+            ?: throw IllegalStateException(
+                "Deltakerliste ${deltaker.deltakerliste.id} må ha beskrivelse for å lage enkeltplass innsøkingsbrev",
+            ),
         deltakelsesmengdeAntallDager = utkast.dagerPerUke?.toInt() ?: throw IllegalStateException(
             "Deltaker ${deltaker.id} må ha dagerPerUke for å lage enkeltplass innsøkingsbrev",
         ),
@@ -108,7 +113,7 @@ object EnkeltplassPdfDtoMapper {
             representerSet.contains(OpplaringKategoriseringType.KURSTYPE_ID) -> EnkeltplassInnhold.UtenInnhold
 
             representerSet.contains(OpplaringKategoriseringType.BRANSJE_ID) -> EnkeltplassInnhold.Arbeidsmarkedsopplaering(
-                bransje = opplaringKategoriseringValg.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID).first(),
+                bransje = opplaringKategoriseringValg.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID).single(),
                 forerkortOgSertifiseringer = opplaringKategoriseringValg
                     .hentVerdier(
                         representerer = OpplaringKategoriseringType.FORERKORT,
@@ -125,7 +130,7 @@ object EnkeltplassPdfDtoMapper {
                 EnkeltplassInnhold.FagOgYrkesopplaering(
                     utdanningsprogram = opplaringKategoriseringValg
                         .hentVerdier(OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID)
-                        .first(),
+                        .single(),
                     laerefag = opplaringKategoriseringValg
                         .hentVerdier(OpplaringKategoriseringType.LAREFAG),
                 )

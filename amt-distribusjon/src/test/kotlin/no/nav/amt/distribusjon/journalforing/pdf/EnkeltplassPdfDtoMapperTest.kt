@@ -7,13 +7,17 @@ import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.tiltaks
 import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.toInnhold
 import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.toPrisinformasjon
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
+import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.internapi.hendelse.InnholdDto
+import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 class EnkeltplassPdfDtoMapperTest {
@@ -502,6 +506,95 @@ class EnkeltplassPdfDtoMapperTest {
 
             resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Anskaffelse>()
             resultat.pris shouldBe 100
+        }
+    }
+
+    @Nested
+    inner class LagEnkeltplassInnsokingsbrevPdfDtoTests {
+        private val navBruker = Persondata.lagNavBruker()
+        private val veileder = Hendelsesdata.ansvarligNavVeileder()
+        private val opprettetDato = LocalDate.now()
+
+        private fun createValidDeltaker() = Hendelsesdata.lagDeltaker(
+            deltakerliste = Hendelsesdata.lagDeltakerliste(
+                startdato = LocalDate.now(),
+                sluttdato = LocalDate.now().plusDays(30),
+                tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
+                prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 5000),
+                opplaringKategoriseringValg = OpplaringKategoriseringValg(
+                    valgteKategoriseringer = setOf(
+                        OpplaringKategoriseringValg.ValgteFelt(
+                            representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                            valg = mapOf(UUID.randomUUID() to "Bygg og anlegg"),
+                        ),
+                    ),
+                    valgteSertifiseringer = setOf(),
+                ),
+            ),
+        )
+
+        private fun createValidUtkast(
+            dagerPerUke: Float = 4F,
+            innhold: List<InnholdDto> = listOf(InnholdDto("Annet", "annet", "Test beskrivelse")),
+        ) = UtkastDto(
+            startdato = null,
+            sluttdato = null,
+            dagerPerUke = dagerPerUke,
+            deltakelsesprosent = 80F,
+            bakgrunnsinformasjon = "Bakgrunn",
+            innhold = innhold,
+        )
+
+        @Test
+        fun `lagEnkeltplassInnsokingsbrevPdfDto skal mappe deltaker korrekt`() {
+            val deltaker = createValidDeltaker()
+            val utkast = createValidUtkast()
+
+            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                veileder = veileder,
+                opprettetDato = opprettetDato,
+                utkast = utkast,
+            )
+
+            resultat.deltaker.fornavn shouldBe navBruker.fornavn
+            resultat.deltaker.personident shouldBe deltaker.personident
+        }
+
+        @Test
+        fun `lagEnkeltplassInnsokingsbrevPdfDto skal mappe innholdFritekst fra annet innhold`() {
+            val deltaker = createValidDeltaker()
+            val fritekst = "Spesial fritekst for testen"
+            val utkast = createValidUtkast(
+                innhold = listOf(InnholdDto("Annet", "annet", fritekst)),
+            )
+
+            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                veileder = veileder,
+                opprettetDato = opprettetDato,
+                utkast = utkast,
+            )
+
+            resultat.innholdFritekst shouldBe fritekst
+        }
+
+        @Test
+        fun `lagEnkeltplassInnsokingsbrevPdfDto skal konvertere dagerPerUke til int`() {
+            val deltaker = createValidDeltaker()
+            val utkast = createValidUtkast(dagerPerUke = 3.7f)
+
+            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                veileder = veileder,
+                opprettetDato = opprettetDato,
+                utkast = utkast,
+            )
+
+            resultat.deltakelsesmengdeAntallDager shouldBe 3
         }
     }
 }
