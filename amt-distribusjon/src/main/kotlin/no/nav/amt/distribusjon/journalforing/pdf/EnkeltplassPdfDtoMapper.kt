@@ -68,16 +68,16 @@ object EnkeltplassPdfDtoMapper {
     }
 
     internal fun HendelseDeltaker.Deltakerliste.toPrisinformasjon(): Prisinformasjon {
-        val prisinfoFraDelakerliste = prisinformasjon
+        val prisinfoFraDeltakerliste = prisinformasjon
             ?: throw IllegalStateException("Deltakerliste ${this.id} må ha prisinformasjon for å lage enkeltplass innsøkingsbrev")
 
-        return when (prisinfoFraDelakerliste) {
+        return when (prisinfoFraDeltakerliste) {
             is PrisinformasjonDto.Anskaffelse -> Prisinformasjon.Anskaffelse(
-                pris = prisinfoFraDelakerliste.pris,
+                pris = prisinfoFraDeltakerliste.pris,
             )
 
             is PrisinformasjonDto.Tilskudd -> Prisinformasjon.Tilskudd(
-                tilskudd = prisinfoFraDelakerliste.tilskudd
+                tilskudd = prisinfoFraDeltakerliste.tilskudd
                     .sortedBy { it.type.sortOrder }
                     .map {
                         Prisinformasjon.Tilskudd.TilskuddInfo(
@@ -85,14 +85,14 @@ object EnkeltplassPdfDtoMapper {
                             pris = it.pris,
                         )
                     },
-                tilleggsopplysninger = prisinfoFraDelakerliste.tilleggsopplysninger,
+                tilleggsopplysninger = prisinfoFraDeltakerliste.tilleggsopplysninger,
             )
 
             is PrisinformasjonDto.IngenKostnader -> {
-                when (prisinfoFraDelakerliste.aarsak) {
+                when (prisinfoFraDeltakerliste.aarsak) {
                     PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI -> Prisinformasjon.IngenKostnader
                     PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT -> Prisinformasjon.Innbyggerfinansiert(
-                        tilleggsopplysninger = prisinfoFraDelakerliste.tilleggsopplysninger ?: throw IllegalStateException(
+                        tilleggsopplysninger = prisinfoFraDeltakerliste.tilleggsopplysninger ?: throw IllegalStateException(
                             "tilleggsopplysninger må være satt for innbyggerfinansiert prisinformasjon",
                         ),
                     )

@@ -29,7 +29,7 @@ data class OpplaringKategoriseringValg(
         throwIfEmpty: Boolean = true,
     ): List<String> {
         val verdier = valgteKategoriseringer
-            .firstOrNull { it.representerer == representerer }
+            .singleOrNull { it.representerer == representerer }
             ?.valg
             ?.values
             ?.toList()
