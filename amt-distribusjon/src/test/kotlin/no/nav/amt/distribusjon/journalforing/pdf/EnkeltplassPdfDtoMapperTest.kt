@@ -518,8 +518,6 @@ class EnkeltplassPdfDtoMapperTest {
 
         private fun createValidDeltaker() = Hendelsesdata.lagDeltaker(
             deltakerliste = Hendelsesdata.lagDeltakerliste(
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusDays(30),
                 tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
                 prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 5000),
                 opplaringKategoriseringValg = OpplaringKategoriseringValg(

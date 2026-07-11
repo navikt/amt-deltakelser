@@ -14,6 +14,8 @@ data class HendelseDeltaker(
     val deltakerliste: Deltakerliste,
     val forsteVedtakFattet: LocalDate?,
     val opprettetDato: LocalDate?,
+    val startdato: LocalDate? = null,
+    val sluttdato: LocalDate? = null,
 ) {
     data class Deltakerliste(
         val id: UUID,

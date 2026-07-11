@@ -29,6 +29,10 @@ fun Deltaker.toHendelseDeltaker(
 ) = HendelseDeltaker(
     id = id,
     personident = navBruker.personident,
+    forsteVedtakFattet = forsteVedtakFattet,
+    opprettetDato = opprettet.toLocalDate(),
+    startdato = startdato,
+    sluttdato = sluttdato,
     deltakerliste = HendelseDeltaker.Deltakerliste(
         id = deltakerliste.id,
         navn = deltakerliste.navn,
@@ -47,8 +51,6 @@ fun Deltaker.toHendelseDeltaker(
         opplaringKategoriseringValg = opplaringKategoriseringValg,
         prisinformasjon = prisinformasjon,
     ),
-    forsteVedtakFattet = forsteVedtakFattet,
-    opprettetDato = opprettet.toLocalDate(),
 )
 
 private fun List<Innhold>.toInnholdDtoList() = this.map {

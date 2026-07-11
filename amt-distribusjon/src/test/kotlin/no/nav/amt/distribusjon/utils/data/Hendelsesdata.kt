@@ -80,6 +80,8 @@ object Hendelsesdata {
         deltakerliste = deltakerliste,
         forsteVedtakFattet = forsteVedtakFattet,
         opprettetDato = opprettet,
+        startdato = LocalDate.now().plusDays(1),
+        sluttdato = LocalDate.now().plusDays(10),
     )
 
     fun lagDeltakerliste(
