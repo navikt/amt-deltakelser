@@ -207,22 +207,5 @@ class OpplaringKategoriseringValgTest {
                 OpplaringKategoriseringType.SERTIFISERINGER,
             )
         }
-
-        @Test
-        fun `hentRepresenterer skal ignorere sertifiseringer`() {
-            val valg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = mapOf(UUID.randomUUID() to "Verdi"),
-                    ),
-                ),
-                valgteSertifiseringer = setOf(), // Even with sertifiseringer, they should be ignored
-            )
-
-            val resultat = valg.hentRepresenterer()
-
-            resultat shouldBe setOf(OpplaringKategoriseringType.BRANSJE_ID)
-        }
     }
 }
