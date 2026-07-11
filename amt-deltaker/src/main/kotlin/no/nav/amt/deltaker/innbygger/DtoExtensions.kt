@@ -24,8 +24,8 @@ fun Deltaker.toUtkastDto() = UtkastDto(
 fun Deltaker.toHendelseDeltaker(
     overordnetArrangor: Arrangor?,
     forsteVedtakFattet: LocalDate?,
-    opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
-    prisinformasjon: PrisinformasjonDto? = null,
+    opplaringKategoriseringValg: OpplaringKategoriseringValg?,
+    prisinformasjon: PrisinformasjonDto?,
 ) = HendelseDeltaker(
     id = id,
     personident = navBruker.personident,

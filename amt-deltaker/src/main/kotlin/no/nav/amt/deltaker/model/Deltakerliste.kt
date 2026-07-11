@@ -24,7 +24,7 @@ data class Deltakerliste(
     val oppmoteSted: String?,
     val arrangor: Arrangor?,
     val pameldingstype: GjennomforingPameldingType,
-    val prisinformasjon: String?,
+    val prisinformasjon: String?, // dette er ikke enkeltplass prisinformasjon
     val opplaringKategorisering: OpplaringKategoriseringValg? = null,
 ) {
     fun erAvlystEllerAvbrutt(): Boolean = status == GjennomforingStatusType.AVLYST ||

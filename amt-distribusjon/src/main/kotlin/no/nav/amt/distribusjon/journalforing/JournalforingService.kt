@@ -190,7 +190,7 @@ class JournalforingService(
         val veileder = hendelse.ansvarlig.hentVeileder()
 
         val pdfFunc: suspend () -> ByteArray = {
-            if (hendelse.deltaker.deltakerliste.oppstartstype == Oppstartstype.ENKELTPLASS) {
+            if (hendelse.deltaker.deltakerliste.erEnkeltplass == true) {
                 pdfgenClient.genererEnkeltplassInnsokingsbrevPdf(
                     lagEnkeltplassInnsokingsbrevPdfDto(
                         deltaker = hendelse.deltaker,

@@ -8,6 +8,8 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.internapi.hendelse.Hendelse
@@ -17,6 +19,7 @@ import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.hendelse.toHendelseEndring
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -145,7 +148,14 @@ class DistribuerEndringService(
         block: (it: UtkastDto) -> HendelseType,
     ) {
         val endring = block(deltaker.toUtkastDto())
-        hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, enhet, endring))
+        hendelseProducer.produce(
+            nyHendelseFraNavAnsatt(
+                deltaker = deltaker,
+                navAnsatt = navAnsatt,
+                navEnhet = enhet,
+                endring = endring,
+            ),
+        )
     }
 
     fun hendelseFraSystem(
@@ -243,10 +253,25 @@ class DistribuerEndringService(
 
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
+        val (prisinformasjon, opplaringKategoriseringValg) =
+            if (deltaker.deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+                Pair(
+                    PrisinfoRepoAdapter.hentPrisinfo(deltaker.deltakerliste.id),
+                    OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id),
+                )
+            } else {
+                Pair(null, null)
+            }
+
         return Hendelse(
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now(),
-            deltaker = deltaker.toHendelseDeltaker(overordnetArrangor, forsteVedtakFattet),
+            deltaker = deltaker.toHendelseDeltaker(
+                overordnetArrangor = overordnetArrangor,
+                forsteVedtakFattet = forsteVedtakFattet,
+                opplaringKategoriseringValg = opplaringKategoriseringValg,
+                prisinformasjon = prisinformasjon,
+            ),
             ansvarlig = ansvarlig,
             payload = endring,
         )
