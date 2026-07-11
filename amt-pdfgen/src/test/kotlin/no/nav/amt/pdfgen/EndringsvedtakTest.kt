@@ -4,10 +4,10 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.amt.internapi.journalforing.pdf.EndringDto
+import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.ForslagDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.journalforing.pdf.EndringDto
-import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.ForslagDto
 import no.nav.amt.pdfgen.util.DtoBuilders.defaultEndring
 import no.nav.amt.pdfgen.util.DtoBuilders.endringsvedtak
 import no.nav.amt.pdfgen.util.RenderUtils.fixedDate

@@ -3,9 +3,9 @@ package no.nav.amt.pdfgen
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.amt.internapi.journalforing.pdf.InnholdPdfDto
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.journalforing.pdf.InnholdPdfDto
 import no.nav.amt.pdfgen.util.DtoBuilders.innsokingsbrev
 import no.nav.amt.pdfgen.util.RenderUtils.render
 

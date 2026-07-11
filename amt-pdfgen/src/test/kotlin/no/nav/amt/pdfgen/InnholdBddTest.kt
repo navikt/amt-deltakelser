@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.amt.lib.models.journalforing.pdf.InnholdPdfDto
+import no.nav.amt.internapi.journalforing.pdf.InnholdPdfDto
 import no.nav.amt.pdfgen.util.RenderUtils.renderSection
 
 class InnholdBddTest :

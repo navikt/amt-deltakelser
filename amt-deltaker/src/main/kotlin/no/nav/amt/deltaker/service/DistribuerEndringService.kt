@@ -86,7 +86,14 @@ class DistribuerEndringService(
             deltakerEndring.toHendelseEndring()
         }
 
-        hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
+        hendelseProducer.produce(
+            nyHendelseFraNavAnsatt(
+                deltaker = deltaker,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                endring = endring,
+            ),
+        )
     }
 
     fun hendelseForEndringFraArrangor(

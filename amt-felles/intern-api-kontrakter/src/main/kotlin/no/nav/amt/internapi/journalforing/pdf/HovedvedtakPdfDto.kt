@@ -1,13 +1,14 @@
-package no.nav.amt.lib.models.journalforing.pdf
+package no.nav.amt.internapi.journalforing.pdf
 
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 
-data class InnsokingsbrevPdfDto(
+data class HovedvedtakPdfDto(
     val deltaker: DeltakerDto,
     val deltakerliste: DeltakerlisteDto,
     val avsender: AvsenderDto,
+    val vedtaksdato: LocalDate,
+    val begrunnelseFraNav: String? = null,
     val sidetittel: String,
     val ingressnavn: String,
     val opprettetDato: LocalDate,
@@ -18,16 +19,26 @@ data class InnsokingsbrevPdfDto(
         val etternavn: String,
         val personident: String,
         val innhold: InnholdPdfDto?,
+        val bakgrunnsinformasjon: String?,
+        val deltakelsesmengdeTekst: String?,
+        val adresseDelesMedArrangor: Boolean,
     )
 
     data class DeltakerlisteDto(
         val navn: String,
         val tiltakskode: Tiltakskode,
-        val ledetekst: String?,
+        val ledetekst: String,
         val arrangor: ArrangorDto,
-        val startdato: LocalDate?,
-        val sluttdato: LocalDate?,
+        val forskriftskapittel: Forskriftskapittel,
         val oppmoteSted: String?,
-        val oppstartstype: Oppstartstype,
+    )
+
+    data class ArrangorDto(
+        val navn: String,
+    )
+
+    data class AvsenderDto(
+        val navn: String,
+        val enhet: String,
     )
 }

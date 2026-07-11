@@ -94,7 +94,7 @@ class PdfgenClientTest {
             sut.genererInnsokingsbrevPDF(innsokingsbrevPdfDto)
         }
 
-        thrown.message shouldStartWith "Kunne ikke hente opprette kurs-innsoking-pdf i amt-pdfgen."
+        thrown.message shouldStartWith "Kunne ikke hente PDF for innsokingsbrev i amt-pdfgen."
     }
 
     @Test

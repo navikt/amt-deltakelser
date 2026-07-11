@@ -8,11 +8,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.amt.internapi.journalforing.pdf.EndringDto
+import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
+import no.nav.amt.internapi.journalforing.pdf.ForslagDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.journalforing.pdf.EndringDto
-import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.Forskriftskapittel
-import no.nav.amt.lib.models.journalforing.pdf.ForslagDto
 import no.nav.amt.pdfgen.util.AssertUtils.assertSectionText
 import no.nav.amt.pdfgen.util.RenderUtils.fixedDate
 import no.nav.amt.pdfgen.util.RenderUtils.render

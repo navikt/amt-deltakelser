@@ -1,5 +1,7 @@
 package no.nav.amt.internapi.hendelse
 
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -24,7 +26,8 @@ data class HendelseDeltaker(
         val pameldingstype: GjennomforingPameldingType? = null,
         val oppmoteSted: String? = null,
         val erEnkeltplass: Boolean? = null,
-        // HER
+        val opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
+        val prisinformasjon: PrisinformasjonDto? = null,
     ) {
         data class Arrangor(
             val id: UUID,

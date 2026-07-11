@@ -11,6 +11,17 @@ import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.hendelse.UtkastDto
+import no.nav.amt.internapi.journalforing.pdf.ArrangorDto
+import no.nav.amt.internapi.journalforing.pdf.AvsenderDto
+import no.nav.amt.internapi.journalforing.pdf.EndringDto
+import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
+import no.nav.amt.internapi.journalforing.pdf.ForslagDto
+import no.nav.amt.internapi.journalforing.pdf.HovedvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
+import no.nav.amt.internapi.journalforing.pdf.InnholdPdfDto
+import no.nav.amt.internapi.journalforing.pdf.InnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.VentelistebrevPdfDto
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -20,18 +31,6 @@ import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
-import no.nav.amt.lib.models.journalforing.pdf.ArrangorDto
-import no.nav.amt.lib.models.journalforing.pdf.AvsenderDto
-import no.nav.amt.lib.models.journalforing.pdf.EndringDto
-import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.Forskriftskapittel
-import no.nav.amt.lib.models.journalforing.pdf.ForslagDto
-import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.InnholdPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.InnsokingsbrevPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.VentelistebrevPdfDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
@@ -113,61 +112,13 @@ fun lagHovedopptakForTildeltPlass(
         ),
         oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
         harKlagerett = deltaker.deltakerliste.harKlagerett(),
-        oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
+        oppstartstype = deltaker.deltakerliste.oppstartstype!!,
     ),
     avsender = HovedvedtakVedTildeltPlassPdfDto.AvsenderDto(
         navn = ansvarlig.navn,
         enhet = ansvarlig.enhet.navn,
     ),
     opprettetDato = opprettetDato,
-)
-
-fun lagEnkeltplassInnsokingsbrevPdfDto(
-    deltaker: HendelseDeltaker,
-    navBruker: NavBruker,
-    veileder: HendelseAnsvarlig.NavVeileder,
-    opprettetDato: LocalDate,
-    utkast: UtkastDto,
-) = EnkeltplassInnsokingsbrevPdfDto(
-    deltaker = EnkeltplassInnsokingsbrevPdfDto.DeltakerDto(
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        personident = deltaker.personident,
-    ),
-    deltakerliste = EnkeltplassInnsokingsbrevPdfDto.DeltakerlisteDto(
-//        navn = deltaker.deltakerliste.tittelVisningsnavn(),
-//        tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-//        ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
-//        arrangor = ArrangorDto(
-//            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-//        ),
-        tiltaksnavn = deltaker.deltakerliste.tittelVisningsnavn(),
-        arrangornavn = deltaker.deltakerliste.arrangor.visningsnavn(),
-        startdato = deltaker.deltakerliste.startdato ?: throw IllegalStateException(
-            "Deltakerliste ${deltaker.deltakerliste.id} må ha startdato for å lage enkeltplass innsøkingsbrev",
-        ),
-        sluttdato = deltaker.deltakerliste.sluttdato ?: throw IllegalStateException(
-            "Deltakerliste ${deltaker.deltakerliste.id} må ha sluttdato for å lage enkeltplass innsøkingsbrev",
-        ),
-        oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
-    ),
-    avsender = AvsenderDto(
-        navn = veileder.navn,
-        enhet = navBruker.navEnhet?.navn ?: "NAV",
-    ),
-    // sidetittel = deltaker.deltakerliste.tittelVisningsnavn(),
-    // ingressnavn = deltaker.deltakerliste.ingressVisningsnavn(),
-    opprettetDato = opprettetDato,
-    innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
-        bransje = "Bransje",
-        forerkortOgSertifiseringer = listOf("Førerkort", "Sertifiseringer"),
-    ),
-    innholdFritekst = "TODO",
-    deltakelsesmengdeAntallDager = 5,
-    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Innbyggerfinansiert(
-        tilleggsopplysninger = "Innbyggerfinansiert",
-    ),
 )
 
 fun lagInnsokingsbrevPdfDto(
@@ -188,13 +139,11 @@ fun lagInnsokingsbrevPdfDto(
         navn = deltaker.deltakerliste.tittelVisningsnavn(),
         tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
         ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
-        arrangor = ArrangorDto(
-            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-        ),
+        arrangor = ArrangorDto(navn = deltaker.deltakerliste.arrangor.visningsnavn()),
         startdato = deltaker.deltakerliste.startdato,
         sluttdato = deltaker.deltakerliste.sluttdato,
         oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-        oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
+        oppstartstype = deltaker.deltakerliste.oppstartstype!!,
     ),
     avsender = AvsenderDto(
         navn = veileder.navn,
@@ -227,7 +176,7 @@ fun lagVentelistebrevPdfDto(
         startdato = deltaker.deltakerliste.startdato,
         sluttdato = deltaker.deltakerliste.sluttdato,
         oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-        oppstartstype = Oppstartstype.valueOf(deltaker.deltakerliste.oppstartstype!!.name),
+        oppstartstype = deltaker.deltakerliste.oppstartstype!!,
     ),
     avsender = AvsenderDto(
         navn = endretAv.navn,

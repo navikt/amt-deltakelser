@@ -9,6 +9,7 @@ import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DistribuerJournalp
 import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
+import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto
 import no.nav.amt.distribusjon.journalforing.pdf.PdfgenClient
 import no.nav.amt.distribusjon.journalforing.pdf.lagEndringsvedtakPdfDto
 import no.nav.amt.distribusjon.journalforing.pdf.lagHovedopptakForTildeltPlass
@@ -187,25 +188,38 @@ class JournalforingService(
     ) {
         val navBruker = amtPersonClient.hentNavBruker(hendelse.deltaker.personident)
         val veileder = hendelse.ansvarlig.hentVeileder()
-        val pdf: suspend () -> ByteArray = {
-            pdfgenClient.genererInnsokingsbrevPDF(
-                lagInnsokingsbrevPdfDto(
-                    deltaker = hendelse.deltaker,
-                    navBruker = navBruker,
-                    veileder = hendelse.ansvarlig.hentVeileder(),
-                    opprettetDato = hendelse.opprettet.toLocalDate(),
-                    utkast = utkast,
-                ),
-            )
+
+        val pdfFunc: suspend () -> ByteArray = {
+            if (hendelse.deltaker.deltakerliste.oppstartstype == Oppstartstype.ENKELTPLASS) {
+                pdfgenClient.genererEnkeltplassInnsokingsbrevPdf(
+                    lagEnkeltplassInnsokingsbrevPdfDto(
+                        deltaker = hendelse.deltaker,
+                        navBruker = navBruker,
+                        veileder = hendelse.ansvarlig.hentVeileder(),
+                        opprettetDato = hendelse.opprettet.toLocalDate(),
+                        utkast = utkast,
+                    ),
+                )
+            } else {
+                pdfgenClient.genererInnsokingsbrevPDF(
+                    lagInnsokingsbrevPdfDto(
+                        deltaker = hendelse.deltaker,
+                        navBruker = navBruker,
+                        veileder = hendelse.ansvarlig.hentVeileder(),
+                        opprettetDato = hendelse.opprettet.toLocalDate(),
+                        utkast = utkast,
+                    ),
+                )
+            }
         }
 
         journalforOgSend(
-            pdf,
-            hendelse,
-            veileder.enhet.enhetsnummer,
-            journalforingstatus,
-            DokumentType.INNSOKINGSBREV,
-            DistribuerJournalpostRequest.Distribusjonstype.ANNET,
+            genererPDF = pdfFunc,
+            hendelse = hendelse,
+            journalforendeEnhet = veileder.enhet.enhetsnummer,
+            journalforingstatus = journalforingstatus,
+            dokumentType = DokumentType.INNSOKINGSBREV,
+            distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.ANNET,
         )
 
         log.info("Journalførte innsøkingsbrev for deltaker ${hendelse.deltaker.id}")

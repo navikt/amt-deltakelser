@@ -3,6 +3,7 @@ package no.nav.amt.distribusjon.utils.data
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.hendelse.model.HendelseDto
 import no.nav.amt.distribusjon.hendelse.model.toModel
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
@@ -11,6 +12,7 @@ import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -95,7 +97,20 @@ object Hendelsesdata {
         } else {
             GjennomforingPameldingType.TRENGER_GODKJENNING
         },
-    ) = HendelseDeltaker.Deltakerliste(id, navn, arrangor, tiltak, startdato, sluttdato, oppstartstype, pameldingType)
+        opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
+        prisinformasjon: PrisinformasjonDto? = null,
+    ) = HendelseDeltaker.Deltakerliste(
+        id = id,
+        navn = navn,
+        arrangor = arrangor,
+        tiltak = tiltak,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        oppstartstype = oppstartstype,
+        pameldingstype = pameldingType,
+        opplaringKategoriseringValg = opplaringKategoriseringValg,
+        prisinformasjon = prisinformasjon,
+    )
 
     fun arrangor(
         id: UUID = UUID.randomUUID(),

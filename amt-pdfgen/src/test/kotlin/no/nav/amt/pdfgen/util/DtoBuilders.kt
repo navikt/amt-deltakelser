@@ -1,18 +1,18 @@
 package no.nav.amt.pdfgen.util
 
+import no.nav.amt.internapi.journalforing.pdf.ArrangorDto
+import no.nav.amt.internapi.journalforing.pdf.AvsenderDto
+import no.nav.amt.internapi.journalforing.pdf.EndringDto
+import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
+import no.nav.amt.internapi.journalforing.pdf.HovedvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
+import no.nav.amt.internapi.journalforing.pdf.InnholdPdfDto
+import no.nav.amt.internapi.journalforing.pdf.InnsokingsbrevPdfDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.journalforing.pdf.ArrangorDto
-import no.nav.amt.lib.models.journalforing.pdf.AvsenderDto
-import no.nav.amt.lib.models.journalforing.pdf.EndringDto
-import no.nav.amt.lib.models.journalforing.pdf.EndringsvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.Forskriftskapittel
-import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.InnholdPdfDto
-import no.nav.amt.lib.models.journalforing.pdf.InnsokingsbrevPdfDto
 import no.nav.amt.pdfgen.util.RenderUtils.fixedDate
 
 object DtoBuilders {

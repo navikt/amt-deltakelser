@@ -2,7 +2,7 @@ package no.nav.amt.pdfgen
 
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.string.shouldContain
-import no.nav.amt.lib.models.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
 import no.nav.amt.pdfgen.util.DtoBuilders.enkeltplassInnsokingsbrev
 import no.nav.amt.pdfgen.util.RenderUtils.render
 

@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.journalforing.pdf
+package no.nav.amt.internapi.journalforing.pdf
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeInfo
