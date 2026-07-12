@@ -78,7 +78,7 @@ spec:
         - id: loki
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=60.0"
+      value: "-XX:MaxRAMPercentage=60.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_PERSONSERVICE_SCOPE
       value: api://dev-gcp.amt.amt-person-service/.default
     - name: AMT_PERSONSERVICE_URL
