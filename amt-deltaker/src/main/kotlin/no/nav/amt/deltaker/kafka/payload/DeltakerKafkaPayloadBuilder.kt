@@ -119,7 +119,7 @@ class DeltakerKafkaPayloadBuilder(
         val vurderinger = vurderingRepository.getForDeltaker(deltaker.id)
         val sisteEndring = deltakerhistorikk.getSisteEndring()
         val innsoktDato = deltakerhistorikk.getInnsoktDato()
-            ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
+            ?: throw IllegalStateException("Kan ikke produsere deltaker ${deltaker.id} som mangler vedtak til topic")
 
         val navEnhet = deltaker.navBruker.navEnhetId?.let { navEnhetRepository.getOrThrow(it) }
         val navAnsatt = deltaker.navBruker.navVeilederId?.let { navAnsattRepository.getOrThrow(it) }
@@ -129,7 +129,7 @@ class DeltakerKafkaPayloadBuilder(
             deltakerhistorikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().isEmpty()
         ) {
             throw IllegalStateException(
-                "Deltaker med kilde ${Kilde.KOMET} må ha minst et vedtak eller være søkt in for å produseres til topic",
+                "Deltaker ${deltaker.id} med kilde ${Kilde.KOMET} må ha minst ett vedtak eller være søkt inn for å produseres til topic",
             )
         }
 
