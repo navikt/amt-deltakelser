@@ -134,6 +134,49 @@ class InnsokServiceTest {
     }
 
     @Test
+    fun `nyttInnsokUtkastGodkjentAvNav - gruppe setter ikke prisinformasjon`() {
+        mockkObject(PrisinfoRepoAdapter)
+        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns PrisinformasjonDto.Anskaffelse(pris = 1000)
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
+            vedtaksinformasjon = vedtaksinformasjon,
+            status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+        )
+        val forrigeStatus = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+
+        val innsok = try {
+            innsokService.nyttInnsokUtkastGodkjentAvNav(deltaker, forrigeStatus).also {
+                verify(exactly = 0) { PrisinfoRepoAdapter.hentPrisinfo(any()) }
+            }
+        } finally {
+            unmockkObject(PrisinfoRepoAdapter)
+        }
+
+        innsok.prisinformasjonVedInnsok shouldBe null
+    }
+
+    @Test
+    fun `nyttInnsokUtkastGodkjentAvNav - enkeltplass setter dager per uke ved innsok`() {
+        mockkObject(PrisinfoRepoAdapter)
+        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns PrisinformasjonDto.Anskaffelse(pris = 1000)
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
+            dagerPerUke = 4F,
+            vedtaksinformasjon = vedtaksinformasjon,
+            status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+        )
+        val forrigeStatus = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+
+        val innsok = try {
+            innsokService.nyttInnsokUtkastGodkjentAvNav(deltaker, forrigeStatus)
+        } finally {
+            unmockkObject(PrisinfoRepoAdapter)
+        }
+
+        innsok.dagerPerUkeVedInnsok shouldBe 4
+    }
+
+    @Test
     fun `nyttInnsokUtkastGodkjentAvNav - forrige status UTKAST - setter utkastDelt`() {
         val utkastOpprettet = LocalDateTime.of(2026, 6, 10, 12, 0)
         val deltaker = lagDeltaker(
@@ -207,5 +250,3 @@ class InnsokServiceTest {
         verify(exactly = 1) { repository.insert(innsok) }
     }
 }
-
-// Appended tests placeholder - will replace file
