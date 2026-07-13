@@ -25,7 +25,12 @@
             {{deltakerliste.tiltaksnavn}} hos {{deltakerliste.arrangornavn}}
         </h1>
 
-        <p>Du er søkt inn og Nav vurderer søknaden din. Du vil få beskjed om resultatet.</p>
+        <p>Du har fått godkjent opplæringen.</p>
+
+        <p class="margins-1-rem">
+            Nav mener at denne opplæringen vil gi deg bedre muligheter til å komme i arbeid. Opplæringen kan ha
+            egne opptakskrav. I så fall er det opplæringsstedet som avgjør om du får plass.
+        </p>
 
         <p class="margins-1-rem">
             Opplæringen starter {{iso_to_long_date deltakerliste.startdato}},
@@ -38,6 +43,10 @@
     {{> sections/enkeltplass-deltakelsesmengde}}
 
     {{> sections/enkeltplass-pris-og-betalingsbetingelser}}
+
+    {{> sections/dette-er-et-vedtak}}
+
+    {{> sections/rett-til-klage}}
 
     {{> sections/sporsmal}}
 

@@ -10,7 +10,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.HovedvedtakPdfDto
 import no.nav.amt.internapi.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.InnsokingsbrevPdfDto
@@ -84,7 +84,7 @@ class PdfgenClient(
         return response.body()
     }
 
-    suspend fun genererEnkeltplassInnsokingsbrevPdf(innsokingsbrevPdfDto: EnkeltplassInnsokingsbrevPdfDto): ByteArray {
+    suspend fun genererEnkeltplassInnsokingsbrevPdf(innsokingsbrevPdfDto: EnkeltplassPdfDto): ByteArray {
         val response = httpClient.post("$url/enkeltplass-innsokingsbrev") {
             contentType(ContentType.Application.Json)
             setBody(objectMapper.writeValueAsString(innsokingsbrevPdfDto))

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
 
-data class EnkeltplassInnsokingsbrevPdfDto(
+data class EnkeltplassPdfDto(
     val deltaker: DeltakerDto,
     val deltakerliste: DeltakerlisteDto,
     val avsender: AvsenderDto,

@@ -2,8 +2,8 @@ package no.nav.amt.pdfgen
 
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.string.shouldContain
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
-import no.nav.amt.pdfgen.util.DtoBuilders.enkeltplassInnsokingsbrev
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
+import no.nav.amt.pdfgen.util.DtoBuilders.enkeltplassPdfDto
 import no.nav.amt.pdfgen.util.RenderUtils.render
 
 class EnkeltplassInnsokingsbrevRenderTest :
@@ -11,17 +11,17 @@ class EnkeltplassInnsokingsbrevRenderTest :
 
         describe("Enkeltplass innsøkingsbrev PDF") {
             it("Norskopplaering") {
-                val brev = enkeltplassInnsokingsbrev(
+                val brev = enkeltplassPdfDto(
                     tiltaksnavn = "Norskopplæring",
-                    innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Tilskudd(
                         tilleggsopplysninger = null,
                         tilskudd = listOf(
-                            EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                            EnkeltplassPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
                                 type = "Tilskuddstype 1",
                                 pris = 1000,
                             ),
-                            EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                            EnkeltplassPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
                                 type = "Tilskuddstype 2",
                                 pris = 2000,
                             ),
@@ -34,16 +34,16 @@ class EnkeltplassInnsokingsbrevRenderTest :
             }
 
             it("FagOgYrkesopplaering") {
-                val brev = enkeltplassInnsokingsbrev(
+                val brev = enkeltplassPdfDto(
                     tiltaksnavn = "Fag- og yrkesopplæring",
-                    innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.FagOgYrkesopplaering(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.FagOgYrkesopplaering(
                         utdanningsprogram = "Elektro og datateknologi",
                         laerefag = listOf(
                             "Avionikerfaget",
                             "Droneoperatør",
                         ),
                     ),
-                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Innbyggerfinansiert(
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
                         tilleggsopplysninger = "Dette er en tilleggsopplysning",
                     ),
                 )
@@ -53,16 +53,16 @@ class EnkeltplassInnsokingsbrevRenderTest :
             }
 
             it("Arbeidsmarkedsopplaering") {
-                val brev = enkeltplassInnsokingsbrev(
+                val brev = enkeltplassPdfDto(
                     tiltaksnavn = "Arbeidsmarkedsopplæring",
-                    innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
                         bransje = "Barne- og ungdomsarbeid",
                         forerkortOgSertifiseringer = listOf(
                             "D1 - Minibuss",
                             "HP QuickTest Professional (QTP)",
                         ),
                     ),
-                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Innbyggerfinansiert(
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
                         tilleggsopplysninger = "Dette er en tilleggsopplysning",
                     ),
                 )

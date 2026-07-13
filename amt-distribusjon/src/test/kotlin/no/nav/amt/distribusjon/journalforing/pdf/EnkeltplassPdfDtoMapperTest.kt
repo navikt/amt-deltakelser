@@ -11,7 +11,7 @@ import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.hendelse.UtkastDto
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
@@ -166,7 +166,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat shouldBe EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold
+            resultat shouldBe EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold
         }
 
         @Test
@@ -186,9 +186,9 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat as no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering
+            resultat as no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
             resultat.bransje shouldBe "Elektrikk"
             resultat.forerkortOgSertifiseringer shouldBe emptyList()
         }
@@ -218,7 +218,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
             resultat.bransje shouldBe "Elektrikk"
             resultat.forerkortOgSertifiseringer.size shouldBe 3
         }
@@ -244,7 +244,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.FagOgYrkesopplaering>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.FagOgYrkesopplaering>()
             resultat.utdanningsprogram shouldBe "Helse- og oppvekstfag"
             resultat.laerefag shouldBe listOf("Elektorfaget")
         }
@@ -341,7 +341,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat shouldBe EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold
+            resultat shouldBe EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold
         }
     }
 
@@ -355,7 +355,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toPrisinformasjon()
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Anskaffelse>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Anskaffelse>()
             resultat.pris shouldBe 50000
         }
 
@@ -383,7 +383,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toPrisinformasjon()
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Tilskudd>()
             resultat.tilskudd.size shouldBe 3
             resultat.tilskudd[0].type shouldBe "Skolepenger"
             resultat.tilskudd[1].type shouldBe "Eksamensgebyr"
@@ -407,7 +407,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toPrisinformasjon()
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Tilskudd>()
             resultat.tilleggsopplysninger shouldBe "Skolepengene dekker lærebøker og materiell"
         }
 
@@ -422,7 +422,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toPrisinformasjon()
 
-            resultat shouldBe EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader
+            resultat shouldBe EnkeltplassPdfDto.Prisinformasjon.IngenKostnader
         }
 
         @Test
@@ -436,7 +436,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toPrisinformasjon()
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Innbyggerfinansiert>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert>()
             resultat.tilleggsopplysninger shouldBe "Deltaker finansierer kurset selv"
         }
 
@@ -489,7 +489,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toPrisinformasjon()
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Tilskudd>()
             resultat.tilskudd.size shouldBe 3
             resultat.tilskudd[0].type shouldBe "Skolepenger"
             resultat.tilskudd[1].type shouldBe "Semesteravgift"
@@ -505,13 +505,13 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toPrisinformasjon()
 
-            resultat.shouldBeInstanceOf<EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Anskaffelse>()
+            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Anskaffelse>()
             resultat.pris shouldBe 100
         }
     }
 
     @Nested
-    inner class LagEnkeltplassInnsokingsbrevPdfDtoTests {
+    inner class LagEnkeltplassPdfDtoTests {
         private val navBruker = Persondata.lagNavBruker()
         private val veileder = Hendelsesdata.ansvarligNavVeileder()
         private val opprettetDato = LocalDate.now()
