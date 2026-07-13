@@ -1,6 +1,7 @@
 package no.nav.amt.pdfgen
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
@@ -236,6 +237,18 @@ class EnkeltplassInnsokingsbrevTest :
 
                 doc.text() shouldContain "Les mer om støtte til andre utgifter"
                 doc.text() shouldContain "nav.no/tilleggsstønader"
+            }
+
+            it("skal ha korrekt metadata i head") {
+                val brev = enkeltplassPdfDto(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                )
+                val doc = render("enkeltplass-innsokingsbrev", brev)
+
+                doc.selectFirst("meta[name=description]")?.attr("content") shouldBe "Innsøking på tiltak"
+                doc.selectFirst("meta[name=subject]")?.attr("content") shouldBe "Innsøkingsbrev"
+                doc.selectFirst("title")?.text() shouldBe "Innsøking på tiltak"
             }
         }
     })
