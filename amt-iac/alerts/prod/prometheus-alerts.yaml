@@ -83,7 +83,7 @@ spec:
 
         # Sjekk Kafka consumer lag per group
         - alert: KafkaConsumerLag
-          expr: sum by(group, topic) (kafka_consumergroup_group_lag{group=~"^amt-.*",topic!="min-side.aapen-varsel-hendelse-v1",client_id!="unknown"}) > 10
+          expr: sum by(group, topic) (kafka_consumergroup_group_lag{group=~"^amt-.*",topic!="min-side.aapen-varsel-hendelse-v1",client_id!="unknown"}) > 10 unless sum by(group, topic) (kafka_consumergroup_group_lag{group="amt-deltaker-bff-consumer",topic="amt.deltaker-hendelse-v1"})
           for: 5m
           annotations:
             title: 'Konsumenten `{{ $labels.group }}` har treghet på topic `{{ $labels.topic }}`'
