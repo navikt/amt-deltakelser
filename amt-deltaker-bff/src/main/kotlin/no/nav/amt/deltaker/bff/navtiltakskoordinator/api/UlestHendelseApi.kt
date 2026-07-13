@@ -12,7 +12,8 @@ import java.util.UUID
 fun Routing.registerUlestHendelseApi(tiltakskoordinatorClient: TiltakskoordinatorClient) {
     authenticate(AuthLevel.TILTAKSKOORDINATOR.name) {
         delete("/tiltakskoordinator/ulest-hendelse/{id}") {
-            val id = UUID.fromString(call.parameters["id"])
+val id = call.parameters["id"]?.let(UUID::fromString)
+    ?: throw IllegalArgumentException("Påkrevd URL parameter 'id' mangler.")
             tiltakskoordinatorClient.slettUlestHendelse(id)
             call.respond(HttpStatusCode.NoContent)
         }
