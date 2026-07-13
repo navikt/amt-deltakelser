@@ -1,8 +1,9 @@
 package no.nav.amt.deltaker.veileder
 
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
+import no.nav.amt.internapi.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Innsok
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -32,6 +33,11 @@ class InnsokService(
         godkjentAvNav: Boolean,
     ): Innsok {
         if (deltaker.vedtaksinformasjon == null) throw IllegalStateException("Kan ikke søke inn deltaker som ikke har et vedtak")
+        val prisinformasjonVedInnsok = if (deltaker.erEnkeltplass) {
+            PrisinfoRepoAdapter.hentPrisinfo(deltaker.deltakerliste.id)
+        } else {
+            null
+        }
 
         val innsok = Innsok(
             id = UUID.randomUUID(),
@@ -41,7 +47,9 @@ class InnsokService(
             innsoktAvEnhet = deltaker.vedtaksinformasjon.sistEndretAvEnhet,
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
+            dagerPerUkeVedInnsok = if (deltaker.erEnkeltplass) deltaker.dagerPerUke?.toInt() else null,
             deltakelsesinnholdVedInnsok = deltaker.deltakelsesinnhold,
+            prisinformasjonVedInnsok = prisinformasjonVedInnsok,
             utkastDelt = if (forrigeStatus.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) forrigeStatus.opprettet else null,
             utkastGodkjentAvNav = godkjentAvNav,
             opplaringKategoriseringVedInnsok = deltaker.deltakerliste.opplaringKategorisering,

@@ -4,17 +4,23 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -23,7 +29,9 @@ import java.util.UUID
 
 class InnsokServiceTest {
     private val repository = mockk<InnsokRepository>(relaxed = true)
-    private val innsokService = InnsokService(repository)
+    private val innsokService = InnsokService(
+        repository = repository,
+    )
 
     private val vedtaksinformasjon = Vedtaksinformasjon(
         fattet = LocalDateTime.now(),
@@ -105,6 +113,27 @@ class InnsokServiceTest {
     }
 
     @Test
+    fun `nyttInnsokUtkastGodkjentAvNav - enkeltplass setter prisinformasjon fra prisinfo repo`() {
+        val pris = 12000
+        mockkObject(PrisinfoRepoAdapter)
+        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns PrisinformasjonDto.Anskaffelse(pris = pris)
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
+            vedtaksinformasjon = vedtaksinformasjon,
+            status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+        )
+        val forrigeStatus = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+
+        val innsok = try {
+            innsokService.nyttInnsokUtkastGodkjentAvNav(deltaker, forrigeStatus)
+        } finally {
+            unmockkObject(PrisinfoRepoAdapter)
+        }
+
+        innsok.prisinformasjonVedInnsok shouldBe PrisinformasjonDto.Anskaffelse(pris = pris)
+    }
+
+    @Test
     fun `nyttInnsokUtkastGodkjentAvNav - forrige status UTKAST - setter utkastDelt`() {
         val utkastOpprettet = LocalDateTime.of(2026, 6, 10, 12, 0)
         val deltaker = lagDeltaker(
@@ -178,3 +207,5 @@ class InnsokServiceTest {
         verify(exactly = 1) { repository.insert(innsok) }
     }
 }
+
+// Appended tests placeholder - will replace file
