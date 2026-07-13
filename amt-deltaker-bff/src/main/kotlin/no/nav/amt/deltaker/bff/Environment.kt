@@ -47,7 +47,6 @@ data class Environment(
         const val TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v3"
 
         const val ARRANGOR_MELDING_TOPIC = "amt.arrangor-melding-v1"
-        const val DELTAKER_HENDELSE_TOPIC = "amt.deltaker-hendelse-v1"
 
         const val AMT_ARRANGOR_TOPIC = "amt.arrangor-v1"
         const val AMT_ARRANGOR_URL_KEY = "AMT_ARRANGOR_URL"
