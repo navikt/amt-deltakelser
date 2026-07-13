@@ -23,7 +23,6 @@ import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
 import no.nav.amt.deltaker.bff.enkeltplass.validate
-import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteStengtException
 import no.nav.amt.deltaker.bff.innbygger.api.registerInnbyggerApi
@@ -36,7 +35,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilde
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
@@ -72,11 +70,9 @@ fun Application.configureRouting(
     enkeltplassClient: EnkeltplassClient,
     sporbarhetsloggService: SporbarhetsloggService,
     deltakerlisteService: DeltakerlisteService,
-    deltakerlisteRepository: DeltakerlisteRepository,
     unleash: Unleash,
     tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService,
     tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository,
-    ulestHendelseRepository: UlestHendelseRepository,
     opplaringKategoriseringClient: OpplaringKategoriseringClient,
     tiltakskoordinatorResponseBuilder: ResponseBuilder,
     tiltakskoordinatorClient: TiltakskoordinatorClient,
@@ -151,7 +147,7 @@ fun Application.configureRouting(
         registerTiltakskoordinatorDeltakerApi(
             tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
             amtDeltakerClient = amtDeltakerClient,
-            ulestHendelseRepository = ulestHendelseRepository,
+            tiltakskoordinatorClient = tiltakskoordinatorClient,
         )
 
         registerTiltakskoordinatorDeltakerlisteApi(
@@ -164,10 +160,7 @@ fun Application.configureRouting(
             responseBuilder = tiltakskoordinatorResponseBuilder,
         )
 
-        registerUlestHendelseApi(
-            ulestHendelseRepository = ulestHendelseRepository,
-            tiltakskoordinatorClient = tiltakskoordinatorClient,
-        )
+        registerUlestHendelseApi(tiltakskoordinatorClient)
 
         registerArrangorsokApi(arrangorsokClient = arrangorsokClient)
 

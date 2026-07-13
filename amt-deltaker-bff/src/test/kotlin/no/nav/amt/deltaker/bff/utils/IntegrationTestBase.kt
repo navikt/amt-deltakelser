@@ -30,7 +30,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilde
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
@@ -65,7 +64,6 @@ abstract class IntegrationTestBase {
     protected val tiltakskoordinatorTilgangskontrollService: TiltakskoordinatorTilgangskontrollService = mockk()
     protected val tiltakskoordinatorClient: TiltakskoordinatorClient = mockk()
     protected open val tiltakskoordinatorResponseBuilder: ResponseBuilder = mockk()
-    protected val ulestHendelseRepository: UlestHendelseRepository = mockk()
     protected val selfServiceTilgangskontrollService: SelfServiceTilgangService = mockk()
     protected open val tilgangskontrollService = TilgangskontrollService(
         poaoTilgangCachedClient = poaoTilgangCachedClient,
@@ -111,11 +109,9 @@ abstract class IntegrationTestBase {
                     enkeltplassClient = enkeltplassClient,
                     sporbarhetsloggService = sporbarhetsloggService,
                     deltakerlisteService = deltakerlisteService,
-                    deltakerlisteRepository = deltakerlisteRepository,
                     unleash = unleash,
                     tiltakskoordinatorTilgangskontrollService = tiltakskoordinatorTilgangskontrollService,
                     tiltakskoordinatorTilgangRepository = tiltakskoordinatorTilgangRepository,
-                    ulestHendelseRepository = ulestHendelseRepository,
                     paameldingClient = paameldingClient,
                     opplaringKategoriseringClient = opplaringKategoriseringClient,
                     selfServiceTilgangService = selfServiceTilgangskontrollService,
