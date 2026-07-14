@@ -3,10 +3,12 @@ package no.nav.amt.deltaker.utils.data
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
+import no.nav.amt.internapi.deltaker.Innsok
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -16,7 +18,6 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
@@ -296,6 +297,7 @@ object TestData {
         opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
         utkastDelt: LocalDateTime = LocalDateTime.now().minusDays(2),
         utkastGodkjentAvNav: Boolean = false,
+        prisinformasjonVedInnsok: PrisinformasjonDto? = null,
     ) = Innsok(
         id = id,
         deltakerId = deltakerId,
@@ -308,6 +310,7 @@ object TestData {
         utkastDelt = utkastDelt,
         utkastGodkjentAvNav = utkastGodkjentAvNav,
         opplaringKategoriseringVedInnsok = opplaringKategoriseringValg,
+        prisinformasjonVedInnsok = prisinformasjonVedInnsok,
     )
 
     fun lagVurdering(
@@ -405,7 +408,7 @@ object TestData {
         pameldingstype = deltakerliste.pameldingstype,
     )
 
-    fun lagOpplaringKategorisering(): OpplaringKategoriseringValg? = OpplaringKategoriseringValg(
+    fun lagOpplaringKategorisering(): OpplaringKategoriseringValg = OpplaringKategoriseringValg(
         valgteKategoriseringer = setOf(
             OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringType.BRANSJE_ID,

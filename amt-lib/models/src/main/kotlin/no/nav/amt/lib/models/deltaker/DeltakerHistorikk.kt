@@ -1,6 +1,7 @@
 package no.nav.amt.lib.models.deltaker
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.internapi.deltaker.Innsok
 import java.time.LocalDateTime
 import java.util.UUID
 

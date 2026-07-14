@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.veileder
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.toPGObject
-import no.nav.amt.lib.models.deltaker.Innsok
+import no.nav.amt.internapi.deltaker.Innsok
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
@@ -23,7 +23,9 @@ class InnsokRepository {
                 utkast_delt, 
                 startdato,
                 sluttdato,
+                dager_per_uke_ved_innsok,
                 deltakelsesinnhold_ved_innsok,
+                prisinformasjon_ved_innsok,
                 kategorisering_ved_innsok
             ) 
             VALUES (
@@ -36,7 +38,9 @@ class InnsokRepository {
                 :utkast_delt, 
                 :startdato,
                 :sluttdato,
+                :dager_per_uke_ved_innsok,
                 :deltakelsesinnhold_ved_innsok,
+                :prisinformasjon_ved_innsok,
                 :kategorisering_ved_innsok
             )
             """.trimIndent()
@@ -51,7 +55,9 @@ class InnsokRepository {
             "utkast_delt" to innsok.utkastDelt,
             "startdato" to innsok.startdato,
             "sluttdato" to innsok.sluttdato,
+            "dager_per_uke_ved_innsok" to innsok.dagerPerUkeVedInnsok,
             "deltakelsesinnhold_ved_innsok" to toPGObject(innsok.deltakelsesinnholdVedInnsok),
+            "prisinformasjon_ved_innsok" to toPGObject(innsok.prisinformasjonVedInnsok),
             "kategorisering_ved_innsok" to toPGObject(innsok.opplaringKategoriseringVedInnsok),
         )
 
@@ -73,7 +79,9 @@ class InnsokRepository {
                         utkast_delt, 
                         startdato,
                         sluttdato,
+                        dager_per_uke_ved_innsok,
                         deltakelsesinnhold_ved_innsok,
+                        prisinformasjon_ved_innsok,
                         kategorisering_ved_innsok
                     FROM innsok 
                     WHERE id = :id
@@ -99,7 +107,9 @@ class InnsokRepository {
                         utkast_delt, 
                         startdato,
                         sluttdato,
+                        dager_per_uke_ved_innsok,
                         deltakelsesinnhold_ved_innsok,
+                        prisinformasjon_ved_innsok,
                         kategorisering_ved_innsok
                     FROM innsok 
                     WHERE deltaker_id = :deltaker_id
@@ -130,7 +140,9 @@ class InnsokRepository {
             utkastDelt = row.localDateTimeOrNull("utkast_delt"),
             startdato = row.localDateOrNull("startdato"),
             sluttdato = row.localDateOrNull("sluttdato"),
+            dagerPerUkeVedInnsok = row.intOrNull("dager_per_uke_ved_innsok"),
             deltakelsesinnholdVedInnsok = row.stringOrNull("deltakelsesinnhold_ved_innsok")?.let { objectMapper.readValue(it) },
+            prisinformasjonVedInnsok = row.stringOrNull("prisinformasjon_ved_innsok")?.let { objectMapper.readValue(it) },
             opplaringKategoriseringVedInnsok = row.stringOrNull("kategorisering_ved_innsok")?.let {
                 objectMapper.readValue(it)
             },

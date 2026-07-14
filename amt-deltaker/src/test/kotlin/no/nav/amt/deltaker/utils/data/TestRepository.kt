@@ -21,12 +21,12 @@ import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
+import no.nav.amt.internapi.deltaker.Innsok
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
