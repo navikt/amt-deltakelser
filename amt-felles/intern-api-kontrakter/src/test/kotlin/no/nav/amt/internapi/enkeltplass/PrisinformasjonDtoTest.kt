@@ -3,6 +3,7 @@ package no.nav.amt.internapi.enkeltplass
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -12,7 +13,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere samme instans ved sanitize()`() {
             // Arrange
-            val anskaffelse = no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+            val anskaffelse = PrisinformasjonDto
                 .Anskaffelse(pris = 1000)
 
             // Act
@@ -25,7 +26,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere samme instans med null pris ved sanitize()`() {
             // Arrange
-            val anskaffelse = no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+            val anskaffelse = PrisinformasjonDto
                 .Anskaffelse(pris = 0)
 
             // Act
@@ -41,7 +42,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere samme instans med null tilleggsopplysninger ved sanitize()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = tilskuddInTest,
                 tilleggsopplysninger = null,
             )
@@ -56,7 +57,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere samme instans med ren tilleggsopplysninger ved sanitize()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = tilskuddInTest,
                 tilleggsopplysninger = "Ingen ekstra mellomrom",
             )
@@ -71,7 +72,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal trimme whitespace fra tilleggsopplysninger ved sanitize()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = tilskuddInTest,
                 tilleggsopplysninger = "  Tekst med mellomrom  ",
             )
@@ -86,7 +87,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal begrense tilleggsopplysninger til 600 tegn ved sanitize()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = tilskuddInTest,
                 tilleggsopplysninger = "A".repeat(700),
             )
@@ -101,7 +102,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal trimme og begrense tilleggsopplysninger ved sanitize()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = tilskuddInTest,
                 tilleggsopplysninger = "  ${"B".repeat(700)}  ",
             )
@@ -116,18 +117,18 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal bevare flere tilskuddstyper ved sanitize()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = listOf(
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                         pris = 5000,
                     ),
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
                         pris = 2000,
                     ),
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR,
                         pris = 500,
                     ),
                 ),
@@ -144,7 +145,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal ikke trunkere med nøyaktig 600 tegn ved sanitize()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = tilskuddInTest,
                 tilleggsopplysninger = "C".repeat(600),
             )
@@ -162,8 +163,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere samme instans med null tilleggsopplysninger ved sanitize()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = null,
             )
 
@@ -177,8 +178,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere samme instans med ren tilleggsopplysninger ved sanitize()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "Ren tekst",
             )
 
@@ -192,8 +193,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal trimme whitespace fra tilleggsopplysninger ved sanitize()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "  Tekst med mellomrom  ",
             )
 
@@ -207,8 +208,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal begrense tilleggsopplysninger til 600 tegn ved sanitize()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "D".repeat(700),
             )
 
@@ -222,8 +223,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal trimme og begrense tilleggsopplysninger ved sanitize()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "  ${"E".repeat(700)}  ",
             )
 
@@ -237,8 +238,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal ikke trunkere med nøyaktig 600 tegn ved sanitize()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "F".repeat(600),
             )
 
@@ -252,8 +253,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal fungere korrekt med begge aarsakstyper ved sanitize()`() {
             // Arrange - test med OPPLAERINGEN_ER_EGENFINANSIERT
-            val ingenKostnader1 = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            val ingenKostnader1 = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "  Tekst  ",
             )
 
@@ -264,8 +265,8 @@ class PrisinformasjonDtoTest {
             sanitized1 shouldBe ingenKostnader1.copy(tilleggsopplysninger = "Tekst")
 
             // Arrange - test med OPPLAERINGEN_ER_KOSTNADSFRI
-            val ingenKostnader2 = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            val ingenKostnader2 = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "  Annen tekst  ",
             )
 
@@ -282,7 +283,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere tom liste når pris er positiv ved validate()`() {
             // Arrange
-            val anskaffelse = no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+            val anskaffelse = PrisinformasjonDto
                 .Anskaffelse(pris = 1000)
 
             // Act
@@ -295,7 +296,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere feil når pris er 0 ved validate()`() {
             // Arrange
-            val anskaffelse = no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+            val anskaffelse = PrisinformasjonDto
                 .Anskaffelse(pris = 0)
 
             // Act
@@ -308,7 +309,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere feil når pris er negativ ved validate()`() {
             // Arrange
-            val anskaffelse = no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+            val anskaffelse = PrisinformasjonDto
                 .Anskaffelse(pris = -500)
 
             // Act
@@ -324,7 +325,7 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere feil naar tilskudd mangler ved validate()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = emptyList(),
                 tilleggsopplysninger = null,
             )
@@ -340,14 +341,14 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere feil naar duplikate tilskudd ved validate()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = listOf(
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                         pris = 5000,
                     ),
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                         pris = 2000,
                     ),
                 ),
@@ -365,14 +366,14 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere tom liste når alle tilskudd er positive ved validate()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = listOf(
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                         pris = 5000,
                     ),
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
                         pris = 2000,
                     ),
                 ),
@@ -389,14 +390,14 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere feil når ett tilskudd er null ved validate()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = listOf(
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                         pris = 0,
                     ),
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
                         pris = 2000,
                     ),
                 ),
@@ -414,14 +415,14 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere feil når ett tilskudd er negativt ved validate()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = listOf(
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                         pris = -500,
                     ),
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
                         pris = 2000,
                     ),
                 ),
@@ -439,18 +440,18 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere flere feil når flere tilskudd er ugyldige ved validate()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = listOf(
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                         pris = 0,
                     ),
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
                         pris = -1000,
                     ),
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR,
                         pris = 500,
                     ),
                 ),
@@ -469,10 +470,10 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal validere uavhengig av tilleggsopplysninger ved validate()`() {
             // Arrange
-            val tilskudd = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd(
+            val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = listOf(
-                    no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                        type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                         pris = 5000,
                     ),
                 ),
@@ -492,8 +493,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere tom liste for IngenKostnadsfri ved validate()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = null,
             )
 
@@ -507,8 +508,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere tom liste for IngenKostnaderEgenfinansiert ved validate()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = null,
             )
 
@@ -522,8 +523,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere tom liste med tilleggsopplysninger ved validate()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "Noen tilleggsopplysninger",
             )
 
@@ -537,8 +538,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere tom liste med lang tekst ved validate()`() {
             // Arrange
-            val ingenKostnader = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader(
-                aarsak = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+            val ingenKostnader = PrisinformasjonDto.IngenKostnader(
+                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "A".repeat(1000),
             )
 
@@ -552,8 +553,8 @@ class PrisinformasjonDtoTest {
 
     companion object {
         private val tilskuddInTest = listOf(
-            no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                type = no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+            PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
                 pris = 5000,
             ),
         )
