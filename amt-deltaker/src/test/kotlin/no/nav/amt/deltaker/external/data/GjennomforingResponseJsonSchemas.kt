@@ -18,7 +18,13 @@ object GjennomforingResponseJsonSchemas {
             withProperty("id") { string() }
             withProperty("navn") { string() }
             withProperty("type") { string() }
-            withProperty("tiltakskode") { string() }
+            withProperty("tiltakskode") {
+                obj {
+                    withProperty("kode") { string() }
+                    withProperty("visningsnavn") { string() }
+                    additionalProperties = false
+                }
+            }
             withProperty("tiltakstypeNavn") { string() }
             withProperty("arrangor") { arrangorSchema() }
             additionalProperties = false

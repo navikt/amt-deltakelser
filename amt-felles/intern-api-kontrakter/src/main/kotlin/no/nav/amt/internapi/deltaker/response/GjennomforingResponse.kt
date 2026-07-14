@@ -6,6 +6,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.util.UUID
@@ -26,4 +27,7 @@ data class GjennomforingResponse(
     val pameldingstype: GjennomforingPameldingType?, // TODO: Denne bør ikke være nullable
     val opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
     val prisinformasjon: PrisinformasjonDto? = null,
-)
+) {
+    @Suppress("unused") // serialiseres
+    val tiltakskodeDto: TiltakskodeDto = TiltakskodeDto(tiltakstype.tiltakskode)
+}

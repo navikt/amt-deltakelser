@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -50,21 +51,25 @@ object DeltakerData {
         importertFraArena = null,
     )
 
-    fun lagGjennomforingResponse() = GjennomforingResponse(
-        id = UUID.randomUUID(),
-        tiltakstype = lagTiltakstype(),
-        navn = "deltakerliste navn",
-        status = GjennomforingStatusType.GJENNOMFORES,
-        startDato = LocalDate.now(),
-        sluttDato = null,
-        oppstart = null,
-        arrangor = ArrangorResponse(navn = "arrangor", organisasjonsnummer = "123456789"),
-        apentForPamelding = true,
-        oppmoteSted = "Vet olle",
-        pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
-        type = GjennomforingType.Gruppe,
-        antallPlasser = 45,
-    )
+    fun lagGjennomforingResponse(): GjennomforingResponse {
+        val tiltakstype = lagTiltakstype()
+        return GjennomforingResponse(
+            id = UUID.randomUUID(),
+            tiltakstype = tiltakstype,
+            tiltakskode = TiltakskodeDto(tiltakstype.tiltakskode),
+            navn = "deltakerliste navn",
+            status = GjennomforingStatusType.GJENNOMFORES,
+            startDato = LocalDate.now(),
+            sluttDato = null,
+            oppstart = null,
+            arrangor = ArrangorResponse(navn = "arrangor", organisasjonsnummer = "123456789"),
+            apentForPamelding = true,
+            oppmoteSted = "Vet olle",
+            pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            type = GjennomforingType.Gruppe,
+            antallPlasser = 45,
+        )
+    }
 
     fun lagTiltakstype() = Tiltakstype(
         id = UUID.randomUUID(),

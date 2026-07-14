@@ -58,6 +58,28 @@ enum class Tiltakskode {
     // Ved lansering av ny forskrift/påmelding av nye typer må vi bruke type feltet GRUPPE/ENKELPLASS istedet for tiltakskode
     fun erArenaEnkeltplass() = this in setOf(HOYERE_UTDANNING, ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING, ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
 
+    val visningsnavn: String
+        get() = when (this) {
+            ARBEIDSFORBEREDENDE_TRENING -> "Arbeidsforberedende trening"
+            ARBEIDSRETTET_REHABILITERING -> "Arbeidsrettet rehabilitering"
+            AVKLARING -> "Avklaring"
+            OPPFOLGING -> "Oppfølging"
+            VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "Varig tilrettelagt arbeid"
+            DIGITALT_OPPFOLGINGSTILTAK -> "Digitalt jobbsøkerkurs"
+            GRUPPE_ARBEIDSMARKEDSOPPLAERING -> "Arbeidsmarkedsopplæring"
+            GRUPPE_FAG_OG_YRKESOPPLAERING -> "Fag- og yrkesopplæring"
+            JOBBKLUBB -> "Jobbsøkerkurs"
+            ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING -> "Arbeidsmarkedsopplæring (enkeltplass)"
+            ENKELTPLASS_FAG_OG_YRKESOPPLAERING -> "Fag- og yrkesopplæring (enkeltplass)"
+            HOYERE_UTDANNING -> "Høyere utdanning"
+            ARBEIDSMARKEDSOPPLAERING -> "Arbeidsmarkedsopplæring"
+            NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> "Norskopplæring, grunnleggende ferdigheter og FOV"
+            STUDIESPESIALISERING -> "Studiespesialisering"
+            FAG_OG_YRKESOPPLAERING -> "Fag- og yrkesopplæring"
+            HOYERE_YRKESFAGLIG_UTDANNING -> "Høyere yrkesfaglig utdanning"
+            TILRETTELAGT_ARBEID_ORDINAER -> "Tilrettelagt arbeid i ordinær virksomhet"
+        }
+
     fun erOpplaeringstiltak() = this in
         setOf(
             ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
@@ -89,3 +111,8 @@ enum class Tiltakskode {
         else -> throw IllegalArgumentException("Ukjent tiltakskode: $this")
     }
 }
+
+data class TiltakskodeDto(
+    val kode: Tiltakskode,
+    val visningsnavn: String = kode.visningsnavn,
+)
