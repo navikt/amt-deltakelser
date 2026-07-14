@@ -2,8 +2,10 @@ package no.nav.amt.deltaker.enkeltplass.kafka
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.util.UUID
@@ -96,11 +98,11 @@ sealed interface GjennomforingRequestPayload {
                 is PrisinformasjonDto.Tilskudd -> Tilskudd(
                     tilskudd = source.tilskudd.associate {
                         when (it.type) {
-                            PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER -> Tilskudd.Tilskuddstype.SKOLEPENGER
-                            PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE -> Tilskudd.Tilskuddstype.STUDIEREISE
-                            PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR -> Tilskudd.Tilskuddstype.EKSAMENSGEBYR
-                            PrisinformasjonDto.Tilskudd.Tilskuddstype.SEMESTERAVGIFT -> Tilskudd.Tilskuddstype.SEMESTERAVGIFT
-                            PrisinformasjonDto.Tilskudd.Tilskuddstype.INTEGRERT_BOTILBUD -> Tilskudd.Tilskuddstype.INTEGRERT_BOTILBUD
+                            Tilskuddstype.SKOLEPENGER -> Tilskudd.Tilskuddstype.SKOLEPENGER
+                            Tilskuddstype.STUDIEREISE -> Tilskudd.Tilskuddstype.STUDIEREISE
+                            Tilskuddstype.EKSAMENSGEBYR -> Tilskudd.Tilskuddstype.EKSAMENSGEBYR
+                            Tilskuddstype.SEMESTERAVGIFT -> Tilskudd.Tilskuddstype.SEMESTERAVGIFT
+                            Tilskuddstype.INTEGRERT_BOTILBUD -> Tilskudd.Tilskuddstype.INTEGRERT_BOTILBUD
                         } to it.pris
                     },
                     tilleggsopplysninger = source.tilleggsopplysninger,
@@ -108,10 +110,10 @@ sealed interface GjennomforingRequestPayload {
 
                 is PrisinformasjonDto.IngenKostnader -> IngenKostnader(
                     aarsak = when (source.aarsak) {
-                        PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI ->
+                        Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI ->
                             IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI
 
-                        PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT ->
+                        Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT ->
                             IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT
                     },
                     tilleggsopplysninger = source.tilleggsopplysninger,

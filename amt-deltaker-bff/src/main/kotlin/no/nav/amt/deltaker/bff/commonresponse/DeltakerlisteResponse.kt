@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.commonresponse
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.veileder.api.response.OpplaringKategoriseringValgResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.TilgjengeligInnholdResponse
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype

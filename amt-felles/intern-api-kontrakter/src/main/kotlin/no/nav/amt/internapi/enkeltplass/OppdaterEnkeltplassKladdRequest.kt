@@ -1,5 +1,6 @@
 package no.nav.amt.internapi.enkeltplass
 
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.utils.trimToNull
 import java.time.LocalDate

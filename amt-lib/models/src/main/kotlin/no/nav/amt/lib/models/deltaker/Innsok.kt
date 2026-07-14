@@ -1,8 +1,5 @@
-package no.nav.amt.internapi.deltaker
+package no.nav.amt.lib.models.deltaker
 
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
-import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
-import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID

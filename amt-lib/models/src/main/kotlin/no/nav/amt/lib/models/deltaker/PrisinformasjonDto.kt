@@ -1,7 +1,10 @@
-package no.nav.amt.internapi.enkeltplass
+package no.nav.amt.lib.models.deltaker
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
 
 const val ANSKAFFELSE_SUB_TYPE = "Anskaffelse"
 const val TILSKUDD_SUB_TYPE = "Tilskudd"
@@ -9,9 +12,9 @@ const val INGENKOSTNADER_SUB_TYPE = "IngenKostnader"
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = PrisinformasjonDto.Anskaffelse::class, name = ANSKAFFELSE_SUB_TYPE),
-    JsonSubTypes.Type(value = PrisinformasjonDto.Tilskudd::class, name = TILSKUDD_SUB_TYPE),
-    JsonSubTypes.Type(value = PrisinformasjonDto.IngenKostnader::class, name = INGENKOSTNADER_SUB_TYPE),
+    JsonSubTypes.Type(value = Anskaffelse::class, name = ANSKAFFELSE_SUB_TYPE),
+    JsonSubTypes.Type(value = Tilskudd::class, name = TILSKUDD_SUB_TYPE),
+    JsonSubTypes.Type(value = IngenKostnader::class, name = INGENKOSTNADER_SUB_TYPE),
 )
 sealed interface PrisinformasjonDto {
     fun validate(): List<String>

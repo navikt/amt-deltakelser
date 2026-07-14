@@ -29,7 +29,7 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -132,7 +132,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             arrangorUnderenhet = "987654322",
             startdato = LocalDate.now(),
             sluttdato = LocalDate.now().plusDays(1),
-            prisinformasjon = PrisinformasjonDto.Anskaffelse(
+            prisinformasjon = Anskaffelse(
                 pris = 42,
             ),
         )
@@ -251,7 +251,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 arrangorUnderenhet = "987654322",
                 startdato = LocalDate.now(),
                 sluttdato = LocalDate.now(),
-                prisinformasjon = PrisinformasjonDto.Anskaffelse(
+                prisinformasjon = Anskaffelse(
                     pris = 42,
                 ),
             )

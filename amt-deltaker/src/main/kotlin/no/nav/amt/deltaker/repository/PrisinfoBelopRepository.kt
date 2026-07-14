@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.queryOf
 import no.nav.amt.deltaker.repository.dbo.Priskomponent
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -56,7 +56,7 @@ object PrisinfoBelopRepository {
                     queryOf(sql, gjennomforingId)
                         .map { row ->
                             Priskomponent(
-                                type = PrisinformasjonDto.Tilskudd.Tilskuddstype.valueOf(row.string("pristype")),
+                                type = Tilskuddstype.valueOf(row.string("pristype")),
                                 pris = row.int("pris"),
                             )
                         }.asList,

@@ -1,7 +1,6 @@
 package no.nav.amt.distribusjon.journalforing.pdf
 
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.UtkastDto
@@ -13,6 +12,11 @@ import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnho
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.Prisinformasjon
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
@@ -61,12 +65,12 @@ object EnkeltplassPdfDtoMapper {
         prisinformasjon = deltaker.deltakerliste.toPrisinformasjon(),
     )
 
-    internal fun PrisinformasjonDto.Tilskudd.Tilskuddstype.visningsnavn(): String = when (this) {
-        PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER -> "Skolepenger"
-        PrisinformasjonDto.Tilskudd.Tilskuddstype.SEMESTERAVGIFT -> "Semesteravgift"
-        PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR -> "Eksamensgebyr"
-        PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE -> "Studiereise"
-        PrisinformasjonDto.Tilskudd.Tilskuddstype.INTEGRERT_BOTILBUD -> "Integrert botilbud"
+    internal fun Tilskuddstype.visningsnavn(): String = when (this) {
+        Tilskuddstype.SKOLEPENGER -> "Skolepenger"
+        Tilskuddstype.SEMESTERAVGIFT -> "Semesteravgift"
+        Tilskuddstype.EKSAMENSGEBYR -> "Eksamensgebyr"
+        Tilskuddstype.STUDIEREISE -> "Studiereise"
+        Tilskuddstype.INTEGRERT_BOTILBUD -> "Integrert botilbud"
     }
 
     internal fun HendelseDeltaker.Deltakerliste.toPrisinformasjon(): Prisinformasjon {
@@ -74,11 +78,11 @@ object EnkeltplassPdfDtoMapper {
             ?: throw IllegalStateException("Deltakerliste ${this.id} må ha prisinformasjon for å lage enkeltplass innsøkingsbrev")
 
         return when (prisinfoFraDeltakerliste) {
-            is PrisinformasjonDto.Anskaffelse -> Prisinformasjon.Anskaffelse(
+            is Anskaffelse -> Prisinformasjon.Anskaffelse(
                 pris = prisinfoFraDeltakerliste.pris,
             )
 
-            is PrisinformasjonDto.Tilskudd -> Prisinformasjon.Tilskudd(
+            is Tilskudd -> Prisinformasjon.Tilskudd(
                 tilskudd = prisinfoFraDeltakerliste.tilskudd
                     .sortedBy { it.type.sortOrder }
                     .map {
@@ -90,10 +94,10 @@ object EnkeltplassPdfDtoMapper {
                 tilleggsopplysninger = prisinfoFraDeltakerliste.tilleggsopplysninger,
             )
 
-            is PrisinformasjonDto.IngenKostnader -> {
+            is IngenKostnader -> {
                 when (prisinfoFraDeltakerliste.aarsak) {
-                    PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI -> Prisinformasjon.IngenKostnader
-                    PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT -> Prisinformasjon.Innbyggerfinansiert(
+                    Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI -> Prisinformasjon.IngenKostnader
+                    Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT -> Prisinformasjon.Innbyggerfinansiert(
                         tilleggsopplysninger = prisinfoFraDeltakerliste.tilleggsopplysninger ?: throw IllegalStateException(
                             "tilleggsopplysninger må være satt for innbyggerfinansiert prisinformasjon",
                         ),

@@ -14,12 +14,12 @@ import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import org.junit.jupiter.api.Test
@@ -116,7 +116,7 @@ class InnsokServiceTest {
     fun `nyttInnsokUtkastGodkjentAvNav - enkeltplass setter prisinformasjon fra prisinfo repo`() {
         val pris = 12000
         mockkObject(PrisinfoRepoAdapter)
-        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns PrisinformasjonDto.Anskaffelse(pris = pris)
+        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(pris = pris)
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
             vedtaksinformasjon = vedtaksinformasjon,
@@ -130,13 +130,13 @@ class InnsokServiceTest {
             unmockkObject(PrisinfoRepoAdapter)
         }
 
-        innsok.prisinformasjonVedInnsok shouldBe PrisinformasjonDto.Anskaffelse(pris = pris)
+        innsok.prisinformasjonVedInnsok shouldBe Anskaffelse(pris = pris)
     }
 
     @Test
     fun `nyttInnsokUtkastGodkjentAvNav - gruppe setter ikke prisinformasjon`() {
         mockkObject(PrisinfoRepoAdapter)
-        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns PrisinformasjonDto.Anskaffelse(pris = 1000)
+        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(pris = 1000)
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
             vedtaksinformasjon = vedtaksinformasjon,
@@ -158,7 +158,7 @@ class InnsokServiceTest {
     @Test
     fun `nyttInnsokUtkastGodkjentAvNav - enkeltplass setter dager per uke ved innsok`() {
         mockkObject(PrisinfoRepoAdapter)
-        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns PrisinformasjonDto.Anskaffelse(pris = 1000)
+        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(pris = 1000)
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
             dagerPerUke = 4F,

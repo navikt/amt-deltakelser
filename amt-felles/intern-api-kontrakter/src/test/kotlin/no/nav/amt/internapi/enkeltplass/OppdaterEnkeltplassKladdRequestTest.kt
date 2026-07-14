@@ -2,7 +2,8 @@ package no.nav.amt.internapi.enkeltplass
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto.Companion.MAX_LENGTH_TILLEGGSOPPLYSNINGER
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Companion.MAX_LENGTH_TILLEGGSOPPLYSNINGER
 import org.junit.jupiter.api.Test
 
 class OppdaterEnkeltplassKladdRequestTest {

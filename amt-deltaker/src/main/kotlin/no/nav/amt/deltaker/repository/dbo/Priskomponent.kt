@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.repository.dbo
 
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 
 data class Priskomponent(
-    val type: PrisinformasjonDto.Tilskudd.Tilskuddstype,
+    val type: Tilskuddstype,
     val pris: Int,
 )

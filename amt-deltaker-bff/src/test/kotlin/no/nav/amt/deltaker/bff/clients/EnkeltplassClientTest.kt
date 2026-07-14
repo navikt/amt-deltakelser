@@ -12,7 +12,7 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
@@ -105,7 +105,7 @@ class EnkeltplassClientTest {
             arrangorUnderenhet = "987654321",
             startdato = null,
             sluttdato = null,
-            prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 1000000),
+            prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -193,7 +193,7 @@ class EnkeltplassClientTest {
         private val request = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             arrangorUnderenhet = "987654322",
-            prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 1000000),
+            prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
