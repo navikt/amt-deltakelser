@@ -9,7 +9,7 @@ import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DistribuerJournalp
 import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
-import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto
 import no.nav.amt.distribusjon.journalforing.pdf.PdfgenClient
 import no.nav.amt.distribusjon.journalforing.pdf.lagEndringsvedtakPdfDto
 import no.nav.amt.distribusjon.journalforing.pdf.lagHovedopptakForTildeltPlass
@@ -48,19 +48,27 @@ class JournalforingService(
             return
         }
         when (hendelse.payload) {
+            is HendelseType.EnkeltplassOkonomiGodkjennUtkast -> {
+                journalforHovedvedtak(
+                    hendelse = hendelse,
+                    utkast = hendelse.payload.utkast,
+                    journalforingstatus = journalforingstatus,
+                )
+            }
+
+            is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
+                hendelse = hendelse,
+                utkast = hendelse.payload.utkast,
+                journalforingstatus = journalforingstatus,
+            )
+
             is HendelseType.InnbyggerGodkjennUtkast -> handleUtkastGodkjent(
-                hendelse,
-                hendelse.payload.utkast,
-                journalforingstatus,
+                hendelse = hendelse,
+                utkast = hendelse.payload.utkast,
+                journalforingstatus = journalforingstatus,
             )
 
             is HendelseType.ReaktiverDeltakelse -> handleUtkastGodkjent(
-                hendelse,
-                hendelse.payload.utkast,
-                journalforingstatus,
-            )
-
-            is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
                 hendelse,
                 hendelse.payload.utkast,
                 journalforingstatus,
@@ -192,7 +200,7 @@ class JournalforingService(
         val pdfFunc: suspend () -> ByteArray = {
             if (hendelse.deltaker.deltakerliste.erEnkeltplass == true) {
                 pdfgenClient.genererEnkeltplassInnsokingsbrevPdf(
-                    lagEnkeltplassInnsokingsbrevPdfDto(
+                    lagEnkeltplassPdfDto(
                         deltaker = hendelse.deltaker,
                         navBruker = navBruker,
                         veileder = hendelse.ansvarlig.hentVeileder(),
@@ -261,17 +269,30 @@ class JournalforingService(
     ) {
         val navBruker = amtPersonClient.hentNavBruker(hendelse.deltaker.personident)
         val veileder = hendelse.ansvarlig.hentVeileder()
+
         val pdf: suspend () -> ByteArray = {
-            pdfgenClient.genererHovedvedtakForIndividuellOppfolging(
-                lagHovedvedtakPdfDto(
-                    deltaker = hendelse.deltaker,
-                    navBruker = navBruker,
-                    utkast = utkast,
-                    veileder = veileder,
-                    vedtaksdato = hendelse.opprettet.toLocalDate(),
-                    begrunnelseFraNav = hendelse.getBegrunnelseForHovedvedtak(),
-                ),
-            )
+            if (hendelse.deltaker.deltakerliste.erEnkeltplass == true) {
+                pdfgenClient.genererEnkeltplassHovedvedtakPdf(
+                    lagEnkeltplassPdfDto(
+                        deltaker = hendelse.deltaker,
+                        navBruker = navBruker,
+                        utkast = utkast,
+                        veileder = veileder,
+                        opprettetDato = hendelse.opprettet.toLocalDate(),
+                    ),
+                )
+            } else {
+                pdfgenClient.genererHovedvedtakForIndividuellOppfolging(
+                    lagHovedvedtakPdfDto(
+                        deltaker = hendelse.deltaker,
+                        navBruker = navBruker,
+                        utkast = utkast,
+                        veileder = veileder,
+                        vedtaksdato = hendelse.opprettet.toLocalDate(),
+                        begrunnelseFraNav = hendelse.getBegrunnelseForHovedvedtak(),
+                    ),
+                )
+            }
         }
 
         journalforOgSend(
@@ -283,7 +304,7 @@ class JournalforingService(
             distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
         )
 
-        log.info("Journalførte hovedvedtak (individuell oppfølging) for deltaker ${hendelse.deltaker.id}")
+        log.info("Journalførte hovedvedtak for deltaker ${hendelse.deltaker.id}")
     }
 
     private suspend fun journalforOgSend(

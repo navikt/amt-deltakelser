@@ -84,14 +84,27 @@ class PdfgenClient(
         return response.body()
     }
 
-    suspend fun genererEnkeltplassInnsokingsbrevPdf(innsokingsbrevPdfDto: EnkeltplassPdfDto): ByteArray {
-        val response = httpClient.post("$url/enkeltplass-innsokingsbrev") {
+    suspend fun genererEnkeltplassInnsokingsbrevPdf(innsokingsbrevPdfDto: EnkeltplassPdfDto): ByteArray = genererEnkeltplassPdf(
+        innsokingsbrevPdfDto = innsokingsbrevPdfDto,
+        brevmal = "enkeltplass-innsokingsbrev",
+    )
+
+    suspend fun genererEnkeltplassHovedvedtakPdf(hovedvedtakPdfDto: EnkeltplassPdfDto): ByteArray = genererEnkeltplassPdf(
+        innsokingsbrevPdfDto = hovedvedtakPdfDto,
+        brevmal = "enkeltplass-hovedvedtak",
+    )
+
+    private suspend fun genererEnkeltplassPdf(
+        innsokingsbrevPdfDto: EnkeltplassPdfDto,
+        brevmal: String,
+    ): ByteArray {
+        val response = httpClient.post("$url/$brevmal") {
             contentType(ContentType.Application.Json)
             setBody(objectMapper.writeValueAsString(innsokingsbrevPdfDto))
         }
         if (!response.status.isSuccess()) {
             error(
-                "Kunne ikke hente PDF for enkeltplass-innsokingsbrev i amt-pdfgen. Status=${response.status.value} error=${response.bodyAsText()}",
+                "Kunne ikke hente PDF for $brevmal i amt-pdfgen. Status=${response.status.value} error=${response.bodyAsText()}",
             )
         }
         return response.body()

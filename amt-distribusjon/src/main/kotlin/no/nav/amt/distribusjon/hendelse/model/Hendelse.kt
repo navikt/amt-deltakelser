@@ -34,6 +34,7 @@ data class Hendelse(
 
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
+        is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EndreSluttarsak,
         is HendelseType.EndreUtkast,
         is HendelseType.OpprettUtkast,
@@ -57,6 +58,7 @@ data class Hendelse(
         is HendelseType.EndreBakgrunnsinformasjon,
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
+        is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EndreSluttarsak,
         is HendelseType.EndreUtkast,
         is HendelseType.OpprettUtkast,
@@ -84,6 +86,7 @@ data class Hendelse(
 
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
+        is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EndreUtkast,
         is HendelseType.OpprettUtkast,
         is HendelseType.AvbrytUtkast,

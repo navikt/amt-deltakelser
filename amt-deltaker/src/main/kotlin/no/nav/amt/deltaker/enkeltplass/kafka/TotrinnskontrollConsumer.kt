@@ -2,11 +2,16 @@ package no.nav.amt.deltaker.enkeltplass.kafka
 
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollHendelsePayload.TotrinnskontrollType
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.DeltakerUtils
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
@@ -32,6 +37,9 @@ class TotrinnskontrollConsumer(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val vedtakService: VedtakService,
+    private val distribuerEndringService: DistribuerEndringService,
+    private val navAnsattRepository: NavAnsattRepository,
+    private val navEnhetRepository: NavEnhetRepository,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -73,10 +81,10 @@ class TotrinnskontrollConsumer(
             processGodkjentInnsoking(payload.entityId)
         }
 
-/* For bruk senere
-    if (payload.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
-            processGodkjentPrisinformasjon(payload)
-        }*/
+        /* For bruk senere
+            if (payload.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
+                    processGodkjentPrisinformasjon(payload)
+                }*/
     }
 
     internal fun processGodkjentPrisinformasjon(totrinnskontrollPayload: TotrinnskontrollHendelsePayload) {
@@ -128,24 +136,20 @@ class TotrinnskontrollConsumer(
             erDeltakerSluttdatoEndret = false,
             beforeUpsert = { deltaker ->
                 vedtakService.godkjentOkonomiFattVedtak(deltaker = deltaker)
-                // TODO: Generer melding om hovedvedtak til amt-distribusjon
-                val idag = LocalDate.now()
-                val nyStatusType = when {
-                    deltaker.startdato != null &&
-                        deltaker.sluttdato != null &&
-                        deltaker.startdato.isBefore(idag) &&
-                        deltaker.sluttdato.isBefore(idag) ->
-                        DeltakerStatus.Type.FULLFORT
-
-                    deltaker.startdato != null && deltaker.startdato.isAfter(idag) ->
-                        DeltakerStatus.Type.VENTER_PA_OPPSTART
-
-                    else ->
-                        DeltakerStatus.Type.DELTAR
-                }
                 deltaker.copy(
-                    status = DeltakerUtils.nyDeltakerStatus(nyStatusType),
+                    status = DeltakerUtils.nyDeltakerStatus(nyDeltakerStatus(deltaker)),
                 )
+            },
+            afterUpsert = { deltaker ->
+                val vedtak = deltaker.vedtaksinformasjon ?: error(
+                    "Kan ikke produsere hendelse for økonomi godkjent for deltaker ${deltaker.id} uten vedtak",
+                )
+
+                distribuerEndringService.produceHendelseForUtkast(
+                    deltaker = deltaker,
+                    navAnsatt = navAnsattRepository.getOrThrow(vedtak.sistEndretAv),
+                    enhet = navEnhetRepository.getOrThrow(vedtak.sistEndretAvEnhet),
+                ) { utkastDto -> HendelseType.EnkeltplassOkonomiGodkjennUtkast(utkastDto) }
             },
         )
 
@@ -193,5 +197,17 @@ class TotrinnskontrollConsumer(
     companion object {
         private const val SKIP_RECORDS_BEFORE_OFFSET_IN_DEV = 5L
         private const val TYPE_KEY = "type"
+
+        internal fun nyDeltakerStatus(deltaker: Deltaker): DeltakerStatus.Type {
+            val idag = LocalDate.now()
+            val startdato = deltaker.startdato ?: error("Startdato mangler for deltaker ${deltaker.id}")
+            val sluttdato = deltaker.sluttdato ?: error("Sluttdato mangler for deltaker ${deltaker.id}")
+
+            return when {
+                sluttdato.isBefore(idag) -> DeltakerStatus.Type.FULLFORT
+                startdato.isAfter(idag) -> DeltakerStatus.Type.VENTER_PA_OPPSTART
+                else -> DeltakerStatus.Type.DELTAR
+            }
+        }
     }
 }

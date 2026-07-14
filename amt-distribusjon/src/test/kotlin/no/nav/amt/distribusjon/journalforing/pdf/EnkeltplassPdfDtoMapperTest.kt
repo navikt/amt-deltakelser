@@ -549,7 +549,7 @@ class EnkeltplassPdfDtoMapperTest {
             val deltaker = createValidDeltaker()
             val utkast = createValidUtkast()
 
-            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto(
+            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
                 deltaker = deltaker,
                 navBruker = navBruker,
                 veileder = veileder,
@@ -569,7 +569,7 @@ class EnkeltplassPdfDtoMapperTest {
                 innhold = listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, fritekst)),
             )
 
-            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto(
+            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
                 deltaker = deltaker,
                 navBruker = navBruker,
                 veileder = veileder,
@@ -585,7 +585,7 @@ class EnkeltplassPdfDtoMapperTest {
             val deltaker = createValidDeltaker()
             val utkast = createValidUtkast(dagerPerUke = 3.7f)
 
-            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassInnsokingsbrevPdfDto(
+            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
                 deltaker = deltaker,
                 navBruker = navBruker,
                 veileder = veileder,

@@ -18,7 +18,7 @@ import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
 
 object EnkeltplassPdfDtoMapper {
-    fun lagEnkeltplassInnsokingsbrevPdfDto(
+    fun lagEnkeltplassPdfDto(
         deltaker: HendelseDeltaker,
         navBruker: NavBruker,
         veileder: HendelseAnsvarlig.NavVeileder,
