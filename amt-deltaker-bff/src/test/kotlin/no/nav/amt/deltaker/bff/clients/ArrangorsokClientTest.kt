@@ -53,7 +53,7 @@ class ArrangorsokClientTest {
 
     companion object {
         private const val ARRANGORSOK_BASE_URL = "http://arrangorsok"
-        private const val EXPECTED_UNDERENHET_SOK_URL = "$ARRANGORSOK_BASE_URL/api/v1/arrangor/underenhet?sok=term+with+space"
+        private const val EXPECTED_UNDERENHET_SOK_URL = "$ARRANGORSOK_BASE_URL/api/v1/virksomhet/underenhet?sok=term+with+space"
 
         private fun runFailureTest(
             exceptionType: KClass<out Throwable>,

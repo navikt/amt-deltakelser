@@ -18,7 +18,7 @@ class ArrangorsokClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun underenhetSok(term: String): List<EnhetResponse> = performGet("api/v1/arrangor/underenhet") {
+    suspend fun underenhetSok(term: String): List<EnhetResponse> = performGet("api/v1/virksomhet/underenhet") {
         parameter("sok", term)
     }.failIfNotSuccess("Kunne ikke hente underenheter fra Mulighetsrommet").body()
 }
