@@ -2,8 +2,9 @@ package no.nav.amt.deltaker.veileder
 
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
-import no.nav.amt.internapi.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerStatus.Type
+import no.nav.amt.lib.models.deltaker.Innsok
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -50,7 +51,7 @@ class InnsokService(
             dagerPerUkeVedInnsok = if (deltaker.erEnkeltplass) deltaker.dagerPerUke?.toInt() else null,
             deltakelsesinnholdVedInnsok = deltaker.deltakelsesinnhold,
             prisinformasjonVedInnsok = prisinformasjonVedInnsok,
-            utkastDelt = if (forrigeStatus.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) forrigeStatus.opprettet else null,
+            utkastDelt = if (forrigeStatus.type == Type.UTKAST_TIL_PAMELDING) forrigeStatus.opprettet else null,
             utkastGodkjentAvNav = godkjentAvNav,
             opplaringKategoriseringVedInnsok = deltaker.deltakerliste.opplaringKategorisering,
         )

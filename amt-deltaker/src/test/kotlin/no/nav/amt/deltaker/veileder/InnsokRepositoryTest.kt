@@ -5,12 +5,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerContext
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.internapi.deltaker.Innsok
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
@@ -77,7 +77,7 @@ class InnsokRepositoryTest {
                 sluttdato = deltaker.sluttdato,
                 dagerPerUkeVedInnsok = 3,
                 deltakelsesinnholdVedInnsok = deltakelsesinnhold,
-                prisinformasjonVedInnsok = PrisinformasjonDto.Anskaffelse(pris = 10000),
+                prisinformasjonVedInnsok = Anskaffelse(pris = 10000),
                 opplaringKategoriseringVedInnsok = kategorisering,
                 utkastDelt = utkastDelt,
                 utkastGodkjentAvNav = true,

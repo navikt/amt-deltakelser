@@ -1,13 +1,13 @@
 package no.nav.amt.deltaker.innbygger
 
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import java.time.LocalDate

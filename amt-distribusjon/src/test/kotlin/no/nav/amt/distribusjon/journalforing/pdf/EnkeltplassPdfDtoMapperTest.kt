@@ -8,13 +8,18 @@ import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.toInnho
 import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.toPrisinformasjon
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -350,7 +355,7 @@ class EnkeltplassPdfDtoMapperTest {
         @Test
         fun `toPrisinformasjon skal returnere Anskaffelse når prisinformasjon er Anskaffelse`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 50000),
+                prisinformasjon = Anskaffelse(pris = 50000),
             )
 
             val resultat = deltakerliste.toPrisinformasjon()
@@ -362,18 +367,18 @@ class EnkeltplassPdfDtoMapperTest {
         @Test
         fun `toPrisinformasjon skal returnere Tilskudd med sortert liste`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = PrisinformasjonDto.Tilskudd(
+                prisinformasjon = Tilskudd(
                     tilskudd = listOf(
-                        PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                            type = PrisinformasjonDto.Tilskudd.Tilskuddstype.STUDIEREISE,
+                        TilskuddInfo(
+                            type = Tilskuddstype.STUDIEREISE,
                             pris = 5000,
                         ),
-                        PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                            type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        TilskuddInfo(
+                            type = Tilskuddstype.SKOLEPENGER,
                             pris = 10000,
                         ),
-                        PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                            type = PrisinformasjonDto.Tilskudd.Tilskuddstype.EKSAMENSGEBYR,
+                        TilskuddInfo(
+                            type = Tilskuddstype.EKSAMENSGEBYR,
                             pris = 1000,
                         ),
                     ),
@@ -394,10 +399,10 @@ class EnkeltplassPdfDtoMapperTest {
         @Test
         fun `toPrisinformasjon skal inkludere tilleggsopplysninger i Tilskudd`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = PrisinformasjonDto.Tilskudd(
+                prisinformasjon = Tilskudd(
                     tilskudd = listOf(
-                        PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                            type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        TilskuddInfo(
+                            type = Tilskuddstype.SKOLEPENGER,
                             pris = 15000,
                         ),
                     ),
@@ -414,8 +419,8 @@ class EnkeltplassPdfDtoMapperTest {
         @Test
         fun `toPrisinformasjon skal returnere IngenKostnader når aarsak er OPPLAERINGEN_ER_KOSTNADSFRI`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = PrisinformasjonDto.IngenKostnader(
-                    aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                prisinformasjon = IngenKostnader(
+                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                     tilleggsopplysninger = null,
                 ),
             )
@@ -428,8 +433,8 @@ class EnkeltplassPdfDtoMapperTest {
         @Test
         fun `toPrisinformasjon skal returnere Innbyggerfinansiert når aarsak er OPPLAERINGEN_ER_EGENFINANSIERT`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = PrisinformasjonDto.IngenKostnader(
-                    aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                prisinformasjon = IngenKostnader(
+                    aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                     tilleggsopplysninger = "Deltaker finansierer kurset selv",
                 ),
             )
@@ -454,8 +459,8 @@ class EnkeltplassPdfDtoMapperTest {
         @Test
         fun `toPrisinformasjon skal kaste IllegalStateException når tilleggsopplysninger mangler for egenfinansiert`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = PrisinformasjonDto.IngenKostnader(
-                    aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                prisinformasjon = IngenKostnader(
+                    aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                     tilleggsopplysninger = null,
                 ),
             )
@@ -468,18 +473,18 @@ class EnkeltplassPdfDtoMapperTest {
         @Test
         fun `toPrisinformasjon skal handlere multiple tilskudd typer korrekt`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = PrisinformasjonDto.Tilskudd(
+                prisinformasjon = Tilskudd(
                     tilskudd = listOf(
-                        PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                            type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SEMESTERAVGIFT,
+                        TilskuddInfo(
+                            type = Tilskuddstype.SEMESTERAVGIFT,
                             pris = 2000,
                         ),
-                        PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                            type = PrisinformasjonDto.Tilskudd.Tilskuddstype.INTEGRERT_BOTILBUD,
+                        TilskuddInfo(
+                            type = Tilskuddstype.INTEGRERT_BOTILBUD,
                             pris = 8000,
                         ),
-                        PrisinformasjonDto.Tilskudd.TilskuddInfo(
-                            type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        TilskuddInfo(
+                            type = Tilskuddstype.SKOLEPENGER,
                             pris = 20000,
                         ),
                     ),
@@ -500,7 +505,7 @@ class EnkeltplassPdfDtoMapperTest {
         @Test
         fun `toPrisinformasjon skal håndtere Anskaffelse med liten pris`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 100),
+                prisinformasjon = Anskaffelse(pris = 100),
             )
 
             val resultat = deltakerliste.toPrisinformasjon()
@@ -519,7 +524,7 @@ class EnkeltplassPdfDtoMapperTest {
         private fun createValidDeltaker() = Hendelsesdata.lagDeltaker(
             deltakerliste = Hendelsesdata.lagDeltakerliste(
                 tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
-                prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 5000),
+                prisinformasjon = Anskaffelse(pris = 5000),
                 opplaringKategoriseringValg = OpplaringKategoriseringValg(
                     valgteKategoriseringer = setOf(
                         OpplaringKategoriseringValg.ValgteFelt(

@@ -9,9 +9,9 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.internapi.enkeltplass.ANSKAFFELSE_SUB_TYPE
-import no.nav.amt.internapi.enkeltplass.INGENKOSTNADER_SUB_TYPE
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
+import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -103,7 +103,7 @@ class PrisinfoRepositoryTest {
                 prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
                 anskaffelsePris = null,
                 tilleggsopplysninger = "Oppdatert",
-                ingenkostnaderAarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                ingenkostnaderAarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
             )
 
             // Act
@@ -118,7 +118,7 @@ class PrisinfoRepositoryTest {
                 prisinfoJsonSubtype shouldBe INGENKOSTNADER_SUB_TYPE
                 anskaffelsePris shouldBe null
                 tilleggsopplysninger shouldBe "Oppdatert"
-                ingenkostnaderAarsak shouldBe PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT
+                ingenkostnaderAarsak shouldBe Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT
             }
         }
     }

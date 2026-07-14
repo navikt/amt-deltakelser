@@ -4,7 +4,7 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import org.junit.jupiter.api.Test
 
 class EnkeltplassPameldingRequestTest {
@@ -13,7 +13,7 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "",
             arrangorUnderenhet = "",
-            prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 1000000),
+            prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
         assertInvalidResult(request.validate(), "Beskrivelse kan ikke være tom")
@@ -24,7 +24,7 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "",
-            prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 1000000),
+            prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
         assertInvalidResult(request.validate(), "Arrangør orgnummer kan ikke være tom")
@@ -35,7 +35,7 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "abc",
-            prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 1000000),
+            prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
         assertInvalidResult(request.validate(), "Organisasjonsnummeret må starte med 8 eller 9 og inneholde 9 siffer")
@@ -46,7 +46,7 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "987654321",
-            prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 1000000),
+            prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
         request.validate().shouldBeInstanceOf<ValidationResult.Valid>()

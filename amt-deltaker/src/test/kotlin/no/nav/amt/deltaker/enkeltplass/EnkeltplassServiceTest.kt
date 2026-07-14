@@ -35,10 +35,10 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
@@ -136,7 +136,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } just Runs
-        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns PrisinformasjonDto.Anskaffelse(1000)
+        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(1000)
     }
 
     private fun setupNavEnhetOgAnsattMocks() {
@@ -287,7 +287,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             every { deltakerlisteRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
-            val nyPrisinformasjon = PrisinformasjonDto.Anskaffelse(42)
+            val nyPrisinformasjon = Anskaffelse(42)
             val request = oppdaterKladdRequest.copy(prisinformasjon = nyPrisinformasjon)
 
             // Act
@@ -540,7 +540,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             arrangorUnderenhet = "987654322",
-            prisinformasjon = PrisinformasjonDto.Anskaffelse(1234),
+            prisinformasjon = Anskaffelse(1234),
         )
 
         private val decoratedRequest = EnkeltplassPameldingDecoratedRequest(

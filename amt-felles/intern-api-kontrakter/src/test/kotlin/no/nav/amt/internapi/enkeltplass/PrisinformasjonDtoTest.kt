@@ -3,6 +3,7 @@ package no.nav.amt.internapi.enkeltplass
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -12,7 +13,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere samme instans ved sanitize()`() {
             // Arrange
-            val anskaffelse = PrisinformasjonDto.Anskaffelse(pris = 1000)
+            val anskaffelse = PrisinformasjonDto
+                .Anskaffelse(pris = 1000)
 
             // Act
             val sanitized = anskaffelse.sanitize()
@@ -24,7 +26,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere samme instans med null pris ved sanitize()`() {
             // Arrange
-            val anskaffelse = PrisinformasjonDto.Anskaffelse(pris = 0)
+            val anskaffelse = PrisinformasjonDto
+                .Anskaffelse(pris = 0)
 
             // Act
             val sanitized = anskaffelse.sanitize()
@@ -280,7 +283,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere tom liste når pris er positiv ved validate()`() {
             // Arrange
-            val anskaffelse = PrisinformasjonDto.Anskaffelse(pris = 1000)
+            val anskaffelse = PrisinformasjonDto
+                .Anskaffelse(pris = 1000)
 
             // Act
             val errors = anskaffelse.validate()
@@ -292,7 +296,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere feil når pris er 0 ved validate()`() {
             // Arrange
-            val anskaffelse = PrisinformasjonDto.Anskaffelse(pris = 0)
+            val anskaffelse = PrisinformasjonDto
+                .Anskaffelse(pris = 0)
 
             // Act
             val errors = anskaffelse.validate()
@@ -304,7 +309,8 @@ class PrisinformasjonDtoTest {
         @Test
         fun `skal returnere feil når pris er negativ ved validate()`() {
             // Arrange
-            val anskaffelse = PrisinformasjonDto.Anskaffelse(pris = -500)
+            val anskaffelse = PrisinformasjonDto
+                .Anskaffelse(pris = -500)
 
             // Act
             val errors = anskaffelse.validate()

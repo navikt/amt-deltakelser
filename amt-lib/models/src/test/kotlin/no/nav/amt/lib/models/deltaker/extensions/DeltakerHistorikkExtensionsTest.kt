@@ -1,13 +1,13 @@
 package no.nav.amt.lib.models.deltaker.extensions
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.internapi.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Nested

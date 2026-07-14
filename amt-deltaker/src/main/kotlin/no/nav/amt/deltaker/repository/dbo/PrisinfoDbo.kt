@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.repository.dbo
 
-import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 
 data class PrisinfoDbo(
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,
-    val ingenkostnaderAarsak: PrisinformasjonDto.IngenKostnader.Aarsak? = null,
+    val ingenkostnaderAarsak: Aarsak? = null,
 )
