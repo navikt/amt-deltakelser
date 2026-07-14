@@ -1,0 +1,35 @@
+<section>
+    <h2>Dette er innholdet</h2>
+    <p class="fritekst">{{innholdFritekst}}</p>
+
+    {{#eq innhold.type "Arbeidsmarkedsopplaering"}}
+        <p class="margins-1-rem">
+            Bransje: {{innhold.bransje}}
+        </p>
+
+        {{#if innhold.forerkortOgSertifiseringer.length}}
+            <p class="list-heading-tight">
+                Førerkort og sertifisering:
+            </p>
+
+            <ul id="innholdselementer">
+                {{#each innhold.forerkortOgSertifiseringer}}
+                    <li class="fritekst">{{this}}</li>
+                {{/each}}
+            </ul>
+        {{/if}}
+    {{/eq}}
+
+    {{#eq innhold.type "FagOgYrkesopplaering"}}
+        <p class="margins-1-rem">
+            Utdanningsprogram: {{innhold.utdanningsprogram}}
+        </p>
+
+        <p class="list-heading-tight">Lærefag:</p>
+        <ul id="innholdselementer">
+            {{#each innhold.laerefag}}
+                <li class="fritekst">{{this}}</li>
+            {{/each}}
+        </ul>
+    {{/eq}}
+</section>

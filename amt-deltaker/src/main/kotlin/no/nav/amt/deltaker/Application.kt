@@ -492,6 +492,9 @@ fun Application.module() {
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
             vedtakService = vedtakService,
+            distribuerEndringService = distribuerEndringService,
+            navEnhetRepository = navEnhetRepository,
+            navAnsattRepository = navAnsattRepository,
         ),
         ArrangorMeldingConsumer(
             endringFraArrangorService,

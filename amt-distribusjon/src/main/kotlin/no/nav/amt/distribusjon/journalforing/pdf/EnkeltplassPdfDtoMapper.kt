@@ -6,24 +6,25 @@ import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.journalforing.pdf.AvsenderDto
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.DeltakerDto
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.DeltakerlisteDto
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.DeltakerDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.DeltakerlisteDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnhold
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.Prisinformasjon
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
 
 object EnkeltplassPdfDtoMapper {
-    fun lagEnkeltplassInnsokingsbrevPdfDto(
+    fun lagEnkeltplassPdfDto(
         deltaker: HendelseDeltaker,
         navBruker: NavBruker,
         veileder: HendelseAnsvarlig.NavVeileder,
         opprettetDato: LocalDate,
         utkast: UtkastDto,
-    ) = EnkeltplassInnsokingsbrevPdfDto(
+    ) = EnkeltplassPdfDto(
         deltaker = DeltakerDto(
             fornavn = navBruker.fornavn,
             mellomnavn = navBruker.mellomnavn,
@@ -32,15 +33,16 @@ object EnkeltplassPdfDtoMapper {
         ),
         deltakerliste = DeltakerlisteDto(
             tiltaksnavn = deltaker.deltakerliste.tiltakskodenavn(),
-            arrangornavn = deltaker.deltakerliste.arrangor.navn,
+            arrangornavn = deltaker.deltakerliste.arrangor.navn
+                .toTitleCase(),
             startdato = deltaker.startdato ?: throw IllegalStateException(
-                "Deltaker ${deltaker.id} må ha startdato for å lage enkeltplass innsøkingsbrev",
+                "Deltaker ${deltaker.id} må ha startdato for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
             sluttdato = deltaker.sluttdato ?: throw IllegalStateException(
-                "Deltaker ${deltaker.id} må ha sluttdato for å lage enkeltplass innsøkingsbrev",
+                "Deltaker ${deltaker.id} må ha sluttdato for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
             oppstartstype = deltaker.deltakerliste.oppstartstype ?: throw IllegalStateException(
-                "Deltakerliste ${deltaker.deltakerliste.id} må ha oppstartstype for å lage enkeltplass innsøkingsbrev",
+                "Deltakerliste ${deltaker.deltakerliste.id} må ha oppstartstype for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
         ),
         avsender = AvsenderDto(
@@ -52,7 +54,7 @@ object EnkeltplassPdfDtoMapper {
             ?.find { it.innholdskode == INNHOLDSKODE_ANNET }
             ?.beskrivelse
             ?: throw IllegalStateException(
-                "Deltakerliste ${deltaker.deltakerliste.id} må ha beskrivelse for å lage enkeltplass innsøkingsbrev",
+                "Deltakerliste ${deltaker.deltakerliste.id} må ha beskrivelse for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
         deltakelsesmengdeAntallDager = utkast.dagerPerUke?.toInt(),
         innhold = deltaker.deltakerliste.toInnhold(),

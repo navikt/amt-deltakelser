@@ -13,12 +13,12 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import java.time.LocalDate
 
 fun Deltaker.toUtkastDto() = UtkastDto(
-    startdato,
-    sluttdato,
-    dagerPerUke,
-    deltakelsesprosent,
-    bakgrunnsinformasjon,
-    deltakelsesinnhold?.innhold?.toInnholdDtoList(),
+    startdato = startdato,
+    sluttdato = sluttdato,
+    dagerPerUke = dagerPerUke,
+    deltakelsesprosent = deltakelsesprosent,
+    bakgrunnsinformasjon = bakgrunnsinformasjon,
+    innhold = deltakelsesinnhold?.innhold?.toInnholdDtoList(),
 )
 
 fun Deltaker.toHendelseDeltaker(

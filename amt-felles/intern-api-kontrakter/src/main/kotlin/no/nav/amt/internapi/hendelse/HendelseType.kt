@@ -49,6 +49,10 @@ sealed interface HendelseType {
         val utkast: UtkastDto,
     ) : HendelseSystemKanOpprette
 
+    data class EnkeltplassOkonomiGodkjennUtkast(
+        val utkast: UtkastDto,
+    ) : HendelseType
+
     data class InnbyggerGodkjennUtkast(
         val utkast: UtkastDto,
     ) : HendelseType

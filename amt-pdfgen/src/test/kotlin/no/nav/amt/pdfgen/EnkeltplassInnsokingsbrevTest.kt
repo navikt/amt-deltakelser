@@ -1,10 +1,11 @@
 package no.nav.amt.pdfgen
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
-import no.nav.amt.pdfgen.util.DtoBuilders.enkeltplassInnsokingsbrev
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
+import no.nav.amt.pdfgen.util.DtoBuilders.enkeltplassPdfDto
 import no.nav.amt.pdfgen.util.RenderUtils.render
 
 class EnkeltplassInnsokingsbrevTest :
@@ -13,9 +14,9 @@ class EnkeltplassInnsokingsbrevTest :
         describe("Enkeltplass innsøkingsbrev PDF") {
 
             it("skal rendre med alle obligatoriske felter") {
-                val brev = enkeltplassInnsokingsbrev(
-                    innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                val brev = enkeltplassPdfDto(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -28,9 +29,9 @@ class EnkeltplassInnsokingsbrevTest :
             describe("Prisformatering") {
 
                 it("skal formatere pris med tusenerskilletegn for Anskaffelse") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Anskaffelse(
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Anskaffelse(
                             pris = 125000,
                         ),
                     )
@@ -42,16 +43,16 @@ class EnkeltplassInnsokingsbrevTest :
                 }
 
                 it("skal formatere tilskuddspris med tusenerskilletegn") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd(
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Tilskudd(
                             tilleggsopplysninger = null,
                             tilskudd = listOf(
-                                EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                                EnkeltplassPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
                                     type = "Skolepenger",
                                     pris = 75000,
                                 ),
-                                EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                                EnkeltplassPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
                                     type = "Semesteravgift",
                                     pris = 50000,
                                 ),
@@ -64,9 +65,9 @@ class EnkeltplassInnsokingsbrevTest :
                 }
 
                 it("skal vise IngenKostnader tekst") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -74,9 +75,9 @@ class EnkeltplassInnsokingsbrevTest :
                 }
 
                 it("skal vise Innbyggerfinansiert tekst med tilleggsopplysninger") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Innbyggerfinansiert(
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
                             tilleggsopplysninger = "Du må betale for gjennomføring av kurset",
                         ),
                     )
@@ -90,8 +91,8 @@ class EnkeltplassInnsokingsbrevTest :
             describe("Innholdstyper") {
 
                 it("Arbeidsmarkedsopplaering - skal vise bransje og sertifiseringer") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
                             bransje = "Helse og omsorg",
                             forerkortOgSertifiseringer = listOf(
                                 "D1 - Minibuss",
@@ -99,7 +100,7 @@ class EnkeltplassInnsokingsbrevTest :
                                 "Beskrivelse av sårbehandling",
                             ),
                         ),
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -111,12 +112,12 @@ class EnkeltplassInnsokingsbrevTest :
                 }
 
                 it("Arbeidsmarkedsopplaering - skal ikke vise sertifiseringer når listen er tom") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
                             bransje = "Helse og omsorg",
                             forerkortOgSertifiseringer = emptyList(),
                         ),
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -125,15 +126,15 @@ class EnkeltplassInnsokingsbrevTest :
                 }
 
                 it("FagOgYrkesopplaering - skal vise utdanningsprogram og lærefag") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.FagOgYrkesopplaering(
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.FagOgYrkesopplaering(
                             utdanningsprogram = "Elektro- og datateknologi",
                             laerefag = listOf(
                                 "Avionikerfaget",
                                 "Droneoperatør",
                             ),
                         ),
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -144,9 +145,9 @@ class EnkeltplassInnsokingsbrevTest :
                 }
 
                 it("UtenInnhold - skal ikke vise innholdsdetaljer") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -160,16 +161,16 @@ class EnkeltplassInnsokingsbrevTest :
             describe("Tilskudd") {
 
                 it("skal vise liste med individuelle tilskudd og totalpris") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd(
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Tilskudd(
                             tilleggsopplysninger = null,
                             tilskudd = listOf(
-                                EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                                EnkeltplassPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
                                     type = "Skolepenger",
                                     pris = 75000,
                                 ),
-                                EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                                EnkeltplassPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
                                     type = "Semesteravgift",
                                     pris = 50000,
                                 ),
@@ -186,12 +187,12 @@ class EnkeltplassInnsokingsbrevTest :
                 }
 
                 it("skal vise tilleggsopplysninger når tilstede") {
-                    val brev = enkeltplassInnsokingsbrev(
-                        innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd(
+                    val brev = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Tilskudd(
                             tilleggsopplysninger = "Dokumentasjon må leveres innen 3 måneder",
                             tilskudd = listOf(
-                                EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
+                                EnkeltplassPdfDto.Prisinformasjon.Tilskudd.TilskuddInfo(
                                     type = "Skolepenger",
                                     pris = 10000,
                                 ),
@@ -205,9 +206,9 @@ class EnkeltplassInnsokingsbrevTest :
             }
 
             it("skal vise deltakelsesmengde") {
-                val brev = enkeltplassInnsokingsbrev(
-                    innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                val brev = enkeltplassPdfDto(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                     deltakelsesmengdeAntallDager = 5,
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
@@ -217,9 +218,9 @@ class EnkeltplassInnsokingsbrevTest :
             }
 
             it("skal vise startdato og sluttdato") {
-                val brev = enkeltplassInnsokingsbrev(
-                    innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                val brev = enkeltplassPdfDto(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -228,14 +229,26 @@ class EnkeltplassInnsokingsbrevTest :
             }
 
             it("skal vise link til tilleggsstønader") {
-                val brev = enkeltplassInnsokingsbrev(
-                    innhold = EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon.IngenKostnader,
+                val brev = enkeltplassPdfDto(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 
                 doc.text() shouldContain "Les mer om støtte til andre utgifter"
                 doc.text() shouldContain "nav.no/tilleggsstønader"
+            }
+
+            it("skal ha korrekt metadata i head") {
+                val brev = enkeltplassPdfDto(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                )
+                val doc = render("enkeltplass-innsokingsbrev", brev)
+
+                doc.selectFirst("meta[name=description]")?.attr("content") shouldBe "Innsøking på tiltak"
+                doc.selectFirst("meta[name=subject]")?.attr("content") shouldBe "Innsøkingsbrev"
+                doc.selectFirst("title")?.text() shouldBe "Innsøking på tiltak"
             }
         }
     })

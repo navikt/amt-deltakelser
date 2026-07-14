@@ -10,7 +10,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.HovedvedtakPdfDto
 import no.nav.amt.internapi.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.InnsokingsbrevPdfDto
@@ -84,14 +84,27 @@ class PdfgenClient(
         return response.body()
     }
 
-    suspend fun genererEnkeltplassInnsokingsbrevPdf(innsokingsbrevPdfDto: EnkeltplassInnsokingsbrevPdfDto): ByteArray {
-        val response = httpClient.post("$url/enkeltplass-innsokingsbrev") {
+    suspend fun genererEnkeltplassInnsokingsbrevPdf(innsokingsbrevPdfDto: EnkeltplassPdfDto): ByteArray = genererEnkeltplassPdf(
+        enkeltplassPdfDto = innsokingsbrevPdfDto,
+        brevmal = "enkeltplass-innsokingsbrev",
+    )
+
+    suspend fun genererEnkeltplassHovedvedtakPdf(hovedvedtakPdfDto: EnkeltplassPdfDto): ByteArray = genererEnkeltplassPdf(
+        enkeltplassPdfDto = hovedvedtakPdfDto,
+        brevmal = "enkeltplass-hovedvedtak",
+    )
+
+    private suspend fun genererEnkeltplassPdf(
+        enkeltplassPdfDto: EnkeltplassPdfDto,
+        brevmal: String,
+    ): ByteArray {
+        val response = httpClient.post("$url/$brevmal") {
             contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(innsokingsbrevPdfDto))
+            setBody(objectMapper.writeValueAsString(enkeltplassPdfDto))
         }
         if (!response.status.isSuccess()) {
             error(
-                "Kunne ikke hente PDF for enkeltplass-innsokingsbrev i amt-pdfgen. Status=${response.status.value} error=${response.bodyAsText()}",
+                "Kunne ikke hente PDF for $brevmal i amt-pdfgen. Status=${response.status.value} error=${response.bodyAsText()}",
             )
         }
         return response.body()

@@ -1,0 +1,59 @@
+<section>
+    <h2>Pris og betalingsbetingelser</h2>
+
+    {{#eq prisinformasjon.type "Anskaffelse"}}
+        <p class="margins-1-rem">
+            Nav har kjøpt en plass hos opplæringsstedet. Nav betaler for opplæringen.
+        </p>
+
+        <p class="margins-1-rem">
+            Totalkostnaden er {{currency_no prisinformasjon.pris true}} kroner.
+        </p>
+    {{/eq}}
+
+    {{#eq prisinformasjon.type "IngenKostnader"}}
+        <p class="margins-1-rem">
+            Du eller Nav skal ikke betale for opplæringen.
+        </p>
+    {{/eq}}
+
+    {{#eq prisinformasjon.type "Innbyggerfinansiert"}}
+        <p class="margins-1-rem">
+            Du må selv betale for opplæringen.
+        </p>
+
+        <p class="margins-1-rem">
+            {{prisinformasjon.tilleggsopplysninger}}
+        </p>
+    {{/eq}}
+
+    {{#eq prisinformasjon.type "Tilskudd"}}
+        <p class="list-heading-tight">
+            Du kan få tilskudd til å dekke disse utgiftene:
+        </p>
+        <ul class="list-tight-top">
+            {{#each prisinformasjon.tilskudd}}
+                <li class="fritekst">{{this.type}}: {{currency_no this.pris true}}</li>
+            {{/each}}
+        </ul>
+
+        <p class="margins-1-rem">
+            Totalt anslått tilskudd: {{currency_no prisinformasjon.totalpris true}} kroner.
+        </p>
+
+        <p class="margins-1-rem">
+            Utbetaling skjer når utgiftene er dokumentert.
+        </p>
+
+        {{#if prisinformasjon.tilleggsopplysninger}}
+            <p class="margins-1-rem">
+                {{prisinformasjon.tilleggsopplysninger}}
+            </p>
+        {{/if}}
+    {{/eq}}
+
+    <p class="margins-1-rem">
+        Les mer om støtte til andre utgifter knyttet til opplæringen på
+        <a href="https://www.nav.no/tilleggsstønader">nav.no/tilleggsstønader</a>.
+    </p>
+</section>

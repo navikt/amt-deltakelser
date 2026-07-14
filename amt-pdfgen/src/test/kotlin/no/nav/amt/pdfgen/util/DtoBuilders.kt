@@ -4,7 +4,7 @@ import no.nav.amt.internapi.journalforing.pdf.ArrangorDto
 import no.nav.amt.internapi.journalforing.pdf.AvsenderDto
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassInnsokingsbrevPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.internapi.journalforing.pdf.HovedvedtakPdfDto
 import no.nav.amt.internapi.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
@@ -159,17 +159,17 @@ object DtoBuilders {
         enhet = "Nav Oslo",
     )
 
-    fun enkeltplassInnsokingsbrev(
-        innhold: EnkeltplassInnsokingsbrevPdfDto.EnkeltplassInnhold,
+    fun enkeltplassPdfDto(
+        innhold: EnkeltplassPdfDto.EnkeltplassInnhold,
         tiltaksnavn: String = "Arbeidsforberedende trening",
-        arrangor: ArrangorDto = ArrangorDto("Jada Fangst AS"),
-        prisinformasjon: EnkeltplassInnsokingsbrevPdfDto.Prisinformasjon,
+        arrangornavn: String = "Jada Fangst AS",
+        prisinformasjon: EnkeltplassPdfDto.Prisinformasjon,
         deltakelsesmengdeAntallDager: Int? = null,
-    ) = EnkeltplassInnsokingsbrevPdfDto(
-        deltaker = enkeltplassInnsokingsbrevDeltaker(),
-        deltakerliste = enkeltplassInnsokingsbrevDeltakerliste(
+    ) = EnkeltplassPdfDto(
+        deltaker = enkeltplassDeltaker(),
+        deltakerliste = enkeltplassDeltakerliste(
             tiltaksnavn = tiltaksnavn,
-            arrangor = arrangor,
+            arrangornavn = arrangornavn,
         ),
         avsender = innsokingsbrevAvsender(),
         opprettetDato = fixedDate.minusMonths(1),
@@ -179,19 +179,19 @@ object DtoBuilders {
         prisinformasjon = prisinformasjon,
     )
 
-    fun enkeltplassInnsokingsbrevDeltaker() = EnkeltplassInnsokingsbrevPdfDto.DeltakerDto(
+    fun enkeltplassDeltaker() = EnkeltplassPdfDto.DeltakerDto(
         fornavn = "Ola",
         mellomnavn = "Erik",
         etternavn = "Nordmann",
         personident = "12345678910",
     )
 
-    fun enkeltplassInnsokingsbrevDeltakerliste(
+    fun enkeltplassDeltakerliste(
         tiltaksnavn: String = "Arbeidsforberedende trening",
-        arrangor: ArrangorDto = ArrangorDto("Jada Fangst AS"),
-    ) = EnkeltplassInnsokingsbrevPdfDto.DeltakerlisteDto(
+        arrangornavn: String = "Jada Fangst AS",
+    ) = EnkeltplassPdfDto.DeltakerlisteDto(
         tiltaksnavn = tiltaksnavn,
-        arrangornavn = arrangor.navn,
+        arrangornavn = arrangornavn,
         startdato = fixedDate,
         sluttdato = fixedDate.plusMonths(3),
         oppstartstype = Oppstartstype.ENKELTPLASS,

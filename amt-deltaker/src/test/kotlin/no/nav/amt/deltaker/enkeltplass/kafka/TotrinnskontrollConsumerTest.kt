@@ -4,29 +4,43 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.model.Vedtaksinformasjon
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class TotrinnskontrollConsumerTest {
     private val deltakerRepository = mockk<DeltakerRepository>()
     private val deltakerService = mockk<DeltakerService>()
     private val vedtakService = mockk<VedtakService>()
+    private val distribuerEndringService = mockk<DistribuerEndringService>()
+    private val navAnsattRepository = mockk<NavAnsattRepository>()
+    private val navEnhetRepository = mockk<NavEnhetRepository>()
 
     private val consumer = TotrinnskontrollConsumer(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         vedtakService = vedtakService,
+        distribuerEndringService = distribuerEndringService,
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
     )
 
     @Nested
@@ -68,7 +82,16 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
-            verify(exactly = 0) { deltakerService.upsertAndProduceDeltaker(any(), any(), any()) }
+            verify(exactly = 0) {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = any(),
+                    afterUpsert = any(),
+                )
+            }
             verify(exactly = 0) { vedtakService.godkjentOkonomiFattVedtak(any()) }
         }
 
@@ -106,33 +129,27 @@ class TotrinnskontrollConsumerTest {
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
 
+            val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
                 deltakerService.upsertAndProduceDeltaker(
-                    deltaker = deltaker,
-                    erDeltakerSluttdatoEndret = false,
-                    beforeUpsert = any(),
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = capture(beforeUpsertSlot),
+                    afterUpsert = any(),
                 )
-            } answers {
-                @Suppress("UNCHECKED_CAST")
-                val beforeUpsert = args[4] as (Deltaker) -> Deltaker
-                val updated = beforeUpsert(deltaker)
-                updated.status.type shouldBe DeltakerStatus.Type.DELTAR
-                updated
-            }
+            } returns deltaker
 
             // Act
             consumer.consume(UUID.randomUUID(), godkjentEnkeltplassOkonomiPayload(gjennomforingId))
 
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
+
+            val updated = beforeUpsertSlot.captured(deltaker)
+            updated.status.type shouldBe DeltakerStatus.Type.DELTAR
             verify { vedtakService.godkjentOkonomiFattVedtak(deltaker) }
-            verify {
-                deltakerService.upsertAndProduceDeltaker(
-                    deltaker = deltaker,
-                    erDeltakerSluttdatoEndret = false,
-                    beforeUpsert = any(),
-                )
-            }
         }
 
         @Test
@@ -149,9 +166,9 @@ class TotrinnskontrollConsumerTest {
     }
 
     @Nested
-    inner class ProcessGodkjentTotrinnskontrollTest {
+    inner class ProcessGodkjentInnsokingTest {
         @Test
-        fun `processGodkjentTotrinnskontroll - gjør ingenting når deltaker ikke har status SOKT_INN`() {
+        fun `processGodkjentInnsoking - gjør ingenting når deltaker ikke har status SOKT_INN`() {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
             val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
@@ -166,14 +183,31 @@ class TotrinnskontrollConsumerTest {
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker = any(),
                     erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
                     beforeUpsert = any(),
+                    afterUpsert = any(),
                 )
             }
             verify(exactly = 0) { vedtakService.godkjentOkonomiFattVedtak(any()) }
         }
 
         @Test
-        fun `processGodkjentTotrinnskontroll - oppdaterer og publiserer når deltaker har status SOKT_INN`() {
+        fun `processGodkjentInnsoking - kaster unntak når deltaker ikke finnes`() {
+            // Arrange
+            val gjennomforingId = UUID.randomUUID()
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns
+                Result.failure(NoSuchElementException("Ikke funnet"))
+
+            // Act & Assert
+            shouldThrow<NoSuchElementException> {
+                consumer.processGodkjentInnsoking(gjennomforingId)
+            }
+        }
+
+        @Test
+        fun `processGodkjentInnsoking - beforeUpsert setter DELTAR når startdato er idag`() {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
             val idag = LocalDate.now()
@@ -186,36 +220,29 @@ class TotrinnskontrollConsumerTest {
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
 
+            val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
                 deltakerService.upsertAndProduceDeltaker(
-                    deltaker = deltaker,
-                    erDeltakerSluttdatoEndret = false,
-                    beforeUpsert = any(),
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = capture(beforeUpsertSlot),
+                    afterUpsert = any(),
                 )
-            } answers {
-                @Suppress("UNCHECKED_CAST")
-                val beforeUpsert = args[4] as (Deltaker) -> Deltaker
-                val updated = beforeUpsert(deltaker)
-                updated.status.type shouldBe DeltakerStatus.Type.DELTAR
-                updated
-            }
+            } returns deltaker
 
             // Act
             consumer.processGodkjentInnsoking(gjennomforingId)
 
             // Assert
+            val updated = beforeUpsertSlot.captured(deltaker)
+            updated.status.type shouldBe DeltakerStatus.Type.DELTAR
             verify { vedtakService.godkjentOkonomiFattVedtak(deltaker) }
-            verify {
-                deltakerService.upsertAndProduceDeltaker(
-                    deltaker = deltaker,
-                    erDeltakerSluttdatoEndret = false,
-                    beforeUpsert = any(),
-                )
-            }
         }
 
         @Test
-        fun `processGodkjentTotrinnskontroll - setter VENTER_PA_OPPSTART når startdato er i fremtiden`() {
+        fun `processGodkjentInnsoking - beforeUpsert setter VENTER_PA_OPPSTART når startdato er i fremtiden`() {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
             val idag = LocalDate.now()
@@ -228,36 +255,29 @@ class TotrinnskontrollConsumerTest {
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
 
+            val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
                 deltakerService.upsertAndProduceDeltaker(
-                    deltaker = deltaker,
-                    erDeltakerSluttdatoEndret = false,
-                    beforeUpsert = any(),
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = capture(beforeUpsertSlot),
+                    afterUpsert = any(),
                 )
-            } answers {
-                @Suppress("UNCHECKED_CAST")
-                val beforeUpsert = args[4] as (Deltaker) -> Deltaker
-                val updated = beforeUpsert(deltaker)
-                updated.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-                updated
-            }
+            } returns deltaker
 
             // Act
             consumer.processGodkjentInnsoking(gjennomforingId)
 
             // Assert
+            val updated = beforeUpsertSlot.captured(deltaker)
+            updated.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
             verify { vedtakService.godkjentOkonomiFattVedtak(deltaker) }
-            verify {
-                deltakerService.upsertAndProduceDeltaker(
-                    deltaker = deltaker,
-                    erDeltakerSluttdatoEndret = false,
-                    beforeUpsert = any(),
-                )
-            }
         }
 
         @Test
-        fun `processGodkjentTotrinnskontroll - setter FULLFORT når startdato og sluttdato er i fortiden`() {
+        fun `processGodkjentInnsoking - beforeUpsert setter FULLFORT når sluttdato er i fortiden`() {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
             val idag = LocalDate.now()
@@ -270,32 +290,117 @@ class TotrinnskontrollConsumerTest {
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
 
+            val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
                 deltakerService.upsertAndProduceDeltaker(
-                    deltaker = deltaker,
-                    erDeltakerSluttdatoEndret = false,
-                    beforeUpsert = any(),
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = capture(beforeUpsertSlot),
+                    afterUpsert = any(),
                 )
-            } answers {
-                @Suppress("UNCHECKED_CAST")
-                val beforeUpsert = args[4] as (Deltaker) -> Deltaker
-                val updated = beforeUpsert(deltaker)
-                updated.status.type shouldBe DeltakerStatus.Type.FULLFORT
-                updated
-            }
+            } returns deltaker
 
             // Act
             consumer.processGodkjentInnsoking(gjennomforingId)
 
             // Assert
+            val updated = beforeUpsertSlot.captured(deltaker)
+            updated.status.type shouldBe DeltakerStatus.Type.FULLFORT
             verify { vedtakService.godkjentOkonomiFattVedtak(deltaker) }
-            verify {
+        }
+
+        @Test
+        fun `processGodkjentInnsoking - afterUpsert produserer hendelse`() {
+            // Arrange
+            val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
+            val sistEndretAv = UUID.randomUUID()
+            val sistEndretAvEnhet = UUID.randomUUID()
+            val vedtaksinformasjon = Vedtaksinformasjon(
+                fattet = null,
+                fattetAvNav = false,
+                opprettet = LocalDateTime.now(),
+                opprettetAv = UUID.randomUUID(),
+                opprettetAvEnhet = UUID.randomUUID(),
+                sistEndret = LocalDateTime.now(),
+                sistEndretAv = sistEndretAv,
+                sistEndretAvEnhet = sistEndretAvEnhet,
+            )
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
+                vedtaksinformasjon = vedtaksinformasjon,
+            )
+            val navAnsatt = mockk<NavAnsatt>()
+            val navEnhet = mockk<NavEnhet>()
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
+            every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
+            every { navAnsattRepository.getOrThrow(sistEndretAv) } returns navAnsatt
+            every { navEnhetRepository.getOrThrow(sistEndretAvEnhet) } returns navEnhet
+            every { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) } returns Unit
+
+            val afterUpsertSlot = slot<(Deltaker) -> Unit>()
+            every {
                 deltakerService.upsertAndProduceDeltaker(
-                    deltaker = deltaker,
-                    erDeltakerSluttdatoEndret = false,
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
                     beforeUpsert = any(),
+                    afterUpsert = capture(afterUpsertSlot),
                 )
+            } returns deltaker
+
+            // Act
+            consumer.processGodkjentInnsoking(gjennomforingId)
+            afterUpsertSlot.captured(deltaker)
+
+            // Assert
+            verify { navAnsattRepository.getOrThrow(sistEndretAv) }
+            verify { navEnhetRepository.getOrThrow(sistEndretAvEnhet) }
+            verify { distribuerEndringService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet, any()) }
+        }
+
+        @Test
+        fun `processGodkjentInnsoking - afterUpsert kaster feil når vedtaksinformasjon mangler`() {
+            // Arrange
+            val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
+                vedtaksinformasjon = null,
+            )
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
+            every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
+
+            val afterUpsertSlot = slot<(Deltaker) -> Unit>()
+            every {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = any(),
+                    afterUpsert = capture(afterUpsertSlot),
+                )
+            } returns deltaker
+
+            // Act
+            consumer.processGodkjentInnsoking(gjennomforingId)
+
+            // Assert
+            val exception = shouldThrow<IllegalStateException> {
+                afterUpsertSlot.captured(deltaker)
             }
+            exception.message shouldBe
+                "Kan ikke produsere hendelse for økonomi godkjent for deltaker ${deltaker.id} uten vedtak"
         }
     }
 
