@@ -36,13 +36,13 @@ object EnkeltplassPdfDtoMapper {
             arrangornavn = deltaker.deltakerliste.arrangor.navn
                 .toTitleCase(),
             startdato = deltaker.startdato ?: throw IllegalStateException(
-                "Deltaker ${deltaker.id} må ha startdato for å lage enkeltplass innsøkingsbrev",
+                "Deltaker ${deltaker.id} må ha startdato for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
             sluttdato = deltaker.sluttdato ?: throw IllegalStateException(
-                "Deltaker ${deltaker.id} må ha sluttdato for å lage enkeltplass innsøkingsbrev",
+                "Deltaker ${deltaker.id} må ha sluttdato for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
             oppstartstype = deltaker.deltakerliste.oppstartstype ?: throw IllegalStateException(
-                "Deltakerliste ${deltaker.deltakerliste.id} må ha oppstartstype for å lage enkeltplass innsøkingsbrev",
+                "Deltakerliste ${deltaker.deltakerliste.id} må ha oppstartstype for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
         ),
         avsender = AvsenderDto(
@@ -54,7 +54,7 @@ object EnkeltplassPdfDtoMapper {
             ?.find { it.innholdskode == INNHOLDSKODE_ANNET }
             ?.beskrivelse
             ?: throw IllegalStateException(
-                "Deltakerliste ${deltaker.deltakerliste.id} må ha beskrivelse for å lage enkeltplass innsøkingsbrev",
+                "Deltakerliste ${deltaker.deltakerliste.id} må ha beskrivelse for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
         deltakelsesmengdeAntallDager = utkast.dagerPerUke?.toInt(),
         innhold = deltaker.deltakerliste.toInnhold(),

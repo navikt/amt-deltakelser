@@ -85,22 +85,22 @@ class PdfgenClient(
     }
 
     suspend fun genererEnkeltplassInnsokingsbrevPdf(innsokingsbrevPdfDto: EnkeltplassPdfDto): ByteArray = genererEnkeltplassPdf(
-        innsokingsbrevPdfDto = innsokingsbrevPdfDto,
+        enkeltplassPdfDto = innsokingsbrevPdfDto,
         brevmal = "enkeltplass-innsokingsbrev",
     )
 
     suspend fun genererEnkeltplassHovedvedtakPdf(hovedvedtakPdfDto: EnkeltplassPdfDto): ByteArray = genererEnkeltplassPdf(
-        innsokingsbrevPdfDto = hovedvedtakPdfDto,
+        enkeltplassPdfDto = hovedvedtakPdfDto,
         brevmal = "enkeltplass-hovedvedtak",
     )
 
     private suspend fun genererEnkeltplassPdf(
-        innsokingsbrevPdfDto: EnkeltplassPdfDto,
+        enkeltplassPdfDto: EnkeltplassPdfDto,
         brevmal: String,
     ): ByteArray {
         val response = httpClient.post("$url/$brevmal") {
             contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(innsokingsbrevPdfDto))
+            setBody(objectMapper.writeValueAsString(enkeltplassPdfDto))
         }
         if (!response.status.isSuccess()) {
             error(
