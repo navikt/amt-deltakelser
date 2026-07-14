@@ -2,6 +2,8 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.internapi.deltaker.Innsok
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
@@ -11,7 +13,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -257,7 +258,9 @@ data class InnsokPaaFellesOppstartResponse(
     val innsoktAvEnhet: String,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
+    val dagerPerUkeVedInnsok: Int?,
     val deltakelsesinnholdVedInnsok: Deltakelsesinnhold?,
+    val prisinformasjonVedInnsok: PrisinformasjonDto?,
     val opplaringKategorisering: OpplaringKategoriseringValgResponse?,
     val utkastDelt: LocalDateTime?,
     val utkastGodkjentAvNav: Boolean,
@@ -273,7 +276,9 @@ data class InnsokPaaFellesOppstartResponse(
             innsoktAvEnhet = enheter[model.innsoktAvEnhet]!!.navn,
             startdato = model.startdato,
             sluttdato = model.sluttdato,
+            dagerPerUkeVedInnsok = model.dagerPerUkeVedInnsok,
             deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok,
+            prisinformasjonVedInnsok = model.prisinformasjonVedInnsok,
             utkastDelt = model.utkastDelt,
             utkastGodkjentAvNav = model.utkastGodkjentAvNav,
             opplaringKategorisering = OpplaringKategoriseringValgResponse.fromOpplaringKategoriseringValg(

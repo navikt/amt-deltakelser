@@ -256,7 +256,7 @@ fun Application.module() {
     )
 
     val innsokRepository = InnsokRepository()
-    val innsokService = InnsokService(innsokRepository)
+    val innsokService = InnsokService(repository = innsokRepository)
     val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
     val ulestHendelseRepository = UlestHendelseRepository()
     val ulestHendelseService = UlestHendelseService(ulestHendelseRepository)

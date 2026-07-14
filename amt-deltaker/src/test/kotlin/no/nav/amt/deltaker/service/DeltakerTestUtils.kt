@@ -136,6 +136,7 @@ object DeltakerTestUtils {
                 first.data.id shouldBe second.data.id
                 first.data.deltakerId shouldBe second.data.deltakerId
                 first.data.deltakelsesinnholdVedInnsok shouldBe second.data.deltakelsesinnholdVedInnsok
+                first.data.prisinformasjonVedInnsok shouldBe second.data.prisinformasjonVedInnsok
                 first.data.innsokt shouldBeCloseTo second.data.innsokt
                 first.data.innsoktAv shouldBe second.data.innsoktAv
                 first.data.innsoktAvEnhet shouldBe second.data.innsoktAvEnhet

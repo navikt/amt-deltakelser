@@ -2,6 +2,7 @@ package no.nav.tiltaksarrangor.api.response
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.internapi.deltaker.Innsok
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -10,7 +11,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype

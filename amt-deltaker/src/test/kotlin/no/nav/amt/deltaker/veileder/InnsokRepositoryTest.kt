@@ -5,9 +5,10 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerContext
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.internapi.deltaker.Innsok
+import no.nav.amt.internapi.enkeltplass.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.Innhold
-import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
@@ -74,7 +75,9 @@ class InnsokRepositoryTest {
                 innsoktAvEnhet = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet,
                 startdato = deltaker.startdato,
                 sluttdato = deltaker.sluttdato,
+                dagerPerUkeVedInnsok = 3,
                 deltakelsesinnholdVedInnsok = deltakelsesinnhold,
+                prisinformasjonVedInnsok = PrisinformasjonDto.Anskaffelse(pris = 10000),
                 opplaringKategoriseringVedInnsok = kategorisering,
                 utkastDelt = utkastDelt,
                 utkastGodkjentAvNav = true,
@@ -92,9 +95,11 @@ class InnsokRepositoryTest {
                 innsoktAvEnhet shouldBe innsok.innsoktAvEnhet
                 startdato shouldBe innsok.startdato
                 sluttdato shouldBe innsok.sluttdato
+                dagerPerUkeVedInnsok shouldBe innsok.dagerPerUkeVedInnsok
                 utkastGodkjentAvNav shouldBe true
                 utkastDelt shouldBe innsok.utkastDelt
                 deltakelsesinnholdVedInnsok shouldBe deltakelsesinnhold
+                prisinformasjonVedInnsok shouldBe innsok.prisinformasjonVedInnsok
                 opplaringKategoriseringVedInnsok shouldBe kategorisering
             }
         }
@@ -122,4 +127,5 @@ fun TestData.lagInnsok(
     utkastDelt = utkastDelt,
     utkastGodkjentAvNav = utkastGodkjentAvNav,
     opplaringKategoriseringVedInnsok = deltaker.deltakerliste.opplaringKategorisering,
+    prisinformasjonVedInnsok = null,
 )
