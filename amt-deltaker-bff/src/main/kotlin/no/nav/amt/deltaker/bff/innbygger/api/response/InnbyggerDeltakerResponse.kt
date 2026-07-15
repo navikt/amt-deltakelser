@@ -1,21 +1,22 @@
-package no.nav.amt.deltaker.bff.innbygger.api
+package no.nav.amt.deltaker.bff.innbygger.api.response
 
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
-import no.nav.amt.deltaker.bff.commonresponse.toDeltakerlisteResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerStatusResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse as DeltakelsesmengderVeilederResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDate
 import java.util.UUID
 
 data class InnbyggerDeltakerResponse(
     val deltakerId: UUID,
     val deltakerliste: DeltakerlisteResponse,
-    val status: DeltakerStatus,
+    val status: DeltakerStatusResponse,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val dagerPerUke: Float?,
@@ -26,7 +27,7 @@ data class InnbyggerDeltakerResponse(
     val adresseDelesMedArrangor: Boolean,
     val forslag: List<ForslagResponse>,
     val importertFraArena: ImportertFraArenaResponse?,
-    val deltakelsesmengder: DeltakelsesmengderResponse,
+    val deltakelsesmengder: no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse,
     val erManueltDeltMedArrangor: Boolean,
     val prisinformasjon: String?,
 ) {
@@ -34,22 +35,15 @@ data class InnbyggerDeltakerResponse(
         fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
             InnbyggerDeltakerResponse(
                 deltakerId = id,
-                deltakerliste = deltaker.gjennomforing.toDeltakerlisteResponse(),
-                status = status,
+                deltakerliste = deltaker.gjennomforing.let(::DeltakerlisteResponse),
+                status = status.toDeltakerStatusResponse(),
                 startdato = startdato,
                 sluttdato = sluttdato,
                 dagerPerUke = dagerPerUke,
                 deltakelsesprosent = deltakelsesprosent,
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
-                deltakelsesinnhold = deltakelsesinnhold?.let {
-                    DeltakelsesinnholdResponse(
-                        ledetekst = it.ledetekst,
-                        innhold = it.innhold.map { innhold -> DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(innhold) },
-                    )
-                },
-                vedtaksinformasjon = vedtaksinformasjon?.let {
-                    VedtaksinformasjonResponse.fromVedtak(it)
-                },
+                deltakelsesinnhold = deltakelsesinnhold?.let(::DeltakelsesinnholdResponse),
+                vedtaksinformasjon = vedtaksinformasjon?.let(::VedtaksinformasjonResponse),
                 adresseDelesMedArrangor = adresseDelesMedArrangor,
                 forslag = endringsforslagFraArrangor.map {
                     ForslagResponse.fromForslag(
@@ -61,7 +55,7 @@ data class InnbyggerDeltakerResponse(
                 },
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 // Frontend støtter ikke at DeltakelsesmengderResponse er nullable
-                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
+                deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderVeilederResponse) ?: DeltakelsesmengderVeilederResponse(),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
                 prisinformasjon = prisinformasjon,
             )

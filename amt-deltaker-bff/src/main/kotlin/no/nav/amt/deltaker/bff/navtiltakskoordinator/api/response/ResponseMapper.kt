@@ -37,25 +37,23 @@ object ResponseMapper {
             fodselsnummer = if (tilgangTilBruker) navBruker.personident else null,
             status = DeltakerStatusResponse(
                 type = status.type,
-                aarsak = status.aarsak?.let {
-                    DeltakerStatusAarsakResponse(it.type, it.beskrivelse)
-                },
+                aarsak = status.aarsak?.let(::DeltakerStatusAarsakResponse),
             ),
             startdato = startdato,
             sluttdato = sluttdato,
             navEnhet = navBruker.navEnhet,
-            navVeileder = navBruker.navVeileder?.toNavVeilederResponse() ?: NavVeilederResponse(
+            navVeileder = navBruker.navVeileder?.let(::NavVeilederResponse) ?: NavVeilederResponse(
                 navn = null,
                 telefonnummer = null,
                 epost = null,
             ),
-            vurdering = sisteVurdering?.toVurderingResponse(),
+            vurdering = sisteVurdering?.let(::VurderingResponse),
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
             innsatsgruppe = navBruker.innsatsgruppe,
             tiltakskode = deltaker.gjennomforing.tiltak.tiltakskode,
             tilgangTilBruker = tilgangTilBruker,
             aktiveForslag = aktiveForslag,
-            ulesteHendelser = ulesteHendelser.map { it.toResponse() },
+            ulesteHendelser = ulesteHendelser.map(::UlestHendelseResponse),
             oppstartstype = gjennomforing.oppstart,
             // Hvorfor er denne optional?
             pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
@@ -82,14 +80,7 @@ object ResponseMapper {
             apentForPamelding = apentForPamelding,
             antallPlasser = antallPlasser,
             pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-            koordinatorer = koordinatortilganger.map {
-                DeltakerlisteResponse.TiltakskoordinatorResponse(
-                    id = it.id,
-                    navn = it.navn,
-                    erAktiv = it.erAktiv,
-                    kanFjernes = it.kanFjernes,
-                )
-            },
+            koordinatorer = koordinatortilganger.map(DeltakerlisteResponse::TiltakskoordinatorResponse),
             erEnkeltplass = type == GjennomforingType.Enkeltplass,
         )
     }

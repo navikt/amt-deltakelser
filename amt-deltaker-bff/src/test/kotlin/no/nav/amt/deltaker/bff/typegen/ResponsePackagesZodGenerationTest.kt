@@ -4,12 +4,14 @@ import com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.core.importer.ImportOption
 import no.nav.amt.deltaker.bff.architecture.responsePakker
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 /**
  * TODO: ta i bruk genererte typer i frontend
  */
 class ResponsePackagesZodGenerationTest {
+    @Disabled("Manuell generator for konsolidert Zod; køyr lokalt ved behov")
     @Test
     fun `genererer samlet zod-definisjon for alle response-pakker`() {
         val importedClasses = ClassFileImporter()

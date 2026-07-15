@@ -28,8 +28,7 @@ class ResponseKlasseAvhengigheterTest {
                     // Tillat enum-typer: verdiene endres sjelden og egne enum-definisjoner for BFF tar mye plass
                     .or(assignableTo(Enum::class.java)),
                 // Men ikke tillat bruk av f.eks. Dbo- eller Model-klasser
-            )
-            .andShould(haveOnlyAllowedGenericTypeArguments(responsePakker))
+            ).andShould(haveOnlyAllowedGenericTypeArguments(responsePakker))
             .check(importedClasses)
     }
 }

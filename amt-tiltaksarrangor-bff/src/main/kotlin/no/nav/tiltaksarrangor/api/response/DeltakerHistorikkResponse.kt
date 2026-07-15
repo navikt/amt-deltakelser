@@ -32,7 +32,32 @@ import java.util.UUID
     JsonSubTypes.Type(value = EndringFraTiltakskoordinatorResponse::class, name = "EndringFraTiltakskoordinator"),
     JsonSubTypes.Type(value = InnsokPaaFellesOppstartResponse::class, name = "InnsokPaaFellesOppstart"),
 )
-sealed interface DeltakerHistorikkResponse
+sealed interface DeltakerHistorikkResponse {
+    companion object {
+        fun fromModels(
+            models: List<DeltakerHistorikk>,
+            ansatte: Map<UUID, NavAnsatt>,
+            arrangornavn: String,
+            enheter: Map<UUID, NavEnhet>,
+            oppstartstype: Oppstartstype,
+        ): List<DeltakerHistorikkResponse> = models.map {
+            when (it) {
+                is DeltakerHistorikk.Endring -> DeltakerEndringResponse(it.endring, ansatte, enheter, arrangornavn, oppstartstype)
+                is DeltakerHistorikk.Vedtak -> VedtakResponse(it.vedtak, ansatte, enheter)
+                is DeltakerHistorikk.Forslag -> ForslagHistorikkResponse(it.forslag, arrangornavn, ansatte, enheter)
+                is DeltakerHistorikk.EndringFraArrangor -> EndringFraArrangorResponse(it.endringFraArrangor, arrangornavn)
+                is DeltakerHistorikk.ImportertFraArena -> ImportertFraArenaResponse(it.importertFraArena)
+                is DeltakerHistorikk.VurderingFraArrangor -> VurderingFraArrangorResponse(it.data, arrangornavn)
+                is DeltakerHistorikk.InnsokPaaFellesOppstart -> InnsokPaaFellesOppstartResponse(it.data, ansatte, enheter)
+                is DeltakerHistorikk.EndringFraTiltakskoordinator -> EndringFraTiltakskoordinatorResponse(
+                    it.endringFraTiltakskoordinator,
+                    ansatte,
+                    enheter,
+                )
+            }
+        }
+    }
+}
 
 data class DeltakerEndringResponse(
     val endring: DeltakerEndringEndringResponse,
@@ -40,7 +65,21 @@ data class DeltakerEndringResponse(
     val endretAvEnhet: String,
     val endret: LocalDateTime,
     val forslag: ForslagHistorikkResponse?,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    constructor(
+        model: DeltakerEndring,
+        ansatte: Map<UUID, NavAnsatt>,
+        enheter: Map<UUID, NavEnhet>,
+        arrangornavn: String,
+        deltakerlisteOppstartstype: Oppstartstype,
+    ) : this(
+        endring = DeltakerEndringEndringResponse.fromModel(model.endring, deltakerlisteOppstartstype),
+        endretAv = ansatte[model.endretAv]!!.navn,
+        endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
+        endret = model.endret,
+        forslag = model.forslag?.let { ForslagHistorikkResponse(it, arrangornavn) },
+    )
+}
 
 data class VedtakResponse(
     val fattet: LocalDateTime?,
@@ -52,14 +91,37 @@ data class VedtakResponse(
     val opprettetAv: String,
     val opprettetAvEnhet: String,
     val opprettet: LocalDateTime,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    constructor(
+        model: Vedtak,
+        ansatte: Map<UUID, NavAnsatt>,
+        enheter: Map<UUID, NavEnhet>,
+    ) : this(
+        fattet = model.fattet,
+        bakgrunnsinformasjon = model.deltakerVedVedtak.bakgrunnsinformasjon,
+        deltakelsesinnhold = model.deltakerVedVedtak.deltakelsesinnhold,
+        dagerPerUke = model.deltakerVedVedtak.dagerPerUke,
+        deltakelsesprosent = model.deltakerVedVedtak.deltakelsesprosent,
+        fattetAvNav = model.fattetAvNav,
+        opprettetAv = ansatte[model.opprettetAv]!!.navn,
+        opprettetAvEnhet = enheter[model.opprettetAvEnhet]!!.navn,
+        opprettet = model.opprettet,
+    )
+}
 
 data class EndringFraArrangorResponse(
     val id: UUID,
     val opprettet: LocalDateTime,
     val arrangorNavn: String,
     val endring: EndringFraArrangor.Endring,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    constructor(model: EndringFraArrangor, arrangornavn: String) : this(
+        id = model.id,
+        opprettet = model.opprettet,
+        arrangorNavn = arrangornavn,
+        endring = model.endring,
+    )
+}
 
 data class ForslagHistorikkResponse(
     val id: UUID,
@@ -68,7 +130,28 @@ data class ForslagHistorikkResponse(
     val arrangorNavn: String,
     val endring: Forslag.Endring,
     val status: ForslagHistorikkResponseStatus,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    constructor(model: Forslag, arrangornavn: String) : this(
+        model = model,
+        arrangornavn = arrangornavn,
+        ansatte = emptyMap(),
+        enheter = emptyMap(),
+    )
+
+    constructor(
+        model: Forslag,
+        arrangornavn: String,
+        ansatte: Map<UUID, NavAnsatt>,
+        enheter: Map<UUID, NavEnhet>,
+    ) : this(
+        id = model.id,
+        opprettet = model.opprettet,
+        begrunnelse = model.begrunnelse ?: "",
+        arrangorNavn = arrangornavn,
+        endring = model.endring,
+        status = model.getForslagResponseStatus(ansatte, enheter),
+    )
+}
 
 data class ImportertFraArenaResponse(
     val importertDato: LocalDateTime,
@@ -77,14 +160,30 @@ data class ImportertFraArenaResponse(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val status: DeltakerStatus,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    constructor(model: ImportertFraArena) : this(
+        importertDato = model.importertDato,
+        startdato = model.deltakerVedImport.startdato,
+        sluttdato = model.deltakerVedImport.sluttdato,
+        dagerPerUke = model.deltakerVedImport.dagerPerUke,
+        deltakelsesprosent = model.deltakerVedImport.deltakelsesprosent,
+        status = model.deltakerVedImport.status,
+    )
+}
 
 data class VurderingFraArrangorResponse(
     val vurderingstype: Vurderingstype,
     val begrunnelse: String?,
     val opprettetDato: LocalDateTime,
     val endretAv: String,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    constructor(model: VurderingFraArrangorData, arrangornavn: String) : this(
+        vurderingstype = model.vurderingstype,
+        begrunnelse = model.begrunnelse,
+        opprettetDato = model.opprettet,
+        endretAv = arrangornavn,
+    )
+}
 
 data class InnsokPaaFellesOppstartResponse(
     val innsokt: LocalDateTime,
@@ -93,14 +192,38 @@ data class InnsokPaaFellesOppstartResponse(
     val deltakelsesinnholdVedInnsok: Deltakelsesinnhold?,
     val utkastDelt: LocalDateTime?,
     val utkastGodkjentAvNav: Boolean,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    constructor(
+        model: Innsok,
+        ansatte: Map<UUID, NavAnsatt>,
+        enheter: Map<UUID, NavEnhet>,
+    ) : this(
+        innsokt = model.innsokt,
+        innsoktAv = ansatte[model.innsoktAv]!!.navn,
+        innsoktAvEnhet = enheter[model.innsoktAvEnhet]!!.navn,
+        deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok,
+        utkastDelt = model.utkastDelt,
+        utkastGodkjentAvNav = model.utkastGodkjentAvNav,
+    )
+}
 
 data class EndringFraTiltakskoordinatorResponse(
     val endring: EndringFraTiltakskoordinator.Endring,
     val endretAv: String,
     val endretAvEnhet: String,
     val endret: LocalDateTime,
-) : DeltakerHistorikkResponse
+) : DeltakerHistorikkResponse {
+    constructor(
+        model: EndringFraTiltakskoordinator,
+        ansatte: Map<UUID, NavAnsatt>,
+        enheter: Map<UUID, NavEnhet>,
+    ) : this(
+        endring = model.endring,
+        endretAv = ansatte[model.endretAv]!!.navn,
+        endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
+        endret = model.endret,
+    )
+}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface ForslagHistorikkResponseStatus {
@@ -126,152 +249,6 @@ sealed interface ForslagHistorikkResponseStatus {
     ) : ForslagHistorikkResponseStatus
 }
 
-fun List<DeltakerHistorikk>.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    arrangornavn: String,
-    enheter: Map<UUID, NavEnhet>,
-    oppstartstype: Oppstartstype,
-): List<DeltakerHistorikkResponse> = this.map {
-    when (it) {
-        is DeltakerHistorikk.Endring -> it.endring.toResponse(ansatte, enheter, arrangornavn, oppstartstype)
-        is DeltakerHistorikk.Vedtak -> it.vedtak.toResponse(ansatte, enheter)
-        is DeltakerHistorikk.Forslag -> it.forslag.toResponse(arrangornavn, ansatte, enheter)
-        is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.toResponse(arrangornavn)
-        is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.toResponse()
-        is DeltakerHistorikk.VurderingFraArrangor -> it.data.toResponse(arrangornavn)
-        is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.toResponse(ansatte, enheter)
-        is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.toResponse(ansatte, enheter)
-    }
-}
-
-fun DeltakerEndring.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-    arrangornavn: String,
-    deltakerlisteOppstartstype: Oppstartstype,
-) = DeltakerEndringResponse(
-    endring = endring.toResponse(deltakerlisteOppstartstype),
-    endretAv = ansatte[endretAv]!!.navn,
-    endretAvEnhet = enheter[endretAvEnhet]!!.navn,
-    endret = endret,
-    forslag = forslag?.toResponse(arrangornavn),
-)
-
-fun DeltakerEndring.Endring.toResponse(oppstartstype: Oppstartstype): DeltakerEndringEndringResponse = when (this) {
-    is DeltakerEndring.Endring.AvsluttDeltakelse -> DeltakerEndringEndringResponse.AvsluttDeltakelse(
-        aarsak = aarsak,
-        sluttdato = sluttdato,
-        begrunnelse = begrunnelse,
-        harFullfort = true,
-        oppstartstype = oppstartstype,
-    )
-
-    is DeltakerEndring.Endring.EndreAvslutning -> DeltakerEndringEndringResponse.EndreAvslutning(
-        aarsak = aarsak,
-        begrunnelse = begrunnelse,
-        harFullfort = harFullfort,
-        sluttdato = sluttdato,
-    )
-
-    is DeltakerEndring.Endring.AvbrytDeltakelse -> DeltakerEndringEndringResponse.AvsluttDeltakelse(
-        aarsak = aarsak,
-        sluttdato = sluttdato,
-        begrunnelse = begrunnelse,
-        harFullfort = false,
-        oppstartstype = oppstartstype,
-    )
-    is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> DeltakerEndringEndringResponse.EndreBakgrunnsinformasjon(bakgrunnsinformasjon)
-    is DeltakerEndring.Endring.EndreDeltakelsesmengde -> DeltakerEndringEndringResponse.EndreDeltakelsesmengde(
-        deltakelsesprosent,
-        dagerPerUke,
-        gyldigFra,
-        begrunnelse,
-    )
-    is DeltakerEndring.Endring.EndreInnhold -> DeltakerEndringEndringResponse.EndreInnhold(ledetekst, innhold)
-    is DeltakerEndring.Endring.EndreSluttarsak -> DeltakerEndringEndringResponse.EndreSluttarsak(aarsak, begrunnelse)
-    is DeltakerEndring.Endring.EndreSluttdato -> DeltakerEndringEndringResponse.EndreSluttdato(sluttdato, begrunnelse)
-    is DeltakerEndring.Endring.EndreStartdato -> DeltakerEndringEndringResponse.EndreStartdato(startdato, sluttdato, begrunnelse)
-    is DeltakerEndring.Endring.FjernOppstartsdato -> DeltakerEndringEndringResponse.FjernOppstartsdato(begrunnelse)
-    is DeltakerEndring.Endring.ForlengDeltakelse -> DeltakerEndringEndringResponse.ForlengDeltakelse(sluttdato, begrunnelse)
-    is DeltakerEndring.Endring.IkkeAktuell -> DeltakerEndringEndringResponse.IkkeAktuell(aarsak, begrunnelse)
-    is DeltakerEndring.Endring.ReaktiverDeltakelse -> DeltakerEndringEndringResponse.ReaktiverDeltakelse(reaktivertDato, begrunnelse)
-}
-
-fun Vedtak.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-) = VedtakResponse(
-    fattet = fattet,
-    bakgrunnsinformasjon = deltakerVedVedtak.bakgrunnsinformasjon,
-    deltakelsesinnhold = deltakerVedVedtak.deltakelsesinnhold,
-    dagerPerUke = deltakerVedVedtak.dagerPerUke,
-    deltakelsesprosent = deltakerVedVedtak.deltakelsesprosent,
-    fattetAvNav = fattetAvNav,
-    opprettetAv = ansatte[opprettetAv]!!.navn,
-    opprettetAvEnhet = enheter[opprettetAvEnhet]!!.navn,
-    opprettet = opprettet,
-)
-
-fun EndringFraArrangor.toResponse(arrangornavn: String) = EndringFraArrangorResponse(
-    id = id,
-    opprettet = opprettet,
-    arrangorNavn = arrangornavn,
-    endring = endring,
-)
-
-fun ImportertFraArena.toResponse() = ImportertFraArenaResponse(
-    importertDato = importertDato,
-    startdato = deltakerVedImport.startdato,
-    sluttdato = deltakerVedImport.sluttdato,
-    dagerPerUke = deltakerVedImport.dagerPerUke,
-    deltakelsesprosent = deltakerVedImport.deltakelsesprosent,
-    status = deltakerVedImport.status,
-)
-
-fun VurderingFraArrangorData.toResponse(arrangornavn: String) = VurderingFraArrangorResponse(
-    vurderingstype = vurderingstype,
-    begrunnelse = begrunnelse,
-    opprettetDato = opprettet,
-    endretAv = arrangornavn,
-)
-
-fun Forslag.toResponse(arrangornavn: String) = this.toResponse(arrangornavn, emptyMap(), emptyMap())
-
-fun Forslag.toResponse(
-    arrangornavn: String,
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-): ForslagHistorikkResponse = ForslagHistorikkResponse(
-    id = id,
-    opprettet = opprettet,
-    begrunnelse = begrunnelse ?: "",
-    arrangorNavn = arrangornavn,
-    endring = endring,
-    status = getForslagResponseStatus(ansatte, enheter),
-)
-
-fun Innsok.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-) = InnsokPaaFellesOppstartResponse(
-    innsokt,
-    ansatte[innsoktAv]!!.navn,
-    enheter[innsoktAvEnhet]!!.navn,
-    deltakelsesinnholdVedInnsok,
-    utkastDelt,
-    utkastGodkjentAvNav,
-)
-
-fun EndringFraTiltakskoordinator.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    enheter: Map<UUID, NavEnhet>,
-) = EndringFraTiltakskoordinatorResponse(
-    endring,
-    ansatte[endretAv]!!.navn,
-    enheter[endretAvEnhet]!!.navn,
-    endret,
-)
-
 private fun Forslag.getForslagResponseStatus(
     ansatte: Map<UUID, NavAnsatt>,
     enheter: Map<UUID, NavEnhet>,
@@ -287,6 +264,7 @@ private fun Forslag.getForslagResponseStatus(
             begrunnelseFraNav = avvist.begrunnelseFraNav,
         )
     }
+
     is Forslag.Status.Tilbakekalt -> ForslagHistorikkResponseStatus.Tilbakekalt(status.tilbakekalt)
     is Forslag.Status.Erstattet -> ForslagHistorikkResponseStatus.Erstattet(status.erstattet)
 }

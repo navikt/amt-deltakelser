@@ -6,8 +6,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerEndringEndringResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagEndringResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toResponse
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -19,10 +17,23 @@ data class UlestHendelseResponse(
     val ansvarlig: AnsvarligNavnOgEnhetResponse?,
     val hendelse: UlestHendelseTypeResponse,
 ) {
+    constructor(model: UlestHendelse) : this(
+        id = model.id,
+        opprettet = model.opprettet,
+        deltakerId = model.deltakerId,
+        ansvarlig = model.ansvarlig?.let(::AnsvarligNavnOgEnhetResponse),
+        hendelse = UlestHendelseTypeResponse.fromModel(model.hendelse),
+    )
+
     data class AnsvarligNavnOgEnhetResponse(
         val endretAvNavn: String,
         val endretAvEnhet: String? = null,
-    )
+    ) {
+        constructor(model: AnsvarligNavnOgEnhet) : this(
+            endretAvNavn = model.endretAvNavn,
+            endretAvEnhet = model.endretAvEnhet,
+        )
+    }
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -40,13 +51,24 @@ sealed interface UlestHendelseTypeResponse {
     data class LeggTilOppstartsdato(
         val startdato: LocalDate,
         val sluttdato: LocalDate?,
-    ) : UlestHendelseTypeResponse
+    ) : UlestHendelseTypeResponse {
+        constructor(model: UlestHendelseType.LeggTilOppstartsdato) : this(
+            startdato = model.startdato,
+            sluttdato = model.sluttdato,
+        )
+    }
 
     data class FjernOppstartsdato(
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: ForslagEndringResponse?,
-    ) : HendelseMedForslagResponse
+    ) : HendelseMedForslagResponse {
+        constructor(model: UlestHendelseType.FjernOppstartsdato) : this(
+            begrunnelseFraNav = model.begrunnelseFraNav,
+            begrunnelseFraArrangor = model.begrunnelseFraArrangor,
+            endringFraForslag = model.endringFraForslag?.let(ForslagEndringResponse::fromModel),
+        )
+    }
 
     data class EndreStartdato(
         val startdato: LocalDate?,
@@ -54,14 +76,29 @@ sealed interface UlestHendelseTypeResponse {
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: ForslagEndringResponse?,
-    ) : HendelseMedForslagResponse
+    ) : HendelseMedForslagResponse {
+        constructor(model: UlestHendelseType.EndreStartdato) : this(
+            startdato = model.startdato,
+            sluttdato = model.sluttdato,
+            begrunnelseFraNav = model.begrunnelseFraNav,
+            begrunnelseFraArrangor = model.begrunnelseFraArrangor,
+            endringFraForslag = model.endringFraForslag?.let(ForslagEndringResponse::fromModel),
+        )
+    }
 
     data class IkkeAktuell(
         val aarsak: DeltakerEndringEndringResponse.AarsakResponse,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: ForslagEndringResponse?,
-    ) : HendelseMedForslagResponse
+    ) : HendelseMedForslagResponse {
+        constructor(model: UlestHendelseType.IkkeAktuell) : this(
+            aarsak = DeltakerEndringEndringResponse.AarsakResponse(model.aarsak),
+            begrunnelseFraNav = model.begrunnelseFraNav,
+            begrunnelseFraArrangor = model.begrunnelseFraArrangor,
+            endringFraForslag = model.endringFraForslag?.let(ForslagEndringResponse::fromModel),
+        )
+    }
 
     data class AvsluttDeltakelse(
         val aarsak: DeltakerEndringEndringResponse.AarsakResponse?,
@@ -69,7 +106,15 @@ sealed interface UlestHendelseTypeResponse {
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: ForslagEndringResponse?,
-    ) : HendelseMedForslagResponse
+    ) : HendelseMedForslagResponse {
+        constructor(model: UlestHendelseType.AvsluttDeltakelse) : this(
+            aarsak = model.aarsak?.let { DeltakerEndringEndringResponse.AarsakResponse(it) },
+            sluttdato = model.sluttdato,
+            begrunnelseFraNav = model.begrunnelseFraNav,
+            begrunnelseFraArrangor = model.begrunnelseFraArrangor,
+            endringFraForslag = model.endringFraForslag?.let(ForslagEndringResponse::fromModel),
+        )
+    }
 
     data class AvbrytDeltakelse(
         val aarsak: DeltakerEndringEndringResponse.AarsakResponse?,
@@ -77,71 +122,35 @@ sealed interface UlestHendelseTypeResponse {
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: ForslagEndringResponse?,
-    ) : HendelseMedForslagResponse
+    ) : HendelseMedForslagResponse {
+        constructor(model: UlestHendelseType.AvbrytDeltakelse) : this(
+            aarsak = model.aarsak?.let { DeltakerEndringEndringResponse.AarsakResponse(it) },
+            sluttdato = model.sluttdato,
+            begrunnelseFraNav = model.begrunnelseFraNav,
+            begrunnelseFraArrangor = model.begrunnelseFraArrangor,
+            endringFraForslag = model.endringFraForslag?.let(ForslagEndringResponse::fromModel),
+        )
+    }
 
     data class ReaktiverDeltakelse(
         val begrunnelseFraNav: String,
-    ) : UlestHendelseTypeResponse
+    ) : UlestHendelseTypeResponse {
+        constructor(model: UlestHendelseType.ReaktiverDeltakelse) : this(
+            begrunnelseFraNav = model.begrunnelseFraNav,
+        )
+    }
+
+    companion object {
+        fun fromModel(model: UlestHendelseType): UlestHendelseTypeResponse = when (model) {
+            UlestHendelseType.InnbyggerGodkjennUtkast -> InnbyggerGodkjennUtkast
+            UlestHendelseType.NavGodkjennUtkast -> NavGodkjennUtkast
+            is UlestHendelseType.LeggTilOppstartsdato -> LeggTilOppstartsdato(model)
+            is UlestHendelseType.FjernOppstartsdato -> FjernOppstartsdato(model)
+            is UlestHendelseType.EndreStartdato -> EndreStartdato(model)
+            is UlestHendelseType.IkkeAktuell -> IkkeAktuell(model)
+            is UlestHendelseType.AvsluttDeltakelse -> AvsluttDeltakelse(model)
+            is UlestHendelseType.AvbrytDeltakelse -> AvbrytDeltakelse(model)
+            is UlestHendelseType.ReaktiverDeltakelse -> ReaktiverDeltakelse(model)
+        }
+    }
 }
-
-fun UlestHendelse.toResponse() = UlestHendelseResponse(
-    id = id,
-    opprettet = opprettet,
-    deltakerId = deltakerId,
-    ansvarlig = ansvarlig?.toResponse(),
-    hendelse = hendelse.toResponse(),
-)
-
-private fun AnsvarligNavnOgEnhet.toResponse() = UlestHendelseResponse.AnsvarligNavnOgEnhetResponse(
-    endretAvNavn = endretAvNavn,
-    endretAvEnhet = endretAvEnhet,
-)
-
-private fun UlestHendelseType.toResponse(): UlestHendelseTypeResponse = when (this) {
-    UlestHendelseType.InnbyggerGodkjennUtkast -> UlestHendelseTypeResponse.InnbyggerGodkjennUtkast
-    UlestHendelseType.NavGodkjennUtkast -> UlestHendelseTypeResponse.NavGodkjennUtkast
-    is UlestHendelseType.LeggTilOppstartsdato -> UlestHendelseTypeResponse.LeggTilOppstartsdato(startdato, sluttdato)
-    is UlestHendelseType.FjernOppstartsdato -> UlestHendelseTypeResponse.FjernOppstartsdato(
-        begrunnelseFraNav = begrunnelseFraNav,
-        begrunnelseFraArrangor = begrunnelseFraArrangor,
-        endringFraForslag = endringFraForslag?.toResponse(),
-    )
-
-    is UlestHendelseType.EndreStartdato -> UlestHendelseTypeResponse.EndreStartdato(
-        startdato = startdato,
-        sluttdato = sluttdato,
-        begrunnelseFraNav = begrunnelseFraNav,
-        begrunnelseFraArrangor = begrunnelseFraArrangor,
-        endringFraForslag = endringFraForslag?.toResponse(),
-    )
-
-    is UlestHendelseType.IkkeAktuell -> UlestHendelseTypeResponse.IkkeAktuell(
-        aarsak = aarsak.toResponse(),
-        begrunnelseFraNav = begrunnelseFraNav,
-        begrunnelseFraArrangor = begrunnelseFraArrangor,
-        endringFraForslag = endringFraForslag?.toResponse(),
-    )
-
-    is UlestHendelseType.AvsluttDeltakelse -> UlestHendelseTypeResponse.AvsluttDeltakelse(
-        aarsak = aarsak?.toResponse(),
-        sluttdato = sluttdato,
-        begrunnelseFraNav = begrunnelseFraNav,
-        begrunnelseFraArrangor = begrunnelseFraArrangor,
-        endringFraForslag = endringFraForslag?.toResponse(),
-    )
-
-    is UlestHendelseType.AvbrytDeltakelse -> UlestHendelseTypeResponse.AvbrytDeltakelse(
-        aarsak = aarsak?.toResponse(),
-        sluttdato = sluttdato,
-        begrunnelseFraNav = begrunnelseFraNav,
-        begrunnelseFraArrangor = begrunnelseFraArrangor,
-        endringFraForslag = endringFraForslag?.toResponse(),
-    )
-
-    is UlestHendelseType.ReaktiverDeltakelse -> UlestHendelseTypeResponse.ReaktiverDeltakelse(begrunnelseFraNav)
-}
-
-private fun DeltakerEndring.Aarsak.toResponse() = DeltakerEndringEndringResponse.AarsakResponse(
-    type = type,
-    beskrivelse = beskrivelse,
-)

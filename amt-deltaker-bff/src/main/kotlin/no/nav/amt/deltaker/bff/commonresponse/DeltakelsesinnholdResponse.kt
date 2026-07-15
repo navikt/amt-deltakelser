@@ -10,31 +10,34 @@ data class DeltakelsesinnholdResponse(
     val ledetekst: String?,
     val innhold: List<InnholdResponse>,
 ) {
+    constructor(model: Deltakelsesinnhold) : this(
+        ledetekst = model.ledetekst,
+        innhold = model.innhold.map(::InnholdResponse),
+    )
+
+    constructor(
+        model: Deltakelsesinnhold,
+        tiltaksInnhold: List<Innholdselement>,
+    ) : this(
+        ledetekst = model.ledetekst,
+        innhold = fulltInnhold(model.innhold, tiltaksInnhold).map(::InnholdResponse),
+    )
+
     data class InnholdResponse(
         val tekst: String,
         val innholdskode: String,
         val valgt: Boolean,
         val beskrivelse: String?,
     ) {
-        companion object {
-            fun fromInnhold(innhold: Innhold) = InnholdResponse(
-                tekst = innhold.tekst,
-                innholdskode = innhold.innholdskode,
-                valgt = innhold.valgt,
-                beskrivelse = innhold.beskrivelse,
-            )
-        }
+        constructor(model: Innhold) : this(
+            tekst = model.tekst,
+            innholdskode = model.innholdskode,
+            valgt = model.valgt,
+            beskrivelse = model.beskrivelse,
+        )
     }
 
     companion object {
-        fun fromDeltakelsesinnhold(
-            deltakelsesinnhold: Deltakelsesinnhold,
-            tiltaksInnhold: List<Innholdselement>?,
-        ) = DeltakelsesinnholdResponse(
-            ledetekst = deltakelsesinnhold.ledetekst,
-            innhold = fulltInnhold(deltakelsesinnhold.innhold, tiltaksInnhold ?: emptyList()).map { InnholdResponse.fromInnhold(it) },
-        )
-
         fun fulltInnhold(
             valgtInnhold: List<Innhold>,
             innholdselementer: List<Innholdselement>,

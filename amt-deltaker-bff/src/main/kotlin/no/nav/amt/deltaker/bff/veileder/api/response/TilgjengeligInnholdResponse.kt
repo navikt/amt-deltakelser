@@ -9,26 +9,19 @@ data class TilgjengeligInnholdResponse(
     val ledetekst: String?,
     val innhold: List<InnholdselementResponse>,
 ) {
+    // Her bør man ikke instansiere objektet hvis det verken er ledetekst eller innholdselementer
+    constructor(model: DeltakerRegistreringInnhold?, tiltakskode: Tiltakskode) : this(
+        ledetekst = model?.ledetekst,
+        innhold = getInnholdselementer(model?.innholdselementer, tiltakskode).map(::InnholdselementResponse),
+    )
+
     data class InnholdselementResponse(
         val tekst: String,
         val innholdskode: String,
     ) {
-        companion object {
-            fun fromModel(model: Innholdselement) = InnholdselementResponse(
-                tekst = model.tekst,
-                innholdskode = model.innholdskode,
-            )
-        }
-    }
-
-    companion object {
-        // Her bør man ikke instansiere objektet hvis det verken er ledetekst eller innholdselementer
-        fun fromDeltakerRegistreringInnhold(
-            innhold: DeltakerRegistreringInnhold?,
-            tiltakstype: Tiltakskode,
-        ) = TilgjengeligInnholdResponse(
-            ledetekst = innhold?.ledetekst,
-            innhold = getInnholdselementer(innhold?.innholdselementer, tiltakstype).map(InnholdselementResponse::fromModel),
+        constructor(model: Innholdselement) : this(
+            tekst = model.tekst,
+            innholdskode = model.innholdskode,
         )
     }
 }

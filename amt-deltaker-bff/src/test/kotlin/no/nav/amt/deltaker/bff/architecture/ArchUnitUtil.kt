@@ -12,7 +12,10 @@ import java.lang.reflect.WildcardType
 
 fun haveOnlyAllowedGenericTypeArguments(responsePackagePatterns: Array<String>): ArchCondition<JavaField> =
     object : ArchCondition<JavaField>("have only allowed generic type arguments") {
-        override fun check(field: JavaField, events: ConditionEvents) {
+        override fun check(
+            field: JavaField,
+            events: ConditionEvents,
+        ) {
             val runtimeField = runCatching {
                 field.owner.reflect().getDeclaredField(field.name)
             }.getOrNull() ?: return
@@ -31,7 +34,10 @@ fun haveOnlyAllowedGenericTypeArguments(responsePackagePatterns: Array<String>):
         }
     }
 
-private fun isAllowedResponseType(type: Class<*>, responsePackagePatterns: Array<String>): Boolean {
+private fun isAllowedResponseType(
+    type: Class<*>,
+    responsePackagePatterns: Array<String>,
+): Boolean {
     val typeName = type.name
     if (!typeName.startsWith("no.nav.amt.")) return true
     if (type.isEnum) return true
@@ -50,6 +56,7 @@ private fun extractReferencedClasses(type: Type): List<Class<*>> = when (type) {
         val raw = (type.rawType as? Class<*>)?.let { listOf(it) } ?: emptyList()
         raw + type.actualTypeArguments.flatMap { extractReferencedClasses(it) }
     }
+
     is GenericArrayType -> extractReferencedClasses(type.genericComponentType)
     is WildcardType -> (type.upperBounds + type.lowerBounds).flatMap { extractReferencedClasses(it) }
     is TypeVariable<*> -> type.bounds.flatMap { extractReferencedClasses(it) }

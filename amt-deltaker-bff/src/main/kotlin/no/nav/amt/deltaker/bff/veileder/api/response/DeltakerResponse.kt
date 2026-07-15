@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
-import no.nav.amt.deltaker.bff.commonresponse.toDeltakerlisteResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import java.time.LocalDate
@@ -43,16 +42,16 @@ data class DeltakerResponse(
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste = gjennomforing.toDeltakerlisteResponse(),
-                status = status.toResponse(),
+                deltakerliste = gjennomforing.let(::DeltakerlisteResponse),
+                status = status.toDeltakerStatusResponse(),
                 startdato = startdato,
                 sluttdato = sluttdato,
                 dagerPerUke = dagerPerUke,
                 deltakelsesprosent = deltakelsesprosent,
                 bakgrunnsinformasjon = bakgrunnsinformasjon,
                 deltakelsesinnhold = deltakelsesinnhold?.let {
-                    DeltakelsesinnholdResponse.fromDeltakelsesinnhold(
-                        deltakelsesinnhold = it,
+                    DeltakelsesinnholdResponse(
+                        model = it,
                         tiltaksInnhold = getInnholdselementer(
                             innholdselementer = gjennomforing.tiltak.innhold
                                 ?.innholdselementer,
@@ -60,9 +59,7 @@ data class DeltakerResponse(
                         ),
                     )
                 },
-                vedtaksinformasjon = vedtaksinformasjon?.let {
-                    VedtaksinformasjonResponse.fromVedtak(it)
-                },
+                vedtaksinformasjon = vedtaksinformasjon?.let(::VedtaksinformasjonResponse),
                 adresseDelesMedArrangor = adresseDelesMedArrangor,
                 kanEndres = !erLaastForEndringer,
                 digitalBruker = navBruker.erDigital,
@@ -80,7 +77,7 @@ data class DeltakerResponse(
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger
                 // Kan dette utledes i amt-deltaker?
-                deltakelsesmengder = deltakelsesmengder?.toResponse() ?: DeltakelsesmengderResponse(),
+                deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderResponse) ?: DeltakelsesmengderResponse(),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
                 prisinformasjon = prisinformasjon,

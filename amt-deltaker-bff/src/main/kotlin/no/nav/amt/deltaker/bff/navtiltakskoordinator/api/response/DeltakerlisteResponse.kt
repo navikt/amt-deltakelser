@@ -24,5 +24,12 @@ data class DeltakerlisteResponse(
         val navn: String,
         val erAktiv: Boolean,
         val kanFjernes: Boolean,
-    )
+    ) {
+        constructor(model: no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator) : this(
+            id = model.id,
+            navn = model.navn,
+            erAktiv = model.erAktiv,
+            kanFjernes = model.kanFjernes,
+        )
+    }
 }

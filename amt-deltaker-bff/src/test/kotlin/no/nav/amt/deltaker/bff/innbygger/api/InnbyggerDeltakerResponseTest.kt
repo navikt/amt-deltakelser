@@ -3,11 +3,13 @@ package no.nav.amt.deltaker.bff.innbygger.api
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.clients.ModelMapper
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.InnholdResponse
+import no.nav.amt.deltaker.bff.innbygger.api.response.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
 import org.junit.jupiter.api.Test
 
 class InnbyggerDeltakerResponseTest {
@@ -19,7 +21,7 @@ class InnbyggerDeltakerResponseTest {
         val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.deltakerId shouldBe model.id
-        result.status shouldBe model.status
+        result.status shouldBe model.status.toDeltakerStatusResponse()
         result.startdato shouldBe model.startdato
         result.sluttdato shouldBe model.sluttdato
         result.dagerPerUke shouldBe model.dagerPerUke
@@ -40,7 +42,7 @@ class InnbyggerDeltakerResponseTest {
         result.deltakelsesinnhold shouldNotBe null
         result.deltakelsesinnhold!!.ledetekst shouldBe model.deltakelsesinnhold!!.ledetekst
         result.deltakelsesinnhold.innhold shouldBe model.deltakelsesinnhold.innhold
-            .map { DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(it) }
+            .map { InnholdResponse(it) }
     }
 
     @Test

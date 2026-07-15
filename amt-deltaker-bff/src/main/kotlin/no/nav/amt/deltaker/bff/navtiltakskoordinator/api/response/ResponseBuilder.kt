@@ -56,9 +56,7 @@ class ResponseBuilder {
             etternavn = etternavn,
             status = DeltakerStatusResponse(
                 type = status.type,
-                aarsak = status.aarsak?.let {
-                    DeltakerStatusAarsakResponse(it.type, it.beskrivelse)
-                },
+                aarsak = status.aarsak?.let(::DeltakerStatusAarsakResponse),
             ),
             vurdering = sisteVurderingstype,
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,

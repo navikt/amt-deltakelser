@@ -5,9 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
+import org.junit.jupiter.api.Test
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse as CommonDeltakerlisteResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteResponse as TiltakskoordinatorDeltakerlisteResponse
-import org.junit.jupiter.api.Test
 
 class TypeDefinitionToZodTest {
     enum class Status {
@@ -128,7 +128,8 @@ class TypeDefinitionToZodTest {
         val typeDefinition = KotlinTypeDefinitionParser.parse(RecursiveNode::class)
 
         val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
-        result shouldBe "/** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.RecursiveNode */\nconst typeDefinitionToZodTest_RecursiveNodeSchema = z.object({next: z.lazy(() => typeDefinitionToZodTest_RecursiveNodeSchema).nullable()})"
+        result shouldBe
+            "/** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.RecursiveNode */\nconst typeDefinitionToZodTest_RecursiveNodeSchema = z.object({next: z.lazy(() => typeDefinitionToZodTest_RecursiveNodeSchema).nullable()})"
     }
 
     @Test

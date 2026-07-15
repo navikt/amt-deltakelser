@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
-import no.nav.amt.internapi.deltaker.Innsok
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
@@ -12,6 +11,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -62,7 +62,7 @@ sealed interface DeltakerHistorikkResponse {
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
         ) = when (model) {
-            is DeltakerHistorikk.Endring -> DeltakerEndringResponse.fromModel(
+            is DeltakerHistorikk.Endring -> DeltakerEndringResponse(
                 model = model.endring,
                 arrangornavn = arrangornavn,
                 oppstartstype = oppstartstype,
@@ -126,21 +126,19 @@ data class DeltakerEndringResponse(
     val endret: LocalDateTime,
     val forslag: ForslagResponse?,
 ) : DeltakerHistorikkResponse {
-    companion object {
-        fun fromModel(
-            model: DeltakerEndring,
-            arrangornavn: String,
-            oppstartstype: Oppstartstype?,
-            enheter: Map<UUID, NavEnhet>,
-            ansatte: Map<UUID, NavAnsatt>,
-        ) = DeltakerEndringResponse(
-            endring = DeltakerEndringEndringResponse.fromEndring(model.endring, oppstartstype),
-            forslag = model.forslag?.let { ForslagResponse.fromForslag(it, arrangornavn, enheter, ansatte) },
-            endret = model.endret,
-            endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
-            endretAv = ansatte[model.endretAv]!!.navn,
-        )
-    }
+    constructor(
+        model: DeltakerEndring,
+        arrangornavn: String,
+        oppstartstype: Oppstartstype?,
+        enheter: Map<UUID, NavEnhet>,
+        ansatte: Map<UUID, NavAnsatt>,
+    ) : this(
+        endring = DeltakerEndringEndringResponse.fromModel(model.endring, oppstartstype),
+        forslag = model.forslag?.let { ForslagResponse.fromForslag(it, arrangornavn, enheter, ansatte) },
+        endret = model.endret,
+        endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
+        endretAv = ansatte[model.endretAv]!!.navn,
+    )
 }
 
 data class VedtakResponse(
@@ -162,12 +160,7 @@ data class VedtakResponse(
         ) = VedtakResponse(
             fattet = model.fattet,
             bakgrunnsinformasjon = model.deltakerVedVedtak.bakgrunnsinformasjon,
-            deltakelsesinnhold = model.deltakerVedVedtak.deltakelsesinnhold?.let {
-                DeltakelsesinnholdResponse(
-                    ledetekst = it.ledetekst,
-                    innhold = it.innhold.map { innhold -> DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(innhold) },
-                )
-            },
+            deltakelsesinnhold = model.deltakerVedVedtak.deltakelsesinnhold?.let(::DeltakelsesinnholdResponse),
             dagerPerUke = model.deltakerVedVedtak.dagerPerUke,
             deltakelsesprosent = model.deltakerVedVedtak.deltakelsesprosent,
             fattetAvNav = model.fattetAvNav,
@@ -192,7 +185,7 @@ data class EndringFraArrangorResponse(
             id = model.id,
             opprettet = model.opprettet,
             arrangorNavn = arrangornavn,
-            endring = model.endring.toResponse(),
+            endring = EndringFraArrangorEndringResponse.fromModel(model.endring),
         )
     }
 }
@@ -212,7 +205,7 @@ data class ImportertFraArenaResponse(
             sluttdato = model.deltakerVedImport.sluttdato,
             dagerPerUke = model.deltakerVedImport.dagerPerUke,
             deltakelsesprosent = model.deltakerVedImport.deltakelsesprosent,
-            status = model.deltakerVedImport.status.toResponse(),
+            status = model.deltakerVedImport.status.toDeltakerStatusResponse(),
         )
     }
 }
@@ -248,7 +241,7 @@ data class EndringFraTiltakskoordinatorResponse(
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
         ) = EndringFraTiltakskoordinatorResponse(
-            endring = model.endring.toResponse(),
+            endring = EndringFraTiltakskoordinatorEndringResponse.fromModel(model.endring),
             endret = model.endret,
             endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
             endretAv = ansatte[model.endretAv]!!.navn,
@@ -281,18 +274,11 @@ data class InnsokPaaFellesOppstartResponse(
             startdato = model.startdato,
             sluttdato = model.sluttdato,
             dagerPerUkeVedInnsok = model.dagerPerUkeVedInnsok,
-            deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok?.let {
-                DeltakelsesinnholdResponse(
-                    ledetekst = it.ledetekst,
-                    innhold = it.innhold.map { innhold -> DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(innhold) },
-                )
-            },
-            prisinformasjonVedInnsok = model.prisinformasjonVedInnsok?.toPrisinformasjonResponse(),
+            deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok?.let(::DeltakelsesinnholdResponse),
+            prisinformasjonVedInnsok = model.prisinformasjonVedInnsok?.let(PrisinformasjonResponse::fromModel),
             utkastDelt = model.utkastDelt,
             utkastGodkjentAvNav = model.utkastGodkjentAvNav,
-            opplaringKategorisering = OpplaringKategoriseringValgResponse.fromOpplaringKategoriseringValg(
-                model.opplaringKategoriseringVedInnsok,
-            ),
+            opplaringKategorisering = model.opplaringKategoriseringVedInnsok?.let(::OpplaringKategoriseringValgResponse),
         )
     }
 }
@@ -306,27 +292,27 @@ data class ForslagResponse(
     val status: ForslagResponseStatus,
 ) : DeltakerHistorikkResponse {
     companion object {
-        /** Extension som mapper Forslag.Status til ForslagResponseStatus */
-        private fun Forslag.Status.toResponseStatus(
+        private fun fromStatus(
+            status: Forslag.Status,
             decorator: ForslagDecorator,
             avvistAvNavnProvider: (UUID) -> String,
             avvistAvEnhetNavnProvider: (UUID) -> String,
-        ): ForslagResponseStatus = when (this) {
+        ): ForslagResponseStatus = when (status) {
             is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
-            is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(godkjent)
-            is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(tilbakekalt)
-            is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(erstattet)
+            is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
+            is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
+            is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
             is Forslag.Status.Avvist -> {
                 // Hent avvist-info fra decorator hvis det er AvvistStatusDecorator
                 val (avvistAvNavn, avvistAvEnhet) = (decorator as? ForslagDecorator.AvvistStatusDecorator)
                     ?.let { it.avvistAvAnsattNavn to it.avvistAvEnhetNavn }
-                    ?: (avvistAvNavnProvider(avvistAv.id) to avvistAvEnhetNavnProvider(avvistAv.enhetId))
+                    ?: (avvistAvNavnProvider(status.avvistAv.id) to avvistAvEnhetNavnProvider(status.avvistAv.enhetId))
 
                 ForslagResponseStatus.Avvist(
                     avvistAv = avvistAvNavn,
                     avvistAvEnhet = avvistAvEnhet,
-                    avvist = avvist,
-                    begrunnelseFraNav = begrunnelseFraNav,
+                    avvist = status.avvist,
+                    begrunnelseFraNav = status.begrunnelseFraNav,
                 )
             }
         }
@@ -344,8 +330,9 @@ data class ForslagResponse(
                 opprettet = forslag.opprettet,
                 begrunnelse = forslag.begrunnelse,
                 arrangorNavn = arrangornavn,
-                endring = forslag.endring.toResponse(),
-                status = forslag.status.toResponseStatus(
+                endring = ForslagEndringResponse.fromModel(forslag.endring),
+                status = fromStatus(
+                    status = forslag.status,
                     decorator = dekorertForslag,
                     avvistAvNavnProvider = avvistAvNavnProvider,
                     avvistAvEnhetNavnProvider = avvistAvEnhetNavnProvider,

@@ -5,7 +5,9 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class KotlinTypeDefinitionParserTest {
-    data class Child(val name: String)
+    data class Child(
+        val name: String,
+    )
 
     enum class Status {
         ACTIVE,
@@ -15,7 +17,9 @@ class KotlinTypeDefinitionParserTest {
     sealed interface Decision {
         object Approved : Decision
 
-        data class Rejected(val reason: String) : Decision
+        data class Rejected(
+            val reason: String,
+        ) : Decision
     }
 
     data class Example(
@@ -37,7 +41,9 @@ class KotlinTypeDefinitionParserTest {
     data class Parent(
         val child: Child,
     ) {
-        data class Child(val value: String)
+        data class Child(
+            val value: String,
+        )
     }
 
     @Test
@@ -123,6 +129,5 @@ class KotlinTypeDefinitionParserTest {
         definition.field("child").type.typeName shouldBe "KotlinTypeDefinitionParserTest_Parent_Child"
     }
 
-    private fun TypeDefinition.field(name: String): FieldDefinition =
-        fields.first { it.name == name }
+    private fun TypeDefinition.field(name: String): FieldDefinition = fields.first { it.name == name }
 }

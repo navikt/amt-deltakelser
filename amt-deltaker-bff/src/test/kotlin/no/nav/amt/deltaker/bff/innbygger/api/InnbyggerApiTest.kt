@@ -14,6 +14,7 @@ import io.mockk.just
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.clients.ModelMapper
+import no.nav.amt.deltaker.bff.innbygger.api.response.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.tokenXToken

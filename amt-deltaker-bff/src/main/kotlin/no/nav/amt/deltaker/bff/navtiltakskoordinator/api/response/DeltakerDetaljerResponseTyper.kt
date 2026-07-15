@@ -6,20 +6,20 @@ data class NavVeilederResponse(
     val navn: String?,
     val telefonnummer: String?,
     val epost: String?,
-)
+) {
+    constructor(model: no.nav.amt.internapi.deltaker.response.NavVeilederResponse) : this(
+        navn = model.navn,
+        telefonnummer = model.telefonnummer,
+        epost = model.epost,
+    )
+}
 
 data class VurderingResponse(
     val type: Vurderingstype,
     val begrunnelse: String?,
-)
-
-fun no.nav.amt.internapi.deltaker.response.NavVeilederResponse.toNavVeilederResponse() = NavVeilederResponse(
-    navn = navn,
-    telefonnummer = telefonnummer,
-    epost = epost,
-)
-
-fun no.nav.amt.internapi.deltaker.response.VurderingResponse.toVurderingResponse() = VurderingResponse(
-    type = type,
-    begrunnelse = begrunnelse,
-)
+) {
+    constructor(model: no.nav.amt.internapi.deltaker.response.VurderingResponse) : this(
+        type = model.type,
+        begrunnelse = model.begrunnelse,
+    )
+}

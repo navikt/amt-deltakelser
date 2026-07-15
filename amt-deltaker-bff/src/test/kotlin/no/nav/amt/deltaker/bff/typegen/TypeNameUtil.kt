@@ -23,5 +23,4 @@ fun KClass<*>.schemaPackagePrefix(rootPackage: String = "no.nav.amt.deltaker.bff
     return suffix.replace('.', '_')
 }
 
-fun String.lowercaseFirstChar(): String =
-    replaceFirstChar { it.lowercase() }
+fun String.lowercaseFirstChar(): String = replaceFirstChar { it.lowercase() }

@@ -6,18 +6,23 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 object TypeDefinitionToZod {
-    fun toZodExpression(definition: TypeDefinition, prettyPrint: Boolean = true): String {
-        return toZodDefinitions(listOf(definition), prettyPrint)
-    }
+    fun toZodExpression(
+        definition: TypeDefinition,
+        prettyPrint: Boolean = true,
+    ): String = toZodDefinitions(listOf(definition), prettyPrint)
 
-    fun toZodExpressions(classes: Collection<KClass<*>>, prettyPrint: Boolean = true): String {
+    fun toZodExpressions(
+        classes: Collection<KClass<*>>,
+        prettyPrint: Boolean = true,
+    ): String {
         val definitions = classes.map { KotlinTypeDefinitionParser.parse(it) }
         return SchemaBuilder(Formatting(prettyPrint)).build(definitions)
     }
 
-    private fun toZodDefinitions(definitions: Collection<TypeDefinition>, prettyPrint: Boolean): String {
-        return SchemaBuilder(Formatting(prettyPrint)).build(definitions)
-    }
+    private fun toZodDefinitions(
+        definitions: Collection<TypeDefinition>,
+        prettyPrint: Boolean,
+    ): String = SchemaBuilder(Formatting(prettyPrint)).build(definitions)
 
     private fun scalarClassToZod(kClass: KClass<*>): String? = when (kClass) {
         UUID::class -> "z.string().uuid()"
@@ -25,10 +30,15 @@ object TypeDefinitionToZod {
         else -> null
     }
 
-    private data class Formatting(val prettyPrint: Boolean) {
+    private data class Formatting(
+        val prettyPrint: Boolean,
+    ) {
         fun indent(depth: Int): String = "  ".repeat(depth)
 
-        fun objectExpression(fields: List<Pair<String, String>>, depth: Int): String {
+        fun objectExpression(
+            fields: List<Pair<String, String>>,
+            depth: Int,
+        ): String {
             if (fields.isEmpty()) return "z.object({})"
             if (!prettyPrint) {
                 return "z.object({${fields.joinToString(", ") { (name, value) -> "$name: $value" }}})"
@@ -39,7 +49,10 @@ object TypeDefinitionToZod {
             return "z.object({\n$body\n$closingIndent})"
         }
 
-        fun unionExpression(items: List<String>, depth: Int): String {
+        fun unionExpression(
+            items: List<String>,
+            depth: Int,
+        ): String {
             if (items.size == 1) return items.first()
             if (!prettyPrint) return "z.union([${items.joinToString(", ")}])"
             val innerIndent = indent(depth + 1)
@@ -53,7 +66,9 @@ object TypeDefinitionToZod {
         }
     }
 
-    private class SchemaBuilder(private val formatting: Formatting) {
+    private class SchemaBuilder(
+        private val formatting: Formatting,
+    ) {
         private val schemaNames = linkedMapOf<KClass<*>, String>()
         private val usedNames = mutableSetOf<String>()
         private val inProgress = mutableSetOf<KClass<*>>()
@@ -104,7 +119,10 @@ object TypeDefinitionToZod {
             return formatting.unionExpression(items, depth = 0)
         }
 
-        private fun toZodType(type: TypeReference, depth: Int): String {
+        private fun toZodType(
+            type: TypeReference,
+            depth: Int,
+        ): String {
             val base = when (type.kind) {
                 TypeKind.PRIMITIVE -> primitiveToZod(type)
                 TypeKind.COLLECTION -> collectionToZod(type, depth)
@@ -125,13 +143,19 @@ object TypeDefinitionToZod {
             else -> throw IllegalArgumentException("Unsupported primitive type: ${type.kClass?.qualifiedName ?: type.kType}")
         }
 
-        private fun collectionToZod(type: TypeReference, depth: Int): String {
+        private fun collectionToZod(
+            type: TypeReference,
+            depth: Int,
+        ): String {
             val elementType = type.genericArguments.singleOrNull()
                 ?: throw IllegalArgumentException("Collection must have exactly one generic argument: ${type.kType}")
             return "z.array(${toZodType(elementType, depth)})"
         }
 
-        private fun mapToZod(type: TypeReference, depth: Int): String {
+        private fun mapToZod(
+            type: TypeReference,
+            depth: Int,
+        ): String {
             val keyType = type.genericArguments.getOrNull(0)
                 ?: throw IllegalArgumentException("Map is missing key type: ${type.kType}")
             val valueType = type.genericArguments.getOrNull(1)
@@ -147,7 +171,7 @@ object TypeDefinitionToZod {
             val enumClass = type.kClass
                 ?: throw IllegalArgumentException("Enum type has no class: ${type.kType}")
             val values = enumClass.java.enumConstants
-                ?.map { constant -> "\"${constant.toString()}\"" }
+                ?.map { constant -> "\"$constant\"" }
                 ?: throw IllegalArgumentException("Enum constants missing for type: ${type.kType}")
             return "z.enum([${values.joinToString(", ")}])"
         }

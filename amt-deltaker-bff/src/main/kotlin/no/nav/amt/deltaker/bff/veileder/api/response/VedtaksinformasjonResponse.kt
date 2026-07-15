@@ -12,17 +12,13 @@ data class VedtaksinformasjonResponse(
     val sistEndretAv: String?,
     val sistEndretAvEnhet: String?,
 ) {
-    companion object {
-        fun fromVedtak(vedtak: VedtaksinformasjonModel) = with(vedtak) {
-            VedtaksinformasjonResponse(
-                fattet = fattet,
-                fattetAvNav = fattetAvNav,
-                opprettet = opprettet,
-                opprettetAv = vedtak.opprettetAv,
-                sistEndret = sistEndret,
-                sistEndretAv = vedtak.sistEndretAv,
-                sistEndretAvEnhet = vedtak.sistEndretAvEnhet,
-            )
-        }
-    }
+    constructor(model: VedtaksinformasjonModel) : this(
+        fattet = model.fattet,
+        fattetAvNav = model.fattetAvNav,
+        opprettet = model.opprettet,
+        opprettetAv = model.opprettetAv,
+        sistEndret = model.sistEndret,
+        sistEndretAv = model.sistEndretAv,
+        sistEndretAvEnhet = model.sistEndretAvEnhet,
+    )
 }
