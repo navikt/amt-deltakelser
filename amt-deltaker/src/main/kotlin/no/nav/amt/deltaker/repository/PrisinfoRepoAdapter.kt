@@ -99,23 +99,18 @@ object PrisinfoRepoAdapter {
     internal fun PrisinformasjonDto.toPrisinfoDbo(gjennomforingId: UUID): PrisinfoDbo = when (this) {
         is Anskaffelse -> PrisinfoDbo(
             gjennomforingId = gjennomforingId,
-            okonomiGodkjent = false,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = this.pris,
         )
 
         is Tilskudd -> PrisinfoDbo(
-            id = UUID.randomUUID(), // TODO
             gjennomforingId = gjennomforingId,
-            okonomiGodkjent = false, // TODO
             prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
         )
 
         is IngenKostnader -> PrisinfoDbo(
-            id = UUID.randomUUID(), // TODO
             gjennomforingId = gjennomforingId,
-            okonomiGodkjent = false, // TODO
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
             ingenkostnaderAarsak = this.aarsak,
