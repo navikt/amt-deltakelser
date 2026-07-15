@@ -100,7 +100,6 @@ object PrisinfoRepository {
         val params = mapOf(
             "id" to insertDbo.id,
             "deltakerliste_id" to insertDbo.gjennomforingId,
-            "okonomi_godkjent" to insertDbo.okonomiGodkjent,
             "prisinformasjon_json_type" to insertDbo.prisinfoJsonSubtype,
             "anskaffelse_pris" to insertDbo.anskaffelsePris,
             "tilleggsopplysninger" to insertDbo.tilleggsopplysninger,

@@ -143,7 +143,7 @@ class TotrinnskontrollConsumer(
                 prisinfoId = totrinsskontrollId,
             )
         ) {
-            log.info("Deltaker ${deltaker.id} har ingen prisnformasjon med id $totrinsskontrollId som venter på godkjenning.")
+            log.info("Deltaker ${deltaker.id} har ingen prisinformasjon med id $totrinsskontrollId som venter på godkjenning.")
             return
         }
 

@@ -27,7 +27,6 @@ class PrisinfoBelopRepositoryTest {
         private val prisinfoInTest = PrisinfoDbo(
             id = UUID.randomUUID(),
             gjennomforingId = gjennomforingInTest.id,
-            okonomiGodkjent = true,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = 15000,
             tilleggsopplysninger = "Standard opplysning",

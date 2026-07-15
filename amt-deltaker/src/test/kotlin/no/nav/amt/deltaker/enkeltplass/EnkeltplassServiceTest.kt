@@ -93,6 +93,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() {
+        unmockkObject(Database)
         unmockkObject(SertifiseringValgRepository)
         unmockkObject(OpplaringKategoriseringRepoAdapter)
         unmockkObject(PrisinfoRepository)
@@ -110,9 +111,6 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     }
 
     private fun setupDatabaseMocks() {
-        // Note: MockK cleanup is handled by IntegrationTestBase.init() which calls
-        // clearAllMocks() before each test via @BeforeEach, preventing mock leakage
-        // between tests. No explicit unmockkObject() calls are needed.
         mockkObject(Database)
         every { transaction<Any>(any()) } answers {
             val block = firstArg<() -> Any>()

@@ -6,7 +6,7 @@ import java.util.UUID
 data class PrisinfoDbo(
     val id: UUID = UUID.randomUUID(),
     val gjennomforingId: UUID,
-    val okonomiGodkjent: Boolean,
+    val okonomiGodkjent: Boolean = false,
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,

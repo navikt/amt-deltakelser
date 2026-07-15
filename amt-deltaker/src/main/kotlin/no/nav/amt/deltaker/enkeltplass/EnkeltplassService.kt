@@ -444,7 +444,7 @@ class EnkeltplassService(
                 val prisinfo = PrisinfoRepository.hentPrisinfo(
                     gjennomforingId = deltaker.deltakerliste.id,
                     okonomiGodkjent = false,
-                ) ?: error("Fant ikke prisnformasjon for deltakerliste ${deltaker.deltakerliste.id}")
+                ) ?: error("Fant ikke prisinformasjon for deltakerliste ${deltaker.deltakerliste.id}")
 
                 GjennomforingRequestPayload.EnkeltplassSoktInn(
                     gjennomforingId = deltaker.deltakerliste.id,
