@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
+import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
@@ -439,14 +440,21 @@ class EnkeltplassService(
                 payload = upsertPayload,
             )
 
-            DeltakerStatus.Type.SOKT_INN -> GjennomforingRequestPayload.EnkeltplassSoktInn(
-                gjennomforingId = deltaker.deltakerliste.id,
-                payload = upsertPayload,
-                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
-                    id = deltaker.id, // TODO: må endres til id fra tabell enkeltplass_prisinformasjon
-                    behandletAv = endretAvNavIdent,
-                ),
-            )
+            DeltakerStatus.Type.SOKT_INN -> {
+                val prisinfo = PrisinfoRepository.hentPrisinfo(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    okonomiGodkjent = false,
+                ) ?: error("Fant ikke prisnformasjon for deltakerliste ${deltaker.deltakerliste.id}")
+
+                GjennomforingRequestPayload.EnkeltplassSoktInn(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    payload = upsertPayload,
+                    totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                        id = prisinfo.id,
+                        behandletAv = endretAvNavIdent,
+                    ),
+                )
+            }
 
             else -> throw IllegalStateException("Deltaker ${deltaker.id} har status $statusType")
         }

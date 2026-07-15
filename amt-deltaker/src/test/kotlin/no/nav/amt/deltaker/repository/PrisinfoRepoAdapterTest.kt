@@ -323,79 +323,82 @@ class PrisinfoRepoAdapterTest {
         }
     }
 
-    @Test
-    fun `lagrer Anskaffelse prisinfo`() {
-        // Arrange
-        val deltakerliste = lagDeltakerliste()
-        TestRepository.insert(deltakerliste)
+    @Nested
+    inner class LagrePrisinfoTests {
+        @Test
+        fun `lagrer Anskaffelse prisinfo`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
 
-        val anskaffelse = Anskaffelse(pris = 30000)
+            val anskaffelse = Anskaffelse(pris = 30000)
 
-        // Act
-        PrisinfoRepoAdapter.lagrePrisinfo(
-            gjennomforingId = deltakerliste.id,
-            prisinformasjon = anskaffelse,
-        )
+            // Act
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = anskaffelse,
+            )
 
-        // Assert
-        val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
-        result shouldBe anskaffelse
-    }
+            // Assert
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
+            result shouldBe anskaffelse
+        }
 
-    @Test
-    fun `lagrer Tilskudd prisinfo med belop`() {
-        // Arrange
-        TestRepository.insert(gjennomforingInTest)
+        @Test
+        fun `lagrer Tilskudd prisinfo med belop`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
 
-        val tilskudd = Tilskudd(
-            tilleggsopplysninger = "Tilskuddinformasjon",
-            tilskudd = listOf(
-                TilskuddInfo(
-                    type = Tilskuddstype.SKOLEPENGER,
-                    pris = 8000,
+            val tilskudd = Tilskudd(
+                tilleggsopplysninger = "Tilskuddinformasjon",
+                tilskudd = listOf(
+                    TilskuddInfo(
+                        type = Tilskuddstype.SKOLEPENGER,
+                        pris = 8000,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.EKSAMENSGEBYR,
+                        pris = 1500,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.STUDIEREISE,
+                        pris = 3000,
+                    ),
                 ),
-                TilskuddInfo(
-                    type = Tilskuddstype.EKSAMENSGEBYR,
-                    pris = 1500,
-                ),
-                TilskuddInfo(
-                    type = Tilskuddstype.STUDIEREISE,
-                    pris = 3000,
-                ),
-            ),
-        )
+            )
 
-        // Act
-        PrisinfoRepoAdapter.lagrePrisinfo(
-            gjennomforingId = gjennomforingInTest.id,
-            prisinformasjon = tilskudd,
-        )
+            // Act
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = tilskudd,
+            )
 
-        // Assert
-        val result = PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id)
-        result shouldBe tilskudd
-    }
+            // Assert
+            val result = PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id)
+            result shouldBe tilskudd
+        }
 
-    @Test
-    fun `lagrer IngenKostnader prisinfo`() {
-        // Arrange
-        val deltakerliste = lagDeltakerliste()
-        TestRepository.insert(deltakerliste)
+        @Test
+        fun `lagrer IngenKostnader prisinfo`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
 
-        val ingenKostnader = IngenKostnader(
-            aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-            tilleggsopplysninger = null,
-        )
+            val ingenKostnader = IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                tilleggsopplysninger = null,
+            )
 
-        // Act
-        PrisinfoRepoAdapter.lagrePrisinfo(
-            gjennomforingId = deltakerliste.id,
-            prisinformasjon = ingenKostnader,
-        )
+            // Act
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = ingenKostnader,
+            )
 
-        // Assert
-        val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
-        result shouldBe ingenKostnader
+            // Assert
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
+            result shouldBe ingenKostnader
+        }
     }
 
     @Test
