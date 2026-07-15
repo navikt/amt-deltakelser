@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -27,7 +26,7 @@ data class DeltakerDetaljerResponse(
     val tiltakskode: Tiltakskode,
     val tilgangTilBruker: Boolean,
     val aktiveForslag: List<ForslagResponse>,
-    val ulesteHendelser: List<UlestHendelse>,
+    val ulesteHendelser: List<UlestHendelseResponse>,
     val oppstartstype: Oppstartstype?,
     val pameldingstype: GjennomforingPameldingType,
     val deltakelsesinnhold: String?,

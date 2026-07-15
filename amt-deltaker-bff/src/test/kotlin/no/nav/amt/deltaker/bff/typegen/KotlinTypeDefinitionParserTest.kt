@@ -34,11 +34,18 @@ class KotlinTypeDefinitionParserTest {
         val next: RecursiveNode?,
     )
 
+    data class Parent(
+        val child: Child,
+    ) {
+        data class Child(val value: String)
+    }
+
     @Test
     fun `parse skal beskrive navn type nullability og generics`() {
         val definition = KotlinTypeDefinitionParser.parse(Example::class)
 
         definition.kClass shouldBe Example::class
+        definition.typeName shouldBe "KotlinTypeDefinitionParserTest_Example"
         definition.fields.map { it.name } shouldContainExactly listOf(
             "child",
             "children",
@@ -80,6 +87,7 @@ class KotlinTypeDefinitionParserTest {
         val child = definition.field("child").type
         child.kind shouldBe TypeKind.CLASS
         child.kClass shouldBe Child::class
+        child.typeName shouldBe "KotlinTypeDefinitionParserTest_Child"
         child.nullable shouldBe false
 
         val status = definition.field("status").type
@@ -102,8 +110,17 @@ class KotlinTypeDefinitionParserTest {
         val next = definition.field("next").type
         next.kind shouldBe TypeKind.CLASS
         next.kClass shouldBe RecursiveNode::class
+        next.typeName shouldBe "KotlinTypeDefinitionParserTest_RecursiveNode"
         next.nullable shouldBe true
         next.genericArguments shouldContainExactly emptyList()
+    }
+
+    @Test
+    fun `parse skal inkludere parent-navn for nested classes`() {
+        val definition = KotlinTypeDefinitionParser.parse(Parent::class)
+
+        definition.typeName shouldBe "KotlinTypeDefinitionParserTest_Parent"
+        definition.field("child").type.typeName shouldBe "KotlinTypeDefinitionParserTest_Parent_Child"
     }
 
     private fun TypeDefinition.field(name: String): FieldDefinition =

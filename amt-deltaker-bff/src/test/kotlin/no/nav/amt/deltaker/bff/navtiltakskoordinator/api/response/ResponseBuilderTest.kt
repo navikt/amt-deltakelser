@@ -175,7 +175,7 @@ class ResponseBuilderTest {
             val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, true, ulesteHendelser)
 
             response.ulesteHendelser shouldHaveSize 1
-            response.ulesteHendelser shouldBe ulesteHendelser
+            response.ulesteHendelser shouldBe ulesteHendelser.map { it.toResponse() }
         }
 
         @Test

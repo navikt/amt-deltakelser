@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.innbygger.api
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.clients.ModelMapper
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
@@ -39,6 +40,7 @@ class InnbyggerDeltakerResponseTest {
         result.deltakelsesinnhold shouldNotBe null
         result.deltakelsesinnhold!!.ledetekst shouldBe model.deltakelsesinnhold!!.ledetekst
         result.deltakelsesinnhold.innhold shouldBe model.deltakelsesinnhold.innhold
+            .map { DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(it) }
     }
 
     @Test

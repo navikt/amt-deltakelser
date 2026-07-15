@@ -7,8 +7,20 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 data class TilgjengeligInnholdResponse(
     val ledetekst: String?,
-    val innhold: List<Innholdselement>,
+    val innhold: List<InnholdselementResponse>,
 ) {
+    data class InnholdselementResponse(
+        val tekst: String,
+        val innholdskode: String,
+    ) {
+        companion object {
+            fun fromModel(model: Innholdselement) = InnholdselementResponse(
+                tekst = model.tekst,
+                innholdskode = model.innholdskode,
+            )
+        }
+    }
+
     companion object {
         // Her bør man ikke instansiere objektet hvis det verken er ledetekst eller innholdselementer
         fun fromDeltakerRegistreringInnhold(
@@ -16,7 +28,7 @@ data class TilgjengeligInnholdResponse(
             tiltakstype: Tiltakskode,
         ) = TilgjengeligInnholdResponse(
             ledetekst = innhold?.ledetekst,
-            innhold = getInnholdselementer(innhold?.innholdselementer, tiltakstype),
+            innhold = getInnholdselementer(innhold?.innholdselementer, tiltakstype).map(InnholdselementResponse::fromModel),
         )
     }
 }

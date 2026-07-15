@@ -6,6 +6,7 @@ import kotlin.reflect.full.memberProperties
 
 data class TypeDefinition(
     val kClass: KClass<*>,
+    val typeName: String,
     val fields: List<FieldDefinition>,
 )
 
@@ -17,6 +18,7 @@ data class FieldDefinition(
 data class TypeReference(
     val kType: KType,
     val kClass: KClass<*>?,
+    val typeName: String?,
     val kind: TypeKind,
     val nullable: Boolean,
     val genericArguments: List<TypeReference>,
@@ -46,6 +48,7 @@ object KotlinTypeDefinitionParser {
 
         return TypeDefinition(
             kClass = kClass,
+            typeName = kClass.nestedTypeName(),
             fields = fields,
         )
     }
@@ -62,6 +65,7 @@ object KotlinTypeDefinitionParser {
         return TypeReference(
             kType = this,
             kClass = classifier,
+            typeName = classifier?.nestedTypeName(),
             kind = classifier.toTypeKind(),
             nullable = isMarkedNullable,
             genericArguments = genericArguments,

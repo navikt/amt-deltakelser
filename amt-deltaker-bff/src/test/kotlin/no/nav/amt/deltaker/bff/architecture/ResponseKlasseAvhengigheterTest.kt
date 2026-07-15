@@ -9,11 +9,6 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields
 import org.junit.jupiter.api.Test
 
 class ResponseKlasseAvhengigheterTest {
-    private val responsePakker = arrayOf(
-        "no.nav.amt.deltaker.bff.commonresponse..",
-        "no.nav.amt.deltaker.bff..api.response..",
-    )
-
     @Test
     fun `Response-klasser skal kun ha tillatte felttyper`() {
         val importedClasses = ClassFileImporter()
@@ -33,6 +28,8 @@ class ResponseKlasseAvhengigheterTest {
                     // Tillat enum-typer: verdiene endres sjelden og egne enum-definisjoner for BFF tar mye plass
                     .or(assignableTo(Enum::class.java)),
                 // Men ikke tillat bruk av f.eks. Dbo- eller Model-klasser
-            ).check(importedClasses)
+            )
+            .andShould(haveOnlyAllowedGenericTypeArguments(responsePakker))
+            .check(importedClasses)
     }
 }

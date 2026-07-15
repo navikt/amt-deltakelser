@@ -163,7 +163,10 @@ data class VedtakResponse(
             fattet = model.fattet,
             bakgrunnsinformasjon = model.deltakerVedVedtak.bakgrunnsinformasjon,
             deltakelsesinnhold = model.deltakerVedVedtak.deltakelsesinnhold?.let {
-                DeltakelsesinnholdResponse(ledetekst = it.ledetekst, innhold = it.innhold)
+                DeltakelsesinnholdResponse(
+                    ledetekst = it.ledetekst,
+                    innhold = it.innhold.map { innhold -> DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(innhold) },
+                )
             },
             dagerPerUke = model.deltakerVedVedtak.dagerPerUke,
             deltakelsesprosent = model.deltakerVedVedtak.deltakelsesprosent,
@@ -279,7 +282,10 @@ data class InnsokPaaFellesOppstartResponse(
             sluttdato = model.sluttdato,
             dagerPerUkeVedInnsok = model.dagerPerUkeVedInnsok,
             deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok?.let {
-                DeltakelsesinnholdResponse(ledetekst = it.ledetekst, innhold = it.innhold)
+                DeltakelsesinnholdResponse(
+                    ledetekst = it.ledetekst,
+                    innhold = it.innhold.map { innhold -> DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(innhold) },
+                )
             },
             prisinformasjonVedInnsok = model.prisinformasjonVedInnsok?.toPrisinformasjonResponse(),
             utkastDelt = model.utkastDelt,

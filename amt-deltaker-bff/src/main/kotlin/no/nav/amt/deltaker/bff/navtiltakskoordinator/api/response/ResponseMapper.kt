@@ -55,7 +55,7 @@ object ResponseMapper {
             tiltakskode = deltaker.gjennomforing.tiltak.tiltakskode,
             tilgangTilBruker = tilgangTilBruker,
             aktiveForslag = aktiveForslag,
-            ulesteHendelser = ulesteHendelser,
+            ulesteHendelser = ulesteHendelser.map { it.toResponse() },
             oppstartstype = gjennomforing.oppstart,
             // Hvorfor er denne optional?
             pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,

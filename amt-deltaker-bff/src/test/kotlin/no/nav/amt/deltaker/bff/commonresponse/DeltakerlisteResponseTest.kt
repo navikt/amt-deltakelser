@@ -87,7 +87,7 @@ class DeltakerlisteResponseTest {
                 ),
             ),
             valgteSertifiseringer = setOf(
-                SertifiseringValg(id = 1, navn = "Truckfører T1"),
+                OpplaringKategoriseringValgResponse.SertifiseringValgResponse(id = 1, navn = "Truckfører T1"),
             ),
         )
     }

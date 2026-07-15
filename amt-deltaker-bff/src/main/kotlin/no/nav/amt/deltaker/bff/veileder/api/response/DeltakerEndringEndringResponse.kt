@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
 
@@ -14,7 +14,7 @@ sealed class DeltakerEndringEndringResponse {
 
     data class EndreInnhold(
         val ledetekst: String?,
-        val innhold: List<Innhold>,
+        val innhold: List<DeltakelsesinnholdResponse.InnholdResponse>,
     ) : DeltakerEndringEndringResponse()
 
     data class EndreDeltakelsesmengde(
@@ -119,7 +119,10 @@ sealed class DeltakerEndringEndringResponse {
                     begrunnelse,
                 )
 
-                is DeltakerEndring.Endring.EndreInnhold -> EndreInnhold(ledetekst, innhold)
+                is DeltakerEndring.Endring.EndreInnhold -> EndreInnhold(
+                    ledetekst,
+                    innhold.map { DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(it) },
+                )
                 is DeltakerEndring.Endring.EndreSluttarsak -> EndreSluttarsak(aarsak.toResponse(), begrunnelse)
                 is DeltakerEndring.Endring.EndreSluttdato -> EndreSluttdato(sluttdato, begrunnelse)
                 is DeltakerEndring.Endring.EndreStartdato -> EndreStartdato(startdato, sluttdato, begrunnelse)

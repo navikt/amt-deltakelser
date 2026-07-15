@@ -2,12 +2,11 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
-import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
 data class OpplaringKategoriseringValgResponse(
     val valgteKategoriseringer: Set<Kategorisering>,
-    val valgteSertifiseringer: Set<SertifiseringValg>,
+    val valgteSertifiseringer: Set<SertifiseringValgResponse>,
 ) {
     data class Kategorisering(
         val type: OpplaringKategoriseringType,
@@ -17,6 +16,11 @@ data class OpplaringKategoriseringValgResponse(
     data class Valg(
         val id: UUID,
         val visningsnavn: String,
+    )
+
+    data class SertifiseringValgResponse(
+        val id: Long,
+        val navn: String,
     )
 
     companion object {
@@ -33,7 +37,9 @@ data class OpplaringKategoriseringValgResponse(
                             },
                         )
                     }.toSet(),
-                valgteSertifiseringer = valg.valgteSertifiseringer,
+                valgteSertifiseringer = valg.valgteSertifiseringer
+                    .map { SertifiseringValgResponse(it.id, it.navn) }
+                    .toSet(),
             )
         }
     }

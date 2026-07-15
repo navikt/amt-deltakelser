@@ -44,7 +44,7 @@ data class InnbyggerDeltakerResponse(
                 deltakelsesinnhold = deltakelsesinnhold?.let {
                     DeltakelsesinnholdResponse(
                         ledetekst = it.ledetekst,
-                        innhold = it.innhold,
+                        innhold = it.innhold.map { innhold -> DeltakelsesinnholdResponse.InnholdResponse.fromInnhold(innhold) },
                     )
                 },
                 vedtaksinformasjon = vedtaksinformasjon?.let {
