@@ -327,7 +327,7 @@ fun Routing.registerInternalApi(
                             gjennomforingId = gjennomforing.id,
                             totrinnskontroll = (
                                 GjennomforingRequestPayload.Totrinnskontroll(
-                                    id = deltaker.id,
+                                    id = deltaker.id, // TODO: må endres til id fra tabell enkeltplass_prisinformasjon
                                     behandletAv = opprettetAv,
                                 )
                             ),

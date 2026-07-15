@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
+import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
@@ -432,20 +433,28 @@ class EnkeltplassService(
             opprettetAv = endretAvNavIdent,
             kategorisering = deltaker.deltakerliste.opplaringKategorisering?.toMulighetsrommetKategorisering(),
         )
+
         val gjennomforingPayload = when (val statusType = deltaker.status.type) {
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = upsertPayload,
             )
 
-            DeltakerStatus.Type.SOKT_INN -> GjennomforingRequestPayload.EnkeltplassSoktInn(
-                gjennomforingId = deltaker.deltakerliste.id,
-                payload = upsertPayload,
-                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
-                    id = deltaker.id,
-                    behandletAv = endretAvNavIdent,
-                ),
-            )
+            DeltakerStatus.Type.SOKT_INN -> {
+                val prisinfo = PrisinfoRepository.hentPrisinfo(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    okonomiGodkjent = false,
+                ) ?: error("Fant ikke prisinformasjon for deltakerliste ${deltaker.deltakerliste.id}")
+
+                GjennomforingRequestPayload.EnkeltplassSoktInn(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    payload = upsertPayload,
+                    totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                        id = prisinfo.id,
+                        behandletAv = endretAvNavIdent,
+                    ),
+                )
+            }
 
             else -> throw IllegalStateException("Deltaker ${deltaker.id} har status $statusType")
         }

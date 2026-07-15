@@ -14,6 +14,7 @@ import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import kotliquery.Session
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService.Companion.toMulighetsrommetKategorisering
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
@@ -22,7 +23,9 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
+import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.SertifiseringValgRepository
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
@@ -63,6 +66,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     override val deltakerProducerService = mockk<DeltakerProducerService>()
     override val distribuerEndringService = mockk<DistribuerEndringService>(relaxed = true)
 
+    val totrinnsIdInTest: UUID = UUID.randomUUID()
+
     @BeforeEach
     fun setup() {
         setupDatabaseMocks()
@@ -88,8 +93,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() {
+        unmockkObject(Database)
         unmockkObject(SertifiseringValgRepository)
         unmockkObject(OpplaringKategoriseringRepoAdapter)
+        unmockkObject(PrisinfoRepository)
         unmockkObject(PrisinfoRepoAdapter)
     }
 
@@ -104,13 +111,14 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     }
 
     private fun setupDatabaseMocks() {
-        // Note: MockK cleanup is handled by IntegrationTestBase.init() which calls
-        // clearAllMocks() before each test via @BeforeEach, preventing mock leakage
-        // between tests. No explicit unmockkObject() calls are needed.
         mockkObject(Database)
         every { transaction<Any>(any()) } answers {
             val block = firstArg<() -> Any>()
             block()
+        }
+        every { Database.query<Any>(any()) } answers {
+            val block = firstArg<(Session) -> Any>()
+            block(mockk<Session>())
         }
 
         mockkObject(SertifiseringValgRepository)
@@ -133,6 +141,22 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             valgteKategoriseringer = emptySet(),
             valgteSertifiseringer = emptySet(),
         )
+
+        mockkObject(PrisinfoRepository)
+        every { PrisinfoRepository.hentPrisinfo(any(), any()) } answers {
+            PrisinfoDbo(
+                id = totrinnsIdInTest,
+                gjennomforingId = firstArg(),
+                okonomiGodkjent = secondArg(),
+                prisinfoJsonSubtype = "Anskaffelse",
+            )
+        }
+        every { PrisinfoRepository.hentPrisinfos(any()) } returns emptyList()
+        every { PrisinfoRepository.insertPendingTotrinnskontrollPrisinfo(any()) } answers {
+            firstArg()
+        }
+        every { PrisinfoRepository.deletePrisinfo(any(), any()) } returns 0
+        every { PrisinfoRepository.settGodkjent(any()) } just Runs
 
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } just Runs
@@ -509,7 +533,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = payload,
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
-                    id = deltaker.id,
+                    id = totrinnsIdInTest,
                     behandletAv = payload.opprettetAv,
                 ),
             )
