@@ -13,9 +13,33 @@ import no.nav.amt.lib.models.deltaker.TILSKUDD_SUB_TYPE
 import java.util.UUID
 
 object PrisinfoRepoAdapter {
+    fun harPrisinfoSomVenterPaaOkonomiGodkjent(
+        gjennomforingId: UUID,
+        prisinfoId: UUID,
+    ): Boolean = PrisinfoRepository
+        .hentPrisinfo(
+            gjennomforingId = gjennomforingId,
+            okonomiGodkjent = false,
+        )?.id == prisinfoId
+
+    fun godkjennOkonomi(gjennomforingId: UUID) {
+        // slett eksisterende godkjent prisinfo
+        PrisinfoRepository.deletePrisinfo(
+            gjennomforingId = gjennomforingId,
+            okonomiGodkjent = true,
+        )
+
+        // sett prisinfo til godkjent
+        PrisinfoRepository.settGodkjent(gjennomforingId)
+    }
+
     fun hentPrisinfo(gjennomforingId: UUID): PrisinformasjonDto? {
-        val prisinfoDbo = PrisinfoRepository.hentPrisinfo(gjennomforingId)
-            ?: return null
+        val prisinfoDboList = PrisinfoRepository.hentPrisinfos(gjennomforingId)
+
+        if (prisinfoDboList.isEmpty()) return null
+
+        // hvis en record med okonomiGodkjent finnes, bruk denne, ellers hent den siste
+        val prisinfoDbo = prisinfoDboList.maxBy { it.okonomiGodkjent }
 
         return when (prisinfoDbo.prisinfoJsonSubtype) {
             ANSKAFFELSE_SUB_TYPE -> Anskaffelse(
@@ -26,7 +50,7 @@ object PrisinfoRepoAdapter {
             TILSKUDD_SUB_TYPE -> Tilskudd(
                 tilleggsopplysninger = prisinfoDbo.tilleggsopplysninger,
                 tilskudd = PrisinfoBelopRepository
-                    .hentPrisinfoBelop(gjennomforingId)
+                    .hentPrisinfoBelop(prisinfoDbo.id)
                     .map {
                         TilskuddInfo(
                             type = it.type,
@@ -49,16 +73,16 @@ object PrisinfoRepoAdapter {
         gjennomforingId: UUID,
         prisinformasjon: PrisinformasjonDto,
     ) {
-        PrisinfoRepository.upsertPrisinfo(
+        PrisinfoRepository.deletePrisinfo(
             gjennomforingId = gjennomforingId,
-            insertDbo = prisinformasjon.toPrisinfoDbo(),
+            okonomiGodkjent = false,
         )
 
-        PrisinfoBelopRepository.deleteForGjennomforing(gjennomforingId)
+        val prisinfoFromDb = PrisinfoRepository.insertPendingTotrinnskontrollPrisinfo(prisinformasjon.toPrisinfoDbo(gjennomforingId))
 
         if (prisinformasjon is Tilskudd) {
             PrisinfoBelopRepository.lagrePrisinfoBelop(
-                gjennomforingId = gjennomforingId,
+                prisinformasjonId = prisinfoFromDb.id,
                 belop = prisinformasjon.toPriskomponentSet(),
             )
         }
@@ -72,18 +96,26 @@ object PrisinfoRepoAdapter {
             )
         }.toSet()
 
-    internal fun PrisinformasjonDto.toPrisinfoDbo(): PrisinfoDbo = when (this) {
+    internal fun PrisinformasjonDto.toPrisinfoDbo(gjennomforingId: UUID): PrisinfoDbo = when (this) {
         is Anskaffelse -> PrisinfoDbo(
+            gjennomforingId = gjennomforingId,
+            okonomiGodkjent = false,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = this.pris,
         )
 
         is Tilskudd -> PrisinfoDbo(
+            id = UUID.randomUUID(), // TODO
+            gjennomforingId = gjennomforingId,
+            okonomiGodkjent = false, // TODO
             prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
         )
 
         is IngenKostnader -> PrisinfoDbo(
+            id = UUID.randomUUID(), // TODO
+            gjennomforingId = gjennomforingId,
+            okonomiGodkjent = false, // TODO
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
             ingenkostnaderAarsak = this.aarsak,

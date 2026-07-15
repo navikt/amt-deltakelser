@@ -8,20 +8,20 @@ import java.util.UUID
 
 object PrisinfoBelopRepository {
     fun lagrePrisinfoBelop(
-        gjennomforingId: UUID,
+        prisinformasjonId: UUID,
         belop: Set<Priskomponent>,
     ) {
         if (belop.isEmpty()) return
 
         val insertSql =
             """
-            INSERT INTO deltakerliste_prisinfo_belop (
-                deltakerliste_id,
+            INSERT INTO enkeltplass_prisinformasjon_belop (
+                prisinfo_id,
                 pristype,
                 pris
             )
             VALUES (
-                :deltakerliste_id,
+                :prisinfo_id,
                 :pristype,
                 :pris
             )
@@ -29,7 +29,7 @@ object PrisinfoBelopRepository {
 
         val params = belop.map {
             mapOf(
-                "deltakerliste_id" to gjennomforingId,
+                "prisinfo_id" to prisinformasjonId,
                 "pristype" to it.type.name,
                 "pris" to it.pris,
             )
@@ -40,20 +40,20 @@ object PrisinfoBelopRepository {
         }
     }
 
-    fun hentPrisinfoBelop(gjennomforingId: UUID): List<Priskomponent> {
+    fun hentPrisinfoBelop(prisinformasjonId: UUID): List<Priskomponent> {
         val sql =
             """
             SELECT 
                 pristype, 
                 pris 
-            FROM deltakerliste_prisinfo_belop 
-            WHERE deltakerliste_id = ?
+            FROM enkeltplass_prisinformasjon_belop
+            WHERE prisinfo_id = ?
             """.trimIndent()
 
         return Database
             .query { session ->
                 session.run(
-                    queryOf(sql, gjennomforingId)
+                    queryOf(sql, prisinformasjonId)
                         .map { row ->
                             Priskomponent(
                                 type = Tilskuddstype.valueOf(row.string("pristype")),
@@ -62,16 +62,5 @@ object PrisinfoBelopRepository {
                         }.asList,
                 )
             }
-    }
-
-    fun deleteForGjennomforing(gjennomforingId: UUID) {
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    "DELETE FROM deltakerliste_prisinfo_belop WHERE deltakerliste_id = ?",
-                    gjennomforingId,
-                ),
-            )
-        }
     }
 }

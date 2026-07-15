@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
@@ -78,7 +79,10 @@ class TotrinnskontrollConsumer(
         if (payload.status == TotrinnskontrollHendelsePayload.Status.GODKJENT &&
             payload.type == TotrinnskontrollType.ENKELTPLASS_OKONOMI
         ) {
-            processGodkjentInnsoking(payload.entityId)
+            processGodkjentInnsoking(
+                gjennomforingId = payload.entityId,
+                totrinsskontrollId = key,
+            )
         }
 
         /* For bruk senere
@@ -119,7 +123,10 @@ class TotrinnskontrollConsumer(
      *
      * @param gjennomforingId id for gjennomføringen som brukes til å finne deltaker
      */
-    internal fun processGodkjentInnsoking(gjennomforingId: UUID) {
+    internal fun processGodkjentInnsoking(
+        gjennomforingId: UUID,
+        totrinsskontrollId: UUID,
+    ) {
         val deltaker = deltakerRepository
             .getEnkeltplassdeltaker(gjennomforingId)
             .getOrThrow()
@@ -131,10 +138,21 @@ class TotrinnskontrollConsumer(
             return
         }
 
+        if (!PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
+                gjennomforingId = deltaker.deltakerliste.id,
+                prisinfoId = totrinsskontrollId,
+            )
+        ) {
+            log.info("Deltaker ${deltaker.id} har ingen prisnformasjon med id $totrinsskontrollId som venter på godkjenning.")
+            return
+        }
+
         deltakerService.upsertAndProduceDeltaker(
             deltaker = deltaker,
             erDeltakerSluttdatoEndret = false,
             beforeUpsert = { deltaker ->
+                PrisinfoRepoAdapter.godkjennOkonomi(deltaker.deltakerliste.id)
+
                 vedtakService.godkjentOkonomiFattVedtak(deltaker = deltaker)
                 deltaker.copy(
                     status = DeltakerUtils.nyDeltakerStatus(nyDeltakerStatus(deltaker)),

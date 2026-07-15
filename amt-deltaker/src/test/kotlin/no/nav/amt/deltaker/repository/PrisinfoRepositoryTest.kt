@@ -11,27 +11,41 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.util.UUID
 
 class PrisinfoRepositoryTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
+
+        private val gjennomforingInTest = lagDeltakerliste()
+
+        private val prisinfoInTest = PrisinfoDbo(
+            id = UUID.randomUUID(),
+            gjennomforingId = gjennomforingInTest.id,
+            okonomiGodkjent = true,
+            prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+            anskaffelsePris = 15000,
+            tilleggsopplysninger = "Standard opplysning",
+            ingenkostnaderAarsak = null,
+        )
     }
 
     @Nested
-    inner class UpsertPrisinfoTests {
+    inner class UpsertPendingTotrinnskontrollPrisinfoTests {
         @Test
         fun `lagrer prisinfo med alle felter`() {
             // Arrange
-            val deltakerliste = lagDeltakerliste()
-            TestRepository.insert(deltakerliste)
+            TestRepository.insert(gjennomforingInTest)
 
             val insertDbo = PrisinfoDbo(
+                id = UUID.randomUUID(),
+                gjennomforingId = gjennomforingInTest.id,
+                okonomiGodkjent = false,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
                 tilleggsopplysninger = "Standard opplysning",
@@ -39,16 +53,20 @@ class PrisinfoRepositoryTest {
             )
 
             // Act
-            PrisinfoRepository.upsertPrisinfo(
-                gjennomforingId = deltakerliste.id,
-                insertDbo = insertDbo,
-            )
+            PrisinfoRepository.insertPendingTotrinnskontrollPrisinfo(insertDbo)
 
             // Assert
-            val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepository.hentPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                okonomiGodkjent = false,
+            )
+
             result shouldNotBe null
 
             assertSoftly(result.shouldNotBeNull()) {
+                id shouldBe insertDbo.id
+                gjennomforingId shouldBe insertDbo.gjennomforingId
+                okonomiGodkjent shouldBe false
                 prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe 15000
                 tilleggsopplysninger shouldBe "Standard opplysning"
@@ -63,62 +81,26 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             val insertDbo = PrisinfoDbo(
+                id = UUID.randomUUID(),
+                gjennomforingId = deltakerliste.id,
+                okonomiGodkjent = false,
                 prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             )
 
             // Act
-            PrisinfoRepository.upsertPrisinfo(
-                gjennomforingId = deltakerliste.id,
-                insertDbo = insertDbo,
-            )
+            PrisinfoRepository.insertPendingTotrinnskontrollPrisinfo(insertDbo = insertDbo)
 
             // Assert
-            val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
+            val result = PrisinfoRepository.hentPrisinfo(
+                gjennomforingId = deltakerliste.id,
+                okonomiGodkjent = false,
+            )
+
             assertSoftly(result.shouldNotBeNull()) {
                 prisinfoJsonSubtype shouldBe INGENKOSTNADER_SUB_TYPE
                 anskaffelsePris shouldBe null
                 tilleggsopplysninger shouldBe null
                 ingenkostnaderAarsak shouldBe null
-            }
-        }
-
-        @Test
-        fun `oppdaterer eksisterende prisinfo via ON CONFLICT`() {
-            // Arrange
-            val deltakerliste = lagDeltakerliste()
-            TestRepository.insert(deltakerliste)
-
-            val insertDbo1 = PrisinfoDbo(
-                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
-                anskaffelsePris = 10000,
-                tilleggsopplysninger = "Original",
-                ingenkostnaderAarsak = null,
-            )
-            PrisinfoRepository.upsertPrisinfo(
-                gjennomforingId = deltakerliste.id,
-                insertDbo = insertDbo1,
-            )
-
-            val insertDbo2 = PrisinfoDbo(
-                prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
-                anskaffelsePris = null,
-                tilleggsopplysninger = "Oppdatert",
-                ingenkostnaderAarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-            )
-
-            // Act
-            PrisinfoRepository.upsertPrisinfo(
-                gjennomforingId = deltakerliste.id,
-                insertDbo = insertDbo2,
-            )
-
-            // Assert
-            val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
-            assertSoftly(result.shouldNotBeNull()) {
-                prisinfoJsonSubtype shouldBe INGENKOSTNADER_SUB_TYPE
-                anskaffelsePris shouldBe null
-                tilleggsopplysninger shouldBe "Oppdatert"
-                ingenkostnaderAarsak shouldBe Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT
             }
         }
     }
@@ -132,34 +114,10 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             // Act
-            val result = PrisinfoRepository.hentPrisinfo(deltakerliste.id)
-
-            // Assert
-            result shouldBe null
-        }
-
-        @Test
-        fun `henter kun for angitt deltakerliste`() {
-            // Arrange
-            val deltakerliste1 = lagDeltakerliste()
-            TestRepository.insert(deltakerliste1)
-
-            val deltakerliste2 = lagDeltakerliste()
-            TestRepository.insert(deltakerliste2)
-
-            val insertDbo = PrisinfoDbo(
-                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
-                anskaffelsePris = 15000,
-                tilleggsopplysninger = "Opplysning",
-                ingenkostnaderAarsak = null,
+            val result = PrisinfoRepository.hentPrisinfo(
+                gjennomforingId = deltakerliste.id,
+                okonomiGodkjent = false,
             )
-            PrisinfoRepository.upsertPrisinfo(
-                gjennomforingId = deltakerliste1.id,
-                insertDbo = insertDbo,
-            )
-
-            // Act
-            val result = PrisinfoRepository.hentPrisinfo(deltakerliste2.id)
 
             // Assert
             result shouldBe null

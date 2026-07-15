@@ -432,6 +432,7 @@ class EnkeltplassService(
             opprettetAv = endretAvNavIdent,
             kategorisering = deltaker.deltakerliste.opplaringKategorisering?.toMulighetsrommetKategorisering(),
         )
+
         val gjennomforingPayload = when (val statusType = deltaker.status.type) {
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
                 gjennomforingId = deltaker.deltakerliste.id,
@@ -442,7 +443,7 @@ class EnkeltplassService(
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = upsertPayload,
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
-                    id = deltaker.id,
+                    id = deltaker.id, // TODO: må endres til id fra tabell enkeltplass_prisinformasjon
                     behandletAv = endretAvNavIdent,
                 ),
             )
