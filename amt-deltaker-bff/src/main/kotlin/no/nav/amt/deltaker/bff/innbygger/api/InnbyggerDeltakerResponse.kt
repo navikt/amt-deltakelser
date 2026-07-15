@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.innbygger.api
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
+import no.nav.amt.deltaker.bff.commonresponse.toDeltakerlisteResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
@@ -33,7 +34,7 @@ data class InnbyggerDeltakerResponse(
         fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
             InnbyggerDeltakerResponse(
                 deltakerId = id,
-                deltakerliste = DeltakerlisteResponse.fromModel(deltaker.gjennomforing),
+                deltakerliste = deltaker.gjennomforing.toDeltakerlisteResponse(),
                 status = status,
                 startdato = startdato,
                 sluttdato = sluttdato,

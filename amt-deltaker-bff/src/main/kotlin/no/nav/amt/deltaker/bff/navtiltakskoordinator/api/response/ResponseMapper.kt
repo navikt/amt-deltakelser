@@ -5,7 +5,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
-import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -38,17 +37,19 @@ object ResponseMapper {
             fodselsnummer = if (tilgangTilBruker) navBruker.personident else null,
             status = DeltakerStatusResponse(
                 type = status.type,
-                aarsak = status.aarsak?.let { DeltakerStatusAarsakResponse(it.type, it.beskrivelse) },
+                aarsak = status.aarsak?.let {
+                    DeltakerStatusAarsakResponse(it.type, it.beskrivelse)
+                },
             ),
             startdato = startdato,
             sluttdato = sluttdato,
             navEnhet = navBruker.navEnhet,
-            navVeileder = navBruker.navVeileder ?: NavVeilederResponse(
+            navVeileder = navBruker.navVeileder?.toNavVeilederResponse() ?: NavVeilederResponse(
                 navn = null,
                 telefonnummer = null,
                 epost = null,
             ),
-            vurdering = sisteVurdering,
+            vurdering = sisteVurdering?.toVurderingResponse(),
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
             innsatsgruppe = navBruker.innsatsgruppe,
             tiltakskode = deltaker.gjennomforing.tiltak.tiltakskode,
@@ -81,7 +82,14 @@ object ResponseMapper {
             apentForPamelding = apentForPamelding,
             antallPlasser = antallPlasser,
             pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-            koordinatorer = koordinatortilganger,
+            koordinatorer = koordinatortilganger.map {
+                DeltakerlisteResponse.TiltakskoordinatorResponse(
+                    id = it.id,
+                    navn = it.navn,
+                    erAktiv = it.erAktiv,
+                    kanFjernes = it.kanFjernes,
+                )
+            },
             erEnkeltplass = type == GjennomforingType.Enkeltplass,
         )
     }

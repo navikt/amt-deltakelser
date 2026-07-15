@@ -12,6 +12,9 @@ dependencies {
 
     // --- Feature Toggle ---
     implementation(libs.unleash)
+
+    // --- Test ---
+    testImplementation(libs.archunit.junit5)
 }
 
 application { mainClass = "no.nav.amt.deltaker.bff.ApplicationKt" }

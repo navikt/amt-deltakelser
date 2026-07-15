@@ -27,6 +27,7 @@ prometheus-metrics-version = "1.8.0"
 okhttp-version = "5.4.0"
 jupiter-version = "6.1.1"
 testcontainers-version = "2.0.5"
+archunit-version = "1.4.1"
 
 # spring-boot specifikt
 spring-boot-version = "4.1.0"
@@ -141,6 +142,7 @@ kotest-assertions-table = { module = "io.kotest:kotest-assertions-table-jvm", ve
 
 mockk = { module = "io.mockk:mockk-jvm", version.ref = "mockk-version" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-version" }
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit-version" }
 
 # plugins used in convention plugin
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-version" }

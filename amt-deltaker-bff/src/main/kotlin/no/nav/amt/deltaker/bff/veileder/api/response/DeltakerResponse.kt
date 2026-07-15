@@ -3,10 +3,9 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
+import no.nav.amt.deltaker.bff.commonresponse.toDeltakerlisteResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.getInnholdselementer
-import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDate
 import java.util.UUID
 
@@ -16,7 +15,7 @@ data class DeltakerResponse(
     val mellomnavn: String?,
     val etternavn: String,
     val deltakerliste: DeltakerlisteResponse,
-    val status: DeltakerStatus,
+    val status: DeltakerStatusResponse,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val dagerPerUke: Float?,
@@ -44,10 +43,8 @@ data class DeltakerResponse(
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste = DeltakerlisteResponse.fromModel(
-                    gjennomforingModel = gjennomforing,
-                ),
-                status = status,
+                deltakerliste = gjennomforing.toDeltakerlisteResponse(),
+                status = status.toResponse(),
                 startdato = startdato,
                 sluttdato = sluttdato,
                 dagerPerUke = dagerPerUke,
@@ -83,7 +80,7 @@ data class DeltakerResponse(
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger
                 // Kan dette utledes i amt-deltaker?
-                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
+                deltakelsesmengder = deltakelsesmengder?.toResponse() ?: DeltakelsesmengderResponse(),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
                 prisinformasjon = prisinformasjon,

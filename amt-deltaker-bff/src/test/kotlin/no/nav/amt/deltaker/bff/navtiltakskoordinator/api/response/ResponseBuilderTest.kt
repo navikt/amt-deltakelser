@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagNavBrukerResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -39,7 +40,9 @@ class ResponseBuilderTest {
             response.sluttdato shouldBe deltaker.sluttdato
             response.tiltakskode shouldBe deltaker.gjennomforing.tiltak.tiltakskode
             response.oppstartstype shouldBe deltaker.gjennomforing.oppstart
-            response.pameldingstype shouldBe deltaker.gjennomforing.pameldingstype
+            response.pameldingstype shouldBe (
+                deltaker.gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING
+            )
         }
 
         @Test
@@ -309,7 +312,7 @@ class ResponseBuilderTest {
             val deltaker = lagTiltakskoordinatorDeltakerResponse(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 harAktivtForslag = true,
-                sisteVurderingstype = no.nav.amt.lib.models.arrangor.melding.Vurderingstype.OPPFYLLER_KRAVENE,
+                sisteVurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
                 kanEndres = false,
             )
 
@@ -327,7 +330,7 @@ class ResponseBuilderTest {
             response.navEnhet shouldBe deltaker.navBruker.navEnhet
             response.erManueltDeltMedArrangor shouldBe deltaker.erManueltDeltMedArrangor
             response.harAktiveForslag shouldBe true
-            response.vurdering shouldBe no.nav.amt.lib.models.arrangor.melding.Vurderingstype.OPPFYLLER_KRAVENE
+            response.vurdering shouldBe Vurderingstype.OPPFYLLER_KRAVENE
             response.kanEndres shouldBe false
             response.soktInnDato shouldBe deltaker.soktInnDato
             response.startdato shouldBe deltaker.startdato
@@ -403,7 +406,9 @@ class ResponseBuilderTest {
             response.oppstartstype shouldBe gjennomforing.oppstart
             response.apentForPamelding shouldBe gjennomforing.apentForPamelding
             response.antallPlasser shouldBe gjennomforing.antallPlasser
-            response.pameldingstype shouldBe gjennomforing.pameldingstype
+            response.pameldingstype shouldBe (
+                gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING
+            )
         }
 
         @Test

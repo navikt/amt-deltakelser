@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -17,6 +16,13 @@ data class DeltakerlisteResponse(
     val apentForPamelding: Boolean,
     val antallPlasser: Int?,
     val pameldingstype: GjennomforingPameldingType,
-    val koordinatorer: List<Tiltakskoordinator>,
+    val koordinatorer: List<TiltakskoordinatorResponse>,
     val erEnkeltplass: Boolean,
-)
+) {
+    data class TiltakskoordinatorResponse(
+        val id: UUID,
+        val navn: String,
+        val erAktiv: Boolean,
+        val kanFjernes: Boolean,
+    )
+}

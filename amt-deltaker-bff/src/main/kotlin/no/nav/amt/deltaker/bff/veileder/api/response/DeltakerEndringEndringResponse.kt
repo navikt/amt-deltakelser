@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.DeltakerEndring.Aarsak
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
@@ -42,12 +41,12 @@ sealed class DeltakerEndringEndringResponse {
     ) : DeltakerEndringEndringResponse()
 
     data class IkkeAktuell(
-        val aarsak: Aarsak,
+        val aarsak: AarsakResponse,
         val begrunnelse: String?,
     ) : DeltakerEndringEndringResponse()
 
     data class AvsluttDeltakelse(
-        val aarsak: Aarsak?,
+        val aarsak: AarsakResponse?,
         val sluttdato: LocalDate,
         val begrunnelse: String?,
         val harFullfort: Boolean,
@@ -55,14 +54,14 @@ sealed class DeltakerEndringEndringResponse {
     ) : DeltakerEndringEndringResponse()
 
     data class EndreAvslutning(
-        val aarsak: Aarsak?,
+        val aarsak: AarsakResponse?,
         val sluttdato: LocalDate?,
         val begrunnelse: String?,
         val harFullfort: Boolean?,
     ) : DeltakerEndringEndringResponse()
 
     data class EndreSluttarsak(
-        val aarsak: Aarsak,
+        val aarsak: AarsakResponse,
         val begrunnelse: String?,
     ) : DeltakerEndringEndringResponse()
 
@@ -75,6 +74,11 @@ sealed class DeltakerEndringEndringResponse {
         val begrunnelse: String?,
     ) : DeltakerEndringEndringResponse()
 
+    data class AarsakResponse(
+        val type: DeltakerEndring.Aarsak.Type,
+        val beskrivelse: String? = null,
+    )
+
     companion object {
         fun fromEndring(
             endring: DeltakerEndring.Endring,
@@ -82,7 +86,7 @@ sealed class DeltakerEndringEndringResponse {
         ): DeltakerEndringEndringResponse = with(endring) {
             when (this) {
                 is DeltakerEndring.Endring.AvsluttDeltakelse -> AvsluttDeltakelse(
-                    aarsak = aarsak,
+                    aarsak = aarsak?.toResponse(),
                     sluttdato = sluttdato,
                     begrunnelse = begrunnelse,
                     harFullfort = true,
@@ -90,14 +94,14 @@ sealed class DeltakerEndringEndringResponse {
                 )
 
                 is DeltakerEndring.Endring.EndreAvslutning -> EndreAvslutning(
-                    aarsak = aarsak,
+                    aarsak = aarsak?.toResponse(),
                     begrunnelse = begrunnelse,
                     harFullfort = harFullfort,
                     sluttdato = sluttdato,
                 )
 
                 is DeltakerEndring.Endring.AvbrytDeltakelse -> AvsluttDeltakelse(
-                    aarsak = aarsak,
+                    aarsak = aarsak.toResponse(),
                     sluttdato = sluttdato,
                     begrunnelse = begrunnelse,
                     harFullfort = false,
@@ -116,12 +120,12 @@ sealed class DeltakerEndringEndringResponse {
                 )
 
                 is DeltakerEndring.Endring.EndreInnhold -> EndreInnhold(ledetekst, innhold)
-                is DeltakerEndring.Endring.EndreSluttarsak -> EndreSluttarsak(aarsak, begrunnelse)
+                is DeltakerEndring.Endring.EndreSluttarsak -> EndreSluttarsak(aarsak.toResponse(), begrunnelse)
                 is DeltakerEndring.Endring.EndreSluttdato -> EndreSluttdato(sluttdato, begrunnelse)
                 is DeltakerEndring.Endring.EndreStartdato -> EndreStartdato(startdato, sluttdato, begrunnelse)
                 is DeltakerEndring.Endring.FjernOppstartsdato -> FjernOppstartsdato(begrunnelse)
                 is DeltakerEndring.Endring.ForlengDeltakelse -> ForlengDeltakelse(sluttdato, begrunnelse)
-                is DeltakerEndring.Endring.IkkeAktuell -> IkkeAktuell(aarsak, begrunnelse)
+                is DeltakerEndring.Endring.IkkeAktuell -> IkkeAktuell(aarsak.toResponse(), begrunnelse)
                 is DeltakerEndring.Endring.ReaktiverDeltakelse -> ReaktiverDeltakelse(
                     reaktivertDato,
                     begrunnelse,
@@ -130,3 +134,8 @@ sealed class DeltakerEndringEndringResponse {
         }
     }
 }
+
+private fun DeltakerEndring.Aarsak.toResponse() = DeltakerEndringEndringResponse.AarsakResponse(
+    type = type,
+    beskrivelse = beskrivelse,
+)
