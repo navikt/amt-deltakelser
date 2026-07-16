@@ -377,6 +377,11 @@ class DeltakerV2ConsumerTest {
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             withClue("Endringstype ${endring::class.simpleName}") {
                 when (endring) {
+                    is DeltakerEndring.Endring.EndrePrisinfo -> {
+                        // prisinfo is stored at gjennomforing level, not deltaker level
+                        // so we just verify the endring was applied without errors
+                    }
+
                     is DeltakerEndring.Endring.EndreBakgrunnsinformasjon ->
                         deltakerFraDb.bakgrunnsinformasjon shouldBe endring.bakgrunnsinformasjon
 

@@ -56,6 +56,10 @@ class JournalforingService(
                 )
             }
 
+            is HendelseType.EnkeltplassEndrePrisinfo -> {
+                // TODO
+            }
+
             is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
                 hendelse = hendelse,
                 utkast = hendelse.payload.utkast,

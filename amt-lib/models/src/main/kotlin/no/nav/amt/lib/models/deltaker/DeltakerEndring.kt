@@ -49,6 +49,10 @@ data class DeltakerEndring(
             val bakgrunnsinformasjon: String?,
         ) : Endring
 
+        data class EndrePrisinfo(
+            val prisinfo: PrisinformasjonDto,
+        ) : Endring
+
         data class EndreInnhold(
             val ledetekst: String?,
             val innhold: List<Innhold>,

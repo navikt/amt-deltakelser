@@ -75,8 +75,8 @@ fun Routing.registerVeilederApi(
             call.respond(deltakerResponse)
         }
 
-        route("/deltaker") {
-            get("/{deltakerId}") {
+        route("/deltaker/{deltakerId}") {
+            get {
                 val deltakerResponse = deltakerRepository
                     .get(call.getDeltakerId())
                     .getOrThrow()
@@ -87,7 +87,7 @@ fun Routing.registerVeilederApi(
                 call.respond(deltakerResponse)
             }
 
-            post("/{deltakerId}/endre-deltaker") {
+            post("/endre-deltaker") {
                 val deltaker = deltakerService.upsertEndretDeltaker(
                     deltakerId = call.getDeltakerId(),
                     endringRequest = call.receive<EndringRequest>(),
@@ -95,7 +95,7 @@ fun Routing.registerVeilederApi(
                 call.respond(deltakerResponseBuilder.buildDeltakerResponse(deltaker))
             }
 
-            get("/{deltakerId}/historikk") {
+            get("/historikk") {
                 val deltakerId = call.getDeltakerId()
                 val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
                 val historikk = historikkService.getForDeltaker(deltakerId)
@@ -122,7 +122,7 @@ fun Routing.registerVeilederApi(
                 call.respond(response)
             }
 
-            post("/{deltakerId}/sist-besokt") {
+            post("/sist-besokt") {
                 deltakerService.oppdaterSistBesokt(
                     deltakerId = call.getDeltakerId(),
                     sistBesokt = call.receive<ZonedDateTime>(),

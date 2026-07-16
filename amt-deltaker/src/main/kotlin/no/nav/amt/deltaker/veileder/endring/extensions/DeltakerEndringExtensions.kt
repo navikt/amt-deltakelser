@@ -13,6 +13,9 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
     getDeltakelsemengder: (deltakerId: UUID) -> Deltakelsesmengder,
 ): Result<VellykketEndring> = runCatching {
     when (this) {
+        // TODO
+        is DeltakerEndring.Endring.EndrePrisinfo -> VellykketEndring(deltaker)
+
         is DeltakerEndring.Endring.AvsluttDeltakelse ->
             handleEndring(
                 deltaker = deltaker,

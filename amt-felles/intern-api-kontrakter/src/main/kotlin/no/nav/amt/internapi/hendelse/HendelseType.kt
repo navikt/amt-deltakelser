@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Aarsak
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -51,6 +52,10 @@ sealed interface HendelseType {
 
     data class EnkeltplassOkonomiGodkjennUtkast(
         val utkast: UtkastDto,
+    ) : HendelseType
+
+    data class EnkeltplassEndrePrisinfo(
+        val prisinfo: PrisinformasjonDto,
     ) : HendelseType
 
     data class InnbyggerGodkjennUtkast(
@@ -177,6 +182,10 @@ data class InnholdDto(
 )
 
 fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val endring = this.endring) {
+    is Endring.EndrePrisinfo -> HendelseType.EnkeltplassEndrePrisinfo(
+        endring.prisinfo,
+    )
+
     is Endring.AvsluttDeltakelse ->
         HendelseType.AvsluttDeltakelse(
             aarsak = endring.aarsak,

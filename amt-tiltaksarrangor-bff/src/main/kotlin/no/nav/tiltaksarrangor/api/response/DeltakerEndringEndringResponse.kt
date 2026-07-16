@@ -153,11 +153,20 @@ sealed class DeltakerEndringEndringResponse {
         )
     }
 
+    data class EndrePrisinfo(
+        val prisinfo: Any,
+    ) : DeltakerEndringEndringResponse() {
+        constructor(model: DeltakerEndring.Endring.EndrePrisinfo) : this(
+            prisinfo = model.prisinfo,
+        )
+    }
+
     companion object {
         fun fromModel(
             model: DeltakerEndring.Endring,
             oppstartstype: Oppstartstype,
         ): DeltakerEndringEndringResponse = when (model) {
+            is DeltakerEndring.Endring.EndrePrisinfo -> EndrePrisinfo(model)
             is DeltakerEndring.Endring.AvsluttDeltakelse -> AvsluttDeltakelse(model, oppstartstype)
             is DeltakerEndring.Endring.EndreAvslutning -> EndreAvslutning(model)
             is DeltakerEndring.Endring.AvbrytDeltakelse -> AvsluttDeltakelse(model, oppstartstype)
