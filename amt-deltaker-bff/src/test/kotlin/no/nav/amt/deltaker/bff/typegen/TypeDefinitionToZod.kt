@@ -117,9 +117,11 @@ object TypeDefinitionToZod {
             val discriminatorField = discriminatorFieldFor(definition.kClass)
             val fields = buildList {
                 discriminatorField?.let { add(it.property to """z.literal("${it.value}")""") }
-                addAll(definition.fields.map { field ->
-                    field.name to toZodType(field.type, depth = 1)
-                })
+                addAll(
+                    definition.fields.map { field ->
+                        field.name to toZodType(field.type, depth = 1)
+                    },
+                )
             }
             return formatting.objectExpression(fields, depth = 0)
         }
@@ -272,7 +274,9 @@ object TypeDefinitionToZod {
             }
         }
 
-        private data class DiscriminatorConfig(val property: String)
+        private data class DiscriminatorConfig(
+            val property: String,
+        )
 
         private data class DiscriminatorField(
             val property: String,
