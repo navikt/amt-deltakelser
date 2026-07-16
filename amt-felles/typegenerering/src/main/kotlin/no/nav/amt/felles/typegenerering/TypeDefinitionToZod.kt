@@ -8,16 +8,14 @@ import kotlin.reflect.KClass
 object TypeDefinitionToZod {
     fun toZodExpression(
         definition: TypeDefinition,
+        parsedDefinitions: Collection<TypeDefinition>,
         prettyPrint: Boolean = true,
-    ): String = toZodDefinitions(listOf(definition), prettyPrint)
+    ): String = toZodDefinitions(parsedDefinitions + definition, prettyPrint)
 
     fun toZodExpressions(
-        classes: Collection<KClass<*>>,
+        definitions: Collection<TypeDefinition>,
         prettyPrint: Boolean = true,
-    ): String {
-        val definitions = classes.map { KotlinTypeDefinitionParser.parse(it) }
-        return SchemaBuilder(Formatting(prettyPrint)).build(definitions)
-    }
+    ): String = SchemaBuilder(Formatting(prettyPrint)).build(definitions)
 
     private fun toZodDefinitions(
         definitions: Collection<TypeDefinition>,
@@ -243,9 +241,8 @@ object TypeDefinitionToZod {
             }
         }
 
-        private fun definitionFor(kClass: KClass<*>): TypeDefinition = definitionsByClass.getOrPut(kClass) {
-            KotlinTypeDefinitionParser.parse(kClass)
-        }
+        private fun definitionFor(kClass: KClass<*>): TypeDefinition = definitionsByClass[kClass]
+            ?: throw IllegalArgumentException("Missing TypeDefinition for class: ${kClass.qualifiedName}")
 
         private fun discriminatorFieldFor(kClass: KClass<*>): DiscriminatorField? {
             val parent = (kClass.java.interfaces.map { it.kotlin } + listOfNotNull(kClass.java.superclass?.kotlin))

@@ -62,6 +62,31 @@ object KotlinTypeDefinitionParser {
         )
     }
 
+    fun parseRecursively(kClass: KClass<*>): List<TypeDefinition> = parseRecursively(listOf(kClass))
+
+    fun parseRecursively(classes: Collection<KClass<*>>): List<TypeDefinition> {
+        val queue = ArrayDeque(classes)
+        val parsed = linkedMapOf<KClass<*>, TypeDefinition>()
+
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            if (parsed.containsKey(current)) continue
+
+            val definition = parse(current)
+            parsed[current] = definition
+
+            if (current.isSealed) {
+                queue.addAll(current.sealedSubclasses)
+            }
+
+            definition.fields.forEach { field ->
+                enqueueReferencedTypes(field.type, queue)
+            }
+        }
+
+        return parsed.values.toList()
+    }
+
     private fun KType.toTypeReference(): TypeReference {
         val classifier = classifier as? KClass<*>
         val genericArguments = arguments.mapNotNull { it.type?.toTypeReference() }
@@ -91,6 +116,19 @@ object KotlinTypeDefinitionParser {
         if (this.java.isEnum) return TypeKind.ENUM
         if (isSealed) return TypeKind.SEALED
         return TypeKind.CLASS
+    }
+
+    private fun enqueueReferencedTypes(
+        reference: TypeReference,
+        queue: ArrayDeque<KClass<*>>,
+    ) {
+        if (reference.kind == TypeKind.CLASS || reference.kind == TypeKind.SEALED) {
+            reference.kClass?.let(queue::addLast)
+        }
+        reference.sealedSubclasses.forEach(queue::addLast)
+        reference.genericArguments.forEach { nested ->
+            enqueueReferencedTypes(nested, queue)
+        }
     }
 
     private val primitiveLikeTypes = setOf(

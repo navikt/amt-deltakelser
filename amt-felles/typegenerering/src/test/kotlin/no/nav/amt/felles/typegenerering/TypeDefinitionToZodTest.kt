@@ -66,9 +66,10 @@ class TypeDefinitionToZodTest {
 
     @Test
     fun `toZodExpression skal generere zod-uttrykk for støttede typer`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(SupportedExample::class)
+        val typeDefinitions = KotlinTypeDefinitionParser.parseRecursively(SupportedExample::class)
+        val typeDefinition = typeDefinitions.requireDefinition(SupportedExample::class)
 
-        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
+        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, typeDefinitions, prettyPrint = false)
 
         result shouldBe
             "/** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.SupportedExample */\nconst typeDefinitionToZodTest_SupportedExampleSchema = z.object({id: z.number(), metadata: z.record(z.number().nullable()), optionalName: z.string().nullable(), status: z.enum([\"ACTIVE\", \"INACTIVE\"]), tags: z.array(z.string())})"
@@ -76,9 +77,10 @@ class TypeDefinitionToZodTest {
 
     @Test
     fun `toZodExpression skal prettyprinte som default`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(SupportedExample::class)
+        val typeDefinitions = KotlinTypeDefinitionParser.parseRecursively(SupportedExample::class)
+        val typeDefinition = typeDefinitions.requireDefinition(SupportedExample::class)
 
-        val result = TypeDefinitionToZod.toZodExpression(typeDefinition)
+        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, typeDefinitions)
 
         result shouldBe
             """
@@ -95,9 +97,10 @@ class TypeDefinitionToZodTest {
 
     @Test
     fun `toZodExpression skal referere custom klasse-typer ved navn`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(HasCustomType::class)
+        val typeDefinitions = KotlinTypeDefinitionParser.parseRecursively(HasCustomType::class)
+        val typeDefinition = typeDefinitions.requireDefinition(HasCustomType::class)
 
-        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
+        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, typeDefinitions, prettyPrint = false)
         result shouldBe
             """
             /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.Nested */
@@ -109,9 +112,10 @@ class TypeDefinitionToZodTest {
 
     @Test
     fun `toZodExpression skal støtte sealed typer via navngitt union schema`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(HasSealedType::class)
+        val typeDefinitions = KotlinTypeDefinitionParser.parseRecursively(HasSealedType::class)
+        val typeDefinition = typeDefinitions.requireDefinition(HasSealedType::class)
 
-        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
+        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, typeDefinitions, prettyPrint = false)
         result shouldBe
             """
             /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.Decision.Approved */
@@ -127,9 +131,10 @@ class TypeDefinitionToZodTest {
 
     @Test
     fun `toZodExpression skal bruke discriminated union for JsonTypeInfo-annotert sealed type`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(HasAnnotatedSealedType::class)
+        val typeDefinitions = KotlinTypeDefinitionParser.parseRecursively(HasAnnotatedSealedType::class)
+        val typeDefinition = typeDefinitions.requireDefinition(HasAnnotatedSealedType::class)
 
-        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
+        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, typeDefinitions, prettyPrint = false)
         result shouldBe
             """
             /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.AnnotatedDecision.Approved */
@@ -145,10 +150,11 @@ class TypeDefinitionToZodTest {
 
     @Test
     fun `toZodExpression skal feile for map med ikke-string nøkkel`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(HasUnsupportedMapKey::class)
+        val typeDefinitions = KotlinTypeDefinitionParser.parseRecursively(HasUnsupportedMapKey::class)
+        val typeDefinition = typeDefinitions.requireDefinition(HasUnsupportedMapKey::class)
 
         val exception = shouldThrow<IllegalArgumentException> {
-            TypeDefinitionToZod.toZodExpression(typeDefinition)
+            TypeDefinitionToZod.toZodExpression(typeDefinition, typeDefinitions)
         }
 
         exception.message shouldBe "Only non-null String map keys are supported: kotlin.collections.Map<kotlin.Int, kotlin.String>"
@@ -156,9 +162,10 @@ class TypeDefinitionToZodTest {
 
     @Test
     fun `toZodExpression skal bruke z-lazy for rekursive custom typer`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(RecursiveNode::class)
+        val typeDefinitions = KotlinTypeDefinitionParser.parseRecursively(RecursiveNode::class)
+        val typeDefinition = typeDefinitions.requireDefinition(RecursiveNode::class)
 
-        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
+        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, typeDefinitions, prettyPrint = false)
         result shouldBe
             "/** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.RecursiveNode */\nconst typeDefinitionToZodTest_RecursiveNodeSchema = z.object({next: z.lazy(() => typeDefinitionToZodTest_RecursiveNodeSchema).nullable()})"
     }
@@ -173,20 +180,24 @@ class TypeDefinitionToZodTest {
 
     @Test
     fun `toZodExpression skal bruke parent-navn for nested classes`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(Parent::class)
+        val typeDefinitions = KotlinTypeDefinitionParser.parseRecursively(Parent::class)
+        val typeDefinition = typeDefinitions.requireDefinition(Parent::class)
 
-        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
+        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, typeDefinitions, prettyPrint = false)
         result shouldContain "const typeDefinitionToZodTest_Parent_ChildSchema = z.object({value: z.string()})"
         result shouldContain "const typeDefinitionToZodTest_ParentSchema = z.object({child: typeDefinitionToZodTest_Parent_ChildSchema})"
     }
 
     @Test
     fun `toZodExpressions skal bruke package-prefiks ved navnekollisjon`() {
-        val result = TypeDefinitionToZod.toZodExpressions(
-            classes = listOf(
+        val definitions = KotlinTypeDefinitionParser.parseRecursively(
+            listOf(
                 FirstDeltakerlisteResponse::class,
                 SecondDeltakerlisteResponse::class,
             ),
+        )
+        val result = TypeDefinitionToZod.toZodExpressions(
+            definitions = definitions,
             prettyPrint = false,
         )
 
@@ -196,4 +207,7 @@ class TypeDefinitionToZodTest {
         result shouldContain "const no_nav_amt_felles_typegenerering_collisions_two_DeltakerlisteResponseSchema = z.object({navn: z.string()})"
         result shouldNotContain "deltakerlisteResponseSchema_2"
     }
+
+    private fun List<TypeDefinition>.requireDefinition(kClass: kotlin.reflect.KClass<*>): TypeDefinition =
+        first { it.kClass == kClass }
 }

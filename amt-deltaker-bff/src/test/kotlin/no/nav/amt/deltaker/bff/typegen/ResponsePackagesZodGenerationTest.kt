@@ -4,6 +4,7 @@ import com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.core.importer.ImportOption
 import no.nav.amt.deltaker.bff.architecture.responsePakker
+import no.nav.amt.felles.typegenerering.KotlinTypeDefinitionParser
 import no.nav.amt.felles.typegenerering.TypeDefinitionToZod
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test
  * TODO: ta i bruk genererte typer i frontend
  */
 class ResponsePackagesZodGenerationTest {
-    @Disabled("Manuell generator for konsolidert Zod; køyr lokalt ved behov")
+    @Disabled("Illustrerer hvordan vi kan generere frontendtyper")
     @Test
     fun `genererer samlet zod-definisjon for alle response-pakker`() {
         val importedClasses = ClassFileImporter()
@@ -27,7 +28,8 @@ class ResponsePackagesZodGenerationTest {
             }.distinct()
             .sortedBy { it.qualifiedName ?: it.simpleName ?: "" }
 
-        val zodOutput = TypeDefinitionToZod.toZodExpressions(responseClasses, prettyPrint = true)
+        val parsedDefinitions = KotlinTypeDefinitionParser.parseRecursively(responseClasses)
+        val zodOutput = TypeDefinitionToZod.toZodExpressions(parsedDefinitions, prettyPrint = true)
 
         println("Generated consolidated Zod for ${responseClasses.size} classes from response packages:")
         println(zodOutput)
