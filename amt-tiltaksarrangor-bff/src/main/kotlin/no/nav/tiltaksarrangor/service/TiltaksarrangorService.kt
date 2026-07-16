@@ -9,7 +9,6 @@ import no.nav.amt.lib.utils.toTitleCase
 import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
 import no.nav.tiltaksarrangor.api.response.DeltakerHistorikkResponse
 import no.nav.tiltaksarrangor.api.response.UlestEndringResponse
-import no.nav.tiltaksarrangor.api.response.toResponse
 import no.nav.tiltaksarrangor.melding.MeldingProducer
 import no.nav.tiltaksarrangor.model.Deltaker
 import no.nav.tiltaksarrangor.model.exceptions.ValidationException
@@ -93,11 +92,12 @@ class TiltaksarrangorService(
 
         val overordnetArrangor = deltakerlisteMedArrangor.arrangorDbo.overordnetArrangorId?.let { arrangorRepository.getArrangor(it) }
         val arrangorNavn = overordnetArrangor?.navn ?: deltakerlisteMedArrangor.arrangorDbo.navn
-        return ulesteEndringer.toResponse(
-            ansatte,
-            arrangorNavn.toTitleCase(),
-            enheter,
-            deltakerlisteMedArrangor.deltakerlisteDbo.oppstartstype,
+        return UlestEndringResponse.fromEndringer(
+            endringer = ulesteEndringer,
+            ansatte = ansatte,
+            arrangornavn = arrangorNavn.toTitleCase(),
+            enheter = enheter,
+            oppstartstype = deltakerlisteMedArrangor.deltakerlisteDbo.oppstartstype,
         )
     }
 
@@ -126,12 +126,15 @@ class TiltaksarrangorService(
             .filterNot {
                 deltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING &&
                     it is DeltakerHistorikk.Vedtak
-            }.toResponse(
-                ansatte = ansatte,
-                arrangornavn = arrangorNavn.toTitleCase(),
-                enheter = enheter,
-                oppstartstype = deltaker.deltakerliste.oppstartstype,
-            )
+            }.let {
+                DeltakerHistorikkResponse.fromModels(
+                    models = it,
+                    ansatte = ansatte,
+                    arrangornavn = arrangorNavn.toTitleCase(),
+                    enheter = enheter,
+                    oppstartstype = deltaker.deltakerliste.oppstartstype,
+                )
+            }
     }
 
     fun registrerVurdering(

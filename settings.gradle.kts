@@ -7,6 +7,8 @@ include(
     "amt-felles:intern-api-kontrakter",
     "amt-felles:ktor",
     "amt-felles:ktor-test",
+    "amt-felles:archunit-test",
+    "amt-felles:typegenerering",
     "amt-felles:kafka",
     "amt-lib:testing",
     "amt-lib:utils",

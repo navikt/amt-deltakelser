@@ -94,7 +94,7 @@ class ForslagResponseTest {
             opprettet shouldBe forslag.opprettet
             begrunnelse shouldBe forslag.begrunnelse
             arrangorNavn shouldBe "Arrangør AS"
-            endring shouldBe forslag.endring
+            endring shouldBe ForslagEndringResponse.fromModel(forslag.endring)
 
             status.shouldBeInstanceOf<ForslagResponseStatus.Avvist>()
 

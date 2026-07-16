@@ -28,7 +28,7 @@ class DeltakerlisteResponseTest {
             pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
 
-        val response = DeltakerlisteResponse.fromModel(model)
+        val response = DeltakerlisteResponse(model)
 
         response.deltakerlisteId shouldBe model.id
         response.deltakerlisteNavn shouldBe model.navn
@@ -68,7 +68,7 @@ class DeltakerlisteResponseTest {
             type = GjennomforingType.Enkeltplass,
         ).copy(opplaringKategoriseringValg = kategorisering)
 
-        val response = DeltakerlisteResponse.fromModel(model)
+        val response = DeltakerlisteResponse(model)
 
         response.erEnkeltplass shouldBe true
         response.opplaringKategoriseringValg shouldBe OpplaringKategoriseringValgResponse(
@@ -87,7 +87,7 @@ class DeltakerlisteResponseTest {
                 ),
             ),
             valgteSertifiseringer = setOf(
-                SertifiseringValg(id = 1, navn = "Truckfører T1"),
+                OpplaringKategoriseringValgResponse.SertifiseringValgResponse(id = 1, navn = "Truckfører T1"),
             ),
         )
     }
@@ -98,7 +98,7 @@ class DeltakerlisteResponseTest {
             type = GjennomforingType.Enkeltplass,
         ).copy(opplaringKategoriseringValg = null)
 
-        val response = DeltakerlisteResponse.fromModel(model)
+        val response = DeltakerlisteResponse(model)
 
         response.erEnkeltplass shouldBe true
         response.opplaringKategoriseringValg shouldBe null
@@ -108,7 +108,7 @@ class DeltakerlisteResponseTest {
     fun `fromModel - arrangor er null - setter arrangorNavn til Ukjent arrangør`() {
         val model = lagGjennomforingModel(arrangor = null)
 
-        val response = DeltakerlisteResponse.fromModel(model)
+        val response = DeltakerlisteResponse(model)
 
         response.arrangorNavn shouldBe "Ukjent arrangør"
         response.arrangor shouldBe null
@@ -120,10 +120,10 @@ class DeltakerlisteResponseTest {
             arrangor = ArrangorModel(navn = "Test Arrangør AS", organisasjonsnummer = "987654321"),
         )
 
-        val response = DeltakerlisteResponse.fromModel(model)
+        val response = DeltakerlisteResponse(model)
 
         response.arrangorNavn shouldBe "Test Arrangør AS"
-        response.arrangor shouldBe DeltakerlisteResponse.ArrangorResponse(
+        response.arrangor shouldBe ArrangorResponse(
             navn = "Test Arrangør AS",
             organisasjonsnummer = "987654321",
         )
@@ -133,7 +133,7 @@ class DeltakerlisteResponseTest {
     fun `fromModel - pameldingstype er null - bruker TRENGER_GODKJENNING som default`() {
         val model = lagGjennomforingModel(pameldingstype = null)
 
-        val response = DeltakerlisteResponse.fromModel(model)
+        val response = DeltakerlisteResponse(model)
 
         response.pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
     }

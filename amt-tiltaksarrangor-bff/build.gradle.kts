@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.shedlock.spring)
     implementation(libs.shedlock.jdbc.template)
 
+    testImplementation(project(":amt-felles:archunit-test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-data-jdbc-test")
     testImplementation("org.springframework.boot:spring-boot-resttestclient")

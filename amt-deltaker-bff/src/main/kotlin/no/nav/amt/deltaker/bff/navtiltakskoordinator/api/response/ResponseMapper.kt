@@ -5,7 +5,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
-import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -38,23 +37,23 @@ object ResponseMapper {
             fodselsnummer = if (tilgangTilBruker) navBruker.personident else null,
             status = DeltakerStatusResponse(
                 type = status.type,
-                aarsak = status.aarsak?.let { DeltakerStatusAarsakResponse(it.type, it.beskrivelse) },
+                aarsak = status.aarsak?.let(::DeltakerStatusAarsakResponse),
             ),
             startdato = startdato,
             sluttdato = sluttdato,
             navEnhet = navBruker.navEnhet,
-            navVeileder = navBruker.navVeileder ?: NavVeilederResponse(
+            navVeileder = navBruker.navVeileder?.let(::NavVeilederResponse) ?: NavVeilederResponse(
                 navn = null,
                 telefonnummer = null,
                 epost = null,
             ),
-            vurdering = sisteVurdering,
+            vurdering = sisteVurdering?.let(::VurderingResponse),
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
             innsatsgruppe = navBruker.innsatsgruppe,
             tiltakskode = deltaker.gjennomforing.tiltak.tiltakskode,
             tilgangTilBruker = tilgangTilBruker,
             aktiveForslag = aktiveForslag,
-            ulesteHendelser = ulesteHendelser,
+            ulesteHendelser = ulesteHendelser.map(::UlestHendelseResponse),
             oppstartstype = gjennomforing.oppstart,
             // Hvorfor er denne optional?
             pameldingstype = gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
@@ -81,7 +80,7 @@ object ResponseMapper {
             apentForPamelding = apentForPamelding,
             antallPlasser = antallPlasser,
             pameldingstype = pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
-            koordinatorer = koordinatortilganger,
+            koordinatorer = koordinatortilganger.map(DeltakerlisteResponse::TiltakskoordinatorResponse),
             erEnkeltplass = type == GjennomforingType.Enkeltplass,
         )
     }

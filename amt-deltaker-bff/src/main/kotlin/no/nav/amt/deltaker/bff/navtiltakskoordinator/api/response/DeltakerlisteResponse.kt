@@ -17,6 +17,20 @@ data class DeltakerlisteResponse(
     val apentForPamelding: Boolean,
     val antallPlasser: Int?,
     val pameldingstype: GjennomforingPameldingType,
-    val koordinatorer: List<Tiltakskoordinator>,
+    val koordinatorer: List<TiltakskoordinatorResponse>,
     val erEnkeltplass: Boolean,
-)
+) {
+    data class TiltakskoordinatorResponse(
+        val id: UUID,
+        val navn: String,
+        val erAktiv: Boolean,
+        val kanFjernes: Boolean,
+    ) {
+        constructor(model: Tiltakskoordinator) : this(
+            id = model.id,
+            navn = model.navn,
+            erAktiv = model.erAktiv,
+            kanFjernes = model.kanFjernes,
+        )
+    }
+}

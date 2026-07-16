@@ -8,17 +8,36 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 
 data class DeltakelsesinnholdResponse(
     val ledetekst: String?,
-    val innhold: List<Innhold>,
+    val innhold: List<InnholdResponse>,
 ) {
-    companion object {
-        fun fromDeltakelsesinnhold(
-            deltakelsesinnhold: Deltakelsesinnhold,
-            tiltaksInnhold: List<Innholdselement>?,
-        ) = DeltakelsesinnholdResponse(
-            ledetekst = deltakelsesinnhold.ledetekst,
-            innhold = fulltInnhold(deltakelsesinnhold.innhold, tiltaksInnhold ?: emptyList()),
-        )
+    constructor(model: Deltakelsesinnhold) : this(
+        ledetekst = model.ledetekst,
+        innhold = model.innhold.map(::InnholdResponse),
+    )
 
+    constructor(
+        model: Deltakelsesinnhold,
+        tiltaksInnhold: List<Innholdselement>,
+    ) : this(
+        ledetekst = model.ledetekst,
+        innhold = fulltInnhold(model.innhold, tiltaksInnhold).map(::InnholdResponse),
+    )
+
+    data class InnholdResponse(
+        val tekst: String,
+        val innholdskode: String,
+        val valgt: Boolean,
+        val beskrivelse: String?,
+    ) {
+        constructor(model: Innhold) : this(
+            tekst = model.tekst,
+            innholdskode = model.innholdskode,
+            valgt = model.valgt,
+            beskrivelse = model.beskrivelse,
+        )
+    }
+
+    companion object {
         fun fulltInnhold(
             valgtInnhold: List<Innhold>,
             innholdselementer: List<Innholdselement>,

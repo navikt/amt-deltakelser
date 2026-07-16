@@ -7,34 +7,40 @@ import java.util.UUID
 
 data class OpplaringKategoriseringValgResponse(
     val valgteKategoriseringer: Set<Kategorisering>,
-    val valgteSertifiseringer: Set<SertifiseringValg>,
+    val valgteSertifiseringer: Set<SertifiseringValgResponse>,
 ) {
+    constructor(model: OpplaringKategoriseringValg) : this(
+        valgteKategoriseringer = model.valgteKategoriseringer.map(::Kategorisering).toSet(),
+        valgteSertifiseringer = model.valgteSertifiseringer.map(::SertifiseringValgResponse).toSet(),
+    )
+
     data class Kategorisering(
         val type: OpplaringKategoriseringType,
         val valgteElementer: List<Valg>,
-    )
+    ) {
+        constructor(model: OpplaringKategoriseringValg.ValgteFelt) : this(
+            type = model.representerer,
+            valgteElementer = model.valg.entries.map(::Valg),
+        )
+    }
 
     data class Valg(
         val id: UUID,
         val visningsnavn: String,
-    )
+    ) {
+        constructor(model: Map.Entry<UUID, String>) : this(
+            id = model.key,
+            visningsnavn = model.value,
+        )
+    }
 
-    companion object {
-        fun fromOpplaringKategoriseringValg(valg: OpplaringKategoriseringValg?): OpplaringKategoriseringValgResponse? {
-            if (valg == null) return null
-
-            return OpplaringKategoriseringValgResponse(
-                valgteKategoriseringer = valg.valgteKategoriseringer
-                    .map { felt ->
-                        Kategorisering(
-                            type = felt.representerer,
-                            valgteElementer = felt.valg.map { (id, visningsnavn) ->
-                                Valg(id = id, visningsnavn = visningsnavn)
-                            },
-                        )
-                    }.toSet(),
-                valgteSertifiseringer = valg.valgteSertifiseringer,
-            )
-        }
+    data class SertifiseringValgResponse(
+        val id: Long,
+        val navn: String,
+    ) {
+        constructor(model: SertifiseringValg) : this(
+            id = model.id,
+            navn = model.navn,
+        )
     }
 }

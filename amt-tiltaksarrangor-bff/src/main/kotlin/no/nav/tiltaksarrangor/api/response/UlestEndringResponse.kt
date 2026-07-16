@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
-import no.nav.tiltaksarrangor.model.DeltakerStatusAarsakJsonDboDto
 import no.nav.tiltaksarrangor.model.Oppdatering
 import no.nav.tiltaksarrangor.model.UlestEndring
 import java.time.LocalDate
@@ -15,7 +14,95 @@ data class UlestEndringResponse(
     val id: UUID,
     val deltakerId: UUID,
     val oppdatering: OppdateringResponse,
-)
+) {
+    companion object {
+        fun fromEndringer(
+            endringer: List<UlestEndring>,
+            ansatte: Map<UUID, NavAnsatt>,
+            arrangornavn: String,
+            enheter: Map<UUID, NavEnhet>,
+            oppstartstype: Oppstartstype,
+        ): List<UlestEndringResponse> = endringer.map {
+            when (it.oppdatering) {
+                is Oppdatering.DeltakelsesEndring -> UlestEndringResponse(
+                    id = it.id,
+                    deltakerId = it.deltakerId,
+                    oppdatering = OppdateringResponse.DeltakelsesEndringResponse(
+                        endring = DeltakerEndringResponse(it.oppdatering.endring, ansatte, enheter, arrangornavn, oppstartstype),
+                    ),
+                )
+                is Oppdatering.AvvistForslag -> UlestEndringResponse(
+                    id = it.id,
+                    deltakerId = it.deltakerId,
+                    oppdatering = OppdateringResponse.AvvistForslagResponse(
+                        forslag = ForslagHistorikkResponse(it.oppdatering.forslag, arrangornavn, ansatte, enheter),
+                    ),
+                )
+                is Oppdatering.NavBrukerEndring -> UlestEndringResponse(
+                    id = it.id,
+                    deltakerId = it.deltakerId,
+                    oppdatering = OppdateringResponse.NavBrukerEndringResponse(
+                        telefonnummer = it.oppdatering.telefonnummer,
+                        epost = it.oppdatering.epost,
+                        oppdatert = it.oppdatert,
+                    ),
+                )
+                is Oppdatering.NavEndring -> UlestEndringResponse(
+                    id = it.id,
+                    deltakerId = it.deltakerId,
+                    oppdatering = OppdateringResponse.NavEndringResponse(
+                        nyNavVeileder = it.oppdatering.nyNavVeileder,
+                        navVeilederNavn = it.oppdatering.navVeilederNavn,
+                        navVeilederEpost = it.oppdatering.navVeilederEpost,
+                        navVeilederTelefonnummer = it.oppdatering.navVeilederTelefonnummer,
+                        navEnhet = it.oppdatering.navEnhet,
+                        oppdatert = it.oppdatert,
+                    ),
+                )
+                is Oppdatering.NyDeltaker -> UlestEndringResponse(
+                    id = it.id,
+                    deltakerId = it.deltakerId,
+                    oppdatering = OppdateringResponse.NyDeltakerResponse(
+                        opprettetAvNavn = it.oppdatering.opprettetAvNavn,
+                        opprettetAvEnhet = it.oppdatering.opprettetAvEnhet,
+                        opprettet = it.oppdatering.opprettet,
+                    ),
+                )
+                is Oppdatering.DeltMedArrangor -> UlestEndringResponse(
+                    id = it.id,
+                    deltakerId = it.deltakerId,
+                    oppdatering = OppdateringResponse.DeltMedArrangorResponse(
+                        deltAvNavn = it.oppdatering.deltAvNavn,
+                        deltAvEnhet = it.oppdatering.deltAvEnhet,
+                        delt = it.oppdatering.delt,
+                    ),
+                )
+                is Oppdatering.TildeltPlass -> UlestEndringResponse(
+                    id = it.id,
+                    deltakerId = it.deltakerId,
+                    oppdatering = OppdateringResponse.TildeltPlassResponse(
+                        tildeltPlassAvNavn = it.oppdatering.tildeltPlassAvNavn,
+                        tildeltPlassAvEnhet = it.oppdatering.tildeltPlassAvEnhet,
+                        tildeltPlass = it.oppdatering.tildeltPlass,
+                        erNyDeltaker = it.oppdatering.erNyDeltaker,
+                    ),
+                )
+
+                is Oppdatering.Avslag -> UlestEndringResponse(
+                    id = it.id,
+                    deltakerId = it.deltakerId,
+                    oppdatering = OppdateringResponse.AvslagResponse(
+                        it.oppdatering.endretAv,
+                        it.oppdatering.endretAvEnhet,
+                        DeltakerStatusResponse.Aarsak(it.oppdatering.aarsak),
+                        it.oppdatering.begrunnelse,
+                        it.oppdatert,
+                    ),
+                )
+            }
+        }
+    }
+}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -74,93 +161,8 @@ sealed interface OppdateringResponse {
     data class AvslagResponse(
         val endretAv: String?,
         val endretAvEnhet: String?,
-        val aarsak: DeltakerStatusAarsakJsonDboDto,
+        val aarsak: DeltakerStatusResponse.Aarsak,
         val begrunnelse: String?,
         val endret: LocalDate,
     ) : OppdateringResponse
-}
-
-fun List<UlestEndring>.toResponse(
-    ansatte: Map<UUID, NavAnsatt>,
-    arrangornavn: String,
-    enheter: Map<UUID, NavEnhet>,
-    oppstartstype: Oppstartstype,
-): List<UlestEndringResponse> = this.map {
-    when (it.oppdatering) {
-        is Oppdatering.DeltakelsesEndring -> UlestEndringResponse(
-            id = it.id,
-            deltakerId = it.deltakerId,
-            oppdatering = OppdateringResponse.DeltakelsesEndringResponse(
-                endring = it.oppdatering.endring.toResponse(ansatte, enheter, arrangornavn, oppstartstype),
-            ),
-        )
-        is Oppdatering.AvvistForslag -> UlestEndringResponse(
-            id = it.id,
-            deltakerId = it.deltakerId,
-            oppdatering = OppdateringResponse.AvvistForslagResponse(
-                forslag = it.oppdatering.forslag.toResponse(arrangornavn, ansatte, enheter),
-            ),
-        )
-        is Oppdatering.NavBrukerEndring -> UlestEndringResponse(
-            id = it.id,
-            deltakerId = it.deltakerId,
-            oppdatering = OppdateringResponse.NavBrukerEndringResponse(
-                telefonnummer = it.oppdatering.telefonnummer,
-                epost = it.oppdatering.epost,
-                oppdatert = it.oppdatert,
-            ),
-        )
-        is Oppdatering.NavEndring -> UlestEndringResponse(
-            id = it.id,
-            deltakerId = it.deltakerId,
-            oppdatering = OppdateringResponse.NavEndringResponse(
-                nyNavVeileder = it.oppdatering.nyNavVeileder,
-                navVeilederNavn = it.oppdatering.navVeilederNavn,
-                navVeilederEpost = it.oppdatering.navVeilederEpost,
-                navVeilederTelefonnummer = it.oppdatering.navVeilederTelefonnummer,
-                navEnhet = it.oppdatering.navEnhet,
-                oppdatert = it.oppdatert,
-            ),
-        )
-        is Oppdatering.NyDeltaker -> UlestEndringResponse(
-            id = it.id,
-            deltakerId = it.deltakerId,
-            oppdatering = OppdateringResponse.NyDeltakerResponse(
-                opprettetAvNavn = it.oppdatering.opprettetAvNavn,
-                opprettetAvEnhet = it.oppdatering.opprettetAvEnhet,
-                opprettet = it.oppdatering.opprettet,
-            ),
-        )
-        is Oppdatering.DeltMedArrangor -> UlestEndringResponse(
-            id = it.id,
-            deltakerId = it.deltakerId,
-            oppdatering = OppdateringResponse.DeltMedArrangorResponse(
-                deltAvNavn = it.oppdatering.deltAvNavn,
-                deltAvEnhet = it.oppdatering.deltAvEnhet,
-                delt = it.oppdatering.delt,
-            ),
-        )
-        is Oppdatering.TildeltPlass -> UlestEndringResponse(
-            id = it.id,
-            deltakerId = it.deltakerId,
-            oppdatering = OppdateringResponse.TildeltPlassResponse(
-                tildeltPlassAvNavn = it.oppdatering.tildeltPlassAvNavn,
-                tildeltPlassAvEnhet = it.oppdatering.tildeltPlassAvEnhet,
-                tildeltPlass = it.oppdatering.tildeltPlass,
-                erNyDeltaker = it.oppdatering.erNyDeltaker,
-            ),
-        )
-
-        is Oppdatering.Avslag -> UlestEndringResponse(
-            id = it.id,
-            deltakerId = it.deltakerId,
-            oppdatering = OppdateringResponse.AvslagResponse(
-                it.oppdatering.endretAv,
-                it.oppdatering.endretAvEnhet,
-                it.oppdatering.aarsak,
-                it.oppdatering.begrunnelse,
-                it.oppdatert,
-            ),
-        )
-    }
 }
