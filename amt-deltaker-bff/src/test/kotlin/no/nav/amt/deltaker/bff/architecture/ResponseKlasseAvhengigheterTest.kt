@@ -9,7 +9,6 @@ class ResponseKlasseAvhengigheterTest {
         assertResponseFieldsUseAllowedTypes(
             importedPackages = listOf(
                 "no.nav.amt.deltaker.bff",
-                "no.nav.tiltaksarrangor",
             ),
             responsePackagePatterns = responsePakker,
         )
