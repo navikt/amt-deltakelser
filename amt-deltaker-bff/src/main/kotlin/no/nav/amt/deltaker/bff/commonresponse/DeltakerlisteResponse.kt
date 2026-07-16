@@ -28,6 +28,8 @@ data class DeltakerlisteResponse(
     val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse? = null,
     val prisinformasjon: PrisinformasjonResponse? = null,
 ) {
+    val tiltakskodeResponse: TiltakskodeResponse = TiltakskodeResponse(tiltakskode)
+
     constructor(model: GjennomforingModel) : this(
         deltakerlisteId = model.id,
         deltakerlisteNavn = model.navn,

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
+import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -31,4 +32,6 @@ data class DeltakerDetaljerResponse(
     val pameldingstype: GjennomforingPameldingType,
     val deltakelsesinnhold: String?,
     val erEnkeltplass: Boolean,
-)
+) {
+    val tiltakskodeResponse = TiltakskodeResponse(tiltakskode)
+}
