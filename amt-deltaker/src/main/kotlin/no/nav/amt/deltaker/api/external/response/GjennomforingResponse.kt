@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.api.external.response
 
+import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeResponse
 import java.util.UUID
 
 data class GjennomforingResponse(
