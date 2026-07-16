@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    testImplementation(project(":amt-lib:testing"))
 
     // --- Audit logging ---
     implementation(libs.nav.common.audit.log)

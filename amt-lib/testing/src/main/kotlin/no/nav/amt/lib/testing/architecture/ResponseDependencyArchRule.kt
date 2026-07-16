@@ -1,16 +1,46 @@
-package no.nav.amt.deltaker.bff.architecture
+package no.nav.amt.lib.testing.architecture
 
+import com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo
+import com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage
+import com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackage
 import com.tngtech.archunit.core.domain.JavaField
+import com.tngtech.archunit.core.importer.ClassFileImporter
+import com.tngtech.archunit.core.importer.ImportOption
 import com.tngtech.archunit.lang.ArchCondition
 import com.tngtech.archunit.lang.ConditionEvents
 import com.tngtech.archunit.lang.SimpleConditionEvent
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields
 import java.lang.reflect.GenericArrayType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
 
-fun haveOnlyAllowedGenericTypeArguments(responsePackagePatterns: Array<String>): ArchCondition<JavaField> =
+fun assertResponseFieldsUseAllowedTypes(
+    importedPackages: List<String>,
+    responsePackagePatterns: Array<String>,
+    additionalAllowedPackagePatterns: Array<String> = emptyArray(),
+) {
+    val allowedPackagePatterns = responsePackagePatterns + additionalAllowedPackagePatterns
+
+    val importedClasses = ClassFileImporter()
+        .withImportOption(ImportOption.DoNotIncludeTests())
+        .importPackages(*importedPackages.toTypedArray())
+
+    fields()
+        .that()
+        .areDeclaredInClassesThat()
+        .resideInAnyPackage(*responsePackagePatterns)
+        .should()
+        .haveRawType(
+            resideOutsideOfPackage("no.nav..")
+                .or(resideInAnyPackage(*allowedPackagePatterns))
+                .or(assignableTo(Enum::class.java)),
+        ).andShould(haveOnlyAllowedGenericTypeArguments(allowedPackagePatterns))
+        .check(importedClasses)
+}
+
+private fun haveOnlyAllowedGenericTypeArguments(responsePackagePatterns: Array<String>): ArchCondition<JavaField> =
     object : ArchCondition<JavaField>("have only allowed generic type arguments") {
         override fun check(
             field: JavaField,
@@ -39,7 +69,7 @@ private fun isAllowedResponseType(
     responsePackagePatterns: Array<String>,
 ): Boolean {
     val typeName = type.name
-    if (!typeName.startsWith("no.nav.amt.")) return true
+    if (!typeName.startsWith("no.nav.")) return true
     if (type.isEnum) return true
     return responsePackagePatterns.any { pkgPattern -> pkgPattern.matchesClassName(typeName) }
 }

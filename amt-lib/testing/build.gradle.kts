@@ -7,6 +7,7 @@ dependencies {
     api(project(":amt-lib:utils"))
 
     implementation(libs.logback.classic)
+    implementation(libs.archunit.junit5)
 
     implementation(libs.caffeine)
 

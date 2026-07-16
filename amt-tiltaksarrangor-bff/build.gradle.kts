@@ -15,6 +15,8 @@ repositories {
 }
 
 dependencies {
+    testImplementation(project(":amt-lib:testing"))
+
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -58,6 +60,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
     testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.archunit.junit5)
     testImplementation(libs.token.validation.spring.test)
 
     testImplementation(libs.testcontainers.postgresql)
