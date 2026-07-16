@@ -112,7 +112,7 @@ enum class Tiltakskode {
     }
 }
 
-data class TiltakskodeDto(
+data class TiltakskodeResponse(
     val kode: Tiltakskode,
     val visningsnavn: String = kode.visningsnavn,
 )

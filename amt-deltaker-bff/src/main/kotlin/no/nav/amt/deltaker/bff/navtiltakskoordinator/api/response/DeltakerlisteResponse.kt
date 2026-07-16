@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeDto
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeResponse
 import java.time.LocalDate
 import java.util.UUID
 
@@ -21,8 +21,7 @@ data class DeltakerlisteResponse(
     val koordinatorer: List<TiltakskoordinatorResponse>,
     val erEnkeltplass: Boolean,
 ) {
-
-    val tiltakskodeDto: TiltakskodeDto = TiltakskodeDto(tiltakskode)
+    val tiltakskodeResponse: TiltakskodeResponse = TiltakskodeResponse(tiltakskode)
 
     data class TiltakskoordinatorResponse(
         val id: UUID,

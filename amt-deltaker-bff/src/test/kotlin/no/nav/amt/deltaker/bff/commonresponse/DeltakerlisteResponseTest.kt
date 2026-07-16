@@ -33,8 +33,8 @@ class DeltakerlisteResponseTest {
         response.deltakerlisteId shouldBe model.id
         response.deltakerlisteNavn shouldBe model.navn
         response.tiltakskode shouldBe model.tiltak.tiltakskode
-        response.tiltakskodeDto.kode shouldBe model.tiltak.tiltakskode
-        response.tiltakskodeDto.visningsnavn shouldBe model.tiltak.tiltakskode.visningsnavn
+        response.tiltakskodeResponse.kode shouldBe model.tiltak.tiltakskode
+        response.tiltakskodeResponse.visningsnavn shouldBe model.tiltak.tiltakskode.visningsnavn
         response.oppstartstype shouldBe Oppstartstype.LOPENDE
         response.startdato shouldBe LocalDate.of(2026, 1, 1)
         response.sluttdato shouldBe LocalDate.of(2027, 1, 1)

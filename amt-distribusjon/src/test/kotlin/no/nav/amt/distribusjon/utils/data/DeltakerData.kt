@@ -12,7 +12,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeDto
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeResponse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -56,7 +56,7 @@ object DeltakerData {
         return GjennomforingResponse(
             id = UUID.randomUUID(),
             tiltakstype = tiltakstype,
-            tiltakskode = TiltakskodeDto(tiltakstype.tiltakskode),
+            tiltakskode = TiltakskodeResponse(tiltakstype.tiltakskode),
             navn = "deltakerliste navn",
             status = GjennomforingStatusType.GJENNOMFORES,
             startDato = LocalDate.now(),

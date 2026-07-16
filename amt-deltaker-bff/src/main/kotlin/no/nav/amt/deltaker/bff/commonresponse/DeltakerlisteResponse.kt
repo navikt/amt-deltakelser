@@ -8,7 +8,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeDto
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeResponse
 import java.time.LocalDate
 import java.util.UUID
 
@@ -29,8 +29,7 @@ data class DeltakerlisteResponse(
     val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse? = null,
     val prisinformasjon: PrisinformasjonResponse? = null,
 ) {
-
-    val tiltakskodeDto: TiltakskodeDto = TiltakskodeDto(tiltakskode)
+    val tiltakskodeResponse: TiltakskodeResponse = TiltakskodeResponse(tiltakskode)
 
     constructor(model: GjennomforingModel) : this(
         deltakerlisteId = model.id,

@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.api.external.response
 
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeDto
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeResponse
 import java.util.UUID
 
 data class GjennomforingResponse(
@@ -13,5 +13,5 @@ data class GjennomforingResponse(
     val arrangor: ArrangorResponse,
 ) {
     @Suppress("unused") // serialiseres
-    val tiltakskodeDto: TiltakskodeDto = TiltakskodeDto(tiltakskode)
+    val tiltakskodeResponse: TiltakskodeResponse = TiltakskodeResponse(tiltakskode)
 }

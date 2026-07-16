@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.api.external.response.ArrangorResponse
 import no.nav.amt.deltaker.api.external.response.GjennomforingResponse
 import no.nav.amt.deltaker.external.data.GjennomforingResponseJsonSchemas.gjennomforingResponseSchema
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakskodeDto
 import org.junit.jupiter.api.Test
 import tools.jackson.module.kotlin.jacksonMapperBuilder
 import java.util.UUID
