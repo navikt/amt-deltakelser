@@ -1,14 +1,13 @@
-package no.nav.amt.deltaker.bff.typegen
+package no.nav.amt.felles.typegenerering
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
+import no.nav.amt.felles.typegenerering.collisions.one.DeltakerlisteResponse as FirstDeltakerlisteResponse
+import no.nav.amt.felles.typegenerering.collisions.two.DeltakerlisteResponse as SecondDeltakerlisteResponse
 import org.junit.jupiter.api.Test
-import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse as CommonDeltakerlisteResponse
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteResponse as TiltakskoordinatorDeltakerlisteResponse
 
 class TypeDefinitionToZodTest {
     enum class Status {
@@ -72,7 +71,7 @@ class TypeDefinitionToZodTest {
         val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
 
         result shouldBe
-            "/** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.SupportedExample */\nconst typeDefinitionToZodTest_SupportedExampleSchema = z.object({id: z.number(), metadata: z.record(z.number().nullable()), optionalName: z.string().nullable(), status: z.enum([\"ACTIVE\", \"INACTIVE\"]), tags: z.array(z.string())})"
+            "/** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.SupportedExample */\nconst typeDefinitionToZodTest_SupportedExampleSchema = z.object({id: z.number(), metadata: z.record(z.number().nullable()), optionalName: z.string().nullable(), status: z.enum([\"ACTIVE\", \"INACTIVE\"]), tags: z.array(z.string())})"
     }
 
     @Test
@@ -83,7 +82,7 @@ class TypeDefinitionToZodTest {
 
         result shouldBe
             """
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.SupportedExample */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.SupportedExample */
             const typeDefinitionToZodTest_SupportedExampleSchema = z.object({
               id: z.number(),
               metadata: z.record(z.number().nullable()),
@@ -101,9 +100,9 @@ class TypeDefinitionToZodTest {
         val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
         result shouldBe
             """
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.Nested */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.Nested */
             const typeDefinitionToZodTest_NestedSchema = z.object({name: z.string()})
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.HasCustomType */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.HasCustomType */
             const typeDefinitionToZodTest_HasCustomTypeSchema = z.object({nested: typeDefinitionToZodTest_NestedSchema})
             """.trimIndent()
     }
@@ -115,13 +114,13 @@ class TypeDefinitionToZodTest {
         val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
         result shouldBe
             """
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.Decision.Approved */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.Decision.Approved */
             const typeDefinitionToZodTest_Decision_ApprovedSchema = z.object({})
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.Decision.Rejected */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.Decision.Rejected */
             const typeDefinitionToZodTest_Decision_RejectedSchema = z.object({reason: z.string()})
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.Decision */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.Decision */
             const typeDefinitionToZodTest_DecisionSchema = z.union([typeDefinitionToZodTest_Decision_ApprovedSchema, typeDefinitionToZodTest_Decision_RejectedSchema])
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.HasSealedType */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.HasSealedType */
             const typeDefinitionToZodTest_HasSealedTypeSchema = z.object({decision: typeDefinitionToZodTest_DecisionSchema})
             """.trimIndent()
     }
@@ -133,13 +132,13 @@ class TypeDefinitionToZodTest {
         val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
         result shouldBe
             """
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.AnnotatedDecision.Approved */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.AnnotatedDecision.Approved */
             const typeDefinitionToZodTest_AnnotatedDecision_ApprovedSchema = z.object({type: z.literal("Approved")})
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.AnnotatedDecision.Rejected */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.AnnotatedDecision.Rejected */
             const typeDefinitionToZodTest_AnnotatedDecision_RejectedSchema = z.object({type: z.literal("Rejected"), reason: z.string()})
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.AnnotatedDecision */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.AnnotatedDecision */
             const typeDefinitionToZodTest_AnnotatedDecisionSchema = z.discriminatedUnion("type", [typeDefinitionToZodTest_AnnotatedDecision_ApprovedSchema, typeDefinitionToZodTest_AnnotatedDecision_RejectedSchema])
-            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.HasAnnotatedSealedType */
+            /** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.HasAnnotatedSealedType */
             const typeDefinitionToZodTest_HasAnnotatedSealedTypeSchema = z.object({decision: typeDefinitionToZodTest_AnnotatedDecisionSchema})
             """.trimIndent()
     }
@@ -161,16 +160,7 @@ class TypeDefinitionToZodTest {
 
         val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
         result shouldBe
-            "/** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.RecursiveNode */\nconst typeDefinitionToZodTest_RecursiveNodeSchema = z.object({next: z.lazy(() => typeDefinitionToZodTest_RecursiveNodeSchema).nullable()})"
-    }
-
-    @Test
-    fun `toZodExpression`() {
-        val typeDefinition = KotlinTypeDefinitionParser.parse(DeltakerlisteResponse::class)
-
-        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
-        result shouldContain "/** no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse */"
-        result shouldContain "const deltakerlisteResponseSchema = z.object({"
+            "/** no.nav.amt.felles.typegenerering.TypeDefinitionToZodTest.RecursiveNode */\nconst typeDefinitionToZodTest_RecursiveNodeSchema = z.object({next: z.lazy(() => typeDefinitionToZodTest_RecursiveNodeSchema).nullable()})"
     }
 
     data class Parent(
@@ -194,16 +184,16 @@ class TypeDefinitionToZodTest {
     fun `toZodExpressions skal bruke package-prefiks ved navnekollisjon`() {
         val result = TypeDefinitionToZod.toZodExpressions(
             classes = listOf(
-                CommonDeltakerlisteResponse::class,
-                TiltakskoordinatorDeltakerlisteResponse::class,
+                FirstDeltakerlisteResponse::class,
+                SecondDeltakerlisteResponse::class,
             ),
             prettyPrint = false,
         )
 
-        result shouldContain "/** no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse */"
-        result shouldContain "const deltakerlisteResponseSchema = z.object({"
-        result shouldContain "/** no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerlisteResponse */"
-        result shouldContain "const navtiltakskoordinator_api_response_DeltakerlisteResponseSchema = z.object({"
+        result shouldContain "/** no.nav.amt.felles.typegenerering.collisions.one.DeltakerlisteResponse */"
+        result shouldContain "const deltakerlisteResponseSchema = z.object({id: z.string()})"
+        result shouldContain "/** no.nav.amt.felles.typegenerering.collisions.two.DeltakerlisteResponse */"
+        result shouldContain "const no_nav_amt_felles_typegenerering_collisions_two_DeltakerlisteResponseSchema = z.object({navn: z.string()})"
         result shouldNotContain "deltakerlisteResponseSchema_2"
     }
 }

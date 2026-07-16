@@ -13,6 +13,7 @@ dependencies {
     implementation(libs.unleash)
 
     // --- Test ---
+    testImplementation(project(":amt-felles:typegenerering"))
     testImplementation(project(":amt-felles:archunit-test"))
 }
 

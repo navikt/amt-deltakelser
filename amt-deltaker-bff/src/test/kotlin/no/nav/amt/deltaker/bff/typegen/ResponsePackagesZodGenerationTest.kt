@@ -4,6 +4,7 @@ import com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.core.importer.ImportOption
 import no.nav.amt.deltaker.bff.architecture.responsePakker
+import no.nav.amt.felles.typegenerering.TypeDefinitionToZod
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 

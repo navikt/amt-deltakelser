@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.typegen
+package no.nav.amt.felles.typegenerering
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.kotest.matchers.collections.shouldContainExactly
