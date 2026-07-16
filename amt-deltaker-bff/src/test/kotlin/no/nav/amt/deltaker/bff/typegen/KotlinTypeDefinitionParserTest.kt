@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.typegen
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -22,6 +23,15 @@ class KotlinTypeDefinitionParserTest {
         ) : Decision
     }
 
+    @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    sealed interface AnnotatedDecision {
+        object Approved : AnnotatedDecision
+
+        data class Rejected(
+            val reason: String,
+        ) : AnnotatedDecision
+    }
+
     data class Example(
         val id: Long,
         val optionalName: String?,
@@ -31,6 +41,10 @@ class KotlinTypeDefinitionParserTest {
         val status: Status,
         val decision: Decision,
         val children: Set<Child>,
+    )
+
+    data class AnnotatedExample(
+        val decision: AnnotatedDecision,
     )
 
     data class RecursiveNode(
@@ -127,6 +141,19 @@ class KotlinTypeDefinitionParserTest {
 
         definition.typeName shouldBe "KotlinTypeDefinitionParserTest_Parent"
         definition.field("child").type.typeName shouldBe "KotlinTypeDefinitionParserTest_Parent_Child"
+    }
+
+    @Test
+    fun `parse skal inkludere class-level annotation metadata`() {
+        val definition = KotlinTypeDefinitionParser.parse(AnnotatedExample::class)
+
+        val decision = definition.field("decision").type
+        val jsonTypeInfo = decision.annotations.single()
+        jsonTypeInfo.qualifiedName shouldBe "com.fasterxml.jackson.annotation.JsonTypeInfo"
+        jsonTypeInfo.simpleName shouldBe "JsonTypeInfo"
+        jsonTypeInfo.values["include"] shouldBe "PROPERTY"
+        jsonTypeInfo.values["property"] shouldBe "type"
+        jsonTypeInfo.values["use"] shouldBe "SIMPLE_NAME"
     }
 
     private fun TypeDefinition.field(name: String): FieldDefinition = fields.first { it.name == name }

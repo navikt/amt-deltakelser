@@ -60,6 +60,17 @@ object TypeDefinitionToZod {
             return "z.union([\n${items.joinToString(",\n") { "$innerIndent$it" }}\n$closingIndent])"
         }
 
+        fun discriminatedUnionExpression(
+            discriminator: String,
+            items: List<String>,
+            depth: Int,
+        ): String {
+            if (!prettyPrint) return "z.discriminatedUnion(\"$discriminator\", [${items.joinToString(", ")}])"
+            val innerIndent = indent(depth + 1)
+            val closingIndent = indent(depth)
+            return "z.discriminatedUnion(\"$discriminator\", [\n${items.joinToString(",\n") { "$innerIndent$it" }}\n$closingIndent])"
+        }
+
         fun module(declarations: List<String>): String {
             if (!prettyPrint) return declarations.joinToString("\n")
             return declarations.joinToString("\n\n")
@@ -69,12 +80,14 @@ object TypeDefinitionToZod {
     private class SchemaBuilder(
         private val formatting: Formatting,
     ) {
+        private val definitionsByClass = linkedMapOf<KClass<*>, TypeDefinition>()
         private val schemaNames = linkedMapOf<KClass<*>, String>()
         private val usedNames = mutableSetOf<String>()
         private val inProgress = mutableSetOf<KClass<*>>()
         private val emittedBodies = linkedMapOf<KClass<*>, String>()
 
         fun build(definitions: Collection<TypeDefinition>): String {
+            definitions.forEach { definitionsByClass[it.kClass] = it }
             definitions.forEach { ensureSchema(it.kClass) }
             val declarations = emittedBodies.entries.map { (kClass, body) ->
                 val qualifiedName = kClass.qualifiedName ?: kClass.simpleName ?: "Unknown"
@@ -88,10 +101,11 @@ object TypeDefinitionToZod {
             if (emittedBodies.containsKey(kClass)) return schemaName
             if (!inProgress.add(kClass)) return schemaName
 
+            val definition = definitionFor(kClass)
             val body = if (kClass.isSealed) {
-                buildSealedBody(kClass)
+                buildSealedBody(definition)
             } else {
-                buildObjectBody(KotlinTypeDefinitionParser.parse(kClass))
+                buildObjectBody(definition)
             }
 
             inProgress.remove(kClass)
@@ -100,23 +114,31 @@ object TypeDefinitionToZod {
         }
 
         private fun buildObjectBody(definition: TypeDefinition): String {
-            val fields = definition.fields.map { field ->
-                field.name to toZodType(field.type, depth = 1)
+            val discriminatorField = discriminatorFieldFor(definition.kClass)
+            val fields = buildList {
+                discriminatorField?.let { add(it.property to """z.literal("${it.value}")""") }
+                addAll(definition.fields.map { field ->
+                    field.name to toZodType(field.type, depth = 1)
+                })
             }
             return formatting.objectExpression(fields, depth = 0)
         }
 
-        private fun buildSealedBody(kClass: KClass<*>): String {
-            val subclasses = kClass.sealedSubclasses.sortedBy { it.qualifiedName ?: it.simpleName ?: "" }
+        private fun buildSealedBody(definition: TypeDefinition): String {
+            val subclasses = definition.kClass.sealedSubclasses.sortedBy { it.qualifiedName ?: it.simpleName ?: "" }
             if (subclasses.isEmpty()) {
-                throw IllegalArgumentException("Sealed type has no subclasses: ${kClass.qualifiedName}")
+                throw IllegalArgumentException("Sealed type has no subclasses: ${definition.kClass.qualifiedName}")
             }
 
             val items = subclasses.map { subclass ->
-                val referenced = ensureSchema(subclass)
-                if (subclass in inProgress) "z.lazy(() => $referenced)" else referenced
+                ensureSchema(subclass)
             }
-            return formatting.unionExpression(items, depth = 0)
+            val discriminator = discriminatorConfigFor(definition)?.property
+            return if (discriminator != null) {
+                formatting.discriminatedUnionExpression(discriminator, items, depth = 0)
+            } else {
+                formatting.unionExpression(items, depth = 0)
+            }
         }
 
         private fun toZodType(
@@ -218,5 +240,45 @@ object TypeDefinitionToZod {
                 }
             }
         }
+
+        private fun definitionFor(kClass: KClass<*>): TypeDefinition = definitionsByClass.getOrPut(kClass) {
+            KotlinTypeDefinitionParser.parse(kClass)
+        }
+
+        private fun discriminatorFieldFor(kClass: KClass<*>): DiscriminatorField? {
+            val parent = (kClass.java.interfaces.map { it.kotlin } + listOfNotNull(kClass.java.superclass?.kotlin))
+                .firstOrNull { it.isSealed && discriminatorConfigFor(definitionFor(it)) != null }
+                ?: return null
+
+            val config = discriminatorConfigFor(definitionFor(parent)) ?: return null
+            val value = kClass.simpleName
+                ?: throw IllegalArgumentException("Subtype is missing simpleName for discriminator: ${kClass.qualifiedName}")
+            return DiscriminatorField(property = config.property, value = value)
+        }
+
+        private fun discriminatorConfigFor(definition: TypeDefinition): DiscriminatorConfig? {
+            val jsonTypeInfo = definition.annotations.firstOrNull {
+                it.qualifiedName == JACKSON_JSON_TYPE_INFO
+            } ?: return null
+
+            val use = jsonTypeInfo.values["use"]
+            val include = jsonTypeInfo.values["include"]
+            val property = jsonTypeInfo.values["property"]?.takeIf { it.isNotBlank() }
+
+            return if (use == "SIMPLE_NAME" && include == "PROPERTY" && property != null) {
+                DiscriminatorConfig(property)
+            } else {
+                null
+            }
+        }
+
+        private data class DiscriminatorConfig(val property: String)
+
+        private data class DiscriminatorField(
+            val property: String,
+            val value: String,
+        )
     }
+
+    private const val JACKSON_JSON_TYPE_INFO = "com.fasterxml.jackson.annotation.JsonTypeInfo"
 }

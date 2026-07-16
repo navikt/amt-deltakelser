@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.typegen
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -41,6 +42,19 @@ class TypeDefinitionToZodTest {
 
     data class HasSealedType(
         val decision: Decision,
+    )
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    sealed interface AnnotatedDecision {
+        object Approved : AnnotatedDecision
+
+        data class Rejected(
+            val reason: String,
+        ) : AnnotatedDecision
+    }
+
+    data class HasAnnotatedSealedType(
+        val decision: AnnotatedDecision,
     )
 
     data class RecursiveNode(
@@ -109,6 +123,24 @@ class TypeDefinitionToZodTest {
             const typeDefinitionToZodTest_DecisionSchema = z.union([typeDefinitionToZodTest_Decision_ApprovedSchema, typeDefinitionToZodTest_Decision_RejectedSchema])
             /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.HasSealedType */
             const typeDefinitionToZodTest_HasSealedTypeSchema = z.object({decision: typeDefinitionToZodTest_DecisionSchema})
+            """.trimIndent()
+    }
+
+    @Test
+    fun `toZodExpression skal bruke discriminated union for JsonTypeInfo-annotert sealed type`() {
+        val typeDefinition = KotlinTypeDefinitionParser.parse(HasAnnotatedSealedType::class)
+
+        val result = TypeDefinitionToZod.toZodExpression(typeDefinition, prettyPrint = false)
+        result shouldBe
+            """
+            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.AnnotatedDecision.Approved */
+            const typeDefinitionToZodTest_AnnotatedDecision_ApprovedSchema = z.object({type: z.literal("Approved")})
+            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.AnnotatedDecision.Rejected */
+            const typeDefinitionToZodTest_AnnotatedDecision_RejectedSchema = z.object({type: z.literal("Rejected"), reason: z.string()})
+            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.AnnotatedDecision */
+            const typeDefinitionToZodTest_AnnotatedDecisionSchema = z.discriminatedUnion("type", [typeDefinitionToZodTest_AnnotatedDecision_ApprovedSchema, typeDefinitionToZodTest_AnnotatedDecision_RejectedSchema])
+            /** no.nav.amt.deltaker.bff.typegen.TypeDefinitionToZodTest.HasAnnotatedSealedType */
+            const typeDefinitionToZodTest_HasAnnotatedSealedTypeSchema = z.object({decision: typeDefinitionToZodTest_AnnotatedDecisionSchema})
             """.trimIndent()
     }
 

@@ -8,6 +8,7 @@ data class TypeDefinition(
     val kClass: KClass<*>,
     val typeName: String,
     val fields: List<FieldDefinition>,
+    val annotations: List<TypeAnnotation>,
 )
 
 data class FieldDefinition(
@@ -23,6 +24,13 @@ data class TypeReference(
     val nullable: Boolean,
     val genericArguments: List<TypeReference>,
     val sealedSubclasses: List<KClass<*>>,
+    val annotations: List<TypeAnnotation>,
+)
+
+data class TypeAnnotation(
+    val qualifiedName: String,
+    val simpleName: String,
+    val values: Map<String, String?>,
 )
 
 enum class TypeKind {
@@ -50,6 +58,7 @@ object KotlinTypeDefinitionParser {
             kClass = kClass,
             typeName = kClass.nestedTypeName(),
             fields = fields,
+            annotations = kClass.toTypeAnnotations(),
         )
     }
 
@@ -70,6 +79,7 @@ object KotlinTypeDefinitionParser {
             nullable = isMarkedNullable,
             genericArguments = genericArguments,
             sealedSubclasses = sealedSubclasses,
+            annotations = classifier?.toTypeAnnotations().orEmpty(),
         )
     }
 
@@ -94,4 +104,28 @@ object KotlinTypeDefinitionParser {
         Double::class,
         Char::class,
     )
+
+    private fun KClass<*>.toTypeAnnotations(): List<TypeAnnotation> = annotations
+        .sortedBy { it.annotationClass.qualifiedName ?: it.annotationClass.simpleName ?: "" }
+        .map { annotation ->
+            TypeAnnotation(
+                qualifiedName = annotation.annotationClass.qualifiedName ?: annotation.annotationClass.simpleName ?: "Unknown",
+                simpleName = annotation.annotationClass.simpleName ?: "Unknown",
+                values = annotation.annotationClass.java.declaredMethods
+                    .filter { it.parameterCount == 0 }
+                    .filterNot { it.name in setOf("hashCode", "toString", "annotationType") }
+                    .sortedBy { it.name }
+                    .associate { method ->
+                        method.name to method.invoke(annotation).toAnnotationValue()
+                    },
+            )
+        }
+
+    private fun Any?.toAnnotationValue(): String? = when (this) {
+        null -> null
+        is Enum<*> -> name
+        is Class<*> -> name
+        is Array<*> -> joinToString(prefix = "[", postfix = "]") { it.toAnnotationValue().orEmpty() }
+        else -> toString()
+    }
 }
