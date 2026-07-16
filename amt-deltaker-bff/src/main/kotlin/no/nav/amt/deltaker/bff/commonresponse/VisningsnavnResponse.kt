@@ -8,16 +8,16 @@ data class VisningsnavnResponse(
     val tiltakHosArrangorTittel: String,
     val tiltakHosArrangorIngressTekst: String,
 ) {
-    constructor(model: GjennomforingModel) : this(
-        tiltakHosArrangorTittel = hentTiltakHosArrangorTittel(model),
-        tiltakHosArrangorIngressTekst = hentTiltakHosArrangorIngressTekst(model),
+    constructor(gjennomforing: GjennomforingModel) : this(
+        tiltakHosArrangorTittel = hentTiltakHosArrangorTittel(gjennomforing),
+        tiltakHosArrangorIngressTekst = hentTiltakHosArrangorIngressTekst(gjennomforing),
     )
 
     companion object {
-        private fun hentTiltakHosArrangorTittel(model: GjennomforingModel): String {
-            val arrangorNavn = model.arrangor?.navn ?: "Ukjent arrangør"
-            val tiltakskode = model.tiltak.tiltakskode
-            val kurstype = hentKurstype(model)
+        private fun hentTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String {
+            val arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør"
+            val tiltakskode = gjennomforing.tiltak.tiltakskode
+            val kurstype = hentKurstype(gjennomforing)
 
             if (kurstype != null) {
                 return "$kurstype hos $arrangorNavn"

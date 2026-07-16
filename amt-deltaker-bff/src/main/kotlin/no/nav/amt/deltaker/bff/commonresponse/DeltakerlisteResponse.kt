@@ -27,6 +27,7 @@ data class DeltakerlisteResponse(
     val pameldingstype: GjennomforingPameldingType,
     val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse? = null,
     val prisinformasjon: PrisinformasjonResponse? = null,
+    val visningsnavn: VisningsnavnResponse,
 ) {
     val tiltakskodeResponse: TiltakskodeResponse = TiltakskodeResponse(tiltakskode)
 
@@ -46,6 +47,7 @@ data class DeltakerlisteResponse(
         pameldingstype = model.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING,
         opplaringKategoriseringValg = model.opplaringKategoriseringValg?.let(::OpplaringKategoriseringValgResponse),
         prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
+        visningsnavn = VisningsnavnResponse(model),
     )
 }
 
