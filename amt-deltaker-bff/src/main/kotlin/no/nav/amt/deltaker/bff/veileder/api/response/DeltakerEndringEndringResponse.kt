@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.InnholdResponse
+import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
@@ -148,6 +149,14 @@ sealed interface DeltakerEndringEndringResponse {
         )
     }
 
+    data class EndrePrisinfo(
+        val prisinfo: PrisinformasjonResponse,
+    ) : DeltakerEndringEndringResponse {
+        constructor(model: DeltakerEndring.Endring.EndrePrisinfo) : this(
+            prisinfo = PrisinformasjonResponse.fromModel(model.prisinfo),
+        )
+    }
+
     data class AarsakResponse(
         val type: DeltakerEndring.Aarsak.Type,
         val beskrivelse: String? = null,
@@ -163,7 +172,7 @@ sealed interface DeltakerEndringEndringResponse {
             model: DeltakerEndring.Endring,
             oppstartstype: Oppstartstype?,
         ): DeltakerEndringEndringResponse = when (model) {
-            is DeltakerEndring.Endring.EndrePrisinfo -> TODO()
+            is DeltakerEndring.Endring.EndrePrisinfo -> EndrePrisinfo(model)
             is DeltakerEndring.Endring.AvsluttDeltakelse -> AvsluttDeltakelse(model, oppstartstype)
             is DeltakerEndring.Endring.EndreAvslutning -> EndreAvslutning(model)
             is DeltakerEndring.Endring.AvbrytDeltakelse -> AvsluttDeltakelse(model, oppstartstype)
