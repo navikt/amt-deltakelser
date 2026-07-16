@@ -112,7 +112,7 @@ object PrisinfoRepository {
                     .map(::rowMapper)
                     .asSingle,
             )
-        } ?: error("Fant ikke inserted prisinfo")
+        } ?: error("Fant ikke lagret prisinfo")
     }
 
     fun settGodkjent(gjennomforingId: UUID) {

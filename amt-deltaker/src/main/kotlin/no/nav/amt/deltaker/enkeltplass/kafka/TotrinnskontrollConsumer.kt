@@ -59,17 +59,17 @@ class TotrinnskontrollConsumer(
      * Behandler en melding fra Kafka.
      *
      * Kaster feil ved tombstone, filtrerer bort irrelevante hendelser,
-     * og prosesserer kun godkjente ENKELTPLASS_OKONOMI-hendelser.
+     * og prosesserer kun godkjente ENKELTPLASS_OKONOMI- og ENKELTPLASS_PRISENDRING-hendelser.
      *
-     * @param totrinnskontrollId Kafka-key for meldingen
+     * @param key Kafka-key for meldingen
      * @param value rå payload fra Kafka (kan være `null` ved tombstone)
      */
     suspend fun consume(
-        totrinnskontrollId: UUID,
+        key: UUID,
         value: String?,
     ) {
         if (value == null) {
-            throw IllegalArgumentException("Tombstone er ikke støttet. Key: $totrinnskontrollId")
+            throw IllegalArgumentException("Tombstone er ikke støttet. Key: $key")
         }
 
         if (!skalBehandleTotrinnskontrollHendelse(value)) return
@@ -87,10 +87,10 @@ class TotrinnskontrollConsumer(
         // maks 1 endring som avventer godkjent økonomi, det kan derfor skje at totrinnskontrollId ikke lenger finnes
         if (!PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
                 gjennomforingId = deltaker.deltakerliste.id,
-                prisinfoId = totrinnskontrollId,
+                prisinfoId = totrinnskontrollHendelse.id,
             )
         ) {
-            log.info("Deltaker ${deltaker.id} har ingen prisinformasjon med id $totrinnskontrollId som venter på godkjenning.")
+            log.info("Deltaker ${deltaker.id} har ingen prisinformasjon med id ${totrinnskontrollHendelse.id} som venter på godkjenning.")
             return
         }
 

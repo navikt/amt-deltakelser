@@ -124,10 +124,11 @@ class TotrinnskontrollConsumerTest {
         fun `consume - godkjent ENKELTPLASS_OKONOMI prosesseres`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
             )
 
             every {
@@ -169,7 +170,7 @@ class TotrinnskontrollConsumerTest {
 
             // Act
             consumer.consume(
-                totrinnskontrollId = UUID.randomUUID(),
+                key = UUID.randomUUID(),
                 value = godkjentEnkeltplassOkonomiPayload(gjennomforingId),
             )
 
@@ -188,7 +189,7 @@ class TotrinnskontrollConsumerTest {
 
             // Act
             consumer.consume(
-                totrinnskontrollId = UUID.randomUUID(),
+                key = UUID.randomUUID(),
                 value = avvistEnkeltplassOkonomiPayload(gjennomforingId),
             )
 
@@ -200,10 +201,11 @@ class TotrinnskontrollConsumerTest {
         fun `consume - godkjent ENKELTPLASS_OKONOMI ignoreres når prisinfo ikke finnes`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
             )
 
             every {
@@ -236,10 +238,11 @@ class TotrinnskontrollConsumerTest {
         fun `consume - godkjent ENKELTPLASS_PRISENDRING prosesseres`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
             )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltakerInTest)
@@ -292,10 +295,11 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `processGodkjentInnsoking - oppdaterer deltaker status via beforeUpsert`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
             )
 
             every { PrisinfoRepoAdapter.godkjennOkonomi(any()) } returns Unit
@@ -339,6 +343,7 @@ class TotrinnskontrollConsumerTest {
             // Arrange
             val sistEndretAv = UUID.randomUUID()
             val sistEndretAvEnhet = UUID.randomUUID()
+            val idag = LocalDate.now()
             val vedtaksinformasjon = Vedtaksinformasjon(
                 fattet = null,
                 fattetAvNav = false,
@@ -351,8 +356,8 @@ class TotrinnskontrollConsumerTest {
             )
             val deltakerInTest = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
                 vedtaksinformasjon = vedtaksinformasjon,
             )
             val navAnsatt = mockk<NavAnsatt>()
@@ -394,10 +399,11 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `processGodkjentInnsoking - afterUpsert kaster feil når vedtaksinformasjon mangler`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
                 vedtaksinformasjon = null,
             )
 
@@ -428,10 +434,11 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `processGodkjentInnsoking - kaster unntak når godkjennOkonomi feiler`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
             )
             val exception = RuntimeException("Database error")
 
@@ -483,9 +490,10 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `nyDeltakerStatus - returnerer FULLFORT når sluttdato er i fortiden`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
-                startdato = LocalDate.now().minusWeeks(2),
-                sluttdato = LocalDate.now().minusDays(1),
+                startdato = idag.minusWeeks(2),
+                sluttdato = idag.minusDays(1),
             )
 
             // Act
@@ -498,9 +506,10 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `nyDeltakerStatus - returnerer VENTER_PA_OPPSTART når startdato er i fremtiden`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
-                startdato = LocalDate.now().plusDays(5),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag.plusDays(5),
+                sluttdato = idag.plusWeeks(4),
             )
 
             // Act
@@ -513,9 +522,10 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `nyDeltakerStatus - returnerer DELTAR når startdato er idag`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
-                startdato = LocalDate.now(),
-                sluttdato = LocalDate.now().plusWeeks(4),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
             )
 
             // Act
@@ -528,9 +538,10 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `nyDeltakerStatus - returnerer DELTAR når startdato er i fortiden og sluttdato er i fremtiden`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
-                startdato = LocalDate.now().minusDays(3),
-                sluttdato = LocalDate.now().plusWeeks(2),
+                startdato = idag.minusDays(3),
+                sluttdato = idag.plusWeeks(2),
             )
 
             // Act
@@ -543,9 +554,10 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `nyDeltakerStatus - returnerer DELTAR når sluttdato er idag`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
-                startdato = LocalDate.now().minusDays(5),
-                sluttdato = LocalDate.now(),
+                startdato = idag.minusDays(5),
+                sluttdato = idag,
             )
 
             // Act
@@ -558,9 +570,10 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `nyDeltakerStatus - kaster feil når startdato mangler`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
                 startdato = null,
-                sluttdato = LocalDate.now().plusWeeks(4),
+                sluttdato = idag.plusWeeks(4),
             )
 
             // Act & Assert
@@ -572,8 +585,9 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `nyDeltakerStatus - kaster feil når sluttdato mangler`() {
             // Arrange
+            val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
-                startdato = LocalDate.now(),
+                startdato = idag,
                 sluttdato = null,
             )
 
