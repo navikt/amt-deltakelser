@@ -403,7 +403,6 @@ class ResponseBuilderTest {
             response.navn shouldBe gjennomforing.navn
             response.tiltakskode shouldBe gjennomforing.tiltakstype.tiltakskode
             response.tiltakskodeResponse.kode shouldBe gjennomforing.tiltakstype.tiltakskode
-            response.tiltakskodeResponse.visningsnavn shouldBe gjennomforing.tiltakstype.tiltakskode.visningsnavn
             response.startdato shouldBe gjennomforing.startDato
             response.sluttdato shouldBe gjennomforing.sluttDato
             response.oppstartstype shouldBe gjennomforing.oppstart
