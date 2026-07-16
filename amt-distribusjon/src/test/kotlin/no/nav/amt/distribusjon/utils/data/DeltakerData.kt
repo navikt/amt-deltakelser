@@ -50,24 +50,21 @@ object DeltakerData {
         importertFraArena = null,
     )
 
-    fun lagGjennomforingResponse(): GjennomforingResponse {
-        val tiltakstype = lagTiltakstype()
-        return GjennomforingResponse(
-            id = UUID.randomUUID(),
-            tiltakstype = tiltakstype,
-            navn = "deltakerliste navn",
-            status = GjennomforingStatusType.GJENNOMFORES,
-            startDato = LocalDate.now(),
-            sluttDato = null,
-            oppstart = null,
-            arrangor = ArrangorResponse(navn = "arrangor", organisasjonsnummer = "123456789"),
-            apentForPamelding = true,
-            oppmoteSted = "Vet olle",
-            pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
-            type = GjennomforingType.Gruppe,
-            antallPlasser = 45,
-        )
-    }
+    fun lagGjennomforingResponse() = GjennomforingResponse(
+        id = UUID.randomUUID(),
+        tiltakstype = lagTiltakstype(),
+        navn = "deltakerliste navn",
+        status = GjennomforingStatusType.GJENNOMFORES,
+        startDato = LocalDate.now(),
+        sluttDato = null,
+        oppstart = null,
+        arrangor = ArrangorResponse(navn = "arrangor", organisasjonsnummer = "123456789"),
+        apentForPamelding = true,
+        oppmoteSted = "Vet olle",
+        pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        type = GjennomforingType.Gruppe,
+        antallPlasser = 45,
+    )
 
     fun lagTiltakstype() = Tiltakstype(
         id = UUID.randomUUID(),
