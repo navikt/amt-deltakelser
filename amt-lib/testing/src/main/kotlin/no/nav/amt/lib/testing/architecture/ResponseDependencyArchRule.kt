@@ -19,10 +19,7 @@ import java.lang.reflect.WildcardType
 fun assertResponseFieldsUseAllowedTypes(
     importedPackages: List<String>,
     responsePackagePatterns: Array<String>,
-    additionalAllowedPackagePatterns: Array<String> = emptyArray(),
 ) {
-    val allowedPackagePatterns = responsePackagePatterns + additionalAllowedPackagePatterns
-
     val importedClasses = ClassFileImporter()
         .withImportOption(ImportOption.DoNotIncludeTests())
         .importPackages(*importedPackages.toTypedArray())
@@ -34,9 +31,9 @@ fun assertResponseFieldsUseAllowedTypes(
         .should()
         .haveRawType(
             resideOutsideOfPackage("no.nav..")
-                .or(resideInAnyPackage(*allowedPackagePatterns))
+                .or(resideInAnyPackage(*responsePackagePatterns))
                 .or(assignableTo(Enum::class.java)),
-        ).andShould(haveOnlyAllowedGenericTypeArguments(allowedPackagePatterns))
+        ).andShould(haveOnlyAllowedGenericTypeArguments(responsePackagePatterns))
         .check(importedClasses)
 }
 

@@ -6,10 +6,8 @@ import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
-import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.Vedtak
@@ -86,7 +84,7 @@ data class VedtakResponse(
     val fattet: LocalDateTime?,
     val bakgrunnsinformasjon: String?,
     val fattetAvNav: Boolean,
-    val deltakelsesinnhold: Deltakelsesinnhold?,
+    val deltakelsesinnhold: DeltakelsesinnholdResponse?,
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val opprettetAv: String,
@@ -100,7 +98,7 @@ data class VedtakResponse(
     ) : this(
         fattet = model.fattet,
         bakgrunnsinformasjon = model.deltakerVedVedtak.bakgrunnsinformasjon,
-        deltakelsesinnhold = model.deltakerVedVedtak.deltakelsesinnhold,
+        deltakelsesinnhold = model.deltakerVedVedtak.deltakelsesinnhold?.let(::DeltakelsesinnholdResponse),
         dagerPerUke = model.deltakerVedVedtak.dagerPerUke,
         deltakelsesprosent = model.deltakerVedVedtak.deltakelsesprosent,
         fattetAvNav = model.fattetAvNav,
@@ -114,13 +112,13 @@ data class EndringFraArrangorResponse(
     val id: UUID,
     val opprettet: LocalDateTime,
     val arrangorNavn: String,
-    val endring: EndringFraArrangor.Endring,
+    val endring: EndringFraArrangorEndringResponse,
 ) : DeltakerHistorikkResponse {
     constructor(model: EndringFraArrangor, arrangornavn: String) : this(
         id = model.id,
         opprettet = model.opprettet,
         arrangorNavn = arrangornavn,
-        endring = model.endring,
+        endring = EndringFraArrangorEndringResponse.fromModel(model.endring),
     )
 }
 
@@ -293,7 +291,7 @@ data class ImportertFraArenaResponse(
     val sluttdato: LocalDate?,
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
-    val status: DeltakerStatus,
+    val status: DeltakerStatusResponse,
 ) : DeltakerHistorikkResponse {
     constructor(model: ImportertFraArena) : this(
         importertDato = model.importertDato,
@@ -301,7 +299,7 @@ data class ImportertFraArenaResponse(
         sluttdato = model.deltakerVedImport.sluttdato,
         dagerPerUke = model.deltakerVedImport.dagerPerUke,
         deltakelsesprosent = model.deltakerVedImport.deltakelsesprosent,
-        status = model.deltakerVedImport.status,
+        status = DeltakerStatusResponse(model.deltakerVedImport.status),
     )
 }
 
@@ -323,7 +321,7 @@ data class InnsokPaaFellesOppstartResponse(
     val innsokt: LocalDateTime,
     val innsoktAv: String,
     val innsoktAvEnhet: String,
-    val deltakelsesinnholdVedInnsok: Deltakelsesinnhold?,
+    val deltakelsesinnholdVedInnsok: DeltakelsesinnholdResponse?,
     val utkastDelt: LocalDateTime?,
     val utkastGodkjentAvNav: Boolean,
 ) : DeltakerHistorikkResponse {
@@ -335,14 +333,14 @@ data class InnsokPaaFellesOppstartResponse(
         innsokt = model.innsokt,
         innsoktAv = ansatte[model.innsoktAv]!!.navn,
         innsoktAvEnhet = enheter[model.innsoktAvEnhet]!!.navn,
-        deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok,
+        deltakelsesinnholdVedInnsok = model.deltakelsesinnholdVedInnsok?.let(::DeltakelsesinnholdResponse),
         utkastDelt = model.utkastDelt,
         utkastGodkjentAvNav = model.utkastGodkjentAvNav,
     )
 }
 
 data class EndringFraTiltakskoordinatorResponse(
-    val endring: EndringFraTiltakskoordinator.Endring,
+    val endring: EndringFraTiltakskoordinatorEndringResponse,
     val endretAv: String,
     val endretAvEnhet: String,
     val endret: LocalDateTime,
@@ -352,7 +350,7 @@ data class EndringFraTiltakskoordinatorResponse(
         ansatte: Map<UUID, NavAnsatt>,
         enheter: Map<UUID, NavEnhet>,
     ) : this(
-        endring = model.endring,
+        endring = EndringFraTiltakskoordinatorEndringResponse.fromModel(model.endring),
         endretAv = ansatte[model.endretAv]!!.navn,
         endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
         endret = model.endret,

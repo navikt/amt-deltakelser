@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
-import no.nav.tiltaksarrangor.model.DeltakerStatusAarsakJsonDboDto
 import no.nav.tiltaksarrangor.model.Oppdatering
 import no.nav.tiltaksarrangor.model.UlestEndring
 import java.time.LocalDate
@@ -95,7 +94,7 @@ data class UlestEndringResponse(
                     oppdatering = OppdateringResponse.AvslagResponse(
                         it.oppdatering.endretAv,
                         it.oppdatering.endretAvEnhet,
-                        it.oppdatering.aarsak,
+                        DeltakerStatusResponse.Aarsak(it.oppdatering.aarsak),
                         it.oppdatering.begrunnelse,
                         it.oppdatert,
                     ),
@@ -162,7 +161,7 @@ sealed interface OppdateringResponse {
     data class AvslagResponse(
         val endretAv: String?,
         val endretAvEnhet: String?,
-        val aarsak: DeltakerStatusAarsakJsonDboDto,
+        val aarsak: DeltakerStatusResponse.Aarsak,
         val begrunnelse: String?,
         val endret: LocalDate,
     ) : OppdateringResponse

@@ -2,7 +2,6 @@ package no.nav.tiltaksarrangor.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
 
@@ -18,11 +17,11 @@ sealed class DeltakerEndringEndringResponse {
 
     data class EndreInnhold(
         val ledetekst: String?,
-        val innhold: List<Innhold>,
+        val innhold: List<DeltakelsesinnholdResponse.InnholdResponse>,
     ) : DeltakerEndringEndringResponse() {
         constructor(model: DeltakerEndring.Endring.EndreInnhold) : this(
             ledetekst = model.ledetekst,
-            innhold = model.innhold,
+            innhold = model.innhold.map(DeltakelsesinnholdResponse::InnholdResponse),
         )
     }
 
