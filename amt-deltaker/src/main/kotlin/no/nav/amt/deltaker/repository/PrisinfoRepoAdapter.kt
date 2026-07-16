@@ -33,12 +33,13 @@ object PrisinfoRepoAdapter {
         PrisinfoRepository.settGodkjent(gjennomforingId)
     }
 
+    // her kan det være vi må kunne spesifisere okonomiGodkjent true/false
     fun hentPrisinfo(gjennomforingId: UUID): PrisinformasjonDto? {
         val prisinfoDboList = PrisinfoRepository.hentPrisinfos(gjennomforingId)
 
         if (prisinfoDboList.isEmpty()) return null
 
-        // hvis en record med okonomiGodkjent finnes, bruk denne, ellers hent den siste
+        // hvis en record med okonomiGodkjent = true finnes, bruk denne, ellers okonomiGodkjent = false
         val prisinfoDbo = prisinfoDboList.maxBy { it.okonomiGodkjent }
 
         return when (prisinfoDbo.prisinfoJsonSubtype) {

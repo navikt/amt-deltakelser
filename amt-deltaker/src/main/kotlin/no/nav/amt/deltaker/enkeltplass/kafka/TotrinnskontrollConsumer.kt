@@ -59,7 +59,7 @@ class TotrinnskontrollConsumer(
      * Behandler en melding fra Kafka.
      *
      * Kaster feil ved tombstone, filtrerer bort irrelevante hendelser,
-     * og prosesserer kun godkjente ENKELTPLASS_OKONOMI-hendelser.
+     * og prosesserer kun godkjente ENKELTPLASS_OKONOMI- og ENKELTPLASS_PRISENDRING-hendelser.
      *
      * @param key Kafka-key for meldingen
      * @param value rå payload fra Kafka (kan være `null` ved tombstone)
@@ -74,42 +74,39 @@ class TotrinnskontrollConsumer(
 
         if (!skalBehandleTotrinnskontrollHendelse(value)) return
 
-        val payload = objectMapper.readValue<TotrinnskontrollHendelsePayload>(value)
+        val totrinnskontrollHendelse = objectMapper.readValue<TotrinnskontrollHendelsePayload>(value)
 
-        if (payload.status == TotrinnskontrollHendelsePayload.Status.GODKJENT &&
-            payload.type == TotrinnskontrollType.ENKELTPLASS_OKONOMI
-        ) {
-            processGodkjentInnsoking(
-                gjennomforingId = payload.entityId,
-                totrinsskontrollId = key,
+        // vi bryr oss kun om økonomi godkjent
+        if (totrinnskontrollHendelse.status != TotrinnskontrollHendelsePayload.Status.GODKJENT) return
+
+        val deltaker = deltakerRepository
+            .getEnkeltplassdeltaker(totrinnskontrollHendelse.entityId)
+            .getOrThrow()
+
+        // sjekk at det finnes prisinformasjon som venter på godkjenning.
+        // maks 1 endring som avventer godkjent økonomi, det kan derfor skje at totrinnskontrollId ikke lenger finnes
+        if (!PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
+                gjennomforingId = deltaker.deltakerliste.id,
+                prisinfoId = totrinnskontrollHendelse.id,
             )
+        ) {
+            log.info("Deltaker ${deltaker.id} har ingen prisinformasjon med id ${totrinnskontrollHendelse.id} som venter på godkjenning.")
+            return
         }
 
-        /* For bruk senere
-            if (payload.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
-                    processGodkjentPrisinformasjon(payload)
-                }*/
+        when (totrinnskontrollHendelse.type) {
+            TotrinnskontrollType.ENKELTPLASS_OKONOMI -> processGodkjentInnsoking(deltaker)
+
+            TotrinnskontrollType.ENKELTPLASS_PRISENDRING ->
+                processGodkjentPrisinformasjon(deltaker)
+
+            else -> error("Uventet totrinnskontrolltype: ${totrinnskontrollHendelse.type}")
+        }
     }
 
-    internal fun processGodkjentPrisinformasjon(totrinnskontrollPayload: TotrinnskontrollHendelsePayload) {
-        // Finn forslaget med riktig totrinnskontrollId for å garantere at der er riktig prisionfo
-        if (totrinnskontrollPayload.status == TotrinnskontrollHendelsePayload.Status.TIL_BEHANDLING) {
-            // sendes automatisk når valp har mottatt meldingen
-        }
-        // Finn forslaget med riktig totrinnskontrollId for å garantere at der er riktig prisionfo
-
-        /*
-            if(deltakelse allerede godkjent/økonomi allerede har blitt godkjent) {
-                //Generer endringsvedtak for prisendring
-                //Godkjenn forslag
-            }
-            else {
-                //prisendringer blir automatisk godkjent når deltakelsen er bare søkt inn
-                oppdater deltaker med ny prisinformasjon
-                ikke lage vedtak
-                godkjenne forslag(skal det vises for veileder?)
-            }
-         */
+    internal fun processGodkjentPrisinformasjon(deltaker: Deltaker) {
+        // her skal det gjøres mer senere
+        PrisinfoRepoAdapter.godkjennOkonomi(deltaker.deltakerliste.id)
     }
 
     /**
@@ -121,29 +118,13 @@ class TotrinnskontrollConsumer(
      * - `DELTAR` når startdato er i dag eller fortid og sluttdato er i fremtiden
      * - `FULLFORT` når startdato og sluttdato er i fortid
      *
-     * @param gjennomforingId id for gjennomføringen som brukes til å finne deltaker
+     * @param deltaker Deltakeren hvor økonomi skal godkjennes
      */
-    internal fun processGodkjentInnsoking(
-        gjennomforingId: UUID,
-        totrinsskontrollId: UUID,
-    ) {
-        val deltaker = deltakerRepository
-            .getEnkeltplassdeltaker(gjennomforingId)
-            .getOrThrow()
-
+    internal fun processGodkjentInnsoking(deltaker: Deltaker) {
         log.info("Behandler godkjent totrinnskontroll for deltaker ${deltaker.id}")
 
         if (deltaker.status.type != DeltakerStatus.Type.SOKT_INN) {
             log.warn("Deltaker ${deltaker.id} har status ${deltaker.status.type} og kan ikke godkjennes med totrinnskontroll.")
-            return
-        }
-
-        if (!PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
-                gjennomforingId = deltaker.deltakerliste.id,
-                prisinfoId = totrinsskontrollId,
-            )
-        ) {
-            log.info("Deltaker ${deltaker.id} har ingen prisinformasjon med id $totrinsskontrollId som venter på godkjenning.")
             return
         }
 
