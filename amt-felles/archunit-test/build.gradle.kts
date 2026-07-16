@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.archunit.junit5)
+    api(libs.archunit.junit5)
 }

@@ -59,7 +59,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
     testImplementation(libs.kotest.assertions.core)
-    testImplementation(libs.archunit.junit5)
     testImplementation(libs.token.validation.spring.test)
 
     testImplementation(libs.testcontainers.postgresql)
