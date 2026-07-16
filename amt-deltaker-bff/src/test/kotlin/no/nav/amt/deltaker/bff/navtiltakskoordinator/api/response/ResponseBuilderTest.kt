@@ -39,6 +39,7 @@ class ResponseBuilderTest {
             response.startdato shouldBe deltaker.startdato
             response.sluttdato shouldBe deltaker.sluttdato
             response.tiltakskode shouldBe deltaker.gjennomforing.tiltak.tiltakskode
+            response.tiltakskodeResponse.kode shouldBe deltaker.gjennomforing.tiltak.tiltakskode
             response.oppstartstype shouldBe deltaker.gjennomforing.oppstart
             response.pameldingstype shouldBe (
                 deltaker.gjennomforing.pameldingstype ?: GjennomforingPameldingType.TRENGER_GODKJENNING
@@ -401,6 +402,7 @@ class ResponseBuilderTest {
             response.id shouldBe gjennomforing.id
             response.navn shouldBe gjennomforing.navn
             response.tiltakskode shouldBe gjennomforing.tiltakstype.tiltakskode
+            response.tiltakskodeResponse.kode shouldBe gjennomforing.tiltakstype.tiltakskode
             response.startdato shouldBe gjennomforing.startDato
             response.sluttdato shouldBe gjennomforing.sluttDato
             response.oppstartstype shouldBe gjennomforing.oppstart
