@@ -3,8 +3,6 @@ plugins {
 }
 
 dependencies {
-    testImplementation(project(":amt-lib:testing"))
-
     // --- Audit logging ---
     implementation(libs.nav.common.audit.log)
 
@@ -15,6 +13,8 @@ dependencies {
     implementation(libs.unleash)
 
     // --- Test ---
+    testImplementation(project(":amt-lib:testing"))
+    testImplementation(project(":amt-felles:archunit-test"))
     testImplementation(libs.archunit.junit5)
 }
 

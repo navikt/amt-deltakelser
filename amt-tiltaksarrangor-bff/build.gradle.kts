@@ -15,8 +15,6 @@ repositories {
 }
 
 dependencies {
-    testImplementation(project(":amt-lib:testing"))
-
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -52,6 +50,7 @@ dependencies {
     implementation(libs.shedlock.spring)
     implementation(libs.shedlock.jdbc.template)
 
+    testImplementation(project(":amt-felles:archunit-test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-data-jdbc-test")
     testImplementation("org.springframework.boot:spring-boot-resttestclient")

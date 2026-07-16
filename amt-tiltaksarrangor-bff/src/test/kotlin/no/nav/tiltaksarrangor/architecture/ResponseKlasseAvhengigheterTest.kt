@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.architecture
 
-import no.nav.amt.lib.testing.architecture.assertResponseFieldsUseAllowedTypes
+import no.nav.amt.felles.testing.architecture.assertResponseFieldsUseAllowedTypes
 import org.junit.jupiter.api.Test
 
 private val responsePakker = arrayOf(

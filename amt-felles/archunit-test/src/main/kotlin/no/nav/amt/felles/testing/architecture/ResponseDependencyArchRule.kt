@@ -1,4 +1,4 @@
-package no.nav.amt.lib.testing.architecture
+package no.nav.amt.felles.testing.architecture
 
 import com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo
 import com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage
