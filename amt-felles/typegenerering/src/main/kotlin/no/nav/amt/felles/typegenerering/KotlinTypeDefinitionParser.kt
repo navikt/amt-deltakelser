@@ -1,5 +1,8 @@
 package no.nav.amt.felles.typegenerering
 
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.memberProperties
@@ -123,7 +126,9 @@ object KotlinTypeDefinitionParser {
         queue: ArrayDeque<KClass<*>>,
     ) {
         if (reference.kind == TypeKind.CLASS || reference.kind == TypeKind.SEALED) {
-            reference.kClass?.let(queue::addLast)
+            reference.kClass
+                ?.takeUnless { it in zodScalarClassTypes }
+                ?.let(queue::addLast)
         }
         reference.sealedSubclasses.forEach(queue::addLast)
         reference.genericArguments.forEach { nested ->
@@ -141,6 +146,12 @@ object KotlinTypeDefinitionParser {
         Float::class,
         Double::class,
         Char::class,
+    )
+
+    private val zodScalarClassTypes = setOf(
+        UUID::class,
+        LocalDate::class,
+        LocalDateTime::class,
     )
 
     private fun KClass<*>.toTypeAnnotations(): List<TypeAnnotation> = annotations

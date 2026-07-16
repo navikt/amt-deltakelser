@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
 
 class KotlinTypeDefinitionParserTest {
     data class Child(
@@ -59,6 +62,12 @@ class KotlinTypeDefinitionParserTest {
             val value: String,
         )
     }
+
+    data class HasScalarClassFields(
+        val id: UUID,
+        val dato: LocalDate,
+        val tidspunkt: LocalDateTime?,
+    )
 
     @Test
     fun `parse skal beskrive navn type nullability og generics`() {
@@ -154,6 +163,13 @@ class KotlinTypeDefinitionParserTest {
         jsonTypeInfo.values["include"] shouldBe "PROPERTY"
         jsonTypeInfo.values["property"] shouldBe "type"
         jsonTypeInfo.values["use"] shouldBe "SIMPLE_NAME"
+    }
+
+    @Test
+    fun `parseRecursively skal ikke parse zod-scalar class-typer`() {
+        val definitions = KotlinTypeDefinitionParser.parseRecursively(HasScalarClassFields::class)
+
+        definitions.map { it.kClass } shouldContainExactly listOf(HasScalarClassFields::class)
     }
 
     private fun TypeDefinition.field(name: String): FieldDefinition = fields.first { it.name == name }

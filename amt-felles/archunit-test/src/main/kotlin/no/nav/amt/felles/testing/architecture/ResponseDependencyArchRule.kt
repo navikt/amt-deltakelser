@@ -74,6 +74,7 @@ private fun isAllowedResponseType(
 private fun extractGenericTypeArguments(type: Type): List<Class<*>> = when (type) {
     is ParameterizedType -> type.actualTypeArguments.flatMap { extractReferencedClasses(it) }
     is GenericArrayType -> extractReferencedClasses(type.genericComponentType)
+    is Class<*> -> if (type.isArray) extractReferencedClasses(type.componentType) else emptyList()
     else -> emptyList()
 }
 
