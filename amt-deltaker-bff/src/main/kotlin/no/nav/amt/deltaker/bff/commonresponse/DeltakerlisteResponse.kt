@@ -28,7 +28,7 @@ data class DeltakerlisteResponse(
     val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse? = null,
     val prisinformasjon: PrisinformasjonResponse? = null,
 ) {
-    constructor(model: GjennomforingModel) : this (
+    constructor(model: GjennomforingModel) : this(
         deltakerlisteId = model.id,
         deltakerlisteNavn = model.navn,
         tiltakskode = model.tiltak.tiltakskode,
@@ -51,7 +51,7 @@ data class ArrangorResponse(
     val navn: String,
     val organisasjonsnummer: String,
 ) {
-    constructor(model: ArrangorModel) : this (
+    constructor(model: ArrangorModel) : this(
         navn = model.navn,
         organisasjonsnummer = model.organisasjonsnummer,
     )
