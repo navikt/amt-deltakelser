@@ -5,9 +5,9 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import org.junit.jupiter.api.Test
 import no.nav.amt.felles.typegenerering.collisions.one.DeltakerlisteResponse as FirstDeltakerlisteResponse
 import no.nav.amt.felles.typegenerering.collisions.two.DeltakerlisteResponse as SecondDeltakerlisteResponse
-import org.junit.jupiter.api.Test
 
 class TypeDefinitionToZodTest {
     enum class Status {
@@ -204,10 +204,10 @@ class TypeDefinitionToZodTest {
         result shouldContain "/** no.nav.amt.felles.typegenerering.collisions.one.DeltakerlisteResponse */"
         result shouldContain "const deltakerlisteResponseSchema = z.object({id: z.string()})"
         result shouldContain "/** no.nav.amt.felles.typegenerering.collisions.two.DeltakerlisteResponse */"
-        result shouldContain "const no_nav_amt_felles_typegenerering_collisions_two_DeltakerlisteResponseSchema = z.object({navn: z.string()})"
+        result shouldContain
+            "const no_nav_amt_felles_typegenerering_collisions_two_DeltakerlisteResponseSchema = z.object({navn: z.string()})"
         result shouldNotContain "deltakerlisteResponseSchema_2"
     }
 
-    private fun List<TypeDefinition>.requireDefinition(kClass: kotlin.reflect.KClass<*>): TypeDefinition =
-        first { it.kClass == kClass }
+    private fun List<TypeDefinition>.requireDefinition(kClass: kotlin.reflect.KClass<*>): TypeDefinition = first { it.kClass == kClass }
 }
