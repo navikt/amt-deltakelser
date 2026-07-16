@@ -100,7 +100,7 @@ class TotrinnskontrollConsumer(
             TotrinnskontrollType.ENKELTPLASS_PRISENDRING ->
                 processGodkjentPrisinformasjon(deltaker)
 
-            else -> Unit // skal ikke være mulig, skalBehandleTotrinnskontrollHendelse sjekker type
+            else -> error("Uventet totrinnskontrolltype: ${totrinnskontrollHendelse.type}")
         }
     }
 
