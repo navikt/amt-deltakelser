@@ -89,7 +89,7 @@ data class VisningsnavnResponse(
 
             return gjennomforing.opplaringKategoriseringValg
                 ?.hentVerdier(representerer = OpplaringKategoriseringType.KURSTYPE_ID, throwIfEmpty = false)
-                ?.singleOrNull()
+                ?.firstOrNull()
         }
 
         private fun skalBrukeDeltakerlisteNavn(tiltakskode: Tiltakskode): Boolean = when (tiltakskode) {

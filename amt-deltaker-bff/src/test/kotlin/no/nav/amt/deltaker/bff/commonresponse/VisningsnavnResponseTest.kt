@@ -392,7 +392,8 @@ class VisningsnavnResponseTest {
 
         val response = VisningsnavnResponse(model)
 
-        response.tiltakHosArrangorTittel.contains("hos Arrangor 1") shouldBe true
+        response.tiltakHosArrangorTittel shouldBe "$forsteKurstype hos Arrangor 1"
+        response.tiltakHosArrangorIngressTekst shouldBe "$forsteKurstype hos Arrangor 1"
     }
 
     @Test
