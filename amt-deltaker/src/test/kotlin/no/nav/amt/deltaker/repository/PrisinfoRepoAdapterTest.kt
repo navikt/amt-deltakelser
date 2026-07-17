@@ -161,6 +161,121 @@ class PrisinfoRepoAdapterTest {
             // Act & Assert
             PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id) shouldBe null
         }
+
+        @Test
+        fun `med brukVenterPaaOkonomiGodkjent true - henter kun pending prisinfo`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val pendingPrisinfo = Anskaffelse(pris = 15000)
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = pendingPrisinfo,
+            )
+
+            PrisinfoRepository.settGodkjent(gjennomforingInTest.id)
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                brukVenterPaaOkonomiGodkjent = true,
+            )
+
+            // Assert
+            result shouldBe null
+        }
+
+        @Test
+        fun `med brukVenterPaaOkonomiGodkjent true - returnerer pending når begge finnes`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val godkjentPrisinfo = Anskaffelse(pris = 5000)
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = godkjentPrisinfo,
+            )
+
+            PrisinfoRepository.settGodkjent(gjennomforingInTest.id)
+
+            val pendingPrisinfo = Anskaffelse(pris = 20000)
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = pendingPrisinfo,
+            )
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                brukVenterPaaOkonomiGodkjent = true,
+            )
+
+            // Assert
+            result shouldBe pendingPrisinfo
+        }
+
+        @Test
+        fun `med brukVenterPaaOkonomiGodkjent true - returnerer null når kun godkjent finnes`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val godkjentPrisinfo = Anskaffelse(pris = 10000)
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = godkjentPrisinfo,
+            )
+
+            PrisinfoRepository.settGodkjent(gjennomforingInTest.id)
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                brukVenterPaaOkonomiGodkjent = true,
+            )
+
+            // Assert
+            result shouldBe null
+        }
+
+        @Test
+        fun `med brukVenterPaaOkonomiGodkjent false (default) - prioriterer godkjent`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val godkjentPrisinfo = Tilskudd(
+                tilleggsopplysninger = "Godkjent",
+                tilskudd = listOf(
+                    TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 5000),
+                ),
+            )
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = godkjentPrisinfo,
+            )
+
+            PrisinfoRepository.settGodkjent(gjennomforingInTest.id)
+
+            val pendingPrisinfo = Tilskudd(
+                tilleggsopplysninger = "Pending",
+                tilskudd = listOf(
+                    TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 10000),
+                ),
+            )
+
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = pendingPrisinfo,
+            )
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                brukVenterPaaOkonomiGodkjent = false,
+            )
+
+            // Assert
+            result shouldBe godkjentPrisinfo
+        }
     }
 
     @Nested
