@@ -7,14 +7,13 @@ import no.nav.amt.deltaker.bff.veileder.api.response.TilgjengeligInnholdResponse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
 
 data class DeltakerlisteResponse(
     val deltakerlisteId: UUID,
     val deltakerlisteNavn: String,
-    val tiltakskode: Tiltakskode,
+    val tiltakskode: TiltakskodeResponse,
     val arrangorNavn: String, // skal fjernes
     val visningsnavn: VisningsnavnResponse,
     val arrangor: ArrangorResponse?,
@@ -29,12 +28,13 @@ data class DeltakerlisteResponse(
     val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse? = null,
     val prisinformasjon: PrisinformasjonResponse? = null,
 ) {
-    val tiltakskodeResponse: TiltakskodeResponse = TiltakskodeResponse(tiltakskode)
+    // TODO: fjernes når frontend har tatt i bruk tiltakskode-feltet igjen
+    val tiltakskodeResponse = tiltakskode
 
     constructor(model: GjennomforingModel) : this(
         deltakerlisteId = model.id,
         deltakerlisteNavn = model.navn,
-        tiltakskode = model.tiltak.tiltakskode,
+        tiltakskode = TiltakskodeResponse(model.tiltak.tiltakskode),
         arrangorNavn = model.arrangor?.navn ?: "Ukjent arrangør",
         visningsnavn = VisningsnavnResponse(model),
         arrangor = model.arrangor?.let(::ArrangorResponse),

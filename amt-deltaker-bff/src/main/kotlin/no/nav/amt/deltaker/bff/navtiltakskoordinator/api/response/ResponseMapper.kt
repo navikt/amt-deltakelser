@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
+import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
@@ -73,7 +74,7 @@ object ResponseMapper {
         DeltakerlisteResponse(
             id = id,
             navn = navn,
-            tiltakskode = tiltakstype.tiltakskode,
+            tiltakskode = TiltakskodeResponse(tiltakstype.tiltakskode),
             startdato = startDato,
             sluttdato = sluttDato,
             oppstartstype = oppstart,

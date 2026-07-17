@@ -4,14 +4,13 @@ import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
 
 data class DeltakerlisteResponse(
     val id: UUID,
     val navn: String,
-    val tiltakskode: Tiltakskode,
+    val tiltakskode: TiltakskodeResponse,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val oppstartstype: Oppstartstype?,
@@ -21,7 +20,8 @@ data class DeltakerlisteResponse(
     val koordinatorer: List<TiltakskoordinatorResponse>,
     val erEnkeltplass: Boolean,
 ) {
-    val tiltakskodeResponse: TiltakskodeResponse = TiltakskodeResponse(tiltakskode)
+    // TODO: fjernes når frontend har tatt i bruk tiltakskode-feltet igjen
+    val tiltakskodeResponse = tiltakskode
 
     data class TiltakskoordinatorResponse(
         val id: UUID,
