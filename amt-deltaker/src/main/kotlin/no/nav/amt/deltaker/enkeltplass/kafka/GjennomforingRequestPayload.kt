@@ -34,7 +34,7 @@ sealed interface GjennomforingRequestPayload {
 
     data class EnkeltplassEndrePrisinformasjon(
         override val gjennomforingId: UUID,
-        val totrinnkontroll: Totrinnskontroll,
+        val totrinnskontroll: Totrinnskontroll,
         val payload: Prisinformasjon,
     ) : GjennomforingRequestPayload
 
