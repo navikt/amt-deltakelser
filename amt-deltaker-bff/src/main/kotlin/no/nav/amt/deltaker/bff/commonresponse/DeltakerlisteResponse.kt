@@ -16,6 +16,7 @@ data class DeltakerlisteResponse(
     val deltakerlisteNavn: String,
     val tiltakskode: Tiltakskode,
     val arrangorNavn: String, // skal fjernes
+    val visningsnavn: VisningsnavnResponse,
     val arrangor: ArrangorResponse?,
     val oppstartstype: Oppstartstype?,
     val startdato: LocalDate?,
@@ -35,6 +36,7 @@ data class DeltakerlisteResponse(
         deltakerlisteNavn = model.navn,
         tiltakskode = model.tiltak.tiltakskode,
         arrangorNavn = model.arrangor?.navn ?: "Ukjent arrangør",
+        visningsnavn = VisningsnavnResponse(model),
         arrangor = model.arrangor?.let(::ArrangorResponse),
         oppstartstype = model.oppstart,
         startdato = model.startDato,
