@@ -22,38 +22,42 @@ data class VisningsnavnResponse(
             medKurstype: Boolean = true,
         ): String {
             val visningsnavn = hentVisningsnavn(gjennomforing, medKurstype = medKurstype)
-            return formatWithArrangor(gjennomforing, visningsnavn)
+            return tiltakHosArrangorTekst(gjennomforing, visningsnavn)
         }
 
         private fun hentTiltakHosArrangorIngressTekst(gjennomforing: GjennomforingModel): String {
             val tiltakskode = gjennomforing.tiltak.tiltakskode
 
-            hentKurstype(gjennomforing)?.let { kurstype ->
-                return formatWithArrangor(gjennomforing, kurstype)
+            val kurstype = hentKurstype(gjennomforing)
+            if (kurstype != null) {
+                return tiltakHosArrangorTekst(gjennomforing, kurstype)
             }
 
             if (skalBrukeDeltakerlisteNavn(tiltakskode)) {
-                return formatWithArrangor(gjennomforing, gjennomforing.navn)
+                return tiltakHosArrangorTekst(gjennomforing, gjennomforing.navn)
             }
 
-            return formatWithArrangor(gjennomforing, TiltakskodeResponse(tiltakskode).visningsnavn)
+            return tiltakHosArrangorTekst(gjennomforing, TiltakskodeResponse(tiltakskode).visningsnavn)
         }
 
         private fun hentKladdTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String {
             val tiltakskode = gjennomforing.tiltak.tiltakskode
 
             if (hentKurstype(gjennomforing) == null && skalBrukeDeltakerlisteNavn(tiltakskode)) {
-                return formatWithArrangor(gjennomforing, gjennomforing.navn)
+                return tiltakHosArrangorTekst(gjennomforing, gjennomforing.navn)
             }
 
             val visningsnavn = hentVisningsnavn(
                 gjennomforing,
                 medKurstype = gjennomforing.status != GjennomforingStatusType.KLADD,
             )
-            return formatWithArrangor(gjennomforing, visningsnavn)
+            return tiltakHosArrangorTekst(gjennomforing, visningsnavn)
         }
 
-        private fun formatWithArrangor(gjennomforing: GjennomforingModel, tekst: String): String {
+        private fun tiltakHosArrangorTekst(
+            gjennomforing: GjennomforingModel,
+            tekst: String,
+        ): String {
             val arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør"
             return "$tekst hos $arrangorNavn"
         }
