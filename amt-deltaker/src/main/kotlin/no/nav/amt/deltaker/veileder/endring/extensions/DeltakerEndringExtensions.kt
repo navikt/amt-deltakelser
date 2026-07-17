@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.veileder.endring.extensions
 
 import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.endring.VellykketEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -13,8 +14,14 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
     getDeltakelsemengder: (deltakerId: UUID) -> Deltakelsesmengder,
 ): Result<VellykketEndring> = runCatching {
     when (this) {
-        // TODO
-        is DeltakerEndring.Endring.EndrePrisinfo -> VellykketEndring(deltaker)
+        is DeltakerEndring.Endring.EndrePrisinfo -> {
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = deltaker.deltakerliste.id,
+                prisinformasjon = this.prisinfo,
+            )
+
+            VellykketEndring(deltaker)
+        }
 
         is DeltakerEndring.Endring.AvsluttDeltakelse ->
             handleEndring(

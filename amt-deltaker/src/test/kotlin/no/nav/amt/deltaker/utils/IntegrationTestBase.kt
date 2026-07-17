@@ -28,6 +28,7 @@ import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClie
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerCacheRepository
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
+import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.innbygger.DistribuerEndringProducer
 import no.nav.amt.deltaker.innbygger.NavBrukerRepository
@@ -144,6 +145,15 @@ abstract class IntegrationTestBase {
         InnsokService(repository = innsokRepository)
     }
 
+    protected open val gjennomforingUpserter: GjennomforingUpserter by lazy {
+        GjennomforingUpserter(
+            navAnsattRepository = navAnsattRepository,
+            navEnhetRepository = navEnhetRepository,
+            vedtakService = vedtakService,
+            gjennomforingRequestProducer = gjennomforingRequestProducer,
+        )
+    }
+
     protected open val pameldingService: PameldingService by lazy {
         PameldingService(
             deltakerRepository = deltakerRepository,
@@ -153,7 +163,7 @@ abstract class IntegrationTestBase {
             vedtakService = vedtakService,
             distribuerEndringService = distribuerEndringService,
             innsokService = innsokService,
-            enkeltplassService = enkeltplassService,
+            gjennomforingUpserter = gjennomforingUpserter,
         )
     }
 
@@ -319,7 +329,6 @@ abstract class IntegrationTestBase {
         EnkeltplassService(
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
-            gjennomforingRequestProducer = gjennomforingRequestProducer,
             deltakerlisteRepository = deltakerlisteRepository,
             navBrukerService = navBrukerService,
             tiltakRepository = tiltakRepository,
@@ -327,12 +336,11 @@ abstract class IntegrationTestBase {
             navAnsattService = navAnsattService,
             vedtakService = vedtakService,
             arrangorService = arrangorService,
-            navEnhetRepository = navEnhetRepository,
-            navAnsattRepository = navAnsattRepository,
             opplaringKategoriseringClient = opplaringKategoriseringClient,
             deltakerProducerService = deltakerProducerService,
             innsokService = innsokService,
             distribuerEndringService = distribuerEndringService,
+            gjennomforingUpserter = gjennomforingUpserter,
         )
     }
 
