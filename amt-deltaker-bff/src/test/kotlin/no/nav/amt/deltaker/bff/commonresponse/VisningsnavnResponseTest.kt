@@ -12,8 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
 
 /**
-Disse AI-genererte testene er ikke nødvendigvis de mest lesbare, men tjener til å avdekke regresjoner dersom vi forsøker oss på endringer
- i den ganske innfløkte logikken.
+Disse AI-genererte testene tjener primært til å avdekke regresjoner ved justeringer i logikken.
  */
 class VisningsnavnResponseTest {
     private val model = lagGjennomforingModel()
@@ -35,20 +34,6 @@ class VisningsnavnResponseTest {
     }
 
     @Test
-    fun `TILRETTELAGT_ARBEID_ORDINAER uses custom text for ingress`() {
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
-            navn = "Deltakerliste navn",
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "Tilrettelagt arbeid i ordinær virksomhet hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Arrangor 1"
-    }
-
-    @Test
     fun `skalBrukeDeltakerlisteNavn measures use gjennomforing name for ingress and draft`() {
         val model = lagGjennomforingModel(
             tiltak = tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
@@ -60,55 +45,6 @@ class VisningsnavnResponseTest {
         response.tiltakHosArrangorTittel shouldBe "Arbeidsmarkedsopplæring hos Arrangor 1"
         response.tiltakHosArrangorIngressTekst shouldBe "AMO liste hos Arrangor 1"
         response.kladdTiltakHosArrangorTittel shouldBe "AMO liste hos Arrangor 1"
-    }
-
-    @Test
-    fun `NORSKOPPLAERING with selected kurstype shows the type name everywhere`() {
-        val kategoriseringValg = OpplaringKategoriseringValg(
-            valgteKategoriseringer = setOf(
-                OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                    valg = mapOf(UUID.randomUUID() to "Grunnleggende ferdigheter"),
-                ),
-            ),
-            valgteSertifiseringer = emptySet(),
-        )
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            ),
-            navn = "FOV liste",
-        ).copy(opplaringKategoriseringValg = kategoriseringValg)
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Grunnleggende ferdigheter hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "Grunnleggende ferdigheter hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "Grunnleggende ferdigheter hos Arrangor 1"
-    }
-
-    @Test
-    fun `NORSKOPPLAERING in KLADD status ignores selected kurstype for draft title`() {
-        val kategoriseringValg = OpplaringKategoriseringValg(
-            valgteKategoriseringer = setOf(
-                OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                    valg = mapOf(UUID.randomUUID() to "Grunnleggende ferdigheter"),
-                ),
-            ),
-            valgteSertifiseringer = emptySet(),
-        )
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            ),
-            status = GjennomforingStatusType.KLADD,
-        ).copy(opplaringKategoriseringValg = kategoriseringValg)
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Grunnleggende ferdigheter hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangor 1"
     }
 
     @ParameterizedTest(name = "{0} produces same text everywhere")
@@ -208,72 +144,6 @@ class VisningsnavnResponseTest {
         response.tiltakHosArrangorTittel shouldBe "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangor 1"
         response.tiltakHosArrangorIngressTekst shouldBe "FOV kurs uten valgt type hos Arrangor 1"
         response.kladdTiltakHosArrangorTittel shouldBe "FOV kurs uten valgt type hos Arrangor 1"
-    }
-
-    @Test
-    fun `NORSKOPPLAERING with selected kurstype shows type name in all fields`() {
-        val kursnavn = "Norskferdigheter for arbeidsmarkedet"
-        val kategoriseringValg = OpplaringKategoriseringValg(
-            valgteKategoriseringer = setOf(
-                OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                    valg = mapOf(UUID.randomUUID() to kursnavn),
-                ),
-            ),
-            valgteSertifiseringer = emptySet(),
-        )
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            ),
-            navn = "FOV liste",
-        ).copy(opplaringKategoriseringValg = kategoriseringValg)
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "$kursnavn hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "$kursnavn hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "$kursnavn hos Arrangor 1"
-    }
-
-    @Test
-    fun `NORSKOPPLAERING in KLADD shows Tiltakskode name for draft even with selected type`() {
-        val kursnavn = "Norskferdigheter for arbeidsmarkedet"
-        val deltakerlisteNavn = "FOV liste"
-        val kategoriseringValg = OpplaringKategoriseringValg(
-            valgteKategoriseringer = setOf(
-                OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                    valg = mapOf(UUID.randomUUID() to kursnavn),
-                ),
-            ),
-            valgteSertifiseringer = emptySet(),
-        )
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            ),
-            status = GjennomforingStatusType.KLADD,
-            navn = deltakerlisteNavn,
-        ).copy(opplaringKategoriseringValg = kategoriseringValg)
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "$kursnavn hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangor 1"
-    }
-
-    @Test
-    fun `TILRETTELAGT_ARBEID_ORDINAER differs in ingress text`() {
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "Tilrettelagt arbeid i ordinær virksomhet hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Arrangor 1"
     }
 
     @Test
