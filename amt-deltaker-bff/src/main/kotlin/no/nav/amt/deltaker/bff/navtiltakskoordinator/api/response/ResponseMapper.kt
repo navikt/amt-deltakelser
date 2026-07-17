@@ -51,7 +51,7 @@ object ResponseMapper {
             vurdering = sisteVurdering?.let(::VurderingResponse),
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
             innsatsgruppe = navBruker.innsatsgruppe,
-            tiltakskode = deltaker.gjennomforing.tiltak.tiltakskode,
+            tiltakskode = TiltakskodeResponse(deltaker.gjennomforing.tiltak.tiltakskode),
             tilgangTilBruker = tilgangTilBruker,
             aktiveForslag = aktiveForslag,
             ulesteHendelser = ulesteHendelser.map(::UlestHendelseResponse),

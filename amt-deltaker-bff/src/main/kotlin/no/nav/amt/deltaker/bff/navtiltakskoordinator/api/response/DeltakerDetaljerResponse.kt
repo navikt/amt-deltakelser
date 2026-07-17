@@ -5,7 +5,6 @@ import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.Beskyttelsesmarkering
 import java.time.LocalDate
 import java.util.UUID
@@ -24,7 +23,7 @@ data class DeltakerDetaljerResponse(
     val beskyttelsesmarkering: List<Beskyttelsesmarkering>,
     val vurdering: VurderingResponse?,
     val innsatsgruppe: Innsatsgruppe?,
-    val tiltakskode: Tiltakskode,
+    val tiltakskode: TiltakskodeResponse,
     val tilgangTilBruker: Boolean,
     val aktiveForslag: List<ForslagResponse>,
     val ulesteHendelser: List<UlestHendelseResponse>,
@@ -33,5 +32,6 @@ data class DeltakerDetaljerResponse(
     val deltakelsesinnhold: String?,
     val erEnkeltplass: Boolean,
 ) {
-    val tiltakskodeResponse = TiltakskodeResponse(tiltakskode)
+    // TODO: fjernes når frontend har tatt i bruk tiltakskode-feltet igjen
+    val tiltakskodeResponse = tiltakskode
 }
