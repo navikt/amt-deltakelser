@@ -153,14 +153,6 @@ class DeltakerService(
                     endretAvNavAnsatt = navAnsatt,
                 )
 
-                if (endring is DeltakerEndring.Endring.EndrePrisinfo) {
-                    gjennomforingUpserter.oppdaterPrisinfo(
-                        prisinfo = endring.prisinfo,
-                        deltaker = eksisterendeDeltaker,
-                        endretAvNavIdent = endringRequest.endretAv,
-                    )
-                }
-
                 deltaker
             },
             afterUpsert = {

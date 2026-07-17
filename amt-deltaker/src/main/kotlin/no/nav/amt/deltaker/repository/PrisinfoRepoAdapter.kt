@@ -18,7 +18,6 @@ import java.util.UUID
  * Ansvaret er å:
  * - Konvertere mellom `PrisinformasjonDto` og `PrisinfoDbo`
  * - Håndtere to-trinns godkjenning av prisinfo (pending → godkjent)
- * - Publisere endringer til Kafka-topicen `arrangor-melding-v1` via event
  *
  * Prisinfo livssyklus:
  * 1. `lagrePrisinfo()` → lagrer som `okonomiGodkjent=false` (pending)

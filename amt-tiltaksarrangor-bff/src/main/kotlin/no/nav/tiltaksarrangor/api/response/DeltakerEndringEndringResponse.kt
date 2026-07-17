@@ -2,6 +2,7 @@ package no.nav.tiltaksarrangor.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
 
@@ -154,7 +155,7 @@ sealed class DeltakerEndringEndringResponse {
     }
 
     data class EndrePrisinfo(
-        val prisinfo: Any,
+        val prisinfo: PrisinformasjonDto,
     ) : DeltakerEndringEndringResponse() {
         constructor(model: DeltakerEndring.Endring.EndrePrisinfo) : this(
             prisinfo = model.prisinfo,
