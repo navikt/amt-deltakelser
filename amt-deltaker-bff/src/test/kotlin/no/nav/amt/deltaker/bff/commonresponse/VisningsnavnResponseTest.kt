@@ -417,4 +417,34 @@ class VisningsnavnResponseTest {
 
         response.tiltakHosArrangorTittel shouldBe "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangor 1"
     }
+
+    @Test
+    fun `draft title shows course arrangement name for multi-participant measures in KLADD status`() {
+        val deltakerlisteNavn = "AMO liste med spesiell profil"
+        val model = lagGjennomforingModel(
+            tiltak = tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
+            status = GjennomforingStatusType.KLADD,
+            navn = deltakerlisteNavn,
+        )
+
+        val response = VisningsnavnResponse(model)
+
+        response.tiltakHosArrangorTittel shouldBe "Arbeidsmarkedsopplæring hos Arrangor 1"
+        response.kladdTiltakHosArrangorTittel shouldBe "$deltakerlisteNavn hos Arrangor 1"
+    }
+
+    @Test
+    fun `ingress shows course arrangement name for multi-participant measures regardless of status`() {
+        val deltakerlisteNavn = "Spesialisert opplæring"
+        val model = lagGjennomforingModel(
+            tiltak = tiltak.copy(tiltakskode = Tiltakskode.STUDIESPESIALISERING),
+            status = GjennomforingStatusType.KLADD,
+            navn = deltakerlisteNavn,
+        )
+
+        val response = VisningsnavnResponse(model)
+
+        // Ingress should use course arrangement name even in KLADD status
+        response.tiltakHosArrangorIngressTekst shouldBe "$deltakerlisteNavn hos Arrangor 1"
+    }
 }
