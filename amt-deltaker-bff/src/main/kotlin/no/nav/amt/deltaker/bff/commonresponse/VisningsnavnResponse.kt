@@ -38,7 +38,7 @@ data class VisningsnavnResponse(
                 return tiltakHosArrangorTekst(gjennomforing)
             }
 
-            return tiltakHosArrangorTekst(gjennomforing.arrangor, TiltakskodeResponse(tiltakskode).visningsnavn)
+            return tiltakHosArrangorTekst(gjennomforing.arrangor, visningsnavn(tiltakskode))
         }
 
         private fun hentKladdTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String {
@@ -76,7 +76,7 @@ data class VisningsnavnResponse(
                 return "Tilrettelagt arbeid med oppfølging"
             }
 
-            return TiltakskodeResponse(gjennomforing.tiltak.tiltakskode).visningsnavn
+            return visningsnavn(gjennomforing.tiltak.tiltakskode)
         }
 
         private fun hentKurstype(
