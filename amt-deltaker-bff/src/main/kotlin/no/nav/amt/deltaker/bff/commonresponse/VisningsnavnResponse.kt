@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.commonresponse
 
+import no.nav.amt.deltaker.bff.model.ArrangorModel
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -22,7 +23,7 @@ data class VisningsnavnResponse(
             medKurstype: Boolean = true,
         ): String {
             val visningsnavn = hentVisningsnavn(gjennomforing, medKurstype = medKurstype)
-            return tiltakHosArrangorTekst(gjennomforing, visningsnavn)
+            return tiltakHosArrangorTekst(gjennomforing.arrangor, visningsnavn)
         }
 
         private fun hentTiltakHosArrangorIngressTekst(gjennomforing: GjennomforingModel): String {
@@ -30,35 +31,38 @@ data class VisningsnavnResponse(
 
             val kurstype = hentKurstype(gjennomforing)
             if (kurstype != null) {
-                return tiltakHosArrangorTekst(gjennomforing, kurstype)
+                return tiltakHosArrangorTekst(gjennomforing.arrangor, kurstype)
             }
 
             if (skalBrukeDeltakerlisteNavn(tiltakskode)) {
-                return tiltakHosArrangorTekst(gjennomforing, gjennomforing.navn)
+                return tiltakHosArrangorTekst(gjennomforing)
             }
 
-            return tiltakHosArrangorTekst(gjennomforing, TiltakskodeResponse(tiltakskode).visningsnavn)
+            return tiltakHosArrangorTekst(gjennomforing.arrangor, TiltakskodeResponse(tiltakskode).visningsnavn)
         }
 
         private fun hentKladdTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String {
             val tiltakskode = gjennomforing.tiltak.tiltakskode
 
             if (hentKurstype(gjennomforing) == null && skalBrukeDeltakerlisteNavn(tiltakskode)) {
-                return tiltakHosArrangorTekst(gjennomforing, gjennomforing.navn)
+                return tiltakHosArrangorTekst(gjennomforing)
             }
 
             val visningsnavn = hentVisningsnavn(
                 gjennomforing,
                 medKurstype = gjennomforing.status != GjennomforingStatusType.KLADD,
             )
-            return tiltakHosArrangorTekst(gjennomforing, visningsnavn)
+            return tiltakHosArrangorTekst(gjennomforing.arrangor, visningsnavn)
         }
 
+        private fun tiltakHosArrangorTekst(gjennomforing: GjennomforingModel): String =
+            tiltakHosArrangorTekst(gjennomforing.arrangor, gjennomforing.navn)
+
         private fun tiltakHosArrangorTekst(
-            gjennomforing: GjennomforingModel,
+            arrangor: ArrangorModel?,
             tekst: String,
         ): String {
-            val arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør"
+            val arrangorNavn = arrangor?.navn ?: "Ukjent arrangør"
             return "$tekst hos $arrangorNavn"
         }
 
