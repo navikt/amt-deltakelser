@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.veileder.endring.extensions
 
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.endring.VellykketEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -15,11 +14,7 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
 ): Result<VellykketEndring> = runCatching {
     when (this) {
         is DeltakerEndring.Endring.EndrePrisinfo -> {
-            PrisinfoRepoAdapter.lagrePrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
-                prisinformasjon = this.prisinfo,
-            )
-
+            // oppdatering av prisinfo skjer i transaksjon senere i koden
             VellykketEndring(deltaker)
         }
 

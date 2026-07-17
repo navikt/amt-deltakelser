@@ -356,6 +356,13 @@ fun Application.module() {
         arrangorService = arrangorService,
     )
 
+    val gjennomforingUpserter = GjennomforingUpserter(
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        vedtakService = vedtakService,
+        gjennomforingRequestProducer = gjennomforingRequestProducer,
+    )
+
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringRepository = deltakerEndringRepository,
@@ -371,6 +378,7 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         forslagRepository = forslagRepository,
         unleashToggle = unleashToggle,
+        gjennomforingUpserter = gjennomforingUpserter,
     )
 
     val endringFraArrangorService = EndringFraArrangorService(
@@ -393,13 +401,6 @@ fun Application.module() {
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
         deltakerlisteRepository = deltakerlisteRepository,
-    )
-
-    val gjennomforingUpserter = GjennomforingUpserter(
-        navAnsattRepository = navAnsattRepository,
-        navEnhetRepository = navEnhetRepository,
-        vedtakService = vedtakService,
-        gjennomforingRequestProducer = gjennomforingRequestProducer,
     )
 
     val enkeltplassService = EnkeltplassService(

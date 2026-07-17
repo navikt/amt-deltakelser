@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 
 class GjennomforingUpserter(
     private val navEnhetRepository: NavEnhetRepository,
@@ -17,6 +18,33 @@ class GjennomforingUpserter(
     private val vedtakService: VedtakService,
     private val gjennomforingRequestProducer: GjennomforingRequestProducer,
 ) {
+    fun oppdaterPrisinfo(
+        prisinfo: PrisinformasjonDto,
+        deltaker: Deltaker,
+        endretAvNavIdent: String,
+    ) {
+        val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfo(
+            gjennomforingId = deltaker.deltakerliste.id,
+            prisinformasjon = prisinfo,
+        )
+
+        val prisInfoPayload = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
+            gjennomforingId = deltaker.deltakerliste.id,
+            totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                id = totrinnskontrollId,
+                behandletAv = endretAvNavIdent,
+            ),
+            payload = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    brukVenterPaaOkonomiGodkjent = true,
+                ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
+            ),
+        )
+
+        gjennomforingRequestProducer.produce(prisInfoPayload)
+    }
+
     // benyttes av #innbyggerGodkjennUtkast
     fun publiserGjennomforing(deltaker: Deltaker) {
         val vedtak = vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id)
@@ -38,8 +66,10 @@ class GjennomforingUpserter(
         val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
-                PrisinfoRepoAdapter.hentPrisinfo(deltaker.deltakerliste.id)
-                    ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    brukVenterPaaOkonomiGodkjent = true,
+                ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
             ),
             organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
                 ?: error("Organisasjonsnummer kan ikke være null"),

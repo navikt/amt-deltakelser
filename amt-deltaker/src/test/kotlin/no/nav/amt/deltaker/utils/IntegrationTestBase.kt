@@ -309,6 +309,7 @@ abstract class IntegrationTestBase {
             endringFraArrangorRepository = endringFraArrangorRepository,
             importertFraArenaRepository = importertFraArenaRepository,
             unleashToggle = unleashToggle,
+            gjennomforingUpserter = gjennomforingUpserter,
         )
     }
     protected open val tiltakskoordinatorService: TiltakskoordinatorService by lazy {

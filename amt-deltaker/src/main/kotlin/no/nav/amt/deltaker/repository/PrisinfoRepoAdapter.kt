@@ -76,15 +76,21 @@ object PrisinfoRepoAdapter {
      * basert på `prisinfoJsonSubtype` (Anskaffelse | Tilskudd | IngenKostnader).
      *
      * @param gjennomforingId Gjennomføring-ID
+     * @param brukVenterPaaOkonomiGodkjent Hvis `true`, henter kun pending-record.
      * @return [PrisinformasjonDto], eller `null` hvis ingen finnes
      * @throws IllegalStateException hvis påkrevd felt mangler (f.eks. `anskaffelsePris` for Anskaffelse)
      */
-    fun hentPrisinfo(gjennomforingId: UUID): PrisinformasjonDto? {
-        val prisinfoDboList = PrisinfoRepository.hentPrisinfos(gjennomforingId)
-
-        val prisinfoDbo = prisinfoDboList
-            .maxByOrNull { it.okonomiGodkjent }
-            ?: return null
+    fun hentPrisinfo(
+        gjennomforingId: UUID,
+        brukVenterPaaOkonomiGodkjent: Boolean = false,
+    ): PrisinformasjonDto? {
+        val prisinfoDbo = if (brukVenterPaaOkonomiGodkjent) {
+            PrisinfoRepository.hentPrisinfo(gjennomforingId, false)
+        } else {
+            PrisinfoRepository
+                .hentPrisinfos(gjennomforingId)
+                .maxByOrNull { it.okonomiGodkjent }
+        } ?: return null
 
         return when (prisinfoDbo.prisinfoJsonSubtype) {
             ANSKAFFELSE_SUB_TYPE -> Anskaffelse(
@@ -124,11 +130,12 @@ object PrisinfoRepoAdapter {
      **
      * @param gjennomforingId Gjennomføring-ID
      * @param prisinformasjon Prisinformasjonen som skal lagres (Anskaffelse | Tilskudd | IngenKostnader)
+     * @return ID for lagret prisinfo
      */
     fun lagrePrisinfo(
         gjennomforingId: UUID,
         prisinformasjon: PrisinformasjonDto,
-    ) {
+    ): UUID {
         PrisinfoRepository.deletePrisinfo(
             gjennomforingId = gjennomforingId,
             okonomiGodkjent = false,
@@ -142,6 +149,8 @@ object PrisinfoRepoAdapter {
                 belop = prisinformasjon.toPriskomponentSet(),
             )
         }
+
+        return prisinfoFromDb.id
     }
 
     /**

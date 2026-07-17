@@ -128,7 +128,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         )
 
         mockkObject(PrisinfoRepoAdapter)
-        every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } just Runs
+        every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } returns UUID.randomUUID()
         every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(1000)
     }
 

@@ -76,7 +76,12 @@ class GjennomforingUpserterTest {
         )
 
         mockkObject(PrisinfoRepository)
-        every { PrisinfoRepository.hentPrisinfo(any(), any()) } answers {
+        every {
+            PrisinfoRepository.hentPrisinfo(
+                gjennomforingId = any(),
+                okonomiGodkjent = false,
+            )
+        } answers {
             PrisinfoDbo(
                 id = totrinnsIdInTest,
                 gjennomforingId = firstArg(),
@@ -87,7 +92,12 @@ class GjennomforingUpserterTest {
         every { PrisinfoRepository.hentPrisinfos(any()) } returns emptyList()
 
         mockkObject(PrisinfoRepoAdapter)
-        every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(1000)
+        every {
+            PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = any(),
+                brukVenterPaaOkonomiGodkjent = true,
+            )
+        } returns Anskaffelse(1000)
     }
 
     @Nested
