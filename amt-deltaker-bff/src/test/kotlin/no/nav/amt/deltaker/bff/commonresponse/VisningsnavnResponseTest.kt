@@ -147,7 +147,7 @@ class VisningsnavnResponseTest {
     }
 
     @Test
-    fun `TILRETTELAGT_ARBEID_ORDINAER in KLADD uses same text everywhere`() {
+    fun `TILRETTELAGT_ARBEID_ORDINAER in KLADD uses same text for title and draft title`() {
         val model = lagGjennomforingModel(
             tiltak = tiltak.copy(tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
             status = GjennomforingStatusType.KLADD,

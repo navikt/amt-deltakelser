@@ -89,7 +89,8 @@ data class VisningsnavnResponse(
 
             return gjennomforing.opplaringKategoriseringValg
                 ?.hentVerdier(representerer = OpplaringKategoriseringType.KURSTYPE_ID, throwIfEmpty = false)
-                ?.firstOrNull()
+                // minOrNull garanterer deterministisk resultat, i motsetning til firstOrNull
+                ?.minOrNull()
         }
 
         private fun skalBrukeDeltakerlisteNavn(tiltakskode: Tiltakskode): Boolean = when (tiltakskode) {
