@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.service
 
+import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.extensions.getForslagId
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
@@ -18,6 +19,7 @@ import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
 import no.nav.amt.deltaker.veileder.endring.extensions.anvendPaaDeltaker
 import no.nav.amt.deltaker.veileder.endring.extensions.validerGyldigFra
+import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.hendelse.HendelseType
@@ -47,6 +49,7 @@ class DeltakerService(
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
     private val unleashToggle: CommonUnleashToggle,
+    private val gjennomforingUpserter: GjennomforingUpserter,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -149,11 +152,19 @@ class DeltakerService(
                     endringResultat = updateResult,
                     endretAvNavAnsatt = navAnsatt,
                 )
+
                 deltaker
             },
             afterUpsert = {
-                if (endringRequest is ReaktiverDeltakelseRequest) {
-                    slettKladdIfExists(updateResult.deltaker)
+                when (endringRequest) {
+                    is ReaktiverDeltakelseRequest -> slettKladdIfExists(updateResult.deltaker)
+                    is EndretPrisinfoRequest -> gjennomforingUpserter.oppdaterPrisinfo(
+                        prisinfo = endringRequest.prisinfo,
+                        deltaker = eksisterendeDeltaker,
+                        endretAvNavIdent = endringRequest.endretAv,
+                    )
+
+                    else -> Unit
                 }
             },
         )

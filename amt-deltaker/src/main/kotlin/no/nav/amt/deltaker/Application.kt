@@ -32,6 +32,7 @@ import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
+import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.enkeltplass.kafka.EnkeltplassDeltakerConsumer
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollConsumer
@@ -355,6 +356,13 @@ fun Application.module() {
         arrangorService = arrangorService,
     )
 
+    val gjennomforingUpserter = GjennomforingUpserter(
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        vedtakService = vedtakService,
+        gjennomforingRequestProducer = gjennomforingRequestProducer,
+    )
+
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringRepository = deltakerEndringRepository,
@@ -370,6 +378,7 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         forslagRepository = forslagRepository,
         unleashToggle = unleashToggle,
+        gjennomforingUpserter = gjennomforingUpserter,
     )
 
     val endringFraArrangorService = EndringFraArrangorService(
@@ -397,20 +406,18 @@ fun Application.module() {
     val enkeltplassService = EnkeltplassService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        gjennomforingRequestProducer = gjennomforingRequestProducer,
         deltakerlisteRepository = deltakerlisteRepository,
         navBrukerService = navBrukerService,
         tiltakRepository = tiltakRepository,
         navEnhetService = navEnhetService,
-        navEnhetRepository = navEnhetRepository,
         navAnsattService = navAnsattService,
-        navAnsattRepository = navAnsattRepository,
         vedtakService = vedtakService,
         arrangorService = arrangorService,
         opplaringKategoriseringClient = opplaringKategoriseringClient,
         deltakerProducerService = deltakerProducerService,
         innsokService = innsokService,
         distribuerEndringService = distribuerEndringService,
+        gjennomforingUpserter = gjennomforingUpserter,
     )
 
     val pameldingService = PameldingService(
@@ -421,7 +428,7 @@ fun Application.module() {
         vedtakService = vedtakService,
         distribuerEndringService = distribuerEndringService,
         innsokService = innsokService,
-        enkeltplassService = enkeltplassService,
+        gjennomforingUpserter = gjennomforingUpserter,
     )
 
     val deltakerLaaseService = DeltakerLaaseService(

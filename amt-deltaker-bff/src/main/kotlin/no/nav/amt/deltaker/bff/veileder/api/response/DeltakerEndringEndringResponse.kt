@@ -2,15 +2,16 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.InnholdResponse
+import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-sealed class DeltakerEndringEndringResponse {
+sealed interface DeltakerEndringEndringResponse {
     data class EndreBakgrunnsinformasjon(
         val bakgrunnsinformasjon: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreBakgrunnsinformasjon) : this(
             bakgrunnsinformasjon = model.bakgrunnsinformasjon,
         )
@@ -19,7 +20,7 @@ sealed class DeltakerEndringEndringResponse {
     data class EndreInnhold(
         val ledetekst: String?,
         val innhold: List<InnholdResponse>,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreInnhold) : this(
             ledetekst = model.ledetekst,
             innhold = model.innhold.map(::InnholdResponse),
@@ -31,7 +32,7 @@ sealed class DeltakerEndringEndringResponse {
         val dagerPerUke: Float?,
         val gyldigFra: LocalDate?,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreDeltakelsesmengde) : this(
             deltakelsesprosent = model.deltakelsesprosent,
             dagerPerUke = model.dagerPerUke,
@@ -44,7 +45,7 @@ sealed class DeltakerEndringEndringResponse {
         val startdato: LocalDate?,
         val sluttdato: LocalDate?,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreStartdato) : this(
             startdato = model.startdato,
             sluttdato = model.sluttdato,
@@ -55,7 +56,7 @@ sealed class DeltakerEndringEndringResponse {
     data class EndreSluttdato(
         val sluttdato: LocalDate,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreSluttdato) : this(
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
@@ -65,7 +66,7 @@ sealed class DeltakerEndringEndringResponse {
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.ForlengDeltakelse) : this(
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
@@ -75,7 +76,7 @@ sealed class DeltakerEndringEndringResponse {
     data class IkkeAktuell(
         val aarsak: AarsakResponse,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.IkkeAktuell) : this(
             aarsak = AarsakResponse(model.aarsak),
             begrunnelse = model.begrunnelse,
@@ -88,7 +89,7 @@ sealed class DeltakerEndringEndringResponse {
         val begrunnelse: String?,
         val harFullfort: Boolean,
         val oppstartstype: Oppstartstype?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.AvsluttDeltakelse, oppstartstype: Oppstartstype?) : this(
             aarsak = model.aarsak?.let(::AarsakResponse),
             sluttdato = model.sluttdato,
@@ -111,7 +112,7 @@ sealed class DeltakerEndringEndringResponse {
         val sluttdato: LocalDate?,
         val begrunnelse: String?,
         val harFullfort: Boolean?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreAvslutning) : this(
             aarsak = model.aarsak?.let(::AarsakResponse),
             sluttdato = model.sluttdato,
@@ -123,7 +124,7 @@ sealed class DeltakerEndringEndringResponse {
     data class EndreSluttarsak(
         val aarsak: AarsakResponse,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreSluttarsak) : this(
             aarsak = AarsakResponse(model.aarsak),
             begrunnelse = model.begrunnelse,
@@ -133,7 +134,7 @@ sealed class DeltakerEndringEndringResponse {
     data class ReaktiverDeltakelse(
         val reaktivertDato: LocalDate,
         val begrunnelse: String,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.ReaktiverDeltakelse) : this(
             reaktivertDato = model.reaktivertDato,
             begrunnelse = model.begrunnelse,
@@ -142,9 +143,17 @@ sealed class DeltakerEndringEndringResponse {
 
     data class FjernOppstartsdato(
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.FjernOppstartsdato) : this(
             begrunnelse = model.begrunnelse,
+        )
+    }
+
+    data class EndrePrisinfo(
+        val prisinfo: PrisinformasjonResponse,
+    ) : DeltakerEndringEndringResponse {
+        constructor(model: DeltakerEndring.Endring.EndrePrisinfo) : this(
+            prisinfo = PrisinformasjonResponse.fromModel(model.prisinfo),
         )
     }
 
@@ -163,6 +172,7 @@ sealed class DeltakerEndringEndringResponse {
             model: DeltakerEndring.Endring,
             oppstartstype: Oppstartstype?,
         ): DeltakerEndringEndringResponse = when (model) {
+            is DeltakerEndring.Endring.EndrePrisinfo -> EndrePrisinfo(model)
             is DeltakerEndring.Endring.AvsluttDeltakelse -> AvsluttDeltakelse(model, oppstartstype)
             is DeltakerEndring.Endring.EndreAvslutning -> EndreAvslutning(model)
             is DeltakerEndring.Endring.AvbrytDeltakelse -> AvsluttDeltakelse(model, oppstartstype)

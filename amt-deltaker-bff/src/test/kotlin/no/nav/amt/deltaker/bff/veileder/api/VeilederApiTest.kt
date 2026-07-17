@@ -30,6 +30,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndreAvslutningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreBakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.EndrePrisinfoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttarsakRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreStartdatoRequest
@@ -45,6 +46,7 @@ import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.utils.objectMapper
@@ -68,6 +70,7 @@ class VeilederApiTest : IntegrationTestBase() {
             val requests = listOf(
                 "POST" to "/deltaker/$id",
                 "GET" to "/deltaker/$id/historikk",
+                "POST" to "/deltaker/$id/endre-prisinfo",
                 "POST" to "/deltaker/$id/bakgrunnsinformasjon",
                 "POST" to "/deltaker/$id/innhold",
                 "POST" to "/deltaker/$id/deltakelsesmengde",
@@ -115,6 +118,7 @@ class VeilederApiTest : IntegrationTestBase() {
             val requests: List<suspend () -> HttpResponse> = listOf(
                 { httpClient.post("/deltaker/$id") { createPostRequest(deltakerRequest) } },
                 { httpClient.get("/deltaker/$id/historikk") { noBodyRequest() } },
+                { httpClient.post("/deltaker/$id/endre-prisinfo") { createPostRequest(endrePrisinfoRequest) } },
                 { httpClient.post("/deltaker/$id/bakgrunnsinformasjon") { createPostRequest(bakgrunnsinformasjonRequest) } },
                 { httpClient.post("/deltaker/$id/innhold") { createPostRequest(innholdRequest) } },
                 { httpClient.post("/deltaker/$id/deltakelsesmengde") { createPostRequest(deltakelsesmengdeRequest) } },
@@ -257,6 +261,47 @@ class VeilederApiTest : IntegrationTestBase() {
                         status shouldBe HttpStatusCode.OK
                         bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
                     }
+            }
+        }
+
+        @Nested
+        inner class EndrePrisinfoTests {
+            @Test
+            fun `oppdater prisinfo - har tilgang - returnerer deltaker`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                val expected = setupMocksLocal(deltaker, deltaker)
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-prisinfo") {
+                            createPostRequest(endrePrisinfoRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.OK
+                            bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater prisinfo - ugyldig prisinformasjon - returnerer 400`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                val ugyldigRequest = EndrePrisinfoRequest(
+                    prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 0),
+                )
+                setupMocks(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-prisinfo") {
+                            createPostRequest(ugyldigRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                            // Response should not be a valid DeltakerResponse
+                            val body = bodyAsText()
+                            body.contains("Prisinformasjon er ikke gyldig: Pris må være større enn 0") shouldBe true
+                        }
+                }
             }
         }
 
@@ -501,6 +546,12 @@ class VeilederApiTest : IntegrationTestBase() {
     private val deltakerRequest = DeltakerRequest("1234")
     private val bakgrunnsinformasjonRequest = EndreBakgrunnsinformasjonRequest("Oppdatert bakgrunnsinformasjon")
     private val innholdRequest = EndreInnholdRequest(emptyList())
+    private val endrePrisinfoRequest = EndrePrisinfoRequest(
+        prisinformasjon = PrisinformasjonDto.IngenKostnader(
+            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            tilleggsopplysninger = "Ingen kostnader",
+        ),
+    )
     private val deltakelsesmengdeRequest = EndreDeltakelsesmengdeRequest(
         deltakelsesprosent = 50,
         dagerPerUke = 3,

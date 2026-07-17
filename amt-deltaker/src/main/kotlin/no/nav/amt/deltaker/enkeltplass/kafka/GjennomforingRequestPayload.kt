@@ -32,6 +32,17 @@ sealed interface GjennomforingRequestPayload {
         val payload: UpsertEnkeltplass,
     ) : GjennomforingRequestPayload
 
+    data class EnkeltplassEndrePrisinformasjon(
+        override val gjennomforingId: UUID,
+        val totrinnskontroll: Totrinnskontroll,
+        val payload: Prisinformasjon,
+    ) : GjennomforingRequestPayload
+
+    data class EnkeltplassEndreInnhold(
+        override val gjennomforingId: UUID,
+        val payload: UpsertEnkeltplass.OpplaringKategorisering?, // ikke alle gjennomføringer har dette
+    ) : GjennomforingRequestPayload
+
     // payload i enkeltplass-sokt-inn og enkeltplass-utkast
     data class UpsertEnkeltplass(
         val tiltakskode: Tiltakskode,
@@ -46,17 +57,6 @@ sealed interface GjennomforingRequestPayload {
             val sertifiseringer: Set<SertifiseringValg>,
         )
     }
-
-    data class EnkeltplassEndrePrisinformasjon(
-        override val gjennomforingId: UUID,
-        val totrinnkontroll: Totrinnskontroll,
-        val payload: Prisinformasjon,
-    ) : GjennomforingRequestPayload
-
-    data class EnkeltplassEndreInnhold(
-        override val gjennomforingId: UUID,
-        val payload: UpsertEnkeltplass.OpplaringKategorisering?, // ikke alle gjennomføringer har dette
-    ) : GjennomforingRequestPayload
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes(

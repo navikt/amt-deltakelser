@@ -13,6 +13,11 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
     getDeltakelsemengder: (deltakerId: UUID) -> Deltakelsesmengder,
 ): Result<VellykketEndring> = runCatching {
     when (this) {
+        is DeltakerEndring.Endring.EndrePrisinfo -> {
+            // oppdatering av prisinfo skjer i transaksjon senere i koden
+            VellykketEndring(deltaker)
+        }
+
         is DeltakerEndring.Endring.AvsluttDeltakelse ->
             handleEndring(
                 deltaker = deltaker,

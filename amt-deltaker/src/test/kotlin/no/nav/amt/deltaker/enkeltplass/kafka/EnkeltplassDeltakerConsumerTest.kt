@@ -79,6 +79,7 @@ class EnkeltplassDeltakerConsumerTest {
         endringFraTiltakskoordinatorRepository = mockk(),
         forslagRepository = mockk(),
         unleashToggle = mockk(),
+        gjennomforingUpserter = mockk(),
     )
 
     private val consumer = EnkeltplassDeltakerConsumer(

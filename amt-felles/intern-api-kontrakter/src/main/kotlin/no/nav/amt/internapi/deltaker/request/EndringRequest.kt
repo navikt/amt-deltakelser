@@ -30,6 +30,7 @@ sealed interface EndringRequest {
     fun toEndring(tiltak: Tiltakstype): DeltakerEndring.Endring = toEndring()
 
     fun kanIverksettesUtenAktivOppfolging() = when (this) {
+        is EndretPrisinfoRequest,
         is BakgrunnsinformasjonRequest,
         is DeltakelsesmengdeRequest,
         is EndretInnholdRequest,

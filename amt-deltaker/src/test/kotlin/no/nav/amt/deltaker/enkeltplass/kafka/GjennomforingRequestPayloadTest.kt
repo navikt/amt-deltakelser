@@ -51,7 +51,7 @@ class GjennomforingRequestPayloadTest {
                     aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                     tilleggsopplysninger = null,
                 ),
-                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = UUID.randomUUID(),
                     behandletAv = "Z123456",
                 ),
@@ -121,7 +121,7 @@ class GjennomforingRequestPayloadTest {
                     aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                     tilleggsopplysninger = "Forklaring",
                 ),
-                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = UUID.randomUUID(),
                     behandletAv = "Z123456",
                 ),
@@ -138,7 +138,7 @@ class GjennomforingRequestPayloadTest {
             val original = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
                 gjennomforingId = UUID.randomUUID(),
                 payload = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(pris = 99000),
-                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = UUID.randomUUID(),
                     behandletAv = "Z123456",
                 ),

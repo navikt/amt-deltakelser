@@ -1,21 +1,16 @@
 package no.nav.amt.deltaker.enkeltplass
 
-import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
-import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
-import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
@@ -35,7 +30,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -49,22 +44,20 @@ import java.time.LocalDate
 import java.util.UUID
 
 class EnkeltplassService(
-    private val gjennomforingRequestProducer: GjennomforingRequestProducer,
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
     private val tiltakRepository: TiltakRepository,
     private val navEnhetService: NavEnhetService,
-    private val navEnhetRepository: NavEnhetRepository,
     private val navAnsattService: NavAnsattService,
-    private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val arrangorService: ArrangorService,
     private val opplaringKategoriseringClient: OpplaringKategoriseringClient,
     private val deltakerProducerService: DeltakerProducerService,
     private val innsokService: InnsokService,
     private val distribuerEndringService: DistribuerEndringService,
+    private val gjennomforingUpserter: GjennomforingUpserter,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
@@ -197,23 +190,6 @@ class EnkeltplassService(
         )
     }
 
-    // benyttes av PameldingService#innbyggerGodkjennUtkast
-    fun publiserGjennomforing(deltaker: Deltaker) {
-        val vedtak = vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id)
-        val ansvarligEnhet = navEnhetRepository.getOrThrow(vedtak.opprettetAvEnhet)
-        val ansvarligNavAnsatt = navAnsattRepository.getOrThrow(vedtak.opprettetAv)
-        val gjennomforing = deltaker.deltakerliste
-
-        produceUpsertGjennomforing(
-            deltaker = deltaker,
-            orgnr = checkNotNull(gjennomforing.arrangor) {
-                "Kan ikke publisere gjennomføring ${gjennomforing.id}: arrangør mangler"
-            }.organisasjonsnummer,
-            endretAvNavIdent = ansvarligNavAnsatt.navIdent,
-            endretAvEnhet = ansvarligEnhet.enhetsnummer,
-        )
-    }
-
     private suspend fun oppdaterKladdEllerUtkast(
         deltaker: Deltaker,
         oppdaterKladdRequest: OppdaterEnkeltplassKladdRequest,
@@ -253,26 +229,12 @@ class EnkeltplassService(
                 ),
             )
 
-            oppdaterKladdRequest.prisinformasjon?.let { prisinfo ->
-                PrisinfoRepoAdapter.lagrePrisinfo(
-                    gjennomforingId = deltaker.deltakerliste.id,
-                    prisinformasjon = prisinfo,
-                )
-            }
-
-            val opplaringKategoriseringValg = kategoriseringResponse.toOpplaringKategoriseringValg(
-                kategoriseringValg = oppdaterKladdRequest.kodeverkValg ?: emptySet(),
-                sertifiseringValg = oppdaterKladdRequest.sertifiseringValg ?: emptySet(),
-            )
-
-            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+            lagreKategoriseringOgPrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
-                valgteVerdier = oppdaterKladdRequest.kodeverkValg?.let {
-                    opplaringKategoriseringValg.valgteKategoriseringer
-                },
-                valgteSertifiseringer = oppdaterKladdRequest.sertifiseringValg?.let {
-                    opplaringKategoriseringValg.valgteSertifiseringer
-                },
+                kodeverkValg = oppdaterKladdRequest.kodeverkValg,
+                sertifiseringValg = oppdaterKladdRequest.sertifiseringValg,
+                prisinformasjon = oppdaterKladdRequest.prisinformasjon,
+                kategoriseringForTiltak = kategoriseringResponse,
             )
 
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -332,18 +294,6 @@ class EnkeltplassService(
                 ),
             )
 
-            PrisinfoRepoAdapter.lagrePrisinfo(
-                gjennomforingId = gjennomforing.id,
-                prisinformasjon = request.prisinformasjon,
-            )
-
-            lagreKategorisering(
-                gjennomforingId = gjennomforing.id,
-                kategoriseringForTiltak = kategoriseringForTiltak,
-                valgteKodeverk = request.kodeverkValg,
-                valgteSertifiseringer = request.sertifiseringValg,
-            )
-
             val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
             val deltakerMedVedtak = lagreVedtakIkkeFattet(
                 deltaker = oppdatertDeltaker,
@@ -353,6 +303,20 @@ class EnkeltplassService(
             if (nyStatus == DeltakerStatus.Type.SOKT_INN) {
                 innsokService.nyttInnsokUtkastGodkjentAvNav(deltakerMedVedtak, deltaker.status)
             }
+
+            lagreKategoriseringOgPrisinfo(
+                gjennomforingId = gjennomforing.id,
+                kodeverkValg = request.kodeverkValg,
+                sertifiseringValg = request.sertifiseringValg,
+                prisinformasjon = request.prisinformasjon,
+                kategoriseringForTiltak = kategoriseringForTiltak,
+            )
+
+            gjennomforingUpserter.publiserGjennomforingUpsert(
+                deltaker = deltakerMedVedtak,
+                endretAvNavIdent = decoratedRequest.endretAv,
+                endretAvEnhet = decoratedRequest.endretAvEnhet,
+            )
 
             distribuerEndringService.produceHendelseForUtkast(
                 deltaker = deltakerMedVedtak,
@@ -366,13 +330,6 @@ class EnkeltplassService(
                 }
             }
 
-            produceUpsertGjennomforing(
-                deltaker = deltakerMedVedtak,
-                orgnr = request.arrangorUnderenhet,
-                endretAvNavIdent = decoratedRequest.endretAv,
-                endretAvEnhet = decoratedRequest.endretAvEnhet,
-            )
-
             // hvis gjennomføring er opprettet, publiser deltaker
             if (gjennomforing.status != GjennomforingStatusType.KLADD) {
                 deltakerProducerService.produce(deltakerMedVedtak)
@@ -380,24 +337,6 @@ class EnkeltplassService(
 
             deltakerMedVedtak
         }
-    }
-
-    private fun lagreKategorisering(
-        gjennomforingId: UUID,
-        kategoriseringForTiltak: OpplaringKategoriseringResponse,
-        valgteKodeverk: Set<UUID>?,
-        valgteSertifiseringer: Set<SertifiseringValg>?,
-    ) {
-        val opplaringKategoriseringValg = kategoriseringForTiltak.toOpplaringKategoriseringValg(
-            kategoriseringValg = valgteKodeverk ?: emptySet(),
-            sertifiseringValg = valgteSertifiseringer ?: emptySet(),
-        )
-
-        OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
-            gjennomforingId = gjennomforingId,
-            valgteVerdier = valgteKodeverk?.let { opplaringKategoriseringValg.valgteKategoriseringer },
-            valgteSertifiseringer = valgteSertifiseringer?.let { opplaringKategoriseringValg.valgteSertifiseringer },
-        )
     }
 
     private fun lagreVedtakIkkeFattet(
@@ -416,52 +355,6 @@ class EnkeltplassService(
         return deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
     }
 
-    internal fun produceUpsertGjennomforing(
-        deltaker: Deltaker,
-        orgnr: String,
-        endretAvNavIdent: String,
-        endretAvEnhet: String,
-    ) {
-        val upsertPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
-            tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
-                PrisinfoRepoAdapter.hentPrisinfo(deltaker.deltakerliste.id)
-                    ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
-            ),
-            organisasjonsnummer = orgnr,
-            ansvarligEnhet = endretAvEnhet,
-            opprettetAv = endretAvNavIdent,
-            kategorisering = deltaker.deltakerliste.opplaringKategorisering?.toMulighetsrommetKategorisering(),
-        )
-
-        val gjennomforingPayload = when (val statusType = deltaker.status.type) {
-            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
-                gjennomforingId = deltaker.deltakerliste.id,
-                payload = upsertPayload,
-            )
-
-            DeltakerStatus.Type.SOKT_INN -> {
-                val prisinfo = PrisinfoRepository.hentPrisinfo(
-                    gjennomforingId = deltaker.deltakerliste.id,
-                    okonomiGodkjent = false,
-                ) ?: error("Fant ikke prisinformasjon for deltakerliste ${deltaker.deltakerliste.id}")
-
-                GjennomforingRequestPayload.EnkeltplassSoktInn(
-                    gjennomforingId = deltaker.deltakerliste.id,
-                    payload = upsertPayload,
-                    totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
-                        id = prisinfo.id,
-                        behandletAv = endretAvNavIdent,
-                    ),
-                )
-            }
-
-            else -> throw IllegalStateException("Deltaker ${deltaker.id} har status $statusType")
-        }
-
-        gjennomforingRequestProducer.produce(gjennomforingPayload)
-    }
-
     private suspend fun hentArrangorHvisEndret(
         organisasjonsnummer: String,
         eksisterendeArrangor: Arrangor?,
@@ -471,13 +364,33 @@ class EnkeltplassService(
         arrangorService.hentArrangor(organisasjonsnummer)
     }
 
-    companion object {
-        fun OpplaringKategoriseringValg.toMulighetsrommetKategorisering() =
-            GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
-                sertifiseringer = valgteSertifiseringer,
-                verdier = valgteKategoriseringer.associate { it.representerer to it.valg.keys },
+    internal fun lagreKategoriseringOgPrisinfo(
+        gjennomforingId: UUID,
+        kodeverkValg: Set<UUID>?,
+        sertifiseringValg: Set<SertifiseringValg>?,
+        prisinformasjon: PrisinformasjonDto?,
+        kategoriseringForTiltak: OpplaringKategoriseringResponse,
+    ) {
+        prisinformasjon?.let {
+            PrisinfoRepoAdapter.lagrePrisinfo(
+                gjennomforingId = gjennomforingId,
+                prisinformasjon = it,
             )
+        }
 
+        val opplaringKategoriseringValg = kategoriseringForTiltak.toOpplaringKategoriseringValg(
+            kategoriseringValg = kodeverkValg ?: emptySet(),
+            sertifiseringValg = sertifiseringValg ?: emptySet(),
+        )
+
+        OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+            gjennomforingId = gjennomforingId,
+            valgteVerdier = kodeverkValg?.let { opplaringKategoriseringValg.valgteKategoriseringer },
+            valgteSertifiseringer = sertifiseringValg?.let { opplaringKategoriseringValg.valgteSertifiseringer },
+        )
+    }
+
+    companion object {
         private fun lagDeltakerUpdateDbo(
             deltaker: Deltaker,
             startdato: LocalDate?,

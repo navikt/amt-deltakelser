@@ -364,6 +364,7 @@ private fun tilEndringDto(
     is HendelseType.InnbyggerGodkjennUtkast,
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
+    is HendelseType.EnkeltplassEndrePrisinfo,
     is HendelseType.ReaktiverDeltakelse,
     is HendelseType.EndreSluttarsak,
     is HendelseType.EndreUtkast,

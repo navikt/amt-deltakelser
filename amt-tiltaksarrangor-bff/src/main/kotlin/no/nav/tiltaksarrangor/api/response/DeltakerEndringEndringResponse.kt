@@ -2,6 +2,7 @@ package no.nav.tiltaksarrangor.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
 
@@ -153,11 +154,20 @@ sealed class DeltakerEndringEndringResponse {
         )
     }
 
+    data class EndrePrisinfo(
+        val prisinfo: PrisinformasjonDto,
+    ) : DeltakerEndringEndringResponse() {
+        constructor(model: DeltakerEndring.Endring.EndrePrisinfo) : this(
+            prisinfo = model.prisinfo,
+        )
+    }
+
     companion object {
         fun fromModel(
             model: DeltakerEndring.Endring,
             oppstartstype: Oppstartstype,
         ): DeltakerEndringEndringResponse = when (model) {
+            is DeltakerEndring.Endring.EndrePrisinfo -> EndrePrisinfo(model)
             is DeltakerEndring.Endring.AvsluttDeltakelse -> AvsluttDeltakelse(model, oppstartstype)
             is DeltakerEndring.Endring.EndreAvslutning -> EndreAvslutning(model)
             is DeltakerEndring.Endring.AvbrytDeltakelse -> AvsluttDeltakelse(model, oppstartstype)
