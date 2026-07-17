@@ -44,7 +44,7 @@ class GjennomforingUpserter(
 
         val endrePrisinfoPayload = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
             gjennomforingId = deltaker.deltakerliste.id,
-            totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+            totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                 id = totrinnskontrollId,
                 behandletAv = endretAvNavIdent,
             ),

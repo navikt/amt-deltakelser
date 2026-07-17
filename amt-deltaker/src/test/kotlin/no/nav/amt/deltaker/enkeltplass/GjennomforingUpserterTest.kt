@@ -124,7 +124,7 @@ class GjennomforingUpserterTest {
             val produced = slot.captured
             produced shouldBe GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
                 gjennomforingId = deltaker.deltakerliste.id,
-                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = totrinnsIdInTest,
                     behandletAv = "Z123456",
                 ),
@@ -172,7 +172,7 @@ class GjennomforingUpserterTest {
 
             // Assert
             val produced = slot.captured
-            (produced as GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon).totrinnkontroll.behandletAv shouldBe endretAv
+            (produced as GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon).totrinnskontroll.behandletAv shouldBe endretAv
             produced.gjennomforingId shouldBe deltaker.deltakerliste.id
         }
     }
