@@ -98,44 +98,116 @@ class GjennomforingUpserterTest {
                 brukVenterPaaOkonomiGodkjent = true,
             )
         } returns Anskaffelse(1000)
+        every {
+            PrisinfoRepoAdapter.lagrePrisinfo(any(), any())
+        } returns totrinnsIdInTest
+    }
+
+    @Nested
+    inner class OppdaterPrisinfoTests {
+        @Test
+        fun `lagrer ny prisinfo og produserer EnkeltplassEndrePrisinformasjon`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker()
+            val nyPrisinfo = Anskaffelse(pris = 50000)
+            val slot = slot<GjennomforingRequestPayload>()
+            every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
+
+            // Act
+            sut.oppdaterPrisinfo(
+                prisinfo = nyPrisinfo,
+                deltaker = deltaker,
+                endretAvNavIdent = "Z123456",
+            )
+
+            // Assert
+            val produced = slot.captured
+            produced shouldBe GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
+                gjennomforingId = deltaker.deltakerliste.id,
+                totrinnkontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = totrinnsIdInTest,
+                    behandletAv = "Z123456",
+                ),
+                payload = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
+            )
+        }
+
+        @Test
+        fun `kaster IllegalStateException når prisinfo ikke finnes etter lagring`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker()
+            val nyPrisinfo = Anskaffelse(pris = 50000)
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = any(),
+                    brukVenterPaaOkonomiGodkjent = true,
+                )
+            } returns null
+
+            // Act & Assert
+            shouldThrow<IllegalStateException> {
+                sut.oppdaterPrisinfo(
+                    prisinfo = nyPrisinfo,
+                    deltaker = deltaker,
+                    endretAvNavIdent = "Z123456",
+                )
+            }
+        }
+
+        @Test
+        fun `kalles med ulik prisinformasjon og endretAvNavIdent`() {
+            // Arrange
+            val deltaker = createSoktInnDeltaker()
+            val nyPrisinfo = Anskaffelse(pris = 75000)
+            val endretAv = "Z999999"
+            val slot = slot<GjennomforingRequestPayload>()
+            every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
+
+            // Act
+            sut.oppdaterPrisinfo(
+                prisinfo = nyPrisinfo,
+                deltaker = deltaker,
+                endretAvNavIdent = endretAv,
+            )
+
+            // Assert
+            val produced = slot.captured
+            (produced as GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon).totrinnkontroll.behandletAv shouldBe endretAv
+            produced.gjennomforingId shouldBe deltaker.deltakerliste.id
+        }
     }
 
     @Nested
     inner class ProduceUpsertGjennomforingTests {
-        private fun Deltaker.toPayload(): GjennomforingRequestPayload.UpsertEnkeltplass = GjennomforingRequestPayload.UpsertEnkeltplass(
+        private fun Deltaker.toPayload(
+            opprettetAv: String,
+            ansvarligEnhet: String,
+        ): GjennomforingRequestPayload.UpsertEnkeltplass = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltakerliste.tiltakstype.tiltakskode,
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
             organisasjonsnummer = this.deltakerliste.arrangor!!.organisasjonsnummer,
-            ansvarligEnhet = "1234",
-            opprettetAv = "Z123456",
-            kategorisering = deltakerliste.opplaringKategorisering?.toMulighetsrommetKategorisering(),
-        )
-
-        private val testPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
-            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
-            organisasjonsnummer = "987654321",
-            ansvarligEnhet = "1234",
-            opprettetAv = "Z123456",
-            kategorisering = GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
-                verdier = emptyMap(),
-                sertifiseringer = emptySet(),
-            ),
+            ansvarligEnhet = ansvarligEnhet,
+            opprettetAv = opprettetAv,
+            kategorisering = OpplaringKategoriseringRepoAdapter
+                .hentOpplaringKategoriseringValg(deltakerliste.id)
+                .toMulighetsrommetKategorisering(),
         )
 
         @Test
         fun `UTKAST_TIL_PAMELDING status - produserer EnkeltplassUtkast`() {
             // Arrange
             val deltaker = createUtkastDeltaker()
-            val payload = deltaker.toPayload()
+            val navIdent = "Z123456"
+            val enhet = "1234"
+            val payload = deltaker.toPayload(opprettetAv = navIdent, ansvarligEnhet = enhet)
             val slot = slot<GjennomforingRequestPayload>()
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
-            sut.produceUpsertGjennomforing(
+            sut.publiserGjennomforingUpsert(
                 deltaker = deltaker,
-                endretAvNavIdent = payload.opprettetAv,
-                endretAvEnhet = payload.ansvarligEnhet,
+                endretAvNavIdent = navIdent,
+                endretAvEnhet = enhet,
             )
 
             // Assert
@@ -150,15 +222,17 @@ class GjennomforingUpserterTest {
         fun `SOKT_INN status - produserer EnkeltplassSoktInn`() {
             // Arrange
             val deltaker = createSoktInnDeltaker()
-            val payload = deltaker.toPayload()
+            val navIdent = "Z123456"
+            val enhet = "1234"
+            val payload = deltaker.toPayload(opprettetAv = navIdent, ansvarligEnhet = enhet)
             val slot = slot<GjennomforingRequestPayload>()
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
-            sut.produceUpsertGjennomforing(
+            sut.publiserGjennomforingUpsert(
                 deltaker = deltaker,
-                endretAvNavIdent = payload.opprettetAv,
-                endretAvEnhet = payload.ansvarligEnhet,
+                endretAvNavIdent = navIdent,
+                endretAvEnhet = enhet,
             )
 
             // Assert
@@ -168,7 +242,7 @@ class GjennomforingUpserterTest {
                 payload = payload,
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = totrinnsIdInTest,
-                    behandletAv = payload.opprettetAv,
+                    behandletAv = navIdent,
                 ),
             )
         }
@@ -177,10 +251,188 @@ class GjennomforingUpserterTest {
         fun `KLADD status - kaster IllegalStateException`() {
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                sut.produceUpsertGjennomforing(
+                sut.publiserGjennomforingUpsert(
                     deltaker = createKladdDeltaker(),
-                    endretAvNavIdent = testPayload.opprettetAv,
-                    endretAvEnhet = testPayload.ansvarligEnhet,
+                    endretAvNavIdent = "Z123456",
+                    endretAvEnhet = "1234",
+                )
+            }
+        }
+    }
+
+    @Nested
+    inner class BuildUpsertPayloadTests {
+        @Test
+        fun `builds payload with correct values`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker()
+            val navIdent = "Z999999"
+            val enhet = "4567"
+
+            // Act
+            val payload = sut.buildUpsertPayload(
+                deltaker = deltaker,
+                opprettetAvNavIdent = navIdent,
+                ansvarligEnhet = enhet,
+            )
+
+            // Assert
+            payload.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
+            payload.organisasjonsnummer shouldBe deltaker.deltakerliste.arrangor?.organisasjonsnummer
+            payload.ansvarligEnhet shouldBe enhet
+            payload.opprettetAv shouldBe navIdent
+            payload.prisinformasjon shouldBe GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000)
+        }
+
+        @Test
+        fun `kaster IllegalStateException når prisinfo mangler`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker()
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = any(),
+                    brukVenterPaaOkonomiGodkjent = true,
+                )
+            } returns null
+
+            // Act & Assert
+            shouldThrow<IllegalStateException> {
+                sut.buildUpsertPayload(
+                    deltaker = deltaker,
+                    opprettetAvNavIdent = "Z123456",
+                    ansvarligEnhet = "1234",
+                )
+            }
+        }
+
+        @Test
+        fun `kaster error når organisasjonsnummer er null`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker().copy(
+                deltakerliste = createUtkastDeltaker().deltakerliste.copy(
+                    arrangor = null,
+                ),
+            )
+
+            // Act & Assert
+            shouldThrow<IllegalStateException> {
+                sut.buildUpsertPayload(
+                    deltaker = deltaker,
+                    opprettetAvNavIdent = "Z123456",
+                    ansvarligEnhet = "1234",
+                )
+            }
+        }
+
+        @Test
+        fun `inkluderer kategorisering fra repository`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker()
+
+            // Act
+            val payload = sut.buildUpsertPayload(
+                deltaker = deltaker,
+                opprettetAvNavIdent = "Z123456",
+                ansvarligEnhet = "1234",
+            )
+
+            // Assert
+            payload.kategorisering shouldBe GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
+                verdier = emptyMap(),
+                sertifiseringer = emptySet(),
+            )
+        }
+    }
+
+    @Nested
+    inner class BuildGjennomforingRequestTests {
+        private val testPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
+            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
+            organisasjonsnummer = "987654321",
+            ansvarligEnhet = "1234",
+            opprettetAv = "Z123456",
+            kategorisering = GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
+                verdier = emptyMap(),
+                sertifiseringer = emptySet(),
+            ),
+        )
+
+        @Test
+        fun `UTKAST_TIL_PAMELDING - returnerer EnkeltplassUtkast`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker()
+
+            // Act
+            val request = sut.buildGjennomforingRequest(
+                deltaker = deltaker,
+                upsertPayload = testPayload,
+                behandletAv = "Z999999",
+            )
+
+            // Assert
+            request shouldBe GjennomforingRequestPayload.EnkeltplassUtkast(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = testPayload,
+            )
+        }
+
+        @Test
+        fun `SOKT_INN - returnerer EnkeltplassSoktInn med totrinnskontroll`() {
+            // Arrange
+            val deltaker = createSoktInnDeltaker()
+            val behandletAv = "Z999999"
+
+            // Act
+            val request = sut.buildGjennomforingRequest(
+                deltaker = deltaker,
+                upsertPayload = testPayload,
+                behandletAv = behandletAv,
+            )
+
+            // Assert
+            request shouldBe GjennomforingRequestPayload.EnkeltplassSoktInn(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = testPayload,
+                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = totrinnsIdInTest,
+                    behandletAv = behandletAv,
+                ),
+            )
+        }
+
+        @Test
+        fun `SOKT_INN - kaster error når prisinfo mangler`() {
+            // Arrange
+            val deltaker = createSoktInnDeltaker()
+            every {
+                PrisinfoRepository.hentPrisinfo(
+                    gjennomforingId = any(),
+                    okonomiGodkjent = false,
+                )
+            } returns null
+
+            // Act & Assert
+            shouldThrow<IllegalStateException> {
+                sut.buildGjennomforingRequest(
+                    deltaker = deltaker,
+                    upsertPayload = testPayload,
+                    behandletAv = "Z999999",
+                )
+            }
+        }
+
+        @Test
+        fun `KLADD status - kaster IllegalStateException`() {
+            // Arrange
+            val deltaker = createKladdDeltaker()
+
+            // Act & Assert
+            shouldThrow<IllegalStateException> {
+                sut.buildGjennomforingRequest(
+                    deltaker = deltaker,
+                    upsertPayload = testPayload,
+                    behandletAv = "Z999999",
                 )
             }
         }
