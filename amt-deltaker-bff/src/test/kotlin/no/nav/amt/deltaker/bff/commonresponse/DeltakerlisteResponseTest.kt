@@ -32,7 +32,7 @@ class DeltakerlisteResponseTest {
 
         response.deltakerlisteId shouldBe model.id
         response.deltakerlisteNavn shouldBe model.navn
-        response.tiltakskode shouldBe model.tiltak.tiltakskode
+        response.tiltakskode shouldBe TiltakskodeResponse(model.tiltak.tiltakskode)
         response.tiltakskodeResponse.kode shouldBe model.tiltak.tiltakskode
         response.oppstartstype shouldBe Oppstartstype.LOPENDE
         response.startdato shouldBe LocalDate.of(2026, 1, 1)
