@@ -126,7 +126,7 @@ object PrisinfoRepoAdapter {
      * 1. Sletter eksisterende pending prisinfo-record
      * 2. Lagrer ny prisinfo med `okonomiGodkjent=false`
      * 3. For Tilskudd: Lagrer beløp for tilskudd i separat tabell
-     **
+     *
      * @param gjennomforingId Gjennomføring-ID
      * @param prisinformasjon Prisinformasjonen som skal lagres (Anskaffelse | Tilskudd | IngenKostnader)
      * @return ID for lagret prisinfo
