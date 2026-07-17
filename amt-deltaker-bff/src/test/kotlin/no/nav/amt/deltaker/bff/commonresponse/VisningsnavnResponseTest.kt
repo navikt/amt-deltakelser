@@ -447,4 +447,60 @@ class VisningsnavnResponseTest {
         // Ingress should use course arrangement name even in KLADD status
         response.tiltakHosArrangorIngressTekst shouldBe "$deltakerlisteNavn hos Arrangor 1"
     }
+
+    @Test
+    fun `falls back to unknown organizer when arrangor is null for multi-participant measures`() {
+        val deltakerlisteNavn = "Arbeidsmarkedsopplæring"
+        val model = lagGjennomforingModel(
+            tiltak = tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
+            arrangor = null,
+            navn = deltakerlisteNavn,
+        )
+
+        val response = VisningsnavnResponse(model)
+
+        response.tiltakHosArrangorTittel shouldBe "Arbeidsmarkedsopplæring hos Ukjent arrangør"
+        response.tiltakHosArrangorIngressTekst shouldBe "$deltakerlisteNavn hos Ukjent arrangør"
+        response.kladdTiltakHosArrangorTittel shouldBe "$deltakerlisteNavn hos Ukjent arrangør"
+    }
+
+    @Test
+    fun `falls back to unknown organizer when arrangor is null for Norwegian course with selected kurstype`() {
+        val kursnavn = "Norskferdigheter"
+        val kategoriseringValg = OpplaringKategoriseringValg(
+            valgteKategoriseringer = setOf(
+                OpplaringKategoriseringValg.ValgteFelt(
+                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
+                    valg = mapOf(UUID.randomUUID() to kursnavn),
+                ),
+            ),
+            valgteSertifiseringer = emptySet(),
+        )
+        val model = lagGjennomforingModel(
+            tiltak = tiltak.copy(
+                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            ),
+            arrangor = null,
+        ).copy(opplaringKategoriseringValg = kategoriseringValg)
+
+        val response = VisningsnavnResponse(model)
+
+        response.tiltakHosArrangorTittel shouldBe "$kursnavn hos Ukjent arrangør"
+        response.tiltakHosArrangorIngressTekst shouldBe "$kursnavn hos Ukjent arrangør"
+        response.kladdTiltakHosArrangorTittel shouldBe "$kursnavn hos Ukjent arrangør"
+    }
+
+    @Test
+    fun `falls back to unknown organizer when arrangor is null for TILRETTELAGT_ARBEID_ORDINAER`() {
+        val model = lagGjennomforingModel(
+            tiltak = tiltak.copy(tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
+            arrangor = null,
+        )
+
+        val response = VisningsnavnResponse(model)
+
+        response.tiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Ukjent arrangør"
+        response.tiltakHosArrangorIngressTekst shouldBe "Tilrettelagt arbeid i ordinær virksomhet hos Ukjent arrangør"
+        response.kladdTiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Ukjent arrangør"
+    }
 }

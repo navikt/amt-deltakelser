@@ -88,11 +88,8 @@ data class VisningsnavnResponse(
             }
 
             return gjennomforing.opplaringKategoriseringValg
-                ?.valgteKategoriseringer
-                ?.firstOrNull { it.representerer == OpplaringKategoriseringType.KURSTYPE_ID }
-                ?.valg
-                ?.values
-                ?.firstOrNull()
+                ?.hentVerdier(representerer = OpplaringKategoriseringType.KURSTYPE_ID, throwIfEmpty = false)
+                ?.singleOrNull()
         }
 
         private fun skalBrukeDeltakerlisteNavn(tiltakskode: Tiltakskode): Boolean = when (tiltakskode) {
