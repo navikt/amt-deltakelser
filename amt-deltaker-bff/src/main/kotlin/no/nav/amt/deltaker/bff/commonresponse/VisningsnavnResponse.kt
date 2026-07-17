@@ -21,26 +21,16 @@ data class VisningsnavnResponse(
             gjennomforing: GjennomforingModel,
             medKurstype: Boolean = true,
         ): String {
+            val displayName = hentVisningsnavn(gjennomforing, medKurstype = medKurstype)
             val arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør"
-            val tiltakskode = gjennomforing.tiltak.tiltakskode
-            val kurstype = hentKurstype(gjennomforing, medKurstype)
-
-            if (kurstype != null) {
-                return "$kurstype hos $arrangorNavn"
-            }
-
-            if (tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
-                return "Tilrettelagt arbeid med oppfølging hos $arrangorNavn"
-            }
-
-            return "${TiltakskodeResponse(tiltakskode).visningsnavn} hos $arrangorNavn"
+            return "$displayName hos $arrangorNavn"
         }
 
         private fun hentTiltakHosArrangorIngressTekst(gjennomforing: GjennomforingModel): String {
             val arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør"
             val tiltakskode = gjennomforing.tiltak.tiltakskode
-            val kurstype = hentKurstype(gjennomforing)
 
+            val kurstype = hentKurstype(gjennomforing)
             if (kurstype != null) {
                 return "$kurstype hos $arrangorNavn"
             }
@@ -55,16 +45,32 @@ data class VisningsnavnResponse(
         private fun hentKladdTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String {
             val arrangorNavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør"
             val tiltakskode = gjennomforing.tiltak.tiltakskode
-            val kurstype = hentKurstype(gjennomforing)
 
-            if (kurstype == null && skalBrukeDeltakerlisteNavn(tiltakskode)) {
+            if (hentKurstype(gjennomforing) == null && skalBrukeDeltakerlisteNavn(tiltakskode)) {
                 return "${gjennomforing.navn} hos $arrangorNavn"
             }
 
-            return hentTiltakHosArrangorTittel(
-                gjennomforing = gjennomforing,
+            val displayName = hentVisningsnavn(
+                gjennomforing,
                 medKurstype = gjennomforing.status != GjennomforingStatusType.KLADD,
             )
+            return "$displayName hos $arrangorNavn"
+        }
+
+        private fun hentVisningsnavn(
+            gjennomforing: GjennomforingModel,
+            medKurstype: Boolean = true,
+        ): String {
+            val kurstype = hentKurstype(gjennomforing, medKurstype)
+            if (kurstype != null) {
+                return kurstype
+            }
+
+            if (gjennomforing.tiltak.tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
+                return "Tilrettelagt arbeid med oppfølging"
+            }
+
+            return TiltakskodeResponse(gjennomforing.tiltak.tiltakskode).visningsnavn
         }
 
         private fun hentKurstype(
