@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.ADRESSEBESKYTTET_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.DeltakerResponseUtils.SKJERMET_PERSON_PLACEHOLDER_NAVN
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
@@ -38,7 +39,7 @@ class ResponseBuilderTest {
             response.id shouldBe deltaker.id
             response.startdato shouldBe deltaker.startdato
             response.sluttdato shouldBe deltaker.sluttdato
-            response.tiltakskode shouldBe deltaker.gjennomforing.tiltak.tiltakskode
+            response.tiltakskode shouldBe TiltakskodeResponse(deltaker.gjennomforing.tiltak.tiltakskode)
             response.tiltakskodeResponse.kode shouldBe deltaker.gjennomforing.tiltak.tiltakskode
             response.oppstartstype shouldBe deltaker.gjennomforing.oppstart
             response.pameldingstype shouldBe (
@@ -401,7 +402,7 @@ class ResponseBuilderTest {
 
             response.id shouldBe gjennomforing.id
             response.navn shouldBe gjennomforing.navn
-            response.tiltakskode shouldBe gjennomforing.tiltakstype.tiltakskode
+            response.tiltakskode shouldBe TiltakskodeResponse(gjennomforing.tiltakstype.tiltakskode)
             response.tiltakskodeResponse.kode shouldBe gjennomforing.tiltakstype.tiltakskode
             response.startdato shouldBe gjennomforing.startDato
             response.sluttdato shouldBe gjennomforing.sluttDato
