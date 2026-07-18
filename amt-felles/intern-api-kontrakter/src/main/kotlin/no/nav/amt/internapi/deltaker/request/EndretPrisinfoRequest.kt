@@ -7,8 +7,10 @@ data class EndretPrisinfoRequest(
     override val endretAv: String,
     override val endretAvEnhet: String,
     val prisinfo: PrisinformasjonDto,
+    val begrunnelse: String,
 ) : EndringRequest {
     override fun toEndring(): DeltakerEndring.Endring = DeltakerEndring.Endring.EndrePrisinfo(
         prisinfo = prisinfo,
+        begrunnelse = begrunnelse,
     )
 }

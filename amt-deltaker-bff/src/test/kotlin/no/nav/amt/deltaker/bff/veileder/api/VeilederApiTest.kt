@@ -287,6 +287,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
                 val ugyldigRequest = EndrePrisinfoRequest(
                     prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 0),
+                    begrunnelse = "begrunnelse",
                 )
                 setupMocks(deltaker)
                 coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
@@ -551,6 +552,7 @@ class VeilederApiTest : IntegrationTestBase() {
             aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
             tilleggsopplysninger = "Ingen kostnader",
         ),
+        begrunnelse = "begrunnelse",
     )
     private val deltakelsesmengdeRequest = EndreDeltakelsesmengdeRequest(
         deltakelsesprosent = 50,

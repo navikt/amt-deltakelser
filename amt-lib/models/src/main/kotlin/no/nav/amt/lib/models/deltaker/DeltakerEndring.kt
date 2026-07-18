@@ -51,6 +51,7 @@ data class DeltakerEndring(
 
         data class EndrePrisinfo(
             val prisinfo: PrisinformasjonDto,
+            val begrunnelse: String = "", // midlertidig default verdi for kompatibilitet
         ) : Endring
 
         data class EndreInnhold(
