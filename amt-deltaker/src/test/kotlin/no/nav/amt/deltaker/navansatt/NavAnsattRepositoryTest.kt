@@ -47,27 +47,6 @@ class NavAnsattRepositoryTest {
         }
     }
 
-    @Nested
-    inner class GetManyByNavIdentTests {
-        @Test
-        fun `tomt sett med Nav-identer - returnerer tom liste`() {
-            navAnsattRepository.getManyByNavIdent(emptySet()) shouldBe emptyList()
-        }
-
-        @Test
-        fun `flere Nav-identer - returnerer flere ansatte`() {
-            // Arrange
-            val ansatteInTest = List(3) { lagNavAnsatt(navEnhetId = navEnhet.id) }
-            ansatteInTest.forEach { navAnsattRepository.upsert(it) }
-
-            // Act
-            val faktiskeAnsatte = navAnsattRepository.getManyByNavIdent(ansatteInTest.map { it.navIdent }.toSet())
-
-            // Assert
-            faktiskeAnsatte.toSet() shouldBe ansatteInTest.toSet()
-        }
-    }
-
     @Test
     fun `slettNavAnsatt - navansatt blir slettet`() {
         val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)

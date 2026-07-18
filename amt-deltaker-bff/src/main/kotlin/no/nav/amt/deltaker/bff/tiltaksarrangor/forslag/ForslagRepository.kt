@@ -1,64 +1,14 @@
 package no.nav.amt.deltaker.bff.tiltaksarrangor.forslag
 
-import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.bff.db.toPGObject
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.utils.database.Database
-import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class ForslagRepository {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    // Brukes kun for validering av testresultat
-    fun getForDeltaker(deltakerId: UUID): List<Forslag> {
-        val query = queryOf(
-            """
-            SELECT 
-                id,
-                deltaker_id,
-                arrangoransatt_id,
-                opprettet,
-                begrunnelse,
-                endring,
-                status
-            FROM forslag 
-            WHERE deltaker_id = :deltaker_id
-            """.trimIndent(),
-            mapOf("deltaker_id" to deltakerId),
-        )
-
-        return Database.query { session ->
-            session.run(query.map(::rowMapper).asList)
-        }
-    }
-
-    fun getForDeltakere(deltakerIder: List<UUID>): List<Forslag> {
-        if (deltakerIder.isEmpty()) return emptyList()
-
-        val query = queryOf(
-            """
-            SELECT 
-                id,
-                deltaker_id,
-                arrangoransatt_id,
-                opprettet,
-                begrunnelse,
-                endring,
-                status
-            FROM forslag 
-            WHERE deltaker_id = ANY(:deltaker_ider)
-            """.trimIndent(),
-            mapOf("deltaker_ider" to deltakerIder.toTypedArray()),
-        )
-
-        return Database.query { session ->
-            session.run(query.map(::rowMapper).asList)
-        }
-    }
 
     fun upsert(forslag: Forslag) {
         val sql =
@@ -135,16 +85,4 @@ class ForslagRepository {
             ).map { row -> row.uuid("id") }.asSingle,
         )
     } != null
-
-    companion object {
-        private fun rowMapper(row: Row) = Forslag(
-            id = row.uuid("id"),
-            deltakerId = row.uuid("deltaker_id"),
-            opprettetAvArrangorAnsattId = row.uuid("arrangoransatt_id"),
-            opprettet = row.localDateTime("opprettet"),
-            begrunnelse = row.stringOrNull("begrunnelse"),
-            endring = objectMapper.readValue(row.string("endring")),
-            status = objectMapper.readValue(row.string("status")),
-        )
-    }
 }

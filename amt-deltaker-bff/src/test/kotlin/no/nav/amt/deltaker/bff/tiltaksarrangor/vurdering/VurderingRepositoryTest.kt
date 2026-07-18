@@ -18,14 +18,14 @@ class VurderingRepositoryTest {
     }
 
     @Test
-    fun `getForDeltaker - vurdering finnes - returnerer vurdering`() {
+    fun `upsert og hent - vurdering finnes - returnerer vurdering`() {
         val deltaker = lagDeltakerOld()
         val vurdering = lagVurdering(deltakerId = deltaker.id)
 
         TestRepository.insert(deltaker)
 
         vurderingRepository.upsert(vurdering)
-        val upsertedVurdering = vurderingRepository.getForDeltaker(deltaker.id)
+        val upsertedVurdering = TestRepository.getVurderingerForDeltaker(deltaker.id)
 
         upsertedVurdering.size shouldBe 1
         upsertedVurdering[0].deltakerId shouldBe vurdering.deltakerId
@@ -35,7 +35,7 @@ class VurderingRepositoryTest {
     }
 
     @Test
-    fun `getForDeltaker - vurderinger finnes - returnerer alle vurdering`() {
+    fun `upsert og hent - vurderinger finnes - returnerer alle vurdering`() {
         val deltaker1 = lagDeltakerOld()
         val deltaker2 = lagDeltakerOld()
         val vurdering1 = lagVurdering(deltakerId = deltaker1.id, vurderingstype = Vurderingstype.OPPFYLLER_IKKE_KRAVENE)
@@ -49,7 +49,7 @@ class VurderingRepositoryTest {
         vurderingRepository.upsert(vurdering2)
         vurderingRepository.upsert(vurdering3)
 
-        val upsertedVurderinger = vurderingRepository.getForDeltaker(deltaker1.id)
+        val upsertedVurderinger = TestRepository.getVurderingerForDeltaker(deltaker1.id)
 
         upsertedVurderinger.size shouldBe 2
     }

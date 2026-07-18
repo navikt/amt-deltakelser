@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.utils
 
+import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerStatusRepository
@@ -11,11 +12,16 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
+import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.Vurdering
+import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.utils.TestData
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.objectMapper
+import tools.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -71,4 +77,41 @@ object TestRepository {
             ).map { row -> row.zonedDateTime("sist_besokt") }.asSingle,
         )
     }
+
+    fun getVurderingerForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM vurdering WHERE deltaker_id = :deltaker_id",
+                mapOf("deltaker_id" to deltakerId),
+            ).map { row ->
+                Vurdering(
+                    id = row.uuid("id"),
+                    deltakerId = row.uuid("deltaker_id"),
+                    opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
+                    opprettet = row.localDateTime("opprettet"),
+                    vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
+                    begrunnelse = row.stringOrNull("begrunnelse"),
+                )
+            }.asList,
+        )
+    }
+
+    fun getForslagForDeltaker(deltakerId: UUID): List<Forslag> = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM forslag WHERE deltaker_id = :deltaker_id",
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::forslagRowMapper).asList,
+        )
+    }
+
+    private fun forslagRowMapper(row: Row) = Forslag(
+        id = row.uuid("id"),
+        deltakerId = row.uuid("deltaker_id"),
+        opprettetAvArrangorAnsattId = row.uuid("arrangoransatt_id"),
+        opprettet = row.localDateTime("opprettet"),
+        begrunnelse = row.stringOrNull("begrunnelse"),
+        endring = objectMapper.readValue(row.string("endring")),
+        status = objectMapper.readValue(row.string("status")),
+    )
 }

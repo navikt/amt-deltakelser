@@ -25,6 +25,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
@@ -38,6 +39,8 @@ import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.objectMapper
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 object TestRepository {
@@ -145,6 +148,62 @@ object TestRepository {
         apentForPamelding = this.apentForPamelding,
         pameldingstype = this.pameldingstype,
     )
+
+    fun getDeltakerStatus(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT 
+                    id, 
+                    type, 
+                    aarsak, 
+                    gyldig_fra, 
+                    gyldig_til, 
+                    created_at 
+                FROM deltaker_status 
+                WHERE id = ?
+                """.trimIndent(),
+                deltakerStatusId,
+            ).map { row ->
+                DeltakerStatus(
+                    id = row.uuid("id"),
+                    type = DeltakerStatus.Type.valueOf(row.string("type")),
+                    aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+                    gyldigFra = row.localDateTime("gyldig_fra"),
+                    gyldigTil = row.localDateTimeOrNull("gyldig_til"),
+                    opprettet = row.localDateTime("created_at"),
+                )
+            }.asSingle,
+        ) ?: throw NoSuchElementException("Fant ikke deltakerstatus med id $deltakerStatusId")
+    }
+
+    fun getFremtidigeDeltakerStatuser(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT 
+                    id, 
+                    type, 
+                    aarsak, 
+                    gyldig_fra, 
+                    gyldig_til, 
+                    created_at 
+                FROM deltaker_status 
+                WHERE deltaker_id = ? AND gyldig_fra > CURRENT_TIMESTAMP
+                """.trimIndent(),
+                deltakerId,
+            ).map { row ->
+                DeltakerStatus(
+                    id = row.uuid("id"),
+                    type = DeltakerStatus.Type.valueOf(row.string("type")),
+                    aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+                    gyldigFra = row.localDateTime("gyldig_fra"),
+                    gyldigTil = row.localDateTimeOrNull("gyldig_til"),
+                    opprettet = row.localDateTime("created_at"),
+                )
+            }.asList,
+        )
+    }
 }
 
 private fun Deltakerliste.toEnkeltplassUpdateDbo() = EnkeltplassGjennomforingUpdateDbo(

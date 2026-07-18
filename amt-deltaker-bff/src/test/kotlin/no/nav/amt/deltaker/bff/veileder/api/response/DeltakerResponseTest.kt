@@ -2,14 +2,10 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.Companion.fulltInnhold
-import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.toInnhold
-import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
-import no.nav.amt.lib.testing.utils.TestData.randomOrgnr
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class DeltakerResponseTest {
     private val innholdselementer = listOf(
@@ -54,35 +50,5 @@ class DeltakerResponseTest {
                 else -> it.valgt shouldBe false
             }
         }
-    }
-
-    @Test
-    fun `getArrangorNavn - har ikke overordnet arrangor - bruker arrangornavn i titlecase`() {
-        val arrangor = Deltakerliste.Arrangor(
-            arrangor = Arrangor(
-                id = UUID.randomUUID(),
-                navn = "DIN ARRANGØR AS",
-                organisasjonsnummer = randomOrgnr(),
-                overordnetArrangorId = null,
-            ),
-            overordnetArrangorNavn = null,
-        )
-
-        arrangor.getArrangorNavn() shouldBe "Din Arrangør AS"
-    }
-
-    @Test
-    fun `getArrangorNavn - har overordnet arrangor - bruker overordnet arrangornavn i titlecase`() {
-        val arrangor = Deltakerliste.Arrangor(
-            arrangor = Arrangor(
-                id = UUID.randomUUID(),
-                navn = "DIN ARRANGØR AS",
-                organisasjonsnummer = randomOrgnr(),
-                overordnetArrangorId = UUID.randomUUID(),
-            ),
-            overordnetArrangorNavn = "TILTAK OG MULIGHETER",
-        )
-
-        arrangor.getArrangorNavn() shouldBe "Tiltak og Muligheter"
     }
 }

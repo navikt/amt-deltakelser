@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.bff.deltaker
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.bff.db.toPGObject
-import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
@@ -25,15 +24,6 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun batchInsert(deltakere: List<Deltakeroppdatering>) {
-        Database.query { session ->
-            session.batchPreparedNamedStatement(
-                insertStatusSql,
-                deltakere.map { buildInsertStatusParams(it.status, it.id) },
-            )
-        }
-    }
-
     fun slettTidligereStatuser(
         deltakerId: UUID,
         deltakerStatus: DeltakerStatus,
@@ -45,15 +35,6 @@ object DeltakerStatusRepository {
                     buildSlettTidligereStatuserParams(deltakerStatus, deltakerId),
                 ),
             )
-        }
-    }
-
-    fun batchSlettTidligereStatuser(deltakere: List<Deltakeroppdatering>) {
-        val slettTidligereStatuserParams = deltakere
-            .map { buildSlettTidligereStatuserParams(it.status, it.id) }
-
-        Database.query { session ->
-            session.batchPreparedNamedStatement(slettTidligereStatuserSql, slettTidligereStatuserParams)
         }
     }
 
