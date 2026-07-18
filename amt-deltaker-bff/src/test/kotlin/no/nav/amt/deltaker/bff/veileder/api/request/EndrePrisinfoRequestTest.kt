@@ -25,6 +25,21 @@ class EndrePrisinfoRequestTest {
         }
 
         @Test
+        fun `valider - null begrunnelse - skal kaste exception`() {
+            // Arrange
+            val deltaker = TestData.lagDeltakerModel()
+            val request = lagRequest(begrunnelse = null)
+
+            // Act
+            val exception = shouldThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
+
+            // Assert
+            exception.message shouldContain "Begrunnelse kan ikke være tom"
+        }
+
+        @Test
         fun `valider - tom begrunnelse - skal kaste exception`() {
             // Arrange
             val deltaker = TestData.lagDeltakerModel()
@@ -84,7 +99,7 @@ class EndrePrisinfoRequestTest {
 
     companion object {
         private fun lagRequest(
-            begrunnelse: String = "begrunnelse",
+            begrunnelse: String? = "begrunnelse",
             prisinformasjon: PrisinformasjonDto = PrisinformasjonDto.IngenKostnader(
                 aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = null,

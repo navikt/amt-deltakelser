@@ -7,12 +7,11 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 
 data class EndrePrisinfoRequest(
     val prisinformasjon: PrisinformasjonDto,
-    val begrunnelse: String,
+    val begrunnelse: String?, // påkrevd i frontend, men følger samme mønster som øvrige endringer
 ) : EndringRequestFromFrontend {
     override fun valider(deltaker: DeltakerModel) {
-        // merk at i andre tilsvarende klasser er begrunnelse nullable, men i frontend er
-        // begrunnelse påkrevd
-        require(begrunnelse.isNotBlank()) { "Begrunnelse kan ikke være tom" }
+        // merk at begrunnelse påkrevd i frontend, men følger samme mønster som i øvrige klasser
+        require(!begrunnelse.isNullOrBlank()) { "Begrunnelse kan ikke være tom" }
         validerBegrunnelse(begrunnelse)
 
         prisinformasjon.validate().takeIf { it.isNotEmpty() }?.let { valideringsfeil ->
