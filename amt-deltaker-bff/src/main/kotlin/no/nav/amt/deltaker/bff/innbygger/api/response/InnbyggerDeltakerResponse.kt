@@ -26,7 +26,7 @@ data class InnbyggerDeltakerResponse(
     val adresseDelesMedArrangor: Boolean,
     val forslag: List<ForslagResponse>,
     val importertFraArena: ImportertFraArenaResponse?,
-    val deltakelsesmengder: no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse,
+    val deltakelsesmengder: DeltakelsesmengderVeilederResponse,
     val erManueltDeltMedArrangor: Boolean,
     val prisinformasjon: String?,
 ) {

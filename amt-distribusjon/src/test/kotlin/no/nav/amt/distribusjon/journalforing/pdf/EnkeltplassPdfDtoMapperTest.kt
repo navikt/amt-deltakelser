@@ -191,8 +191,6 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat as no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering
-
             resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
             resultat.bransje shouldBe "Elektrikk"
             resultat.forerkortOgSertifiseringer shouldBe emptyList()

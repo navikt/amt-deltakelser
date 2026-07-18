@@ -358,7 +358,7 @@ class ResponseBuilderTest {
                 lagTiltakskoordinatorNavBrukerResponse(),
             status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             harAktivtForslag: Boolean = false,
-            sisteVurderingstype: no.nav.amt.lib.models.arrangor.melding.Vurderingstype? = null,
+            sisteVurderingstype: Vurderingstype? = null,
             kanEndres: Boolean = true,
         ) = no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse(
             id = UUID.randomUUID(),

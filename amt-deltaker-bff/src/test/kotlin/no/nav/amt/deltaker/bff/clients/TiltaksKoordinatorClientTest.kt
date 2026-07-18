@@ -341,7 +341,7 @@ class TiltaksKoordinatorClientTest {
 
         @Test
         fun `skal returnere kart med uleste hendelse flags`() {
-            val expectedResponse = deltakerIder.associate { it to UlestHendelseFlags(erNyDeltaker = true, harOppdateringFraNav = false) }
+            val expectedResponse = deltakerIder.associateWith { UlestHendelseFlags(erNyDeltaker = true, harOppdateringFraNav = false) }
             runHappyPathTest(
                 expectedUrl,
                 expectedResponse,

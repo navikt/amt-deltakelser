@@ -37,8 +37,8 @@ class ResponsePackagesZodGenerationTest {
 
     private fun shouldIncludeInGeneration(className: String): Boolean {
         if (className.endsWith("Kt")) return false
-        if (className.contains("\$Companion")) return false
-        if (className.contains("\$WhenMappings")) return false
+        if (className.contains($$"$Companion")) return false
+        if (className.contains($$"$WhenMappings")) return false
         if (className.contains("$$")) return false
         if (className.substringAfterLast('.').matches(Regex(".*\\$\\d+$"))) return false
         return true

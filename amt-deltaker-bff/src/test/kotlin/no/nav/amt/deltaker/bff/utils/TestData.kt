@@ -18,10 +18,6 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.toInnhold
-import no.nav.amt.internapi.hendelse.Hendelse
-import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
-import no.nav.amt.internapi.hendelse.HendelseDeltaker
-import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
@@ -59,7 +55,6 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.TestData.lagOppfolgingsperiode
-import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -802,53 +797,6 @@ object TestData {
         deltakerlisteId = deltakerliste.id,
         gyldigFra = gyldigFra,
         gyldigTil = gyldigTil,
-    )
-
-    fun lagHendelse(
-        id: UUID = UUID.randomUUID(),
-        deltaker: Deltaker,
-        opprettet: LocalDateTime = LocalDateTime.now(),
-        ansvarlig: HendelseAnsvarlig = HendelseAnsvarlig.NavVeileder(
-            id = UUID.randomUUID(),
-            navn = UUID.randomUUID().toString(),
-            navIdent = UUID.randomUUID().toString(),
-            enhet = HendelseAnsvarlig.NavVeileder.Enhet(
-                id = UUID.randomUUID(),
-                enhetsnummer = randomEnhetsnummer(),
-            ),
-        ),
-        payload: HendelseType = HendelseType.EndreBakgrunnsinformasjon(
-            bakgrunnsinformasjon = "Ny bakgrunnsinformasjon",
-        ),
-    ) = Hendelse(
-        id = id,
-        opprettet = opprettet,
-        deltaker = HendelseDeltaker(
-            id = deltaker.id,
-            personident = randomIdent(),
-            deltakerliste = HendelseDeltaker.Deltakerliste(
-                id = deltaker.deltakerliste.id,
-                navn = deltaker.deltakerliste.navn,
-                arrangor = HendelseDeltaker.Deltakerliste.Arrangor(
-                    id = deltaker.deltakerliste.arrangor.arrangor.id,
-                    organisasjonsnummer = deltaker.deltakerliste.arrangor.arrangor.organisasjonsnummer,
-                    navn = deltaker.deltakerliste.arrangor.arrangor.navn,
-                    overordnetArrangor = null,
-                ),
-                tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
-                    navn = deltaker.deltakerliste.navn,
-                    tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-                    ledetekst = "ledetekst",
-                ),
-                startdato = deltaker.deltakerliste.startDato,
-                sluttdato = deltaker.deltakerliste.sluttDato,
-                oppstartstype = deltaker.deltakerliste.oppstart,
-            ),
-            forsteVedtakFattet = LocalDate.now(),
-            opprettetDato = LocalDate.now(),
-        ),
-        ansvarlig = ansvarlig,
-        payload = payload,
     )
 }
 

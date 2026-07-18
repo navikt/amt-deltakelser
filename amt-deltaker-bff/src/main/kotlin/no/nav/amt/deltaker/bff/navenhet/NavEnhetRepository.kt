@@ -59,19 +59,6 @@ class NavEnhetRepository {
         )
     }
 
-    fun getMany(enhetIder: List<UUID>): List<NavEnhetDbo> {
-        if (enhetIder.isEmpty()) return emptyList()
-
-        return Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM nav_enhet WHERE id in (${enhetIder.joinToString { "?" }})",
-                    *enhetIder.toTypedArray(),
-                ).map(::rowMapper).asList,
-            )
-        }
-    }
-
     companion object {
         private fun rowMapper(row: Row) = NavEnhetDbo(
             id = row.uuid("id"),

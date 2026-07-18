@@ -10,7 +10,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
-import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import java.util.UUID
 
 fun Routing.registerUlestHendelseApi(ulestHendelseRepository: UlestHendelseRepository) {
