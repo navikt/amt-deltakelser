@@ -91,12 +91,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 oppdatertDeltaker,
             )
 
-            assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(opprinneligDeltaker.status.id)) {
                 gyldigTil shouldNotBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(oppdatertDeltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             }
@@ -127,12 +127,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 opprinneligDeltaker,
             )
 
-            assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(opprinneligDeltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(oppdatertDeltaker.status.id)) {
                 gyldigTil shouldBe null
                 gyldigFra shouldBeCloseTo gyldigFra
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -181,13 +181,13 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             // opprinnelig DELTAR-status er fortsatt aktiv (innkommende status hadde likt innhold,
             // så ingen ny rad ble insertet)
-            assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(opprinneligDeltaker.status.id)) {
                 gyldigTil.shouldBeNull()
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
             // fremtidig HAR_SLUTTET er deaktivert
-            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerFremtidigHarSluttet.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(oppdatertDeltakerFremtidigHarSluttet.status.id)) {
                 gyldigTil.shouldNotBeNull()
                 gyldigFra.toLocalDate() shouldBe fremtidigGyldigFra.toLocalDate()
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -234,15 +234,15 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             )
 
             assertThrows<NoSuchElementException> {
-                DeltakerStatusRepository.get(oppdatertDeltakerHarSluttet.status.id)
+                TestRepository.getDeltakerStatus(oppdatertDeltakerHarSluttet.status.id)
             }
 
-            assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(opprinneligDeltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerHarSluttetNyArsak.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(oppdatertDeltakerHarSluttetNyArsak.status.id)) {
                 gyldigTil shouldBe null
                 gyldigFra shouldBeCloseTo gyldigFra
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -288,18 +288,18 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 oppdatertDeltakerDeltar,
             )
 
-            assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(opprinneligDeltaker.status.id)) {
                 gyldigTil shouldBeCloseTo LocalDateTime.now()
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             }
 
-            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerDeltar.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(oppdatertDeltakerDeltar.status.id)) {
                 gyldigTil.shouldBeNull()
                 gyldigFra shouldBeCloseTo LocalDateTime.now()
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(DeltakerStatusRepository.get(nesteStatus.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(nesteStatus.id)) {
                 gyldigTil.shouldBeNull()
                 gyldigFra shouldBeCloseTo nySluttdato
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -648,7 +648,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
             oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(deltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
@@ -711,7 +711,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 sluttdato shouldBe endringsrequest.sluttdato
             }
 
-            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(deltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
@@ -775,12 +775,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 sluttdato shouldBe endringsrequest.sluttdato
             }
 
-            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(deltaker.status.id)) {
                 gyldigTil.shouldBeNull()
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(DeltakerStatusRepository.get(fremtidigHarSluttetStatus.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(fremtidigHarSluttetStatus.id)) {
                 gyldigTil.shouldNotBeNull()
                 gyldigFra.toLocalDate() shouldBe LocalDate.now().plusDays(2)
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -832,12 +832,12 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 sluttdato shouldBe endringsrequest.sluttdato
             }
 
-            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(deltaker.status.id)) {
                 gyldigTil shouldBeCloseTo LocalDateTime.now()
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             }
 
-            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltaker.status.id)) {
+            assertSoftly(TestRepository.getDeltakerStatus(oppdatertDeltaker.status.id)) {
                 gyldigTil.shouldBeNull()
                 type shouldBe DeltakerStatus.Type.DELTAR
             }

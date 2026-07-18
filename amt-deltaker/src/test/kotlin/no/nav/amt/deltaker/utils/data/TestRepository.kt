@@ -149,6 +149,34 @@ object TestRepository {
         pameldingstype = this.pameldingstype,
     )
 
+    fun getDeltakerStatus(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT 
+                    id, 
+                    type, 
+                    aarsak, 
+                    gyldig_fra, 
+                    gyldig_til, 
+                    created_at 
+                FROM deltaker_status 
+                WHERE id = ?
+                """.trimIndent(),
+                deltakerStatusId,
+            ).map { row ->
+                DeltakerStatus(
+                    id = row.uuid("id"),
+                    type = DeltakerStatus.Type.valueOf(row.string("type")),
+                    aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+                    gyldigFra = row.localDateTime("gyldig_fra"),
+                    gyldigTil = row.localDateTimeOrNull("gyldig_til"),
+                    opprettet = row.localDateTime("created_at"),
+                )
+            }.asSingle,
+        ) ?: throw NoSuchElementException("Fant ikke deltakerstatus med id $deltakerStatusId")
+    }
+
     fun getFremtidigeDeltakerStatuser(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
         session.run(
             queryOf(

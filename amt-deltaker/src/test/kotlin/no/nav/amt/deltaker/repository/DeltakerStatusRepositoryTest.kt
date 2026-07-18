@@ -129,8 +129,8 @@ class DeltakerStatusRepositoryTest {
             )
 
             // assert
-            DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
-            DeltakerStatusRepository.get(avsluttendeFremtidigStatus.id).gyldigTil.shouldBeNull()
+            TestRepository.getDeltakerStatus(deltaker.status.id).gyldigTil.shouldNotBeNull()
+            TestRepository.getDeltakerStatus(avsluttendeFremtidigStatus.id).gyldigTil.shouldBeNull()
         }
 
         @Test
@@ -149,8 +149,8 @@ class DeltakerStatusRepositoryTest {
             )
 
             // assert
-            DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
-            DeltakerStatusRepository.get(avsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
+            TestRepository.getDeltakerStatus(deltaker.status.id).gyldigTil.shouldNotBeNull()
+            TestRepository.getDeltakerStatus(avsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
         }
 
         @Test
@@ -169,8 +169,8 @@ class DeltakerStatusRepositoryTest {
             )
 
             // assert
-            DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
-            DeltakerStatusRepository.get(ikkeAvsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
+            TestRepository.getDeltakerStatus(deltaker.status.id).gyldigTil.shouldNotBeNull()
+            TestRepository.getDeltakerStatus(ikkeAvsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
         }
     }
 
@@ -199,7 +199,7 @@ class DeltakerStatusRepositoryTest {
 
         // assert
         TestRepository.getFremtidigeDeltakerStatuser(deltaker.id).shouldBeEmpty()
-        DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldBeNull()
+        TestRepository.getDeltakerStatus(deltaker.status.id).gyldigTil.shouldBeNull()
     }
 
     @Test
@@ -209,14 +209,14 @@ class DeltakerStatusRepositoryTest {
         val deltaker = lagDeltaker(status = deltakerStatus)
         TestRepository.insert(deltaker)
 
-        DeltakerStatusRepository.get(deltakerStatus.id).shouldNotBeNull()
+        TestRepository.getDeltakerStatus(deltakerStatus.id).shouldNotBeNull()
 
         // act
         DeltakerStatusRepository.slettStatus(deltakerId = deltaker.id)
 
         // assert
         shouldThrow<NoSuchElementException> {
-            DeltakerStatusRepository.get(deltakerStatus.id)
+            TestRepository.getDeltakerStatus(deltakerStatus.id)
         }
     }
 }

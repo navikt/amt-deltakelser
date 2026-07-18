@@ -250,26 +250,6 @@ object DeltakerStatusRepository {
         )
     }
 
-    // benyttes kun i tester
-    internal fun get(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
-        session.run(
-            queryOf(
-                """
-                SELECT 
-                    id, 
-                    type, 
-                    aarsak, 
-                    gyldig_fra, 
-                    gyldig_til, 
-                    created_at 
-                FROM deltaker_status 
-                WHERE id = ?
-                """.trimIndent(),
-                deltakerStatusId,
-            ).map(::deltakerStatusRowMapper).asSingle,
-        ) ?: throw NoSuchElementException("Fant ikke deltakerstatus med id $deltakerStatusId")
-    }
-
     private fun deltakerStatusRowMapper(row: Row) = DeltakerStatus(
         id = row.uuid("id"),
         type = row.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
