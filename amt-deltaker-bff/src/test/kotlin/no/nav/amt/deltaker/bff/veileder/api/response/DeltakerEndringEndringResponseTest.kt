@@ -11,7 +11,10 @@ class DeltakerEndringEndringResponseTest {
     fun `endrePrisinfo - anskaffelse - mappes korrekt`() {
         // Arrange
         val prisinfo = PrisinformasjonDto.Anskaffelse(pris = 5000)
-        val endring = DeltakerEndring.Endring.EndrePrisinfo(prisinfo = prisinfo)
+        val endring = DeltakerEndring.Endring.EndrePrisinfo(
+            prisinfo = prisinfo,
+            begrunnelse = "Begrunnelse",
+        )
 
         // Act
         val response = DeltakerEndringEndringResponse.fromModel(endring, null)
@@ -32,7 +35,10 @@ class DeltakerEndringEndringResponseTest {
             tilskudd = listOf(tilskuddInfo),
             tilleggsopplysninger = "Noen opplysninger",
         )
-        val endring = DeltakerEndring.Endring.EndrePrisinfo(prisinfo = prisinfo)
+        val endring = DeltakerEndring.Endring.EndrePrisinfo(
+            prisinfo = prisinfo,
+            begrunnelse = "Begrunnelse",
+        )
 
         // Act
         val response = DeltakerEndringEndringResponse.fromModel(endring, null)
@@ -51,7 +57,10 @@ class DeltakerEndringEndringResponseTest {
             aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
             tilleggsopplysninger = null,
         )
-        val endring = DeltakerEndring.Endring.EndrePrisinfo(prisinfo = prisinfo)
+        val endring = DeltakerEndring.Endring.EndrePrisinfo(
+            prisinfo = prisinfo,
+            begrunnelse = "Begrunnelse",
+        )
 
         // Act
         val response = DeltakerEndringEndringResponse.fromModel(endring, null)

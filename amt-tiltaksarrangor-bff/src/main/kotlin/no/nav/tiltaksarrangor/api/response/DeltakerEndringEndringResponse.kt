@@ -156,9 +156,11 @@ sealed class DeltakerEndringEndringResponse {
 
     data class EndrePrisinfo(
         val prisinfo: PrisinformasjonDto,
+        val begrunnelse: String?, // påkrevd i frontend, men følger samme mønster som øvrige endringer
     ) : DeltakerEndringEndringResponse() {
         constructor(model: DeltakerEndring.Endring.EndrePrisinfo) : this(
             prisinfo = model.prisinfo,
+            begrunnelse = model.begrunnelse,
         )
     }
 

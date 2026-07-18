@@ -51,6 +51,7 @@ data class DeltakerEndring(
 
         data class EndrePrisinfo(
             val prisinfo: PrisinformasjonDto,
+            val begrunnelse: String?, // påkrevd i frontend, men følger samme mønster som øvrige endringer
         ) : Endring
 
         data class EndreInnhold(

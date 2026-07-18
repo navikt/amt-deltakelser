@@ -152,6 +152,7 @@ fun Routing.registerVeilederApi(
                         endretAv = call.getNavIdent(),
                         endretAvEnhet = call.getEnhetsnummer(),
                         prisinfo = request.prisinformasjon,
+                        begrunnelse = request.begrunnelse,
                     ),
                 )
             }
