@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -42,27 +41,6 @@ class NavAnsattRepositoryTest {
 
             // Act
             val faktiskeAnsatte = navAnsattRepository.getManyById(ansatteInTest.map { it.id }.toSet())
-
-            // Assert
-            faktiskeAnsatte.toSet() shouldBe ansatteInTest.toSet()
-        }
-    }
-
-    @Nested
-    inner class GetManyByNavIdentTests {
-        @Test
-        fun `tomt sett med Nav-identer - returnerer tom liste`() {
-            TestRepository.getNavAnsattByNavIdent(emptySet()) shouldBe emptyList()
-        }
-
-        @Test
-        fun `flere Nav-identer - returnerer flere ansatte`() {
-            // Arrange
-            val ansatteInTest = List(3) { lagNavAnsatt(navEnhetId = navEnhet.id) }
-            ansatteInTest.forEach { navAnsattRepository.upsert(it) }
-
-            // Act
-            val faktiskeAnsatte = TestRepository.getNavAnsattByNavIdent(ansatteInTest.map { it.navIdent }.toSet())
 
             // Assert
             faktiskeAnsatte.toSet() shouldBe ansatteInTest.toSet()

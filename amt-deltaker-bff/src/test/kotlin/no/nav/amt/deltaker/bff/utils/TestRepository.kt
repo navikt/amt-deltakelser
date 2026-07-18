@@ -105,18 +105,6 @@ object TestRepository {
         )
     }
 
-    fun getForslagForDeltakere(deltakerIder: List<UUID>): List<Forslag> {
-        if (deltakerIder.isEmpty()) return emptyList()
-        return Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM forslag WHERE deltaker_id = ANY(:deltaker_ider)",
-                    mapOf("deltaker_ider" to deltakerIder.toTypedArray()),
-                ).map(::forslagRowMapper).asList,
-            )
-        }
-    }
-
     private fun forslagRowMapper(row: Row) = Forslag(
         id = row.uuid("id"),
         deltakerId = row.uuid("deltaker_id"),

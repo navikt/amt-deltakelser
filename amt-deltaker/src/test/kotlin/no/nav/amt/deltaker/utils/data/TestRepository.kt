@@ -176,38 +176,6 @@ object TestRepository {
             }.asList,
         )
     }
-
-    fun getNavAnsattByNavIdent(veilederIdenter: Set<String>): List<NavAnsatt> = if (veilederIdenter.isEmpty()) {
-        emptyList()
-    } else {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    """
-                    SELECT
-                        id, 
-                        nav_ident, 
-                        navn, 
-                        telefonnummer, 
-                        epost, 
-                        nav_enhet_id 
-                    FROM nav_ansatt 
-                    WHERE nav_ident = ANY(:ider)
-                    """.trimIndent(),
-                    mapOf("ider" to veilederIdenter.toTypedArray()),
-                ).map { row ->
-                    NavAnsatt(
-                        id = row.uuid("id"),
-                        navIdent = row.string("nav_ident"),
-                        navn = row.string("navn"),
-                        epost = row.stringOrNull("epost"),
-                        telefon = row.stringOrNull("telefonnummer"),
-                        navEnhetId = row.uuidOrNull("nav_enhet_id"),
-                    )
-                }.asList,
-            )
-        }
-    }
 }
 
 private fun Deltakerliste.toEnkeltplassUpdateDbo() = EnkeltplassGjennomforingUpdateDbo(
