@@ -231,18 +231,9 @@ class DeltakerRepository {
         Database.query { session ->
             session.update(
                 queryOf(
-                    updateDeltakerSql(false),
+                    updateDeltakerSql,
                     params,
                 ),
-            )
-        }
-    }
-
-    fun updateBatch(deltakere: List<Deltakeroppdatering>) {
-        Database.query { session ->
-            session.batchPreparedNamedStatement(
-                updateDeltakerSql(true),
-                deltakere.map { batchUpdateDeltakerParams(it) },
             )
         }
     }
@@ -339,20 +330,7 @@ class DeltakerRepository {
                 $whereClause
             """.trimIndent()
 
-        private fun batchUpdateDeltakerParams(deltaker: Deltakeroppdatering) = mapOf(
-            "id" to deltaker.id,
-            "startdato" to deltaker.startdato,
-            "sluttdato" to deltaker.sluttdato,
-            "dagerPerUke" to deltaker.dagerPerUke,
-            "deltakelsesprosent" to deltaker.deltakelsesprosent,
-            "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
-            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
-            "historikk" to toPGObject(deltaker.historikk),
-            "modified_at" to deltaker.sistEndret,
-            "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
-        )
-
-        private fun updateDeltakerSql(erBatchUpdate: Boolean): String =
+        private val updateDeltakerSql =
             """
             UPDATE deltaker SET 
                 startdato            = :startdato,
@@ -362,7 +340,6 @@ class DeltakerRepository {
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
                 historikk            = :historikk,
-                ${if (erBatchUpdate) "er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor," else ""}
                 modified_at          = :modified_at
             WHERE id = :id
             """.trimIndent()

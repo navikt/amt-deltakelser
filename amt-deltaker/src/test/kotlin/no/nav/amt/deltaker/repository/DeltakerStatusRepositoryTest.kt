@@ -189,7 +189,7 @@ class DeltakerStatusRepositoryTest {
             ),
         )
 
-        DeltakerStatusRepository.getFremtidige(deltaker.id).size shouldBe 1
+        TestRepository.getFremtidigeDeltakerStatuser(deltaker.id).size shouldBe 1
 
         // act
         DeltakerStatusRepository.slettTidligereFremtidigeStatuser(
@@ -198,7 +198,7 @@ class DeltakerStatusRepositoryTest {
         )
 
         // assert
-        DeltakerStatusRepository.getFremtidige(deltaker.id).shouldBeEmpty()
+        TestRepository.getFremtidigeDeltakerStatuser(deltaker.id).shouldBeEmpty()
         DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldBeNull()
     }
 

@@ -33,7 +33,7 @@ class ArrangorMeldingConsumerTest {
             objectMapper.writeValueAsString(forslag),
         )
 
-        val forslagFraDb = forslagRepository.getForDeltaker(deltaker.id)
+        val forslagFraDb = TestRepository.getForslagForDeltaker(deltaker.id)
         forslagFraDb.size shouldBe 1
         forslagFraDb.first().id shouldBe forslag.id
     }
@@ -55,7 +55,7 @@ class ArrangorMeldingConsumerTest {
             ),
         )
 
-        val forslagFraDb = forslagRepository.getForDeltaker(deltaker.id)
+        val forslagFraDb = TestRepository.getForslagForDeltaker(deltaker.id)
         forslagFraDb.size shouldBe 0
     }
 }

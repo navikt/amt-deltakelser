@@ -178,15 +178,6 @@ class DeltakerService(
         deltakerRepository.oppdaterSistBesokt(deltakerId, sistBesokt)
     }
 
-    // benyttes av TiltakskoordinatorService
-    fun oppdaterDeltakere(oppdaterteDeltakere: List<Deltakeroppdatering>) {
-        Database.transaction {
-            deltakerRepository.updateBatch(oppdaterteDeltakere)
-            DeltakerStatusRepository.batchSlettTidligereStatuser(oppdaterteDeltakere)
-            DeltakerStatusRepository.batchInsert(oppdaterteDeltakere)
-        }
-    }
-
     private fun harEndretStatus(deltakeroppdatering: Deltakeroppdatering): Boolean {
         val currentStatus = DeltakerStatusRepository.getAktivDeltakerStatus(deltakeroppdatering.id) ?: return true
 

@@ -22,12 +22,12 @@ class ForslagRepositoryTest {
     inner class GetForDeltakereTests {
         @Test
         fun `tom id-liste - returnerer tom liste`() {
-            sut.getForDeltakere(emptyList()).shouldBeEmpty()
+            TestRepository.getForslagForDeltakere(emptyList()).shouldBeEmpty()
         }
 
         @Test
         fun `tom database - returnerer tom liste`() {
-            sut.getForDeltakere(listOf(UUID.randomUUID())).shouldBeEmpty()
+            TestRepository.getForslagForDeltakere(listOf(UUID.randomUUID())).shouldBeEmpty()
         }
 
         @Test
@@ -38,7 +38,7 @@ class ForslagRepositoryTest {
             val forslag = TestData.lagForslag(deltakerId = deltaker.id)
             sut.upsert(forslag)
 
-            val forslagFraDb = sut.getForDeltakere(listOf(deltaker.id))
+            val forslagFraDb = TestRepository.getForslagForDeltakere(listOf(deltaker.id))
             forslagFraDb.size shouldBe 1
             forslagFraDb.first().copy(opprettet = forslag.opprettet) shouldBe forslag.copy()
         }

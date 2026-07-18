@@ -8,15 +8,6 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class VurderingRepository {
-    fun getForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM vurdering WHERE deltaker_id = :deltaker_id",
-                mapOf("deltaker_id" to deltakerId),
-            ).map(::rowMapper).asList,
-        )
-    }
-
     fun get(id: UUID): Result<Vurdering> = runCatching {
         Database.query { session ->
             session.run(

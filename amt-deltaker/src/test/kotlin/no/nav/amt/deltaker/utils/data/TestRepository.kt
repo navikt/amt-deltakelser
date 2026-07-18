@@ -25,6 +25,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
@@ -38,6 +39,8 @@ import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.objectMapper
+import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 object TestRepository {
@@ -145,6 +148,66 @@ object TestRepository {
         apentForPamelding = this.apentForPamelding,
         pameldingstype = this.pameldingstype,
     )
+
+    fun getFremtidigeDeltakerStatuser(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT 
+                    id, 
+                    type, 
+                    aarsak, 
+                    gyldig_fra, 
+                    gyldig_til, 
+                    created_at 
+                FROM deltaker_status 
+                WHERE deltaker_id = ? AND gyldig_fra > CURRENT_TIMESTAMP
+                """.trimIndent(),
+                deltakerId,
+            ).map { row ->
+                DeltakerStatus(
+                    id = row.uuid("id"),
+                    type = DeltakerStatus.Type.valueOf(row.string("type")),
+                    aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+                    gyldigFra = row.localDateTime("gyldig_fra"),
+                    gyldigTil = row.localDateTimeOrNull("gyldig_til"),
+                    opprettet = row.localDateTime("created_at"),
+                )
+            }.asList,
+        )
+    }
+
+    fun getNavAnsattByNavIdent(veilederIdenter: Set<String>): List<NavAnsatt> = if (veilederIdenter.isEmpty()) {
+        emptyList()
+    } else {
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    """
+                    SELECT
+                        id, 
+                        nav_ident, 
+                        navn, 
+                        telefonnummer, 
+                        epost, 
+                        nav_enhet_id 
+                    FROM nav_ansatt 
+                    WHERE nav_ident = ANY(:ider)
+                    """.trimIndent(),
+                    mapOf("ider" to veilederIdenter.toTypedArray()),
+                ).map { row ->
+                    NavAnsatt(
+                        id = row.uuid("id"),
+                        navIdent = row.string("nav_ident"),
+                        navn = row.string("navn"),
+                        epost = row.stringOrNull("epost"),
+                        telefon = row.stringOrNull("telefonnummer"),
+                        navEnhetId = row.uuidOrNull("nav_enhet_id"),
+                    )
+                }.asList,
+            )
+        }
+    }
 }
 
 private fun Deltakerliste.toEnkeltplassUpdateDbo() = EnkeltplassGjennomforingUpdateDbo(

@@ -653,7 +653,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(DeltakerStatusRepository.getFremtidige(oppdatertDeltaker.id).first()) {
+            assertSoftly(TestRepository.getFremtidigeDeltakerStatuser(oppdatertDeltaker.id).first()) {
                 gyldigTil shouldBe null
                 gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -716,7 +716,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(DeltakerStatusRepository.getFremtidige(oppdatertDeltaker.id).first()) {
+            assertSoftly(TestRepository.getFremtidigeDeltakerStatuser(oppdatertDeltaker.id).first()) {
                 gyldigTil shouldBe null
                 gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
                 type shouldBe DeltakerStatus.Type.FULLFORT
@@ -842,7 +842,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(DeltakerStatusRepository.getFremtidige(oppdatertDeltaker.id).first()) {
+            assertSoftly(TestRepository.getFremtidigeDeltakerStatuser(oppdatertDeltaker.id).first()) {
                 gyldigTil shouldBe null
                 gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET

@@ -51,40 +51,6 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `updateBatch - flere deltakere - oppdaterer deltakere og statuser riktig`() = runTest {
-        val deltaker1 = lagDeltakerOld()
-        val deltaker2 = lagDeltakerOld()
-
-        TestRepository.insert(deltaker1)
-        TestRepository.insert(deltaker2)
-
-        val oppdatertDeltaker1 = deltaker1.copy(
-            sluttdato = LocalDate.now().plusWeeks(2),
-            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            erManueltDeltMedArrangor = true,
-        )
-
-        val oppdatertDeltaker2 = deltaker2.copy(
-            sluttdato = LocalDate.now().plusWeeks(2),
-            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            erManueltDeltMedArrangor = true,
-        )
-
-        val deltakerOppdateringer = listOf(
-            oppdatertDeltaker1,
-            oppdatertDeltaker2,
-        ).map { it.toDeltakeroppdatering() }
-
-        deltakerService.oppdaterDeltakere(deltakerOppdateringer)
-
-        val deltaker1FraDB = deltakerRepository.get(deltaker1.id).getOrThrow()
-        sammenlignDeltakere(deltaker1FraDB, oppdatertDeltaker1)
-
-        val deltaker2FraDB = deltakerRepository.get(deltaker2.id).getOrThrow()
-        sammenlignDeltakere(deltaker2FraDB, oppdatertDeltaker2)
-    }
-
-    @Test
     fun `delete - ingen endring eller vedtak - sletter deltaker`() = runTest {
         val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         TestRepository.insert(deltaker)

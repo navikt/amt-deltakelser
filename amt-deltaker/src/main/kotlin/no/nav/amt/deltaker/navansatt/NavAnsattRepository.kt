@@ -128,29 +128,6 @@ class NavAnsattRepository {
         }
     }
 
-    fun getManyByNavIdent(veilederIdenter: Set<String>): List<NavAnsatt> = if (veilederIdenter.isEmpty()) {
-        emptyList()
-    } else {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    """
-                    SELECT
-                        id, 
-                        nav_ident, 
-                        navn, 
-                        telefonnummer, 
-                        epost, 
-                        nav_enhet_id 
-                    FROM nav_ansatt 
-                    WHERE nav_ident = ANY(:ider)
-                    """.trimIndent(),
-                    mapOf("ider" to veilederIdenter.toTypedArray()),
-                ).map(::rowMapper).asList,
-            )
-        }
-    }
-
     companion object {
         private fun rowMapper(row: Row) = NavAnsatt(
             id = row.uuid("id"),

@@ -69,7 +69,6 @@ class DeltakerV2ConsumerTest {
         forslagRepository = mockk(relaxed = true),
     )
     private val deltakerlisteRepository = DeltakerlisteRepository()
-    private val vurdersRepository = VurderingRepository()
     private val vurderingService = VurderingService(VurderingRepository())
     private val unleashToggle = mockk<CommonUnleashToggle>()
     private val consumer = DeltakerV2Consumer(
@@ -114,7 +113,7 @@ class DeltakerV2ConsumerTest {
         oppdatertDeltaker.sluttdato shouldBe sluttdato
         oppdatertDeltaker.sistEndret shouldBeCloseTo sistEndret
 
-        val lagretVurdering = vurdersRepository.getForDeltaker(deltaker.id)
+        val lagretVurdering = TestRepository.getVurderingerForDeltaker(deltaker.id)
         lagretVurdering.size shouldBe 1
     }
 
