@@ -12,7 +12,7 @@ data class EndrePrisinfoRequest(
     override fun valider(deltaker: DeltakerModel) {
         // merk at i andre tilsvarende klasser er begrunnelse nullable, men i frontend er
         // begrunnelse påkrevd
-        require(begrunnelse.isNotEmpty()) { "Begrunnelse kan ikke være tom" }
+        require(begrunnelse.isNotBlank()) { "Begrunnelse kan ikke være tom" }
         validerBegrunnelse(begrunnelse)
 
         prisinformasjon.validate().takeIf { it.isNotEmpty() }?.let { valideringsfeil ->

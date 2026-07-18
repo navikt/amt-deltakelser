@@ -40,6 +40,21 @@ class EndrePrisinfoRequestTest {
         }
 
         @Test
+        fun `valider - blank begrunnelse - skal kaste exception`() {
+            // Arrange
+            val deltaker = TestData.lagDeltakerModel()
+            val request = lagRequest(begrunnelse = "  ")
+
+            // Act
+            val exception = shouldThrow<IllegalArgumentException> {
+                request.valider(deltaker)
+            }
+
+            // Assert
+            exception.message shouldContain "Begrunnelse kan ikke være tom"
+        }
+
+        @Test
         fun `valider - begrunnelse lengre enn maks - skal kaste exception`() {
             // Arrange
             val deltaker = TestData.lagDeltakerModel()
