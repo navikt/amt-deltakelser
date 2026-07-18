@@ -100,7 +100,7 @@ class TiltakshendelseService(
     }
 
     private fun stoppUtkastHendelse(hendelse: Hendelse) {
-        tiltakshendelseRepository.getHendelse(hendelse.deltaker.id, Tiltakshendelse.Type.UTKAST).onSuccess {
+        tiltakshendelseRepository.getHendelse(hendelse.deltaker.id).onSuccess {
             val inaktivertHendelse = it.copy(
                 aktiv = false,
                 hendelser = it.hendelser.plus(hendelse.id),

@@ -14,7 +14,6 @@ import io.mockk.verify
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltakskoordinator.DeltakerOppdateringResult
-import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
@@ -231,8 +230,8 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `gi-avslag - har tilgang - returnerer 200 og mappet deltakeroppdatering`() {
         val request = GiAvslagRequest(
-            gjennomforingId = deltaker.deltakerliste.id,
-            deltakerId = deltaker.id,
+            gjennomforingId = deltakerInTest.deltakerliste.id,
+            deltakerId = deltakerInTest.id,
             avslag = EndringFraTiltakskoordinator.Avslag(
                 aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
                     type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
@@ -242,7 +241,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             ),
             endretAv = "Nav Veiledersen",
         )
-        val deltakeroppdateringResult = DeltakerOppdateringResult(deltaker.id, true, null)
+        val deltakeroppdateringResult = DeltakerOppdateringResult(deltakerInTest.id, true, null)
         coEvery {
             tiltakskoordinatorService.giAvslag(request.gjennomforingId, request.deltakerId, request.avslag, request.endretAv)
         } returns deltakeroppdateringResult
@@ -270,7 +269,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `del-med-arrangor - har tilgang - returnerer 200`() {
         coEvery { tiltakskoordinatorService.oppdaterDeltakere(any(), any(), any(), any()) } returns
-            listOf(deltaker.toDeltakerOppdateringResult())
+            listOf(deltakerOppdateringResultInTest)
 
         val expectedResponse = listOf(
             DeltakerOppdateringResponse(
@@ -297,11 +296,11 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
         coEvery { tiltakskoordinatorService.oppdaterDeltakere(any(), any(), any(), any()) } returns
-            listOf(deltaker.toDeltakerOppdateringResult())
+            listOf(deltakerOppdateringResultInTest)
 
         val request = DeltakereRequest(
-            gjennomforingId = deltaker.deltakerliste.id,
-            deltakere = listOf(deltaker.id),
+            gjennomforingId = deltakerInTest.deltakerliste.id,
+            deltakere = listOf(deltakerInTest.id),
             endretAv = "Nav Veiledersen",
         )
 
@@ -330,11 +329,11 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
         coEvery { tiltakskoordinatorService.oppdaterDeltakere(any(), any(), any(), any()) } returns
-            listOf(deltaker.toDeltakerOppdateringResult())
+            listOf(deltakerOppdateringResultInTest)
 
         val request = DeltakereRequest(
-            gjennomforingId = deltaker.deltakerliste.id,
-            deltakere = listOf(deltaker.id),
+            gjennomforingId = deltakerInTest.deltakerliste.id,
+            deltakere = listOf(deltakerInTest.id),
             endretAv = "Nav Veiledersen",
         )
 
@@ -362,16 +361,16 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
     companion object {
         private const val API_PATH = "/tiltakskoordinator/deltakere"
-        private val deltaker = TestData.lagDeltaker()
+        private val deltakerInTest = TestData.lagDeltaker()
 
         private val delMedArrangorRequest = DelMedArrangorRequest(
-            gjennomforingId = deltaker.deltakerliste.id,
+            gjennomforingId = deltakerInTest.deltakerliste.id,
             endretAv = "koordinator",
             deltakerIder = listOf(UUID.randomUUID()),
         )
 
-        private fun Deltaker.toDeltakerOppdateringResult() = DeltakerOppdateringResult(
-            deltakerId = this.id,
+        private val deltakerOppdateringResultInTest = DeltakerOppdateringResult(
+            deltakerId = deltakerInTest.id,
             isSuccess = true,
             exception = null,
         )

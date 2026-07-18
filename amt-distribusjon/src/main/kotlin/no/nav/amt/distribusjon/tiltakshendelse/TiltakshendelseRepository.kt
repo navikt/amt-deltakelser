@@ -47,10 +47,9 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun getHendelse(
-        deltakerId: UUID,
-        hendelseType: Tiltakshendelse.Type,
-    ): Result<Tiltakshendelse> = runCatching {
+    fun getHendelse(deltakerId: UUID): Result<Tiltakshendelse> = runCatching {
+        val hendelseType: Tiltakshendelse.Type = Tiltakshendelse.Type.UTKAST
+
         Database.query { session ->
             session.run(
                 queryOf(

@@ -17,20 +17,17 @@ sealed interface UlestHendelseType {
 
     data object NavGodkjennUtkast : UlestHendelseType
 
-    @Suppress("unused")
     data class LeggTilOppstartsdato(
         val startdato: LocalDate,
         val sluttdato: LocalDate?,
     ) : UlestHendelseType
 
-    @Suppress("unused")
     data class FjernOppstartsdato(
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
-    @Suppress("unused")
     data class EndreStartdato(
         val startdato: LocalDate?,
         val sluttdato: LocalDate? = null,

@@ -179,15 +179,12 @@ class GjennomforingUpserterTest {
 
     @Nested
     inner class ProduceUpsertGjennomforingTests {
-        private fun Deltaker.toPayload(
-            opprettetAv: String,
-            ansvarligEnhet: String,
-        ): GjennomforingRequestPayload.UpsertEnkeltplass = GjennomforingRequestPayload.UpsertEnkeltplass(
+        private fun Deltaker.toPayload(): GjennomforingRequestPayload.UpsertEnkeltplass = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltakerliste.tiltakstype.tiltakskode,
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
             organisasjonsnummer = this.deltakerliste.arrangor!!.organisasjonsnummer,
-            ansvarligEnhet = ansvarligEnhet,
-            opprettetAv = opprettetAv,
+            ansvarligEnhet = "1234",
+            opprettetAv = "Z123456",
             kategorisering = OpplaringKategoriseringRepoAdapter
                 .hentOpplaringKategoriseringValg(deltakerliste.id)
                 .toMulighetsrommetKategorisering(),
@@ -199,7 +196,7 @@ class GjennomforingUpserterTest {
             val deltaker = createUtkastDeltaker()
             val navIdent = "Z123456"
             val enhet = "1234"
-            val payload = deltaker.toPayload(opprettetAv = navIdent, ansvarligEnhet = enhet)
+            val payload = deltaker.toPayload()
             val slot = slot<GjennomforingRequestPayload>()
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
@@ -224,7 +221,7 @@ class GjennomforingUpserterTest {
             val deltaker = createSoktInnDeltaker()
             val navIdent = "Z123456"
             val enhet = "1234"
-            val payload = deltaker.toPayload(opprettetAv = navIdent, ansvarligEnhet = enhet)
+            val payload = deltaker.toPayload()
             val slot = slot<GjennomforingRequestPayload>()
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 

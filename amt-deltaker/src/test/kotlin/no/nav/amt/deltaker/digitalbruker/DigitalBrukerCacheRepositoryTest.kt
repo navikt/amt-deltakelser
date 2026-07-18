@@ -48,7 +48,7 @@ class DigitalBrukerCacheRepositoryTest {
     @Test
     fun `hentForPersonidenter - entry eldre enn 24 timer - filtreres bort`() {
         DigitalBrukerCacheRepository.upsertBatch(listOf("11111111111" to true))
-        gjorEntryUtdatert("11111111111", hoursAgo = 25)
+        gjorEntryUtdatert(hoursAgo = 25)
 
         DigitalBrukerCacheRepository.upsertBatch(listOf("22222222222" to false))
 
@@ -62,7 +62,7 @@ class DigitalBrukerCacheRepositoryTest {
     @Test
     fun `hentForPersonidenter - entry akkurat under 24 timer - inkluderes`() {
         DigitalBrukerCacheRepository.upsertBatch(listOf("11111111111" to true))
-        gjorEntryUtdatert("11111111111", hoursAgo = 23)
+        gjorEntryUtdatert(hoursAgo = 23)
 
         val resultat = DigitalBrukerCacheRepository.hentForPersonidenter(setOf("11111111111"))
 
@@ -98,7 +98,7 @@ class DigitalBrukerCacheRepositoryTest {
     @Test
     fun `upsertBatch - eksisterende personident - oppdaterer er_digital og modified_at`() {
         DigitalBrukerCacheRepository.upsertBatch(listOf("11111111111" to false))
-        gjorEntryUtdatert("11111111111", hoursAgo = 25)
+        gjorEntryUtdatert(hoursAgo = 25)
 
         // Verifiser at den er filtrert bort som utdatert
         DigitalBrukerCacheRepository.hentForPersonidenter(setOf("11111111111")) shouldBe emptyMap()
@@ -110,16 +110,13 @@ class DigitalBrukerCacheRepositoryTest {
         resultat shouldContainExactly mapOf("11111111111" to true)
     }
 
-    private fun gjorEntryUtdatert(
-        personident: String,
-        hoursAgo: Int,
-    ) {
+    private fun gjorEntryUtdatert(hoursAgo: Int) {
         Database.query { session ->
             session.run(
-                queryOf(
+                action = queryOf(
                     "UPDATE digital_bruker_cache SET modified_at = NOW() - make_interval(hours => ?) WHERE personident = ?",
                     hoursAgo,
-                    personident,
+                    "11111111111",
                 ).asUpdate,
             )
         }

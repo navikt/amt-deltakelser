@@ -93,7 +93,7 @@ class IsOppfolgingstilfelleClientTest {
         ) {
             val thrown = assertThrows(exceptionType.java) {
                 runBlocking {
-                    createIsOppfolgingstilfelleClient(EXPECTED_URL, statusCode)
+                    createIsOppfolgingstilfelleClient(statusCode)
                         .erSykmeldtMedArbeidsgiver(personidentInTest)
                 }
             }
@@ -105,21 +105,19 @@ class IsOppfolgingstilfelleClientTest {
             expectedResult: Boolean,
         ) {
             createIsOppfolgingstilfelleClient(
-                expectedUrl = EXPECTED_URL,
                 statusCode = HttpStatusCode.OK,
                 responseBody = responseBody,
             ).erSykmeldtMedArbeidsgiver(personidentInTest) shouldBe expectedResult
         }
 
         private fun createIsOppfolgingstilfelleClient(
-            expectedUrl: String,
             statusCode: HttpStatusCode = HttpStatusCode.OK,
             responseBody: Any? = null,
         ) = IsOppfolgingstilfelleClient(
             baseUrl = BASE_URL,
             scope = "scope",
             httpClient = createMockHttpClient(
-                expectedUrl = expectedUrl,
+                expectedUrl = EXPECTED_URL,
                 responseBody = responseBody,
                 statusCode = statusCode,
             ),
