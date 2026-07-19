@@ -63,7 +63,6 @@ import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka.ArrangorMeldingCons
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
@@ -80,13 +79,10 @@ import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.common.audit_log.log.AuditLoggerImpl
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
-import org.apache.kafka.clients.admin.AdminClient
-import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.seconds
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder as TiltakskoordinatorResponseBuilder
 
 val env = Environment()
-private val logger = LoggerFactory.getLogger("no.nav.amt.deltaker.bff.Application")
 
 fun main() {
     embeddedServer(
@@ -315,13 +311,6 @@ fun Application.module() {
     )
     consumers.forEach { it.start() }
 
-    // TODO: Fjern etter første deploy - engangs opprydding av stale consumer group offsets
-    deleteStaleConsumerGroupOffsets(
-        kafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
-        groupId = Environment.KAFKA_CONSUMER_GROUP_ID,
-        staleTopic = "amt.deltaker-hendelse-v1",
-    )
-
     configureAuthentication(environment)
     configureRequestValidation()
     configureRouting(
@@ -384,32 +373,5 @@ fun Application.module() {
         }.onFailure { throwable ->
             log.error("Error shutting down producers", throwable)
         }
-    }
-}
-
-private fun deleteStaleConsumerGroupOffsets(
-    kafkaConfig: KafkaConfig,
-    groupId: String,
-    staleTopic: String,
-) {
-    runCatching {
-        AdminClient.create(kafkaConfig.commonConfig()).use { admin ->
-            val partitions = admin
-                .listConsumerGroupOffsets(groupId)
-                .partitionsToOffsetAndMetadata()
-                .get()
-                .keys
-                .filter { it.topic() == staleTopic }
-                .toSet()
-
-            if (partitions.isNotEmpty()) {
-                admin.deleteConsumerGroupOffsets(groupId, partitions).all().get()
-                logger.info("Slettet offsets for $staleTopic fra consumer group $groupId (${partitions.size} partisjoner)")
-            } else {
-                logger.info("Ingen offsets funnet for $staleTopic i consumer group $groupId")
-            }
-        }
-    }.onFailure { e ->
-        logger.error("Feil ved sletting av stale consumer group offsets for $staleTopic", e)
     }
 }
