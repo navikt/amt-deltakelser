@@ -2,15 +2,14 @@ package no.nav.tiltaksarrangor.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-sealed class DeltakerEndringEndringResponse {
+sealed interface DeltakerEndringEndringResponse {
     data class EndreBakgrunnsinformasjon(
         val bakgrunnsinformasjon: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreBakgrunnsinformasjon) : this(
             bakgrunnsinformasjon = model.bakgrunnsinformasjon,
         )
@@ -19,7 +18,7 @@ sealed class DeltakerEndringEndringResponse {
     data class EndreInnhold(
         val ledetekst: String?,
         val innhold: List<DeltakelsesinnholdResponse.InnholdResponse>,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreInnhold) : this(
             ledetekst = model.ledetekst,
             innhold = model.innhold.map(DeltakelsesinnholdResponse::InnholdResponse),
@@ -31,7 +30,7 @@ sealed class DeltakerEndringEndringResponse {
         val dagerPerUke: Float?,
         val gyldigFra: LocalDate?,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreDeltakelsesmengde) : this(
             deltakelsesprosent = model.deltakelsesprosent,
             dagerPerUke = model.dagerPerUke,
@@ -44,7 +43,7 @@ sealed class DeltakerEndringEndringResponse {
         val startdato: LocalDate?,
         val sluttdato: LocalDate?,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreStartdato) : this(
             startdato = model.startdato,
             sluttdato = model.sluttdato,
@@ -55,7 +54,7 @@ sealed class DeltakerEndringEndringResponse {
     data class EndreSluttdato(
         val sluttdato: LocalDate,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreSluttdato) : this(
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
@@ -65,7 +64,7 @@ sealed class DeltakerEndringEndringResponse {
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.ForlengDeltakelse) : this(
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
@@ -75,7 +74,7 @@ sealed class DeltakerEndringEndringResponse {
     data class IkkeAktuell(
         val aarsak: DeltakerEndringAarsakResponse,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.IkkeAktuell) : this(
             aarsak = DeltakerEndringAarsakResponse.fromModel(model.aarsak),
             begrunnelse = model.begrunnelse,
@@ -88,7 +87,7 @@ sealed class DeltakerEndringEndringResponse {
         val begrunnelse: String?,
         val harFullfort: Boolean,
         val oppstartstype: Oppstartstype,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(
             model: DeltakerEndring.Endring.AvsluttDeltakelse,
             oppstartstype: Oppstartstype,
@@ -117,7 +116,7 @@ sealed class DeltakerEndringEndringResponse {
         val begrunnelse: String?,
         val harFullfort: Boolean?,
         val sluttdato: LocalDate?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreAvslutning) : this(
             aarsak = model.aarsak?.let(DeltakerEndringAarsakResponse::fromModel),
             begrunnelse = model.begrunnelse,
@@ -129,7 +128,7 @@ sealed class DeltakerEndringEndringResponse {
     data class EndreSluttarsak(
         val aarsak: DeltakerEndringAarsakResponse,
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreSluttarsak) : this(
             aarsak = DeltakerEndringAarsakResponse.fromModel(model.aarsak),
             begrunnelse = model.begrunnelse,
@@ -139,7 +138,7 @@ sealed class DeltakerEndringEndringResponse {
     data class ReaktiverDeltakelse(
         val reaktivertDato: LocalDate,
         val begrunnelse: String,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.ReaktiverDeltakelse) : this(
             reaktivertDato = model.reaktivertDato,
             begrunnelse = model.begrunnelse,
@@ -148,18 +147,18 @@ sealed class DeltakerEndringEndringResponse {
 
     data class FjernOppstartsdato(
         val begrunnelse: String?,
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.FjernOppstartsdato) : this(
             begrunnelse = model.begrunnelse,
         )
     }
 
     data class EndrePrisinfo(
-        val prisinfo: PrisinformasjonDto,
+        val prisinfo: PrisinformasjonResponse,
         val begrunnelse: String?, // påkrevd i frontend, men følger samme mønster som øvrige endringer
-    ) : DeltakerEndringEndringResponse() {
+    ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndrePrisinfo) : this(
-            prisinfo = model.prisinfo,
+            prisinfo = PrisinformasjonResponse.fromModel(model.prisinfo),
             begrunnelse = model.begrunnelse,
         )
     }
