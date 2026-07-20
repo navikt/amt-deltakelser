@@ -35,7 +35,6 @@ data class VisningsnavnResponse(
 
             return tiltakHosArrangorTekst(gjennomforing.arrangor, visningsnavn(tiltakskode))
         }
-
         private fun hentKladdTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String {
             val tiltakskode = gjennomforing.tiltak.tiltakskode
             val kurstype = hentKurstype(gjennomforing)
@@ -63,15 +62,15 @@ data class VisningsnavnResponse(
         private fun hentTittelTekst(gjennomforing: GjennomforingModel): String =
             hentKurstype(gjennomforing) ?: hentVisningsnavnFraTiltakskode(gjennomforing.tiltak.tiltakskode)
 
-        private fun hentKurstype(gjennomforing: GjennomforingModel): String? = when (gjennomforing.tiltak.tiltakskode) {
-            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> {
-                gjennomforing.opplaringKategoriseringValg
-                    ?.hentVerdier(representerer = OpplaringKategoriseringType.KURSTYPE_ID, throwIfEmpty = false)
-                    // minOrNull garanterer deterministisk resultat, i motsetning til firstOrNull
-                    ?.minOrNull()
+        private fun hentKurstype(gjennomforing: GjennomforingModel): String? {
+            if (gjennomforing.tiltak.tiltakskode != Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV) {
+                return null
             }
 
-            else -> null
+            return gjennomforing.opplaringKategoriseringValg
+                ?.hentVerdier(representerer = OpplaringKategoriseringType.KURSTYPE_ID, throwIfEmpty = false)
+                // minOrNull garanterer deterministisk resultat, i motsetning til firstOrNull
+                ?.minOrNull()
         }
 
         private fun hentVisningsnavnFraTiltakskode(tiltakskode: Tiltakskode): String =
