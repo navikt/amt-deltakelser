@@ -6,6 +6,8 @@ import no.nav.amt.distribusjon.hendelse.model.visningsnavn
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.distribusjon.utils.formatDate
 import no.nav.amt.distribusjon.utils.formatDateWithMonthName
+import no.nav.amt.felles.visningsnavn.hentVisningsnavnFraTiltakskode
+import no.nav.amt.felles.visningsnavn.tiltakHosArrangorTekst
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
@@ -280,23 +282,21 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel(): Forskriftskapittel = wh
 }
 
 fun HendelseDeltaker.Deltakerliste.tittelVisningsnavn() = when (this.tiltak.tiltakskode) {
-    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "Varig tilrettelagt arbeid hos ${this.arrangor.visningsnavn()}"
-    Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER -> "Tilrettelagt arbeid med oppfølging hos ${this.arrangor.visningsnavn()}"
+    Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+    Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
+    Tiltakskode.JOBBKLUBB,
+    Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+    Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+    -> tiltakHosArrangorTekst(hentVisningsnavnFraTiltakskode(this.tiltak.tiltakskode), this.arrangor.visningsnavn())
 
-    Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos ${arrangor.visningsnavn()}"
-
-    Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING -> "Arbeidsmarkedsopplæring hos ${this.arrangor.visningsnavn()}"
-
-    Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING -> "Fag- og yrkesopplæring hos ${this.arrangor.visningsnavn()}"
-
-    else -> "${this.tiltak.navn} hos ${arrangor.visningsnavn()}"
+    else -> tiltakHosArrangorTekst(this.tiltak.navn, arrangor.visningsnavn())
 }
 
 fun HendelseDeltaker.Deltakerliste.ingressVisningsnavn(): String = if (this.tiltak.tiltakskode.erOpplaeringstiltak()) {
-    "${this.navn} hos ${arrangor.visningsnavn()}"
+    tiltakHosArrangorTekst(this.navn, arrangor.visningsnavn())
 } else if (this.tiltak.tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
     // TAO skal ha forskjellig navn i tittel og ingress
-    "${tiltak.navn} hos ${arrangor.visningsnavn()}"
+    tiltakHosArrangorTekst(tiltak.navn, arrangor.visningsnavn())
 } else {
     tittelVisningsnavn()
 }

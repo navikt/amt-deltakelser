@@ -5,6 +5,7 @@ include(
     "amt-deltaker-bff",
     "amt-distribusjon",
     "amt-felles:intern-api-kontrakter",
+    "amt-felles:visningsnavn",
     "amt-felles:ktor",
     "amt-felles:ktor-test",
     "amt-felles:archunit-test",

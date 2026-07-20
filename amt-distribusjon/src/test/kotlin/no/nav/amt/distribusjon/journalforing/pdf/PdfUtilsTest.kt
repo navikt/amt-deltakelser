@@ -25,6 +25,85 @@ import java.time.LocalDateTime
 
 class PdfUtilsTest {
     @Nested
+    inner class VisningsnavnTests {
+        @Test
+        fun `tittelVisningsnavn for simple measure uses tiltak name hos arrangor`() {
+            val deltakerliste = Hendelsesdata.lagDeltakerliste(
+                tiltak = Hendelsesdata.tiltak(
+                    tiltakskode = Tiltakskode.OPPFOLGING,
+                    navn = "Oppfølging",
+                ),
+            )
+
+            deltakerliste.tittelVisningsnavn() shouldBe "Oppfølging hos Arrangornavn"
+            deltakerliste.ingressVisningsnavn() shouldBe "Oppfølging hos Arrangornavn"
+        }
+
+        @Test
+        fun `tittelVisningsnavn and ingressVisningsnavn keep TAO text difference`() {
+            val deltakerliste = Hendelsesdata.lagDeltakerliste(
+                tiltak = Hendelsesdata.tiltak(
+                    tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
+                    navn = "Tilrettelagt arbeid i ordinær virksomhet",
+                ),
+            )
+
+            deltakerliste.tittelVisningsnavn() shouldBe "Tilrettelagt arbeid med oppfølging hos Arrangornavn"
+            deltakerliste.ingressVisningsnavn() shouldBe "Tilrettelagt arbeid i ordinær virksomhet hos Arrangornavn"
+        }
+
+        @Test
+        fun `opplaeringstiltak title uses tiltaksnavn while ingress uses deltakerlistenavn`() {
+            val deltakerliste = Hendelsesdata.lagDeltakerliste(
+                navn = "AMO liste",
+                tiltak = Hendelsesdata.tiltak(
+                    tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                    navn = "Arbeidsmarkedsopplæring",
+                ),
+            )
+
+            deltakerliste.tittelVisningsnavn() shouldBe "Arbeidsmarkedsopplæring hos Arrangornavn"
+            deltakerliste.ingressVisningsnavn() shouldBe "AMO liste hos Arrangornavn"
+        }
+
+        @Test
+        fun `enkeltplass opplaeringstiltak keeps deltakerlistenavn in ingress`() {
+            val deltakerliste = Hendelsesdata.lagDeltakerliste(
+                navn = "Enkeltplass AMO",
+                tiltak = Hendelsesdata.tiltak(
+                    tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+                    navn = "Arbeidsmarkedsopplæring (enkeltplass)",
+                ),
+            )
+
+            deltakerliste.tittelVisningsnavn() shouldBe "Arbeidsmarkedsopplæring (enkeltplass) hos Arrangornavn"
+            deltakerliste.ingressVisningsnavn() shouldBe "Enkeltplass AMO hos Arrangornavn"
+        }
+
+        @Test
+        fun `arrangor visningsnavn uses overordnet arrangor when available`() {
+            val overordnetArrangor = Hendelsesdata.arrangor(navn = "Overordnet arrangør")
+            val arrangor = Hendelsesdata.arrangor(
+                navn = "Underordnet arrangør",
+                overordnetArrangor = overordnetArrangor,
+            )
+
+            arrangor.visningsnavn() shouldBe "Overordnet Arrangør"
+        }
+
+        @Test
+        fun `arrangor visningsnavn falls back to local name when overordnet is ukjent virksomhet`() {
+            val overordnetArrangor = Hendelsesdata.arrangor(navn = "Ukjent Virksomhet")
+            val arrangor = Hendelsesdata.arrangor(
+                navn = "Underordnet arrangør",
+                overordnetArrangor = overordnetArrangor,
+            )
+
+            arrangor.visningsnavn() shouldBe "Underordnet Arrangør"
+        }
+    }
+
+    @Nested
     inner class ToInnholdPdfDtoTests {
         @Test
         fun `innhold med innholdskode == annet`() {
