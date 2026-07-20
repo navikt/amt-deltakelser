@@ -20,9 +20,6 @@ data class DeltakerlisteResponse(
     val koordinatorer: List<TiltakskoordinatorResponse>,
     val erEnkeltplass: Boolean,
 ) {
-    // TODO: fjernes når frontend har tatt i bruk tiltakskode-feltet igjen
-    val tiltakskodeResponse = tiltakskode
-
     data class TiltakskoordinatorResponse(
         val id: UUID,
         val navn: String,

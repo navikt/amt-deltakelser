@@ -28,9 +28,6 @@ data class DeltakerlisteResponse(
     val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse? = null,
     val prisinformasjon: PrisinformasjonResponse? = null,
 ) {
-    // TODO: fjernes når frontend har tatt i bruk tiltakskode-feltet igjen
-    val tiltakskodeResponse = tiltakskode
-
     constructor(model: GjennomforingModel) : this(
         deltakerlisteId = model.id,
         deltakerlisteNavn = model.navn,
