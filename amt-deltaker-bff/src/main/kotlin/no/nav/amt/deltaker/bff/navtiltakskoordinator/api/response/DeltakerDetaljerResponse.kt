@@ -31,7 +31,4 @@ data class DeltakerDetaljerResponse(
     val pameldingstype: GjennomforingPameldingType,
     val deltakelsesinnhold: String?,
     val erEnkeltplass: Boolean,
-) {
-    // TODO: fjernes når frontend har tatt i bruk tiltakskode-feltet igjen
-    val tiltakskodeResponse = tiltakskode
-}
+)
