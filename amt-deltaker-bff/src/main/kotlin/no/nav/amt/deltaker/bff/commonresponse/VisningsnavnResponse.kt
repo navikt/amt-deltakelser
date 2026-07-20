@@ -18,13 +18,8 @@ data class VisningsnavnResponse(
     )
 
     companion object {
-        private fun hentTiltakHosArrangorTittel(
-            gjennomforing: GjennomforingModel,
-            medKurstype: Boolean = true,
-        ): String {
-            val visningsnavn = hentVisningsnavn(gjennomforing, medKurstype = medKurstype)
-            return tiltakHosArrangorTekst(gjennomforing.arrangor, visningsnavn)
-        }
+        private fun hentTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String =
+            tiltakHosArrangorTekst(gjennomforing.arrangor, hentTittelTekst(gjennomforing))
 
         private fun hentTiltakHosArrangorIngressTekst(gjennomforing: GjennomforingModel): String {
             val tiltakskode = gjennomforing.tiltak.tiltakskode
@@ -40,19 +35,17 @@ data class VisningsnavnResponse(
 
             return tiltakHosArrangorTekst(gjennomforing.arrangor, visningsnavn(tiltakskode))
         }
-
         private fun hentKladdTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String {
             val tiltakskode = gjennomforing.tiltak.tiltakskode
+            val kurstype = hentKurstype(gjennomforing)
 
-            if (hentKurstype(gjennomforing) == null && skalBrukeDeltakerlisteNavn(tiltakskode)) {
-                return tiltakHosArrangorTekst(gjennomforing)
+            val tekst = when {
+                kurstype == null && skalBrukeDeltakerlisteNavn(tiltakskode) -> gjennomforing.navn
+                gjennomforing.status != GjennomforingStatusType.KLADD -> hentTittelTekst(gjennomforing)
+                else -> hentVisningsnavnFraTiltakskode(tiltakskode)
             }
 
-            val visningsnavn = hentVisningsnavn(
-                gjennomforing,
-                medKurstype = gjennomforing.status != GjennomforingStatusType.KLADD,
-            )
-            return tiltakHosArrangorTekst(gjennomforing.arrangor, visningsnavn)
+            return tiltakHosArrangorTekst(gjennomforing.arrangor, tekst)
         }
 
         private fun tiltakHosArrangorTekst(gjennomforing: GjennomforingModel): String =
@@ -66,24 +59,11 @@ data class VisningsnavnResponse(
             return "$tekst hos $arrangorNavn"
         }
 
-        private fun hentVisningsnavn(
-            gjennomforing: GjennomforingModel,
-            medKurstype: Boolean = true,
-        ): String {
-            hentKurstype(gjennomforing, medKurstype)?.let { return it }
+        private fun hentTittelTekst(gjennomforing: GjennomforingModel): String =
+            hentKurstype(gjennomforing) ?: hentVisningsnavnFraTiltakskode(gjennomforing.tiltak.tiltakskode)
 
-            if (gjennomforing.tiltak.tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
-                return "Tilrettelagt arbeid med oppfølging"
-            }
-
-            return visningsnavn(gjennomforing.tiltak.tiltakskode)
-        }
-
-        private fun hentKurstype(
-            gjennomforing: GjennomforingModel,
-            medKurstype: Boolean = true,
-        ): String? {
-            if (!medKurstype || gjennomforing.tiltak.tiltakskode != Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV) {
+        private fun hentKurstype(gjennomforing: GjennomforingModel): String? {
+            if (gjennomforing.tiltak.tiltakskode != Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV) {
                 return null
             }
 
@@ -92,6 +72,13 @@ data class VisningsnavnResponse(
                 // minOrNull garanterer deterministisk resultat, i motsetning til firstOrNull
                 ?.minOrNull()
         }
+
+        private fun hentVisningsnavnFraTiltakskode(tiltakskode: Tiltakskode): String =
+            if (tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
+                "Tilrettelagt arbeid med oppfølging"
+            } else {
+                visningsnavn(tiltakskode)
+            }
 
         private fun skalBrukeDeltakerlisteNavn(tiltakskode: Tiltakskode): Boolean = when (tiltakskode) {
             Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
