@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
+import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
@@ -50,7 +51,7 @@ object ResponseMapper {
             vurdering = sisteVurdering?.let(::VurderingResponse),
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
             innsatsgruppe = navBruker.innsatsgruppe,
-            tiltakskode = deltaker.gjennomforing.tiltak.tiltakskode,
+            tiltakskode = TiltakskodeResponse(deltaker.gjennomforing.tiltak.tiltakskode),
             tilgangTilBruker = tilgangTilBruker,
             aktiveForslag = aktiveForslag,
             ulesteHendelser = ulesteHendelser.map(::UlestHendelseResponse),
@@ -73,7 +74,7 @@ object ResponseMapper {
         DeltakerlisteResponse(
             id = id,
             navn = navn,
-            tiltakskode = tiltakstype.tiltakskode,
+            tiltakskode = TiltakskodeResponse(tiltakstype.tiltakskode),
             startdato = startDato,
             sluttdato = sluttDato,
             oppstartstype = oppstart,

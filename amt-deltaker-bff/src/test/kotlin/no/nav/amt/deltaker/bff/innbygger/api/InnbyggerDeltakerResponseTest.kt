@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.InnholdResponse
+import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.deltaker.bff.innbygger.api.response.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
@@ -118,7 +119,7 @@ class InnbyggerDeltakerResponseTest {
 
         result.deltakerliste.deltakerlisteId shouldBe gjennomforing.id
         result.deltakerliste.deltakerlisteNavn shouldBe gjennomforing.navn
-        result.deltakerliste.tiltakskode shouldBe gjennomforing.tiltakstype.tiltakskode
+        result.deltakerliste.tiltakskode shouldBe TiltakskodeResponse(gjennomforing.tiltakstype.tiltakskode)
         result.deltakerliste.tiltakskodeResponse.kode shouldBe gjennomforing.tiltakstype.tiltakskode
         result.deltakerliste.oppstartstype shouldBe gjennomforing.oppstart
         result.deltakerliste.startdato shouldBe gjennomforing.startDato
