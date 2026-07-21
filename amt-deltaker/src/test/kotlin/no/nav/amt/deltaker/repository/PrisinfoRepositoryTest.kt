@@ -33,6 +33,7 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(gjennomforingInTest)
 
             val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = gjennomforingInTest.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
                 tilleggsopplysninger = "Standard opplysning",
@@ -73,6 +74,7 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             )
 

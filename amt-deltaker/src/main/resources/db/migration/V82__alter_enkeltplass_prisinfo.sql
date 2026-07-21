@@ -9,8 +9,8 @@ SET status = CASE WHEN okonomi_godkjent = TRUE THEN 'GODKJENT' ELSE 'TIL_BEHANDL
 -- Mellomlagringstabell: kobler deltakerliste til current/pending prisinfo
 CREATE TABLE IF NOT EXISTS deltakerliste_2_prisinformasjon
 (
-    deltakerliste_id   UUID                     NOT NULL REFERENCES deltakerliste (id),
-    prisinformasjon_id UUID                     NOT NULL REFERENCES enkeltplass_prisinformasjon (id),
+    deltakerliste_id   UUID                     NOT NULL REFERENCES deltakerliste (id) ON DELETE CASCADE,
+    prisinformasjon_id UUID                     NOT NULL REFERENCES enkeltplass_prisinformasjon (id) ON DELETE CASCADE,
     rolle              VARCHAR(10)              NOT NULL DEFAULT 'ENDRING',
     modified_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     created_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -27,5 +27,4 @@ SELECT
     CASE WHEN okonomi_godkjent = TRUE THEN 'GJELDENDE' ELSE 'ENDRING' END
 FROM enkeltplass_prisinformasjon;
 
-ALTER TABLE enkeltplass_prisinformasjon DROP COLUMN deltakerliste_id;
 ALTER TABLE enkeltplass_prisinformasjon DROP COLUMN okonomi_godkjent;

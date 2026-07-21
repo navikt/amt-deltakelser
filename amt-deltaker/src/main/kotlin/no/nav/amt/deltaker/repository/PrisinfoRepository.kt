@@ -17,8 +17,8 @@ object PrisinfoRepository {
             """
             SELECT 
                 d2p.prisinformasjon_id,
-                d2p.deltakerliste_id,
                 d2p.rolle,
+                prisinfo.deltakerliste_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
@@ -46,8 +46,8 @@ object PrisinfoRepository {
             """
             SELECT 
                 d2p.prisinformasjon_id,
-                d2p.deltakerliste_id,
                 d2p.rolle,
+                prisinfo.deltakerliste_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
@@ -73,6 +73,7 @@ object PrisinfoRepository {
             """
             INSERT INTO enkeltplass_prisinformasjon (
                 id,
+                deltakerliste_id,
                 status,
                 prisinformasjon_json_type,
                 anskaffelse_pris,
@@ -81,6 +82,7 @@ object PrisinfoRepository {
             )
             VALUES (
                 :id,
+                :deltakerliste_id,
                 :status,
                 :prisinformasjon_json_type,
                 :anskaffelse_pris,
@@ -98,6 +100,7 @@ object PrisinfoRepository {
 
         val params = mapOf(
             "id" to upsertDbo.id,
+            "deltakerliste_id" to upsertDbo.gjennomforingId,
             "status" to upsertDbo.status.name,
             "prisinformasjon_json_type" to upsertDbo.prisinfoJsonSubtype,
             "anskaffelse_pris" to upsertDbo.anskaffelsePris,

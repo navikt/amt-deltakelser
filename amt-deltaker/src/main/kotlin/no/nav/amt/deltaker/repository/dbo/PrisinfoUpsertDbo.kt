@@ -5,6 +5,7 @@ import java.util.UUID
 
 data class PrisinfoUpsertDbo(
     val id: UUID = UUID.randomUUID(),
+    val gjennomforingId: UUID,
     val status: PrisinfoDbo.PrisinfoStatus = PrisinfoDbo.PrisinfoStatus.SENDT,
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,

@@ -21,10 +21,11 @@ class Deltakerliste2PrisinfoRepositoryTest {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        private val gjennomforing = lagDeltakerliste()
+        private val gjennomforingInTest = lagDeltakerliste()
 
         private fun lagPrisinfoInsertDbo(prisinfoId: UUID = UUID.randomUUID()) = PrisinfoUpsertDbo(
             id = prisinfoId,
+            gjennomforingId = gjennomforingInTest.id,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = 10000,
         )
@@ -34,58 +35,58 @@ class Deltakerliste2PrisinfoRepositoryTest {
     inner class UpsertTests {
         @Test
         fun `upsert - GJELDENDE rolle - lagrer kobling`() {
-            TestRepository.insert(gjennomforing)
+            TestRepository.insert(gjennomforingInTest)
 
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
 
             hentPrisinfoId(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             ) shouldBe prisinfoUpsertDbo.id
         }
 
         @Test
         fun `upsert - ENDRING rolle - lagrer kobling`() {
-            TestRepository.insert(gjennomforing)
+            TestRepository.insert(gjennomforingInTest)
 
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             hentPrisinfoId(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             ) shouldBe prisinfoUpsertDbo.id
         }
 
         @Test
         fun `upsert - duplikat prisinfoId for samme deltakerliste med ulik rolle - kaster feil`() {
-            TestRepository.insert(gjennomforing)
+            TestRepository.insert(gjennomforingInTest)
 
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             assertThrows<Exception> {
                 Deltakerliste2PrisinfoRepository.upsert(
-                    gjennomforingId = gjennomforing.id,
+                    gjennomforingId = gjennomforingInTest.id,
                     prisinformasjonId = prisinfoUpsertDbo.id,
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
                 )
@@ -94,7 +95,7 @@ class Deltakerliste2PrisinfoRepositoryTest {
 
         @Test
         fun `upsert - GJELDENDE og ENDRING for samme deltakerliste - begge lagres`() {
-            TestRepository.insert(gjennomforing)
+            TestRepository.insert(gjennomforingInTest)
 
             val prisinfoUpsertDbo1 = lagPrisinfoInsertDbo()
             val prisinfoUpsertDbo2 = lagPrisinfoInsertDbo()
@@ -103,31 +104,31 @@ class Deltakerliste2PrisinfoRepositoryTest {
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo2)
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo1.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo2.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             hentPrisinfoId(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             ) shouldBe prisinfoUpsertDbo1.id
 
             hentPrisinfoId(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             ) shouldBe prisinfoUpsertDbo2.id
         }
 
         @Test
         fun `upsert - samme rolle - oppdaterer prisinfoId`() {
-            TestRepository.insert(gjennomforing)
+            TestRepository.insert(gjennomforingInTest)
 
             val prisinfoUpsertDbo1 = lagPrisinfoInsertDbo()
             val prisinfoUpsertDbo2 = lagPrisinfoInsertDbo()
@@ -136,19 +137,19 @@ class Deltakerliste2PrisinfoRepositoryTest {
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo2)
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo1.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo2.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             hentPrisinfoId(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             ) shouldBe prisinfoUpsertDbo2.id
         }
@@ -158,31 +159,31 @@ class Deltakerliste2PrisinfoRepositoryTest {
     inner class DeleteTests {
         @Test
         fun `delete - fjerner kobling for gitt rolle`() {
-            TestRepository.insert(gjennomforing)
+            TestRepository.insert(gjennomforingInTest)
 
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             Deltakerliste2PrisinfoRepository.delete(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             hentPrisinfoId(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             ) shouldBe null
         }
 
         @Test
         fun `delete - fjerner ikke andre roller`() {
-            TestRepository.insert(gjennomforing)
+            TestRepository.insert(gjennomforingInTest)
 
             val prisinfoUpsertDbo1 = lagPrisinfoInsertDbo()
             val prisinfoUpsertDbo2 = lagPrisinfoInsertDbo()
@@ -191,29 +192,50 @@ class Deltakerliste2PrisinfoRepositoryTest {
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo2)
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo1.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
 
             Deltakerliste2PrisinfoRepository.upsert(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo2.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             Deltakerliste2PrisinfoRepository.delete(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             hentPrisinfoId(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             ) shouldBe prisinfoUpsertDbo1.id
 
             hentPrisinfoId(
-                gjennomforingId = gjennomforing.id,
+                gjennomforingId = gjennomforingInTest.id,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            ) shouldBe null
+        }
+
+        @Test
+        fun `delete gjennomføring - cascade fjerner alle data`() {
+            TestRepository.insert(gjennomforingInTest)
+
+            val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
+            PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
+
+            Deltakerliste2PrisinfoRepository.upsert(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinfoUpsertDbo.id,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            )
+
+            DeltakerlisteRepository().delete(gjennomforingInTest.id)
+
+            hentPrisinfoId(
+                gjennomforingId = gjennomforingInTest.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             ) shouldBe null
         }

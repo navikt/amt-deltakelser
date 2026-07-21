@@ -140,7 +140,10 @@ class PrisinfoRepoAdapterTest {
             )
 
             PrisinfoRepository.upsertPrisinfo(
-                falseVariant.toPrisinfoUpsertDbo(UUID.randomUUID()),
+                falseVariant.toPrisinfoUpsertDbo(
+                    prisinfoId = UUID.randomUUID(),
+                    gjennomforingId = gjennomforingInTest.id,
+                ),
             )
 
             // Act

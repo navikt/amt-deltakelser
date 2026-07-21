@@ -139,7 +139,10 @@ object PrisinfoRepoAdapter {
         val faktiskPrisinfoId = eksisterendePrisinfoId ?: UUID.randomUUID()
 
         PrisinfoRepository.upsertPrisinfo(
-            prisinformasjon.toPrisinfoUpsertDbo(faktiskPrisinfoId),
+            prisinformasjon.toPrisinfoUpsertDbo(
+                prisinfoId = faktiskPrisinfoId,
+                gjennomforingId = gjennomforingId,
+            ),
         )
 
         if (eksisterendePrisinfoId == null) {
@@ -178,7 +181,10 @@ object PrisinfoRepoAdapter {
         val nyPrisinfoId = UUID.randomUUID()
 
         PrisinfoRepository.upsertPrisinfo(
-            prisinformasjon.toPrisinfoUpsertDbo(nyPrisinfoId),
+            prisinformasjon.toPrisinfoUpsertDbo(
+                prisinfoId = nyPrisinfoId,
+                gjennomforingId = gjennomforingId,
+            ),
         )
 
         // opprett kopling mellom gjennomføring og prisinfo
@@ -223,21 +229,27 @@ object PrisinfoRepoAdapter {
      *
      * @return [PrisinfoUpsertDbo]
      */
-    internal fun PrisinformasjonDto.toPrisinfoUpsertDbo(prisinfoId: UUID): PrisinfoUpsertDbo = when (this) {
+    internal fun PrisinformasjonDto.toPrisinfoUpsertDbo(
+        prisinfoId: UUID,
+        gjennomforingId: UUID,
+    ): PrisinfoUpsertDbo = when (this) {
         is Anskaffelse -> PrisinfoUpsertDbo(
             id = prisinfoId,
+            gjennomforingId = gjennomforingId,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = this.pris,
         )
 
         is Tilskudd -> PrisinfoUpsertDbo(
             id = prisinfoId,
+            gjennomforingId = gjennomforingId,
             prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
         )
 
         is IngenKostnader -> PrisinfoUpsertDbo(
             id = prisinfoId,
+            gjennomforingId = gjennomforingId,
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
             ingenkostnaderAarsak = this.aarsak,

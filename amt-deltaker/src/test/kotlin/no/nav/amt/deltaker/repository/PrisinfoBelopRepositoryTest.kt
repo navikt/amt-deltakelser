@@ -25,6 +25,7 @@ class PrisinfoBelopRepositoryTest {
         private val gjennomforingInTest = lagDeltakerliste()
 
         private val prisinfoUpsertDboInTest = PrisinfoUpsertDbo(
+            gjennomforingId = gjennomforingInTest.id,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = 15000,
             tilleggsopplysninger = "Standard opplysning",
