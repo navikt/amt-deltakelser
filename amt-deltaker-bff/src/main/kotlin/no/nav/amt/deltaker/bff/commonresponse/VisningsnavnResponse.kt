@@ -1,98 +1,30 @@
 package no.nav.amt.deltaker.bff.commonresponse
 
-import no.nav.amt.deltaker.bff.model.ArrangorModel
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
-import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
+import no.nav.amt.felles.visningsnavn.lagVisningsnavn
 
 data class VisningsnavnResponse(
     val tiltakHosArrangorTittel: String,
     val tiltakHosArrangorIngressTekst: String,
     val kladdTiltakHosArrangorTittel: String,
 ) {
-    constructor(gjennomforing: GjennomforingModel) : this(
-        tiltakHosArrangorTittel = hentTiltakHosArrangorTittel(gjennomforing),
-        tiltakHosArrangorIngressTekst = hentTiltakHosArrangorIngressTekst(gjennomforing),
-        kladdTiltakHosArrangorTittel = hentKladdTiltakHosArrangorTittel(gjennomforing),
-    )
-
     companion object {
-        private fun hentTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String =
-            tiltakHosArrangorTekst(gjennomforing.arrangor, hentTittelTekst(gjennomforing))
+        fun fraGjennomforing(gjennomforing: GjennomforingModel) = fraVisningsnavn(
+            lagVisningsnavn(
+                tiltakskode = gjennomforing.tiltak.tiltakskode,
+                tiltaksnavn = gjennomforing.tiltak.navn,
+                gjennomforingsnavn = gjennomforing.navn,
+                status = gjennomforing.status,
+                arrangorNavn = gjennomforing.arrangor?.navn,
+                opplaringKategoriseringValg = gjennomforing.opplaringKategoriseringValg,
+            ),
+        )
 
-        private fun hentTiltakHosArrangorIngressTekst(gjennomforing: GjennomforingModel): String {
-            val tiltakskode = gjennomforing.tiltak.tiltakskode
-
-            val kurstype = hentKurstype(gjennomforing)
-            if (kurstype != null) {
-                return tiltakHosArrangorTekst(gjennomforing.arrangor, kurstype)
-            }
-
-            if (skalBrukeDeltakerlisteNavn(tiltakskode)) {
-                return tiltakHosArrangorTekst(gjennomforing)
-            }
-
-            return tiltakHosArrangorTekst(gjennomforing.arrangor, visningsnavn(tiltakskode))
-        }
-
-        private fun hentKladdTiltakHosArrangorTittel(gjennomforing: GjennomforingModel): String {
-            val tiltakskode = gjennomforing.tiltak.tiltakskode
-            val kurstype = hentKurstype(gjennomforing)
-
-            val tekst = when {
-                kurstype == null && skalBrukeDeltakerlisteNavn(tiltakskode) -> gjennomforing.navn
-                gjennomforing.status != GjennomforingStatusType.KLADD -> hentTittelTekst(gjennomforing)
-                else -> hentVisningsnavnFraTiltakskode(tiltakskode)
-            }
-
-            return tiltakHosArrangorTekst(gjennomforing.arrangor, tekst)
-        }
-
-        private fun tiltakHosArrangorTekst(gjennomforing: GjennomforingModel): String =
-            tiltakHosArrangorTekst(gjennomforing.arrangor, gjennomforing.navn)
-
-        private fun tiltakHosArrangorTekst(
-            arrangor: ArrangorModel?,
-            tekst: String,
-        ): String {
-            val arrangorNavn = arrangor?.navn ?: "Ukjent arrangør"
-            return "$tekst hos $arrangorNavn"
-        }
-
-        private fun hentTittelTekst(gjennomforing: GjennomforingModel): String =
-            hentKurstype(gjennomforing) ?: hentVisningsnavnFraTiltakskode(gjennomforing.tiltak.tiltakskode)
-
-        private fun hentKurstype(gjennomforing: GjennomforingModel): String? = when (gjennomforing.tiltak.tiltakskode) {
-            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> {
-                gjennomforing.opplaringKategoriseringValg
-                    ?.hentVerdier(representerer = OpplaringKategoriseringType.KURSTYPE_ID, throwIfEmpty = false)
-                    // minOrNull garanterer deterministisk resultat, i motsetning til firstOrNull
-                    ?.minOrNull()
-            }
-
-            else -> null
-        }
-
-        private fun hentVisningsnavnFraTiltakskode(tiltakskode: Tiltakskode): String =
-            if (tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
-                "Tilrettelagt arbeid med oppfølging"
-            } else {
-                visningsnavn(tiltakskode)
-            }
-
-        private fun skalBrukeDeltakerlisteNavn(tiltakskode: Tiltakskode): Boolean = when (tiltakskode) {
-            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-            Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            Tiltakskode.STUDIESPESIALISERING,
-            Tiltakskode.FAG_OG_YRKESOPPLAERING,
-            Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-            Tiltakskode.HOYERE_UTDANNING,
-            -> true
-
-            else -> false
-        }
+        private fun fraVisningsnavn(visningsnavn: TiltakVisningsnavn) = VisningsnavnResponse(
+            tiltakHosArrangorTittel = visningsnavn.tittel,
+            tiltakHosArrangorIngressTekst = visningsnavn.ingressTekst,
+            kladdTiltakHosArrangorTittel = visningsnavn.kladdTittel,
+        )
     }
 }

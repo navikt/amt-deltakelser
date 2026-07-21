@@ -1,6 +1,7 @@
 rootProject.name = "amt-deltakelser"
 
 include(
+    "amt-aktivitetskort-publisher",
     "amt-deltaker",
     "amt-deltaker-bff",
     "amt-distribusjon",
@@ -10,6 +11,7 @@ include(
     "amt-felles:archunit-test",
     "amt-felles:typegenerering",
     "amt-felles:kafka",
+    "amt-felles:visningsnavn",
     "amt-lib:testing",
     "amt-lib:utils",
     "amt-lib:models",

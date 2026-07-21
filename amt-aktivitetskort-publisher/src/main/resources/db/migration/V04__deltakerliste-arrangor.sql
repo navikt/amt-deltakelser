@@ -1,0 +1,1 @@
+alter table deltakerliste add column arrangor_id uuid references arrangor(id);

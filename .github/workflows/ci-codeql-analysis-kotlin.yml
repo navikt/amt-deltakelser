@@ -6,6 +6,7 @@ on:
     branches:
       - main
     paths:
+      - "amt-aktivitetskort-publisher/**"
       - "amt-deltaker/**"
       - "amt-deltaker-bff/**"
       - "amt-distribusjon/**"
@@ -20,6 +21,7 @@ on:
     branches:
       - main
     paths:
+      - "amt-aktivitetskort-publisher/**"
       - "amt-deltaker/**"
       - "amt-deltaker-bff/**"
       - "amt-distribusjon/**"
