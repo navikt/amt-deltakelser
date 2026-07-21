@@ -86,9 +86,9 @@ object PrisinfoRepoAdapter {
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
         } else {
-            PrisinfoRepository
-                .hentPrisinfos(gjennomforingId)
-                .maxByOrNull { it.rolle }
+            val prisinfos = PrisinfoRepository.hentPrisinfos(gjennomforingId)
+            prisinfos.firstOrNull { it.rolle == PrisinfoDbo.Rolle.GJELDENDE }
+                ?: prisinfos.firstOrNull { it.rolle == PrisinfoDbo.Rolle.ENDRING }
         } ?: return null
 
         return when (prisinfoDbo.prisinfoJsonSubtype) {
