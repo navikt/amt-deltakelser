@@ -21,7 +21,6 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -76,7 +75,7 @@ fun HendelseDeltaker.Deltakerliste.visningsnavn() = lagVisningsnavn(
     tiltaksnavn = tiltak.navn,
     gjennomforingsnavn = navn,
     gjennomforingType = if (erEnkeltplass == true) GjennomforingType.Enkeltplass else GjennomforingType.Gruppe,
-    status = GjennomforingStatusType.GJENNOMFORES,
+    erKladd = false,
     arrangorNavn = arrangor.visningsnavn(),
     opplaringKategoriseringValg = opplaringKategoriseringValg,
 )

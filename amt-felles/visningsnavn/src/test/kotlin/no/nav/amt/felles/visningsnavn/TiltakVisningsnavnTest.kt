@@ -21,7 +21,7 @@ class TiltakVisningsnavnTest {
             tiltaksnavn = case.tiltaksnavn,
             gjennomforingsnavn = case.gjennomforingsnavn,
             gjennomforingType = case.type,
-            status = case.status,
+            erKladd = case.status == GjennomforingStatusType.KLADD,
             arrangorNavn = case.arrangorNavn,
             opplaringKategoriseringValg = case.kurstype?.let(::lagKurstypeValg),
         )
@@ -39,7 +39,7 @@ class TiltakVisningsnavnTest {
             tiltaksnavn = "Norskopplæring, grunnleggende ferdigheter og FOV",
             gjennomforingsnavn = "Deltakerliste navn",
             gjennomforingType = GjennomforingType.Enkeltplass,
-            status = GjennomforingStatusType.GJENNOMFORES,
+            erKladd = false,
             arrangorNavn = "Arrangor 1",
             opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
@@ -67,7 +67,7 @@ class TiltakVisningsnavnTest {
             tiltaksnavn = "Arbeidsforberedende trening",
             gjennomforingsnavn = "Deltakerliste navn",
             gjennomforingType = GjennomforingType.Gruppe,
-            status = GjennomforingStatusType.GJENNOMFORES,
+            erKladd = false,
             arrangorNavn = null,
         )
 
