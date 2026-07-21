@@ -70,6 +70,24 @@ class VisningsnavnResponseTest {
         response.tiltakHosArrangorIngressTekst shouldBe "Almenn norsk hos Arrangor 1"
     }
 
+    @Test
+    fun `ukjent arrangor brukes som fallback`() {
+        val model = lagGjennomforingModel(
+            tiltak = lagTiltakstype(
+                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                navn = "Arbeidsforberedende trening",
+            ),
+            navn = "Deltakerliste navn",
+            arrangor = null,
+        )
+
+        val response = VisningsnavnResponse(model)
+
+        response.tiltakHosArrangorTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
+        response.tiltakHosArrangorIngressTekst shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
+        response.kladdTiltakHosArrangorTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
+    }
+
     data class SpecCase(
         val navn: String,
         val tiltakskode: Tiltakskode,
@@ -87,6 +105,9 @@ class VisningsnavnResponseTest {
     }
 
     companion object {
+        /**
+         * Tester basert på spec i [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=800078787&spaceKey=SFAMT&title=Visning%2Bav%2Bnavn%2Bp%C3%A5%2Btiltaket%2Bgjennomf%C3%B8ring%2Bi%2Baktivitetsplanenen%2Bog%2Bp%C3%A5%2Btiltakssidene)
+         */
         @JvmStatic
         fun specCases(): Stream<SpecCase> = Stream.of(
             SpecCase(
@@ -332,16 +353,6 @@ class VisningsnavnResponseTest {
                 forventetTittel = "Tilrettelagt arbeid med oppfølging hos Arrangør navn",
                 forventetIngress = "Tilrettelagt arbeid i ordinær virksomhet hos Arrangør navn",
                 forventetKladd = "Tilrettelagt arbeid med oppfølging hos Arrangør navn",
-            ),
-            SpecCase(
-                navn = "ukjent arrangør brukes som fallback",
-                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                tiltaksnavn = "Arbeidsforberedende trening",
-                gjennomforingsnavn = "Deltakerliste navn",
-                arrangorNavn = null,
-                forventetTittel = "Arbeidsforberedende trening hos Ukjent arrangør",
-                forventetIngress = "Arbeidsforberedende trening hos Ukjent arrangør",
-                forventetKladd = "Arbeidsforberedende trening hos Ukjent arrangør",
             ),
         )
 
