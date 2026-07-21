@@ -497,7 +497,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
             TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-            PrisinfoRepoAdapter.lagrePrisinfo(
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinformasjon = IngenKostnader(
                     aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,

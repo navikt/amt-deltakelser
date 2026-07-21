@@ -312,7 +312,7 @@ class EnkeltplassService(
                 kategoriseringForTiltak = kategoriseringForTiltak,
             )
 
-            gjennomforingUpserter.publiserGjennomforingUpsert(
+            gjennomforingUpserter.produserGjennomforingUpsert(
                 deltaker = deltakerMedVedtak,
                 endretAvNavIdent = decoratedRequest.endretAv,
                 endretAvEnhet = decoratedRequest.endretAvEnhet,
@@ -372,7 +372,7 @@ class EnkeltplassService(
         kategoriseringForTiltak: OpplaringKategoriseringResponse,
     ) {
         prisinformasjon?.let {
-            PrisinfoRepoAdapter.lagrePrisinfo(
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingId,
                 prisinformasjon = it,
             )

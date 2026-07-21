@@ -158,7 +158,7 @@ class DeltakerService(
             afterUpsert = {
                 when (endringRequest) {
                     is ReaktiverDeltakelseRequest -> slettKladdIfExists(updateResult.deltaker)
-                    is EndretPrisinfoRequest -> gjennomforingUpserter.oppdaterPrisinfo(
+                    is EndretPrisinfoRequest -> gjennomforingUpserter.lagreOgProduserPrisinfoEndring(
                         prisinfo = endringRequest.prisinfo,
                         deltaker = eksisterendeDeltaker,
                         endretAvNavIdent = endringRequest.endretAv,

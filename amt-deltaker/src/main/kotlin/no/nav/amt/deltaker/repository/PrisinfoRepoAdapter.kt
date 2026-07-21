@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.repository
 
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.Priskomponent
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
@@ -33,16 +34,16 @@ object PrisinfoRepoAdapter {
      *
      * @param gjennomforingId Gjennomføring-ID
      * @param prisinfoId Prisinfo-ID
-     * @return `true` hvis prisinfo med `okonomiGodkjent=false` og samme ID finnes, ellers `false`
+     * @return `true` hvis det finnes en endring for [prisinfoId], ellers `false`
      */
     fun harPrisinfoSomVenterPaaOkonomiGodkjent(
         gjennomforingId: UUID,
         prisinfoId: UUID,
-    ): Boolean = PrisinfoRepository
-        .hentPrisinfo(
+    ): Boolean = Deltakerliste2PrisinfoRepository
+        .hentPrisinformasjonId(
             gjennomforingId = gjennomforingId,
-            okonomiGodkjent = false,
-        )?.id == prisinfoId
+            rolle = PrisinfoDbo.Rolle.ENDRING,
+        ) == prisinfoId
 
     /**
      * Godkjenner prisinfo for økonomi.
@@ -54,12 +55,26 @@ object PrisinfoRepoAdapter {
      * @param gjennomforingId Gjennomføring-ID
      */
     fun godkjennOkonomi(gjennomforingId: UUID) {
-        PrisinfoRepository.deletePrisinfo(
+        val prisinfoId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonId(
             gjennomforingId = gjennomforingId,
-            okonomiGodkjent = true,
+            rolle = PrisinfoDbo.Rolle.ENDRING,
+        ) ?: error("Fant ingen prisnformasjon for gjennomføring $gjennomforingId med rolle ENDRING")
+
+        Deltakerliste2PrisinfoRepository.delete(
+            gjennomforingId = gjennomforingId,
+            rolle = PrisinfoDbo.Rolle.ENDRING,
         )
 
-        PrisinfoRepository.settGodkjent(gjennomforingId)
+        Deltakerliste2PrisinfoRepository.upsert(
+            gjennomforingId = gjennomforingId,
+            prisinformasjonId = prisinfoId,
+            rolle = PrisinfoDbo.Rolle.GJELDENDE,
+        )
+
+        PrisinfoRepository.oppdaterStatus(
+            prisinformasjonId = prisinfoId,
+            status = PrisinfoDbo.PrisinfoStatus.GODKJENT,
+        )
     }
 
     /**
@@ -75,20 +90,23 @@ object PrisinfoRepoAdapter {
      * basert på `prisinfoJsonSubtype` (Anskaffelse | Tilskudd | IngenKostnader).
      *
      * @param gjennomforingId Gjennomføring-ID
-     * @param brukVenterPaaOkonomiGodkjent Hvis `true`, henter kun pending-record.
+     * @param brukEndring Hvis `true`, henter kun pending-record.
      * @return [PrisinformasjonDto], eller `null` hvis ingen finnes
      * @throws IllegalStateException hvis påkrevd felt mangler (f.eks. `anskaffelsePris` for Anskaffelse)
      */
     fun hentPrisinfo(
         gjennomforingId: UUID,
-        brukVenterPaaOkonomiGodkjent: Boolean = false,
+        brukEndring: Boolean = false,
     ): PrisinformasjonDto? {
-        val prisinfoDbo = if (brukVenterPaaOkonomiGodkjent) {
-            PrisinfoRepository.hentPrisinfo(gjennomforingId, false)
+        val prisinfoDbo = if (brukEndring) {
+            PrisinfoRepository.hentPrisinfo(
+                gjennomforingId = gjennomforingId,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            )
         } else {
-            PrisinfoRepository
-                .hentPrisinfos(gjennomforingId)
-                .maxByOrNull { it.okonomiGodkjent }
+            val prisinfos = PrisinfoRepository.hentPrisinfos(gjennomforingId)
+            prisinfos.firstOrNull { it.rolle == PrisinfoDbo.Rolle.GJELDENDE }
+                ?: prisinfos.firstOrNull { it.rolle == PrisinfoDbo.Rolle.ENDRING }
         } ?: return null
 
         return when (prisinfoDbo.prisinfoJsonSubtype) {
@@ -121,35 +139,88 @@ object PrisinfoRepoAdapter {
 
     /**
      * Lagrer prisinfo som pending totrinnskontroll.
-     *
-     * Operasjonen:
-     * 1. Sletter eksisterende pending prisinfo-record
-     * 2. Lagrer ny prisinfo med `okonomiGodkjent=false`
-     * 3. For Tilskudd: Lagrer beløp for tilskudd i separat tabell
+     * Benyttes ved lagring av prisinfo for status tidligere enn SOKT_INN.
      *
      * @param gjennomforingId Gjennomføring-ID
      * @param prisinformasjon Prisinformasjonen som skal lagres (Anskaffelse | Tilskudd | IngenKostnader)
      * @return ID for lagret prisinfo
      */
-    fun lagrePrisinfo(
+    fun lagrePrisinfoForKladdOgUtkast(
         gjennomforingId: UUID,
         prisinformasjon: PrisinformasjonDto,
     ): UUID {
-        PrisinfoRepository.deletePrisinfo(
+        val eksisterendePrisinfoId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonId(
             gjennomforingId = gjennomforingId,
-            okonomiGodkjent = false,
+            rolle = PrisinfoDbo.Rolle.ENDRING,
         )
 
-        val prisinfoFromDb = PrisinfoRepository.insertPendingTotrinnskontrollPrisinfo(prisinformasjon.toPrisinfoDbo(gjennomforingId))
+        val faktiskPrisinfoId = eksisterendePrisinfoId ?: UUID.randomUUID()
 
+        PrisinfoRepository.upsertPrisinfo(
+            prisinformasjon.toPrisinfoUpsertDbo(
+                prisinfoId = faktiskPrisinfoId,
+                gjennomforingId = gjennomforingId,
+            ),
+        )
+
+        if (eksisterendePrisinfoId == null) {
+            // opprett kopling mellom gjennomføring og prisinfo
+            Deltakerliste2PrisinfoRepository.upsert(
+                gjennomforingId = gjennomforingId,
+                prisinformasjonId = faktiskPrisinfoId,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            )
+        }
+
+        PrisinfoBelopRepository.deleteForPrisinfo(faktiskPrisinfoId)
         if (prisinformasjon is Tilskudd) {
             PrisinfoBelopRepository.lagrePrisinfoBelop(
-                prisinformasjonId = prisinfoFromDb.id,
+                prisinformasjonId = faktiskPrisinfoId,
                 belop = prisinformasjon.toPriskomponentSet(),
             )
         }
 
-        return prisinfoFromDb.id
+        return faktiskPrisinfoId
+    }
+
+    /**
+     * Lagrer prisinfo som pending totrinnskontroll.
+     * Benyttes ved lagring av prisinfo for statuser fra og med SOKT_INN.
+     *
+     * @param gjennomforingId Gjennomføring-ID
+     * @param prisinformasjon Prisinformasjonen som skal lagres (Anskaffelse | Tilskudd | IngenKostnader)
+     * @return ID for lagret prisinfo
+     */
+    fun lagrePrisinfoEndring(
+        gjennomforingId: UUID,
+        prisinformasjon: PrisinformasjonDto,
+    ): UUID {
+        // her skal vi sette inn en ny prisinfo
+        val nyPrisinfoId = UUID.randomUUID()
+
+        PrisinfoRepository.upsertPrisinfo(
+            prisinformasjon.toPrisinfoUpsertDbo(
+                prisinfoId = nyPrisinfoId,
+                gjennomforingId = gjennomforingId,
+                status = PrisinfoDbo.PrisinfoStatus.SENDT,
+            ),
+        )
+
+        // opprett kopling mellom gjennomføring og prisinfo
+        Deltakerliste2PrisinfoRepository.upsert(
+            gjennomforingId = gjennomforingId,
+            prisinformasjonId = nyPrisinfoId,
+            rolle = PrisinfoDbo.Rolle.ENDRING,
+        )
+
+        if (prisinformasjon is Tilskudd) {
+            PrisinfoBelopRepository.lagrePrisinfoBelop(
+                prisinformasjonId = nyPrisinfoId,
+                belop = prisinformasjon.toPriskomponentSet(),
+            )
+        }
+
+        return nyPrisinfoId
     }
 
     /**
@@ -175,26 +246,33 @@ object PrisinfoRepoAdapter {
      * - **Tilskudd:** Lagrer `tilleggsopplysninger` (beløpene lagres separat via `lagrePrisinfoBelop`)
      * - **IngenKostnader:** Lagrer årsak og tilleggsopplysninger
      *
-     * All prisinfo lagres med `okonomiGodkjent=false` (pending).
-     *
-     * @param gjennomforingId Gjennomføring-ID
-     * @return [PrisinfoDbo]
+     * @return [PrisinfoUpsertDbo]
      */
-    internal fun PrisinformasjonDto.toPrisinfoDbo(gjennomforingId: UUID): PrisinfoDbo = when (this) {
-        is Anskaffelse -> PrisinfoDbo(
+    internal fun PrisinformasjonDto.toPrisinfoUpsertDbo(
+        prisinfoId: UUID,
+        gjennomforingId: UUID,
+        status: PrisinfoDbo.PrisinfoStatus = PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST,
+    ): PrisinfoUpsertDbo = when (this) {
+        is Anskaffelse -> PrisinfoUpsertDbo(
+            id = prisinfoId,
             gjennomforingId = gjennomforingId,
+            status = status,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = this.pris,
         )
 
-        is Tilskudd -> PrisinfoDbo(
+        is Tilskudd -> PrisinfoUpsertDbo(
+            id = prisinfoId,
             gjennomforingId = gjennomforingId,
+            status = status,
             prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
         )
 
-        is IngenKostnader -> PrisinfoDbo(
+        is IngenKostnader -> PrisinfoUpsertDbo(
+            id = prisinfoId,
             gjennomforingId = gjennomforingId,
+            status = status,
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
             ingenkostnaderAarsak = this.aarsak,

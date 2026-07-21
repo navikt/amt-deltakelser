@@ -9,6 +9,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkObject
+import io.mockk.verify
 import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter.Companion.toMulighetsrommetKategorisering
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
@@ -79,32 +80,36 @@ class GjennomforingUpserterTest {
         every {
             PrisinfoRepository.hentPrisinfo(
                 gjennomforingId = any(),
-                okonomiGodkjent = false,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
         } answers {
             PrisinfoDbo(
                 id = totrinnsIdInTest,
                 gjennomforingId = firstArg(),
-                okonomiGodkjent = secondArg(),
+                rolle = secondArg(),
                 prisinfoJsonSubtype = "Anskaffelse",
             )
         }
         every { PrisinfoRepository.hentPrisinfos(any()) } returns emptyList()
+        every { PrisinfoRepository.oppdaterStatus(any(), any()) } returns 1
 
         mockkObject(PrisinfoRepoAdapter)
         every {
             PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = any(),
-                brukVenterPaaOkonomiGodkjent = true,
+                brukEndring = true,
             )
         } returns Anskaffelse(1000)
         every {
-            PrisinfoRepoAdapter.lagrePrisinfo(any(), any())
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(any(), any())
+        } returns totrinnsIdInTest
+        every {
+            PrisinfoRepoAdapter.lagrePrisinfoEndring(any(), any())
         } returns totrinnsIdInTest
     }
 
     @Nested
-    inner class OppdaterPrisinfoTests {
+    inner class LagreOgProduserPrisinfoEndringTests {
         @Test
         fun `lagrer ny prisinfo og produserer EnkeltplassEndrePrisinformasjon`() {
             // Arrange
@@ -114,7 +119,7 @@ class GjennomforingUpserterTest {
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
-            sut.oppdaterPrisinfo(
+            sut.lagreOgProduserPrisinfoEndring(
                 prisinfo = nyPrisinfo,
                 deltaker = deltaker,
                 endretAvNavIdent = "Z123456",
@@ -137,16 +142,17 @@ class GjennomforingUpserterTest {
             // Arrange
             val deltaker = createUtkastDeltaker()
             val nyPrisinfo = Anskaffelse(pris = 50000)
+
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = any(),
-                    brukVenterPaaOkonomiGodkjent = true,
+                    brukEndring = true,
                 )
             } returns null
 
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                sut.oppdaterPrisinfo(
+                sut.lagreOgProduserPrisinfoEndring(
                     prisinfo = nyPrisinfo,
                     deltaker = deltaker,
                     endretAvNavIdent = "Z123456",
@@ -164,7 +170,7 @@ class GjennomforingUpserterTest {
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
-            sut.oppdaterPrisinfo(
+            sut.lagreOgProduserPrisinfoEndring(
                 prisinfo = nyPrisinfo,
                 deltaker = deltaker,
                 endretAvNavIdent = endretAv,
@@ -178,7 +184,7 @@ class GjennomforingUpserterTest {
     }
 
     @Nested
-    inner class ProduceUpsertGjennomforingTests {
+    inner class ProduserGjennomforingUpsertTests {
         private fun Deltaker.toPayload(): GjennomforingRequestPayload.UpsertEnkeltplass = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = deltakerliste.tiltakstype.tiltakskode,
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
@@ -201,7 +207,7 @@ class GjennomforingUpserterTest {
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
-            sut.publiserGjennomforingUpsert(
+            sut.produserGjennomforingUpsert(
                 deltaker = deltaker,
                 endretAvNavIdent = navIdent,
                 endretAvEnhet = enhet,
@@ -213,6 +219,7 @@ class GjennomforingUpserterTest {
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = payload,
             )
+            verify(exactly = 0) { PrisinfoRepository.oppdaterStatus(any(), any()) }
         }
 
         @Test
@@ -226,7 +233,7 @@ class GjennomforingUpserterTest {
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
-            sut.publiserGjennomforingUpsert(
+            sut.produserGjennomforingUpsert(
                 deltaker = deltaker,
                 endretAvNavIdent = navIdent,
                 endretAvEnhet = enhet,
@@ -242,13 +249,14 @@ class GjennomforingUpserterTest {
                     behandletAv = navIdent,
                 ),
             )
+            verify { PrisinfoRepository.oppdaterStatus(totrinnsIdInTest, PrisinfoDbo.PrisinfoStatus.SENDT) }
         }
 
         @Test
         fun `KLADD status - kaster IllegalStateException`() {
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                sut.publiserGjennomforingUpsert(
+                sut.produserGjennomforingUpsert(
                     deltaker = createKladdDeltaker(),
                     endretAvNavIdent = "Z123456",
                     endretAvEnhet = "1234",
@@ -258,7 +266,7 @@ class GjennomforingUpserterTest {
     }
 
     @Nested
-    inner class BuildUpsertPayloadTests {
+    inner class BuildUpsertEnkeltplassPayloadTests {
         @Test
         fun `builds payload with correct values`() {
             // Arrange
@@ -267,7 +275,7 @@ class GjennomforingUpserterTest {
             val enhet = "4567"
 
             // Act
-            val payload = sut.buildUpsertPayload(
+            val payload = sut.buildUpsertEnkeltplassPayload(
                 deltaker = deltaker,
                 opprettetAvNavIdent = navIdent,
                 ansvarligEnhet = enhet,
@@ -288,13 +296,13 @@ class GjennomforingUpserterTest {
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = any(),
-                    brukVenterPaaOkonomiGodkjent = true,
+                    brukEndring = true,
                 )
             } returns null
 
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                sut.buildUpsertPayload(
+                sut.buildUpsertEnkeltplassPayload(
                     deltaker = deltaker,
                     opprettetAvNavIdent = "Z123456",
                     ansvarligEnhet = "1234",
@@ -313,7 +321,7 @@ class GjennomforingUpserterTest {
 
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                sut.buildUpsertPayload(
+                sut.buildUpsertEnkeltplassPayload(
                     deltaker = deltaker,
                     opprettetAvNavIdent = "Z123456",
                     ansvarligEnhet = "1234",
@@ -327,7 +335,7 @@ class GjennomforingUpserterTest {
             val deltaker = createUtkastDeltaker()
 
             // Act
-            val payload = sut.buildUpsertPayload(
+            val payload = sut.buildUpsertEnkeltplassPayload(
                 deltaker = deltaker,
                 opprettetAvNavIdent = "Z123456",
                 ansvarligEnhet = "1234",
@@ -342,7 +350,7 @@ class GjennomforingUpserterTest {
     }
 
     @Nested
-    inner class BuildGjennomforingRequestTests {
+    inner class BuildGjennomforingRequestPayloadTests {
         private val testPayload = GjennomforingRequestPayload.UpsertEnkeltplass(
             tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
@@ -361,7 +369,7 @@ class GjennomforingUpserterTest {
             val deltaker = createUtkastDeltaker()
 
             // Act
-            val request = sut.buildGjennomforingRequest(
+            val request = sut.buildGjennomforingRequestPayload(
                 deltaker = deltaker,
                 upsertPayload = testPayload,
                 behandletAv = "Z999999",
@@ -381,7 +389,7 @@ class GjennomforingUpserterTest {
             val behandletAv = "Z999999"
 
             // Act
-            val request = sut.buildGjennomforingRequest(
+            val request = sut.buildGjennomforingRequestPayload(
                 deltaker = deltaker,
                 upsertPayload = testPayload,
                 behandletAv = behandletAv,
@@ -405,13 +413,13 @@ class GjennomforingUpserterTest {
             every {
                 PrisinfoRepository.hentPrisinfo(
                     gjennomforingId = any(),
-                    okonomiGodkjent = false,
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
                 )
             } returns null
 
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                sut.buildGjennomforingRequest(
+                sut.buildGjennomforingRequestPayload(
                     deltaker = deltaker,
                     upsertPayload = testPayload,
                     behandletAv = "Z999999",
@@ -426,7 +434,7 @@ class GjennomforingUpserterTest {
 
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                sut.buildGjennomforingRequest(
+                sut.buildGjennomforingRequestPayload(
                     deltaker = deltaker,
                     upsertPayload = testPayload,
                     behandletAv = "Z999999",

@@ -8,36 +8,60 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 
+/**
+ * Håndterer publisering av gjennomføringsforespørsler til Mulighetsrommet via Kafka.
+ *
+ * Bygger opp korrekt payload basert på deltakerens status og sender til [GjennomforingRequestProducer].
+ */
 class GjennomforingUpserter(
     private val navEnhetRepository: NavEnhetRepository,
     private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val gjennomforingRequestProducer: GjennomforingRequestProducer,
 ) {
-    // benyttes av #innbyggerGodkjennUtkast
-    fun publiserGjennomforing(deltaker: Deltaker) {
+    /**
+     * Publiserer gjennomføring basert på ansvarlig Nav-ansatt fra det ufatttede vedtaket.
+     *
+     * Henter vedtak og tilhørende Nav-ansatt og enhet, og kaller [produserGjennomforingUpsert].
+     * Benyttes av `innbyggerGodkjennUtkast`.
+     *
+     * @param deltaker Deltakeren som skal publiseres.
+     */
+    fun produserGjennomforing(deltaker: Deltaker) {
         val vedtak = vedtakService.hentIkkeFattetVedtakOrThrow(deltaker.id)
         val ansvarligEnhet = navEnhetRepository.getOrThrow(vedtak.opprettetAvEnhet)
         val ansvarligNavAnsatt = navAnsattRepository.getOrThrow(vedtak.opprettetAv)
 
-        publiserGjennomforingUpsert(
+        produserGjennomforingUpsert(
             deltaker = deltaker,
             endretAvNavIdent = ansvarligNavAnsatt.navIdent,
             endretAvEnhet = ansvarligEnhet.enhetsnummer,
         )
     }
 
-    fun oppdaterPrisinfo(
+    /**
+     * Lagrer ny prisinformasjon og sender endringsforespørsel til totrinnskontroll.
+     *
+     * Prisinfo lagres med status [no.nav.amt.deltaker.repository.dbo.PrisinfoDbo.PrisinfoStatus.SENDT]
+     * og kobles til gjennomføringen som ENDRING. Deretter produseres en Kafka-melding
+     * med totrinnskontroll-ID slik at ekstern behandler kan godkjenne eller returnere endringen.
+     *
+     * @param prisinfo Ny prisinformasjon som skal sendes til behandling.
+     * @param deltaker Deltakeren tilknyttet gjennomføringen.
+     * @param endretAvNavIdent NAV-ident for saksbehandleren som utfører endringen.
+     */
+    fun lagreOgProduserPrisinfoEndring(
         prisinfo: PrisinformasjonDto,
         deltaker: Deltaker,
         endretAvNavIdent: String,
     ) {
-        val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfo(
+        val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
             gjennomforingId = deltaker.deltakerliste.id,
             prisinformasjon = prisinfo,
         )
@@ -51,7 +75,7 @@ class GjennomforingUpserter(
             payload = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = deltaker.deltakerliste.id,
-                    brukVenterPaaOkonomiGodkjent = true,
+                    brukEndring = true,
                 ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
             ),
         )
@@ -59,48 +83,85 @@ class GjennomforingUpserter(
         gjennomforingRequestProducer.produce(endrePrisinfoPayload)
     }
 
-    fun publiserGjennomforingUpsert(
+    /**
+     * Bygger og sender en gjennomførings-upsert til Mulighetsrommet.
+     *
+     * Payload-typen bestemmes av deltakerens nåværende status:
+     * - [DeltakerStatus.Type.UTKAST_TIL_PAMELDING] → [GjennomforingRequestPayload.EnkeltplassUtkast]
+     * - [DeltakerStatus.Type.SOKT_INN] → [GjennomforingRequestPayload.EnkeltplassSoktInn] med totrinnskontroll.
+     *   Prisinfo-status oppdateres til [PrisinfoDbo.PrisinfoStatus.SENDT] etter vellykket publisering.
+     *
+     * @param deltaker Deltakeren som skal upsert-es.
+     * @param endretAvNavIdent NAV-ident for saksbehandleren som utfører endringen.
+     * @param endretAvEnhet Enhetsnummer for saksbehandlerens enhet.
+     */
+    fun produserGjennomforingUpsert(
         deltaker: Deltaker,
         endretAvNavIdent: String,
         endretAvEnhet: String,
     ) {
-        val upsertPayload = buildUpsertPayload(
+        val upsertPayload = buildUpsertEnkeltplassPayload(
             deltaker = deltaker,
             opprettetAvNavIdent = endretAvNavIdent,
             ansvarligEnhet = endretAvEnhet,
         )
 
-        val gjennomforingRequestPayload = buildGjennomforingRequest(
+        val gjennomforingRequestPayload = buildGjennomforingRequestPayload(
             deltaker = deltaker,
             upsertPayload = upsertPayload,
             behandletAv = endretAvNavIdent,
         )
 
         gjennomforingRequestProducer.produce(gjennomforingRequestPayload)
+
+        if (gjennomforingRequestPayload is GjennomforingRequestPayload.EnkeltplassSoktInn) {
+            PrisinfoRepository.oppdaterStatus(
+                prisinformasjonId = gjennomforingRequestPayload.totrinnskontroll.id,
+                status = PrisinfoDbo.PrisinfoStatus.SENDT,
+            )
+        }
     }
 
-    internal fun buildUpsertPayload(
+    /**
+     * Bygger [GjennomforingRequestPayload.UpsertEnkeltplass] med prisinfo, kategorisering og ansvarlig enhet.
+     *
+     * Henter gjeldende ENDRING-prisinfo og opplæringskategorisering for gjennomføringen.
+     *
+     * @param deltaker Deltakeren tilknyttet gjennomføringen.
+     * @param opprettetAvNavIdent NAV-ident for saksbehandleren som oppretter upserten.
+     * @param ansvarligEnhet Enhetsnummer for ansvarlig enhet.
+     * @return Ferdig bygget upsert-payload.
+     */
+    internal fun buildUpsertEnkeltplassPayload(
         deltaker: Deltaker,
         opprettetAvNavIdent: String,
         ansvarligEnhet: String,
     ) = GjennomforingRequestPayload.UpsertEnkeltplass(
         tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-        prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
-            PrisinfoRepoAdapter.hentPrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
-                brukVenterPaaOkonomiGodkjent = true,
-            ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
-        ),
         organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
             ?: error("Organisasjonsnummer kan ikke være null"),
         ansvarligEnhet = ansvarligEnhet,
         opprettetAv = opprettetAvNavIdent,
+        prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
+            PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = deltaker.deltakerliste.id,
+                brukEndring = true,
+            ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
+        ),
         kategorisering = OpplaringKategoriseringRepoAdapter
             .hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
             .toMulighetsrommetKategorisering(),
     )
 
-    internal fun buildGjennomforingRequest(
+    /**
+     * Bygger riktig [GjennomforingRequestPayload] basert på deltakerens status.
+     *
+     * - [DeltakerStatus.Type.UTKAST_TIL_PAMELDING] → [GjennomforingRequestPayload.EnkeltplassUtkast]
+     * - [DeltakerStatus.Type.SOKT_INN] → [GjennomforingRequestPayload.EnkeltplassSoktInn] med totrinnskontroll
+     *
+     * @throws IllegalStateException hvis deltakerstatus ikke støttes, eller prisinfo mangler for SOKT_INN.
+     */
+    internal fun buildGjennomforingRequestPayload(
         deltaker: Deltaker,
         upsertPayload: GjennomforingRequestPayload.UpsertEnkeltplass,
         behandletAv: String,
@@ -113,7 +174,7 @@ class GjennomforingUpserter(
         DeltakerStatus.Type.SOKT_INN -> {
             val prisinfo = PrisinfoRepository.hentPrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
-                okonomiGodkjent = false,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             ) ?: error("Fant ikke prisinformasjon for deltakerliste ${deltaker.deltakerliste.id}")
 
             GjennomforingRequestPayload.EnkeltplassSoktInn(

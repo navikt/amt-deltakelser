@@ -15,6 +15,8 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
+import no.nav.amt.deltaker.repository.PrisinfoRepository
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
@@ -52,11 +54,13 @@ class TotrinnskontrollConsumerTest {
     @BeforeEach
     fun setup() {
         mockkObject(PrisinfoRepoAdapter)
+        mockkObject(PrisinfoRepository)
     }
 
     @AfterEach
     fun tearDown() {
         unmockkObject(PrisinfoRepoAdapter)
+        unmockkObject(PrisinfoRepository)
     }
 
     @Nested
@@ -135,12 +139,7 @@ class TotrinnskontrollConsumerTest {
                 deltakerRepository.getEnkeltplassdeltaker(gjennomforingId)
             } returns Result.success(deltakerInTest)
 
-            every {
-                PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
-                    gjennomforingId = any(),
-                    prisinfoId = any(),
-                )
-            } returns true
+            every { PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(any(), any()) } returns true
             every { PrisinfoRepoAdapter.godkjennOkonomi(any()) } returns Unit
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } returns Unit
             every { navAnsattRepository.getOrThrow(any<UUID>()) } returns mockk()
@@ -183,9 +182,10 @@ class TotrinnskontrollConsumerTest {
         }
 
         @Test
-        fun `consume - avvist ENKELTPLASS_OKONOMI ignoreres`() = runTest {
+        fun `consume - avvist ENKELTPLASS_OKONOMI oppdaterer status`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
+            every { PrisinfoRepository.oppdaterStatus(any(), any()) } returns 1
 
             // Act
             consumer.consume(
@@ -194,44 +194,8 @@ class TotrinnskontrollConsumerTest {
             )
 
             // Assert
+            verify { PrisinfoRepository.oppdaterStatus(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
-        }
-
-        @Test
-        fun `consume - godkjent ENKELTPLASS_OKONOMI ignoreres når prisinfo ikke finnes`() = runTest {
-            // Arrange
-            val gjennomforingId = UUID.randomUUID()
-            val idag = LocalDate.now()
-            val deltakerInTest = lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-                startdato = idag,
-                sluttdato = idag.plusWeeks(4),
-            )
-
-            every {
-                deltakerRepository.getEnkeltplassdeltaker(gjennomforingId)
-            } returns Result.success(deltakerInTest)
-
-            every {
-                PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
-                    gjennomforingId = any(),
-                    prisinfoId = any(),
-                )
-            } returns false
-
-            // Act
-            consumer.consume(UUID.randomUUID(), godkjentEnkeltplassOkonomiPayload(gjennomforingId))
-
-            // Assert
-            verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
-            verify(exactly = 0) {
-                deltakerService.upsertAndProduceDeltaker(
-                    deltaker = any(),
-                    erDeltakerSluttdatoEndret = any(),
-                    beforeUpsert = any(),
-                    afterUpsert = any(),
-                )
-            }
         }
 
         @Test
@@ -240,13 +204,14 @@ class TotrinnskontrollConsumerTest {
             val gjennomforingId = UUID.randomUUID()
             val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
-                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                deltakerliste = lagDeltakerliste(id = gjennomforingId),
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = idag,
                 sluttdato = idag.plusWeeks(4),
             )
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltakerInTest)
-            every { PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(any(), any()) } returns true
+            every { PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(gjennomforingId, any()) } returns true
             every { PrisinfoRepoAdapter.godkjennOkonomi(any()) } returns Unit
 
             // Act
@@ -254,19 +219,89 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
-            verify { PrisinfoRepoAdapter.godkjennOkonomi(any()) }
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId) }
         }
 
         @Test
-        fun `consume - status ENKELTPLASS_OKONOMI ignoreres`() = runTest {
+        fun `consume - godkjent ENKELTPLASS_OKONOMI skipper naar prisinfoSomVenter er false`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
+            val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(id = gjennomforingId),
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+            )
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltakerInTest)
+            every { PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(gjennomforingId, any()) } returns false
 
             // Act
-            consumer.consume(UUID.randomUUID(), avvistEnkeltplassOkonomiPayload(gjennomforingId))
+            consumer.consume(UUID.randomUUID(), godkjentEnkeltplassOkonomiPayload(gjennomforingId))
 
             // Assert
+            verify(exactly = 0) { PrisinfoRepoAdapter.godkjennOkonomi(any()) }
+        }
+
+        @Test
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING skipper naar prisinfoSomVenter er false`() = runTest {
+            // Arrange
+            val gjennomforingId = UUID.randomUUID()
+            val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(id = gjennomforingId),
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltakerInTest)
+            every { PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(gjennomforingId, any()) } returns false
+
+            // Act
+            consumer.consume(UUID.randomUUID(), godkjentEnkeltplassPrisinformasjonPayload(gjennomforingId))
+
+            // Assert
+            verify(exactly = 0) { PrisinfoRepoAdapter.godkjennOkonomi(any()) }
+        }
+
+        @Test
+        fun `consume - avvist ENKELTPLASS_PRISENDRING oppdaterer status`() = runTest {
+            // Arrange
+            val gjennomforingId = UUID.randomUUID()
+            every { PrisinfoRepository.oppdaterStatus(any(), any()) } returns 1
+
+            // Act
+            consumer.consume(
+                key = UUID.randomUUID(),
+                value = avvistEnkeltplassPrisinformasjonPayload(gjennomforingId),
+            )
+
+            // Assert
+            verify { PrisinfoRepository.oppdaterStatus(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
+        }
+    }
+
+    @Nested
+    inner class SkalBehandleTotrinnskontrollHendelseTest {
+        @Test
+        fun `returnerer true for ENKELTPLASS_OKONOMI`() {
+            val payload = """{"type": "ENKELTPLASS_OKONOMI"}"""
+            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe true
+        }
+
+        @Test
+        fun `returnerer true for ENKELTPLASS_PRISENDRING`() {
+            val payload = """{"type": "ENKELTPLASS_PRISENDRING"}"""
+            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe true
+        }
+
+        @Test
+        fun `returnerer false for ukjent type`() {
+            val payload = """{"type": "TILSAGN_OPPRETTELSE"}"""
+            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe false
+        }
+
+        @Test
+        fun `returnerer false naar type mangler`() {
+            val payload = """{"status": "GODKJENT"}"""
+            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe false
         }
     }
 
@@ -440,13 +475,26 @@ class TotrinnskontrollConsumerTest {
                 startdato = idag,
                 sluttdato = idag.plusWeeks(4),
             )
-            val exception = RuntimeException("Database error")
+            val dbError = RuntimeException("Database error")
 
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any()) } throws exception
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any()) } throws dbError
 
-            // Act & Assert
+            val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
+            every {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    beforeUpsert = capture(beforeUpsertSlot),
+                    afterUpsert = any(),
+                )
+            } returns deltakerInTest
+
+            // Act
+            consumer.processGodkjentInnsoking(deltakerInTest)
+
+            // Assert - godkjennOkonomi feiler når beforeUpsert kjøres
             shouldThrow<RuntimeException> {
-                consumer.processGodkjentInnsoking(deltakerInTest)
+                beforeUpsertSlot.captured(deltakerInTest)
             }
         }
     }
@@ -464,7 +512,7 @@ class TotrinnskontrollConsumerTest {
             every { PrisinfoRepoAdapter.godkjennOkonomi(any()) } returns Unit
 
             // Act
-            consumer.processGodkjentPrisinformasjon(deltaker)
+            consumer.processGodkjentPrisEndring(deltaker)
 
             // Assert
             verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId) }
@@ -480,7 +528,7 @@ class TotrinnskontrollConsumerTest {
 
             // Act & Assert
             shouldThrow<RuntimeException> {
-                consumer.processGodkjentPrisinformasjon(deltaker)
+                consumer.processGodkjentPrisEndring(deltaker)
             }
         }
     }
@@ -598,54 +646,6 @@ class TotrinnskontrollConsumerTest {
         }
     }
 
-    @Nested
-    inner class SkalBehandleTotrinnskontrollHendelseTest {
-        @Test
-        fun `skalBehandleTotrinnskontrollHendelse - returnerer true for ENKELTPLASS_OKONOMI`() {
-            // Arrange
-            val payload = """{"type":"ENKELTPLASS_OKONOMI"}"""
-
-            // Act + Assert
-            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe true
-        }
-
-        @Test
-        fun `skalBehandleTotrinnskontrollHendelse - returnerer false for andre typer`() {
-            // Arrange
-            val payload = """{"type":"UTBETALING_LINJE_OPPRETTELSE"}"""
-
-            // Act + Assert
-            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe false
-        }
-
-        @Test
-        fun `skalBehandleTotrinnskontrollHendelse - returnerer true for ENKELTPLASS_PRISENDRING`() {
-            // Arrange
-            val payload = """{"type":"ENKELTPLASS_PRISENDRING"}"""
-
-            // Act + Assert
-            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe true
-        }
-
-        @Test
-        fun `skalBehandleTotrinnskontrollHendelse - returnerer false når type mangler`() {
-            // Arrange
-            val payload = """{"id":"test"}"""
-
-            // Act + Assert
-            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe false
-        }
-
-        @Test
-        fun `skalBehandleTotrinnskontrollHendelse - returnerer false for ukjent type`() {
-            // Arrange
-            val payload = """{"type":"COMPLETELY_UNKNOWN_TYPE"}"""
-
-            // Act + Assert
-            consumer.skalBehandleTotrinnskontrollHendelse(payload) shouldBe false
-        }
-    }
-
     companion object {
         private fun godkjentEnkeltplassOkonomiPayload(gjennomforingId: UUID): String =
             """
@@ -680,6 +680,22 @@ class TotrinnskontrollConsumerTest {
                 "id": "${UUID.randomUUID()}",
                 "behandletAv": "VEILEDER"
               }
+            }
+            """.trimIndent()
+
+        private fun avvistEnkeltplassPrisinformasjonPayload(gjennomforingId: UUID): String =
+            """
+            {
+              "id": "${UUID.randomUUID()}",
+              "entityId": "$gjennomforingId",
+              "type": "ENKELTPLASS_PRISENDRING",
+              "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
+              "behandletTidspunkt": "2026-06-01T10:00:00Z",
+              "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
+              "besluttetTidspunkt": "2026-06-01T10:01:00Z",
+              "status": "RETURNERT",
+              "aarsaker": ["MANGLER_DOKUMENTASJON"],
+              "forklaring": "Ikke godkjent"
             }
             """.trimIndent()
 

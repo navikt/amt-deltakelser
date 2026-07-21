@@ -7,6 +7,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
@@ -15,7 +16,6 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import java.util.UUID
 
 class PrisinfoRepositoryTest {
     companion object {
@@ -26,16 +26,14 @@ class PrisinfoRepositoryTest {
     }
 
     @Nested
-    inner class UpsertPendingTotrinnskontrollPrisinfoTests {
+    inner class UpsertPrisinfoTests {
         @Test
         fun `lagrer prisinfo med alle felter`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
-            val insertDbo = PrisinfoDbo(
-                id = UUID.randomUUID(),
+            val upsertDbo = PrisinfoUpsertDbo(
                 gjennomforingId = gjennomforingInTest.id,
-                okonomiGodkjent = false,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
                 tilleggsopplysninger = "Standard opplysning",
@@ -43,20 +41,25 @@ class PrisinfoRepositoryTest {
             )
 
             // Act
-            PrisinfoRepository.insertPendingTotrinnskontrollPrisinfo(insertDbo)
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+
+            Deltakerliste2PrisinfoRepository.upsert(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = upsertDbo.id,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            )
 
             // Assert
             val result = PrisinfoRepository.hentPrisinfo(
                 gjennomforingId = gjennomforingInTest.id,
-                okonomiGodkjent = false,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             result shouldNotBe null
 
             assertSoftly(result.shouldNotBeNull()) {
-                id shouldBe insertDbo.id
-                gjennomforingId shouldBe insertDbo.gjennomforingId
-                okonomiGodkjent shouldBe false
+                gjennomforingId shouldBe gjennomforingInTest.id
+                status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
                 prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe 15000
                 tilleggsopplysninger shouldBe "Standard opplysning"
@@ -70,20 +73,24 @@ class PrisinfoRepositoryTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val insertDbo = PrisinfoDbo(
-                id = UUID.randomUUID(),
+            val upsertDbo = PrisinfoUpsertDbo(
                 gjennomforingId = deltakerliste.id,
-                okonomiGodkjent = false,
                 prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             )
 
             // Act
-            PrisinfoRepository.insertPendingTotrinnskontrollPrisinfo(insertDbo = insertDbo)
+            PrisinfoRepository.upsertPrisinfo(upsertDbo = upsertDbo)
+
+            Deltakerliste2PrisinfoRepository.upsert(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = upsertDbo.id,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            )
 
             // Assert
             val result = PrisinfoRepository.hentPrisinfo(
                 gjennomforingId = deltakerliste.id,
-                okonomiGodkjent = false,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             assertSoftly(result.shouldNotBeNull()) {
@@ -106,7 +113,7 @@ class PrisinfoRepositoryTest {
             // Act
             val result = PrisinfoRepository.hentPrisinfo(
                 gjennomforingId = deltakerliste.id,
-                okonomiGodkjent = false,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             // Assert
