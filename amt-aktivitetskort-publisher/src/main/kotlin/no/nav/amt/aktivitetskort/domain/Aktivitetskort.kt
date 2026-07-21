@@ -2,8 +2,6 @@ package no.nav.amt.aktivitetskort.domain
 
 import no.nav.amt.aktivitetskort.kafka.producer.dto.AktivitetskortDto
 import no.nav.amt.felles.visningsnavn.lagAktivitetskortTittel
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
 import java.text.DecimalFormat
 import java.time.LocalDate
@@ -88,19 +86,10 @@ data class Aktivitetskort(
             arrangor: Arrangor,
         ): String = lagAktivitetskortTittel(
             tiltakskode = deltakerliste.tiltak.tiltakskode,
-            tiltaksnavn = tiltaksnavnForAktivitetskort(deltakerliste),
+            tiltaksnavn = deltakerliste.tiltak.navn,
             gjennomforingsnavn = deltakerliste.navn,
-            gjennomforingType = gjennomforingTypeForAktivitetskort(deltakerliste.tiltak.tiltakskode),
             arrangorNavn = arrangor.navn,
         )
-
-        private fun tiltaksnavnForAktivitetskort(deltakerliste: Deltakerliste): String = when (deltakerliste.tiltak.tiltakskode) {
-            Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING -> deltakerliste.navn
-            else -> deltakerliste.tiltak.navn
-        }
-
-        private fun gjennomforingTypeForAktivitetskort(tiltakskode: Tiltakskode): GjennomforingType =
-            if (tiltakskode.erArenaEnkeltplass()) GjennomforingType.Enkeltplass else GjennomforingType.Gruppe
 
         fun lagDetaljer(
             deltaker: Deltaker,

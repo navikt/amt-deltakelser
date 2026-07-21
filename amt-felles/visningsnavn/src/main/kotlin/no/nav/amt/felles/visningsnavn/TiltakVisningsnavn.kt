@@ -66,6 +66,21 @@ fun lagAktivitetskortTittel(
     ),
 )
 
+fun lagAktivitetskortTittel(
+    tiltakskode: Tiltakskode,
+    tiltaksnavn: String,
+    gjennomforingsnavn: String,
+    arrangorNavn: String?,
+    opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
+): String = lagAktivitetskortTittel(
+    tiltakskode = tiltakskode,
+    tiltaksnavn = tiltaksnavnForAktivitetskort(tiltakskode, tiltaksnavn, gjennomforingsnavn),
+    gjennomforingsnavn = gjennomforingsnavn,
+    gjennomforingType = gjennomforingTypeForAktivitetskort(tiltakskode),
+    arrangorNavn = arrangorNavn,
+    opplaringKategoriseringValg = opplaringKategoriseringValg,
+)
+
 fun Tiltakskode.visningsnavn() = when (this) {
     Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> "Arbeidsforberedende trening"
     Tiltakskode.ARBEIDSRETTET_REHABILITERING -> "Arbeidsrettet rehabilitering"
@@ -228,3 +243,15 @@ private fun skalBrukeDeltakerlisteNavnIaktivitetskort(
 
     else -> false
 }
+
+private fun tiltaksnavnForAktivitetskort(
+    tiltakskode: Tiltakskode,
+    tiltaksnavn: String,
+    gjennomforingsnavn: String,
+): String = when (tiltakskode) {
+    Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING -> gjennomforingsnavn
+    else -> tiltaksnavn
+}
+
+private fun gjennomforingTypeForAktivitetskort(tiltakskode: Tiltakskode): GjennomforingType =
+    if (tiltakskode.erArenaEnkeltplass()) GjennomforingType.Enkeltplass else GjennomforingType.Gruppe
