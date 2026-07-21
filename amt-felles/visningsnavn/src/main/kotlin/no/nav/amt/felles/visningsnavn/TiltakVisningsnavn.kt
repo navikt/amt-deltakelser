@@ -6,7 +6,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
-data class TiltakVisningsNavn(
+data class TiltakVisningsnavn(
     val tittel: String,
     val ingressTekst: String,
     val kladdTittel: String,
@@ -20,7 +20,7 @@ fun lagVisningsnavn(
     status: GjennomforingStatusType,
     arrangorNavn: String?,
     opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
-): TiltakVisningsNavn = TiltakVisningsNavn(
+): TiltakVisningsnavn = TiltakVisningsnavn(
     tittel = hentTittel(arrangorNavn, hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)),
     ingressTekst = hentIngressTekst(
         tiltakskode = tiltakskode,

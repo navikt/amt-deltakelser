@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.commonresponse
 
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
-import no.nav.amt.felles.visningsnavn.TiltakVisningsNavn
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.felles.visningsnavn.lagVisningsnavn
 
 data class VisningsnavnResponse(
@@ -22,7 +22,7 @@ data class VisningsnavnResponse(
             ),
         )
 
-        private fun fraVisningsnavn(visningsnavn: TiltakVisningsNavn) = VisningsnavnResponse(
+        private fun fraVisningsnavn(visningsnavn: TiltakVisningsnavn) = VisningsnavnResponse(
             tiltakHosArrangorTittel = visningsnavn.tittel,
             tiltakHosArrangorIngressTekst = visningsnavn.ingressTekst,
             kladdTiltakHosArrangorTittel = visningsnavn.kladdTittel,
