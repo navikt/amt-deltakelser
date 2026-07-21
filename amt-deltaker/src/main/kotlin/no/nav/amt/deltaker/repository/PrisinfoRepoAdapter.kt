@@ -151,6 +151,7 @@ object PrisinfoRepoAdapter {
             )
         }
 
+        PrisinfoBelopRepository.deleteForPrisinfo(faktiskPrisinfoId)
         if (prisinformasjon is Tilskudd) {
             PrisinfoBelopRepository.lagrePrisinfoBelop(
                 prisinformasjonId = faktiskPrisinfoId,

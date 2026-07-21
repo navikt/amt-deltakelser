@@ -80,6 +80,51 @@ class TotrinnskontrollConsumerTest {
         }
 
         @Test
+        fun `consume - ignorerer meldinger med ukjent type`() = runTest {
+            // Arrange
+            val rawJson =
+                """
+                {
+                  "id": "83f1a9e0-8282-4552-87ea-a1c163f10df6",
+                  "entityId": "4c38feef-0ef5-4582-b9d0-66cd33de0b2b",
+                  "type": "UTBETALING_LINJE_OPPRETTELSE",
+                  "behandletAv": "L164122",
+                  "behandletTidspunkt": "2026-05-11T15:13:21.311216Z",
+                  "besluttetAv": null,
+                  "besluttetTidspunkt": null,
+                  "aarsaker": [],
+                  "forklaring": null
+                }
+                """.trimIndent()
+
+            // Act
+            consumer.consume(UUID.fromString("4c38feef-0ef5-4582-b9d0-66cd33de0b2b"), rawJson)
+
+            // Assert
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
+        }
+
+        @Test
+        fun `consume - ignorerer ukjent type uten aa kaste unntak`() = runTest {
+            // Arrange
+            val rawJson =
+                """
+                {
+                  "id": "83f1a9e0-8282-4552-87ea-a1c163f10df6",
+                  "entityId": "4c38feef-0ef5-4582-b9d0-66cd33de0b2b",
+                  "type": "EN_HELT_NY_TYPE_VI_IKKE_KJENNER",
+                  "behandletAv": { "noeHeltAnnet": true }
+                }
+                """.trimIndent()
+
+            // Act
+            consumer.consume(UUID.randomUUID(), rawJson)
+
+            // Assert
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
+        }
+
+        @Test
         fun `consume - godkjent ENKELTPLASS_OKONOMI prosesseres`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()

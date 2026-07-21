@@ -19,7 +19,9 @@ object Deltakerliste2PrisinfoRepository {
                     VALUES (?, ?, ?)
                     ON CONFLICT (deltakerliste_id, rolle) 
                     DO UPDATE 
-                    SET prisinformasjon_id = EXCLUDED.prisinformasjon_id
+                    SET 
+                        prisinformasjon_id = EXCLUDED.prisinformasjon_id, 
+                        modified_at = now()
                     """.trimIndent(),
                     gjennomforingId,
                     prisinformasjonId,

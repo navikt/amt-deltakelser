@@ -40,6 +40,15 @@ object PrisinfoBelopRepository {
         }
     }
 
+    fun deleteForPrisinfo(prisinfoId: UUID): Int = Database.query { session ->
+        session.update(
+            queryOf(
+                "DELETE FROM enkeltplass_prisinformasjon_belop WHERE prisinfo_id = ?",
+                prisinfoId,
+            ),
+        )
+    }
+
     fun hentPrisinfoBelop(prisinformasjonId: UUID): List<Priskomponent> {
         val sql =
             """
