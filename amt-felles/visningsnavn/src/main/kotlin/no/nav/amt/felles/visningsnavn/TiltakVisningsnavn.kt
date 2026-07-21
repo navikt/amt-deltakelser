@@ -23,15 +23,13 @@ fun lagVisningsnavn(
     opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
 ): TiltakVisningsnavn = TiltakVisningsnavn(
     tittel = hentTittel(arrangorNavn, hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)),
-    aktivitetskortTittel = hentTittel(
-        arrangorNavn,
-        hentAktivitetskortTittelTekst(
-            tiltakskode = tiltakskode,
-            tiltaksnavn = tiltaksnavn,
-            gjennomforingsnavn = gjennomforingsnavn,
-            gjennomforingType = gjennomforingType,
-            opplaringKategoriseringValg = opplaringKategoriseringValg,
-        ),
+    aktivitetskortTittel = lagAktivitetskortTittel(
+        tiltakskode = tiltakskode,
+        tiltaksnavn = tiltaksnavn,
+        gjennomforingsnavn = gjennomforingsnavn,
+        gjennomforingType = gjennomforingType,
+        arrangorNavn = arrangorNavn,
+        opplaringKategoriseringValg = opplaringKategoriseringValg,
     ),
     ingressTekst = hentIngressTekst(
         tiltakskode = tiltakskode,
@@ -46,6 +44,24 @@ fun lagVisningsnavn(
         gjennomforingsnavn = gjennomforingsnavn,
         status = status,
         arrangorNavn = arrangorNavn,
+        opplaringKategoriseringValg = opplaringKategoriseringValg,
+    ),
+)
+
+fun lagAktivitetskortTittel(
+    tiltakskode: Tiltakskode,
+    tiltaksnavn: String,
+    gjennomforingsnavn: String,
+    gjennomforingType: GjennomforingType,
+    arrangorNavn: String?,
+    opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
+): String = hentTittel(
+    arrangorNavn,
+    hentAktivitetskortTittelTekst(
+        tiltakskode = tiltakskode,
+        tiltaksnavn = tiltaksnavn,
+        gjennomforingsnavn = gjennomforingsnavn,
+        gjennomforingType = gjennomforingType,
         opplaringKategoriseringValg = opplaringKategoriseringValg,
     ),
 )

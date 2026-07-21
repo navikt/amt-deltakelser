@@ -1,6 +1,8 @@
 package no.nav.amt.aktivitetskort.domain
 
 import no.nav.amt.aktivitetskort.kafka.producer.dto.AktivitetskortDto
+import no.nav.amt.felles.visningsnavn.lagAktivitetskortTittel
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
 import java.text.DecimalFormat
@@ -84,28 +86,21 @@ data class Aktivitetskort(
         fun lagTittel(
             deltakerliste: Deltakerliste,
             arrangor: Arrangor,
-        ): String = when (deltakerliste.tiltak.tiltakskode) {
-            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "Tilrettelagt arbeid hos ${arrangor.navn}"
-            Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER -> "Tilrettelagt arbeid med oppfølging hos ${arrangor.navn}"
+        ): String = lagAktivitetskortTittel(
+            tiltakskode = deltakerliste.tiltak.tiltakskode,
+            tiltaksnavn = tiltaksnavnForAktivitetskort(deltakerliste),
+            gjennomforingsnavn = deltakerliste.navn,
+            gjennomforingType = gjennomforingTypeForAktivitetskort(deltakerliste.tiltak.tiltakskode),
+            arrangorNavn = arrangor.navn,
+        )
 
-            Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos ${arrangor.navn}"
-
-            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
-            Tiltakskode.HOYERE_UTDANNING,
-            -> "${deltakerliste.tiltak.navn} hos ${arrangor.navn}"
-
-            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-            Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            Tiltakskode.STUDIESPESIALISERING,
-            Tiltakskode.FAG_OG_YRKESOPPLAERING,
-            Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-            -> deltakerliste.navn
-
-            else -> "${deltakerliste.tiltak.navn} hos ${arrangor.navn}"
+        private fun tiltaksnavnForAktivitetskort(deltakerliste: Deltakerliste): String = when (deltakerliste.tiltak.tiltakskode) {
+            Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING -> deltakerliste.navn
+            else -> deltakerliste.tiltak.navn
         }
+
+        private fun gjennomforingTypeForAktivitetskort(tiltakskode: Tiltakskode): GjennomforingType =
+            if (tiltakskode.erArenaEnkeltplass()) GjennomforingType.Enkeltplass else GjennomforingType.Gruppe
 
         fun lagDetaljer(
             deltaker: Deltaker,
