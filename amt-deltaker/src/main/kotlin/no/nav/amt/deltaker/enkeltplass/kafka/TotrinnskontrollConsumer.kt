@@ -95,13 +95,36 @@ class TotrinnskontrollConsumer(
             .getEnkeltplassdeltaker(totrinnskontrollHendelse.entityId)
             .getOrThrow()
 
-        if (deltaker.status.type == DeltakerStatus.Type.SOKT_INN) {
-            processGodkjentInnsoking(deltaker)
-        } else {
-            processGodkjentPrisEndring(deltaker)
+        // Sjekk at det finnes prisinformasjon som venter på godkjenning.
+        // For å gjøre consumer idempotent.
+        if (!PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
+                gjennomforingId = deltaker.deltakerliste.id,
+                prisinfoId = totrinnskontrollHendelse.id,
+            )
+        ) {
+            log.info("Deltaker ${deltaker.id} har ingen prisinformasjon med id ${totrinnskontrollHendelse.id} som venter på godkjenning.")
+            return
+        }
+
+        when (totrinnskontrollHendelse.type) {
+            TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {
+                processGodkjentInnsoking(deltaker)
+            }
+
+            TotrinnskontrollType.ENKELTPLASS_PRISENDRING ->
+                processGodkjentPrisEndring(deltaker)
+
+            else -> error("Uventet totrinnskontrolltype: ${totrinnskontrollHendelse.type}")
         }
     }
 
+    /**
+     * Prosesserer godkjent prisendring for en deltaker.
+     *
+     * Setter prisinfo til rolle GJELDENDE og status GODKJENT.
+     *
+     * @param deltaker Deltakeren hvis prisinfo skal godkjennes.
+     */
     internal fun processGodkjentPrisEndring(deltaker: Deltaker) {
         // her skal det gjøres mer senere
         PrisinfoRepoAdapter.godkjennOkonomi(deltaker.deltakerliste.id)
@@ -156,10 +179,14 @@ class TotrinnskontrollConsumer(
     }
 
     /**
-     * Returnerer `true` når payload er en ENKELTPLASS_OKONOMI-hendelse som skal behandles.
+     * Returnerer `true` når payload er en hendelse som skal behandles.
      *
-     * Metoden leser kun ut feltet `type` for å kunne ignorere hendelser med annen
-     * struktur uten å feile deserialisering av resten av payload.
+     * Følgende typer behandles:
+     * - [TotrinnskontrollType.ENKELTPLASS_OKONOMI] — søkt inn deltakelse godkjent
+     * - [TotrinnskontrollType.ENKELTPLASS_PRISENDRING] — prisendring for deltakelse godkjent
+     *
+     * Metoden leser kun ut feltet `type` for å unngå deserialiseringsfeil på hendelser
+     * med andre feltstrukturer som uansett skal ignoreres.
      *
      * @param payload rå JSON-payload fra Kafka
      */
@@ -197,6 +224,16 @@ class TotrinnskontrollConsumer(
         private const val SKIP_RECORDS_BEFORE_OFFSET_IN_DEV = 5L
         private const val TYPE_KEY = "type"
 
+        /**
+         * Bestemmer ny deltakerstatus basert på start- og sluttdato relativt til dagens dato.
+         *
+         * - Sluttdato er passert → [DeltakerStatus.Type.FULLFORT]
+         * - Startdato er i fremtiden → [DeltakerStatus.Type.VENTER_PA_OPPSTART]
+         * - Ellers → [DeltakerStatus.Type.DELTAR]
+         *
+         * @param deltaker Deltakeren som skal få ny status.
+         * @throws IllegalStateException hvis start- eller sluttdato mangler.
+         */
         internal fun nyDeltakerStatus(deltaker: Deltaker): DeltakerStatus.Type {
             val idag = LocalDate.now()
             val startdato = deltaker.startdato ?: error("Startdato mangler for deltaker ${deltaker.id}")

@@ -20,6 +20,7 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.util.UUID
 
 class PrisinfoRepoAdapterTest {
     companion object {
@@ -104,7 +105,7 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(gjennomforingInTest)
 
             val pendingPrisinfo = Anskaffelse(pris = 15000)
-            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = pendingPrisinfo,
             )
@@ -286,21 +287,25 @@ class PrisinfoRepoAdapterTest {
                 prisinformasjon = anskaffelse,
             )
 
-            val beforeGodkjenning = PrisinfoRepository.hentPrisinfo(
-                gjennomforingId = gjennomforingInTest.id,
-                rolle = PrisinfoDbo.Rolle.ENDRING,
-            )
-            beforeGodkjenning?.status shouldBe PrisinfoDbo.PrisinfoStatus.SENDT
+            val beforeGodkjenning = PrisinfoRepository
+                .hentPrisinfo(
+                    gjennomforingId = gjennomforingInTest.id,
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
+                ).shouldNotBeNull()
+
+            beforeGodkjenning.status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
 
             // Act
             PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
 
             // Assert
-            val afterGodkjenning = PrisinfoRepository.hentPrisinfo(
-                gjennomforingId = gjennomforingInTest.id,
-                rolle = PrisinfoDbo.Rolle.GJELDENDE,
-            )
-            afterGodkjenning.shouldNotBeNull().status shouldBe PrisinfoDbo.PrisinfoStatus.GODKJENT
+            val afterGodkjenning = PrisinfoRepository
+                .hentPrisinfo(
+                    gjennomforingId = gjennomforingInTest.id,
+                    rolle = PrisinfoDbo.Rolle.GJELDENDE,
+                ).shouldNotBeNull()
+
+            afterGodkjenning.status shouldBe PrisinfoDbo.PrisinfoStatus.GODKJENT
 
             PrisinfoRepository
                 .hentPrisinfo(
@@ -318,6 +323,73 @@ class PrisinfoRepoAdapterTest {
             shouldThrow<IllegalStateException> {
                 PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
             }
+        }
+    }
+
+    @Nested
+    inner class HarPrisinfoSomVenterPaaOkonomiGodkjentTests {
+        @Test
+        fun `returnerer true når ENDRING med riktig ID finnes`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = Anskaffelse(pris = 10000),
+            )
+
+            // Act & Assert
+            PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinfoId = prisinfoId,
+            ) shouldBe true
+        }
+
+        @Test
+        fun `returnerer false når ingen prisinfo finnes`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinfoId = UUID.randomUUID(),
+            ) shouldBe false
+        }
+
+        @Test
+        fun `returnerer false når ENDRING finnes med annet ID`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = Anskaffelse(pris = 10000),
+            )
+
+            // Act & Assert
+            PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinfoId = UUID.randomUUID(),
+            ) shouldBe false
+        }
+
+        @Test
+        fun `returnerer false når prisinfo kun finnes som GJELDENDE`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = Anskaffelse(pris = 10000),
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinfoId = prisinfoId,
+            ) shouldBe false
         }
     }
 
@@ -577,7 +649,7 @@ class PrisinfoRepoAdapterTest {
         )
 
         // Act
-        val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+        PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
             gjennomforingId = deltakerliste.id,
             prisinformasjon = ingenKostnader,
         )

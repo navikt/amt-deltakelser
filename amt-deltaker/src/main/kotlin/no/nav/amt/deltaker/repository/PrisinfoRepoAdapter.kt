@@ -28,6 +28,24 @@ import java.util.UUID
  */
 object PrisinfoRepoAdapter {
     /**
+     * Sjekker om det finnes en ugodkjent (pending) prisinfo med gitt ID for gjennomføring.
+     *
+     * Brukes for å validere at prisinfo venter på økonomi-godkjenning før den endres.
+     *
+     * @param gjennomforingId Gjennomføring-ID
+     * @param prisinfoId Prisinfo-ID
+     * @return `true` hvis det finnes en endring for [prisinfoId], ellers `false`
+     */
+    fun harPrisinfoSomVenterPaaOkonomiGodkjent(
+        gjennomforingId: UUID,
+        prisinfoId: UUID,
+    ): Boolean = Deltakerliste2PrisinfoRepository
+        .hentPrisinformasjonId(
+            gjennomforingId = gjennomforingId,
+            rolle = PrisinfoDbo.Rolle.ENDRING,
+        ) == prisinfoId
+
+    /**
      * Godkjenner prisinfo for økonomi.
      *
      * Operasjonen:
@@ -184,6 +202,7 @@ object PrisinfoRepoAdapter {
             prisinformasjon.toPrisinfoUpsertDbo(
                 prisinfoId = nyPrisinfoId,
                 gjennomforingId = gjennomforingId,
+                status = PrisinfoDbo.PrisinfoStatus.SENDT,
             ),
         )
 
@@ -232,10 +251,12 @@ object PrisinfoRepoAdapter {
     internal fun PrisinformasjonDto.toPrisinfoUpsertDbo(
         prisinfoId: UUID,
         gjennomforingId: UUID,
+        status: PrisinfoDbo.PrisinfoStatus = PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST,
     ): PrisinfoUpsertDbo = when (this) {
         is Anskaffelse -> PrisinfoUpsertDbo(
             id = prisinfoId,
             gjennomforingId = gjennomforingId,
+            status = status,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = this.pris,
         )
@@ -243,6 +264,7 @@ object PrisinfoRepoAdapter {
         is Tilskudd -> PrisinfoUpsertDbo(
             id = prisinfoId,
             gjennomforingId = gjennomforingId,
+            status = status,
             prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
         )
@@ -250,6 +272,7 @@ object PrisinfoRepoAdapter {
         is IngenKostnader -> PrisinfoUpsertDbo(
             id = prisinfoId,
             gjennomforingId = gjennomforingId,
+            status = status,
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
             ingenkostnaderAarsak = this.aarsak,

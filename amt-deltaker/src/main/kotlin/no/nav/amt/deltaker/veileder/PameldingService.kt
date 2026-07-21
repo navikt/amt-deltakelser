@@ -125,7 +125,7 @@ class PameldingService(
                 distribuerEndringService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
 
                 if (deltaker.erEnkeltplass && deltaker.status.type == DeltakerStatus.Type.SOKT_INN) {
-                    gjennomforingUpserter.publiserGjennomforing(deltaker)
+                    gjennomforingUpserter.produserGjennomforing(deltaker)
                 }
             },
         )

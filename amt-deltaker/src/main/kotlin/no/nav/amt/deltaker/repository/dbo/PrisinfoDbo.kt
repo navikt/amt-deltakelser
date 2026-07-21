@@ -7,13 +7,14 @@ data class PrisinfoDbo(
     val id: UUID = UUID.randomUUID(),
     val gjennomforingId: UUID,
     val rolle: Rolle = Rolle.ENDRING,
-    val status: PrisinfoStatus = PrisinfoStatus.SENDT,
+    val status: PrisinfoStatus = PrisinfoStatus.KLADD_UTKAST,
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,
     val ingenkostnaderAarsak: Aarsak? = null,
 ) {
     enum class PrisinfoStatus {
+        KLADD_UTKAST,
         SENDT,
         RETURNERT,
         TIL_BEHANDLING,

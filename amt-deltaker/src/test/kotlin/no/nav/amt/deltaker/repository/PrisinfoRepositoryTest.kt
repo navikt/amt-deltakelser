@@ -59,7 +59,7 @@ class PrisinfoRepositoryTest {
 
             assertSoftly(result.shouldNotBeNull()) {
                 gjennomforingId shouldBe gjennomforingInTest.id
-                status shouldBe PrisinfoDbo.PrisinfoStatus.SENDT
+                status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
                 prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe 15000
                 tilleggsopplysninger shouldBe "Standard opplysning"

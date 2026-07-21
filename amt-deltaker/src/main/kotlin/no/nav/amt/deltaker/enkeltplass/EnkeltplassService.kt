@@ -312,7 +312,7 @@ class EnkeltplassService(
                 kategoriseringForTiltak = kategoriseringForTiltak,
             )
 
-            gjennomforingUpserter.publiserGjennomforingUpsert(
+            gjennomforingUpserter.produserGjennomforingUpsert(
                 deltaker = deltakerMedVedtak,
                 endretAvNavIdent = decoratedRequest.endretAv,
                 endretAvEnhet = decoratedRequest.endretAvEnhet,
