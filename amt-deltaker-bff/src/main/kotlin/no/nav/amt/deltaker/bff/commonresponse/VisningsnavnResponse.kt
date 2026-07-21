@@ -15,6 +15,7 @@ data class VisningsnavnResponse(
                 tiltakskode = gjennomforing.tiltak.tiltakskode,
                 tiltaksnavn = gjennomforing.tiltak.navn,
                 gjennomforingsnavn = gjennomforing.navn,
+                gjennomforingType = gjennomforing.type,
                 status = gjennomforing.status,
                 arrangorNavn = gjennomforing.arrangor?.navn,
                 opplaringKategoriseringValg = gjennomforing.opplaringKategoriseringValg,

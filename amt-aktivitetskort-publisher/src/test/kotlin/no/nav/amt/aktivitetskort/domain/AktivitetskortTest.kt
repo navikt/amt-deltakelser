@@ -59,8 +59,7 @@ class AktivitetskortTest {
                 Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
                 Tiltakskode.STUDIESPESIALISERING,
                 Tiltakskode.FAG_OG_YRKESOPPLAERING,
-                Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-                -> aktivitetskortTittel shouldBe it.navn
+                -> aktivitetskortTittel shouldBe "${it.navn} hos ${arrangor.navn}"
 
                 else -> aktivitetskortTittel shouldBe "${it.tiltak.navn} hos ${arrangor.navn}"
             }

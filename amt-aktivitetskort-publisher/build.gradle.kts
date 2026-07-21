@@ -42,6 +42,7 @@ dependencies {
 
     implementation(libs.unleash)
 
+    implementation(project(":amt-felles:visningsnavn"))
     implementation(project(":amt-lib:models"))
     implementation(project(":amt-lib:utils"))
 
