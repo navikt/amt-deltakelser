@@ -67,7 +67,7 @@ data class VisningsnavnResponse(
         }
 
         private fun hentTittelTekst(gjennomforing: GjennomforingModel): String =
-            hentKurstype(gjennomforing) ?: hentTittelFraTiltakskode(gjennomforing.tiltak.tiltakskode)
+            hentKurstype(gjennomforing) ?: hentTittelFraTiltak(gjennomforing)
 
         private fun hentKurstype(gjennomforing: GjennomforingModel): String? = when (gjennomforing.tiltak.tiltakskode) {
             Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> {
@@ -80,10 +80,19 @@ data class VisningsnavnResponse(
             else -> null
         }
 
-        private fun hentTittelFraTiltakskode(tiltakskode: Tiltakskode): String =
-            when (tiltakskode) {
+        private fun hentTittelFraTiltak(gjennomforing: GjennomforingModel): String =
+            when (gjennomforing.tiltak.tiltakskode) {
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "Tilrettelagt arbeid"
-                else -> hentVisningsnavnFraTiltakskode(tiltakskode)
+                else -> hentVisningsnavnFraTiltak(gjennomforing)
+            }
+
+        private fun hentVisningsnavnFraTiltak(gjennomforing: GjennomforingModel): String =
+            when (gjennomforing.tiltak.tiltakskode) {
+                Tiltakskode.JOBBKLUBB,
+                Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
+                -> hentVisningsnavnFraTiltakskode(gjennomforing.tiltak.tiltakskode)
+
+                else -> gjennomforing.tiltak.navn
             }
 
         private fun hentVisningsnavnFraTiltakskode(tiltakskode: Tiltakskode): String =
