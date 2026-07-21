@@ -33,7 +33,7 @@ data class DeltakerlisteResponse(
         deltakerlisteNavn = model.navn,
         tiltakskode = TiltakskodeResponse(model.tiltak.tiltakskode),
         arrangorNavn = model.arrangor?.navn ?: "Ukjent arrangør",
-        visningsnavn = VisningsnavnResponse(model),
+        visningsnavn = VisningsnavnResponse.fraGjennomforing(model),
         arrangor = model.arrangor?.let(::ArrangorResponse),
         oppstartstype = model.oppstart,
         startdato = model.startDato,

@@ -12,6 +12,9 @@ dependencies {
     // --- Feature Toggle ---
     implementation(libs.unleash)
 
+    // --- Visningsnavn ---
+    implementation(project(":amt-felles:visningsnavn"))
+
     // --- Test ---
     testImplementation(project(":amt-felles:typegenerering"))
     testImplementation(project(":amt-felles:archunit-test"))

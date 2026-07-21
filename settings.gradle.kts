@@ -10,6 +10,7 @@ include(
     "amt-felles:archunit-test",
     "amt-felles:typegenerering",
     "amt-felles:kafka",
+    "amt-felles:visningsnavn",
     "amt-lib:testing",
     "amt-lib:utils",
     "amt-lib:models",
