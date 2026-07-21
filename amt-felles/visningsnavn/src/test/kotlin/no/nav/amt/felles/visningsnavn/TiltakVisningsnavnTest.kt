@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.UUID
 import java.util.stream.Stream
 
-class TiltakVisningsNavnTest {
+class TiltakVisningsnavnTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("specCases")
     fun `visningsnavn følger spec`(case: SpecCase) {
