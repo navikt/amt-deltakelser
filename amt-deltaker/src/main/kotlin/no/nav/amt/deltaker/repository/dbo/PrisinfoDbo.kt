@@ -6,9 +6,23 @@ import java.util.UUID
 data class PrisinfoDbo(
     val id: UUID = UUID.randomUUID(),
     val gjennomforingId: UUID,
-    val okonomiGodkjent: Boolean = false,
+    val rolle: Rolle = Rolle.ENDRING,
+    val status: PrisinfoStatus = PrisinfoStatus.SENDT,
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,
     val ingenkostnaderAarsak: Aarsak? = null,
-)
+) {
+    enum class PrisinfoStatus {
+        SENDT,
+        RETURNERT,
+        TIL_BEHANDLING,
+        SATT_PA_VENT,
+        GODKJENT,
+    }
+
+    enum class Rolle {
+        ENDRING,
+        GJELDENDE,
+    }
+}

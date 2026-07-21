@@ -79,13 +79,13 @@ class GjennomforingUpserterTest {
         every {
             PrisinfoRepository.hentPrisinfo(
                 gjennomforingId = any(),
-                okonomiGodkjent = false,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
         } answers {
             PrisinfoDbo(
                 id = totrinnsIdInTest,
                 gjennomforingId = firstArg(),
-                okonomiGodkjent = secondArg(),
+                rolle = secondArg(),
                 prisinfoJsonSubtype = "Anskaffelse",
             )
         }
@@ -95,11 +95,14 @@ class GjennomforingUpserterTest {
         every {
             PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = any(),
-                brukVenterPaaOkonomiGodkjent = true,
+                brukEndring = true,
             )
         } returns Anskaffelse(1000)
         every {
-            PrisinfoRepoAdapter.lagrePrisinfo(any(), any())
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(any(), any())
+        } returns totrinnsIdInTest
+        every {
+            PrisinfoRepoAdapter.lagrePrisinfoEndring(any(), any())
         } returns totrinnsIdInTest
     }
 
@@ -114,7 +117,7 @@ class GjennomforingUpserterTest {
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
-            sut.oppdaterPrisinfo(
+            sut.produceEndrePrisinfo(
                 prisinfo = nyPrisinfo,
                 deltaker = deltaker,
                 endretAvNavIdent = "Z123456",
@@ -137,16 +140,17 @@ class GjennomforingUpserterTest {
             // Arrange
             val deltaker = createUtkastDeltaker()
             val nyPrisinfo = Anskaffelse(pris = 50000)
+
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = any(),
-                    brukVenterPaaOkonomiGodkjent = true,
+                    brukEndring = true,
                 )
             } returns null
 
             // Act & Assert
             shouldThrow<IllegalStateException> {
-                sut.oppdaterPrisinfo(
+                sut.produceEndrePrisinfo(
                     prisinfo = nyPrisinfo,
                     deltaker = deltaker,
                     endretAvNavIdent = "Z123456",
@@ -164,7 +168,7 @@ class GjennomforingUpserterTest {
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
-            sut.oppdaterPrisinfo(
+            sut.produceEndrePrisinfo(
                 prisinfo = nyPrisinfo,
                 deltaker = deltaker,
                 endretAvNavIdent = endretAv,
@@ -288,7 +292,7 @@ class GjennomforingUpserterTest {
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = any(),
-                    brukVenterPaaOkonomiGodkjent = true,
+                    brukEndring = true,
                 )
             } returns null
 
@@ -405,7 +409,7 @@ class GjennomforingUpserterTest {
             every {
                 PrisinfoRepository.hentPrisinfo(
                     gjennomforingId = any(),
-                    okonomiGodkjent = false,
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
                 )
             } returns null
 

@@ -146,8 +146,6 @@ object EnkeltplassPdfDtoMapper {
     }
 
     internal fun HendelseDeltaker.Deltakerliste.tiltakskodenavn(): String = when (tiltak.tiltakskode) {
-        // Enkeltplass, ny forskrift:
-        Tiltakskode.ARBEIDSMARKEDSOPPLAERING -> "Arbeidsmarkedsopplæring"
         Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> {
             // NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV avviker fra øvrige tiltakskoder ved at kurstype
             // skal benyttes som tiltaksnavn i heading i brev
@@ -156,6 +154,9 @@ object EnkeltplassPdfDtoMapper {
                 ?.firstOrNull()
                 ?: throw IllegalStateException("Kunne ikke finne kurstype for enkeltplass")
         }
+
+        // Enkeltplass, ny forskrift:
+        Tiltakskode.ARBEIDSMARKEDSOPPLAERING -> "Arbeidsmarkedsopplæring"
 
         Tiltakskode.STUDIESPESIALISERING -> "Studiespesialisering"
         Tiltakskode.FAG_OG_YRKESOPPLAERING -> "Fag- og yrkesopplæring"

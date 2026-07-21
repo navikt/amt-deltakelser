@@ -128,7 +128,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         )
 
         mockkObject(PrisinfoRepoAdapter)
-        every { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) } returns UUID.randomUUID()
+        every { PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(any(), any()) } returns UUID.randomUUID()
         every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(1000)
     }
 
@@ -276,7 +276,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
 
             // Assert
-            verify(exactly = 0) { PrisinfoRepoAdapter.lagrePrisinfo(any(), any()) }
+            verify(exactly = 0) { PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(any(), any()) }
         }
 
         @Test
@@ -297,7 +297,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             // Assert
             verify {
                 deltakerlisteRepository.update(any())
-                PrisinfoRepoAdapter.lagrePrisinfo(
+                PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                     gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
                     prisinformasjon = nyPrisinformasjon,
                 )

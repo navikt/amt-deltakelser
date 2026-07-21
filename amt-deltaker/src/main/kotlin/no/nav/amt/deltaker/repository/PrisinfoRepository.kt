@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.repository
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
@@ -10,27 +11,30 @@ import java.util.UUID
 object PrisinfoRepository {
     fun hentPrisinfo(
         gjennomforingId: UUID,
-        okonomiGodkjent: Boolean,
+        rolle: PrisinfoDbo.Rolle,
     ): PrisinfoDbo? {
         val sql =
             """
             SELECT 
-                id,
-                deltakerliste_id,
-                okonomi_godkjent,
-                prisinformasjon_json_type,
-                anskaffelse_pris,
-                tilleggsopplysninger,
-                ingenkostnader_aarsak
-            FROM enkeltplass_prisinformasjon 
+                d2p.prisinformasjon_id,
+                d2p.deltakerliste_id,
+                d2p.rolle,
+                prisinfo.status,
+                prisinfo.prisinformasjon_json_type,
+                prisinfo.anskaffelse_pris,
+                prisinfo.tilleggsopplysninger,
+                prisinfo.ingenkostnader_aarsak
+            FROM
+                deltakerliste_2_prisinformasjon d2p
+                JOIN enkeltplass_prisinformasjon prisinfo ON d2p.prisinformasjon_id = prisinfo.id
             WHERE 
-                deltakerliste_id = ?
-                AND okonomi_godkjent = ?
+                d2p.deltakerliste_id = ? 
+                AND d2p.rolle = ?
             """.trimIndent()
 
         return Database.query { session ->
             session.run(
-                queryOf(sql, gjennomforingId, okonomiGodkjent)
+                queryOf(sql, gjennomforingId, rolle.name)
                     .map(::rowMapper)
                     .asSingle,
             )
@@ -41,16 +45,18 @@ object PrisinfoRepository {
         val sql =
             """
             SELECT 
-                id,
-                deltakerliste_id,
-                okonomi_godkjent,
-                prisinformasjon_json_type,
-                anskaffelse_pris,
-                tilleggsopplysninger,
-                ingenkostnader_aarsak
-            FROM enkeltplass_prisinformasjon 
-            WHERE 
-                deltakerliste_id = ?
+                d2p.prisinformasjon_id,
+                d2p.deltakerliste_id,
+                d2p.rolle,
+                prisinfo.status,
+                prisinfo.prisinformasjon_json_type,
+                prisinfo.anskaffelse_pris,
+                prisinfo.tilleggsopplysninger,
+                prisinfo.ingenkostnader_aarsak
+            FROM
+                deltakerliste_2_prisinformasjon d2p
+                JOIN enkeltplass_prisinformasjon prisinfo ON d2p.prisinformasjon_id = prisinfo.id
+            WHERE d2p.deltakerliste_id = ?
             """.trimIndent()
 
         return Database.query { session ->
@@ -62,25 +68,12 @@ object PrisinfoRepository {
         }
     }
 
-    fun deletePrisinfo(
-        gjennomforingId: UUID,
-        okonomiGodkjent: Boolean,
-    ) = Database.query { session ->
-        session.run(
-            queryOf(
-                "DELETE FROM enkeltplass_prisinformasjon WHERE deltakerliste_id = ? AND okonomi_godkjent = ?",
-                gjennomforingId,
-                okonomiGodkjent,
-            ).asUpdate,
-        )
-    }
-
-    fun insertPendingTotrinnskontrollPrisinfo(insertDbo: PrisinfoDbo): PrisinfoDbo {
+    fun upsertPrisinfo(upsertDbo: PrisinfoUpsertDbo) {
         val sql =
             """
             INSERT INTO enkeltplass_prisinformasjon (
                 id,
-                deltakerliste_id,
+                status,
                 prisinformasjon_json_type,
                 anskaffelse_pris,
                 tilleggsopplysninger,
@@ -88,56 +81,61 @@ object PrisinfoRepository {
             )
             VALUES (
                 :id,
-                :deltakerliste_id,
+                :status,
                 :prisinformasjon_json_type,
                 :anskaffelse_pris,
                 :tilleggsopplysninger,
                 :ingenkostnader_aarsak
             )
-            RETURNING *
+            ON CONFLICT (id) DO UPDATE SET
+                status = EXCLUDED.status,
+                prisinformasjon_json_type = EXCLUDED.prisinformasjon_json_type,
+                anskaffelse_pris = EXCLUDED.anskaffelse_pris,
+                tilleggsopplysninger = EXCLUDED.tilleggsopplysninger,
+                ingenkostnader_aarsak = EXCLUDED.ingenkostnader_aarsak,
+                modified_at = now()
             """.trimIndent()
 
         val params = mapOf(
-            "id" to insertDbo.id,
-            "deltakerliste_id" to insertDbo.gjennomforingId,
-            "prisinformasjon_json_type" to insertDbo.prisinfoJsonSubtype,
-            "anskaffelse_pris" to insertDbo.anskaffelsePris,
-            "tilleggsopplysninger" to insertDbo.tilleggsopplysninger,
-            "ingenkostnader_aarsak" to insertDbo.ingenkostnaderAarsak?.name,
+            "id" to upsertDbo.id,
+            "status" to upsertDbo.status.name,
+            "prisinformasjon_json_type" to upsertDbo.prisinfoJsonSubtype,
+            "anskaffelse_pris" to upsertDbo.anskaffelsePris,
+            "tilleggsopplysninger" to upsertDbo.tilleggsopplysninger,
+            "ingenkostnader_aarsak" to upsertDbo.ingenkostnaderAarsak?.name,
         )
 
-        return Database.query { session ->
-            session.run(
-                queryOf(sql, params)
-                    .map(::rowMapper)
-                    .asSingle,
-            )
-        } ?: error("Fant ikke lagret prisinfo")
-    }
-
-    fun settGodkjent(gjennomforingId: UUID) {
         Database.query { session ->
-            session.run(
-                queryOf(
-                    """
-                    UPDATE enkeltplass_prisinformasjon 
-                    SET 
-                        okonomi_godkjent = true,
-                        modified_at = now()
-                    WHERE 
-                        deltakerliste_id = ?
-                        AND okonomi_godkjent = false                                        
-                    """.trimIndent(),
-                    gjennomforingId,
-                ).asUpdate,
+            session.update(
+                queryOf(sql, params),
             )
         }
     }
 
+    fun oppdaterStatus(
+        prisinformasjonId: UUID,
+        status: PrisinfoDbo.PrisinfoStatus,
+    ) = Database.query { session ->
+        session.update(
+            queryOf(
+                """
+                UPDATE enkeltplass_prisinformasjon
+                SET 
+                    status = ?,
+                    modified_at = now()
+                WHERE id = ?
+                """.trimIndent(),
+                status.name,
+                prisinformasjonId,
+            ),
+        )
+    }
+
     private fun rowMapper(row: Row): PrisinfoDbo = PrisinfoDbo(
-        id = row.uuid("id"),
+        id = row.uuid("prisinformasjon_id"),
         gjennomforingId = row.uuid("deltakerliste_id"),
-        okonomiGodkjent = row.boolean("okonomi_godkjent"),
+        rolle = PrisinfoDbo.Rolle.valueOf(row.string("rolle")),
+        status = PrisinfoDbo.PrisinfoStatus.valueOf(row.string("status")),
         prisinfoJsonSubtype = row.string("prisinformasjon_json_type"),
         anskaffelsePris = row.intOrNull("anskaffelse_pris"),
         tilleggsopplysninger = row.stringOrNull("tilleggsopplysninger"),

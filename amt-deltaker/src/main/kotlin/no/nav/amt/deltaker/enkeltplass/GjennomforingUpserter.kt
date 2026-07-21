@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
@@ -32,12 +33,12 @@ class GjennomforingUpserter(
         )
     }
 
-    fun oppdaterPrisinfo(
+    fun produceEndrePrisinfo(
         prisinfo: PrisinformasjonDto,
         deltaker: Deltaker,
         endretAvNavIdent: String,
     ) {
-        val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfo(
+        val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
             gjennomforingId = deltaker.deltakerliste.id,
             prisinformasjon = prisinfo,
         )
@@ -51,7 +52,7 @@ class GjennomforingUpserter(
             payload = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = deltaker.deltakerliste.id,
-                    brukVenterPaaOkonomiGodkjent = true,
+                    brukEndring = true,
                 ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
             ),
         )
@@ -88,7 +89,7 @@ class GjennomforingUpserter(
         prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
             PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
-                brukVenterPaaOkonomiGodkjent = true,
+                brukEndring = true,
             ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
         ),
         organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
@@ -113,7 +114,7 @@ class GjennomforingUpserter(
         DeltakerStatus.Type.SOKT_INN -> {
             val prisinfo = PrisinfoRepository.hentPrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
-                okonomiGodkjent = false,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             ) ?: error("Fant ikke prisinformasjon for deltakerliste ${deltaker.deltakerliste.id}")
 
             GjennomforingRequestPayload.EnkeltplassSoktInn(

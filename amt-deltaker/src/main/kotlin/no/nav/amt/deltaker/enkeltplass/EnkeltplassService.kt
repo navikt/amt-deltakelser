@@ -372,7 +372,7 @@ class EnkeltplassService(
         kategoriseringForTiltak: OpplaringKategoriseringResponse,
     ) {
         prisinformasjon?.let {
-            PrisinfoRepoAdapter.lagrePrisinfo(
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingId,
                 prisinformasjon = it,
             )
