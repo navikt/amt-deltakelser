@@ -1,11 +1,12 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.spring)
+    kotlin("jvm")
+    id("org.jlleitschuh.gradle.ktlint")
+
     alias(libs.plugins.spring.boot)
+    alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.spring.dependency.management)
-    alias(libs.plugins.ktlint)
 }
 
 repositories {
@@ -25,12 +26,12 @@ dependencies {
 
     implementation(libs.kafka.clients)
 
-    implementation("org.flywaydb:flyway-database-postgresql")
-    implementation("org.postgresql:postgresql")
+    implementation(libs.flyway.postgres)
+    implementation(libs.postgresql)
 
     implementation(libs.okhttp)
 
-    implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation(libs.micrometer.prometheus)
     implementation(libs.logstash.encoder)
 
     implementation(libs.nav.common.token.client)
@@ -41,8 +42,8 @@ dependencies {
 
     implementation(libs.unleash)
 
-    implementation(libs.amt.lib.models)
-    implementation(libs.amt.lib.utils)
+    implementation(project(":amt-lib:models"))
+    implementation(project(":amt-lib:utils"))
 
     testImplementation(libs.kotest.assertions.core)
 

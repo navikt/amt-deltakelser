@@ -109,6 +109,8 @@ micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus
 # --- Logging ---
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
 logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-encoder-version" }
+nav-common-token-client = { module = "no.nav.common:token-client", version.ref = "nav-common-version" }
+nav-common-rest = { module = "no.nav.common:rest", version.ref = "nav-common-version" }
 nav-common-log = { module = "no.nav.common:log", version.ref = "nav-common-version" }
 nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "nav-common-version" }
 

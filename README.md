@@ -6,6 +6,7 @@ Monorepo for Team Komet sine backend-applikasjoner (Ktor og Spring Boot) og fell
 
 - [Oversikt](#oversikt)
 - [Applikasjoner](#applikasjoner)
+    - [amt-aktivitetskort-publisher](#amt-aktivitetskort-publisher)
     - [amt-deltaker](#amt-deltaker)
     - [amt-deltaker-bff](#amt-deltaker-bff)
     - [amt-distribusjon](#amt-distribusjon)
@@ -30,6 +31,10 @@ Dette monorepoet samler koden Team Komet jobber mest med — applikasjoner, fell
 ---
 
 ## Applikasjoner
+
+### amt-aktivitetskort-publisher
+
+**amt-aktivitetskort-publisher** leser data fra amt-domenet og publiserer til AKaaS for å generere og oppdatere aktivitetskort.
 
 ### amt-deltaker
 
@@ -199,4 +204,3 @@ Alle versjoner styres i **libs.versions.toml**, slik at alle moduler i monorepoe
 
 Dette prosjektet er lisensiert under **MIT License**.  
 Se [LICENSE](LICENSE) for fullstendig lisensinformasjon.
-

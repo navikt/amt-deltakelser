@@ -8,6 +8,7 @@ on:
         required: true
         type: choice
         options:
+          - amt-aktivitetskort-publisher
           - amt-deltaker-bff
           - amt-deltaker
           - amt-distribusjon

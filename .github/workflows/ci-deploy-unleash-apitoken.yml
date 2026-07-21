@@ -20,6 +20,8 @@ jobs:
         id: filter
         with:
           filters: |
+            amt-aktivitetskort-publisher:
+              - amt-aktivitetskort-publisher/.nais/unleash-apitoken-*.yaml
             amt-deltaker-bff:
               - amt-deltaker-bff/.nais/unleash-apitoken-*.yaml
             amt-deltaker:
