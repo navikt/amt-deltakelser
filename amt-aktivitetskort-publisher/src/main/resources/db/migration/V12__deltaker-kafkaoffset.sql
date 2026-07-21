@@ -1,0 +1,1 @@
+ALTER TABLE deltaker ADD COLUMN kafkaoffset BIGINT NOT NULL DEFAULT 0;
