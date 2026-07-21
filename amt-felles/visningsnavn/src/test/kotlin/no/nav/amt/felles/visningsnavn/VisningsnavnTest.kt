@@ -15,7 +15,7 @@ import java.util.stream.Stream
 class VisningsnavnTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("specCases")
-    fun `visningsnavn følger spec for feltene denne responsen eier`(case: SpecCase) {
+    fun `visningsnavn følger spec`(case: SpecCase) {
         val response = lagVisningsnavn(
             type = case.type,
             tiltakskode = case.tiltakskode,
@@ -32,7 +32,7 @@ class VisningsnavnTest {
     }
 
     @Test
-    fun `kurstype velges deterministisk for norskopplaering`() {
+    fun `kurstype velges deterministisk for norskopplæring`() {
         val response = lagVisningsnavn(
             type = GjennomforingType.Enkeltplass,
             tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
@@ -59,7 +59,7 @@ class VisningsnavnTest {
     }
 
     @Test
-    fun `ukjent arrangor brukes som fallback`() {
+    fun `'Ukjent arrangør' brukes som fallback`() {
         val response = lagVisningsnavn(
             type = GjennomforingType.Gruppe,
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
