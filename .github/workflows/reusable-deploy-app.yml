@@ -37,7 +37,7 @@ jobs:
           GRADLE_ARGS="installDist"
           
           case "${{ inputs.module_path }}" in
-            amt-tiltaksarrangor-bff|amt-pdfgen)
+            amt-aktivitetskort-publisher|amt-tiltaksarrangor-bff|amt-pdfgen)
             GRADLE_ARGS=""
           ;;
           esac

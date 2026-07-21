@@ -1,0 +1,1 @@
+ALTER TABLE melding add column id UUID

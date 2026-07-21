@@ -1,6 +1,7 @@
 rootProject.name = "amt-deltakelser"
 
 include(
+    "amt-aktivitetskort-publisher",
     "amt-deltaker",
     "amt-deltaker-bff",
     "amt-distribusjon",

@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "buildSrc/**"
+      - "amt-aktivitetskort-publisher/**"
       - "amt-deltaker/**"
       - "amt-deltaker-bff/**"
       - "amt-distribusjon/**"
@@ -33,6 +34,12 @@ jobs:
         id: filter
         with:
           filters: |
+            amt-aktivitetskort-publisher:
+              - amt-aktivitetskort-publisher/**
+              - amt-lib/**
+              - gradle/libs.versions.toml
+              - buildSrc/**
+
             amt-deltaker-bff:
               - amt-deltaker-bff/**
               - amt-felles/**

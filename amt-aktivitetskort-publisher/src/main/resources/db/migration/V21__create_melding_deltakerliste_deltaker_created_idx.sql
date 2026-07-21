@@ -1,0 +1,1 @@
+CREATE INDEX melding_deltakerliste_deltaker_created_idx ON melding (deltakerliste_id, deltaker_id, created_at DESC);

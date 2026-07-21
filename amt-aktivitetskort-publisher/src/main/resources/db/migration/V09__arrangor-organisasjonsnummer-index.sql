@@ -1,0 +1,1 @@
+CREATE INDEX arrangor_organisasjonsnummer_idx ON arrangor(organisasjonsnummer);
