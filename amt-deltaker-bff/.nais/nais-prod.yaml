@@ -61,8 +61,6 @@ spec:
           namespace: poao
         - application: tiltaksadministrasjon-flate
           namespace: team-mulighetsrommet
-        - application: mr-admin-flate
-          namespace: team-mulighetsrommet
     outbound:
       rules:
         - application: amt-arrangor
