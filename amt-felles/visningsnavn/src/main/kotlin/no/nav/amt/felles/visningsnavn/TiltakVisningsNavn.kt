@@ -6,10 +6,10 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
-data class Visningsnavn(
-    val tiltakHosArrangorTittel: String,
-    val tiltakHosArrangorIngressTekst: String,
-    val kladdTiltakHosArrangorTittel: String,
+data class TiltakVisningsNavn(
+    val tittel: String,
+    val ingressTekst: String,
+    val kladdTittel: String,
 )
 
 fun lagVisningsnavn(
@@ -20,16 +20,16 @@ fun lagVisningsnavn(
     status: GjennomforingStatusType,
     arrangorNavn: String?,
     opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
-): Visningsnavn = Visningsnavn(
-    tiltakHosArrangorTittel = tiltakHosArrangorTekst(arrangorNavn, hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)),
-    tiltakHosArrangorIngressTekst = hentTiltakHosArrangorIngressTekst(
+): TiltakVisningsNavn = TiltakVisningsNavn(
+    tittel = hentTittel(arrangorNavn, hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)),
+    ingressTekst = hentIngressTekst(
         tiltakskode = tiltakskode,
         tiltaksnavn = tiltaksnavn,
         gjennomforingsnavn = gjennomforingsnavn,
         arrangorNavn = arrangorNavn,
         opplaringKategoriseringValg = opplaringKategoriseringValg,
     ),
-    kladdTiltakHosArrangorTittel = hentKladdTiltakHosArrangorTittel(
+    kladdTittel = hentKladdTittel(
         type = type,
         tiltakskode = tiltakskode,
         tiltaksnavn = tiltaksnavn,
@@ -61,7 +61,7 @@ fun visningsnavn(tiltakskode: Tiltakskode) = when (tiltakskode) {
     Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER -> "Tilrettelagt arbeid i ordinær virksomhet"
 }
 
-private fun hentTiltakHosArrangorIngressTekst(
+private fun hentIngressTekst(
     tiltakskode: Tiltakskode,
     tiltaksnavn: String,
     gjennomforingsnavn: String,
@@ -70,21 +70,21 @@ private fun hentTiltakHosArrangorIngressTekst(
 ): String {
     val kurstype = hentKurstype(tiltakskode, opplaringKategoriseringValg)
     if (kurstype != null) {
-        return tiltakHosArrangorTekst(arrangorNavn, kurstype)
+        return hentTittel(arrangorNavn, kurstype)
     }
 
     if (tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET) {
-        return tiltakHosArrangorTekst(arrangorNavn, tiltaksnavn)
+        return hentTittel(arrangorNavn, tiltaksnavn)
     }
 
     if (skalBrukeDeltakerlisteNavn(tiltakskode)) {
-        return tiltakHosArrangorTekst(arrangorNavn, gjennomforingsnavn)
+        return hentTittel(arrangorNavn, gjennomforingsnavn)
     }
 
-    return tiltakHosArrangorTekst(arrangorNavn, visningsnavn(tiltakskode))
+    return hentTittel(arrangorNavn, visningsnavn(tiltakskode))
 }
 
-private fun hentKladdTiltakHosArrangorTittel(
+private fun hentKladdTittel(
     type: GjennomforingType,
     tiltakskode: Tiltakskode,
     tiltaksnavn: String,
@@ -103,10 +103,10 @@ private fun hentKladdTiltakHosArrangorTittel(
         else -> hentVisningsnavnFraTiltakskode(tiltakskode)
     }
 
-    return tiltakHosArrangorTekst(arrangorNavn, tekst)
+    return hentTittel(arrangorNavn, tekst)
 }
 
-private fun tiltakHosArrangorTekst(
+private fun hentTittel(
     arrangorNavn: String?,
     tekst: String,
 ): String {

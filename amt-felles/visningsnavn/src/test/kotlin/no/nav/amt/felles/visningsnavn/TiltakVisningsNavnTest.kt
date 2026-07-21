@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.UUID
 import java.util.stream.Stream
 
-class VisningsnavnTest {
+class TiltakVisningsNavnTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("specCases")
     fun `visningsnavn følger spec`(case: SpecCase) {
@@ -26,9 +26,9 @@ class VisningsnavnTest {
             opplaringKategoriseringValg = case.kurstype?.let(::lagKurstypeValg),
         )
 
-        case.forventetTittel?.let { response.tiltakHosArrangorTittel shouldBe it }
-        case.forventetIngress?.let { response.tiltakHosArrangorIngressTekst shouldBe it }
-        case.forventetKladd?.let { response.kladdTiltakHosArrangorTittel shouldBe it }
+        case.forventetTittel?.let { response.tittel shouldBe it }
+        case.forventetIngress?.let { response.ingressTekst shouldBe it }
+        case.forventetKladd?.let { response.kladdTittel shouldBe it }
     }
 
     @Test
@@ -54,8 +54,8 @@ class VisningsnavnTest {
             ),
         )
 
-        response.tiltakHosArrangorTittel shouldBe "Almenn norsk hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "Almenn norsk hos Arrangor 1"
+        response.tittel shouldBe "Almenn norsk hos Arrangor 1"
+        response.ingressTekst shouldBe "Almenn norsk hos Arrangor 1"
     }
 
     @Test
@@ -69,9 +69,9 @@ class VisningsnavnTest {
             arrangorNavn = null,
         )
 
-        response.tiltakHosArrangorTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
-        response.tiltakHosArrangorIngressTekst shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
-        response.kladdTiltakHosArrangorTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
+        response.tittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
+        response.ingressTekst shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
+        response.kladdTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
     }
 
     data class SpecCase(
