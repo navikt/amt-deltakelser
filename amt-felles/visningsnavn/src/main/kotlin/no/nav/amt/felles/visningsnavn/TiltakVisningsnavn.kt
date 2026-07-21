@@ -3,7 +3,6 @@ package no.nav.amt.felles.visningsnavn
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 data class TiltakVisningsnavn(
@@ -13,7 +12,6 @@ data class TiltakVisningsnavn(
 )
 
 fun lagVisningsnavn(
-    type: GjennomforingType,
     tiltakskode: Tiltakskode,
     tiltaksnavn: String,
     gjennomforingsnavn: String,
@@ -30,7 +28,6 @@ fun lagVisningsnavn(
         opplaringKategoriseringValg = opplaringKategoriseringValg,
     ),
     kladdTittel = hentKladdTittel(
-        type = type,
         tiltakskode = tiltakskode,
         tiltaksnavn = tiltaksnavn,
         gjennomforingsnavn = gjennomforingsnavn,
@@ -85,7 +82,6 @@ private fun hentIngressTekst(
 }
 
 private fun hentKladdTittel(
-    type: GjennomforingType,
     tiltakskode: Tiltakskode,
     tiltaksnavn: String,
     gjennomforingsnavn: String,

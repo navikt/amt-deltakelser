@@ -12,7 +12,6 @@ data class VisningsnavnResponse(
     companion object {
         fun fraGjennomforing(gjennomforing: GjennomforingModel) = fraVisningsnavn(
             lagVisningsnavn(
-                type = gjennomforing.type,
                 tiltakskode = gjennomforing.tiltak.tiltakskode,
                 tiltaksnavn = gjennomforing.tiltak.navn,
                 gjennomforingsnavn = gjennomforing.navn,

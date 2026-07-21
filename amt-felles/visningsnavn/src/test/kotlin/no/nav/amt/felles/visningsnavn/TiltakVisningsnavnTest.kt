@@ -17,7 +17,6 @@ class TiltakVisningsnavnTest {
     @MethodSource("specCases")
     fun `visningsnavn følger spec`(case: SpecCase) {
         val response = lagVisningsnavn(
-            type = case.type,
             tiltakskode = case.tiltakskode,
             tiltaksnavn = case.tiltaksnavn,
             gjennomforingsnavn = case.gjennomforingsnavn,
@@ -34,7 +33,6 @@ class TiltakVisningsnavnTest {
     @Test
     fun `kurstype velges deterministisk for norskopplæring`() {
         val response = lagVisningsnavn(
-            type = GjennomforingType.Enkeltplass,
             tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
             tiltaksnavn = "Norskopplæring, grunnleggende ferdigheter og FOV",
             gjennomforingsnavn = "Deltakerliste navn",
@@ -61,7 +59,6 @@ class TiltakVisningsnavnTest {
     @Test
     fun `'Ukjent arrangør' brukes som fallback`() {
         val response = lagVisningsnavn(
-            type = GjennomforingType.Gruppe,
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             tiltaksnavn = "Arbeidsforberedende trening",
             gjennomforingsnavn = "Deltakerliste navn",
