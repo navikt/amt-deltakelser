@@ -29,6 +29,10 @@ data class VisningsnavnResponse(
                 return tiltakHosArrangorTekst(gjennomforing.arrangor, kurstype)
             }
 
+            if (tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET) {
+                return tiltakHosArrangorTekst(gjennomforing.arrangor, gjennomforing.tiltak.navn)
+            }
+
             if (skalBrukeDeltakerlisteNavn(tiltakskode)) {
                 return tiltakHosArrangorTekst(gjennomforing)
             }
@@ -42,6 +46,8 @@ data class VisningsnavnResponse(
 
             val tekst = when {
                 kurstype == null && skalBrukeDeltakerlisteNavn(tiltakskode) -> gjennomforing.navn
+                tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET &&
+                    gjennomforing.status == GjennomforingStatusType.KLADD -> gjennomforing.tiltak.navn
                 gjennomforing.status != GjennomforingStatusType.KLADD -> hentTittelTekst(gjennomforing)
                 else -> hentVisningsnavnFraTiltakskode(tiltakskode)
             }
@@ -61,7 +67,7 @@ data class VisningsnavnResponse(
         }
 
         private fun hentTittelTekst(gjennomforing: GjennomforingModel): String =
-            hentKurstype(gjennomforing) ?: hentVisningsnavnFraTiltakskode(gjennomforing.tiltak.tiltakskode)
+            hentKurstype(gjennomforing) ?: hentTittelFraTiltakskode(gjennomforing.tiltak.tiltakskode)
 
         private fun hentKurstype(gjennomforing: GjennomforingModel): String? = when (gjennomforing.tiltak.tiltakskode) {
             Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> {
@@ -73,6 +79,12 @@ data class VisningsnavnResponse(
 
             else -> null
         }
+
+        private fun hentTittelFraTiltakskode(tiltakskode: Tiltakskode): String =
+            when (tiltakskode) {
+                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> "Tilrettelagt arbeid"
+                else -> hentVisningsnavnFraTiltakskode(tiltakskode)
+            }
 
         private fun hentVisningsnavnFraTiltakskode(tiltakskode: Tiltakskode): String =
             if (tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {

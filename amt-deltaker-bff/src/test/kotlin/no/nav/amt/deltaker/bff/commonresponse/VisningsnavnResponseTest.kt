@@ -2,401 +2,177 @@ package no.nav.amt.deltaker.bff.commonresponse
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingModel
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.MethodSource
 import java.util.UUID
+import java.util.stream.Stream
 
-/**
-Disse AI-genererte testene tjener primært til å avdekke regresjoner ved justeringer i logikken.
- */
 class VisningsnavnResponseTest {
-    private val model = lagGjennomforingModel()
-    private val tiltak = model.tiltak
-    private val arrangor = model.arrangor
-
-    @Test
-    fun `generates title, ingress and draft from Tiltakskode for simple measures`() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("specCases")
+    fun `visningsnavn følger spec for feltene denne responsen eier`(case: SpecCase) {
         val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.OPPFOLGING),
-            navn = "Deltakerliste navn",
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Oppfølging hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "Oppfølging hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "Oppfølging hos Arrangor 1"
-    }
-
-    @Test
-    fun `skalBrukeDeltakerlisteNavn measures use gjennomforing name for ingress and draft`() {
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
-            navn = "AMO liste",
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Arbeidsmarkedsopplæring hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "AMO liste hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "AMO liste hos Arrangor 1"
-    }
-
-    @ParameterizedTest(name = "{0} produces same text everywhere")
-    @ValueSource(
-        strings = [
-            "ARBEIDSFORBEREDENDE_TRENING",
-            "ARBEIDSRETTET_REHABILITERING",
-            "AVKLARING",
-            "OPPFOLGING",
-            "VARIG_TILRETTELAGT_ARBEID_SKJERMET",
-            "DIGITALT_OPPFOLGINGSTILTAK",
-            "JOBBKLUBB",
-            "ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING",
-            "ENKELTPLASS_FAG_OG_YRKESOPPLAERING",
-        ],
-    )
-    fun `simple Tiltakskode uses same text for title, ingress and draft`(tiltakskodeStr: String) {
-        val tiltakskode = Tiltakskode.valueOf(tiltakskodeStr)
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = tiltakskode),
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        // title, ingress and draft should be identical for simple measures
-        response.tiltakHosArrangorTittel shouldBe response.tiltakHosArrangorIngressTekst
-        response.kladdTiltakHosArrangorTittel shouldBe response.tiltakHosArrangorTittel
-    }
-
-    @ParameterizedTest(name = "{0} uses gjennomforing name")
-    @ValueSource(
-        strings = [
-            "GRUPPE_ARBEIDSMARKEDSOPPLAERING",
-            "GRUPPE_FAG_OG_YRKESOPPLAERING",
-            "ARBEIDSMARKEDSOPPLAERING",
-            "NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV",
-            "STUDIESPESIALISERING",
-            "FAG_OG_YRKESOPPLAERING",
-            "HOYERE_YRKESFAGLIG_UTDANNING",
-            "HOYERE_UTDANNING",
-        ],
-    )
-    fun `skalBrukeDeltakerlisteNavn Tiltakskode uses gjennomforing name for ingress and draft`(tiltakskodeStr: String) {
-        val tiltakskode = Tiltakskode.valueOf(tiltakskodeStr)
-        val deltakerlistenavn = "Min spesielle kurs"
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = tiltakskode),
-            navn = deltakerlistenavn,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorIngressTekst shouldBe "$deltakerlistenavn hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "$deltakerlistenavn hos Arrangor 1"
-    }
-
-    @Test
-    fun `displays default text when arrangor is null`() {
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.OPPFOLGING),
-            arrangor = null,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Oppfølging hos Ukjent arrangør"
-        response.tiltakHosArrangorIngressTekst shouldBe "Oppfølging hos Ukjent arrangør"
-        response.kladdTiltakHosArrangorTittel shouldBe "Oppfølging hos Ukjent arrangør"
-    }
-
-    @Test
-    fun `displays arrangor name when provided`() {
-        val arrangorNavn = "Arbeidsmarkedsbedrift AS"
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.AVKLARING),
-            arrangor = arrangor?.copy(navn = arrangorNavn),
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Avklaring hos $arrangorNavn"
-        response.tiltakHosArrangorIngressTekst shouldBe "Avklaring hos $arrangorNavn"
-        response.kladdTiltakHosArrangorTittel shouldBe "Avklaring hos $arrangorNavn"
-    }
-
-    @Test
-    fun `NORSKOPPLAERING without selected kurstype shows Tiltakskode display name`() {
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            type = case.type,
+            tiltak = lagTiltakstype(
+                tiltakskode = case.tiltakskode,
+                navn = case.tiltaksnavn,
             ),
-            navn = "FOV kurs uten valgt type",
-        )
+            navn = case.gjennomforingsnavn,
+            status = case.status,
+            arrangor = case.arrangorNavn?.let { arrangorNavn ->
+                no.nav.amt.deltaker.bff.model.ArrangorModel(
+                    navn = arrangorNavn,
+                    organisasjonsnummer = "123456789",
+                )
+            },
+        ).copy(opplaringKategoriseringValg = case.kurstype?.let(::lagKurstypeValg))
 
         val response = VisningsnavnResponse(model)
 
-        response.tiltakHosArrangorTittel shouldBe "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "FOV kurs uten valgt type hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "FOV kurs uten valgt type hos Arrangor 1"
+        response.tiltakHosArrangorTittel shouldBe case.forventetTittel
+        response.tiltakHosArrangorIngressTekst shouldBe case.forventetIngress
+        response.kladdTiltakHosArrangorTittel shouldBe case.forventetKladd
     }
 
     @Test
-    fun `TILRETTELAGT_ARBEID_ORDINAER in KLADD uses same text for title and draft title`() {
+    fun `kurstype velges deterministisk for norskopplaering`() {
         val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
-            status = GjennomforingStatusType.KLADD,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Arrangor 1"
-    }
-
-    @ParameterizedTest(name = "Status {0}")
-    @ValueSource(
-        strings = [
-            "KLADD",
-            "GJENNOMFORES",
-            "AVBRUTT",
-            "AVLYST",
-            "AVSLUTTET",
-        ],
-    )
-    fun `all GjennomforingStatusType values work for simple Tiltakskode`(statusStr: String) {
-        val status = GjennomforingStatusType.valueOf(statusStr)
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.OPPFOLGING),
-            status = status,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel.isNotEmpty() shouldBe true
-        response.tiltakHosArrangorIngressTekst.isNotEmpty() shouldBe true
-        response.kladdTiltakHosArrangorTittel.isNotEmpty() shouldBe true
-    }
-
-    @ParameterizedTest(name = "Status {0}")
-    @ValueSource(
-        strings = [
-            "KLADD",
-            "GJENNOMFORES",
-            "AVBRUTT",
-            "AVLYST",
-            "AVSLUTTET",
-        ],
-    )
-    fun `all GjennomforingStatusType values work for skalBrukeDeltakerlisteNavn Tiltakskode`(statusStr: String) {
-        val status = GjennomforingStatusType.valueOf(statusStr)
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
-            status = status,
-            navn = "Kurs namn",
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel.isNotEmpty() shouldBe true
-        response.tiltakHosArrangorIngressTekst.isNotEmpty() shouldBe true
-        response.kladdTiltakHosArrangorTittel.isNotEmpty() shouldBe true
-    }
-
-    @Test
-    fun `handles long arrangor names`() {
-        val langtArrangorNavn = "Veldig Lang Arrangør Navn som kunne være problematisk"
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.JOBBKLUBB),
-            arrangor = arrangor?.copy(navn = langtArrangorNavn),
-            navn = "Jobbklubb kurs",
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Jobbsøkerkurs hos $langtArrangorNavn"
-        response.tiltakHosArrangorIngressTekst shouldBe "Jobbsøkerkurs hos $langtArrangorNavn"
-        response.kladdTiltakHosArrangorTittel shouldBe "Jobbsøkerkurs hos $langtArrangorNavn"
-    }
-
-    @Test
-    fun `handles long gjennomforing names`() {
-        val langtDeltakerlisteNavn = "Veldig spesialisert arbeidsmarkedsopplæring for målgruppen"
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
-            navn = langtDeltakerlisteNavn,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorIngressTekst shouldBe "$langtDeltakerlisteNavn hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "$langtDeltakerlisteNavn hos Arrangor 1"
-    }
-
-    @Test
-    fun `uses first selected kurstype when multiple are selected`() {
-        val forsteKurstype = "Grunnleggende norsk"
-        val andreKurstype = "Yrkesnorsk"
-        val kategoriseringValg = OpplaringKategoriseringValg(
-            valgteKategoriseringer = setOf(
-                OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                    valg = mapOf(
-                        UUID.randomUUID() to forsteKurstype,
-                        UUID.randomUUID() to andreKurstype,
+            type = GjennomforingType.Enkeltplass,
+            tiltak = lagTiltakstype(
+                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                navn = "Norskopplæring, grunnleggende ferdigheter og FOV",
+            ),
+        ).copy(
+            opplaringKategoriseringValg = OpplaringKategoriseringValg(
+                valgteKategoriseringer = setOf(
+                    OpplaringKategoriseringValg.ValgteFelt(
+                        representerer = OpplaringKategoriseringType.KURSTYPE_ID,
+                        valg = mapOf(
+                            UUID.randomUUID() to "Yrkesnorsk",
+                            UUID.randomUUID() to "Almenn norsk",
+                        ),
                     ),
                 ),
+                valgteSertifiseringer = emptySet(),
             ),
-            valgteSertifiseringer = emptySet(),
         )
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            ),
-        ).copy(opplaringKategoriseringValg = kategoriseringValg)
 
         val response = VisningsnavnResponse(model)
 
-        response.tiltakHosArrangorTittel shouldBe "$forsteKurstype hos Arrangor 1"
-        response.tiltakHosArrangorIngressTekst shouldBe "$forsteKurstype hos Arrangor 1"
+        response.tiltakHosArrangorTittel shouldBe "Almenn norsk hos Arrangor 1"
+        response.tiltakHosArrangorIngressTekst shouldBe "Almenn norsk hos Arrangor 1"
     }
 
-    @Test
-    fun `draft title ignores selected kurstype for Norwegian course in KLADD status`() {
-        val kursnavn = "Grunnleggende norsk"
-        val kategoriseringValg = OpplaringKategoriseringValg(
+    data class SpecCase(
+        val navn: String,
+        val tiltakskode: Tiltakskode,
+        val type: GjennomforingType = GjennomforingType.Gruppe,
+        val status: GjennomforingStatusType = GjennomforingStatusType.GJENNOMFORES,
+        val tiltaksnavn: String = "Tiltakstype navn",
+        val gjennomforingsnavn: String = "Deltakerliste navn",
+        val arrangorNavn: String? = "Arrangør navn",
+        val kurstype: String? = null,
+        val forventetTittel: String,
+        val forventetIngress: String,
+        val forventetKladd: String,
+    ) {
+        override fun toString(): String = navn
+    }
+
+    companion object {
+        @JvmStatic
+        fun specCases(): Stream<SpecCase> = Stream.of(
+            SpecCase(
+                navn = "enkle tiltak bruker tiltakstypen i alle tre felter",
+                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                tiltaksnavn = "Arbeidsforberedende trening",
+                forventetTittel = "Arbeidsforberedende trening hos Arrangør navn",
+                forventetIngress = "Arbeidsforberedende trening hos Arrangør navn",
+                forventetKladd = "Arbeidsforberedende trening hos Arrangør navn",
+            ),
+            SpecCase(
+                navn = "jobbklubb bruker egendefinert navn i alle tre felter",
+                tiltakskode = Tiltakskode.JOBBKLUBB,
+                tiltaksnavn = "Jobbklubb",
+                forventetTittel = "Jobbsøkerkurs hos Arrangør navn",
+                forventetIngress = "Jobbsøkerkurs hos Arrangør navn",
+                forventetKladd = "Jobbsøkerkurs hos Arrangør navn",
+            ),
+            SpecCase(
+                navn = "varig tilrettelagt arbeid i skjermet virksomhet skiller mellom tittel og kladd",
+                tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                status = GjennomforingStatusType.KLADD,
+                tiltaksnavn = "Varig tilrettelagt arbeid i skjermet virksomhet",
+                forventetTittel = "Tilrettelagt arbeid hos Arrangør navn",
+                forventetIngress = "Varig tilrettelagt arbeid i skjermet virksomhet hos Arrangør navn",
+                forventetKladd = "Varig tilrettelagt arbeid i skjermet virksomhet hos Arrangør navn",
+            ),
+            SpecCase(
+                navn = "tilrettelagt arbeid i ordinær virksomhet bruker egendefinert tittel men tiltakstype i ingress",
+                tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
+                status = GjennomforingStatusType.KLADD,
+                tiltaksnavn = "Tilrettelagt arbeid i ordinær virksomhet",
+                forventetTittel = "Tilrettelagt arbeid med oppfølging hos Arrangør navn",
+                forventetIngress = "Tilrettelagt arbeid i ordinær virksomhet hos Arrangør navn",
+                forventetKladd = "Tilrettelagt arbeid med oppfølging hos Arrangør navn",
+            ),
+            SpecCase(
+                navn = "gruppebasert arbeidsmarkedsopplæring bruker deltakerlistenavn i ingress og kladd",
+                tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                type = GjennomforingType.Gruppe,
+                tiltaksnavn = "Arbeidsmarkedsopplæring",
+                gjennomforingsnavn = "AMO liste",
+                forventetTittel = "Arbeidsmarkedsopplæring hos Arrangør navn",
+                forventetIngress = "AMO liste hos Arrangør navn",
+                forventetKladd = "AMO liste hos Arrangør navn",
+            ),
+            SpecCase(
+                navn = "norskopplaering i gruppevariant bruker deltakerlistenavn når kurstype ikke er valgt",
+                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                type = GjennomforingType.Gruppe,
+                tiltaksnavn = "Norskopplæring, grunnleggende ferdigheter og FOV",
+                gjennomforingsnavn = "Norskkurs kull 1",
+                forventetTittel = "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangør navn",
+                forventetIngress = "Norskkurs kull 1 hos Arrangør navn",
+                forventetKladd = "Norskkurs kull 1 hos Arrangør navn",
+            ),
+            SpecCase(
+                navn = "norskopplaering i enkeltplass bruker kurstype i tittel og ingress, men tiltakstype i kladd",
+                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                type = GjennomforingType.Enkeltplass,
+                status = GjennomforingStatusType.KLADD,
+                tiltaksnavn = "Norskopplæring, grunnleggende ferdigheter og FOV",
+                kurstype = "Yrkesnorsk",
+                forventetTittel = "Yrkesnorsk hos Arrangør navn",
+                forventetIngress = "Yrkesnorsk hos Arrangør navn",
+                forventetKladd = "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangør navn",
+            ),
+            SpecCase(
+                navn = "ukjent arrangør brukes som fallback",
+                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                tiltaksnavn = "Arbeidsforberedende trening",
+                arrangorNavn = null,
+                forventetTittel = "Arbeidsforberedende trening hos Ukjent arrangør",
+                forventetIngress = "Arbeidsforberedende trening hos Ukjent arrangør",
+                forventetKladd = "Arbeidsforberedende trening hos Ukjent arrangør",
+            ),
+        )
+
+        private fun lagKurstypeValg(kurstype: String) = OpplaringKategoriseringValg(
             valgteKategoriseringer = setOf(
                 OpplaringKategoriseringValg.ValgteFelt(
                     representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                    valg = mapOf(UUID.randomUUID() to kursnavn),
+                    valg = mapOf(UUID.randomUUID() to kurstype),
                 ),
             ),
             valgteSertifiseringer = emptySet(),
         )
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            ),
-            status = GjennomforingStatusType.KLADD,
-        ).copy(opplaringKategoriseringValg = kategoriseringValg)
-
-        val response = VisningsnavnResponse(model)
-
-        response.kladdTiltakHosArrangorTittel shouldBe
-            "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangor 1"
-    }
-
-    @Test
-    fun `NORSKOPPLAERING with empty kurstype selection shows Tiltakskode display name`() {
-        val kategoriseringValg = OpplaringKategoriseringValg(
-            valgteKategoriseringer = setOf(
-                OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                    valg = emptyMap(),
-                ),
-            ),
-            valgteSertifiseringer = emptySet(),
-        )
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            ),
-            navn = "FOV kurs",
-        ).copy(opplaringKategoriseringValg = kategoriseringValg)
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangor 1"
-    }
-
-    @Test
-    fun `draft title shows course arrangement name for multi-participant measures in KLADD status`() {
-        val deltakerlisteNavn = "AMO liste med spesiell profil"
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
-            status = GjennomforingStatusType.KLADD,
-            navn = deltakerlisteNavn,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Arbeidsmarkedsopplæring hos Arrangor 1"
-        response.kladdTiltakHosArrangorTittel shouldBe "$deltakerlisteNavn hos Arrangor 1"
-    }
-
-    @Test
-    fun `ingress shows course arrangement name for multi-participant measures regardless of status`() {
-        val deltakerlisteNavn = "Spesialisert opplæring"
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.STUDIESPESIALISERING),
-            status = GjennomforingStatusType.KLADD,
-            navn = deltakerlisteNavn,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        // Ingress should use course arrangement name even in KLADD status
-        response.tiltakHosArrangorIngressTekst shouldBe "$deltakerlisteNavn hos Arrangor 1"
-    }
-
-    @Test
-    fun `falls back to unknown organizer when arrangor is null for multi-participant measures`() {
-        val deltakerlisteNavn = "Arbeidsmarkedsopplæring"
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
-            arrangor = null,
-            navn = deltakerlisteNavn,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Arbeidsmarkedsopplæring hos Ukjent arrangør"
-        response.tiltakHosArrangorIngressTekst shouldBe "$deltakerlisteNavn hos Ukjent arrangør"
-        response.kladdTiltakHosArrangorTittel shouldBe "$deltakerlisteNavn hos Ukjent arrangør"
-    }
-
-    @Test
-    fun `falls back to unknown organizer when arrangor is null for Norwegian course with selected kurstype`() {
-        val kursnavn = "Norskferdigheter"
-        val kategoriseringValg = OpplaringKategoriseringValg(
-            valgteKategoriseringer = setOf(
-                OpplaringKategoriseringValg.ValgteFelt(
-                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                    valg = mapOf(UUID.randomUUID() to kursnavn),
-                ),
-            ),
-            valgteSertifiseringer = emptySet(),
-        )
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-            ),
-            arrangor = null,
-        ).copy(opplaringKategoriseringValg = kategoriseringValg)
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "$kursnavn hos Ukjent arrangør"
-        response.tiltakHosArrangorIngressTekst shouldBe "$kursnavn hos Ukjent arrangør"
-        response.kladdTiltakHosArrangorTittel shouldBe "$kursnavn hos Ukjent arrangør"
-    }
-
-    @Test
-    fun `falls back to unknown organizer when arrangor is null for TILRETTELAGT_ARBEID_ORDINAER`() {
-        val model = lagGjennomforingModel(
-            tiltak = tiltak.copy(tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
-            arrangor = null,
-        )
-
-        val response = VisningsnavnResponse(model)
-
-        response.tiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Ukjent arrangør"
-        response.tiltakHosArrangorIngressTekst shouldBe "Tilrettelagt arbeid i ordinær virksomhet hos Ukjent arrangør"
-        response.kladdTiltakHosArrangorTittel shouldBe "Tilrettelagt arbeid med oppfølging hos Ukjent arrangør"
     }
 }
