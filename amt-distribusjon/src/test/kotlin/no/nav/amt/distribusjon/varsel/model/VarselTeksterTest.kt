@@ -11,13 +11,11 @@ class VarselTeksterTest {
     @Test
     fun `oppgaveTekst - bruker riktig tekst, tiltaksnavn og arrangornavn`() {
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+        val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor.visningsnavn()
 
-        oppgaveTekst(hendelse) shouldBe String.format(
-            OPPGAVE_TEKST,
-            hendelse.deltaker.deltakerliste.tiltak.navn,
-            hendelse.deltaker.deltakerliste.arrangor
-                .visningsnavn(),
-        )
+        oppgaveTekst(hendelse) shouldBe
+            "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: $tiltakNavn hos $arrangorNavn. Svar på spørsmålet her."
     }
 
     @Test
@@ -30,25 +28,20 @@ class VarselTeksterTest {
                 ),
             ),
         )
+        val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor.visningsnavn()
 
-        oppgaveTekst(hendelse) shouldBe String.format(
-            OPPGAVE_TRENGER_GODKJENNING,
-            hendelse.deltaker.deltakerliste.tiltak.navn,
-            hendelse.deltaker.deltakerliste.arrangor
-                .visningsnavn(),
-        )
+        oppgaveTekst(hendelse) shouldBe
+            "Du har mottatt et utkast til søknad på arbeidsmarkedstiltaket $tiltakNavn hos $arrangorNavn. Svar på spørsmålet her."
     }
 
     @Test
     fun `beskjedTekst - bruker riktig tekst, tiltaksnavn og arrangornavn`() {
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+        val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor.visningsnavn()
 
-        beskjedTekst(hendelse) shouldBe String.format(
-            BESKJED_TEKST,
-            hendelse.deltaker.deltakerliste.tiltak.navn,
-            hendelse.deltaker.deltakerliste.arrangor
-                .visningsnavn(),
-        )
+        beskjedTekst(hendelse) shouldBe "Ny endring på arbeidsmarkedstiltaket: $tiltakNavn hos $arrangorNavn."
     }
 
     @Test
@@ -61,20 +54,12 @@ class VarselTeksterTest {
                 ),
             ),
         )
+        val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor.visningsnavn()
 
-        beskjedTekst(hendelse) shouldBe String.format(
-            SOKT_INN_TRENGER_GODKJENNING_TEKST,
-            hendelse.deltaker.deltakerliste.tiltak.navn,
-            hendelse.deltaker.deltakerliste.arrangor
-                .visningsnavn(),
-        )
+        beskjedTekst(hendelse) shouldBe "Du er søkt inn på arbeidsmarkedstiltaket $tiltakNavn hos $arrangorNavn."
 
-        beskjedTekst(hendelse) shouldBe String.format(
-            SOKT_INN_TRENGER_GODKJENNING_TEKST,
-            hendelse.deltaker.deltakerliste.tiltak.navn,
-            hendelse.deltaker.deltakerliste.arrangor
-                .visningsnavn(),
-        )
+        beskjedTekst(hendelse) shouldBe "Du er søkt inn på arbeidsmarkedstiltaket $tiltakNavn hos $arrangorNavn."
     }
 
     @Test
@@ -87,6 +72,8 @@ class VarselTeksterTest {
                 ),
             ),
         )
+        val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor.visningsnavn()
 
         val hendelse2 = Hendelsesdata.hendelse(
             HendelseTypeData.endreDeltakelsesmengde(),
@@ -96,20 +83,11 @@ class VarselTeksterTest {
                 ),
             ),
         )
+        val tiltakNavn2 = hendelse2.deltaker.deltakerliste.tiltak.navn
+        val arrangorNavn2 = hendelse2.deltaker.deltakerliste.arrangor.visningsnavn()
 
-        beskjedTekst(hendelse) shouldBe String.format(
-            BESKJED_TEKST,
-            hendelse.deltaker.deltakerliste.tiltak.navn,
-            hendelse.deltaker.deltakerliste.arrangor
-                .visningsnavn(),
-        )
-
-        beskjedTekst(hendelse2) shouldBe String.format(
-            BESKJED_TEKST,
-            hendelse.deltaker.deltakerliste.tiltak.navn,
-            hendelse.deltaker.deltakerliste.arrangor
-                .visningsnavn(),
-        )
+        beskjedTekst(hendelse) shouldBe "Ny endring på arbeidsmarkedstiltaket: $tiltakNavn hos $arrangorNavn."
+        beskjedTekst(hendelse2) shouldBe "Ny endring på arbeidsmarkedstiltaket: $tiltakNavn2 hos $arrangorNavn2."
     }
 
     @Test
@@ -122,12 +100,9 @@ class VarselTeksterTest {
                 ),
             ),
         )
+        val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor.visningsnavn()
 
-        beskjedTekst(hendelse) shouldBe String.format(
-            MELDT_PA_DIREKTE_TEKST,
-            hendelse.deltaker.deltakerliste.tiltak.navn,
-            hendelse.deltaker.deltakerliste.arrangor
-                .visningsnavn(),
-        )
+        beskjedTekst(hendelse) shouldBe "Du er meldt på arbeidsmarkedstiltaket: $tiltakNavn hos $arrangorNavn."
     }
 }
