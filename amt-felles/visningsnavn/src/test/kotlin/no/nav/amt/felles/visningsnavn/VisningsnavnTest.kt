@@ -1,8 +1,6 @@
-package no.nav.amt.deltaker.bff.commonresponse
+package no.nav.amt.felles.visningsnavn
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingModel
-import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -14,27 +12,19 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.UUID
 import java.util.stream.Stream
 
-class VisningsnavnResponseTest {
+class VisningsnavnTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("specCases")
     fun `visningsnavn følger spec for feltene denne responsen eier`(case: SpecCase) {
-        val model = lagGjennomforingModel(
+        val response = lagVisningsnavn(
             type = case.type,
-            tiltak = lagTiltakstype(
-                tiltakskode = case.tiltakskode,
-                navn = case.tiltaksnavn,
-            ),
-            navn = case.gjennomforingsnavn,
+            tiltakskode = case.tiltakskode,
+            tiltaksnavn = case.tiltaksnavn,
+            gjennomforingsnavn = case.gjennomforingsnavn,
             status = case.status,
-            arrangor = case.arrangorNavn?.let { arrangorNavn ->
-                no.nav.amt.deltaker.bff.model.ArrangorModel(
-                    navn = arrangorNavn,
-                    organisasjonsnummer = "123456789",
-                )
-            },
-        ).copy(opplaringKategoriseringValg = case.kurstype?.let(::lagKurstypeValg))
-
-        val response = VisningsnavnResponse(model)
+            arrangorNavn = case.arrangorNavn,
+            opplaringKategoriseringValg = case.kurstype?.let(::lagKurstypeValg),
+        )
 
         case.forventetTittel?.let { response.tiltakHosArrangorTittel shouldBe it }
         case.forventetIngress?.let { response.tiltakHosArrangorIngressTekst shouldBe it }
@@ -43,13 +33,13 @@ class VisningsnavnResponseTest {
 
     @Test
     fun `kurstype velges deterministisk for norskopplaering`() {
-        val model = lagGjennomforingModel(
+        val response = lagVisningsnavn(
             type = GjennomforingType.Enkeltplass,
-            tiltak = lagTiltakstype(
-                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                navn = "Norskopplæring, grunnleggende ferdigheter og FOV",
-            ),
-        ).copy(
+            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            tiltaksnavn = "Norskopplæring, grunnleggende ferdigheter og FOV",
+            gjennomforingsnavn = "Deltakerliste navn",
+            status = GjennomforingStatusType.GJENNOMFORES,
+            arrangorNavn = "Arrangor 1",
             opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -64,24 +54,20 @@ class VisningsnavnResponseTest {
             ),
         )
 
-        val response = VisningsnavnResponse(model)
-
         response.tiltakHosArrangorTittel shouldBe "Almenn norsk hos Arrangor 1"
         response.tiltakHosArrangorIngressTekst shouldBe "Almenn norsk hos Arrangor 1"
     }
 
     @Test
     fun `ukjent arrangor brukes som fallback`() {
-        val model = lagGjennomforingModel(
-            tiltak = lagTiltakstype(
-                tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                navn = "Arbeidsforberedende trening",
-            ),
-            navn = "Deltakerliste navn",
-            arrangor = null,
+        val response = lagVisningsnavn(
+            type = GjennomforingType.Gruppe,
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            tiltaksnavn = "Arbeidsforberedende trening",
+            gjennomforingsnavn = "Deltakerliste navn",
+            status = GjennomforingStatusType.GJENNOMFORES,
+            arrangorNavn = null,
         )
-
-        val response = VisningsnavnResponse(model)
 
         response.tiltakHosArrangorTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
         response.tiltakHosArrangorIngressTekst shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
