@@ -3,10 +3,12 @@ package no.nav.amt.felles.visningsnavn
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 data class TiltakVisningsnavn(
     val tittel: String,
+    val aktivitetskortTittel: String,
     val ingressTekst: String,
     val kladdTittel: String,
 )
@@ -15,11 +17,22 @@ fun lagVisningsnavn(
     tiltakskode: Tiltakskode,
     tiltaksnavn: String,
     gjennomforingsnavn: String,
+    gjennomforingType: GjennomforingType,
     status: GjennomforingStatusType,
     arrangorNavn: String?,
     opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
 ): TiltakVisningsnavn = TiltakVisningsnavn(
     tittel = hentTittel(arrangorNavn, hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)),
+    aktivitetskortTittel = hentTittel(
+        arrangorNavn,
+        hentAktivitetskortTittelTekst(
+            tiltakskode = tiltakskode,
+            tiltaksnavn = tiltaksnavn,
+            gjennomforingsnavn = gjennomforingsnavn,
+            gjennomforingType = gjennomforingType,
+            opplaringKategoriseringValg = opplaringKategoriseringValg,
+        ),
+    ),
     ingressTekst = hentIngressTekst(
         tiltakskode = tiltakskode,
         tiltaksnavn = tiltaksnavn,
@@ -102,6 +115,20 @@ private fun hentKladdTittel(
     return hentTittel(arrangorNavn, tekst)
 }
 
+private fun hentAktivitetskortTittelTekst(
+    tiltakskode: Tiltakskode,
+    tiltaksnavn: String,
+    gjennomforingsnavn: String,
+    gjennomforingType: GjennomforingType,
+    opplaringKategoriseringValg: OpplaringKategoriseringValg?,
+): String {
+    if (skalBrukeDeltakerlisteNavnIaktivitetskort(tiltakskode, gjennomforingType)) {
+        return gjennomforingsnavn
+    }
+
+    return hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)
+}
+
 private fun hentTittel(
     arrangorNavn: String?,
     tekst: String,
@@ -165,6 +192,23 @@ private fun skalBrukeDeltakerlisteNavn(tiltakskode: Tiltakskode): Boolean = when
     Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
     Tiltakskode.HOYERE_UTDANNING,
     -> true
+
+    else -> false
+}
+
+private fun skalBrukeDeltakerlisteNavnIaktivitetskort(
+    tiltakskode: Tiltakskode,
+    gjennomforingType: GjennomforingType,
+): Boolean = when (tiltakskode) {
+    Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+    Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+    -> true
+
+    Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+    Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+    Tiltakskode.STUDIESPESIALISERING,
+    Tiltakskode.FAG_OG_YRKESOPPLAERING,
+    -> gjennomforingType == GjennomforingType.Gruppe
 
     else -> false
 }

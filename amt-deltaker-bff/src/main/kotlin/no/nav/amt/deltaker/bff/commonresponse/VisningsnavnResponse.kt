@@ -6,6 +6,7 @@ import no.nav.amt.felles.visningsnavn.lagVisningsnavn
 
 data class VisningsnavnResponse(
     val tiltakHosArrangorTittel: String,
+    val aktivitetskortTittel: String,
     val tiltakHosArrangorIngressTekst: String,
     val kladdTiltakHosArrangorTittel: String,
 ) {
@@ -15,6 +16,7 @@ data class VisningsnavnResponse(
                 tiltakskode = gjennomforing.tiltak.tiltakskode,
                 tiltaksnavn = gjennomforing.tiltak.navn,
                 gjennomforingsnavn = gjennomforing.navn,
+                gjennomforingType = gjennomforing.type,
                 status = gjennomforing.status,
                 arrangorNavn = gjennomforing.arrangor?.navn,
                 opplaringKategoriseringValg = gjennomforing.opplaringKategoriseringValg,
@@ -23,6 +25,7 @@ data class VisningsnavnResponse(
 
         private fun fraVisningsnavn(visningsnavn: TiltakVisningsnavn) = VisningsnavnResponse(
             tiltakHosArrangorTittel = visningsnavn.tittel,
+            aktivitetskortTittel = visningsnavn.aktivitetskortTittel,
             tiltakHosArrangorIngressTekst = visningsnavn.ingressTekst,
             kladdTiltakHosArrangorTittel = visningsnavn.kladdTittel,
         )

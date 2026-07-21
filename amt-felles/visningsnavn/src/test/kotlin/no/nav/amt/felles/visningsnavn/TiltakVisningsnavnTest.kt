@@ -20,12 +20,14 @@ class TiltakVisningsnavnTest {
             tiltakskode = case.tiltakskode,
             tiltaksnavn = case.tiltaksnavn,
             gjennomforingsnavn = case.gjennomforingsnavn,
+            gjennomforingType = case.type,
             status = case.status,
             arrangorNavn = case.arrangorNavn,
             opplaringKategoriseringValg = case.kurstype?.let(::lagKurstypeValg),
         )
 
         case.forventetTittel?.let { response.tittel shouldBe it }
+        case.forventetAktivitetskortTittel?.let { response.aktivitetskortTittel shouldBe it }
         case.forventetIngress?.let { response.ingressTekst shouldBe it }
         case.forventetKladd?.let { response.kladdTittel shouldBe it }
     }
@@ -36,6 +38,7 @@ class TiltakVisningsnavnTest {
             tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
             tiltaksnavn = "Norskopplæring, grunnleggende ferdigheter og FOV",
             gjennomforingsnavn = "Deltakerliste navn",
+            gjennomforingType = GjennomforingType.Enkeltplass,
             status = GjennomforingStatusType.GJENNOMFORES,
             arrangorNavn = "Arrangor 1",
             opplaringKategoriseringValg = OpplaringKategoriseringValg(
@@ -53,6 +56,7 @@ class TiltakVisningsnavnTest {
         )
 
         response.tittel shouldBe "Almenn norsk hos Arrangor 1"
+        response.aktivitetskortTittel shouldBe "Almenn norsk hos Arrangor 1"
         response.ingressTekst shouldBe "Almenn norsk hos Arrangor 1"
     }
 
@@ -62,11 +66,13 @@ class TiltakVisningsnavnTest {
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             tiltaksnavn = "Arbeidsforberedende trening",
             gjennomforingsnavn = "Deltakerliste navn",
+            gjennomforingType = GjennomforingType.Gruppe,
             status = GjennomforingStatusType.GJENNOMFORES,
             arrangorNavn = null,
         )
 
         response.tittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
+        response.aktivitetskortTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
         response.ingressTekst shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
         response.kladdTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
     }
@@ -81,6 +87,7 @@ class TiltakVisningsnavnTest {
         val arrangorNavn: String?,
         val kurstype: String? = null,
         val forventetTittel: String?,
+        val forventetAktivitetskortTittel: String? = forventetTittel,
         val forventetIngress: String?,
         val forventetKladd: String?,
     ) {
@@ -181,6 +188,7 @@ class TiltakVisningsnavnTest {
                 gjennomforingsnavn = "AMO gruppe 1",
                 arrangorNavn = "Arrangør navn",
                 forventetTittel = "Arbeidsmarkedsopplæring (gruppe) hos Arrangør navn",
+                forventetAktivitetskortTittel = "AMO gruppe 1 hos Arrangør navn",
                 forventetIngress = "AMO gruppe 1 hos Arrangør navn",
                 forventetKladd = "AMO gruppe 1 hos Arrangør navn",
             ),
@@ -191,6 +199,7 @@ class TiltakVisningsnavnTest {
                 gjennomforingsnavn = "Faggruppe 1",
                 arrangorNavn = "Arrangør navn",
                 forventetTittel = "Fag- og yrkesopplæring (gruppe) hos Arrangør navn",
+                forventetAktivitetskortTittel = "Faggruppe 1 hos Arrangør navn",
                 forventetIngress = "Faggruppe 1 hos Arrangør navn",
                 forventetKladd = "Faggruppe 1 hos Arrangør navn",
             ),
@@ -222,6 +231,7 @@ class TiltakVisningsnavnTest {
                 gjennomforingsnavn = "AMO liste",
                 arrangorNavn = "Arrangør navn",
                 forventetTittel = "Arbeidsmarkedsopplæring (AMO) hos Arrangør navn",
+                forventetAktivitetskortTittel = "AMO liste hos Arrangør navn",
                 forventetIngress = "AMO liste hos Arrangør navn",
                 forventetKladd = "AMO liste hos Arrangør navn",
             ),
@@ -244,6 +254,7 @@ class TiltakVisningsnavnTest {
                 gjennomforingsnavn = "Norskkurs kull 1",
                 arrangorNavn = "Arrangør navn",
                 forventetTittel = "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangør navn",
+                forventetAktivitetskortTittel = "Norskkurs kull 1 hos Arrangør navn",
                 forventetIngress = "Norskkurs kull 1 hos Arrangør navn",
                 forventetKladd = "Norskkurs kull 1 hos Arrangør navn",
             ),
@@ -268,6 +279,7 @@ class TiltakVisningsnavnTest {
                 gjennomforingsnavn = "Studiespes kull 1",
                 arrangorNavn = "Arrangør navn",
                 forventetTittel = "Studiespesialisering hos Arrangør navn",
+                forventetAktivitetskortTittel = "Studiespes kull 1 hos Arrangør navn",
                 forventetIngress = "Studiespes kull 1 hos Arrangør navn",
                 forventetKladd = "Studiespes kull 1 hos Arrangør navn",
             ),
@@ -290,6 +302,7 @@ class TiltakVisningsnavnTest {
                 gjennomforingsnavn = "Fagutdanning kull 1",
                 arrangorNavn = "Arrangør navn",
                 forventetTittel = "Fag- og yrkesopplæring hos Arrangør navn",
+                forventetAktivitetskortTittel = "Fagutdanning kull 1 hos Arrangør navn",
                 forventetIngress = "Fagutdanning kull 1 hos Arrangør navn",
                 forventetKladd = "Fagutdanning kull 1 hos Arrangør navn",
             ),
