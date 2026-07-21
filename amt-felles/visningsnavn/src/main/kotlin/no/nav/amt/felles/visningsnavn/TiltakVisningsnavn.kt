@@ -40,7 +40,7 @@ fun lagVisningsnavn(
     ),
 )
 
-fun visningsnavn(tiltakskode: Tiltakskode) = when (tiltakskode) {
+fun Tiltakskode.visningsnavn() = when (this) {
     Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> "Arbeidsforberedende trening"
     Tiltakskode.ARBEIDSRETTET_REHABILITERING -> "Arbeidsrettet rehabilitering"
     Tiltakskode.AVKLARING -> "Avklaring"
@@ -81,7 +81,7 @@ private fun hentIngressTekst(
         return hentTittel(arrangorNavn, gjennomforingsnavn)
     }
 
-    return hentTittel(arrangorNavn, visningsnavn(tiltakskode))
+    return hentTittel(arrangorNavn, tiltakskode.visningsnavn())
 }
 
 private fun hentKladdTittel(
@@ -156,7 +156,7 @@ private fun hentVisningsnavnFraTiltakskode(tiltakskode: Tiltakskode): String =
     if (tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
         "Tilrettelagt arbeid med oppfølging"
     } else {
-        visningsnavn(tiltakskode)
+        tiltakskode.visningsnavn()
     }
 
 private fun skalBrukeDeltakerlisteNavn(tiltakskode: Tiltakskode): Boolean = when (tiltakskode) {
