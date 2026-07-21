@@ -58,8 +58,6 @@ spec:
         - application: amt-tiltakskoordinator-flate
         - application: tiltaksadministrasjon-flate
           namespace: team-mulighetsrommet
-        - application: mr-admin-flate
-          namespace: team-mulighetsrommet
         - application: veilarbpersonflate
           namespace: poao
         - application: tiltakspenger-tiltak
