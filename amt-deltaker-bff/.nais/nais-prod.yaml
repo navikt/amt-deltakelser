@@ -59,6 +59,8 @@ spec:
         - application: amt-deltaker-innbyggers-flate
         - application: veilarbpersonflate
           namespace: poao
+        - application: tiltaksadministrasjon-flate
+          namespace: team-mulighetsrommet
         - application: mr-admin-flate
           namespace: team-mulighetsrommet
     outbound:
@@ -67,8 +69,6 @@ spec:
         - application: amt-person-service
         - application: amt-deltaker
         - application: amt-distribusjon
-        - application: mr-admin-flate
-          namespace: team-mulighetsrommet
         - application: poao-tilgang
           namespace: poao
         - application: mulighetsrommet-api

@@ -56,6 +56,8 @@ spec:
         - application: amt-deltaker-flate
         - application: amt-deltaker-innbyggers-flate
         - application: amt-tiltakskoordinator-flate
+        - application: tiltaksadministrasjon-flate
+          namespace: team-mulighetsrommet
         - application: mr-admin-flate
           namespace: team-mulighetsrommet
         - application: veilarbpersonflate
