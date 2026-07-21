@@ -6,7 +6,6 @@ import no.nav.amt.felles.visningsnavn.lagVisningsnavn
 
 data class VisningsnavnResponse(
     val tiltakHosArrangorTittel: String,
-    val aktivitetskortTittel: String,
     val tiltakHosArrangorIngressTekst: String,
     val kladdTiltakHosArrangorTittel: String,
 ) {
@@ -25,7 +24,6 @@ data class VisningsnavnResponse(
 
         private fun fraVisningsnavn(visningsnavn: TiltakVisningsnavn) = VisningsnavnResponse(
             tiltakHosArrangorTittel = visningsnavn.tittel,
-            aktivitetskortTittel = visningsnavn.aktivitetskortTittel,
             tiltakHosArrangorIngressTekst = visningsnavn.ingressTekst,
             kladdTiltakHosArrangorTittel = visningsnavn.kladdTittel,
         )

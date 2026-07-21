@@ -74,7 +74,7 @@ fun lagAktivitetskortTittel(
     opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
 ): String = lagAktivitetskortTittel(
     tiltakskode = tiltakskode,
-    tiltaksnavn = tiltaksnavnForAktivitetskort(tiltakskode, tiltaksnavn, gjennomforingsnavn),
+    tiltaksnavn = tiltaksnavn,
     gjennomforingsnavn = gjennomforingsnavn,
     gjennomforingType = gjennomforingTypeForAktivitetskort(tiltakskode),
     arrangorNavn = arrangorNavn,
@@ -242,15 +242,6 @@ private fun skalBrukeDeltakerlisteNavnIaktivitetskort(
     -> gjennomforingType == GjennomforingType.Gruppe
 
     else -> false
-}
-
-private fun tiltaksnavnForAktivitetskort(
-    tiltakskode: Tiltakskode,
-    tiltaksnavn: String,
-    gjennomforingsnavn: String,
-): String = when (tiltakskode) {
-    Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING -> gjennomforingsnavn
-    else -> tiltaksnavn
 }
 
 private fun gjennomforingTypeForAktivitetskort(tiltakskode: Tiltakskode): GjennomforingType =
