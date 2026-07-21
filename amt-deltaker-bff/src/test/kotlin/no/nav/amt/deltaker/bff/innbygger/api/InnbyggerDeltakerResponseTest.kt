@@ -120,7 +120,6 @@ class InnbyggerDeltakerResponseTest {
         result.deltakerliste.deltakerlisteId shouldBe gjennomforing.id
         result.deltakerliste.deltakerlisteNavn shouldBe gjennomforing.navn
         result.deltakerliste.tiltakskode shouldBe TiltakskodeResponse(gjennomforing.tiltakstype.tiltakskode)
-        result.deltakerliste.tiltakskodeResponse.kode shouldBe gjennomforing.tiltakstype.tiltakskode
         result.deltakerliste.oppstartstype shouldBe gjennomforing.oppstart
         result.deltakerliste.startdato shouldBe gjennomforing.startDato
         result.deltakerliste.sluttdato shouldBe gjennomforing.sluttDato

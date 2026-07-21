@@ -267,6 +267,31 @@ class VisningsnavnResponseTest {
     }
 
     @Test
+    fun `draft title ignores selected kurstype for Norwegian course in KLADD status`() {
+        val kursnavn = "Grunnleggende norsk"
+        val kategoriseringValg = OpplaringKategoriseringValg(
+            valgteKategoriseringer = setOf(
+                OpplaringKategoriseringValg.ValgteFelt(
+                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
+                    valg = mapOf(UUID.randomUUID() to kursnavn),
+                ),
+            ),
+            valgteSertifiseringer = emptySet(),
+        )
+        val model = lagGjennomforingModel(
+            tiltak = tiltak.copy(
+                tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            ),
+            status = GjennomforingStatusType.KLADD,
+        ).copy(opplaringKategoriseringValg = kategoriseringValg)
+
+        val response = VisningsnavnResponse(model)
+
+        response.kladdTiltakHosArrangorTittel shouldBe
+            "Norskopplæring, grunnleggende ferdigheter og FOV hos Arrangor 1"
+    }
+
+    @Test
     fun `NORSKOPPLAERING with empty kurstype selection shows Tiltakskode display name`() {
         val kategoriseringValg = OpplaringKategoriseringValg(
             valgteKategoriseringer = setOf(
