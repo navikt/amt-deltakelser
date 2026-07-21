@@ -24,47 +24,50 @@ fun lagHovedvedtakPdfDto(
     veileder: HendelseAnsvarlig.NavVeileder,
     vedtaksdato: LocalDate,
     begrunnelseFraNav: String?,
-) = HovedvedtakPdfDto(
-    deltaker = HovedvedtakPdfDto.DeltakerDto(
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        personident = deltaker.personident,
-        innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
-        bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
-        deltakelsesmengdeTekst = if (deltaker.deltakerliste.tiltak.tiltakskode in tiltakMedDeltakelsesmengder) {
-            utkast.deltakelsesprosent?.let {
-                deltakelsesmengdeTekst(
-                    deltakelsesprosent = it.toInt(),
-                    dagerPerUke = utkast.dagerPerUke?.toInt(),
-                    erEnkeltplass = deltaker.deltakerliste.erEnkeltplass,
-                )
-            }
-        } else {
-            null
-        },
-        adresseDelesMedArrangor = adresseDelesMedArrangor(deltaker, navBruker),
-    ),
-    deltakerliste = HovedvedtakPdfDto.DeltakerlisteDto(
-        navn = deltaker.deltakerliste.visningsnavn().tittel,
-        tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-        ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fases ut for innholdV2
-        arrangor = HovedvedtakPdfDto.ArrangorDto(
-            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
+): HovedvedtakPdfDto {
+    val visningsnavn = deltaker.deltakerliste.visningsnavn()
+    return HovedvedtakPdfDto(
+        deltaker = HovedvedtakPdfDto.DeltakerDto(
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            personident = deltaker.personident,
+            innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
+            bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
+            deltakelsesmengdeTekst = if (deltaker.deltakerliste.tiltak.tiltakskode in tiltakMedDeltakelsesmengder) {
+                utkast.deltakelsesprosent?.let {
+                    deltakelsesmengdeTekst(
+                        deltakelsesprosent = it.toInt(),
+                        dagerPerUke = utkast.dagerPerUke?.toInt(),
+                        erEnkeltplass = deltaker.deltakerliste.erEnkeltplass,
+                    )
+                }
+            } else {
+                null
+            },
+            adresseDelesMedArrangor = adresseDelesMedArrangor(deltaker, navBruker),
         ),
-        forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
-        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-    ),
-    avsender = HovedvedtakPdfDto.AvsenderDto(
-        navn = veileder.navn,
-        enhet = navBruker.navEnhet?.navn ?: "NAV",
-    ),
-    vedtaksdato = vedtaksdato,
-    begrunnelseFraNav = begrunnelseFraNav,
-    sidetittel = deltaker.deltakerliste.visningsnavn().tittel,
-    ingressnavn = deltaker.deltakerliste.visningsnavn().ingressTekst,
-    opprettetDato = vedtaksdato,
-)
+        deltakerliste = HovedvedtakPdfDto.DeltakerlisteDto(
+            navn = visningsnavn.tittel,
+            tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+            ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fases ut for innholdV2
+            arrangor = HovedvedtakPdfDto.ArrangorDto(
+                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
+            ),
+            forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
+            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+        ),
+        avsender = HovedvedtakPdfDto.AvsenderDto(
+            navn = veileder.navn,
+            enhet = navBruker.navEnhet?.navn ?: "NAV",
+        ),
+        vedtaksdato = vedtaksdato,
+        begrunnelseFraNav = begrunnelseFraNav,
+        sidetittel = visningsnavn.tittel,
+        ingressnavn = visningsnavn.ingressTekst,
+        opprettetDato = vedtaksdato,
+    )
+}
 
 fun lagHovedopptakForTildeltPlass(
     deltaker: HendelseDeltaker,
