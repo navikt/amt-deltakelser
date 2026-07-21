@@ -7,7 +7,7 @@ UPDATE enkeltplass_prisinformasjon
 SET status = CASE WHEN okonomi_godkjent = TRUE THEN 'GODKJENT' ELSE 'TIL_BEHANDLING' END;
 
 -- Mellomlagringstabell: kobler deltakerliste til current/pending prisinfo
-CREATE TABLE IF NOT EXISTS deltakerliste_2_prisinformasjon
+CREATE TABLE deltakerliste_2_prisinformasjon
 (
     deltakerliste_id   UUID                     NOT NULL REFERENCES deltakerliste (id) ON DELETE CASCADE,
     prisinformasjon_id UUID                     NOT NULL REFERENCES enkeltplass_prisinformasjon (id) ON DELETE CASCADE,
