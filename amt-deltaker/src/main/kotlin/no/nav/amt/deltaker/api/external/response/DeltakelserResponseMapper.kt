@@ -7,7 +7,7 @@ import no.nav.amt.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
-import no.nav.amt.felles.visningsnavn.lagTittel
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
@@ -97,7 +97,7 @@ class DeltakelserResponseMapper(
             }
             ?: "Ukjent arrangør"
 
-        return lagTittel(
+        return TiltakVisningsnavn.lagTittel(
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
             tiltaksnavn = deltaker.deltakerliste.tiltakstype.navn,
             arrangorNavn = arrangorNavn,

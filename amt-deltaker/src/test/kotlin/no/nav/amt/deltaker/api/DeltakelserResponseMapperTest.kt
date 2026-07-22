@@ -21,6 +21,8 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class DeltakelserResponseMapperTest {
     private val navEnhet = TestData.lagNavEnhet()
@@ -193,6 +196,99 @@ class DeltakelserResponseMapperTest {
             sistEndretDato shouldBe null
             periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
         }
+    }
+
+    @Test
+    fun `toDeltakelserResponse - jobbklubb - bruker jobbsoekerkurs i tittel`() {
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
+                    tiltakskode = Tiltakskode.JOBBKLUBB,
+                    navn = "Jobbklubb",
+                ),
+            ),
+            status = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
+        val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
+        TestRepository.insert(deltaker)
+        TestRepository.insert(vedtak)
+
+        val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
+
+        deltakelserResponse.aktive.first().tittel shouldBe "Jobbsøkerkurs hos Arrangør"
+    }
+
+    @Test
+    fun `toDeltakelserResponse - tao - bruker tilrettelagt arbeid med oppfolging i tittel`() {
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
+                    tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
+                    navn = "Tilrettelagt arbeid i ordinær virksomhet",
+                ),
+            ),
+            status = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
+        val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
+        TestRepository.insert(deltaker)
+        TestRepository.insert(vedtak)
+
+        val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
+
+        deltakelserResponse.aktive.first().tittel shouldBe "Tilrettelagt arbeid med oppfølging hos Arrangør"
+    }
+
+    @Test
+    fun `toDeltakelserResponse - norskopplaering med kurstype - bruker kurstype i tittel`() {
+        val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+            deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype(
+                    tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                    navn = "Norskopplæring, grunnleggende ferdigheter og FOV",
+                ),
+                opplaringKategorisering = OpplaringKategoriseringValg(
+                    valgteKategoriseringer = setOf(
+                        OpplaringKategoriseringValg.ValgteFelt(
+                            representerer = OpplaringKategoriseringType.KURSTYPE_ID,
+                            valg = mapOf(
+                                UUID.randomUUID() to "Yrkesnorsk",
+                                UUID.randomUUID() to "Almenn norsk",
+                            ),
+                        ),
+                    ),
+                    valgteSertifiseringer = emptySet(),
+                ),
+            ),
+            status = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
+        val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
+        TestRepository.insert(deltaker)
+        TestRepository.insert(vedtak)
+
+        val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
+
+        deltakelserResponse.aktive.first().tittel shouldBe "Almenn norsk hos Arrangør"
     }
 
     @Test

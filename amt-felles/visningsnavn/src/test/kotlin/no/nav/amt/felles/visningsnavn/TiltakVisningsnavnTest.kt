@@ -16,7 +16,7 @@ class TiltakVisningsnavnTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("specCases")
     fun `visningsnavn følger spec`(case: SpecCase) {
-        val response = lagVisningsnavn(
+        val response = TiltakVisningsnavn.lagVisningsnavn(
             tiltakskode = case.tiltakskode,
             tiltaksnavn = case.tiltaksnavn,
             gjennomforingsnavn = case.gjennomforingsnavn,
@@ -34,7 +34,7 @@ class TiltakVisningsnavnTest {
 
     @Test
     fun `kurstype velges deterministisk for norskopplæring`() {
-        val response = lagVisningsnavn(
+        val response = TiltakVisningsnavn.lagVisningsnavn(
             tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
             tiltaksnavn = "Norskopplæring, grunnleggende ferdigheter og FOV",
             gjennomforingsnavn = "Deltakerliste navn",
@@ -62,7 +62,7 @@ class TiltakVisningsnavnTest {
 
     @Test
     fun `'Ukjent arrangør' brukes som fallback`() {
-        val response = lagVisningsnavn(
+        val response = TiltakVisningsnavn.lagVisningsnavn(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             tiltaksnavn = "Arbeidsforberedende trening",
             gjennomforingsnavn = "Deltakerliste navn",
