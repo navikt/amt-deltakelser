@@ -45,11 +45,14 @@ class GjennomforingConsumer(
     suspend fun consume(
         key: UUID,
         value: String?,
-    ) = if (value == null) {
-        if (key !in deltakerlisteTombstoneBlacklist) deltakerlisteRepository.delete(key)
-        else Unit
-    } else {
-        handterDeltakerliste(objectMapper.readValue(value))
+    ) {
+        if (value == null) {
+            if (key !in deltakerlisteTombstoneBlacklist) {
+                deltakerlisteRepository.delete(key)
+            }
+        } else {
+            handterDeltakerliste(objectMapper.readValue(value))
+        }
     }
 
     private suspend fun handterDeltakerliste(gjennomforingPayload: GjennomforingV2KafkaPayload) {
@@ -135,9 +138,9 @@ class GjennomforingConsumer(
      */
     internal fun publiserEnkeltplassDeltaker(gjennomforing: Deltakerliste) {
         if (!(
-                    gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass &&
-                            gjennomforing.status == GjennomforingStatusType.KLADD
-                    )
+                gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass &&
+                    gjennomforing.status == GjennomforingStatusType.KLADD
+            )
         ) {
             return
         }

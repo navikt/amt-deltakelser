@@ -42,8 +42,9 @@ class GjennomforingConsumer(
         value: String?,
     ) {
         if (value == null) {
-            if (key !in deltakerlisteTombstoneBlacklist) deltakerlisteRepository.delete(key)
-            else Unit
+            if (key !in deltakerlisteTombstoneBlacklist) {
+                deltakerlisteRepository.delete(key)
+            }
         } else {
             handterDeltakerliste(objectMapper.readValue(value))
         }
