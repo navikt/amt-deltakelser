@@ -36,6 +36,7 @@ jobs:
           filters: |
             amt-aktivitetskort-publisher:
               - amt-aktivitetskort-publisher/**
+              - amt-felles/**
               - amt-lib/**
               - gradle/libs.versions.toml
               - buildSrc/**
