@@ -20,7 +20,7 @@ class KafkaConsumer(
     private val objectMapper: ObjectMapper,
 ) {
     @KafkaListener(
-        topics = [DELTAKER_TOPIC, ARRANGOR_TOPIC, TILTAKSTYPE_TOPIC, FEIL_TOPIC],
+        topics = [DELTAKER_TOPIC, ARRANGOR_TOPIC, TILTAKSTYPE_TOPIC, DELTAKERLISTE_V2_TOPIC, FEIL_TOPIC],
         containerFactory = "kafkaListenerContainerFactory",
     )
     fun listen(
@@ -41,6 +41,13 @@ class KafkaConsumer(
                     .let { tiltakstypeRepository.upsert(it.toModel()) }
             }
 
+            DELTAKERLISTE_V2_TOPIC -> {
+                kafkaConsumerService.deltakerlisteHendelse(
+                    id = UUID.fromString(record.key()),
+                    value = record.value(),
+                )
+            }
+
             DELTAKER_TOPIC -> {
                 kafkaConsumerService.deltakerHendelse(
                     id = UUID.fromString(record.key()),
@@ -56,22 +63,6 @@ class KafkaConsumer(
                 )
             }
         }
-
-        ack.acknowledge()
-    }
-
-    @KafkaListener(
-        topics = [DELTAKERLISTE_V2_TOPIC],
-        containerFactory = "kafkaListenerContainerFactory",
-    )
-    fun listen2(
-        record: ConsumerRecord<String, String>,
-        ack: Acknowledgment,
-    ) {
-        kafkaConsumerService.deltakerlisteHendelse(
-            id = UUID.fromString(record.key()),
-            value = record.value(),
-        )
 
         ack.acknowledge()
     }
