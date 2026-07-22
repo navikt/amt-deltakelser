@@ -24,47 +24,50 @@ fun lagHovedvedtakPdfDto(
     veileder: HendelseAnsvarlig.NavVeileder,
     vedtaksdato: LocalDate,
     begrunnelseFraNav: String?,
-) = HovedvedtakPdfDto(
-    deltaker = HovedvedtakPdfDto.DeltakerDto(
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        personident = deltaker.personident,
-        innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
-        bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
-        deltakelsesmengdeTekst = if (deltaker.deltakerliste.tiltak.tiltakskode in tiltakMedDeltakelsesmengder) {
-            utkast.deltakelsesprosent?.let {
-                deltakelsesmengdeTekst(
-                    deltakelsesprosent = it.toInt(),
-                    dagerPerUke = utkast.dagerPerUke?.toInt(),
-                    erEnkeltplass = deltaker.deltakerliste.erEnkeltplass,
-                )
-            }
-        } else {
-            null
-        },
-        adresseDelesMedArrangor = adresseDelesMedArrangor(deltaker, navBruker),
-    ),
-    deltakerliste = HovedvedtakPdfDto.DeltakerlisteDto(
-        navn = deltaker.deltakerliste.tittelVisningsnavn(),
-        tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-        ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fases ut for innholdV2
-        arrangor = HovedvedtakPdfDto.ArrangorDto(
-            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
+): HovedvedtakPdfDto {
+    val visningsnavn = deltaker.deltakerliste.visningsnavn()
+    return HovedvedtakPdfDto(
+        deltaker = HovedvedtakPdfDto.DeltakerDto(
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            personident = deltaker.personident,
+            innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
+            bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
+            deltakelsesmengdeTekst = if (deltaker.deltakerliste.tiltak.tiltakskode in tiltakMedDeltakelsesmengder) {
+                utkast.deltakelsesprosent?.let {
+                    deltakelsesmengdeTekst(
+                        deltakelsesprosent = it.toInt(),
+                        dagerPerUke = utkast.dagerPerUke?.toInt(),
+                        erEnkeltplass = deltaker.deltakerliste.erEnkeltplass,
+                    )
+                }
+            } else {
+                null
+            },
+            adresseDelesMedArrangor = adresseDelesMedArrangor(deltaker, navBruker),
         ),
-        forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
-        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-    ),
-    avsender = HovedvedtakPdfDto.AvsenderDto(
-        navn = veileder.navn,
-        enhet = navBruker.navEnhet?.navn ?: "NAV",
-    ),
-    vedtaksdato = vedtaksdato,
-    begrunnelseFraNav = begrunnelseFraNav,
-    sidetittel = deltaker.deltakerliste.tittelVisningsnavn(),
-    ingressnavn = deltaker.deltakerliste.ingressVisningsnavn(),
-    opprettetDato = vedtaksdato,
-)
+        deltakerliste = HovedvedtakPdfDto.DeltakerlisteDto(
+            navn = visningsnavn.tittel,
+            tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+            ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fases ut for innholdV2
+            arrangor = HovedvedtakPdfDto.ArrangorDto(
+                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
+            ),
+            forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
+            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+        ),
+        avsender = HovedvedtakPdfDto.AvsenderDto(
+            navn = veileder.navn,
+            enhet = navBruker.navEnhet?.navn ?: "NAV",
+        ),
+        vedtaksdato = vedtaksdato,
+        begrunnelseFraNav = begrunnelseFraNav,
+        sidetittel = visningsnavn.tittel,
+        ingressnavn = visningsnavn.ingressTekst,
+        opprettetDato = vedtaksdato,
+    )
+}
 
 fun lagHovedopptakForTildeltPlass(
     deltaker: HendelseDeltaker,
@@ -72,36 +75,39 @@ fun lagHovedopptakForTildeltPlass(
     ansvarlig: HendelseAnsvarlig.NavTiltakskoordinator,
     opprettetDato: LocalDate,
     deltakelseInnhold: Deltakelsesinnhold?,
-) = HovedvedtakVedTildeltPlassPdfDto(
-    deltaker = HovedvedtakVedTildeltPlassPdfDto.DeltakerDto(
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        personident = deltaker.personident,
-        innhold = deltakelseInnhold?.innhold?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
-    ),
-    deltakerliste = HovedvedtakVedTildeltPlassPdfDto.DeltakerlisteDto(
-        tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-        ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fjernes
-        tittelNavn = deltaker.deltakerliste.tittelVisningsnavn(),
-        ingressNavn = deltaker.deltakerliste.ingressVisningsnavn(),
-        startdato = deltaker.deltakerliste.startdato,
-        sluttdato = deltaker.deltakerliste.sluttdato,
-        forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
-        harKursetStartet = deltaker.deltakerliste.startdato?.isBefore(LocalDate.now()) == true,
-        arrangor = ArrangorDto(
-            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
+): HovedvedtakVedTildeltPlassPdfDto {
+    val visningsnavn = deltaker.deltakerliste.visningsnavn()
+    return HovedvedtakVedTildeltPlassPdfDto(
+        deltaker = HovedvedtakVedTildeltPlassPdfDto.DeltakerDto(
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            personident = deltaker.personident,
+            innhold = deltakelseInnhold?.innhold?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
         ),
-        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-        harKlagerett = deltaker.deltakerliste.harKlagerett(),
-        oppstartstype = deltaker.deltakerliste.oppstartstype!!,
-    ),
-    avsender = HovedvedtakVedTildeltPlassPdfDto.AvsenderDto(
-        navn = ansvarlig.navn,
-        enhet = ansvarlig.enhet.navn,
-    ),
-    opprettetDato = opprettetDato,
-)
+        deltakerliste = HovedvedtakVedTildeltPlassPdfDto.DeltakerlisteDto(
+            tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+            ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fjernes
+            tittelNavn = visningsnavn.tittel,
+            ingressNavn = visningsnavn.ingressTekst,
+            startdato = deltaker.deltakerliste.startdato,
+            sluttdato = deltaker.deltakerliste.sluttdato,
+            forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
+            harKursetStartet = deltaker.deltakerliste.startdato?.isBefore(LocalDate.now()) == true,
+            arrangor = ArrangorDto(
+                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
+            ),
+            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+            harKlagerett = deltaker.deltakerliste.harKlagerett(),
+            oppstartstype = deltaker.deltakerliste.oppstartstype!!,
+        ),
+        avsender = HovedvedtakVedTildeltPlassPdfDto.AvsenderDto(
+            navn = ansvarlig.navn,
+            enhet = ansvarlig.enhet.navn,
+        ),
+        opprettetDato = opprettetDato,
+    )
+}
 
 fun lagInnsokingsbrevPdfDto(
     deltaker: HendelseDeltaker,
@@ -109,63 +115,69 @@ fun lagInnsokingsbrevPdfDto(
     veileder: HendelseAnsvarlig.NavVeileder,
     opprettetDato: LocalDate,
     utkast: UtkastDto,
-) = InnsokingsbrevPdfDto(
-    deltaker = InnsokingsbrevPdfDto.DeltakerDto(
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        personident = deltaker.personident,
-        innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
-    ),
-    deltakerliste = InnsokingsbrevPdfDto.DeltakerlisteDto(
-        navn = deltaker.deltakerliste.tittelVisningsnavn(),
-        tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
-        ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
-        arrangor = ArrangorDto(navn = deltaker.deltakerliste.arrangor.visningsnavn()),
-        startdato = deltaker.deltakerliste.startdato,
-        sluttdato = deltaker.deltakerliste.sluttdato,
-        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-        oppstartstype = deltaker.deltakerliste.oppstartstype!!,
-    ),
-    avsender = AvsenderDto(
-        navn = veileder.navn,
-        enhet = navBruker.navEnhet?.navn ?: "NAV",
-    ),
-    sidetittel = deltaker.deltakerliste.tittelVisningsnavn(),
-    ingressnavn = deltaker.deltakerliste.ingressVisningsnavn(),
-    opprettetDato = opprettetDato,
-)
+): InnsokingsbrevPdfDto {
+    val visningsnavn = deltaker.deltakerliste.visningsnavn()
+    return InnsokingsbrevPdfDto(
+        deltaker = InnsokingsbrevPdfDto.DeltakerDto(
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            personident = deltaker.personident,
+            innhold = utkast.innhold?.map { it.toInnhold() }?.toInnholdPdfDto(deltaker.deltakerliste.tiltak.ledetekst),
+        ),
+        deltakerliste = InnsokingsbrevPdfDto.DeltakerlisteDto(
+            navn = visningsnavn.tittel,
+            tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
+            ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
+            arrangor = ArrangorDto(navn = deltaker.deltakerliste.arrangor.visningsnavn()),
+            startdato = deltaker.deltakerliste.startdato,
+            sluttdato = deltaker.deltakerliste.sluttdato,
+            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+            oppstartstype = deltaker.deltakerliste.oppstartstype!!,
+        ),
+        avsender = AvsenderDto(
+            navn = veileder.navn,
+            enhet = navBruker.navEnhet?.navn ?: "NAV",
+        ),
+        sidetittel = visningsnavn.tittel,
+        ingressnavn = visningsnavn.ingressTekst,
+        opprettetDato = opprettetDato,
+    )
+}
 
 fun lagVentelistebrevPdfDto(
     deltaker: HendelseDeltaker,
     navBruker: NavBruker,
     endretAv: HendelseAnsvarlig.NavTiltakskoordinator,
     hendelseOpprettetDato: LocalDate,
-) = VentelistebrevPdfDto(
-    deltaker = VentelistebrevPdfDto.DeltakerDto(
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        personident = deltaker.personident,
-        opprettetDato = deltaker.opprettetDato!!,
-    ),
-    deltakerliste = VentelistebrevPdfDto.DeltakerlisteDto(
-        tittelNavn = deltaker.deltakerliste.tittelVisningsnavn(),
-        ingressNavn = deltaker.deltakerliste.ingressVisningsnavn(),
-        arrangor = ArrangorDto(
-            navn = deltaker.deltakerliste.arrangor.visningsnavn(),
+): VentelistebrevPdfDto {
+    val visningsnavn = deltaker.deltakerliste.visningsnavn()
+    return VentelistebrevPdfDto(
+        deltaker = VentelistebrevPdfDto.DeltakerDto(
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            personident = deltaker.personident,
+            opprettetDato = deltaker.opprettetDato!!,
         ),
-        startdato = deltaker.deltakerliste.startdato,
-        sluttdato = deltaker.deltakerliste.sluttdato,
-        oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
-        oppstartstype = deltaker.deltakerliste.oppstartstype!!,
-    ),
-    avsender = AvsenderDto(
-        navn = endretAv.navn,
-        enhet = endretAv.enhet.navn,
-    ),
-    opprettetDato = hendelseOpprettetDato,
-)
+        deltakerliste = VentelistebrevPdfDto.DeltakerlisteDto(
+            tittelNavn = visningsnavn.tittel,
+            ingressNavn = visningsnavn.ingressTekst,
+            arrangor = ArrangorDto(
+                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
+            ),
+            startdato = deltaker.deltakerliste.startdato,
+            sluttdato = deltaker.deltakerliste.sluttdato,
+            oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
+            oppstartstype = deltaker.deltakerliste.oppstartstype!!,
+        ),
+        avsender = AvsenderDto(
+            navn = endretAv.navn,
+            enhet = endretAv.enhet.navn,
+        ),
+        opprettetDato = hendelseOpprettetDato,
+    )
+}
 
 fun lagEndringsvedtakPdfDto(
     deltaker: HendelseDeltaker,
@@ -176,6 +188,7 @@ fun lagEndringsvedtakPdfDto(
 ): EndringsvedtakPdfDto {
     val endringer = fjernEldreHendelserAvSammeType(hendelser).map { it.payload }
 
+    val visningsnavn = deltaker.deltakerliste.visningsnavn()
     return EndringsvedtakPdfDto(
         deltaker = EndringsvedtakPdfDto.DeltakerDto(
             fornavn = navBruker.fornavn,
@@ -185,7 +198,7 @@ fun lagEndringsvedtakPdfDto(
             opprettetDato = deltaker.opprettetDato,
         ),
         deltakerliste = EndringsvedtakPdfDto.DeltakerlisteDto(
-            navn = deltaker.deltakerliste.tittelVisningsnavn(),
+            navn = visningsnavn.tittel,
             ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
             arrangor = EndringsvedtakPdfDto.ArrangorDto(
                 navn = deltaker.deltakerliste.arrangor.visningsnavn(),
@@ -211,8 +224,8 @@ fun lagEndringsvedtakPdfDto(
         ),
         vedtaksdato = opprettetDato,
         forsteVedtakFattet = deltaker.forsteVedtakFattet,
-        sidetittel = deltaker.deltakerliste.tittelVisningsnavn(),
-        ingressnavn = deltaker.deltakerliste.ingressVisningsnavn(),
+        sidetittel = visningsnavn.tittel,
+        ingressnavn = visningsnavn.ingressTekst,
         opprettetDato = opprettetDato,
     )
 }

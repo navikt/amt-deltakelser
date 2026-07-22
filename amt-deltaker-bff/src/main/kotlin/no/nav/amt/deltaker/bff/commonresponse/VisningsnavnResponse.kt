@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.commonresponse
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.felles.visningsnavn.lagVisningsnavn
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 
 data class VisningsnavnResponse(
     val tiltakHosArrangorTittel: String,
@@ -16,7 +17,7 @@ data class VisningsnavnResponse(
                 tiltaksnavn = gjennomforing.tiltak.navn,
                 gjennomforingsnavn = gjennomforing.navn,
                 gjennomforingType = gjennomforing.type,
-                status = gjennomforing.status,
+                erKladd = gjennomforing.status == GjennomforingStatusType.KLADD,
                 arrangorNavn = gjennomforing.arrangor?.navn,
                 opplaringKategoriseringValg = gjennomforing.opplaringKategoriseringValg,
             ),

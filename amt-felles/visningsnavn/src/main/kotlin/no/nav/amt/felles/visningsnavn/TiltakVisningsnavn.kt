@@ -2,7 +2,6 @@ package no.nav.amt.felles.visningsnavn
 
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
@@ -18,7 +17,7 @@ fun lagVisningsnavn(
     tiltaksnavn: String,
     gjennomforingsnavn: String,
     gjennomforingType: GjennomforingType,
-    status: GjennomforingStatusType,
+    erKladd: Boolean,
     arrangorNavn: String?,
     opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
 ): TiltakVisningsnavn = TiltakVisningsnavn(
@@ -42,7 +41,7 @@ fun lagVisningsnavn(
         tiltakskode = tiltakskode,
         tiltaksnavn = tiltaksnavn,
         gjennomforingsnavn = gjennomforingsnavn,
-        status = status,
+        erKladd = erKladd,
         arrangorNavn = arrangorNavn,
         opplaringKategoriseringValg = opplaringKategoriseringValg,
     ),
@@ -129,7 +128,7 @@ private fun hentKladdTittel(
     tiltakskode: Tiltakskode,
     tiltaksnavn: String,
     gjennomforingsnavn: String,
-    status: GjennomforingStatusType,
+    erKladd: Boolean,
     arrangorNavn: String?,
     opplaringKategoriseringValg: OpplaringKategoriseringValg?,
 ): String {
@@ -138,8 +137,8 @@ private fun hentKladdTittel(
     val tekst = when {
         kurstype == null && skalBrukeDeltakerlisteNavn(tiltakskode) -> gjennomforingsnavn
         tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET &&
-            status == GjennomforingStatusType.KLADD -> tiltaksnavn
-        status != GjennomforingStatusType.KLADD -> hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)
+            erKladd -> tiltaksnavn
+        !erKladd -> hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)
         else -> hentVisningsnavnFraTiltakskode(tiltakskode)
     }
 
