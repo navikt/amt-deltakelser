@@ -18,61 +18,44 @@ import java.util.UUID
  *
  * Ansvaret er å:
  * - Konvertere mellom `PrisinformasjonDto` og `PrisinfoDbo`
- * - Håndtere to-trinns godkjenning av prisinfo (pending → godkjent)
+ * - Håndtere to-trinns godkjenning av prisinfo (ENDRING → GJELDENDE)
  *
  * Prisinfo livssyklus:
- * 1. `lagrePrisinfo()` → lagrer som `okonomiGodkjent=false` (pending)
- * 2. `harPrisinfoSomVenterPaaOkonomiGodkjent()` → verifiserer at pending finnes
- * 3. `godkjennOkonomi()` → sletter gamle godkjente records og markerer pending som godkjent
- * 4. `hentPrisinfo()` → returnerer godkjent dersom den finnes, ellers pending
+ * 1. `lagrePrisinfoForKladdOgUtkast()` → lagrer med rolle=ENDRING og status=KLADD_UTKAST (for statuser før SOKT_INN)
+ * 2. `lagrePrisinfoEndring()` → lagrer med rolle=ENDRING og status=SENDT (for SOKT_INN og senere)
+ * 3. `godkjennOkonomi()` → sletter ENDRING-kobling, oppretter GJELDENDE-kobling og setter status=GODKJENT
+ * 4. `hentPrisinfo()` → returnerer GJELDENDE dersom den finnes, ellers ENDRING
  */
 object PrisinfoRepoAdapter {
     /**
-     * Sjekker om det finnes en ugodkjent (pending) prisinfo med gitt ID for gjennomføring.
-     *
-     * Brukes for å validere at prisinfo venter på økonomi-godkjenning før den endres.
-     *
-     * @param gjennomforingId Gjennomføring-ID
-     * @param prisinfoId Prisinfo-ID
-     * @return `true` hvis det finnes en endring for [prisinfoId], ellers `false`
-     */
-    fun harPrisinfoSomVenterPaaOkonomiGodkjent(
-        gjennomforingId: UUID,
-        prisinfoId: UUID,
-    ): Boolean = Deltakerliste2PrisinfoRepository
-        .hentPrisinformasjonId(
-            gjennomforingId = gjennomforingId,
-            rolle = PrisinfoDbo.Rolle.ENDRING,
-        ) == prisinfoId
-
-    /**
      * Godkjenner prisinfo for økonomi.
      *
-     * Operasjonen:
-     * 1. Sletter tidligere godkjent prisinfo-record for gjennomføring
-     * 2. Markerer nåværende pending-record som godkjent (`okonomiGodkjent=true`)
+     * Utfører tre steg:
+     * 1. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
+     * 2. Oppretter GJELDENDE-kobling mellom gjennomføring og prisinfo
+     * 3. Setter status på prisinfo til GODKJENT
      *
-     * @param gjennomforingId Gjennomføring-ID
+     * @param gjennomforingId ID til gjennomføringen prisinfo tilhører
+     * @param prisinformasjonId ID til prisinfoen som skal godkjennes
      */
-    fun godkjennOkonomi(gjennomforingId: UUID) {
-        val prisinfoId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonId(
-            gjennomforingId = gjennomforingId,
-            rolle = PrisinfoDbo.Rolle.ENDRING,
-        ) ?: error("Fant ingen prisnformasjon for gjennomføring $gjennomforingId med rolle ENDRING")
-
+    fun godkjennOkonomi(
+        gjennomforingId: UUID,
+        prisinformasjonId: UUID,
+    ) {
         Deltakerliste2PrisinfoRepository.delete(
             gjennomforingId = gjennomforingId,
+            prisinformasjonId = prisinformasjonId,
             rolle = PrisinfoDbo.Rolle.ENDRING,
         )
 
         Deltakerliste2PrisinfoRepository.upsert(
             gjennomforingId = gjennomforingId,
-            prisinformasjonId = prisinfoId,
+            prisinformasjonId = prisinformasjonId,
             rolle = PrisinfoDbo.Rolle.GJELDENDE,
         )
 
         PrisinfoRepository.oppdaterStatus(
-            prisinformasjonId = prisinfoId,
+            prisinformasjonId = prisinformasjonId,
             status = PrisinfoDbo.PrisinfoStatus.GODKJENT,
         )
     }
@@ -149,9 +132,8 @@ object PrisinfoRepoAdapter {
         gjennomforingId: UUID,
         prisinformasjon: PrisinformasjonDto,
     ): UUID {
-        val eksisterendePrisinfoId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonId(
+        val eksisterendePrisinfoId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(
             gjennomforingId = gjennomforingId,
-            rolle = PrisinfoDbo.Rolle.ENDRING,
         )
 
         val faktiskPrisinfoId = eksisterendePrisinfoId ?: UUID.randomUUID()

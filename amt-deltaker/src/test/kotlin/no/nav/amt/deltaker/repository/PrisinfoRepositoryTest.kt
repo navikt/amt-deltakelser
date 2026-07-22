@@ -16,6 +16,7 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.util.UUID
 
 class PrisinfoRepositoryTest {
     companion object {
@@ -99,6 +100,95 @@ class PrisinfoRepositoryTest {
                 tilleggsopplysninger shouldBe null
                 ingenkostnaderAarsak shouldBe null
             }
+        }
+    }
+
+    @Nested
+    inner class HentPrisinfoStatusTests {
+        @Test
+        fun `returnerer status når prisinfo finnes`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 10000,
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoStatus(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = upsertDbo.id,
+            )
+
+            // Assert
+            result shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
+        }
+
+        @Test
+        fun `returnerer oppdatert status etter oppdaterStatus`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 10000,
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoStatus(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = upsertDbo.id,
+            )
+
+            // Assert
+            result shouldBe PrisinfoDbo.PrisinfoStatus.GODKJENT
+        }
+
+        @Test
+        fun `returnerer null når prisinfoId ikke finnes`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoStatus(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = UUID.randomUUID(),
+            )
+
+            // Assert
+            result shouldBe null
+        }
+
+        @Test
+        fun `returnerer null når gjennomforingId ikke stemmer`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 10000,
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoStatus(
+                gjennomforingId = UUID.randomUUID(),
+                prisinformasjonId = upsertDbo.id,
+            )
+
+            // Assert
+            result shouldBe null
         }
     }
 

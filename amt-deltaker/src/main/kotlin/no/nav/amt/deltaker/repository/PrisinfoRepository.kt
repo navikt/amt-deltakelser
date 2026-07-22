@@ -9,6 +9,29 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 object PrisinfoRepository {
+    fun hentPrisinfoStatus(
+        gjennomforingId: UUID,
+        prisinformasjonId: UUID,
+    ): PrisinfoDbo.PrisinfoStatus? {
+        val sql =
+            """
+            SELECT status 
+            FROM enkeltplass_prisinformasjon
+            WHERE
+                id = ?
+                AND deltakerliste_id = ? 
+            """.trimIndent()
+
+        return Database.query { session ->
+            session.run(
+                queryOf(sql, prisinformasjonId, gjennomforingId)
+                    .map { row ->
+                        PrisinfoDbo.PrisinfoStatus.valueOf(row.string("status"))
+                    }.asSingle,
+            )
+        }
+    }
+
     fun hentPrisinfo(
         gjennomforingId: UUID,
         rolle: PrisinfoDbo.Rolle,

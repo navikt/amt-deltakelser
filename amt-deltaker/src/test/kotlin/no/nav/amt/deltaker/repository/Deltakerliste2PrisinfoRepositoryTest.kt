@@ -23,9 +23,12 @@ class Deltakerliste2PrisinfoRepositoryTest {
 
         private val gjennomforingInTest = lagDeltakerliste()
 
-        private fun lagPrisinfoInsertDbo(prisinfoId: UUID = UUID.randomUUID()) = PrisinfoUpsertDbo(
+        private fun lagPrisinfoInsertDbo(
+            prisinfoId: UUID = UUID.randomUUID(),
+            gjennomforingId: UUID = gjennomforingInTest.id,
+        ) = PrisinfoUpsertDbo(
             id = prisinfoId,
-            gjennomforingId = gjennomforingInTest.id,
+            gjennomforingId = gjennomforingId,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = 10000,
         )
@@ -156,6 +159,66 @@ class Deltakerliste2PrisinfoRepositoryTest {
     }
 
     @Nested
+    inner class HentPrisinformasjonIdForEndringTests {
+        @Test
+        fun `returnerer prisinformasjonId når ENDRING-kobling finnes`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val prisinfoUpsertDbo = lagPrisinfoInsertDbo(gjennomforingId = deltakerliste.id)
+            PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
+
+            Deltakerliste2PrisinfoRepository.upsert(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = prisinfoUpsertDbo.id,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            )
+
+            // Act
+            val result = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
+
+            // Assert
+            result shouldBe prisinfoUpsertDbo.id
+        }
+
+        @Test
+        fun `returnerer null når ingen kobling finnes`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            // Act
+            val result = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
+
+            // Assert
+            result shouldBe null
+        }
+
+        @Test
+        fun `returnerer null når kun GJELDENDE-kobling finnes`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val prisinfoUpsertDbo = lagPrisinfoInsertDbo(gjennomforingId = deltakerliste.id)
+            PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
+
+            Deltakerliste2PrisinfoRepository.upsert(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = prisinfoUpsertDbo.id,
+                rolle = PrisinfoDbo.Rolle.GJELDENDE,
+            )
+
+            // Act
+            val result = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
+
+            // Assert
+            result shouldBe null
+        }
+    }
+
+    @Nested
     inner class DeleteTests {
         @Test
         fun `delete - fjerner kobling for gitt rolle`() {
@@ -172,6 +235,7 @@ class Deltakerliste2PrisinfoRepositoryTest {
 
             Deltakerliste2PrisinfoRepository.delete(
                 gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
@@ -205,6 +269,7 @@ class Deltakerliste2PrisinfoRepositoryTest {
 
             Deltakerliste2PrisinfoRepository.delete(
                 gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinfoUpsertDbo2.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
