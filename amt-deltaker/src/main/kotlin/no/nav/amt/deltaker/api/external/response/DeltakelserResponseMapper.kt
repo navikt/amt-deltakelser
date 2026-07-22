@@ -7,10 +7,9 @@ import no.nav.amt.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
-import no.nav.amt.felles.visningsnavn.lagVisningsnavn
+import no.nav.amt.felles.visningsnavn.lagTittel
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 
@@ -98,15 +97,12 @@ class DeltakelserResponseMapper(
             }
             ?: "Ukjent arrangør"
 
-        return lagVisningsnavn(
+        return lagTittel(
             tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
             tiltaksnavn = deltaker.deltakerliste.tiltakstype.navn,
-            gjennomforingsnavn = deltaker.deltakerliste.navn,
-            gjennomforingType = deltaker.deltakerliste.gjennomforingstype,
-            erKladd = deltaker.deltakerliste.status == GjennomforingStatusType.KLADD,
             arrangorNavn = arrangorNavn,
             opplaringKategoriseringValg = deltaker.deltakerliste.opplaringKategorisering,
-        ).tittel
+        )
     }
 
     private fun Tiltakstype.toTiltakstypeRespons() = DeltakelserResponse.Tiltakstype(

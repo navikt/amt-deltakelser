@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+
     // --- POAO ---
     implementation(libs.poao.tilgang.client)
 

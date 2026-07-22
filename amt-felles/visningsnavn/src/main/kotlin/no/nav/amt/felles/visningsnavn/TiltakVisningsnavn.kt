@@ -21,7 +21,12 @@ fun lagVisningsnavn(
     arrangorNavn: String?,
     opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
 ): TiltakVisningsnavn = TiltakVisningsnavn(
-    tittel = hentTittel(arrangorNavn, hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)),
+    tittel = lagTittel(
+        tiltakskode = tiltakskode,
+        tiltaksnavn = tiltaksnavn,
+        arrangorNavn = arrangorNavn,
+        opplaringKategoriseringValg = opplaringKategoriseringValg,
+    ),
     aktivitetskortTittel = lagAktivitetskortTittel(
         tiltakskode = tiltakskode,
         tiltaksnavn = tiltaksnavn,
@@ -45,6 +50,16 @@ fun lagVisningsnavn(
         arrangorNavn = arrangorNavn,
         opplaringKategoriseringValg = opplaringKategoriseringValg,
     ),
+)
+
+fun lagTittel(
+    tiltakskode: Tiltakskode,
+    tiltaksnavn: String,
+    arrangorNavn: String?,
+    opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
+): String = hentTittel(
+    arrangorNavn = arrangorNavn,
+    tekst = hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg),
 )
 
 fun lagAktivitetskortTittel(
