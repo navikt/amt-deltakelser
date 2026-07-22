@@ -107,7 +107,15 @@ class TotrinnskontrollConsumer(
         val prisinfoStatus = PrisinfoRepository.hentPrisinfoStatus(
             gjennomforingId = deltaker.deltakerliste.id,
             prisinformasjonId = totrinnskontrollHendelse.id,
-        ) ?: error("Fant ikke prisinformasjon ${totrinnskontrollHendelse.id} for deltakerliste ${deltaker.deltakerliste.id}")
+        ) ?: run {
+            if (Environment.isDev()) {
+                // dette kan skje i dev i en overgangsfase grunnet ny db-struktur
+                log.warn("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
+                return
+            } else {
+                error("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
+            }
+        }
 
         // Sjekk at prisinfo ikke allerede er godkjent
         // For å gjøre consumer idempotent.
