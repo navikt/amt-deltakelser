@@ -208,7 +208,6 @@ object TestData {
         opprettetTidspunkt = OffsetDateTime.now(),
         pameldingType = pameldingType,
         oppstart = Oppstartstype.ENKELTPLASS,
-        prisinformasjon = null,
     )
 
     fun lagGruppeDeltakerlistePayload(

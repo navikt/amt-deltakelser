@@ -77,7 +77,6 @@ class GjennomforingV2KafkaPayloadDeserializingTest {
         payload.arrangor.organisasjonsnummer shouldBe "987654321"
         payload.gjennomforingType shouldBe GjennomforingType.Enkeltplass
         payload.oppstart shouldBe Oppstartstype.ENKELTPLASS
-        payload.prisinformasjon shouldBe "100kr"
         payload.pameldingType shouldBe GjennomforingPameldingType.DIREKTE_VEDTAK
     }
 

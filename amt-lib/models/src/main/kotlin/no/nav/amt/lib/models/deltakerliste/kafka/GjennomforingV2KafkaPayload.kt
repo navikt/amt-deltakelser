@@ -121,7 +121,6 @@ sealed interface GjennomforingV2KafkaPayload {
         override val gjennomforingType: GjennomforingType = GjennomforingType.Enkeltplass,
         override val status: GjennomforingStatusType,
         override val oppstart: Oppstartstype,
-        val prisinformasjon: String?, // skal denne fjernes, evt erstattes med PrisinformasjonDto?
     ) : GjennomforingV2KafkaPayload
 
     fun <T : Any> toModel(

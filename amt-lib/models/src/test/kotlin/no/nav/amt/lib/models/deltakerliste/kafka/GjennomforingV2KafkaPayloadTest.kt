@@ -231,7 +231,6 @@ class GjennomforingV2KafkaPayloadTest {
                 arrangor = GjennomforingV2KafkaPayload.Arrangor(organisasjonsnummer = "123456789"),
                 pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
                 oppstart = Oppstartstype.ENKELTPLASS,
-                prisinformasjon = "Dette er prisen: 0kr",
             )
 
         private val gruppeGjennomforing =
