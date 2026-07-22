@@ -285,7 +285,6 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             tiltakstype = tiltakstype,
             gjennomforingstype = GjennomforingType.Enkeltplass,
             pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-            prisinformasjon = "100kr",
         )
 
         val deltakerlistePayload = lagEnkeltplassDeltakerlistePayload(arrangorInTest, deltakerliste).copy(

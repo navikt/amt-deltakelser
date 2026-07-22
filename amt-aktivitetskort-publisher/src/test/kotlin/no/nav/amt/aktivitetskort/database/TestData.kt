@@ -187,7 +187,6 @@ object TestData {
         opprettetTidspunkt = OffsetDateTime.now(),
         pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         oppstart = Oppstartstype.ENKELTPLASS,
-        prisinformasjon = null,
         status = GjennomforingStatusType.GJENNOMFORES,
     )
 
