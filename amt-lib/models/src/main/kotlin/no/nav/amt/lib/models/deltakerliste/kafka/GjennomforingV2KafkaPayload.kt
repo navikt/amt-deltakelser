@@ -70,17 +70,17 @@ sealed interface GjennomforingV2KafkaPayload {
                 }
 
             this is Gruppe &&
-                tiltakskode in gruppetiltak &&
-                oppstart == Oppstartstype.FELLES &&
-                tiltakskode != Tiltakskode.JOBBKLUBB ->
+                    tiltakskode in gruppetiltak &&
+                    oppstart == Oppstartstype.FELLES &&
+                    tiltakskode != Tiltakskode.JOBBKLUBB ->
                 require(pameldingType == GjennomforingPameldingType.TRENGER_GODKJENNING) {
                     "FELLES oppstart for $tiltakskode krever TRENGER_GODKJENNING"
                 }
 
             this is Gruppe &&
-                tiltakskode in gruppetiltak &&
-                oppstart == Oppstartstype.LOPENDE &&
-                tiltakskode != Tiltakskode.JOBBKLUBB ->
+                    tiltakskode in gruppetiltak &&
+                    oppstart == Oppstartstype.LOPENDE &&
+                    tiltakskode != Tiltakskode.JOBBKLUBB ->
                 require(pameldingType == GjennomforingPameldingType.DIREKTE_VEDTAK) {
                     "LOPENDE oppstart for $tiltakskode krever DIREKTE_VEDTAK"
                 }
@@ -137,6 +137,9 @@ sealed interface GjennomforingV2KafkaPayload {
     companion object {
         const val GRUPPE_V2_TYPE = "TiltaksgjennomforingV2.Gruppe"
         const val ENKELTPLASS_V2_TYPE = "TiltaksgjennomforingV2.Enkeltplass"
+
+        val deltakerlisteTombstoneBlacklist = setOf("447551d8-971e-4ba1-bf14-20c8a4921337")
+            .map { UUID.fromString(it) }
 
         // I tilfellet vi har noen gjennomføringer som feiler
         val gjennomforingBlacklist = emptySet<UUID>()

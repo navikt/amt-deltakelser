@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload.Companion.deltakerlisteTombstoneBlacklist
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
@@ -41,7 +42,8 @@ class GjennomforingConsumer(
         value: String?,
     ) {
         if (value == null) {
-            deltakerlisteRepository.delete(key)
+            if (key !in deltakerlisteTombstoneBlacklist) deltakerlisteRepository.delete(key)
+            else Unit
         } else {
             handterDeltakerliste(objectMapper.readValue(value))
         }

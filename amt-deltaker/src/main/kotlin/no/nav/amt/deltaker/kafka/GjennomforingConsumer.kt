@@ -13,6 +13,7 @@ import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload.Companion.deltakerlisteTombstoneBlacklist
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
@@ -45,7 +46,8 @@ class GjennomforingConsumer(
         key: UUID,
         value: String?,
     ) = if (value == null) {
-        deltakerlisteRepository.delete(key)
+        if (key !in deltakerlisteTombstoneBlacklist) deltakerlisteRepository.delete(key)
+        else Unit
     } else {
         handterDeltakerliste(objectMapper.readValue(value))
     }
@@ -133,9 +135,9 @@ class GjennomforingConsumer(
      */
     internal fun publiserEnkeltplassDeltaker(gjennomforing: Deltakerliste) {
         if (!(
-                gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass &&
-                    gjennomforing.status == GjennomforingStatusType.KLADD
-            )
+                    gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass &&
+                            gjennomforing.status == GjennomforingStatusType.KLADD
+                    )
         ) {
             return
         }
