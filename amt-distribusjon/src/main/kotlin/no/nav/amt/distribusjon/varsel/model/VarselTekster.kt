@@ -18,7 +18,9 @@ fun oppgaveTekst(hendelse: Hendelse): String {
     } else {
         OPPGAVE_TEKST
     }
-    val tittel = hendelse.deltaker.deltakerliste.visningsnavn().tittel
+    val tittel = hendelse.deltaker.deltakerliste
+        .visningsnavn()
+        .tittel
     return String.format(
         tekst,
         tittel,
@@ -32,11 +34,14 @@ fun beskjedTekst(hendelse: Hendelse): String {
                 (hendelse.payload is HendelseType.NavGodkjennUtkast || hendelse.payload is HendelseType.ReaktiverDeltakelse)
         )
         -> SOKT_INN_TRENGER_GODKJENNING_TEKST
+
         hendelse.payload is HendelseType.NavGodkjennUtkast -> MELDT_PA_DIREKTE_TEKST
         hendelse.payload is HendelseType.TildelPlass -> FATT_PLASS
         else -> BESKJED_TEKST
     }
-    val tittel = hendelse.deltaker.deltakerliste.visningsnavn().tittel
+    val tittel = hendelse.deltaker.deltakerliste
+        .visningsnavn()
+        .tittel
 
     return String.format(
         tekst,
