@@ -7,9 +7,10 @@ import no.nav.amt.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.felles.visningsnavn.lagVisningsnavn
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 
@@ -97,14 +98,15 @@ class DeltakelserResponseMapper(
             }
             ?: "Ukjent arrangør"
 
-        return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
-            Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"
-            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-            -> deltaker.deltakerliste.navn
-            Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER -> "Tilrettelagt arbeid med oppfølging hos $arrangorNavn"
-            else -> "${deltaker.deltakerliste.tiltakstype.navn} hos $arrangorNavn"
-        }
+        return lagVisningsnavn(
+            tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+            tiltaksnavn = deltaker.deltakerliste.tiltakstype.navn,
+            gjennomforingsnavn = deltaker.deltakerliste.navn,
+            gjennomforingType = deltaker.deltakerliste.gjennomforingstype,
+            erKladd = deltaker.deltakerliste.status == GjennomforingStatusType.KLADD,
+            arrangorNavn = arrangorNavn,
+            opplaringKategoriseringValg = deltaker.deltakerliste.opplaringKategorisering,
+        ).tittel
     }
 
     private fun Tiltakstype.toTiltakstypeRespons() = DeltakelserResponse.Tiltakstype(
