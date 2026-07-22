@@ -2,7 +2,6 @@
 
 package no.nav.amt.deltaker.repository
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -20,7 +19,6 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import java.util.UUID
 
 class PrisinfoRepoAdapterTest {
     companion object {
@@ -38,7 +36,10 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(gjennomforingInTest)
 
             val anskaffelse = Anskaffelse(pris = 25000)
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(gjennomforingInTest.id, anskaffelse)
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = anskaffelse,
+            )
 
             // Act
             val result = PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id)
@@ -127,11 +128,14 @@ class PrisinfoRepoAdapterTest {
                     TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 10000),
                 ),
             )
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = gjeldende,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinformasjonId,
+            )
 
             val endring = Tilskudd(
                 tilleggsopplysninger = "Pending",
@@ -166,12 +170,15 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(gjennomforingInTest)
 
             val pendingPrisinfo = Anskaffelse(pris = 15000)
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = pendingPrisinfo,
             )
 
-            PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinformasjonId,
+            )
 
             // Act
             val result = PrisinfoRepoAdapter.hentPrisinfo(
@@ -216,12 +223,15 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(gjennomforingInTest)
 
             val godkjentPrisinfo = Anskaffelse(pris = 10000)
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = godkjentPrisinfo,
             )
 
-            PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinformasjonId,
+            )
 
             // Act
             val result = PrisinfoRepoAdapter.hentPrisinfo(
@@ -244,12 +254,15 @@ class PrisinfoRepoAdapterTest {
                     TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 5000),
                 ),
             )
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = godkjentPrisinfo,
             )
 
-            PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinformasjonId,
+            )
 
             val pendingPrisinfo = Tilskudd(
                 tilleggsopplysninger = "Pending",
@@ -282,7 +295,7 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(gjennomforingInTest)
 
             val anskaffelse = Anskaffelse(pris = 25000)
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = anskaffelse,
             )
@@ -296,7 +309,10 @@ class PrisinfoRepoAdapterTest {
             beforeGodkjenning.status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
 
             // Act
-            PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinformasjonId,
+            )
 
             // Assert
             val afterGodkjenning = PrisinfoRepository
@@ -312,84 +328,6 @@ class PrisinfoRepoAdapterTest {
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldBeNull()
-        }
-
-        @Test
-        fun `godkjennOkonomi kaster exception når ingen prisinfo finnes`() {
-            // Arrange
-            TestRepository.insert(gjennomforingInTest)
-
-            // Act & Assert - skal ikke kaste exception
-            shouldThrow<IllegalStateException> {
-                PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
-            }
-        }
-    }
-
-    @Nested
-    inner class HarPrisinfoSomVenterPaaOkonomiGodkjentTests {
-        @Test
-        fun `returnerer true når ENDRING med riktig ID finnes`() {
-            // Arrange
-            TestRepository.insert(gjennomforingInTest)
-
-            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinformasjon = Anskaffelse(pris = 10000),
-            )
-
-            // Act & Assert
-            PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinfoId = prisinfoId,
-            ) shouldBe true
-        }
-
-        @Test
-        fun `returnerer false når ingen prisinfo finnes`() {
-            // Arrange
-            TestRepository.insert(gjennomforingInTest)
-
-            // Act & Assert
-            PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinfoId = UUID.randomUUID(),
-            ) shouldBe false
-        }
-
-        @Test
-        fun `returnerer false når ENDRING finnes med annet ID`() {
-            // Arrange
-            TestRepository.insert(gjennomforingInTest)
-
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinformasjon = Anskaffelse(pris = 10000),
-            )
-
-            // Act & Assert
-            PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinfoId = UUID.randomUUID(),
-            ) shouldBe false
-        }
-
-        @Test
-        fun `returnerer false når prisinfo kun finnes som GJELDENDE`() {
-            // Arrange
-            TestRepository.insert(gjennomforingInTest)
-
-            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinformasjon = Anskaffelse(pris = 10000),
-            )
-            PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingInTest.id)
-
-            // Act & Assert
-            PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinfoId = prisinfoId,
-            ) shouldBe false
         }
     }
 
@@ -572,11 +510,14 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(deltakerliste)
 
             val gjeldende = Anskaffelse(pris = 5000)
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = gjeldende,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id)
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = prisinformasjonId,
+            )
 
             val endring = Anskaffelse(pris = 15000)
 

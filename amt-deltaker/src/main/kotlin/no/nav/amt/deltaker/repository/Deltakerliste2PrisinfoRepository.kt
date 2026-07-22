@@ -31,10 +31,7 @@ object Deltakerliste2PrisinfoRepository {
         }
     }
 
-    fun hentPrisinformasjonId(
-        gjennomforingId: UUID,
-        rolle: PrisinfoDbo.Rolle,
-    ): UUID? = Database.query { session ->
+    fun hentPrisinformasjonIdForEndring(gjennomforingId: UUID): UUID? = Database.query { session ->
         session.run(
             queryOf(
                 """
@@ -42,13 +39,14 @@ object Deltakerliste2PrisinfoRepository {
                 WHERE deltakerliste_id = ? AND rolle = ?
                 """.trimIndent(),
                 gjennomforingId,
-                rolle.name,
+                PrisinfoDbo.Rolle.ENDRING.name,
             ).map { row -> row.uuid("prisinformasjon_id") }.asSingle,
         )
     }
 
     fun delete(
         gjennomforingId: UUID,
+        prisinformasjonId: UUID,
         rolle: PrisinfoDbo.Rolle,
     ) {
         Database.query { session ->
@@ -56,9 +54,13 @@ object Deltakerliste2PrisinfoRepository {
                 queryOf(
                     """
                     DELETE FROM deltakerliste_2_prisinformasjon
-                    WHERE deltakerliste_id = ? AND rolle = ?
+                    WHERE 
+                        deltakerliste_id = ? 
+                        AND prisinformasjon_id = ?
+                        AND rolle = ?
                     """.trimIndent(),
                     gjennomforingId,
+                    prisinformasjonId,
                     rolle.name,
                 ),
             )

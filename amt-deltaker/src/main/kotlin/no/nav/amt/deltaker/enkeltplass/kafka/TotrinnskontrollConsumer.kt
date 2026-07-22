@@ -27,7 +27,13 @@ import java.util.UUID
  * Konsumerer totrinnskontrollhendelser for enkeltplass fra Kafka.
  *
  * Konsumenten filtrerer på relevante hendelser, ignorerer irrelevante typer,
- * og behandler godkjente økonomihendelser ved å oppdatere deltaker og vedtak.
+ * og behandler godkjente hendelser av følgende typer:
+ * - [TotrinnskontrollHendelsePayload.TotrinnskontrollType.ENKELTPLASS_OKONOMI] — godkjent søkt inn-deltakelse:
+ *   fatter vedtak, oppdaterer prisinfo og setter ny deltakerstatus
+ * - [TotrinnskontrollHendelsePayload.TotrinnskontrollType.ENKELTPLASS_PRISENDRING] — godkjent prisendring:
+ *   godkjenner prisinfo uten å endre deltakerstatus
+ *
+ * Ikke-godkjente hendelser (f.eks. RETURNERT) oppdaterer kun prisinfoStatus og prosesseres ikke videre.
  *
  * I dev-miljø brukes et `skipFilter` for å hoppe over kjente ugyldige meldinger
  * på lave offsets uten å trigge retry.
@@ -35,6 +41,9 @@ import java.util.UUID
  * @param deltakerRepository repository for oppslag av enkeltplassdeltakere
  * @param deltakerService tjeneste for oppdatering og publisering av deltaker
  * @param vedtakService tjeneste for å fatte vedtak ved godkjent økonomi
+ * @param distribuerEndringService tjeneste for å produsere hendelser etter godkjenning
+ * @param navAnsattRepository repository for oppslag av Nav-ansatt som sist endret vedtaket
+ * @param navEnhetRepository repository for oppslag av Nav-enhet som sist endret vedtaket
  */
 class TotrinnskontrollConsumer(
     private val deltakerRepository: DeltakerRepository,
@@ -95,24 +104,31 @@ class TotrinnskontrollConsumer(
             .getEnkeltplassdeltaker(totrinnskontrollHendelse.entityId)
             .getOrThrow()
 
-        // Sjekk at det finnes prisinformasjon som venter på godkjenning.
+        val prisinfoStatus = PrisinfoRepository.hentPrisinfoStatus(
+            gjennomforingId = deltaker.deltakerliste.id,
+            prisinformasjonId = totrinnskontrollHendelse.id,
+        ) ?: error("Fant ikke prisinformasjon ${totrinnskontrollHendelse.id} for deltakerliste ${deltaker.deltakerliste.id}")
+
+        // Sjekk at prisinfo ikke allerede er godkjent
         // For å gjøre consumer idempotent.
-        if (!PrisinfoRepoAdapter.harPrisinfoSomVenterPaaOkonomiGodkjent(
-                gjennomforingId = deltaker.deltakerliste.id,
-                prisinfoId = totrinnskontrollHendelse.id,
-            )
-        ) {
-            log.info("Deltaker ${deltaker.id} har ingen prisinformasjon med id ${totrinnskontrollHendelse.id} som venter på godkjenning.")
+        if (prisinfoStatus == PrisinfoDbo.PrisinfoStatus.GODKJENT) {
+            log.info("Totrinnskontroll ${totrinnskontrollHendelse.id} er allerede godkjent, skipper videre prosessering.")
             return
         }
 
         when (totrinnskontrollHendelse.type) {
             TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {
-                processGodkjentInnsoking(deltaker)
+                processGodkjentInnsoking(
+                    deltaker = deltaker,
+                    prisinfoId = totrinnskontrollHendelse.id,
+                )
             }
 
             TotrinnskontrollType.ENKELTPLASS_PRISENDRING ->
-                processGodkjentPrisEndring(deltaker)
+                processGodkjentPrisEndring(
+                    deltaker = deltaker,
+                    prisinfoId = totrinnskontrollHendelse.id,
+                )
 
             else -> error("Uventet totrinnskontrolltype: ${totrinnskontrollHendelse.type}")
         }
@@ -124,10 +140,17 @@ class TotrinnskontrollConsumer(
      * Setter prisinfo til rolle GJELDENDE og status GODKJENT.
      *
      * @param deltaker Deltakeren hvis prisinfo skal godkjennes.
+     * @param prisinfoId ID til prisinfoen som skal godkjennes.
      */
-    internal fun processGodkjentPrisEndring(deltaker: Deltaker) {
+    internal fun processGodkjentPrisEndring(
+        deltaker: Deltaker,
+        prisinfoId: UUID,
+    ) {
         // her skal det gjøres mer senere
-        PrisinfoRepoAdapter.godkjennOkonomi(deltaker.deltakerliste.id)
+        PrisinfoRepoAdapter.godkjennOkonomi(
+            gjennomforingId = deltaker.deltakerliste.id,
+            prisinformasjonId = prisinfoId,
+        )
     }
 
     /**
@@ -140,8 +163,12 @@ class TotrinnskontrollConsumer(
      * - `FULLFORT` når startdato og sluttdato er i fortid
      *
      * @param deltaker Deltakeren hvor økonomi skal godkjennes
+     * @param prisinfoId ID til prisinfoen som skal godkjennes.
      */
-    internal fun processGodkjentInnsoking(deltaker: Deltaker) {
+    internal fun processGodkjentInnsoking(
+        deltaker: Deltaker,
+        prisinfoId: UUID,
+    ) {
         log.info("Behandler godkjent totrinnskontroll for deltaker ${deltaker.id}")
 
         if (deltaker.status.type != DeltakerStatus.Type.SOKT_INN) {
@@ -155,7 +182,10 @@ class TotrinnskontrollConsumer(
             beforeUpsert = { deltaker ->
 
                 // setter prisinformasjon til rolle = GJELDENDE og oppdaterer status til GODKJENT
-                PrisinfoRepoAdapter.godkjennOkonomi(deltaker.deltakerliste.id)
+                PrisinfoRepoAdapter.godkjennOkonomi(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    prisinformasjonId = prisinfoId,
+                )
 
                 vedtakService.godkjentOkonomiFattVedtak(deltaker = deltaker)
                 deltaker.copy(
