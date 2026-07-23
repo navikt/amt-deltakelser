@@ -187,9 +187,8 @@ class EnkeltplassClientTest {
             { client ->
                 client.tilbakekallPrisendring(
                     deltakerId = deltakerIdInTest,
-                    EnkeltplassTilbakekallPrisinfoRequest(
-                        "~endretAv~",
-                        "~endretAvEnhet~",
+                    request = EnkeltplassTilbakekallPrisinfoRequest(
+                        endretAv = "~endretAv~",
                     ),
                 )
             }
@@ -201,7 +200,7 @@ class EnkeltplassClientTest {
             runFailureTest(
                 exceptionType = expectedExceptionType,
                 statusCode = statusCode,
-                expectedUrl = expectedTilbakekallPrisnedringUrl,
+                expectedUrl = expectedTilbakekallPrisendringUrl,
                 expectedErrorMessage = "Kunne ikke tilbakekalle prisendring i amt-deltaker for deltaker $deltakerIdInTest",
                 block = tilbakekallPrisendringLambda,
             )
@@ -210,7 +209,7 @@ class EnkeltplassClientTest {
         @Test
         fun `skal returnere OK`() = runTest {
             runHappyPathTest(
-                expectedUrl = expectedTilbakekallPrisnedringUrl,
+                expectedUrl = expectedTilbakekallPrisendringUrl,
                 expectedResponse = null,
                 block = tilbakekallPrisendringLambda,
             )
@@ -226,7 +225,7 @@ class EnkeltplassClientTest {
         private val expectedUtkastUrl = "$ENKELTPLASS_BASE_URL/enkeltplass/utkast/$deltakerIdInTest"
         private val expectedMeldPaaDirekteUrl =
             "$ENKELTPLASS_BASE_URL/enkeltplass/utkast/$deltakerIdInTest/meld-paa-direkte"
-        private val expectedTilbakekallPrisnedringUrl =
+        private val expectedTilbakekallPrisendringUrl =
             "$ENKELTPLASS_BASE_URL/enkeltplass/tilbakekall-prisendring/$deltakerIdInTest"
 
         private val request = EnkeltplassPameldingRequest(

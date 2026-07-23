@@ -318,7 +318,6 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             val request = EnkeltplassTilbakekallPrisinfoRequest(
                 endretAv = "~endretAv~",
-                endretAvEnhet = "~endretAvEnhet~",
             )
 
             // Act

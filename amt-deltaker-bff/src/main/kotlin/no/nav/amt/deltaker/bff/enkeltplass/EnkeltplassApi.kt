@@ -208,7 +208,6 @@ fun Routing.registerEnkeltplassApi(
                     deltakerId = deltakerId,
                     request = EnkeltplassTilbakekallPrisinfoRequest(
                         endretAv = call.getNavIdent(),
-                        endretAvEnhet = call.getEnhetsnummer(),
                     ),
                 )
 
