@@ -147,7 +147,10 @@ class DeltakerResponseBuilder(
      * Henter gjeldende- og prisinfo til endring.
      *
      * For deltakerstatuser SOKT_INN og senere, skal det alltid finnes en gjeldende prisinfo.
+     * first i pair vil da inneholde gjeldende prisinfo, og second vil inneholde endring om det finnes.
+     *
      * For deltakerstatuser KLADD og UTKAST, skal det kun finnes prisinfo til godkjenning (ENDRING)
+     * first i pair vil da inneholde endring og second vil alltid inneholde null.
      *
      * @param gjennomforingId Deltakerliste-ID
      */

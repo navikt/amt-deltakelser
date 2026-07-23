@@ -63,12 +63,6 @@ object PrisinfoRepoAdapter {
     /**
      * Henter prisinfo for en gjennomføring, med prioritet på godkjente records.
      *
-     * Prioritering:
-     * - Hvis både godkjent (`okonomiGodkjent=true`) og ugodkjent (`okonomiGodkjent=false`) finnes,
-     *   returneres den godkjente
-     * - Hvis kun okonomiGodkjent=false finnes, returneres den
-     * - Hvis ingen finnes, returneres `null`
-     *
      * Typekonvertering: Konverterer fra database-format (`PrisinfoDbo`) til DTO
      * basert på `prisinfoJsonSubtype` (Anskaffelse | Tilskudd | IngenKostnader).
      *
