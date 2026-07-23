@@ -100,7 +100,7 @@ class GjennomforingUpserterTest {
         every {
             PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = any(),
-                brukEndring = true,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
         } returns Anskaffelse(1000)
         every {
@@ -149,7 +149,7 @@ class GjennomforingUpserterTest {
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = any(),
-                    brukEndring = true,
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
                 )
             } returns null
 
@@ -299,7 +299,7 @@ class GjennomforingUpserterTest {
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = any(),
-                    brukEndring = true,
+                    rolle = any(),
                 )
             } returns null
 

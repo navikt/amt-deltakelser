@@ -60,64 +60,33 @@ object PrisinfoRepoAdapter {
         )
     }
 
+    fun hentPrisinfoMap(gjennomforingId: UUID): Map<PrisinfoDbo.Rolle, PrisinformasjonDto> = PrisinfoRepository
+        .hentPrisinfos(gjennomforingId)
+        .associate { it.rolle to it.toPrisinformasjonDto() }
+
     /**
      * Henter prisinfo for en gjennomføring, med prioritet på godkjente records.
-     *
-     * Prioritering:
-     * - Hvis både godkjent (`okonomiGodkjent=true`) og ugodkjent (`okonomiGodkjent=false`) finnes,
-     *   returneres den godkjente
-     * - Hvis kun okonomiGodkjent=false finnes, returneres den
-     * - Hvis ingen finnes, returneres `null`
      *
      * Typekonvertering: Konverterer fra database-format (`PrisinfoDbo`) til DTO
      * basert på `prisinfoJsonSubtype` (Anskaffelse | Tilskudd | IngenKostnader).
      *
      * @param gjennomforingId Gjennomføring-ID
-     * @param brukEndring Hvis `true`, henter kun pending-record.
+     * @param rolle Spesifiserer hvilken rolle prisinfo skal hentes for. Hvis `null`, hentes GJELDENDE, ellers ENDRING.
      * @return [PrisinformasjonDto], eller `null` hvis ingen finnes
      * @throws IllegalStateException hvis påkrevd felt mangler (f.eks. `anskaffelsePris` for Anskaffelse)
      */
     fun hentPrisinfo(
         gjennomforingId: UUID,
-        brukEndring: Boolean = false,
-    ): PrisinformasjonDto? {
-        val prisinfoDbo = if (brukEndring) {
-            PrisinfoRepository.hentPrisinfo(
+        rolle: PrisinfoDbo.Rolle? = null,
+    ): PrisinformasjonDto? = if (rolle != null) {
+        PrisinfoRepository
+            .hentPrisinfo(
                 gjennomforingId = gjennomforingId,
-                rolle = PrisinfoDbo.Rolle.ENDRING,
-            )
-        } else {
-            val prisinfos = PrisinfoRepository.hentPrisinfos(gjennomforingId)
-            prisinfos.firstOrNull { it.rolle == PrisinfoDbo.Rolle.GJELDENDE }
-                ?: prisinfos.firstOrNull { it.rolle == PrisinfoDbo.Rolle.ENDRING }
-        } ?: return null
-
-        return when (prisinfoDbo.prisinfoJsonSubtype) {
-            ANSKAFFELSE_SUB_TYPE -> Anskaffelse(
-                prisinfoDbo.anskaffelsePris
-                    ?: throw IllegalStateException("Anskaffelsepris kan ikke være null"),
-            )
-
-            TILSKUDD_SUB_TYPE -> Tilskudd(
-                tilleggsopplysninger = prisinfoDbo.tilleggsopplysninger,
-                tilskudd = PrisinfoBelopRepository
-                    .hentPrisinfoBelop(prisinfoDbo.id)
-                    .map {
-                        TilskuddInfo(
-                            type = it.type,
-                            pris = it.pris,
-                        )
-                    }.sortedBy { it.type.sortOrder },
-            )
-
-            INGENKOSTNADER_SUB_TYPE -> IngenKostnader(
-                tilleggsopplysninger = prisinfoDbo.tilleggsopplysninger,
-                aarsak = prisinfoDbo.ingenkostnaderAarsak
-                    ?: throw IllegalStateException("Årsak for ingen kostnader kan ikke være null"),
-            )
-
-            else -> throw IllegalStateException("Ukjent prisinfoJsonSubtype: ${prisinfoDbo.prisinfoJsonSubtype}")
-        }
+                rolle = rolle,
+            )?.toPrisinformasjonDto()
+    } else {
+        val prisinfoMap = hentPrisinfoMap(gjennomforingId)
+        prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE] ?: prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
     }
 
     /**
@@ -225,6 +194,33 @@ object PrisinfoRepoAdapter {
         )
 
         return prisinformasjonId
+    }
+
+    fun PrisinfoDbo.toPrisinformasjonDto(): PrisinformasjonDto = when (prisinfoJsonSubtype) {
+        ANSKAFFELSE_SUB_TYPE -> Anskaffelse(
+            this.anskaffelsePris
+                ?: throw IllegalStateException("Anskaffelsepris kan ikke være null"),
+        )
+
+        TILSKUDD_SUB_TYPE -> Tilskudd(
+            tilleggsopplysninger = this.tilleggsopplysninger,
+            tilskudd = PrisinfoBelopRepository
+                .hentPrisinfoBelop(this.id)
+                .map {
+                    TilskuddInfo(
+                        type = it.type,
+                        pris = it.pris,
+                    )
+                }.sortedBy { it.type.sortOrder },
+        )
+
+        INGENKOSTNADER_SUB_TYPE -> IngenKostnader(
+            tilleggsopplysninger = this.tilleggsopplysninger,
+            aarsak = this.ingenkostnaderAarsak
+                ?: throw IllegalStateException("Årsak for ingen kostnader kan ikke være null"),
+        )
+
+        else -> throw IllegalStateException("Ukjent prisinfoJsonSubtype: ${this.prisinfoJsonSubtype}")
     }
 
     /**

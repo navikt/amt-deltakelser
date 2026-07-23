@@ -71,8 +71,9 @@ class ModelMapper {
                 oppmoteSted = oppmoteSted,
                 arrangor = arrangor?.let { toArrangor(it) },
                 pameldingstype = pameldingstype,
-                prisinformasjon = prisinformasjon,
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
+                prisinformasjon = prisinformasjon,
+                prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenning,
             )
         }
 

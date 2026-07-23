@@ -34,6 +34,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -149,6 +150,12 @@ object TestData {
         pameldingstype = pameldingType,
         type = GjennomforingType.Gruppe,
         antallPlasser = null,
+        prisinformasjon = PrisinformasjonDto.Anskaffelse(
+            pris = 10000,
+        ),
+        prisinformasjonTilGodkjenning = PrisinformasjonDto.Anskaffelse(
+            pris = 20000,
+        ),
     )
 
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()

@@ -26,4 +26,5 @@ data class GjennomforingResponse(
     val pameldingstype: GjennomforingPameldingType?, // TODO: Denne bør ikke være nullable
     val opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
     val prisinformasjon: PrisinformasjonDto? = null,
+    val prisinformasjonTilGodkjenning: PrisinformasjonDto? = null,
 )
