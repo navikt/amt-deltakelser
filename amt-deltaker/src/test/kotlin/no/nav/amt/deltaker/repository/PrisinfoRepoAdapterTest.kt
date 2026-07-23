@@ -266,7 +266,7 @@ class PrisinfoRepoAdapterTest {
             )
 
             // Assert
-            gjeldende shouldBe gjeldende
+            gjeldende shouldBe godkjentPrisinfo
         }
 
         @Test
