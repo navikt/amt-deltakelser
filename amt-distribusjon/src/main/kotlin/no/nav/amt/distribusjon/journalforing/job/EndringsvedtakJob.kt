@@ -20,14 +20,14 @@ class EndringsvedtakJob(
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     init {
-        require(!initialDelay.isNegative) {
-            "Initial delay for endringsvedtak-jobb kan ikke være negativ"
+        require(initialDelay.isPositive) {
+            "Initial delay for endringsvedtak-jobb må være større enn 0"
         }
-        require(!jobPeriod.isNegative && !jobPeriod.isZero) {
+        require(jobPeriod.isPositive) {
             "Jobbperiode for endringsvedtak-jobb må være større enn 0"
         }
-        require(!gracePeriod.isNegative) {
-            "Grace-periode for endringsvedtak-jobb kan ikke være negativ"
+        require(gracePeriod.isPositive) {
+            "Grace-periode for endringsvedtak-jobb må være større enn 0"
         }
     }
 
@@ -43,9 +43,9 @@ class EndringsvedtakJob(
         val ikkeJournalforteEndringsvedtak = getIkkeJournalforteHendelser()
             .filter { it.hendelse.erEndringsVedtakSomSkalJournalfores() }
 
-        val endringsvedtakPrDeltaker = ikkeJournalforteEndringsvedtak.groupBy { it.hendelse.deltaker.id }
+        val endringsvedtakPerDeltaker = ikkeJournalforteEndringsvedtak.groupBy { it.hendelse.deltaker.id }
 
-        endringsvedtakPrDeltaker.forEach { (deltakerId, hendelser) ->
+        endringsvedtakPerDeltaker.forEach { (deltakerId, hendelser) ->
             /*
              * Journalfører kun endringsvedtak for en deltaker hvis den nyeste endringen er eldre enn graceperioden.
              * Dette gjøres for å samle alle endringer gjort innenfor en kort periode slik at de havner i samme brev.

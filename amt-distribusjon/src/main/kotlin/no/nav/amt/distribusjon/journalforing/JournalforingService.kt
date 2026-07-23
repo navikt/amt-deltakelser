@@ -366,10 +366,10 @@ class JournalforingService(
         if (ikkeJournalforteHendelser.isNotEmpty()) {
             val journalpostId = journalforEndringsvedtak(ikkeJournalforteHendelser, navBruker) ?: return
             sendBrev(
-                ikkeJournalforteHendelser,
-                journalpostId,
-                navBruker.harAdresse(),
-                DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
+                hendelser = ikkeJournalforteHendelser,
+                journalpostId = journalpostId,
+                harAdresse = navBruker.harAdresse(),
+                distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.VEDTAK,
             )
         }
 

@@ -28,7 +28,7 @@ class EndringsvedtakJobTest {
             lagJob(initialDelay = Duration.ofMinutes(-1))
         }
 
-        exception.message shouldBe "Initial delay for endringsvedtak-jobb kan ikke være negativ"
+        exception.message shouldBe "Initial delay for endringsvedtak-jobb må være større enn 0"
     }
 
     @Test
@@ -50,7 +50,7 @@ class EndringsvedtakJobTest {
             lagJob(gracePeriod = Duration.ofMinutes(-1))
         }
 
-        exception.message shouldBe "Grace-periode for endringsvedtak-jobb kan ikke være negativ"
+        exception.message shouldBe "Grace-periode for endringsvedtak-jobb må være større enn 0"
     }
 
     @Test

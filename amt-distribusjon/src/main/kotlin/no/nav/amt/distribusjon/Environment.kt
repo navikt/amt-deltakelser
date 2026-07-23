@@ -31,7 +31,9 @@ data class Environment(
     val endringsvedtakJobInitialDelay: Duration = getEnvVar(ENDRINGSVEDTAK_JOB_INITIAL_DELAY_KEY, "")
         .ifBlank { "PT5M" }
         .let(Duration::parse),
-    val endringsvedtakJobPeriod: Duration = getEnvVar(ENDRINGSVEDTAK_JOB_PERIOD_KEY, "").ifBlank { "PT10M" }.let(Duration::parse),
+    val endringsvedtakJobPeriod: Duration = getEnvVar(ENDRINGSVEDTAK_JOB_PERIOD_KEY, "")
+        .ifBlank { "PT10M" }
+        .let(Duration::parse),
     val endringsvedtakJobGracePeriod: Duration = getEnvVar(ENDRINGSVEDTAK_JOB_GRACE_PERIOD_KEY, "")
         .ifBlank { "PT30M" }
         .let(Duration::parse),
