@@ -166,7 +166,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `med brukEndring true - henter kun endring-prisinfo`() {
+        fun `med rolle = ENDRING - henter kun endring-prisinfo`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -184,7 +184,7 @@ class PrisinfoRepoAdapterTest {
             // Act
             val result = PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = gjennomforingInTest.id,
-                brukEndring = true,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             // Assert
@@ -192,7 +192,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `med brukEndring true - returnerer endring når begge finnes`() {
+        fun `med rolle = ENDRING - returnerer endring når begge finnes`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -211,7 +211,7 @@ class PrisinfoRepoAdapterTest {
             // Act
             val result = PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = gjennomforingInTest.id,
-                brukEndring = true,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             // Assert
@@ -219,7 +219,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `med brukEndring true - returnerer null når kun gjeldende finnes`() {
+        fun `med rolle = ENDRING - returnerer null når kun gjeldende finnes`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -235,17 +235,42 @@ class PrisinfoRepoAdapterTest {
             )
 
             // Act
-            val result = PrisinfoRepoAdapter.hentPrisinfo(
+            val endring = PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = gjennomforingInTest.id,
-                brukEndring = true,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             // Assert
-            result shouldBe null
+            endring shouldBe null
         }
 
         @Test
-        fun `med brukEndring false (default) - prioriterer gjeldende`() {
+        fun `med rolle = GJELDENDE - returnerer gjeldende`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val godkjentPrisinfo = Anskaffelse(pris = 10000)
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = godkjentPrisinfo,
+            )
+
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinformasjonId,
+            )
+
+            val gjeldende = PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                rolle = PrisinfoDbo.Rolle.GJELDENDE,
+            )
+
+            // Assert
+            gjeldende shouldBe gjeldende
+        }
+
+        @Test
+        fun `med rolle = null (default) - prioriterer gjeldende`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -280,7 +305,7 @@ class PrisinfoRepoAdapterTest {
             // Act
             val result = PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = gjennomforingInTest.id,
-                brukEndring = false,
+                rolle = null,
             )
 
             // Assert
@@ -553,7 +578,10 @@ class PrisinfoRepoAdapterTest {
 
             // Assert
             returnertId shouldBe prisinformasjonId
-            PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId = deltakerliste.id, brukEndring = true) shouldBe null
+            PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = deltakerliste.id,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            ) shouldBe null
         }
 
         @Test
@@ -665,7 +693,7 @@ class PrisinfoRepoAdapterTest {
             // Assert
             val result = PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = deltakerliste.id,
-                brukEndring = true,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             result shouldBe ingenKostnader

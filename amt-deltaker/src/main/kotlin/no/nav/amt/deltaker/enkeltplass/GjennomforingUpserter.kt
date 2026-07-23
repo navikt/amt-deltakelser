@@ -79,7 +79,7 @@ class GjennomforingUpserter(
             payload = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = deltaker.deltakerliste.id,
-                    brukEndring = true,
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
                 ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
             ),
         )
@@ -180,7 +180,7 @@ class GjennomforingUpserter(
         prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
             PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
-                brukEndring = true,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
             ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
         ),
         kategorisering = OpplaringKategoriseringRepoAdapter

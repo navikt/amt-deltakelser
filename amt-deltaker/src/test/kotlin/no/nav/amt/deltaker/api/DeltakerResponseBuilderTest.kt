@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -31,6 +32,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -42,6 +44,8 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.testing.utils.TestData
 import no.nav.amt.lib.utils.GenericCache
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -833,6 +837,75 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 sisteDeltakelsesmengde.shouldNotBeNull().gyldigFra shouldBe arrangorStartdato
             }
+        }
+    }
+
+    @Nested
+    inner class HentPrisinfoPairTests {
+        private val gjennomforingId = UUID.randomUUID()
+        private val gjeldendePrisinfo = Anskaffelse(pris = 10000)
+        private val endringPrisinfo = Anskaffelse(pris = 12000)
+
+        @BeforeEach
+        fun setup() = mockkObject(PrisinfoRepoAdapter)
+
+        @AfterEach
+        fun teardown() = unmockkObject(PrisinfoRepoAdapter)
+
+        @Test
+        fun `ingen prisinfo - returnerer Pair(null, null)`() {
+            // Arrange
+            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) } returns null
+            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) } returns null
+
+            // Act
+            val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
+
+            // Assert
+            first shouldBe null
+            second shouldBe null
+        }
+
+        @Test
+        fun `kun ENDRING finnes (KLADD eller UTKAST) - returnerer Pair(endring, null)`() {
+            // Arrange
+            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) } returns null
+            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) } returns endringPrisinfo
+
+            // Act
+            val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
+
+            // Assert
+            first shouldBe endringPrisinfo
+            second shouldBe null
+        }
+
+        @Test
+        fun `kun GJELDENDE finnes - returnerer Pair(gjeldende, null)`() {
+            // Arrange
+            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) } returns gjeldendePrisinfo
+            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) } returns null
+
+            // Act
+            val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
+
+            // Assert
+            first shouldBe gjeldendePrisinfo
+            second shouldBe null
+        }
+
+        @Test
+        fun `GJELDENDE og ENDRING finnes - returnerer Pair(gjeldende, endring)`() {
+            // Arrange
+            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) } returns gjeldendePrisinfo
+            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) } returns endringPrisinfo
+
+            // Act
+            val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
+
+            // Assert
+            first shouldBe gjeldendePrisinfo
+            second shouldBe endringPrisinfo
         }
     }
 }

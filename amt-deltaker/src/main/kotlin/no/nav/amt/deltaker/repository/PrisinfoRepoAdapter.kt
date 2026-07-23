@@ -73,18 +73,18 @@ object PrisinfoRepoAdapter {
      * basert på `prisinfoJsonSubtype` (Anskaffelse | Tilskudd | IngenKostnader).
      *
      * @param gjennomforingId Gjennomføring-ID
-     * @param brukEndring Hvis `true`, henter kun pending-record.
+     * @param rolle Spesifiserer hvilken rolle prisinfo skal hentes for. Hvis `null`, hentes GJELDENDE, ellers ENDRING.
      * @return [PrisinformasjonDto], eller `null` hvis ingen finnes
      * @throws IllegalStateException hvis påkrevd felt mangler (f.eks. `anskaffelsePris` for Anskaffelse)
      */
     fun hentPrisinfo(
         gjennomforingId: UUID,
-        brukEndring: Boolean = false,
+        rolle: PrisinfoDbo.Rolle? = null,
     ): PrisinformasjonDto? {
-        val prisinfoDbo = if (brukEndring) {
+        val prisinfoDbo = if (rolle != null) {
             PrisinfoRepository.hentPrisinfo(
                 gjennomforingId = gjennomforingId,
-                rolle = PrisinfoDbo.Rolle.ENDRING,
+                rolle = rolle,
             )
         } else {
             val prisinfos = PrisinfoRepository.hentPrisinfos(gjennomforingId)

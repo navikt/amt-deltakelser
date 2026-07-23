@@ -62,6 +62,7 @@ internal object SharedResponseMappers {
         arrangorService: ArrangorService,
         opplaringKategoriseringValg: OpplaringKategoriseringValg?,
         prisinformasjon: PrisinformasjonDto? = null,
+        prisinformasjonTilGodkjenning: PrisinformasjonDto? = null,
     ) = GjennomforingResponse(
         id = deltakerliste.id,
         tiltakstype = deltakerliste.tiltakstype,
@@ -87,6 +88,7 @@ internal object SharedResponseMappers {
         type = deltakerliste.gjennomforingstype,
         opplaringKategoriseringValg = opplaringKategoriseringValg,
         prisinformasjon = prisinformasjon,
+        prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenning,
     )
 
     fun buildVedtaksinformasjonResponse(
