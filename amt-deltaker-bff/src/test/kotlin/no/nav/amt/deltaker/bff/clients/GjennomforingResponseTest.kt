@@ -26,6 +26,8 @@ class GjennomforingResponseTest {
             oppmoteSted shouldBe response.oppmoteSted.shouldNotBeNull()
             pameldingstype shouldBe response.pameldingstype.shouldNotBeNull()
             arrangor shouldBe ModelMapper.toArrangor(response.arrangor!!)
+            prisinformasjon shouldBe response.prisinformasjon
+            prisinformasjonTilGodkjenning shouldBe response.prisinformasjonTilGodkjenning
         }
     }
 }
