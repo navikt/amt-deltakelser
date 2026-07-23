@@ -106,7 +106,7 @@ class GjennomforingUpserter(
         Database.transaction {
             val prisinformasjonId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(gjennomforingId)
 
-            val tiltakekallPrisinfoPayload = GjennomforingRequestPayload.EnkeltplassTilbakekallPrisinformasjon(
+            val tilbakekallPrisinfoPayload = GjennomforingRequestPayload.EnkeltplassTilbakekallPrisinformasjon(
                 gjennomforingId = gjennomforingId,
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = prisinformasjonId,
@@ -114,7 +114,7 @@ class GjennomforingUpserter(
                 ),
             )
 
-            gjennomforingRequestProducer.produce(tiltakekallPrisinfoPayload)
+            gjennomforingRequestProducer.produce(tilbakekallPrisinfoPayload)
         }
     }
 

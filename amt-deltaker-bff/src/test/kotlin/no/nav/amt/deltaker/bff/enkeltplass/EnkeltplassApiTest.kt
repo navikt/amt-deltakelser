@@ -398,10 +398,12 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere OK nar prisendring er tilbakekalt`() = runTest {
+        fun `skal returnere OK nar deltaker er meldt paa direkte`() = runTest {
             // Act
             val response = withTestApplicationContext { client ->
-                client.post(url)
+                client.post(url) {
+                    createPostRequest(enkeltplassPameldingRequest)
+                }
             }
 
             // Assert

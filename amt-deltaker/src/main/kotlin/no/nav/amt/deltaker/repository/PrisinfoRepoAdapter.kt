@@ -215,7 +215,7 @@ object PrisinfoRepoAdapter {
     fun tilbakekallPrisinfoEndring(gjennomforingId: UUID): UUID {
         val prisinformasjonId = Deltakerliste2PrisinfoRepository
             .hentPrisinformasjonIdForEndring(gjennomforingId)
-            ?: error("Fant ingen prisinformasjon som venter på godkjenning")
+            ?: throw IllegalArgumentException("Fant ingen prisinformasjon som venter på godkjenning")
 
         // fjern kopling mellom deltakerliste og prisinfo
         Deltakerliste2PrisinfoRepository.delete(

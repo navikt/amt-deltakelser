@@ -324,7 +324,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Act
             val response = withTestApplicationContext { client ->
                 client
-                    .post("enkeltplass/tilbakekall-prisendring/${deltakerInTest.id}") {
+                    .post("/enkeltplass/tilbakekall-prisendring/${deltakerInTest.id}") {
                         postRequest(request)
                     }
             }
