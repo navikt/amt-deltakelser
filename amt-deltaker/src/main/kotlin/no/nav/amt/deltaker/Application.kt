@@ -361,6 +361,7 @@ fun Application.module() {
         navEnhetRepository = navEnhetRepository,
         vedtakService = vedtakService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
+        deltakerRepository = deltakerRepository,
     )
 
     val deltakerService = DeltakerService(
@@ -550,6 +551,7 @@ fun Application.module() {
         forslagService = forslagService,
         forslagRepository = forslagRepository,
         ulestHendelseRepository = ulestHendelseRepository,
+        gjennomforingUpserter = gjennomforingUpserter,
     )
     configureMonitoring()
 

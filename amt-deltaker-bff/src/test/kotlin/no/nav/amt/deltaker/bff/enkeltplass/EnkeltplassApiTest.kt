@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
+import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
@@ -53,6 +54,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         coEvery { enkeltplassClient.oppdaterKladd(any(), any()) } returns mockHttpResponse
         coEvery { enkeltplassClient.oppdaterUtkast(any(), any()) } returns lagDeltakerResponse()
         coEvery { enkeltplassClient.meldPaaDirekte(deltakerInTest.id, any()) } returns mockHttpResponse
+        coEvery { enkeltplassClient.tilbakekallPrisendring(any(), any()) } returns mockHttpResponse
         coEvery { amtDeltakerClient.getDeltaker(deltakerInTest.id) } returns lagDeltakerResponse()
     }
 
@@ -396,11 +398,56 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere OK nar enkeltplass er opprettet`() = runTest {
+        fun `skal returnere OK nar deltaker er meldt paa direkte`() = runTest {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
                     createPostRequest(enkeltplassPameldingRequest)
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Nested
+    inner class TilbakekallPrisendringTests {
+        val url = "/enkeltplass/tilbakekall-prisendring/${deltakerInTest.id}"
+
+        @Test
+        fun `skal returnere Unauthorized nar tilgang mangler`() {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(url)
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Unauthorized
+        }
+
+        @Test
+        fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+            // Arrange
+            every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
+
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(url) {
+                    noBodyRequest()
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `skal returnere OK nar prisendring er tilbakekalt`() = runTest {
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(url) {
+                    noBodyRequest()
                 }
             }
 

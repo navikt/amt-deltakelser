@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdReque
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassTilbakekallPrisinfoRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 
@@ -103,75 +104,98 @@ fun Routing.registerEnkeltplassApi(
                 call.respond(HttpStatusCode.OK)
             }
 
-            /*
-            Oppdaterer eksisterende utkast for en enkeltplass deltaker.
-            Opprettes i handlingen "Del oppdatert utkast"
-            Status: Utkast -> Utkast
-            @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-             */
-            post("/utkast/{deltakerId}") {
-                val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
+            route("/utkast/{deltakerId}") {
+                /*
+                Oppdaterer eksisterende utkast for en enkeltplass deltaker.
+                Opprettes i handlingen "Del oppdatert utkast"
+                Status: Utkast -> Utkast
+                @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+                 */
+                post {
+                    val deltakerId = call.getDeltakerId()
+                    val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
 
-                val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
+                    val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
 
-                tilgangskontrollService.verifiserSkrivetilgang(
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                    norskIdent = personident,
-                )
+                    tilgangskontrollService.verifiserSkrivetilgang(
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                        norskIdent = personident,
+                    )
 
-                val deltakerResponse = enkeltplassClient
-                    .oppdaterUtkast(
+                    val deltakerResponse = enkeltplassClient
+                        .oppdaterUtkast(
+                            deltakerId = deltakerId,
+                            pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                                wrappedRequest = pameldingRequest.sanitized(),
+                                endretAvEnhet = call.getEnhetsnummer(),
+                                endretAv = call.getNavIdent(),
+                            ),
+                        ).let { ModelMapper.toDeltaker(it) }
+                        .let { deltakerModel -> DeltakerResponse.fromDeltakerModel(deltakerModel) }
+
+                    call.respond(deltakerResponse)
+                }
+
+                /*
+               Oppretter utkast for en enkeltplass deltaker.
+               Opprettes i handlingen "Del utkast"
+               Status: Kladd/utkast -> Utkast
+               @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+                 */
+                post("/del-med-innbygger") {
+                    val deltakerId = call.getDeltakerId()
+                    val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
+
+                    val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
+
+                    tilgangskontrollService.verifiserSkrivetilgang(
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                        norskIdent = personident,
+                    )
+
+                    val deltakerResponse = enkeltplassClient
+                        .delUtkastMedInnbygger(
+                            deltakerId = deltakerId,
+                            pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
+                                wrappedRequest = pameldingRequest.sanitized(),
+                                endretAvEnhet = call.getEnhetsnummer(),
+                                endretAv = call.getNavIdent(),
+                            ),
+                        ).let { ModelMapper.toDeltaker(it) }
+                        .let { DeltakerResponse.fromDeltakerModel(it) }
+
+                    call.respond(deltakerResponse)
+                }
+
+                /*
+                   Direktepåmelding av enkeltplass  deltaker uten at utkast/deltakelsen er delt med innbygger
+                   Handling: "Meld på uten å dele utkast"
+                   Status Kladd/Utkast -> søkt inn
+                 */
+                post("/meld-paa-direkte") {
+                    val deltakerId = call.getDeltakerId()
+
+                    tilgangskontrollService.verifiserSkrivetilgang(
+                        navAnsattAzureId = call.getNavAnsattAzureId(),
+                        norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
+                    )
+
+                    val pameldingRequest: EnkeltplassPameldingRequest = call.receive()
+
+                    enkeltplassClient.meldPaaDirekte(
                         deltakerId = deltakerId,
                         pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
                             wrappedRequest = pameldingRequest.sanitized(),
                             endretAvEnhet = call.getEnhetsnummer(),
                             endretAv = call.getNavIdent(),
                         ),
-                    ).let { ModelMapper.toDeltaker(it) }
-                    .let { deltakerModel -> DeltakerResponse.fromDeltakerModel(deltakerModel) }
+                    )
 
-                call.respond(deltakerResponse)
+                    call.respond(HttpStatusCode.OK)
+                }
             }
 
-            /*
-           Oppretter utkast for en enkeltplass deltaker.
-           Opprettes i handlingen "Del utkast"
-           Status: Kladd/utkast -> Utkast
-           @Return no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-             */
-            post("/utkast/{deltakerId}/del-med-innbygger") {
-                val deltakerId = call.getDeltakerId()
-                val personident = amtDeltakerClient.getPersonidentForDeltaker(deltakerId)
-
-                val pameldingRequest = call.receive<EnkeltplassPameldingRequest>()
-
-                tilgangskontrollService.verifiserSkrivetilgang(
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                    norskIdent = personident,
-                )
-
-                val deltakerResponse = enkeltplassClient
-                    .delUtkastMedInnbygger(
-                        deltakerId = deltakerId,
-                        pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
-                            wrappedRequest = pameldingRequest.sanitized(),
-                            endretAvEnhet = call.getEnhetsnummer(),
-                            endretAv = call.getNavIdent(),
-                        ),
-                    ).let { ModelMapper.toDeltaker(it) }
-                    .let { DeltakerResponse.fromDeltakerModel(it) }
-
-                call.respond(deltakerResponse)
-            }
-
-            /*
-           Direktepåmelding av enkeltplass  deltaker uten at utkast/deltakelsen er delt med innbygger
-           Handling: "Meld på uten å dele utkast"
-           Status Kladd/Utkast -> søkt inn
-           @Returns no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
-             */
-            post("/utkast/{deltakerId}/meld-paa-direkte") {
+            post("/tilbakekall-prisendring/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
 
                 tilgangskontrollService.verifiserSkrivetilgang(
@@ -179,13 +203,9 @@ fun Routing.registerEnkeltplassApi(
                     norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
                 )
 
-                val pameldingRequest: EnkeltplassPameldingRequest = call.receive()
-
-                enkeltplassClient.meldPaaDirekte(
+                enkeltplassClient.tilbakekallPrisendring(
                     deltakerId = deltakerId,
-                    pameldingDecoratedRequest = EnkeltplassPameldingDecoratedRequest(
-                        wrappedRequest = pameldingRequest.sanitized(),
-                        endretAvEnhet = call.getEnhetsnummer(),
+                    request = EnkeltplassTilbakekallPrisinfoRequest(
                         endretAv = call.getNavIdent(),
                     ),
                 )

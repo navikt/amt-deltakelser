@@ -151,6 +151,7 @@ abstract class IntegrationTestBase {
             navEnhetRepository = navEnhetRepository,
             vedtakService = vedtakService,
             gjennomforingRequestProducer = gjennomforingRequestProducer,
+            deltakerRepository = deltakerRepository,
         )
     }
 
@@ -483,6 +484,7 @@ abstract class IntegrationTestBase {
                     forslagService = forslagService,
                     forslagRepository = forslagRepository,
                     ulestHendelseRepository = ulestHendelseRepository,
+                    gjennomforingUpserter = gjennomforingUpserter,
                 )
                 setUpTestRoute()
 

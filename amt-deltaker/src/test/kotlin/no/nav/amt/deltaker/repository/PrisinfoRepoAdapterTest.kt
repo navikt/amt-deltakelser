@@ -2,6 +2,7 @@
 
 package no.nav.amt.deltaker.repository
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -533,74 +534,141 @@ class PrisinfoRepoAdapterTest {
         }
     }
 
-    @Test
-    fun `oppdaterer fra Anskaffelse til Tilskudd`() {
-        // Arrange
-        val deltakerliste = lagDeltakerliste()
-        TestRepository.insert(deltakerliste)
+    @Nested
+    inner class TilbakekallPrisinfoEndringTests {
+        @Test
+        fun `tilbakekaller ENDRING og returnerer prisinformasjonId`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
 
-        val anskaffelse = Anskaffelse(pris = 20000)
-        PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(deltakerliste.id, anskaffelse)
+            val endring = Anskaffelse(pris = 20000)
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = endring,
+            )
 
-        val tilskudd = Tilskudd(
-            tilleggsopplysninger = "Nye opplysninger",
-            tilskudd = listOf(
-                TilskuddInfo(
-                    type = Tilskuddstype.SKOLEPENGER,
-                    pris = 6000,
-                ),
-            ),
-        )
+            // Act
+            val returnertId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(deltakerliste.id)
 
-        // Act
-        PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-            gjennomforingId = deltakerliste.id,
-            prisinformasjon = tilskudd,
-        )
+            // Assert
+            returnertId shouldBe prisinformasjonId
+            PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId = deltakerliste.id, brukEndring = true) shouldBe null
+        }
 
-        // Assert
-        val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
-        result shouldBe tilskudd
+        @Test
+        fun `kaster exception naar ingen ENDRING finnes`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            // Act & Assert
+            shouldThrow<IllegalArgumentException> {
+                PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(deltakerliste.id)
+            }
+        }
+
+        @Test
+        fun `paavirker ikke GJELDENDE naar ENDRING tilbakekalles`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val gjeldende = Anskaffelse(pris = 5000)
+            val gjeldendId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = gjeldende,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = gjeldendId,
+            )
+
+            PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 15000),
+            )
+
+            // Act
+            PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(deltakerliste.id)
+
+            // Assert — GJELDENDE er urørt
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
+            result shouldBe gjeldende
+        }
     }
 
-    @Test
-    fun `oppdaterer fra Tilskudd til IngenKostnader`() {
-        // Arrange
-        val deltakerliste = lagDeltakerliste()
-        TestRepository.insert(deltakerliste)
+    @Nested
+    inner class LagrePrisinfoForKladdOgUtkastTests {
+        @Test
+        fun `oppdaterer fra Anskaffelse til Tilskudd`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
 
-        val tilskudd = Tilskudd(
-            tilleggsopplysninger = "Tilskudd",
-            tilskudd = listOf(
-                TilskuddInfo(
-                    type = Tilskuddstype.SKOLEPENGER,
-                    pris = 5000,
+            val anskaffelse = Anskaffelse(pris = 20000)
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(deltakerliste.id, anskaffelse)
+
+            val tilskudd = Tilskudd(
+                tilleggsopplysninger = "Nye opplysninger",
+                tilskudd = listOf(
+                    TilskuddInfo(
+                        type = Tilskuddstype.SKOLEPENGER,
+                        pris = 6000,
+                    ),
                 ),
-                TilskuddInfo(
-                    type = Tilskuddstype.EKSAMENSGEBYR,
-                    pris = 2000,
+            )
+
+            // Act
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = tilskudd,
+            )
+
+            // Assert
+            val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
+            result shouldBe tilskudd
+        }
+
+        @Test
+        fun `oppdaterer fra Tilskudd til IngenKostnader`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val tilskudd = Tilskudd(
+                tilleggsopplysninger = "Tilskudd",
+                tilskudd = listOf(
+                    TilskuddInfo(
+                        type = Tilskuddstype.SKOLEPENGER,
+                        pris = 5000,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.EKSAMENSGEBYR,
+                        pris = 2000,
+                    ),
                 ),
-            ),
-        )
-        PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(deltakerliste.id, tilskudd)
+            )
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(deltakerliste.id, tilskudd)
 
-        val ingenKostnader = IngenKostnader(
-            aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-            tilleggsopplysninger = "Egenfinansiert",
-        )
+            val ingenKostnader = IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                tilleggsopplysninger = "Egenfinansiert",
+            )
 
-        // Act
-        PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-            gjennomforingId = deltakerliste.id,
-            prisinformasjon = ingenKostnader,
-        )
+            // Act
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = ingenKostnader,
+            )
 
-        // Assert
-        val result = PrisinfoRepoAdapter.hentPrisinfo(
-            gjennomforingId = deltakerliste.id,
-            brukEndring = true,
-        )
+            // Assert
+            val result = PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = deltakerliste.id,
+                brukEndring = true,
+            )
 
-        result shouldBe ingenKostnader
+            result shouldBe ingenKostnader
+        }
     }
 }

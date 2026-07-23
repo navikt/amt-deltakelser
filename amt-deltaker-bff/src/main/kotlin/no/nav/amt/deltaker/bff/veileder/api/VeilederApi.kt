@@ -144,6 +144,7 @@ fun Routing.registerVeilederApi(
                 )
             }
 
+            // TODO: Gitt at prisendring tilbakekalles, bør dette fremgå av historikken
             post("/endre-prisinfo") {
                 val request = call.receive<EndrePrisinfoRequest>()
                 call.handleEndring(

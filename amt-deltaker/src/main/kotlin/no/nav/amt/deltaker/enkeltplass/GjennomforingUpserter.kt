@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -13,6 +14,8 @@ import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.utils.database.Database
+import java.util.UUID
 
 /**
  * Håndterer publisering av gjennomføringsforespørsler til Mulighetsrommet via Kafka.
@@ -24,6 +27,7 @@ class GjennomforingUpserter(
     private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val gjennomforingRequestProducer: GjennomforingRequestProducer,
+    private val deltakerRepository: DeltakerRepository,
 ) {
     /**
      * Publiserer gjennomføring basert på ansvarlig Nav-ansatt fra det ufatttede vedtaket.
@@ -54,7 +58,7 @@ class GjennomforingUpserter(
      *
      * @param prisinfo Ny prisinformasjon som skal sendes til behandling.
      * @param deltaker Deltakeren tilknyttet gjennomføringen.
-     * @param endretAvNavIdent NAV-ident for saksbehandleren som utfører endringen.
+     * @param endretAvNavIdent Nav-ident for saksbehandleren som utfører endringen.
      */
     fun lagreOgProduserPrisinfoEndring(
         prisinfo: PrisinformasjonDto,
@@ -84,6 +88,37 @@ class GjennomforingUpserter(
     }
 
     /**
+     * Fjerner kopling mellom gjennomføring og prisinfo, og produserer melding til Mulighetsrommet
+     * om tilbakekalling av prisendring.
+     *
+     * @param deltakerId Deltaker-ID
+     * @param endretAvNavIdent Nav-ident for saksbehandleren som utfører endringen.
+     */
+    fun produserTilbakekallPrisendring(
+        deltakerId: UUID,
+        endretAvNavIdent: String,
+    ) {
+        val gjennomforingId = deltakerRepository
+            .get(deltakerId)
+            .getOrThrow()
+            .deltakerliste.id
+
+        Database.transaction {
+            val prisinformasjonId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(gjennomforingId)
+
+            val tilbakekallPrisinfoPayload = GjennomforingRequestPayload.EnkeltplassTilbakekallPrisinformasjon(
+                gjennomforingId = gjennomforingId,
+                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                    id = prisinformasjonId,
+                    behandletAv = endretAvNavIdent,
+                ),
+            )
+
+            gjennomforingRequestProducer.produce(tilbakekallPrisinfoPayload)
+        }
+    }
+
+    /**
      * Bygger og sender en gjennomførings-upsert til Mulighetsrommet.
      *
      * Payload-typen bestemmes av deltakerens nåværende status:
@@ -92,7 +127,7 @@ class GjennomforingUpserter(
      *   Prisinfo-status oppdateres til [PrisinfoDbo.PrisinfoStatus.SENDT] etter vellykket publisering.
      *
      * @param deltaker Deltakeren som skal upsert-es.
-     * @param endretAvNavIdent NAV-ident for saksbehandleren som utfører endringen.
+     * @param endretAvNavIdent Nav-ident for saksbehandleren som utfører endringen.
      * @param endretAvEnhet Enhetsnummer for saksbehandlerens enhet.
      */
     fun produserGjennomforingUpsert(
@@ -128,7 +163,7 @@ class GjennomforingUpserter(
      * Henter gjeldende ENDRING-prisinfo og opplæringskategorisering for gjennomføringen.
      *
      * @param deltaker Deltakeren tilknyttet gjennomføringen.
-     * @param opprettetAvNavIdent NAV-ident for saksbehandleren som oppretter upserten.
+     * @param opprettetAvNavIdent Nav-ident for saksbehandleren som oppretter upserten.
      * @param ansvarligEnhet Enhetsnummer for ansvarlig enhet.
      * @return Ferdig bygget upsert-payload.
      */

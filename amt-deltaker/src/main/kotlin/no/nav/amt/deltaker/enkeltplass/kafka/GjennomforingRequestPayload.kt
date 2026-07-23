@@ -38,6 +38,11 @@ sealed interface GjennomforingRequestPayload {
         val payload: Prisinformasjon,
     ) : GjennomforingRequestPayload
 
+    data class EnkeltplassTilbakekallPrisinformasjon(
+        override val gjennomforingId: UUID,
+        val totrinnskontroll: Totrinnskontroll,
+    ) : GjennomforingRequestPayload
+
     data class EnkeltplassEndreInnhold(
         override val gjennomforingId: UUID,
         val payload: UpsertEnkeltplass.OpplaringKategorisering?, // ikke alle gjennomføringer har dette

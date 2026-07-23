@@ -10,6 +10,7 @@ import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassTilbakekallPrisinfoRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
@@ -180,6 +181,41 @@ class EnkeltplassClientTest {
         }
     }
 
+    @Nested
+    inner class TilbakekallPrisendringTests {
+        val tilbakekallPrisendringLambda: suspend (EnkeltplassClient) -> Unit =
+            { client ->
+                client.tilbakekallPrisendring(
+                    deltakerId = deltakerIdInTest,
+                    request = EnkeltplassTilbakekallPrisinfoRequest(
+                        endretAv = "~endretAv~",
+                    ),
+                )
+            }
+
+        @ParameterizedTest
+        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
+        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) = runTest {
+            val (statusCode, expectedExceptionType) = testCase
+            runFailureTest(
+                exceptionType = expectedExceptionType,
+                statusCode = statusCode,
+                expectedUrl = expectedTilbakekallPrisendringUrl,
+                expectedErrorMessage = "Kunne ikke tilbakekalle prisendring i amt-deltaker for deltaker $deltakerIdInTest",
+                block = tilbakekallPrisendringLambda,
+            )
+        }
+
+        @Test
+        fun `skal returnere OK`() = runTest {
+            runHappyPathTest(
+                expectedUrl = expectedTilbakekallPrisendringUrl,
+                expectedResponse = null,
+                block = tilbakekallPrisendringLambda,
+            )
+        }
+    }
+
     companion object {
         private val deltakerIdInTest = UUID.randomUUID()
         private const val ENKELTPLASS_BASE_URL = "http://amt-deltaker"
@@ -189,6 +225,8 @@ class EnkeltplassClientTest {
         private val expectedUtkastUrl = "$ENKELTPLASS_BASE_URL/enkeltplass/utkast/$deltakerIdInTest"
         private val expectedMeldPaaDirekteUrl =
             "$ENKELTPLASS_BASE_URL/enkeltplass/utkast/$deltakerIdInTest/meld-paa-direkte"
+        private val expectedTilbakekallPrisendringUrl =
+            "$ENKELTPLASS_BASE_URL/enkeltplass/tilbakekall-prisendring/$deltakerIdInTest"
 
         private val request = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",

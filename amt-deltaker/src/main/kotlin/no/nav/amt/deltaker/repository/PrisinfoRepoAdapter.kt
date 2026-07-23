@@ -206,6 +206,28 @@ object PrisinfoRepoAdapter {
     }
 
     /**
+     * Tilbakekaller prisinfo som er pending totrinnskontroll ved å fjerne
+     * record fra mellomlagringstabellen `deltakerliste_2_prisinformasjon`.
+     *
+     * @param gjennomforingId Deltakerliste-ID
+     * @return ID for prisinfo som er tilbakekalt
+     */
+    fun tilbakekallPrisinfoEndring(gjennomforingId: UUID): UUID {
+        val prisinformasjonId = Deltakerliste2PrisinfoRepository
+            .hentPrisinformasjonIdForEndring(gjennomforingId)
+            ?: throw IllegalArgumentException("Fant ingen prisinformasjon som venter på godkjenning")
+
+        // fjern kopling mellom deltakerliste og prisinfo
+        Deltakerliste2PrisinfoRepository.delete(
+            gjennomforingId = gjennomforingId,
+            prisinformasjonId = prisinformasjonId,
+            rolle = PrisinfoDbo.Rolle.ENDRING,
+        )
+
+        return prisinformasjonId
+    }
+
+    /**
      * Konverterer liste av tilskuddskomponenter fra DTO til dbo.
      *
      * Brukes internt for å lagre tilskuddsinformasjon i `prisinfo_belop`-tabellen.
