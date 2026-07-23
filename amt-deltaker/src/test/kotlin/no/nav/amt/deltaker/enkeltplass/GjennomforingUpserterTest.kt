@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -46,12 +47,14 @@ class GjennomforingUpserterTest {
     private val navAnsattRepository = mockk<NavAnsattRepository>()
     private val vedtakService = mockk<VedtakService>()
     private val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>()
+    private val deltakerRepository = mockk<DeltakerRepository>()
 
     private val sut = GjennomforingUpserter(
         navEnhetRepository = navEnhetRepository,
         navAnsattRepository = navAnsattRepository,
         vedtakService = vedtakService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
+        deltakerRepository = deltakerRepository,
     )
 
     @BeforeEach

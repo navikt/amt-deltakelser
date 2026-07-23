@@ -6,6 +6,7 @@ import io.ktor.client.statement.HttpResponse
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassTilbakekallPrisinfoRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
@@ -67,4 +68,12 @@ class EnkeltplassClient(
         urlSubPath = "enkeltplass/utkast/$deltakerId/meld-paa-direkte",
         requestBody = pameldingDecoratedRequest,
     ).failIfNotSuccess("Kunne ikke opprette enkeltplass i amt-deltaker for deltaker $deltakerId")
+
+    suspend fun tilbakekallPrisendring(
+        deltakerId: UUID,
+        request: EnkeltplassTilbakekallPrisinfoRequest,
+    ): HttpResponse = performPost(
+        urlSubPath = "enkeltplass/tilbakekall-prisendring/$deltakerId",
+        requestBody = request,
+    ).failIfNotSuccess("Kunne ikke tilbakekalle prisendring i amt-deltaker for deltaker $deltakerId")
 }

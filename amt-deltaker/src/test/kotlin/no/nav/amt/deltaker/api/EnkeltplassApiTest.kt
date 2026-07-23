@@ -14,9 +14,11 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
+import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
@@ -27,6 +29,7 @@ import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
+import no.nav.amt.internapi.enkeltplass.EnkeltplassTilbakekallPrisinfoRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
@@ -42,6 +45,7 @@ import java.util.UUID
 class EnkeltplassApiTest : IntegrationTestBase() {
     override val enkeltplassService = mockk<EnkeltplassService>()
     override val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
+    override val gjennomforingUpserter = mockk<GjennomforingUpserter>()
 
     @Nested
     inner class OpprettKladdTests {
@@ -284,6 +288,54 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 enkeltplassService.meldPaaDirekte(
                     deltakerId = deltakerInTest.id,
                     decoratedRequest = decoratedRequest,
+                )
+            }
+        }
+    }
+
+    @Nested
+    inner class TilbakekallPrisendringTests {
+        @Test
+        fun `mangler token - returnerer Unauthorized`() {
+            withTestApplicationContext { client ->
+                client
+                    .post("/enkeltplass/tilbakekall-prisendring/${UUID.randomUUID()}")
+                    .status shouldBe HttpStatusCode.Unauthorized
+            }
+        }
+
+        @Test
+        fun `skal tilbakekalle prisendring`() = runTest {
+            // Arrange
+            val deltakerInTest = lagDeltaker()
+
+            every {
+                gjennomforingUpserter.produserTilbakekallPrisendring(
+                    deltakerId = deltakerInTest.id,
+                    endretAvNavIdent = "~endretAv~",
+                )
+            } just Runs
+
+            val request = EnkeltplassTilbakekallPrisinfoRequest(
+                endretAv = "~endretAv~",
+                endretAvEnhet = "~endretAvEnhet~",
+            )
+
+            // Act
+            val response = withTestApplicationContext { client ->
+                client
+                    .post("enkeltplass/tilbakekall-prisendring/${deltakerInTest.id}") {
+                        postRequest(request)
+                    }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.OK
+
+            verify {
+                gjennomforingUpserter.produserTilbakekallPrisendring(
+                    deltakerId = deltakerInTest.id,
+                    endretAvNavIdent = "~endretAv~",
                 )
             }
         }
