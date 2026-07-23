@@ -168,10 +168,9 @@ fun Routing.registerEnkeltplassApi(
                 }
 
                 /*
-               Direktepåmelding av enkeltplass  deltaker uten at utkast/deltakelsen er delt med innbygger
-               Handling: "Meld på uten å dele utkast"
-               Status Kladd/Utkast -> søkt inn
-               @Returns no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+                   Direktepåmelding av enkeltplass  deltaker uten at utkast/deltakelsen er delt med innbygger
+                   Handling: "Meld på uten å dele utkast"
+                   Status Kladd/Utkast -> søkt inn
                  */
                 post("/meld-paa-direkte") {
                     val deltakerId = call.getDeltakerId()
