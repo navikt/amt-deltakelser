@@ -179,7 +179,9 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         mockkObject(PrisinfoRepoAdapter)
         try {
-            every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns null
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(deltakerliste.id)
+            } returns emptyMap()
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
@@ -855,8 +857,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         @Test
         fun `ingen prisinfo - returnerer Pair(null, null)`() {
             // Arrange
-            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) } returns null
-            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) } returns null
+            every { PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId) } returns emptyMap()
 
             // Act
             val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
@@ -869,8 +870,9 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         @Test
         fun `kun ENDRING finnes (KLADD eller UTKAST) - returnerer Pair(endring, null)`() {
             // Arrange
-            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) } returns null
-            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) } returns endringPrisinfo
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
+            } returns mapOf(PrisinfoDbo.Rolle.ENDRING to endringPrisinfo)
 
             // Act
             val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
@@ -883,8 +885,9 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         @Test
         fun `kun GJELDENDE finnes - returnerer Pair(gjeldende, null)`() {
             // Arrange
-            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) } returns gjeldendePrisinfo
-            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) } returns null
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
+            } returns mapOf(PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo)
 
             // Act
             val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
@@ -897,8 +900,12 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         @Test
         fun `GJELDENDE og ENDRING finnes - returnerer Pair(gjeldende, endring)`() {
             // Arrange
-            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) } returns gjeldendePrisinfo
-            every { PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) } returns endringPrisinfo
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
+            } returns mapOf(
+                PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo,
+                PrisinfoDbo.Rolle.ENDRING to endringPrisinfo,
+            )
 
             // Act
             val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)

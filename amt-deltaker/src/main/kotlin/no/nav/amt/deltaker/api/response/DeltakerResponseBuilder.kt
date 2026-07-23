@@ -155,15 +155,12 @@ class DeltakerResponseBuilder(
      * @param gjennomforingId Deltakerliste-ID
      */
     internal fun hentPrisinfoPair(gjennomforingId: UUID): Pair<PrisinformasjonDto?, PrisinformasjonDto?> {
-        val gjeldendePrisinfo = PrisinfoRepoAdapter.hentPrisinfo(
-            gjennomforingId = gjennomforingId,
-            rolle = PrisinfoDbo.Rolle.GJELDENDE,
-        )
+        val prisinfoMap = PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
 
-        val prisinfoTilGodkjenning = PrisinfoRepoAdapter.hentPrisinfo(
-            gjennomforingId = gjennomforingId,
-            rolle = PrisinfoDbo.Rolle.ENDRING,
-        )
+        if (prisinfoMap.isEmpty()) return Pair(null, null)
+
+        val gjeldendePrisinfo = prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE]
+        val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
 
         return if (gjeldendePrisinfo == null) {
             // deltakerstatus er KLADD eller UTKAST
