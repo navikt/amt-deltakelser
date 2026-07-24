@@ -170,7 +170,7 @@ object PrisinfoRepository {
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
                 prisinfo.ingenkostnader_aarsak,
-                vedtak.modified_at,
+                prisinfo.modified_at,
                 vedtak.sist_endret_av,
                 vedtak.sist_endret_av_enhet
             FROM
@@ -180,7 +180,7 @@ object PrisinfoRepository {
             WHERE 
                 deltaker.id = ?
                 AND prisinfo.status = 'GODKJENT'
-            ORDER BY vedtak.modified_at                
+            ORDER BY prisinfo.modified_at                
             """.trimIndent()
 
         return Database.query { session ->

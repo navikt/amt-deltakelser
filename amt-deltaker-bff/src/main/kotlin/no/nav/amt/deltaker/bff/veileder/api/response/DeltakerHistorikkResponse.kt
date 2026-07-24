@@ -118,7 +118,7 @@ sealed interface DeltakerHistorikkResponse {
                 ansatte = ansatte,
             )
 
-            is DeltakerHistorikk.EnkeltplasstOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse(
+            is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse(
                 model = model.data,
                 enheter = enheter,
                 ansatte = ansatte,

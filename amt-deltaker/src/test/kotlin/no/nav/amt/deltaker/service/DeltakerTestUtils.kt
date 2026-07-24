@@ -145,8 +145,8 @@ object DeltakerTestUtils {
                 first.data.utkastGodkjentAvNav shouldBe second.data.utkastGodkjentAvNav
             }
 
-            is DeltakerHistorikk.EnkeltplasstOkonomiGodkjent -> {
-                second.shouldBeInstanceOf<DeltakerHistorikk.EnkeltplasstOkonomiGodkjent>()
+            is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> {
+                second.shouldBeInstanceOf<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
 
                 first.data shouldBe second.data
                 first.sistEndret shouldBe second.sistEndret

@@ -80,8 +80,8 @@ sealed interface DeltakerHistorikkResponse {
                     ansatte = ansatte,
                     enheter = enheter,
                 )
-                // økomomi godkjent er ikke relevant for tiltaksarrangører
-                is DeltakerHistorikk.EnkeltplasstOkonomiGodkjent -> null
+                // økonomi godkjent er ikke relevant for tiltaksarrangører
+                is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> null
             }
         }
     }
